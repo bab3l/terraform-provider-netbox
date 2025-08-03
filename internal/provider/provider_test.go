@@ -59,24 +59,17 @@ func TestProviderResources(t *testing.T) {
 	// Test that the provider provides expected resources
 	resources := p.Resources(ctx)
 
-	if len(resources) == 0 {
-		t.Error("Provider should provide at least one resource")
+	expectedResourceCount := 2 // site and site_group
+	if len(resources) != expectedResourceCount {
+		t.Errorf("Provider should provide %d resources, got %d", expectedResourceCount, len(resources))
 	}
 
-	// Check that site resource is available
-	found := false
-	for _, resourceFunc := range resources {
+	// Verify all resources can be instantiated
+	for i, resourceFunc := range resources {
 		resource := resourceFunc()
-		// We can't easily check the type name without instantiating the resource
-		// but we can verify it's not nil
-		if resource != nil {
-			found = true
-			break
+		if resource == nil {
+			t.Errorf("Resource %d should not be nil", i)
 		}
-	}
-
-	if !found {
-		t.Error("Provider should provide valid resources")
 	}
 }
 

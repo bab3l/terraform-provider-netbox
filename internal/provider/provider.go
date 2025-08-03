@@ -152,6 +152,7 @@ func (p *NetboxProvider) Configure(ctx context.Context, req provider.ConfigureRe
 func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		resources.NewSiteResource,
+		resources.NewSiteGroupResource,
 	}
 }
 

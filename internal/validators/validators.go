@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -142,4 +143,95 @@ func (v SlugValidator) ValidateString(ctx context.Context, request validator.Str
 // ValidSlug returns a validator which ensures that the value is a valid slug.
 func ValidSlug() validator.String {
 	return SlugValidator{}
+}
+
+// IntegerRegex returns a regex for validating integer values
+func IntegerRegex() *regexp.Regexp {
+	return regexp.MustCompile(`^[0-9]+$`)
+}
+
+// CustomFieldNameValidator validates custom field names
+type CustomFieldNameValidator struct{}
+
+// Description returns a description of the validator.
+func (v CustomFieldNameValidator) Description(_ context.Context) string {
+	return "custom field name must start with a letter and contain only letters, numbers, and underscores"
+}
+
+// MarkdownDescription returns a markdown description of the validator.
+func (v CustomFieldNameValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v CustomFieldNameValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
+	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := request.ConfigValue.ValueString()
+
+	// Check if name starts with letter and contains only valid characters
+	matched, _ := regexp.MatchString(`^[a-zA-Z][a-zA-Z0-9_]*$`, value)
+	if !matched {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid Custom Field Name",
+			fmt.Sprintf("Custom field name '%s' must start with a letter and contain only letters, numbers, and underscores", value),
+		)
+	}
+}
+
+// ValidCustomFieldName returns a validator for custom field names.
+func ValidCustomFieldName() validator.String {
+	return CustomFieldNameValidator{}
+}
+
+// CustomFieldTypeValidator validates custom field types
+type CustomFieldTypeValidator struct{}
+
+// Description returns a description of the validator.
+func (v CustomFieldTypeValidator) Description(_ context.Context) string {
+	return "custom field type must be one of: text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject"
+}
+
+// MarkdownDescription returns a markdown description of the validator.
+func (v CustomFieldTypeValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v CustomFieldTypeValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
+	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := request.ConfigValue.ValueString()
+	validTypes := []string{
+		"text", "longtext", "integer", "boolean", "date", "url", "json",
+		"select", "multiselect", "object", "multiobject",
+		"multiple", "selection", // legacy types
+	}
+
+	for _, validType := range validTypes {
+		if value == validType {
+			return
+		}
+	}
+
+	response.Diagnostics.AddAttributeError(
+		request.Path,
+		"Invalid Custom Field Type",
+		fmt.Sprintf("Custom field type '%s' is not valid. Must be one of: %s", value, strings.Join(validTypes, ", ")),
+	)
+}
+
+// ValidCustomFieldType returns a validator for custom field types.
+func ValidCustomFieldType() validator.String {
+	return CustomFieldTypeValidator{}
+}
+
+// SimpleValidCustomFieldValue returns a basic validator for custom field values (without type checking)
+func SimpleValidCustomFieldValue() validator.String {
+	return ValidCustomFieldValue("text") // Default to text validation
 }

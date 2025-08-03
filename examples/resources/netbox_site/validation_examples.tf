@@ -14,17 +14,17 @@ provider "netbox" {
 
 # Valid site configuration
 resource "netbox_site" "valid_site" {
-  name        = "Production Datacenter"        # Valid: 1-100 chars
-  slug        = "prod-dc"                      # Valid: lowercase, letters, numbers, hyphens
-  status      = "active"                       # Valid: one of the allowed values
-  description = "Primary production facility"  # Valid: under 200 chars
-  facility    = "Building A"                   # Valid: under 50 chars
-  comments    = "24/7 operations center"       # Valid: under 1000 chars
+  name        = "Production Datacenter"       # Valid: 1-100 chars
+  slug        = "prod-dc"                     # Valid: lowercase, letters, numbers, hyphens
+  status      = "active"                      # Valid: one of the allowed values
+  description = "Primary production facility" # Valid: under 200 chars
+  facility    = "Building A"                  # Valid: under 50 chars
+  comments    = "24/7 operations center"      # Valid: under 1000 chars
 
   tags = [
     {
-      name = "production"     # Valid: 1-100 chars
-      slug = "production"     # Valid: slug format
+      name = "production" # Valid: 1-100 chars
+      slug = "production" # Valid: slug format
     },
     {
       name = "critical"
@@ -34,24 +34,24 @@ resource "netbox_site" "valid_site" {
 
   custom_fields = [
     {
-      name  = "cost_center"   # Valid: starts with letter, alphanumeric + underscore
-      type  = "text"          # Valid: supported type
-      value = "IT-INFRA-001"  # Valid: under 1000 chars
+      name  = "cost_center"  # Valid: starts with letter, alphanumeric + underscore
+      type  = "text"         # Valid: supported type
+      value = "IT-INFRA-001" # Valid: under 1000 chars
     },
     {
       name  = "rack_count"
       type  = "integer"
-      value = "42"            # Valid: integer as string
+      value = "42" # Valid: integer as string
     },
     {
       name  = "has_generator"
       type  = "boolean"
-      value = "true"          # Valid: boolean as string
+      value = "true" # Valid: boolean as string
     },
     {
       name  = "metadata"
       type  = "json"
-      value = "{\"contact\": \"admin@example.com\"}"  # Valid: JSON string
+      value = "{\"contact\": \"admin@example.com\"}" # Valid: JSON string
     }
   ]
 }
