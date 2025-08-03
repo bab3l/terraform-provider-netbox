@@ -124,7 +124,27 @@ make testacc
 
 ## Resources and Data Sources
 
-*This section will be updated as resources and data sources are implemented.*
+For a complete list of available resources and data sources, including detailed documentation and examples, see the [docs/](./docs/) directory.
+
+📖 **[View Full Documentation Index](./docs/README.md)**
+
+### Quick Examples
+
+```hcl
+# Site group for organizational hierarchy
+resource "netbox_site_group" "region" {
+  name = "North America"
+  slug = "north-america"
+}
+
+# Site within the group
+resource "netbox_site" "datacenter" {
+  name   = "Primary DC"
+  slug   = "primary-dc"
+  group  = netbox_site_group.region.id
+  status = "active"
+}
+```
 
 ## Contributing
 

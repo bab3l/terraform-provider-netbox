@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     netbox = {
-      source = "bab3l/netbox"
+      source  = "bab3l/netbox"
       version = "~> 0.1.0"
     }
   }
@@ -9,7 +9,7 @@ terraform {
 
 provider "netbox" {
   server_url = "https://netbox.example.com"
-  api_token  = "your-api-token-here"  # Or set NETBOX_API_TOKEN environment variable
+  api_token  = "your-api-token-here" # Or set NETBOX_API_TOKEN environment variable
   insecure   = false
 }
 
