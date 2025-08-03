@@ -1,8 +1,10 @@
 package provider
 
 import (
+	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
@@ -21,4 +23,70 @@ func TestProvider(t *testing.T) {
 	if p == nil {
 		t.Fatal("Provider should not be nil")
 	}
+}
+
+func TestProviderSchema(t *testing.T) {
+	ctx := context.Background()
+	p := New("test")()
+
+	// Test that the provider schema can be retrieved
+	schemaReq := provider.SchemaRequest{}
+	schemaResp := &provider.SchemaResponse{}
+
+	p.Schema(ctx, schemaReq, schemaResp)
+
+	if schemaResp.Diagnostics.HasError() {
+		t.Fatalf("Provider schema should not have errors: %v", schemaResp.Diagnostics.Errors())
+	}
+
+	// Verify essential attributes exist
+	attrs := schemaResp.Schema.Attributes
+	if _, ok := attrs["server_url"]; !ok {
+		t.Error("Provider schema should include server_url attribute")
+	}
+	if _, ok := attrs["api_token"]; !ok {
+		t.Error("Provider schema should include api_token attribute")
+	}
+	if _, ok := attrs["insecure"]; !ok {
+		t.Error("Provider schema should include insecure attribute")
+	}
+}
+
+func TestProviderResources(t *testing.T) {
+	ctx := context.Background()
+	p := New("test")()
+
+	// Test that the provider provides expected resources
+	resources := p.Resources(ctx)
+
+	if len(resources) == 0 {
+		t.Error("Provider should provide at least one resource")
+	}
+
+	// Check that site resource is available
+	found := false
+	for _, resourceFunc := range resources {
+		resource := resourceFunc()
+		// We can't easily check the type name without instantiating the resource
+		// but we can verify it's not nil
+		if resource != nil {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		t.Error("Provider should provide valid resources")
+	}
+}
+
+func TestProviderDataSources(t *testing.T) {
+	ctx := context.Background()
+	p := New("test")()
+
+	// Test that the provider provides data sources (even if empty for now)
+	dataSources := p.DataSources(ctx)
+
+	// This is expected to be empty currently, but the call shouldn't panic
+	_ = dataSources
 }

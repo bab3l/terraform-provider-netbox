@@ -7,13 +7,19 @@ package resources
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -31,16 +37,18 @@ type SiteResource struct {
 
 // SiteResourceModel describes the resource data model.
 type SiteResourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Slug        types.String `tfsdk:"slug"`
-	Status      types.String `tfsdk:"status"`
-	Region      types.String `tfsdk:"region"`
-	Group       types.String `tfsdk:"group"`
-	Tenant      types.String `tfsdk:"tenant"`
-	Facility    types.String `tfsdk:"facility"`
-	Description types.String `tfsdk:"description"`
-	Comments    types.String `tfsdk:"comments"`
+	ID           types.String `tfsdk:"id"`
+	Name         types.String `tfsdk:"name"`
+	Slug         types.String `tfsdk:"slug"`
+	Status       types.String `tfsdk:"status"`
+	Region       types.String `tfsdk:"region"`
+	Group        types.String `tfsdk:"group"`
+	Tenant       types.String `tfsdk:"tenant"`
+	Facility     types.String `tfsdk:"facility"`
+	Description  types.String `tfsdk:"description"`
+	Comments     types.String `tfsdk:"comments"`
+	Tags         types.Set    `tfsdk:"tags"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 func (r *SiteResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -59,15 +67,31 @@ func (r *SiteResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Full name of the site. This is the human-readable display name.",
 				Required:            true,
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 100),
+				},
 			},
 			"slug": schema.StringAttribute{
 				MarkdownDescription: "URL-friendly identifier for the site. Must be unique and contain only alphanumeric characters, hyphens, and underscores.",
 				Required:            true,
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 100),
+					validators.ValidSlug(),
+				},
 			},
 			"status": schema.StringAttribute{
 				MarkdownDescription: "Operational status of the site. Valid values include: `planned`, `staging`, `active`, `decommissioning`, `retired`.",
 				Optional:            true,
 				Computed:            true,
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"planned",
+						"staging",
+						"active",
+						"decommissioning",
+						"retired",
+					),
+				},
 			},
 			"region": schema.StringAttribute{
 				MarkdownDescription: "Name or ID of the region where this site is located. Regions help organize sites geographically.",
@@ -84,14 +108,93 @@ func (r *SiteResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"facility": schema.StringAttribute{
 				MarkdownDescription: "Local facility identifier or description (e.g., building name, floor, room number).",
 				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(50),
+				},
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "Detailed description of the site, its purpose, or other relevant information.",
 				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(200),
+				},
 			},
 			"comments": schema.StringAttribute{
 				MarkdownDescription: "Additional comments or notes about the site. Supports Markdown formatting.",
 				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1000),
+				},
+			},
+			"tags": schema.SetNestedAttribute{
+				MarkdownDescription: "Tags assigned to this site. Tags provide a way to categorize and organize resources.",
+				Optional:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							MarkdownDescription: "Name of the existing tag.",
+							Required:            true,
+							Validators: []validator.String{
+								stringvalidator.LengthBetween(1, 100),
+							},
+						},
+						"slug": schema.StringAttribute{
+							MarkdownDescription: "Slug of the existing tag.",
+							Required:            true,
+							Validators: []validator.String{
+								stringvalidator.LengthBetween(1, 100),
+								validators.ValidSlug(),
+							},
+						},
+					},
+				},
+			},
+			"custom_fields": schema.SetNestedAttribute{
+				MarkdownDescription: "Custom fields assigned to this site. Custom fields allow you to store additional structured data.",
+				Optional:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							MarkdownDescription: "Name of the custom field.",
+							Required:            true,
+							Validators: []validator.String{
+								stringvalidator.LengthBetween(1, 50),
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]*$`),
+									"must start with a letter and contain only letters, numbers, and underscores",
+								),
+							},
+						},
+						"type": schema.StringAttribute{
+							MarkdownDescription: "Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).",
+							Required:            true,
+							Validators: []validator.String{
+								stringvalidator.OneOf(
+									"text",
+									"longtext",
+									"integer",
+									"boolean",
+									"date",
+									"url",
+									"json",
+									"select",
+									"multiselect",
+									"object",
+									"multiobject",
+									"multiple",  // legacy
+									"selection", // legacy
+								),
+							},
+						},
+						"value": schema.StringAttribute{
+							MarkdownDescription: "Value of the custom field.",
+							Required:            true,
+							Validators: []validator.String{
+								stringvalidator.LengthAtMost(1000),
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -158,6 +261,26 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 	if !data.Facility.IsNull() {
 		facility := data.Facility.ValueString()
 		siteRequest.Facility = &facility
+	}
+
+	// Handle tags
+	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+		var tags []utils.TagModel
+		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		siteRequest.Tags = utils.TagsToNestedTagRequests(tags)
+	}
+
+	// Handle custom fields
+	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
+		var customFields []utils.CustomFieldModel
+		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		siteRequest.CustomFields = utils.CustomFieldsToMap(customFields)
 	}
 
 	// Create the site via API
@@ -293,6 +416,38 @@ func (r *SiteResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		data.Facility = types.StringNull()
 	}
 
+	// Handle tags
+	if site.HasTags() {
+		tags := utils.NestedTagsToTagModels(site.GetTags())
+		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.Tags = tagsValue
+	} else {
+		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	}
+
+	// Handle custom fields - we need to preserve the state structure
+	if site.HasCustomFields() && !data.CustomFields.IsNull() {
+		var stateCustomFields []utils.CustomFieldModel
+		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		customFields := utils.MapToCustomFieldModels(site.GetCustomFields(), stateCustomFields)
+		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.CustomFields = customFieldsValue
+	} else if data.CustomFields.IsNull() {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	}
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -307,12 +462,145 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	// TODO: Implement site update using go-netbox client
+	// Get the site ID from state
+	siteID := data.ID.ValueString()
+
 	tflog.Debug(ctx, "Updating site", map[string]interface{}{
-		"id":   data.ID.ValueString(),
+		"id":   siteID,
 		"name": data.Name.ValueString(),
 		"slug": data.Slug.ValueString(),
 	})
+
+	// Parse the site ID to int32 for the API call
+	var siteIDInt int32
+	if _, err := fmt.Sscanf(siteID, "%d", &siteIDInt); err != nil {
+		resp.Diagnostics.AddError(
+			"Invalid Site ID",
+			fmt.Sprintf("Site ID must be a number, got: %s", siteID),
+		)
+		return
+	}
+
+	// Prepare the site update request
+	siteRequest := netbox.WritableSiteRequest{
+		Name: data.Name.ValueString(),
+		Slug: data.Slug.ValueString(),
+	}
+
+	// Set optional fields if provided
+	if !data.Description.IsNull() {
+		description := data.Description.ValueString()
+		siteRequest.Description = &description
+	}
+	if !data.Comments.IsNull() {
+		comments := data.Comments.ValueString()
+		siteRequest.Comments = &comments
+	}
+	if !data.Facility.IsNull() {
+		facility := data.Facility.ValueString()
+		siteRequest.Facility = &facility
+	}
+
+	// Handle tags
+	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+		var tags []utils.TagModel
+		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		siteRequest.Tags = utils.TagsToNestedTagRequests(tags)
+	}
+
+	// Handle custom fields
+	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
+		var customFields []utils.CustomFieldModel
+		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		siteRequest.CustomFields = utils.CustomFieldsToMap(customFields)
+	}
+
+	// Update the site via API
+	site, httpResp, err := r.client.DcimAPI.DcimSitesUpdate(ctx, siteIDInt).WritableSiteRequest(siteRequest).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error updating site",
+			fmt.Sprintf("Could not update site ID %s: %s", siteID, err),
+		)
+		return
+	}
+
+	if httpResp.StatusCode != 200 {
+		resp.Diagnostics.AddError(
+			"Error updating site",
+			fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode),
+		)
+		return
+	}
+
+	// Update the model with the response from the API
+	data.ID = types.StringValue(fmt.Sprintf("%d", site.GetId()))
+	data.Name = types.StringValue(site.GetName())
+	data.Slug = types.StringValue(site.GetSlug())
+
+	if site.HasStatus() {
+		status := site.GetStatus()
+		if status.HasValue() {
+			statusValue, _ := status.GetValueOk()
+			data.Status = types.StringValue(string(*statusValue))
+		}
+	}
+
+	if site.HasDescription() {
+		data.Description = types.StringValue(site.GetDescription())
+	} else {
+		data.Description = types.StringNull()
+	}
+
+	if site.HasComments() {
+		data.Comments = types.StringValue(site.GetComments())
+	} else {
+		data.Comments = types.StringNull()
+	}
+
+	if site.HasFacility() {
+		data.Facility = types.StringValue(site.GetFacility())
+	} else {
+		data.Facility = types.StringNull()
+	}
+
+	// Handle tags in response
+	if site.HasTags() {
+		tags := utils.NestedTagsToTagModels(site.GetTags())
+		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.Tags = tagsValue
+	} else {
+		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	}
+
+	// Handle custom fields in response
+	if site.HasCustomFields() && !data.CustomFields.IsNull() {
+		var stateCustomFields []utils.CustomFieldModel
+		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		customFields := utils.MapToCustomFieldModels(site.GetCustomFields(), stateCustomFields)
+		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.CustomFields = customFieldsValue
+	} else if data.CustomFields.IsNull() {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	}
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
