@@ -1,0 +1,22 @@
+---
+page_title: "Provider: {{.ProviderShortName}}"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.ProviderShortName}} Provider
+
+{{ .Description | trimspace }}
+
+## Authentication
+
+The Netbox provider requires an API token for authentication. You can configure the provider in several ways:
+
+1. **Provider configuration block** (recommended for development)
+2. **Environment variables** (recommended for production)
+
+## Example Usage
+
+{{ tffile .ExampleFile }}
+
+{{ .SchemaMarkdown | trimspace }}
