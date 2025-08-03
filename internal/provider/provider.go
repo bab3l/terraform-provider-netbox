@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
 	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 )
 
@@ -158,10 +159,7 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 
 func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		// Add your data sources here
-		// NewSiteDataSource,
-		// NewDeviceDataSource,
-		// etc.
+		datasources.NewSiteDataSource,
 	}
 }
 
