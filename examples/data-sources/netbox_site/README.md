@@ -10,13 +10,20 @@ Demonstrates basic data source usage:
 - Reading a site by slug
 - Outputting site information
 
-### 2. Resource Integration (`with_resource.tf`)
+### 2. Name Lookup (`with_name_lookup.tf`)
+Shows all three lookup methods:
+- Reading a site by ID (most efficient)
+- Reading a site by slug (unique and URL-friendly)
+- Reading a site by name (human-readable)
+- Comparison of lookup methods and their characteristics
+
+### 3. Resource Integration (`with_resource.tf`)
 Shows how to use data sources alongside resources:
 - Creating a new site with a resource
 - Reading the created site with data sources
 - Comparing resource vs data source outputs
 
-### 3. Site Group Integration (`with_site_group.tf`)
+### 4. Site Group Integration (`with_site_group.tf`)
 Advanced example combining multiple resource types:
 - Creating site groups and sites
 - Using data sources for existing infrastructure
@@ -27,12 +34,41 @@ Advanced example combining multiple resource types:
 
 The `netbox_site` data source supports:
 
-- **Flexible Identification**: Find sites by either ID or slug
+- **Flexible Identification**: Find sites by `id`, `slug`, or `name`
 - **Complete Site Information**: Access all site attributes including:
   - Basic info (name, slug, status)
   - Organizational data (region, group, tenant)
   - Descriptive fields (description, comments, facility)
   - Metadata (tags, custom fields)
+
+## Lookup Methods
+
+### By ID (Recommended for API efficiency)
+```hcl
+data "netbox_site" "example" {
+  id = "123"
+}
+```
+- **Pros**: Direct lookup, most efficient
+- **Cons**: Not human-readable, requires knowing the ID
+
+### By Slug (Recommended for readability)
+```hcl
+data "netbox_site" "example" {
+  slug = "primary-datacenter"
+}
+```
+- **Pros**: Human-readable, guaranteed unique, URL-friendly
+- **Cons**: Requires knowing the slug format
+
+### By Name (Useful for human-readable configs)
+```hcl
+data "netbox_site" "example" {
+  name = "Primary Datacenter"
+}
+```
+- **Pros**: Most human-readable, matches display names
+- **Cons**: Names may not be unique, less efficient (requires list + filter)
 
 ## Common Use Cases
 
@@ -44,8 +80,10 @@ The `netbox_site` data source supports:
 
 ## Usage Tips
 
-- Prefer using `slug` for human-readable configurations
-- Use `id` when you need to reference sites by their exact Netbox ID
+- **ID lookups** are most efficient for programmatic use
+- **Slug lookups** are best for human-readable configurations
+- **Name lookups** are useful when you only know the display name
+- Be aware that name lookups may fail if multiple sites have the same name
 - Data sources are read-only - use resources to modify sites
 - Combine data sources with locals for complex conditional logic
 - Use outputs to expose site information for external consumption

@@ -52,20 +52,21 @@ func (d *SiteDataSource) Metadata(ctx context.Context, req datasource.MetadataRe
 
 func (d *SiteDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Use this data source to get information about a site in Netbox. Sites represent physical locations such as data centers, offices, or other facilities where network infrastructure is deployed.",
+		MarkdownDescription: "Use this data source to get information about a site in Netbox. Sites represent physical locations such as data centers, offices, or other facilities where network infrastructure is deployed. You can identify the site using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier for the site. Specify either `id` or `slug` to identify the site.",
+				MarkdownDescription: "Unique identifier for the site. Specify `id`, `slug`, or `name` to identify the site.",
 				Optional:            true,
 				Computed:            true,
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "Full name of the site.",
+				MarkdownDescription: "Full name of the site. Can be used to identify the site instead of `id` or `slug`.",
+				Optional:            true,
 				Computed:            true,
 			},
 			"slug": schema.StringAttribute{
-				MarkdownDescription: "URL-friendly identifier for the site. Specify either `id` or `slug` to identify the site.",
+				MarkdownDescription: "URL-friendly identifier for the site. Specify `id`, `slug`, or `name` to identify the site.",
 				Optional:            true,
 				Computed:            true,
 			},
@@ -171,7 +172,7 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	var err error
 	var httpResp *http.Response
 
-	// Determine if we're searching by ID or slug
+	// Determine if we're searching by ID, slug, or name
 	if !data.ID.IsNull() {
 		// Search by ID
 		siteID := data.ID.ValueString()
@@ -217,10 +218,36 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			}
 			site = &sites.GetResults()[0]
 		}
+	} else if !data.Name.IsNull() {
+		// Search by name
+		siteName := data.Name.ValueString()
+		tflog.Debug(ctx, "Reading site by name", map[string]interface{}{
+			"name": siteName,
+		})
+
+		// List sites with name filter
+		sites, httpResp, err := d.client.DcimAPI.DcimSitesList(ctx).Name([]string{siteName}).Execute()
+		if err == nil && httpResp.StatusCode == 200 {
+			if len(sites.GetResults()) == 0 {
+				resp.Diagnostics.AddError(
+					"Site Not Found",
+					fmt.Sprintf("No site found with name: %s", siteName),
+				)
+				return
+			}
+			if len(sites.GetResults()) > 1 {
+				resp.Diagnostics.AddError(
+					"Multiple Sites Found",
+					fmt.Sprintf("Multiple sites found with name: %s. Site names may not be unique in Netbox.", siteName),
+				)
+				return
+			}
+			site = &sites.GetResults()[0]
+		}
 	} else {
 		resp.Diagnostics.AddError(
 			"Missing Site Identifier",
-			"Either 'id' or 'slug' must be specified to identify the site.",
+			"Either 'id', 'slug', or 'name' must be specified to identify the site.",
 		)
 		return
 	}
