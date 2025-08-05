@@ -37,8 +37,11 @@ type SiteDataSourceModel struct {
 	Slug         types.String `tfsdk:"slug"`
 	Status       types.String `tfsdk:"status"`
 	Region       types.String `tfsdk:"region"`
+	RegionID     types.String `tfsdk:"region_id"`
 	Group        types.String `tfsdk:"group"`
+	GroupID      types.String `tfsdk:"group_id"`
 	Tenant       types.String `tfsdk:"tenant"`
+	TenantID     types.String `tfsdk:"tenant_id"`
 	Facility     types.String `tfsdk:"facility"`
 	Description  types.String `tfsdk:"description"`
 	Comments     types.String `tfsdk:"comments"`
@@ -75,15 +78,27 @@ func (d *SiteDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 				Computed:            true,
 			},
 			"region": schema.StringAttribute{
-				MarkdownDescription: "Name or ID of the region where this site is located.",
+				MarkdownDescription: "Name of the region where this site is located.",
+				Computed:            true,
+			},
+			"region_id": schema.StringAttribute{
+				MarkdownDescription: "ID of the region where this site is located.",
 				Computed:            true,
 			},
 			"group": schema.StringAttribute{
-				MarkdownDescription: "Name or ID of the site group.",
+				MarkdownDescription: "Name of the site group.",
+				Computed:            true,
+			},
+			"group_id": schema.StringAttribute{
+				MarkdownDescription: "ID of the site group.",
 				Computed:            true,
 			},
 			"tenant": schema.StringAttribute{
-				MarkdownDescription: "Name or ID of the tenant that owns this site.",
+				MarkdownDescription: "Name of the tenant that owns this site.",
+				Computed:            true,
+			},
+			"tenant_id": schema.StringAttribute{
+				MarkdownDescription: "ID of the tenant that owns this site.",
 				Computed:            true,
 			},
 			"facility": schema.StringAttribute{
@@ -295,22 +310,28 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	if site.HasRegion() {
 		region := site.GetRegion()
 		data.Region = types.StringValue(region.GetName())
+		data.RegionID = types.StringValue(fmt.Sprintf("%d", region.GetId()))
 	} else {
 		data.Region = types.StringNull()
+		data.RegionID = types.StringNull()
 	}
 
 	if site.HasGroup() {
 		group := site.GetGroup()
 		data.Group = types.StringValue(group.GetName())
+		data.GroupID = types.StringValue(fmt.Sprintf("%d", group.GetId()))
 	} else {
 		data.Group = types.StringNull()
+		data.GroupID = types.StringNull()
 	}
 
 	if site.HasTenant() {
 		tenant := site.GetTenant()
 		data.Tenant = types.StringValue(tenant.GetName())
+		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 	} else {
 		data.Tenant = types.StringNull()
+		data.TenantID = types.StringNull()
 	}
 
 	if site.HasDescription() {
