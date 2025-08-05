@@ -7,7 +7,15 @@ This directory contains comprehensive documentation for all resources and data s
 ### Provider Configuration
 - [Provider](./index.md) - Provider configuration and authentication
 
-### Resources
+### 📊 Data Sources
+
+Data sources provide read-only access to existing Netbox resources:
+
+### DCIM (Data Center Infrastructure Management)
+- [`netbox_site`](./data-sources/site.md) - Read site information by ID, slug, or name
+- [`netbox_site_group`](./data-sources/site_group.md) - Read site group information with hierarchical support
+
+## 🏗️ Resources
 
 #### Organization & Location Management
 - [netbox_site](./resources/site.md) - Physical locations (data centers, offices, facilities)
@@ -67,7 +75,52 @@ All resources in this provider include:
 - TLS/SSL configuration options
 - Connection validation
 
-## Getting Started
+## 🔄 Resource and Data Source Relationship
+
+The terraform-provider-netbox offers both resources and data sources for managing Netbox infrastructure:
+
+- **Resources** - Create, update, and delete Netbox objects (e.g., `netbox_site`)
+- **Data Sources** - Read existing Netbox objects for use in configurations (e.g., `data.netbox_site`)
+
+This dual approach allows you to:
+1. Create new infrastructure with resources
+2. Reference existing infrastructure with data sources
+3. Mix managed and unmanaged resources in the same configuration
+
+Example of using both together:
+```hcl
+# Create a site group
+resource "netbox_site_group" "production" {
+  name = "Production Sites"
+  slug = "production-sites"
+}
+
+# Create a new site
+resource "netbox_site" "new_datacenter" {
+  name  = "New Datacenter"
+  slug  = "new-dc"
+  group = netbox_site_group.production.id
+}
+
+# Reference an existing site group
+data "netbox_site_group" "existing_group" {
+  slug = "existing-group"
+}
+
+# Reference an existing site
+data "netbox_site" "existing_datacenter" {
+  slug = "existing-dc"
+}
+
+# Use both in another resource
+resource "netbox_device" "server" {
+  name = "server-01"
+  site = data.netbox_site.existing_datacenter.id
+  # ... other attributes
+}
+```
+
+## 🚀 Getting Started
 
 1. **Provider Setup**: Start with the [provider configuration](./index.md)
 2. **Basic Resources**: Begin with [sites](./resources/site.md) and [site groups](./resources/site_group.md)
