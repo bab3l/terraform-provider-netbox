@@ -18,7 +18,7 @@ resource "netbox_site_group" "production_sites" {
   name        = "Production Sites"
   slug        = "production-sites"
   description = "All production data centers and facilities"
-  
+
   tags = [
     {
       name = "production"
@@ -34,7 +34,7 @@ resource "netbox_site" "primary_dc" {
   status      = "active"
   description = "Main production facility"
   group       = netbox_site_group.production_sites.id
-  
+
   tags = [
     {
       name = "production"

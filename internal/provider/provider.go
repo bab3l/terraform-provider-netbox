@@ -160,6 +160,7 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		datasources.NewSiteDataSource,
+		datasources.NewSiteGroupDataSource,
 	}
 }
 

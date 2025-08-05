@@ -7,17 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
-func TestSiteDataSource(t *testing.T) {
-	// Test that the site data source can be instantiated
-	d := NewSiteDataSource()
+func TestSiteGroupDataSource(t *testing.T) {
+	// Test that the site group data source can be instantiated
+	d := NewSiteGroupDataSource()
 	if d == nil {
-		t.Fatal("Site data source should not be nil")
+		t.Fatal("Site group data source should not be nil")
 	}
 }
 
-func TestSiteDataSourceSchema(t *testing.T) {
+func TestSiteGroupDataSourceSchema(t *testing.T) {
 	ctx := context.Background()
-	d := NewSiteDataSource()
+	d := NewSiteGroupDataSource()
 
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
@@ -41,28 +41,23 @@ func TestSiteDataSourceSchema(t *testing.T) {
 	if _, ok := schema.Attributes["slug"]; !ok {
 		t.Error("Schema should have 'slug' attribute")
 	}
-	if _, ok := schema.Attributes["status"]; !ok {
-		t.Error("Schema should have 'status' attribute")
+	if _, ok := schema.Attributes["parent"]; !ok {
+		t.Error("Schema should have 'parent' attribute")
 	}
-
-	// Verify that lookup fields are optional
-	idAttr := schema.Attributes["id"]
-	if !idAttr.IsOptional() {
-		t.Error("'id' attribute should be optional for lookup")
+	if _, ok := schema.Attributes["description"]; !ok {
+		t.Error("Schema should have 'description' attribute")
 	}
-	nameAttr := schema.Attributes["name"]
-	if !nameAttr.IsOptional() {
-		t.Error("'name' attribute should be optional for lookup")
+	if _, ok := schema.Attributes["tags"]; !ok {
+		t.Error("Schema should have 'tags' attribute")
 	}
-	slugAttr := schema.Attributes["slug"]
-	if !slugAttr.IsOptional() {
-		t.Error("'slug' attribute should be optional for lookup")
+	if _, ok := schema.Attributes["custom_fields"]; !ok {
+		t.Error("Schema should have 'custom_fields' attribute")
 	}
 }
 
-func TestSiteDataSourceMetadata(t *testing.T) {
+func TestSiteGroupDataSourceMetadata(t *testing.T) {
 	ctx := context.Background()
-	d := NewSiteDataSource()
+	d := NewSiteGroupDataSource()
 
 	req := datasource.MetadataRequest{
 		ProviderTypeName: "netbox",
@@ -71,7 +66,7 @@ func TestSiteDataSourceMetadata(t *testing.T) {
 
 	d.Metadata(ctx, req, resp)
 
-	expectedTypeName := "netbox_site"
+	expectedTypeName := "netbox_site_group"
 	if resp.TypeName != expectedTypeName {
 		t.Errorf("Expected type name '%s', got '%s'", expectedTypeName, resp.TypeName)
 	}
