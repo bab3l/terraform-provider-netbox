@@ -154,6 +154,8 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 	return []func() resource.Resource{
 		resources.NewSiteResource,
 		resources.NewSiteGroupResource,
+		resources.NewTenantGroupResource,
+		resources.NewTenantResource,
 	}
 }
 
@@ -161,6 +163,8 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 	return []func() datasource.DataSource{
 		datasources.NewSiteDataSource,
 		datasources.NewSiteGroupDataSource,
+		datasources.NewTenantGroupDataSource,
+		datasources.NewTenantDataSource,
 	}
 }
 

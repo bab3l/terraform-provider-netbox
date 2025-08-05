@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 )
@@ -240,6 +241,43 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 	siteRequest := netbox.WritableSiteRequest{
 		Name: data.Name.ValueString(),
 		Slug: data.Slug.ValueString(),
+	}
+
+	// Handle tenant relationship
+	if !data.Tenant.IsNull() {
+		var tenantIDInt int32
+		if _, err := fmt.Sscanf(data.Tenant.ValueString(), "%d", &tenantIDInt); err == nil {
+			tenantRef, diags := netboxlookup.LookupTenantBrief(ctx, r.client, fmt.Sprintf("%d", tenantIDInt))
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			siteRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
+		}
+	}
+	// Handle region relationship
+	if !data.Region.IsNull() {
+		var regionIDInt int32
+		if _, err := fmt.Sscanf(data.Region.ValueString(), "%d", &regionIDInt); err == nil {
+			regionRef, diags := netboxlookup.LookupRegionBrief(ctx, r.client, fmt.Sprintf("%d", regionIDInt))
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			siteRequest.Region = *netbox.NewNullableBriefRegionRequest(regionRef)
+		}
+	}
+	// Handle group relationship
+	if !data.Group.IsNull() {
+		var groupIDInt int32
+		if _, err := fmt.Sscanf(data.Group.ValueString(), "%d", &groupIDInt); err == nil {
+			groupRef, diags := netboxlookup.LookupSiteGroupBrief(ctx, r.client, fmt.Sprintf("%d", groupIDInt))
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			siteRequest.Group = *netbox.NewNullableBriefSiteGroupRequest(groupRef)
+		}
 	}
 
 	// Set optional fields if provided
@@ -485,6 +523,43 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	siteRequest := netbox.WritableSiteRequest{
 		Name: data.Name.ValueString(),
 		Slug: data.Slug.ValueString(),
+	}
+
+	// Handle tenant relationship
+	if !data.Tenant.IsNull() {
+		var tenantIDInt int32
+		if _, err := fmt.Sscanf(data.Tenant.ValueString(), "%d", &tenantIDInt); err == nil {
+			tenantRef, diags := netboxlookup.LookupTenantBrief(ctx, r.client, fmt.Sprintf("%d", tenantIDInt))
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			siteRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
+		}
+	}
+	// Handle region relationship
+	if !data.Region.IsNull() {
+		var regionIDInt int32
+		if _, err := fmt.Sscanf(data.Region.ValueString(), "%d", &regionIDInt); err == nil {
+			regionRef, diags := netboxlookup.LookupRegionBrief(ctx, r.client, fmt.Sprintf("%d", regionIDInt))
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			siteRequest.Region = *netbox.NewNullableBriefRegionRequest(regionRef)
+		}
+	}
+	// Handle group relationship
+	if !data.Group.IsNull() {
+		var groupIDInt int32
+		if _, err := fmt.Sscanf(data.Group.ValueString(), "%d", &groupIDInt); err == nil {
+			groupRef, diags := netboxlookup.LookupSiteGroupBrief(ctx, r.client, fmt.Sprintf("%d", groupIDInt))
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			siteRequest.Group = *netbox.NewNullableBriefSiteGroupRequest(groupRef)
+		}
 	}
 
 	// Set optional fields if provided
