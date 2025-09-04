@@ -1,24 +1,25 @@
-package resources
+package resources_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func TestSiteResource(t *testing.T) {
-	// Test that the site resource can be instantiated
-	r := NewSiteResource()
+func TestSiteGroupResource(t *testing.T) {
+	// Test that the site group resource can be instantiated
+	r := resources.NewSiteGroupResource()
 	if r == nil {
-		t.Fatal("Site resource should not be nil")
+		t.Fatal("Site group resource should not be nil")
 	}
 }
 
-func TestSiteResourceSchema(t *testing.T) {
+func TestSiteGroupResourceSchema(t *testing.T) {
 	ctx := context.Background()
-	r := NewSiteResource()
+	r := resources.NewSiteGroupResource()
 
 	// Test that the resource schema can be retrieved
 	schemaReq := resource.SchemaRequest{}
@@ -27,29 +28,29 @@ func TestSiteResourceSchema(t *testing.T) {
 	r.Schema(ctx, schemaReq, schemaResp)
 
 	if schemaResp.Diagnostics.HasError() {
-		t.Fatalf("Site resource schema should not have errors: %v", schemaResp.Diagnostics.Errors())
+		t.Errorf("Schema should not have errors: %v", schemaResp.Diagnostics.Errors())
 	}
 
-	// Verify essential attributes exist
-	attrs := schemaResp.Schema.Attributes
-	requiredAttrs := []string{"id", "name", "slug"}
-	for _, attr := range requiredAttrs {
-		if _, ok := attrs[attr]; !ok {
-			t.Errorf("Site resource schema should include %s attribute", attr)
+	// Check that essential attributes are present
+	requiredAttributes := []string{"id", "name", "slug"}
+	for _, attr := range requiredAttributes {
+		if _, exists := schemaResp.Schema.Attributes[attr]; !exists {
+			t.Errorf("Site group resource schema should include %s attribute", attr)
 		}
 	}
 
-	optionalAttrs := []string{"status", "description", "comments", "facility", "tags", "custom_fields"}
-	for _, attr := range optionalAttrs {
-		if _, ok := attrs[attr]; !ok {
-			t.Errorf("Site resource schema should include %s attribute", attr)
+	// Check that optional attributes are present
+	optionalAttributes := []string{"parent", "description", "tags", "custom_fields"}
+	for _, attr := range optionalAttributes {
+		if _, exists := schemaResp.Schema.Attributes[attr]; !exists {
+			t.Errorf("Site group resource schema should include %s attribute", attr)
 		}
 	}
 }
 
-func TestSiteResourceMetadata(t *testing.T) {
+func TestSiteGroupResourceMetadata(t *testing.T) {
 	ctx := context.Background()
-	r := NewSiteResource()
+	r := resources.NewSiteGroupResource()
 
 	// Test that the resource metadata can be retrieved
 	metadataReq := resource.MetadataRequest{
@@ -59,15 +60,15 @@ func TestSiteResourceMetadata(t *testing.T) {
 
 	r.Metadata(ctx, metadataReq, metadataResp)
 
-	expectedTypeName := "netbox_site"
+	expectedTypeName := "netbox_site_group"
 	if metadataResp.TypeName != expectedTypeName {
 		t.Errorf("Expected type name %s, got %s", expectedTypeName, metadataResp.TypeName)
 	}
 }
 
-func TestSiteResourceConfigure(t *testing.T) {
+func TestSiteGroupResourceConfigure(t *testing.T) {
 	ctx := context.Background()
-	r := NewSiteResource().(*SiteResource) // Cast to access Configure method
+	r := resources.NewSiteGroupResource().(*resources.SiteGroupResource) // Cast to access Configure method
 
 	// Test with nil provider data (should not error)
 	configureReq := resource.ConfigureRequest{

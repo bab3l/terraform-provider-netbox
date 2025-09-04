@@ -14,6 +14,10 @@ Data sources provide read-only access to existing Netbox resources:
 ### DCIM (Data Center Infrastructure Management)
 - [`netbox_site`](./data-sources/site.md) - Read site information by ID, slug, or name
 - [`netbox_site_group`](./data-sources/site_group.md) - Read site group information with hierarchical support
+- [`netbox_platform`](./data-sources/platform.md) - Read platform type information by ID, slug, or name
+
+### Tenancy & Organization
+- [`netbox_tenant_group`](./data-sources/tenant_group.md) - Read tenant group information with hierarchical support
 
 ## 🏗️ Resources
 
@@ -22,6 +26,7 @@ Data sources provide read-only access to existing Netbox resources:
 - [netbox_site_group](./resources/site_group.md) - Hierarchical organization of sites
 
 #### Device & Infrastructure Management
+- [`netbox_platform`](./resources/platform.md) - Platform types (operating systems, firmware)
 *Coming soon*
 - `netbox_device_type` - Device type definitions
 - `netbox_device_role` - Device role classifications  
@@ -43,9 +48,9 @@ Data sources provide read-only access to existing Netbox resources:
 - `netbox_provider` - Service providers
 
 #### Tenancy & Organization
+- [netbox_tenant_group](./resources/tenant_group.md) - Hierarchical organization of tenants
 *Coming soon*
 - `netbox_tenant` - Multi-tenancy support
-- `netbox_tenant_group` - Tenant organization
 - `netbox_region` - Geographic regions
 
 ### Data Sources

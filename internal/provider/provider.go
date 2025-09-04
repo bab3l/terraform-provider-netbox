@@ -156,6 +156,8 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewSiteGroupResource,
 		resources.NewTenantGroupResource,
 		resources.NewTenantResource,
+		resources.NewPlatformResource,
+		resources.NewManufacturerResource,
 	}
 }
 

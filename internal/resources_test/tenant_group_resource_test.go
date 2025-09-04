@@ -1,17 +1,18 @@
-package resources
+package resources_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func TestTenantGroupResource(t *testing.T) {
 	t.Parallel()
 
-	r := NewTenantGroupResource()
+	r := resources.NewTenantGroupResource()
 	if r == nil {
 		t.Fatal("Expected non-nil tenant group resource")
 	}
@@ -20,7 +21,7 @@ func TestTenantGroupResource(t *testing.T) {
 func TestTenantGroupResourceSchema(t *testing.T) {
 	t.Parallel()
 
-	r := NewTenantGroupResource()
+	r := resources.NewTenantGroupResource()
 	schemaRequest := resource.SchemaRequest{}
 	schemaResponse := &resource.SchemaResponse{}
 
@@ -62,7 +63,7 @@ func TestTenantGroupResourceSchema(t *testing.T) {
 func TestTenantGroupResourceMetadata(t *testing.T) {
 	t.Parallel()
 
-	r := NewTenantGroupResource()
+	r := resources.NewTenantGroupResource()
 	metadataRequest := resource.MetadataRequest{
 		ProviderTypeName: "netbox",
 	}
@@ -79,7 +80,7 @@ func TestTenantGroupResourceMetadata(t *testing.T) {
 func TestTenantGroupResourceConfigure(t *testing.T) {
 	t.Parallel()
 
-	r := NewTenantGroupResource().(*TenantGroupResource)
+	r := resources.NewTenantGroupResource().(*resources.TenantGroupResource)
 
 	// Test with nil provider data
 	configureRequest := resource.ConfigureRequest{
