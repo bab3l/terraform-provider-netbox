@@ -1,7 +1,3 @@
-// Package resources contains Terraform resource implementations for the Netbox provider.
-//
-// This package integrates with the go-netbox OpenAPI client to provide
-// CRUD operations for Netbox resources via Terraform.
 package resources
 
 import (
@@ -30,9 +26,19 @@ func NewTenantGroupResource() resource.Resource {
 	return &TenantGroupResource{}
 }
 
+// GetClient returns the Netbox API client for testing purposes.
+func (r *TenantGroupResource) GetClient() *netbox.APIClient {
+	return r.client
+}
+
 // TenantGroupResource defines the resource implementation.
 type TenantGroupResource struct {
 	client *netbox.APIClient
+}
+
+// GetClient returns the Netbox API client for testing purposes.
+func (r *TenantGroupResource) GetClient() *netbox.APIClient {
+	return r.client
 }
 
 // TenantGroupResourceModel describes the resource data model.

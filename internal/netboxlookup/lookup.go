@@ -8,6 +8,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
+// LookupManufacturerBrief returns a BriefManufacturerRequest from an ID or slug
+func LookupManufacturerBrief(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefManufacturerRequest, diag.Diagnostics) {
+	var id int32
+	if _, err := fmt.Sscanf(value, "%d", &id); err == nil {
+		resource, resp, err := client.DcimAPI.DcimManufacturersRetrieve(ctx, id).Execute()
+		if err != nil || resp.StatusCode != 200 {
+			return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Manufacturer lookup failed", err.Error())}
+		}
+		return &netbox.BriefManufacturerRequest{
+			Name: resource.GetName(),
+			Slug: resource.GetSlug(),
+		}, nil
+	}
+	// Optionally, lookup by slug or name if not an ID
+	return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Manufacturer lookup failed", "Invalid input")}
+}
+
 // LookupTenantBrief returns a BriefTenantRequest from an ID or slug
 func LookupTenantBrief(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefTenantRequest, diag.Diagnostics) {
 	var id int32
