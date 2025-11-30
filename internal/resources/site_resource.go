@@ -321,10 +321,24 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 	// Create the site via API
 	site, httpResp, err := r.client.DcimAPI.DcimSitesCreate(ctx).WritableSiteRequest(siteRequest).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating site",
-			utils.FormatAPIError("create site", err, httpResp),
-		)
+		// Use enhanced error handler that detects duplicates and provides import hints
+		handler := utils.CreateErrorHandler{
+			ResourceType: "netbox_site",
+			ResourceName: "this.site", // Terraform resource name placeholder
+			SlugValue:    data.Slug.ValueString(),
+			LookupFunc: func(lookupCtx context.Context, slug string) (string, error) {
+				// Try to look up existing site by slug
+				list, _, lookupErr := r.client.DcimAPI.DcimSitesList(lookupCtx).Slug([]string{slug}).Execute()
+				if lookupErr != nil {
+					return "", lookupErr
+				}
+				if list != nil && len(list.Results) > 0 {
+					return fmt.Sprintf("%d", list.Results[0].GetId()), nil
+				}
+				return "", nil
+			},
+		}
+		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
 

@@ -232,10 +232,24 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 	// Create the site group via API
 	siteGroup, httpResp, err := r.client.DcimAPI.DcimSiteGroupsCreate(ctx).WritableSiteGroupRequest(siteGroupRequest).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating site group",
-			utils.FormatAPIError("create site group", err, httpResp),
-		)
+		// Use enhanced error handler that detects duplicates and provides import hints
+		handler := utils.CreateErrorHandler{
+			ResourceType: "netbox_site_group",
+			ResourceName: "this.site_group", // Terraform resource name placeholder
+			SlugValue:    data.Slug.ValueString(),
+			LookupFunc: func(lookupCtx context.Context, slug string) (string, error) {
+				// Try to look up existing site group by slug
+				list, _, lookupErr := r.client.DcimAPI.DcimSiteGroupsList(lookupCtx).Slug([]string{slug}).Execute()
+				if lookupErr != nil {
+					return "", lookupErr
+				}
+				if list != nil && len(list.Results) > 0 {
+					return fmt.Sprintf("%d", list.Results[0].GetId()), nil
+				}
+				return "", nil
+			},
+		}
+		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
 
@@ -246,6 +260,9 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 		)
 		return
 	}
+
+	// Store original description null state before updating from API
+	origDescIsNull := data.Description.IsNull()
 
 	// Update the model with the response from the API
 	data.ID = types.StringValue(fmt.Sprintf("%d", siteGroup.GetId()))
@@ -265,7 +282,13 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	if siteGroup.HasDescription() {
-		data.Description = types.StringValue(siteGroup.GetDescription())
+		desc := siteGroup.GetDescription()
+		// Preserve null if the original plan/state was null and API returns empty string
+		if desc == "" && origDescIsNull {
+			data.Description = types.StringNull()
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}
@@ -379,7 +402,13 @@ func (r *SiteGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	if siteGroup.HasDescription() {
-		data.Description = types.StringValue(siteGroup.GetDescription())
+		desc := siteGroup.GetDescription()
+		// Preserve null if the original plan/state was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			// Keep it null
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}
@@ -530,7 +559,13 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	if siteGroup.HasDescription() {
-		data.Description = types.StringValue(siteGroup.GetDescription())
+		desc := siteGroup.GetDescription()
+		// Preserve null if the original plan/state was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			// Keep it null
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}

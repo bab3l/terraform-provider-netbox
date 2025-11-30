@@ -21,8 +21,19 @@ func LookupManufacturerBrief(ctx context.Context, client *netbox.APIClient, valu
 			Slug: resource.GetSlug(),
 		}, nil
 	}
-	// Optionally, lookup by slug or name if not an ID
-	return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Manufacturer lookup failed", "Invalid input")}
+	// Lookup by slug
+	list, resp, err := client.DcimAPI.DcimManufacturersList(ctx).Slug([]string{value}).Execute()
+	if err != nil || resp.StatusCode != 200 {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Manufacturer lookup failed", fmt.Sprintf("Could not find manufacturer with slug '%s': %v", value, err))}
+	}
+	if list != nil && len(list.Results) > 0 {
+		resource := list.Results[0]
+		return &netbox.BriefManufacturerRequest{
+			Name: resource.GetName(),
+			Slug: resource.GetSlug(),
+		}, nil
+	}
+	return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Manufacturer lookup failed", fmt.Sprintf("No manufacturer found with slug '%s'", value))}
 }
 
 // LookupTenantBrief returns a BriefTenantRequest from an ID or slug
