@@ -116,7 +116,13 @@ func (r *ManufacturerResource) Create(ctx context.Context, req resource.CreateRe
 	data.Name = types.StringValue(manufacturer.GetName())
 	data.Slug = types.StringValue(manufacturer.GetSlug())
 	if manufacturer.HasDescription() {
-		data.Description = types.StringValue(manufacturer.GetDescription())
+		desc := manufacturer.GetDescription()
+		// Preserve null if original was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			data.Description = types.StringNull()
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}
@@ -165,7 +171,13 @@ func (r *ManufacturerResource) Read(ctx context.Context, req resource.ReadReques
 	data.Name = types.StringValue(manufacturer.GetName())
 	data.Slug = types.StringValue(manufacturer.GetSlug())
 	if manufacturer.HasDescription() {
-		data.Description = types.StringValue(manufacturer.GetDescription())
+		desc := manufacturer.GetDescription()
+		// Preserve null if original was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			data.Description = types.StringNull()
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}
@@ -205,7 +217,13 @@ func (r *ManufacturerResource) Update(ctx context.Context, req resource.UpdateRe
 	data.Name = types.StringValue(manufacturer.GetName())
 	data.Slug = types.StringValue(manufacturer.GetSlug())
 	if manufacturer.HasDescription() {
-		data.Description = types.StringValue(manufacturer.GetDescription())
+		desc := manufacturer.GetDescription()
+		// Preserve null if original was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			data.Description = types.StringNull()
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}

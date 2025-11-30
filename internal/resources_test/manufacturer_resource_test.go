@@ -17,7 +17,7 @@ func TestAccManufacturerResource_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: `
-		  terraform {		import "github.com/bab3l/terraform-provider-netbox/internal/resources"
+		  terraform {
 			required_providers {
 			  netbox = {
 				source = "bab3l/netbox"

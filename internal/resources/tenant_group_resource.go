@@ -250,10 +250,24 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 	// Create the tenant group via API
 	tenantGroup, httpResp, err := r.client.TenancyAPI.TenancyTenantGroupsCreate(ctx).WritableTenantGroupRequest(tenantGroupRequest).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating tenant group",
-			utils.FormatAPIError("create tenant group", err, httpResp),
-		)
+		// Use enhanced error handler that detects duplicates and provides import hints
+		handler := utils.CreateErrorHandler{
+			ResourceType: "netbox_tenant_group",
+			ResourceName: "this.tenant_group", // Terraform resource name placeholder
+			SlugValue:    data.Slug.ValueString(),
+			LookupFunc: func(lookupCtx context.Context, slug string) (string, error) {
+				// Try to look up existing tenant group by slug
+				list, _, lookupErr := r.client.TenancyAPI.TenancyTenantGroupsList(lookupCtx).Slug([]string{slug}).Execute()
+				if lookupErr != nil {
+					return "", lookupErr
+				}
+				if list != nil && len(list.Results) > 0 {
+					return fmt.Sprintf("%d", list.Results[0].GetId()), nil
+				}
+				return "", nil
+			},
+		}
+		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
 
@@ -264,6 +278,9 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 		)
 		return
 	}
+
+	// Store original description null state before updating from API
+	origDescIsNull := data.Description.IsNull()
 
 	// Update the model with the response from the API
 	data.ID = types.StringValue(fmt.Sprintf("%d", tenantGroup.GetId()))
@@ -284,7 +301,13 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	if tenantGroup.HasDescription() {
-		data.Description = types.StringValue(tenantGroup.GetDescription())
+		desc := tenantGroup.GetDescription()
+		// Preserve null if the original plan/state was null and API returns empty string
+		if desc == "" && origDescIsNull {
+			data.Description = types.StringNull()
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}
@@ -390,7 +413,13 @@ func (r *TenantGroupResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	if tenantGroup.HasDescription() {
-		data.Description = types.StringValue(tenantGroup.GetDescription())
+		desc := tenantGroup.GetDescription()
+		// Preserve null if the original plan/state was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			// Keep it null
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}
@@ -541,7 +570,13 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	if tenantGroup.HasDescription() {
-		data.Description = types.StringValue(tenantGroup.GetDescription())
+		desc := tenantGroup.GetDescription()
+		// Preserve null if the original plan/state was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			// Keep it null
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}

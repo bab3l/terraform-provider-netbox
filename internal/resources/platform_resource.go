@@ -56,6 +56,10 @@ func (r *PlatformResource) Schema(ctx context.Context, req resource.SchemaReques
 				Required:            true,
 				MarkdownDescription: "Reference to the manufacturer (ID or slug).",
 			},
+			"description": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Detailed description of the platform.",
+			},
 		},
 	}
 }
@@ -112,13 +116,16 @@ func (r *PlatformResource) Create(ctx context.Context, req resource.CreateReques
 	data.ID = types.StringValue(fmt.Sprintf("%d", platform.GetId()))
 	data.Name = types.StringValue(platform.GetName())
 	data.Slug = types.StringValue(platform.GetSlug())
-	if platform.HasManufacturer() {
-		data.Manufacturer = types.StringValue(platform.GetManufacturer().Name)
-	} else {
-		data.Manufacturer = types.StringNull()
-	}
+	// Keep the manufacturer value as the user provided it (don't overwrite with API response)
+	// The user may have provided a slug or ID, and we should preserve that
 	if platform.HasDescription() {
-		data.Description = types.StringValue(platform.GetDescription())
+		desc := platform.GetDescription()
+		// Preserve null if original was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			data.Description = types.StringNull()
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}
@@ -163,7 +170,13 @@ func (r *PlatformResource) Read(ctx context.Context, req resource.ReadRequest, r
 		data.Manufacturer = types.StringNull()
 	}
 	if platform.HasDescription() {
-		data.Description = types.StringValue(platform.GetDescription())
+		desc := platform.GetDescription()
+		// Preserve null if original was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			data.Description = types.StringNull()
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}
@@ -221,7 +234,13 @@ func (r *PlatformResource) Update(ctx context.Context, req resource.UpdateReques
 		data.Manufacturer = types.StringNull()
 	}
 	if platform.HasDescription() {
-		data.Description = types.StringValue(platform.GetDescription())
+		desc := platform.GetDescription()
+		// Preserve null if original was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			data.Description = types.StringNull()
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}

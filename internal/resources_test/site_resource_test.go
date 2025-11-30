@@ -1,17 +1,20 @@
-package resources_test
+﻿package resources_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/resources"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestSiteResource(t *testing.T) {
-	// Test that the site resource can be instantiated
-	r := resources.NewSiteGroupResource()
+	r := resources.NewSiteResource()
 	if r == nil {
 		t.Fatal("Site resource should not be nil")
 	}
@@ -21,9 +24,8 @@ func TestSiteResourceSchema(t *testing.T) {
 	ctx := context.Background()
 	r := resources.NewSiteResource()
 
-	// Test that the resource schema can be retrieved
-	schemaReq := resource.SchemaRequest{}
-	schemaResp := &resource.SchemaResponse{}
+	schemaReq := fwresource.SchemaRequest{}
+	schemaResp := &fwresource.SchemaResponse{}
 
 	r.Schema(ctx, schemaReq, schemaResp)
 
@@ -31,7 +33,6 @@ func TestSiteResourceSchema(t *testing.T) {
 		t.Fatalf("Site resource schema should not have errors: %v", schemaResp.Diagnostics.Errors())
 	}
 
-	// Verify essential attributes exist
 	attrs := schemaResp.Schema.Attributes
 	requiredAttrs := []string{"id", "name", "slug"}
 	for _, attr := range requiredAttrs {
@@ -52,11 +53,10 @@ func TestSiteResourceMetadata(t *testing.T) {
 	ctx := context.Background()
 	r := resources.NewSiteResource()
 
-	// Test that the resource metadata can be retrieved
-	metadataReq := resource.MetadataRequest{
+	metadataReq := fwresource.MetadataRequest{
 		ProviderTypeName: "netbox",
 	}
-	metadataResp := &resource.MetadataResponse{}
+	metadataResp := &fwresource.MetadataResponse{}
 
 	r.Metadata(ctx, metadataReq, metadataResp)
 
@@ -68,13 +68,12 @@ func TestSiteResourceMetadata(t *testing.T) {
 
 func TestSiteResourceConfigure(t *testing.T) {
 	ctx := context.Background()
-	r := resources.NewSiteResource().(*resources.SiteResource) // Cast to access Configure method
+	r := resources.NewSiteResource().(*resources.SiteResource)
 
-	// Test with nil provider data (should not error)
-	configureReq := resource.ConfigureRequest{
+	configureReq := fwresource.ConfigureRequest{
 		ProviderData: nil,
 	}
-	configureResp := &resource.ConfigureResponse{}
+	configureResp := &fwresource.ConfigureResponse{}
 
 	r.Configure(ctx, configureReq, configureResp)
 
@@ -82,10 +81,9 @@ func TestSiteResourceConfigure(t *testing.T) {
 		t.Error("Configure should not error with nil provider data")
 	}
 
-	// Test with correct provider data type
 	client := &netbox.APIClient{}
 	configureReq.ProviderData = client
-	configureResp = &resource.ConfigureResponse{}
+	configureResp = &fwresource.ConfigureResponse{}
 
 	r.Configure(ctx, configureReq, configureResp)
 
@@ -93,13 +91,48 @@ func TestSiteResourceConfigure(t *testing.T) {
 		t.Errorf("Configure should not error with correct provider data: %v", configureResp.Diagnostics.Errors())
 	}
 
-	// Test with incorrect provider data type
 	configureReq.ProviderData = "invalid"
-	configureResp = &resource.ConfigureResponse{}
+	configureResp = &fwresource.ConfigureResponse{}
 
 	r.Configure(ctx, configureReq, configureResp)
 
 	if !configureResp.Diagnostics.HasError() {
 		t.Error("Configure should error with incorrect provider data type")
 	}
+}
+
+func TestAccSiteResource_basic(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+terraform {
+  required_providers {
+    netbox = {
+      source = "bab3l/netbox"
+      version = ">= 0.1.0"
+    }
+  }
+}
+
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name   = "Test Site"
+  slug   = "test-site"
+  status = "active"
+}
+`,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_site.test", "id"),
+					resource.TestCheckResourceAttr("netbox_site.test", "name", "Test Site"),
+					resource.TestCheckResourceAttr("netbox_site.test", "slug", "test-site"),
+					resource.TestCheckResourceAttr("netbox_site.test", "status", "active"),
+				),
+			},
+		},
+	})
 }

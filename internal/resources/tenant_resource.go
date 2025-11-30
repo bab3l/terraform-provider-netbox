@@ -259,10 +259,24 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 	// Create the tenant via API
 	tenant, httpResp, err := r.client.TenancyAPI.TenancyTenantsCreate(ctx).TenantRequest(tenantRequest).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating tenant",
-			utils.FormatAPIError("create tenant", err, httpResp),
-		)
+		// Use enhanced error handler that detects duplicates and provides import hints
+		handler := utils.CreateErrorHandler{
+			ResourceType: "netbox_tenant",
+			ResourceName: "this.tenant", // Terraform resource name placeholder
+			SlugValue:    data.Slug.ValueString(),
+			LookupFunc: func(lookupCtx context.Context, slug string) (string, error) {
+				// Try to look up existing tenant by slug
+				list, _, lookupErr := r.client.TenancyAPI.TenancyTenantsList(lookupCtx).Slug([]string{slug}).Execute()
+				if lookupErr != nil {
+					return "", lookupErr
+				}
+				if list != nil && len(list.Results) > 0 {
+					return fmt.Sprintf("%d", list.Results[0].GetId()), nil
+				}
+				return "", nil
+			},
+		}
+		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
 
