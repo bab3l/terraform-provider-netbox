@@ -282,11 +282,8 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// Set optional fields if provided
 	if !data.Status.IsNull() {
-		// For now, let's skip status validation and use it as-is
-		// In a production implementation, you'd want to validate against allowed values
-		tflog.Debug(ctx, "Status field provided but skipped for now", map[string]interface{}{
-			"status": data.Status.ValueString(),
-		})
+		statusValue := netbox.LocationStatusValue(data.Status.ValueString())
+		siteRequest.Status = &statusValue
 	}
 	if !data.Description.IsNull() {
 		description := data.Description.ValueString()
@@ -326,7 +323,7 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating site",
-			fmt.Sprintf("Could not create site, unexpected error: %s", err),
+			utils.FormatAPIError("create site", err, httpResp),
 		)
 		return
 	}
@@ -355,15 +352,33 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	if site.HasDescription() {
-		data.Description = types.StringValue(site.GetDescription())
+		desc := site.GetDescription()
+		// Keep null if original was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			// Keep as null
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	}
 
 	if site.HasComments() {
-		data.Comments = types.StringValue(site.GetComments())
+		comments := site.GetComments()
+		// Keep null if original was null and API returns empty string
+		if comments == "" && data.Comments.IsNull() {
+			// Keep as null
+		} else {
+			data.Comments = types.StringValue(comments)
+		}
 	}
 
 	if site.HasFacility() {
-		data.Facility = types.StringValue(site.GetFacility())
+		facility := site.GetFacility()
+		// Keep null if original was null and API returns empty string
+		if facility == "" && data.Facility.IsNull() {
+			// Keep as null
+		} else {
+			data.Facility = types.StringValue(facility)
+		}
 	}
 
 	tflog.Trace(ctx, "created a site resource")
@@ -404,7 +419,7 @@ func (r *SiteResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading site",
-			fmt.Sprintf("Could not read site ID %s: %s", siteID, err),
+			utils.FormatAPIError(fmt.Sprintf("read site ID %s", siteID), err, httpResp),
 		)
 		return
 	}
@@ -437,19 +452,37 @@ func (r *SiteResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	}
 
 	if site.HasDescription() {
-		data.Description = types.StringValue(site.GetDescription())
+		desc := site.GetDescription()
+		// Keep null if original was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			data.Description = types.StringNull()
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}
 
 	if site.HasComments() {
-		data.Comments = types.StringValue(site.GetComments())
+		comments := site.GetComments()
+		// Keep null if original was null and API returns empty string
+		if comments == "" && data.Comments.IsNull() {
+			data.Comments = types.StringNull()
+		} else {
+			data.Comments = types.StringValue(comments)
+		}
 	} else {
 		data.Comments = types.StringNull()
 	}
 
 	if site.HasFacility() {
-		data.Facility = types.StringValue(site.GetFacility())
+		facility := site.GetFacility()
+		// Keep null if original was null and API returns empty string
+		if facility == "" && data.Facility.IsNull() {
+			data.Facility = types.StringNull()
+		} else {
+			data.Facility = types.StringValue(facility)
+		}
 	} else {
 		data.Facility = types.StringNull()
 	}
@@ -523,6 +556,12 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	siteRequest := netbox.WritableSiteRequest{
 		Name: data.Name.ValueString(),
 		Slug: data.Slug.ValueString(),
+	}
+
+	// Set status if provided
+	if !data.Status.IsNull() {
+		statusValue := netbox.LocationStatusValue(data.Status.ValueString())
+		siteRequest.Status = &statusValue
 	}
 
 	// Handle tenant relationship
@@ -601,7 +640,7 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating site",
-			fmt.Sprintf("Could not update site ID %s: %s", siteID, err),
+			utils.FormatAPIError(fmt.Sprintf("update site ID %s", siteID), err, httpResp),
 		)
 		return
 	}
@@ -628,19 +667,34 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	if site.HasDescription() {
-		data.Description = types.StringValue(site.GetDescription())
+		desc := site.GetDescription()
+		if desc == "" && data.Description.IsNull() {
+			// Keep null if originally null and API returns empty
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}
 
 	if site.HasComments() {
-		data.Comments = types.StringValue(site.GetComments())
+		comments := site.GetComments()
+		if comments == "" && data.Comments.IsNull() {
+			// Keep null if originally null and API returns empty
+		} else {
+			data.Comments = types.StringValue(comments)
+		}
 	} else {
 		data.Comments = types.StringNull()
 	}
 
 	if site.HasFacility() {
-		data.Facility = types.StringValue(site.GetFacility())
+		facility := site.GetFacility()
+		if facility == "" && data.Facility.IsNull() {
+			// Keep null if originally null and API returns empty
+		} else {
+			data.Facility = types.StringValue(facility)
+		}
 	} else {
 		data.Facility = types.StringNull()
 	}
@@ -691,10 +745,42 @@ func (r *SiteResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	// TODO: Implement site deletion using go-netbox client
+	// Get the site ID from state
+	siteID := data.ID.ValueString()
+
 	tflog.Debug(ctx, "Deleting site", map[string]interface{}{
-		"id": data.ID.ValueString(),
+		"id": siteID,
 	})
+
+	// Parse the site ID to int32 for the API call
+	var siteIDInt int32
+	if _, err := fmt.Sscanf(siteID, "%d", &siteIDInt); err != nil {
+		resp.Diagnostics.AddError(
+			"Invalid Site ID",
+			fmt.Sprintf("Site ID must be a number, got: %s", siteID),
+		)
+		return
+	}
+
+	// Delete the site via API
+	httpResp, err := r.client.DcimAPI.DcimSitesDestroy(ctx, siteIDInt).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error deleting site",
+			utils.FormatAPIError(fmt.Sprintf("delete site ID %s", siteID), err, httpResp),
+		)
+		return
+	}
+
+	if httpResp.StatusCode != 204 {
+		resp.Diagnostics.AddError(
+			"Error deleting site",
+			fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode),
+		)
+		return
+	}
+
+	tflog.Trace(ctx, "deleted a site resource")
 }
 
 func (r *SiteResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

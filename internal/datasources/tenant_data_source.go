@@ -195,24 +195,30 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		})
 
 		// List tenants with slug filter
-		tenants, httpResp, err := d.client.TenancyAPI.TenancyTenantsList(ctx).Slug([]string{tenantSlug}).Execute()
-		if err == nil && httpResp.StatusCode == 200 {
-			if len(tenants.GetResults()) == 0 {
-				resp.Diagnostics.AddError(
-					"Tenant Not Found",
-					fmt.Sprintf("No tenant found with slug: %s", tenantSlug),
-				)
-				return
-			}
-			if len(tenants.GetResults()) > 1 {
-				resp.Diagnostics.AddError(
-					"Multiple Tenants Found",
-					fmt.Sprintf("Multiple tenants found with slug: %s. This should not happen as slugs should be unique.", tenantSlug),
-				)
-				return
-			}
-			tenant = &tenants.GetResults()[0]
+		var tenants *netbox.PaginatedTenantList
+		tenants, httpResp, err = d.client.TenancyAPI.TenancyTenantsList(ctx).Slug([]string{tenantSlug}).Execute()
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error reading tenant",
+				utils.FormatAPIError("read tenant by slug", err, httpResp),
+			)
+			return
 		}
+		if len(tenants.GetResults()) == 0 {
+			resp.Diagnostics.AddError(
+				"Tenant Not Found",
+				fmt.Sprintf("No tenant found with slug: %s", tenantSlug),
+			)
+			return
+		}
+		if len(tenants.GetResults()) > 1 {
+			resp.Diagnostics.AddError(
+				"Multiple Tenants Found",
+				fmt.Sprintf("Multiple tenants found with slug: %s. This should not happen as slugs should be unique.", tenantSlug),
+			)
+			return
+		}
+		tenant = &tenants.GetResults()[0]
 	} else if !data.Name.IsNull() {
 		// Search by name
 		tenantName := data.Name.ValueString()
@@ -221,24 +227,30 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		})
 
 		// List tenants with name filter
-		tenants, httpResp, err := d.client.TenancyAPI.TenancyTenantsList(ctx).Name([]string{tenantName}).Execute()
-		if err == nil && httpResp.StatusCode == 200 {
-			if len(tenants.GetResults()) == 0 {
-				resp.Diagnostics.AddError(
-					"Tenant Not Found",
-					fmt.Sprintf("No tenant found with name: %s", tenantName),
-				)
-				return
-			}
-			if len(tenants.GetResults()) > 1 {
-				resp.Diagnostics.AddError(
-					"Multiple Tenants Found",
-					fmt.Sprintf("Multiple tenants found with name: %s. Tenant names may not be unique in Netbox.", tenantName),
-				)
-				return
-			}
-			tenant = &tenants.GetResults()[0]
+		var tenants *netbox.PaginatedTenantList
+		tenants, httpResp, err = d.client.TenancyAPI.TenancyTenantsList(ctx).Name([]string{tenantName}).Execute()
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error reading tenant",
+				utils.FormatAPIError("read tenant by name", err, httpResp),
+			)
+			return
 		}
+		if len(tenants.GetResults()) == 0 {
+			resp.Diagnostics.AddError(
+				"Tenant Not Found",
+				fmt.Sprintf("No tenant found with name: %s", tenantName),
+			)
+			return
+		}
+		if len(tenants.GetResults()) > 1 {
+			resp.Diagnostics.AddError(
+				"Multiple Tenants Found",
+				fmt.Sprintf("Multiple tenants found with name: %s. Tenant names may not be unique in Netbox.", tenantName),
+			)
+			return
+		}
+		tenant = &tenants.GetResults()[0]
 	} else {
 		resp.Diagnostics.AddError(
 			"Missing Tenant Identifier",
@@ -250,7 +262,7 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading tenant",
-			fmt.Sprintf("Could not read tenant: %s", err),
+			utils.FormatAPIError("read tenant", err, httpResp),
 		)
 		return
 	}

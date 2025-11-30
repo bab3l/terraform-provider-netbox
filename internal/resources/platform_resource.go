@@ -6,6 +6,7 @@ import (
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -101,7 +102,7 @@ func (r *PlatformResource) Create(ctx context.Context, req resource.CreateReques
 
 	platform, httpResp, err := r.client.DcimAPI.DcimPlatformsCreate(ctx).PlatformRequest(*platformRequest).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating platform", fmt.Sprintf("Could not create platform: %s", err))
+		resp.Diagnostics.AddError("Error creating platform", utils.FormatAPIError("create platform", err, httpResp))
 		return
 	}
 	if httpResp.StatusCode != 201 {
@@ -140,7 +141,7 @@ func (r *PlatformResource) Read(ctx context.Context, req resource.ReadRequest, r
 	}
 	platform, httpResp, err := r.client.DcimAPI.DcimPlatformsRetrieve(ctx, platformIDInt).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading platform", fmt.Sprintf("Could not read platform: %s", err))
+		resp.Diagnostics.AddError("Error reading platform", utils.FormatAPIError(fmt.Sprintf("read platform ID %s", platformID), err, httpResp))
 		return
 	}
 	if httpResp.StatusCode != 200 {
@@ -199,7 +200,7 @@ func (r *PlatformResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 	platform, httpResp, err := r.client.DcimAPI.DcimPlatformsUpdate(ctx, platformIDInt).PlatformRequest(platformRequest).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating platform", fmt.Sprintf("Could not update platform: %s", err))
+		resp.Diagnostics.AddError("Error updating platform", utils.FormatAPIError(fmt.Sprintf("update platform ID %s", platformID), err, httpResp))
 		return
 	}
 	if httpResp.StatusCode != 200 {
@@ -241,7 +242,7 @@ func (r *PlatformResource) Delete(ctx context.Context, req resource.DeleteReques
 	}
 	httpResp, err := r.client.DcimAPI.DcimPlatformsDestroy(ctx, platformIDInt).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error deleting platform", fmt.Sprintf("Could not delete platform: %s", err))
+		resp.Diagnostics.AddError("Error deleting platform", utils.FormatAPIError(fmt.Sprintf("delete platform ID %s", platformID), err, httpResp))
 		return
 	}
 	if httpResp.StatusCode != 204 {

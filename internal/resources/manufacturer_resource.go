@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -100,7 +101,7 @@ func (r *ManufacturerResource) Create(ctx context.Context, req resource.CreateRe
 		"error":            err,
 	})
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating manufacturer", fmt.Sprintf("Could not create manufacturer: %s", err))
+		resp.Diagnostics.AddError("Error creating manufacturer", utils.FormatAPIError("create manufacturer", err, httpResp))
 		return
 	}
 	if httpResp.StatusCode != 201 {
@@ -153,7 +154,7 @@ func (r *ManufacturerResource) Read(ctx context.Context, req resource.ReadReques
 	}
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersRetrieve(ctx, manufacturerIDInt).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading manufacturer", fmt.Sprintf("Could not read manufacturer: %s", err))
+		resp.Diagnostics.AddError("Error reading manufacturer", utils.FormatAPIError(fmt.Sprintf("read manufacturer ID %s", manufacturerID), err, httpResp))
 		return
 	}
 	if httpResp.StatusCode != 200 {
@@ -193,7 +194,7 @@ func (r *ManufacturerResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersUpdate(ctx, manufacturerIDInt).ManufacturerRequest(manufacturerRequest).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating manufacturer", fmt.Sprintf("Could not update manufacturer: %s", err))
+		resp.Diagnostics.AddError("Error updating manufacturer", utils.FormatAPIError(fmt.Sprintf("update manufacturer ID %s", manufacturerID), err, httpResp))
 		return
 	}
 	if httpResp.StatusCode != 200 {
@@ -225,7 +226,7 @@ func (r *ManufacturerResource) Delete(ctx context.Context, req resource.DeleteRe
 	}
 	httpResp, err := r.client.DcimAPI.DcimManufacturersDestroy(ctx, manufacturerIDInt).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Error deleting manufacturer", fmt.Sprintf("Could not delete manufacturer: %s", err))
+		resp.Diagnostics.AddError("Error deleting manufacturer", utils.FormatAPIError(fmt.Sprintf("delete manufacturer ID %s", manufacturerID), err, httpResp))
 		return
 	}
 	if httpResp.StatusCode != 204 {

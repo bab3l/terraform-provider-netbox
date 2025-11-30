@@ -215,24 +215,30 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		})
 
 		// List sites with slug filter
-		sites, httpResp, err := d.client.DcimAPI.DcimSitesList(ctx).Slug([]string{siteSlug}).Execute()
-		if err == nil && httpResp.StatusCode == 200 {
-			if len(sites.GetResults()) == 0 {
-				resp.Diagnostics.AddError(
-					"Site Not Found",
-					fmt.Sprintf("No site found with slug: %s", siteSlug),
-				)
-				return
-			}
-			if len(sites.GetResults()) > 1 {
-				resp.Diagnostics.AddError(
-					"Multiple Sites Found",
-					fmt.Sprintf("Multiple sites found with slug: %s. This should not happen as slugs should be unique.", siteSlug),
-				)
-				return
-			}
-			site = &sites.GetResults()[0]
+		var sites *netbox.PaginatedSiteList
+		sites, httpResp, err = d.client.DcimAPI.DcimSitesList(ctx).Slug([]string{siteSlug}).Execute()
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error reading site",
+				utils.FormatAPIError("read site by slug", err, httpResp),
+			)
+			return
 		}
+		if len(sites.GetResults()) == 0 {
+			resp.Diagnostics.AddError(
+				"Site Not Found",
+				fmt.Sprintf("No site found with slug: %s", siteSlug),
+			)
+			return
+		}
+		if len(sites.GetResults()) > 1 {
+			resp.Diagnostics.AddError(
+				"Multiple Sites Found",
+				fmt.Sprintf("Multiple sites found with slug: %s. This should not happen as slugs should be unique.", siteSlug),
+			)
+			return
+		}
+		site = &sites.GetResults()[0]
 	} else if !data.Name.IsNull() {
 		// Search by name
 		siteName := data.Name.ValueString()
@@ -241,24 +247,30 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		})
 
 		// List sites with name filter
-		sites, httpResp, err := d.client.DcimAPI.DcimSitesList(ctx).Name([]string{siteName}).Execute()
-		if err == nil && httpResp.StatusCode == 200 {
-			if len(sites.GetResults()) == 0 {
-				resp.Diagnostics.AddError(
-					"Site Not Found",
-					fmt.Sprintf("No site found with name: %s", siteName),
-				)
-				return
-			}
-			if len(sites.GetResults()) > 1 {
-				resp.Diagnostics.AddError(
-					"Multiple Sites Found",
-					fmt.Sprintf("Multiple sites found with name: %s. Site names may not be unique in Netbox.", siteName),
-				)
-				return
-			}
-			site = &sites.GetResults()[0]
+		var sites *netbox.PaginatedSiteList
+		sites, httpResp, err = d.client.DcimAPI.DcimSitesList(ctx).Name([]string{siteName}).Execute()
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error reading site",
+				utils.FormatAPIError("read site by name", err, httpResp),
+			)
+			return
 		}
+		if len(sites.GetResults()) == 0 {
+			resp.Diagnostics.AddError(
+				"Site Not Found",
+				fmt.Sprintf("No site found with name: %s", siteName),
+			)
+			return
+		}
+		if len(sites.GetResults()) > 1 {
+			resp.Diagnostics.AddError(
+				"Multiple Sites Found",
+				fmt.Sprintf("Multiple sites found with name: %s. Site names may not be unique in Netbox.", siteName),
+			)
+			return
+		}
+		site = &sites.GetResults()[0]
 	} else {
 		resp.Diagnostics.AddError(
 			"Missing Site Identifier",
@@ -270,7 +282,7 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading site",
-			fmt.Sprintf("Could not read site: %s", err),
+			utils.FormatAPIError("read site", err, httpResp),
 		)
 		return
 	}

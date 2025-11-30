@@ -3,6 +3,9 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -10,6 +13,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+// FormatAPIError formats an API error with response body details for better diagnostics
+func FormatAPIError(operation string, err error, httpResp *http.Response) string {
+	errBody := ""
+	if httpResp != nil && httpResp.Body != nil {
+		bodyBytes, readErr := io.ReadAll(httpResp.Body)
+		if readErr == nil {
+			errBody = string(bodyBytes)
+		}
+	}
+	if errBody != "" {
+		return fmt.Sprintf("Could not %s, unexpected error: %s. Response body: %s", operation, err, errBody)
+	}
+	return fmt.Sprintf("Could not %s, unexpected error: %s", operation, err)
+}
 
 // TagModel represents a tag in Terraform schema
 type TagModel struct {

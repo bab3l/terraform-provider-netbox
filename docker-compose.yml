@@ -1,0 +1,98 @@
+# Docker Compose configuration for local Netbox testing
+# Usage: docker-compose up -d
+# Then run: $env:TF_ACC="1"; go test ./... -v
+
+services:
+  netbox:
+    image: netboxcommunity/netbox:v4.1.11
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Database
+      DB_HOST: postgres
+      DB_NAME: netbox
+      DB_USER: netbox
+      DB_PASSWORD: netbox
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_DATABASE: 0
+      REDIS_CACHE_HOST: redis
+      REDIS_CACHE_PORT: 6379
+      REDIS_CACHE_PASSWORD: ""
+      REDIS_CACHE_DATABASE: 1
+      # Netbox
+      SECRET_KEY: "dev-secret-key-not-for-production-use-only-for-testing-1234567890"
+      SUPERUSER_NAME: admin
+      SUPERUSER_EMAIL: admin@example.com
+      SUPERUSER_PASSWORD: admin
+      SUPERUSER_API_TOKEN: "0123456789abcdef0123456789abcdef01234567"
+      ALLOWED_HOSTS: "*"
+      CORS_ORIGIN_ALLOW_ALL: "true"
+      # Skip email and other non-essential configs for testing
+      SKIP_SUPERUSER: "false"
+    ports:
+      - "8000:8080"
+    volumes:
+      - netbox-media:/opt/netbox/netbox/media
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "-H", "Authorization: Token 0123456789abcdef0123456789abcdef01234567", "http://localhost:8080/api/"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
+
+  netbox-worker:
+    image: netboxcommunity/netbox:v4.1.11
+    depends_on:
+      netbox:
+        condition: service_healthy
+    command: /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py rqworker
+    environment:
+      DB_HOST: postgres
+      DB_NAME: netbox
+      DB_USER: netbox
+      DB_PASSWORD: netbox
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_DATABASE: 0
+      REDIS_CACHE_HOST: redis
+      REDIS_CACHE_PORT: 6379
+      REDIS_CACHE_PASSWORD: ""
+      REDIS_CACHE_DATABASE: 1
+      SECRET_KEY: "dev-secret-key-not-for-production-use-only-for-testing-1234567890"
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: netbox
+      POSTGRES_USER: netbox
+      POSTGRES_PASSWORD: netbox
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U netbox"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  netbox-media:
+  postgres-data:
+  redis-data:

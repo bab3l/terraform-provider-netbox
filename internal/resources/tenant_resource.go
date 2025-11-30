@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 )
@@ -215,19 +216,14 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Set optional fields if provided
+	// Handle group relationship - lookup the group details by ID
 	if !data.Group.IsNull() {
-		var groupIDInt int32
-		if _, err := fmt.Sscanf(data.Group.ValueString(), "%d", &groupIDInt); err != nil {
-			resp.Diagnostics.AddError(
-				"Invalid Group ID",
-				fmt.Sprintf("Group ID must be a number, got: %s", data.Group.ValueString()),
-			)
+		groupRef, diags := netboxlookup.LookupTenantGroupBrief(ctx, r.client, data.Group.ValueString())
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
-		// Note: For now creating empty group request - ID assignment needs to be implemented
-		groupRequest := netbox.BriefTenantGroupRequest{}
-		tenantRequest.Group = *netbox.NewNullableBriefTenantGroupRequest(&groupRequest)
+		tenantRequest.Group = *netbox.NewNullableBriefTenantGroupRequest(groupRef)
 	}
 
 	if !data.Description.IsNull() {
@@ -265,7 +261,7 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating tenant",
-			fmt.Sprintf("Could not create tenant, unexpected error: %s", err),
+			utils.FormatAPIError("create tenant", err, httpResp),
 		)
 		return
 	}
@@ -283,21 +279,38 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 	data.Name = types.StringValue(tenant.GetName())
 	data.Slug = types.StringValue(tenant.GetSlug())
 
+	// Handle group - check both HasGroup and that ID is non-zero
 	if tenant.HasGroup() {
 		group := tenant.GetGroup()
-		data.Group = types.StringValue(fmt.Sprintf("%d", group.GetId()))
+		if group.GetId() != 0 {
+			data.Group = types.StringValue(fmt.Sprintf("%d", group.GetId()))
+		} else {
+			data.Group = types.StringNull()
+		}
 	} else {
 		data.Group = types.StringNull()
 	}
 
 	if tenant.HasDescription() {
-		data.Description = types.StringValue(tenant.GetDescription())
+		desc := tenant.GetDescription()
+		// Keep null if original was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			data.Description = types.StringNull()
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}
 
 	if tenant.HasComments() {
-		data.Comments = types.StringValue(tenant.GetComments())
+		comments := tenant.GetComments()
+		// Keep null if original was null and API returns empty string
+		if comments == "" && data.Comments.IsNull() {
+			data.Comments = types.StringNull()
+		} else {
+			data.Comments = types.StringValue(comments)
+		}
 	} else {
 		data.Comments = types.StringNull()
 	}
@@ -366,7 +379,7 @@ func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, res
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading tenant",
-			fmt.Sprintf("Could not read tenant ID %s: %s", tenantID, err),
+			utils.FormatAPIError(fmt.Sprintf("read tenant ID %s", tenantID), err, httpResp),
 		)
 		return
 	}
@@ -390,21 +403,38 @@ func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, res
 	data.Name = types.StringValue(tenant.GetName())
 	data.Slug = types.StringValue(tenant.GetSlug())
 
+	// Handle group - check both HasGroup and that ID is non-zero
 	if tenant.HasGroup() {
 		group := tenant.GetGroup()
-		data.Group = types.StringValue(fmt.Sprintf("%d", group.GetId()))
+		if group.GetId() != 0 {
+			data.Group = types.StringValue(fmt.Sprintf("%d", group.GetId()))
+		} else {
+			data.Group = types.StringNull()
+		}
 	} else {
 		data.Group = types.StringNull()
 	}
 
 	if tenant.HasDescription() {
-		data.Description = types.StringValue(tenant.GetDescription())
+		desc := tenant.GetDescription()
+		// Keep null if original was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			data.Description = types.StringNull()
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}
 
 	if tenant.HasComments() {
-		data.Comments = types.StringValue(tenant.GetComments())
+		comments := tenant.GetComments()
+		// Keep null if original was null and API returns empty string
+		if comments == "" && data.Comments.IsNull() {
+			data.Comments = types.StringNull()
+		} else {
+			data.Comments = types.StringValue(comments)
+		}
 	} else {
 		data.Comments = types.StringNull()
 	}
@@ -481,18 +511,14 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	// Set optional fields if provided
+	// Handle group relationship - lookup the group details by ID
 	if !data.Group.IsNull() {
-		var groupIDInt int32
-		if _, err := fmt.Sscanf(data.Group.ValueString(), "%d", &groupIDInt); err != nil {
-			resp.Diagnostics.AddError(
-				"Invalid Group ID",
-				fmt.Sprintf("Group ID must be a number, got: %s", data.Group.ValueString()),
-			)
+		groupRef, diags := netboxlookup.LookupTenantGroupBrief(ctx, r.client, data.Group.ValueString())
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
-		// Note: For now creating empty group request - ID assignment needs to be implemented
-		groupRequest := netbox.BriefTenantGroupRequest{}
-		tenantRequest.Group = *netbox.NewNullableBriefTenantGroupRequest(&groupRequest)
+		tenantRequest.Group = *netbox.NewNullableBriefTenantGroupRequest(groupRef)
 	}
 
 	if !data.Description.IsNull() {
@@ -530,7 +556,7 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating tenant",
-			fmt.Sprintf("Could not update tenant ID %s: %s", tenantID, err),
+			utils.FormatAPIError(fmt.Sprintf("update tenant ID %s", tenantID), err, httpResp),
 		)
 		return
 	}
@@ -548,21 +574,38 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 	data.Name = types.StringValue(tenant.GetName())
 	data.Slug = types.StringValue(tenant.GetSlug())
 
+	// Handle group - check both HasGroup and that ID is non-zero
 	if tenant.HasGroup() {
 		group := tenant.GetGroup()
-		data.Group = types.StringValue(fmt.Sprintf("%d", group.GetId()))
+		if group.GetId() != 0 {
+			data.Group = types.StringValue(fmt.Sprintf("%d", group.GetId()))
+		} else {
+			data.Group = types.StringNull()
+		}
 	} else {
 		data.Group = types.StringNull()
 	}
 
 	if tenant.HasDescription() {
-		data.Description = types.StringValue(tenant.GetDescription())
+		desc := tenant.GetDescription()
+		// Keep null if original was null and API returns empty string
+		if desc == "" && data.Description.IsNull() {
+			data.Description = types.StringNull()
+		} else {
+			data.Description = types.StringValue(desc)
+		}
 	} else {
 		data.Description = types.StringNull()
 	}
 
 	if tenant.HasComments() {
-		data.Comments = types.StringValue(tenant.GetComments())
+		comments := tenant.GetComments()
+		// Keep null if original was null and API returns empty string
+		if comments == "" && data.Comments.IsNull() {
+			data.Comments = types.StringNull()
+		} else {
+			data.Comments = types.StringValue(comments)
+		}
 	} else {
 		data.Comments = types.StringNull()
 	}
@@ -635,7 +678,7 @@ func (r *TenantResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting tenant",
-			fmt.Sprintf("Could not delete tenant ID %s: %s", tenantID, err),
+			utils.FormatAPIError(fmt.Sprintf("delete tenant ID %s", tenantID), err, httpResp),
 		)
 		return
 	}

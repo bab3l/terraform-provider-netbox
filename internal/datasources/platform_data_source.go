@@ -3,8 +3,10 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -72,7 +74,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 	}
 	var platform *netbox.Platform
 	var err error
-	var httpResp *netbox.APIResponse
+	var httpResp *http.Response
 	// Lookup by id, slug, or name
 	if !data.ID.IsNull() {
 		platformID := data.ID.ValueString()
@@ -81,15 +83,22 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 			resp.Diagnostics.AddError("Invalid Platform ID", "Platform ID must be a number.")
 			return
 		}
+		var p *netbox.Platform
+		p, httpResp, err = d.client.DcimAPI.DcimPlatformsRetrieve(ctx, platformIDInt).Execute()
+		if err == nil && httpResp.StatusCode == 200 {
+			platform = p
+		}
 	} else if !data.Slug.IsNull() {
 		slug := data.Slug.ValueString()
-		platforms, httpResp, err := d.client.DcimAPI.DcimPlatformsList(ctx).Slug([]string{slug}).Execute()
+		var platforms *netbox.PaginatedPlatformList
+		platforms, httpResp, err = d.client.DcimAPI.DcimPlatformsList(ctx).Slug([]string{slug}).Execute()
 		if err == nil && httpResp.StatusCode == 200 && len(platforms.GetResults()) > 0 {
 			platform = &platforms.GetResults()[0]
 		}
 	} else if !data.Name.IsNull() {
 		name := data.Name.ValueString()
-		platforms, httpResp, err := d.client.DcimAPI.DcimPlatformsList(ctx).Name([]string{name}).Execute()
+		var platforms *netbox.PaginatedPlatformList
+		platforms, httpResp, err = d.client.DcimAPI.DcimPlatformsList(ctx).Name([]string{name}).Execute()
 		if err == nil && httpResp.StatusCode == 200 && len(platforms.GetResults()) > 0 {
 			platform = &platforms.GetResults()[0]
 		}
@@ -98,7 +107,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading platform", err.Error())
+		resp.Diagnostics.AddError("Error reading platform", utils.FormatAPIError("read platform", err, httpResp))
 		return
 	}
 	if httpResp == nil || httpResp.StatusCode != 200 || platform == nil {
