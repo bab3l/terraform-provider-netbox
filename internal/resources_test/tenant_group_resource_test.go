@@ -105,7 +105,7 @@ func TestTenantGroupResourceConfigure(t *testing.T) {
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
 	}
 
-	if r.client != client {
+	if r.GetClient() != client {
 		t.Error("Expected client to be set")
 	}
 

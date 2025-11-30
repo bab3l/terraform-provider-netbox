@@ -36,11 +36,6 @@ type TenantGroupResource struct {
 	client *netbox.APIClient
 }
 
-// GetClient returns the Netbox API client for testing purposes.
-func (r *TenantGroupResource) GetClient() *netbox.APIClient {
-	return r.client
-}
-
 // TenantGroupResourceModel describes the resource data model.
 type TenantGroupResourceModel struct {
 	ID           types.String `tfsdk:"id"`
