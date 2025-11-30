@@ -167,6 +167,8 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewSiteGroupDataSource,
 		datasources.NewTenantGroupDataSource,
 		datasources.NewTenantDataSource,
+		datasources.NewManufacturerDataSource,
+		datasources.NewPlatformDataSource,
 	}
 }
 
