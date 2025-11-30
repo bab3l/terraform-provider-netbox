@@ -59,7 +59,7 @@ func TestProviderResources(t *testing.T) {
 	// Test that the provider provides expected resources
 	resources := p.Resources(ctx)
 
-	expectedResourceCount := 2 // site and site_group
+	expectedResourceCount := 6 // site, site_group, tenant, tenant_group, platform, manufacturer
 	if len(resources) != expectedResourceCount {
 		t.Errorf("Provider should provide %d resources, got %d", expectedResourceCount, len(resources))
 	}

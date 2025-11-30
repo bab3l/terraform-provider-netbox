@@ -2,11 +2,9 @@ package datasources
 
 import (
 	"context"
-
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
-	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -111,14 +109,8 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 	data.Name = types.StringValue(platform.GetName())
 	data.Slug = types.StringValue(platform.GetSlug())
 	if platform.HasManufacturer() {
-		manufacturerID := platform.GetManufacturer()
-		// Use helper to resolve manufacturer to name/slug
-		manufacturerRef, diags := netboxlookup.LookupManufacturerBrief(ctx, d.client, fmt.Sprintf("%d", manufacturerID))
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.Manufacturer = types.StringValue(manufacturerRef.Name)
+		manufacturer := platform.GetManufacturer()
+		data.Manufacturer = types.StringValue(manufacturer.GetName())
 	} else {
 		data.Manufacturer = types.StringNull()
 	}
