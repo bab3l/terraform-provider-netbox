@@ -252,7 +252,7 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating tenant group",
-			fmt.Sprintf("Could not create tenant group, unexpected error: %s", err),
+			utils.FormatAPIError("create tenant group", err, httpResp),
 		)
 		return
 	}
@@ -270,9 +270,15 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 	data.Name = types.StringValue(tenantGroup.GetName())
 	data.Slug = types.StringValue(tenantGroup.GetSlug())
 
+	// Handle parent - check both HasParent and that ID is non-zero
+	// (Netbox API may return parent with ID 0 to indicate no parent)
 	if tenantGroup.HasParent() {
 		parent := tenantGroup.GetParent()
-		data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		if parent.GetId() != 0 {
+			data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		} else {
+			data.Parent = types.StringNull()
+		}
 	} else {
 		data.Parent = types.StringNull()
 	}
@@ -347,7 +353,7 @@ func (r *TenantGroupResource) Read(ctx context.Context, req resource.ReadRequest
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading tenant group",
-			fmt.Sprintf("Could not read tenant group ID %s: %s", tenantGroupID, err),
+			utils.FormatAPIError(fmt.Sprintf("read tenant group ID %s", tenantGroupID), err, httpResp),
 		)
 		return
 	}
@@ -371,9 +377,14 @@ func (r *TenantGroupResource) Read(ctx context.Context, req resource.ReadRequest
 	data.Name = types.StringValue(tenantGroup.GetName())
 	data.Slug = types.StringValue(tenantGroup.GetSlug())
 
+	// Handle parent - check both HasParent and that ID is non-zero
 	if tenantGroup.HasParent() {
 		parent := tenantGroup.GetParent()
-		data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		if parent.GetId() != 0 {
+			data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		} else {
+			data.Parent = types.StringNull()
+		}
 	} else {
 		data.Parent = types.StringNull()
 	}
@@ -499,7 +510,7 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating tenant group",
-			fmt.Sprintf("Could not update tenant group ID %s: %s", tenantGroupID, err),
+			utils.FormatAPIError(fmt.Sprintf("update tenant group ID %s", tenantGroupID), err, httpResp),
 		)
 		return
 	}
@@ -517,9 +528,14 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	data.Name = types.StringValue(tenantGroup.GetName())
 	data.Slug = types.StringValue(tenantGroup.GetSlug())
 
+	// Handle parent - check both HasParent and that ID is non-zero
 	if tenantGroup.HasParent() {
 		parent := tenantGroup.GetParent()
-		data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		if parent.GetId() != 0 {
+			data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		} else {
+			data.Parent = types.StringNull()
+		}
 	} else {
 		data.Parent = types.StringNull()
 	}
@@ -598,7 +614,7 @@ func (r *TenantGroupResource) Delete(ctx context.Context, req resource.DeleteReq
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting tenant group",
-			fmt.Sprintf("Could not delete tenant group ID %s: %s", tenantGroupID, err),
+			utils.FormatAPIError(fmt.Sprintf("delete tenant group ID %s", tenantGroupID), err, httpResp),
 		)
 		return
 	}

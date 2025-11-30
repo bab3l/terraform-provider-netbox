@@ -175,24 +175,30 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		// List site groups with slug filter
-		siteGroups, httpResp, err := d.client.DcimAPI.DcimSiteGroupsList(ctx).Slug([]string{siteGroupSlug}).Execute()
-		if err == nil && httpResp.StatusCode == 200 {
-			if len(siteGroups.GetResults()) == 0 {
-				resp.Diagnostics.AddError(
-					"Site Group Not Found",
-					fmt.Sprintf("No site group found with slug: %s", siteGroupSlug),
-				)
-				return
-			}
-			if len(siteGroups.GetResults()) > 1 {
-				resp.Diagnostics.AddError(
-					"Multiple Site Groups Found",
-					fmt.Sprintf("Multiple site groups found with slug: %s. This should not happen as slugs should be unique.", siteGroupSlug),
-				)
-				return
-			}
-			siteGroup = &siteGroups.GetResults()[0]
+		var siteGroups *netbox.PaginatedSiteGroupList
+		siteGroups, httpResp, err = d.client.DcimAPI.DcimSiteGroupsList(ctx).Slug([]string{siteGroupSlug}).Execute()
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error reading site group",
+				utils.FormatAPIError("read site group by slug", err, httpResp),
+			)
+			return
 		}
+		if len(siteGroups.GetResults()) == 0 {
+			resp.Diagnostics.AddError(
+				"Site Group Not Found",
+				fmt.Sprintf("No site group found with slug: %s", siteGroupSlug),
+			)
+			return
+		}
+		if len(siteGroups.GetResults()) > 1 {
+			resp.Diagnostics.AddError(
+				"Multiple Site Groups Found",
+				fmt.Sprintf("Multiple site groups found with slug: %s. This should not happen as slugs should be unique.", siteGroupSlug),
+			)
+			return
+		}
+		siteGroup = &siteGroups.GetResults()[0]
 	} else if !data.Name.IsNull() {
 		// Search by name
 		siteGroupName := data.Name.ValueString()
@@ -201,24 +207,30 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		// List site groups with name filter
-		siteGroups, httpResp, err := d.client.DcimAPI.DcimSiteGroupsList(ctx).Name([]string{siteGroupName}).Execute()
-		if err == nil && httpResp.StatusCode == 200 {
-			if len(siteGroups.GetResults()) == 0 {
-				resp.Diagnostics.AddError(
-					"Site Group Not Found",
-					fmt.Sprintf("No site group found with name: %s", siteGroupName),
-				)
-				return
-			}
-			if len(siteGroups.GetResults()) > 1 {
-				resp.Diagnostics.AddError(
-					"Multiple Site Groups Found",
-					fmt.Sprintf("Multiple site groups found with name: %s. Site group names may not be unique in Netbox.", siteGroupName),
-				)
-				return
-			}
-			siteGroup = &siteGroups.GetResults()[0]
+		var siteGroups *netbox.PaginatedSiteGroupList
+		siteGroups, httpResp, err = d.client.DcimAPI.DcimSiteGroupsList(ctx).Name([]string{siteGroupName}).Execute()
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error reading site group",
+				utils.FormatAPIError("read site group by name", err, httpResp),
+			)
+			return
 		}
+		if len(siteGroups.GetResults()) == 0 {
+			resp.Diagnostics.AddError(
+				"Site Group Not Found",
+				fmt.Sprintf("No site group found with name: %s", siteGroupName),
+			)
+			return
+		}
+		if len(siteGroups.GetResults()) > 1 {
+			resp.Diagnostics.AddError(
+				"Multiple Site Groups Found",
+				fmt.Sprintf("Multiple site groups found with name: %s. Site group names may not be unique in Netbox.", siteGroupName),
+			)
+			return
+		}
+		siteGroup = &siteGroups.GetResults()[0]
 	} else {
 		resp.Diagnostics.AddError(
 			"Missing Site Group Identifier",
@@ -230,7 +242,7 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading site group",
-			fmt.Sprintf("Could not read site group: %s", err),
+			utils.FormatAPIError("read site group", err, httpResp),
 		)
 		return
 	}

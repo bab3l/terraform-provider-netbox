@@ -190,24 +190,30 @@ func (d *TenantGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		})
 
 		// List tenant groups with slug filter
-		tenantGroups, httpResp, err := d.client.TenancyAPI.TenancyTenantGroupsList(ctx).Slug([]string{tenantGroupSlug}).Execute()
-		if err == nil && httpResp.StatusCode == 200 {
-			if len(tenantGroups.GetResults()) == 0 {
-				resp.Diagnostics.AddError(
-					"Tenant Group Not Found",
-					fmt.Sprintf("No tenant group found with slug: %s", tenantGroupSlug),
-				)
-				return
-			}
-			if len(tenantGroups.GetResults()) > 1 {
-				resp.Diagnostics.AddError(
-					"Multiple Tenant Groups Found",
-					fmt.Sprintf("Multiple tenant groups found with slug: %s. This should not happen as slugs should be unique.", tenantGroupSlug),
-				)
-				return
-			}
-			tenantGroup = &tenantGroups.GetResults()[0]
+		var tenantGroups *netbox.PaginatedTenantGroupList
+		tenantGroups, httpResp, err = d.client.TenancyAPI.TenancyTenantGroupsList(ctx).Slug([]string{tenantGroupSlug}).Execute()
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error reading tenant group",
+				utils.FormatAPIError("read tenant group by slug", err, httpResp),
+			)
+			return
 		}
+		if len(tenantGroups.GetResults()) == 0 {
+			resp.Diagnostics.AddError(
+				"Tenant Group Not Found",
+				fmt.Sprintf("No tenant group found with slug: %s", tenantGroupSlug),
+			)
+			return
+		}
+		if len(tenantGroups.GetResults()) > 1 {
+			resp.Diagnostics.AddError(
+				"Multiple Tenant Groups Found",
+				fmt.Sprintf("Multiple tenant groups found with slug: %s. This should not happen as slugs should be unique.", tenantGroupSlug),
+			)
+			return
+		}
+		tenantGroup = &tenantGroups.GetResults()[0]
 	} else if !data.Name.IsNull() {
 		// Search by name
 		tenantGroupName := data.Name.ValueString()
@@ -216,24 +222,30 @@ func (d *TenantGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		})
 
 		// List tenant groups with name filter
-		tenantGroups, httpResp, err := d.client.TenancyAPI.TenancyTenantGroupsList(ctx).Name([]string{tenantGroupName}).Execute()
-		if err == nil && httpResp.StatusCode == 200 {
-			if len(tenantGroups.GetResults()) == 0 {
-				resp.Diagnostics.AddError(
-					"Tenant Group Not Found",
-					fmt.Sprintf("No tenant group found with name: %s", tenantGroupName),
-				)
-				return
-			}
-			if len(tenantGroups.GetResults()) > 1 {
-				resp.Diagnostics.AddError(
-					"Multiple Tenant Groups Found",
-					fmt.Sprintf("Multiple tenant groups found with name: %s. Tenant group names may not be unique in Netbox.", tenantGroupName),
-				)
-				return
-			}
-			tenantGroup = &tenantGroups.GetResults()[0]
+		var tenantGroups *netbox.PaginatedTenantGroupList
+		tenantGroups, httpResp, err = d.client.TenancyAPI.TenancyTenantGroupsList(ctx).Name([]string{tenantGroupName}).Execute()
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error reading tenant group",
+				utils.FormatAPIError("read tenant group by name", err, httpResp),
+			)
+			return
 		}
+		if len(tenantGroups.GetResults()) == 0 {
+			resp.Diagnostics.AddError(
+				"Tenant Group Not Found",
+				fmt.Sprintf("No tenant group found with name: %s", tenantGroupName),
+			)
+			return
+		}
+		if len(tenantGroups.GetResults()) > 1 {
+			resp.Diagnostics.AddError(
+				"Multiple Tenant Groups Found",
+				fmt.Sprintf("Multiple tenant groups found with name: %s. Tenant group names may not be unique in Netbox.", tenantGroupName),
+			)
+			return
+		}
+		tenantGroup = &tenantGroups.GetResults()[0]
 	} else {
 		resp.Diagnostics.AddError(
 			"Missing Tenant Group Identifier",
@@ -245,7 +257,7 @@ func (d *TenantGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading tenant group",
-			fmt.Sprintf("Could not read tenant group: %s", err),
+			utils.FormatAPIError("read tenant group", err, httpResp),
 		)
 		return
 	}

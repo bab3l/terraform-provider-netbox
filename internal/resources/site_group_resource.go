@@ -234,7 +234,7 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating site group",
-			fmt.Sprintf("Could not create site group, unexpected error: %s", err),
+			utils.FormatAPIError("create site group", err, httpResp),
 		)
 		return
 	}
@@ -252,9 +252,14 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 	data.Name = types.StringValue(siteGroup.GetName())
 	data.Slug = types.StringValue(siteGroup.GetSlug())
 
+	// Handle parent - check both HasParent and that ID is non-zero
 	if siteGroup.HasParent() {
 		parent := siteGroup.GetParent()
-		data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		if parent.GetId() != 0 {
+			data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		} else {
+			data.Parent = types.StringNull()
+		}
 	} else {
 		data.Parent = types.StringNull()
 	}
@@ -337,7 +342,7 @@ func (r *SiteGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading site group",
-			fmt.Sprintf("Could not read site group ID %s: %s", siteGroupID, err),
+			utils.FormatAPIError(fmt.Sprintf("read site group ID %s", siteGroupID), err, httpResp),
 		)
 		return
 	}
@@ -361,9 +366,14 @@ func (r *SiteGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	data.Name = types.StringValue(siteGroup.GetName())
 	data.Slug = types.StringValue(siteGroup.GetSlug())
 
+	// Handle parent - check both HasParent and that ID is non-zero
 	if siteGroup.HasParent() {
 		parent := siteGroup.GetParent()
-		data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		if parent.GetId() != 0 {
+			data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		} else {
+			data.Parent = types.StringNull()
+		}
 	} else {
 		data.Parent = types.StringNull()
 	}
@@ -489,7 +499,7 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating site group",
-			fmt.Sprintf("Could not update site group ID %s: %s", siteGroupID, err),
+			utils.FormatAPIError(fmt.Sprintf("update site group ID %s", siteGroupID), err, httpResp),
 		)
 		return
 	}
@@ -507,9 +517,14 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	data.Name = types.StringValue(siteGroup.GetName())
 	data.Slug = types.StringValue(siteGroup.GetSlug())
 
+	// Handle parent - check both HasParent and that ID is non-zero
 	if siteGroup.HasParent() {
 		parent := siteGroup.GetParent()
-		data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		if parent.GetId() != 0 {
+			data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		} else {
+			data.Parent = types.StringNull()
+		}
 	} else {
 		data.Parent = types.StringNull()
 	}
@@ -588,7 +603,7 @@ func (r *SiteGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting site group",
-			fmt.Sprintf("Could not delete site group ID %s: %s", siteGroupID, err),
+			utils.FormatAPIError(fmt.Sprintf("delete site group ID %s", siteGroupID), err, httpResp),
 		)
 		return
 	}

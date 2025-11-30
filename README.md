@@ -6,7 +6,9 @@ A Terraform provider for [Netbox](https://github.com/netbox-community/netbox) us
 
 - [Terraform](https://www.terraform.io/downloads.html) >= 1.0
 - [Go](https://golang.org/doc/install) >= 1.21
-- [Netbox](https://github.com/netbox-community/netbox) instance with API access
+- [Netbox](https://github.com/netbox-community/netbox) **v4.1.11** (tested version)
+
+> **Note:** This provider is built and tested against Netbox v4.1.11. Other versions may work but are not officially supported.
 
 ## Building the Provider
 
