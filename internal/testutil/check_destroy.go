@@ -211,6 +211,105 @@ func CheckPlatformDestroy(s *terraform.State) error {
 	return nil
 }
 
+// CheckRegionDestroy verifies that a region has been destroyed.
+func CheckRegionDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_region" {
+			continue
+		}
+
+		slug := rs.Primary.Attributes["slug"]
+		if slug == "" {
+			continue
+		}
+
+		list, resp, err := client.DcimAPI.DcimRegionsList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("region with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckLocationDestroy verifies that a location has been destroyed.
+func CheckLocationDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_location" {
+			continue
+		}
+
+		slug := rs.Primary.Attributes["slug"]
+		if slug == "" {
+			continue
+		}
+
+		list, resp, err := client.DcimAPI.DcimLocationsList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("location with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckRackDestroy verifies that a rack has been destroyed.
+func CheckRackDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_rack" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.DcimAPI.DcimRacksList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("rack with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
 // ComposeCheckDestroy combines multiple CheckDestroy functions.
 // Useful when a test creates multiple resource types.
 func ComposeCheckDestroy(checks ...resource.TestCheckFunc) resource.TestCheckFunc {
