@@ -25,7 +25,7 @@ resource "netbox_tenant" "example_tenant" {
   group       = netbox_tenant_group.example_group.id
   description = "An example tenant"
   comments    = "This tenant is used for demonstration purposes"
-  
+
   tags = [
     {
       name = "production"
@@ -36,7 +36,7 @@ resource "netbox_tenant" "example_tenant" {
       slug = "critical"
     }
   ]
-  
+
   custom_fields = [
     {
       name  = "cost_center"

@@ -226,7 +226,9 @@ main() {
         test_names+=("$(basename "$SPECIFIC_TEST")")
     else
         # Ordered test sequence - dependencies first
-        test_order=("tenant_group" "tenant" "site_group" "site")
+        # manufacturer before platform, tenant_group before tenant, site_group before site
+        # region has no deps, location depends on site, rack depends on site+location
+        test_order=("manufacturer" "platform" "tenant_group" "tenant" "site_group" "site" "region" "location" "rack")
         
         # Add resource tests in order
         for name in "${test_order[@]}"; do

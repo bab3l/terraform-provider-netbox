@@ -114,5 +114,114 @@ func LookupSiteBrief(ctx context.Context, client *netbox.APIClient, value string
 			Slug: resource.GetSlug(),
 		}, nil
 	}
-	return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Site lookup failed", "Invalid input")}
+	// Lookup by slug
+	list, resp, err := client.DcimAPI.DcimSitesList(ctx).Slug([]string{value}).Execute()
+	if err != nil || resp.StatusCode != 200 {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Site lookup failed", fmt.Sprintf("Could not find site with slug '%s': %v", value, err))}
+	}
+	if list != nil && len(list.Results) > 0 {
+		resource := list.Results[0]
+		return &netbox.BriefSiteRequest{
+			Name: resource.GetName(),
+			Slug: resource.GetSlug(),
+		}, nil
+	}
+	return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Site lookup failed", fmt.Sprintf("No site found with slug '%s'", value))}
+}
+
+// LookupLocationBrief returns a BriefLocationRequest from an ID or slug
+func LookupLocationBrief(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefLocationRequest, diag.Diagnostics) {
+	var id int32
+	if _, err := fmt.Sscanf(value, "%d", &id); err == nil {
+		resource, resp, err := client.DcimAPI.DcimLocationsRetrieve(ctx, id).Execute()
+		if err != nil || resp.StatusCode != 200 {
+			return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Location lookup failed", err.Error())}
+		}
+		return &netbox.BriefLocationRequest{
+			Name: resource.GetName(),
+			Slug: resource.GetSlug(),
+		}, nil
+	}
+	// Lookup by slug
+	list, resp, err := client.DcimAPI.DcimLocationsList(ctx).Slug([]string{value}).Execute()
+	if err != nil || resp.StatusCode != 200 {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Location lookup failed", fmt.Sprintf("Could not find location with slug '%s': %v", value, err))}
+	}
+	if list != nil && len(list.Results) > 0 {
+		resource := list.Results[0]
+		return &netbox.BriefLocationRequest{
+			Name: resource.GetName(),
+			Slug: resource.GetSlug(),
+		}, nil
+	}
+	return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Location lookup failed", fmt.Sprintf("No location found with slug '%s'", value))}
+}
+
+// LookupRackRoleBrief returns a BriefRackRoleRequest from an ID or slug
+func LookupRackRoleBrief(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefRackRoleRequest, diag.Diagnostics) {
+	var id int32
+	if _, err := fmt.Sscanf(value, "%d", &id); err == nil {
+		resource, resp, err := client.DcimAPI.DcimRackRolesRetrieve(ctx, id).Execute()
+		if err != nil || resp.StatusCode != 200 {
+			return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Rack role lookup failed", err.Error())}
+		}
+		return &netbox.BriefRackRoleRequest{
+			Name: resource.GetName(),
+			Slug: resource.GetSlug(),
+		}, nil
+	}
+	// Lookup by slug
+	list, resp, err := client.DcimAPI.DcimRackRolesList(ctx).Slug([]string{value}).Execute()
+	if err != nil || resp.StatusCode != 200 {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Rack role lookup failed", fmt.Sprintf("Could not find rack role with slug '%s': %v", value, err))}
+	}
+	if list != nil && len(list.Results) > 0 {
+		resource := list.Results[0]
+		return &netbox.BriefRackRoleRequest{
+			Name: resource.GetName(),
+			Slug: resource.GetSlug(),
+		}, nil
+	}
+	return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Rack role lookup failed", fmt.Sprintf("No rack role found with slug '%s'", value))}
+}
+
+// LookupRackTypeBrief returns a BriefRackTypeRequest from an ID or model name
+func LookupRackTypeBrief(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefRackTypeRequest, diag.Diagnostics) {
+	var id int32
+	if _, err := fmt.Sscanf(value, "%d", &id); err == nil {
+		resource, resp, err := client.DcimAPI.DcimRackTypesRetrieve(ctx, id).Execute()
+		if err != nil || resp.StatusCode != 200 {
+			return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Rack type lookup failed", err.Error())}
+		}
+		// Get manufacturer for the request
+		manufacturer := resource.GetManufacturer()
+		manufacturerRequest := netbox.BriefManufacturerRequest{
+			Name: manufacturer.GetName(),
+			Slug: manufacturer.GetSlug(),
+		}
+		return &netbox.BriefRackTypeRequest{
+			Manufacturer: manufacturerRequest,
+			Model:        resource.GetModel(),
+			Slug:         resource.GetSlug(),
+		}, nil
+	}
+	// Lookup by model name
+	list, resp, err := client.DcimAPI.DcimRackTypesList(ctx).Model([]string{value}).Execute()
+	if err != nil || resp.StatusCode != 200 {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Rack type lookup failed", fmt.Sprintf("Could not find rack type with model '%s': %v", value, err))}
+	}
+	if list != nil && len(list.Results) > 0 {
+		resource := list.Results[0]
+		manufacturer := resource.GetManufacturer()
+		manufacturerRequest := netbox.BriefManufacturerRequest{
+			Name: manufacturer.GetName(),
+			Slug: manufacturer.GetSlug(),
+		}
+		return &netbox.BriefRackTypeRequest{
+			Manufacturer: manufacturerRequest,
+			Model:        resource.GetModel(),
+			Slug:         resource.GetSlug(),
+		}, nil
+	}
+	return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Rack type lookup failed", fmt.Sprintf("No rack type found with model '%s'", value))}
 }

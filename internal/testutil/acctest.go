@@ -262,3 +262,84 @@ func (c *CleanupResource) RegisterPlatformCleanup(slug string) {
 		}
 	})
 }
+
+// RegisterRegionCleanup registers a cleanup function that will delete
+// a region by slug after the test completes.
+func (c *CleanupResource) RegisterRegionCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimRegionsList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list regions with slug %s: %v", slug, err)
+			return
+		}
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+			c.t.Logf("Cleanup: region with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimRegionsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete region %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted region %d (slug: %s)", id, slug)
+		}
+	})
+}
+
+// RegisterLocationCleanup registers a cleanup function that will delete
+// a location by slug after the test completes.
+func (c *CleanupResource) RegisterLocationCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimLocationsList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list locations with slug %s: %v", slug, err)
+			return
+		}
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+			c.t.Logf("Cleanup: location with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimLocationsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete location %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted location %d (slug: %s)", id, slug)
+		}
+	})
+}
+
+// RegisterRackCleanup registers a cleanup function that will delete
+// a rack by name after the test completes.
+func (c *CleanupResource) RegisterRackCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimRacksList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list racks with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+			c.t.Logf("Cleanup: rack with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimRacksDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete rack %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted rack %d (name: %s)", id, name)
+		}
+	})
+}

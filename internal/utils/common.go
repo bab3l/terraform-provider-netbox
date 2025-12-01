@@ -208,6 +208,24 @@ func TagsToNestedTagRequests(tags []TagModel) []netbox.NestedTagRequest {
 	return result
 }
 
+// TagModelsToNestedTagRequests extracts TagModels from a types.Set and converts to NestedTagRequests
+func TagModelsToNestedTagRequests(ctx context.Context, tagsSet types.Set) ([]netbox.NestedTagRequest, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var tags []TagModel
+
+	diags = tagsSet.ElementsAs(ctx, &tags, false)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return TagsToNestedTagRequests(tags), diags
+}
+
+// CustomFieldModelsToMap extracts CustomFieldModels from slice and converts to map
+func CustomFieldModelsToMap(models []CustomFieldModel) map[string]interface{} {
+	return CustomFieldsToMap(models)
+}
+
 // NestedTagsToTagModels converts go-netbox NestedTag slice to Terraform tag models
 func NestedTagsToTagModels(tags []netbox.NestedTag) []TagModel {
 	if len(tags) == 0 {
