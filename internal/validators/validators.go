@@ -150,6 +150,11 @@ func IntegerRegex() *regexp.Regexp {
 	return regexp.MustCompile(`^[0-9]+$`)
 }
 
+// HexColorRegex returns a regex for validating 6-character hexadecimal color codes
+func HexColorRegex() *regexp.Regexp {
+	return regexp.MustCompile(`^[0-9a-fA-F]{6}$`)
+}
+
 // CustomFieldNameValidator validates custom field names
 type CustomFieldNameValidator struct{}
 

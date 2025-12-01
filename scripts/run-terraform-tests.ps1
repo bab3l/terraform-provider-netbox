@@ -248,7 +248,8 @@ function Main {
         # manufacturer before platform (platform depends on manufacturer)
         # tenant_group before tenant, site_group before site
         # region has no deps, location depends on site, rack depends on site+location
-        $testOrder = @("manufacturer", "platform", "tenant_group", "tenant", "site_group", "site", "region", "location", "rack")
+        # rack_role has no deps (used to categorize racks)
+        $testOrder = @("manufacturer", "platform", "tenant_group", "tenant", "site_group", "site", "region", "location", "rack_role", "rack")
         
         foreach ($name in $testOrder) {
             $test = $resourceTests | Where-Object { $_.Name -eq $name }
