@@ -277,7 +277,8 @@ func (d *TenantGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	if tenantGroup.HasParent() {
 		parent := tenantGroup.GetParent()
-		data.Parent = types.StringValue(parent.GetName())
+		// Set parent to the ID for consistency with the resource
+		data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
 		data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
 	} else {
 		data.Parent = types.StringNull()

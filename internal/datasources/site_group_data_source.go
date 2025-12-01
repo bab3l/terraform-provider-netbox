@@ -271,7 +271,8 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 	// Handle parent site group
 	if siteGroup.HasParent() {
 		parent := siteGroup.GetParent()
-		data.Parent = types.StringValue(parent.GetName())
+		// Set parent to the ID for consistency with the resource
+		data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
 	} else {
 		data.Parent = types.StringNull()
 	}

@@ -244,7 +244,9 @@ function Main {
         $resourceTests = Get-ChildItem -Path (Join-Path $TestRoot "resources") -Directory -ErrorAction SilentlyContinue
         $dataSourceTests = Get-ChildItem -Path (Join-Path $TestRoot "data-sources") -Directory -ErrorAction SilentlyContinue
         
-        $testOrder = @("tenant_group", "tenant", "site_group", "site")
+        # Order matters: manufacturer before platform (platform depends on manufacturer)
+        # tenant_group before tenant, site_group before site (for potential dependencies)
+        $testOrder = @("manufacturer", "platform", "tenant_group", "tenant", "site_group", "site")
         
         foreach ($name in $testOrder) {
             $test = $resourceTests | Where-Object { $_.Name -eq $name }
