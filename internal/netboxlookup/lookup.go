@@ -225,3 +225,126 @@ func LookupRackTypeBrief(ctx context.Context, client *netbox.APIClient, value st
 	}
 	return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Rack type lookup failed", fmt.Sprintf("No rack type found with model '%s'", value))}
 }
+
+// LookupPlatformBrief returns a BriefPlatformRequest from an ID or slug
+func LookupPlatformBrief(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefPlatformRequest, diag.Diagnostics) {
+	var id int32
+	if _, err := fmt.Sscanf(value, "%d", &id); err == nil {
+		resource, resp, err := client.DcimAPI.DcimPlatformsRetrieve(ctx, id).Execute()
+		if err != nil || resp.StatusCode != 200 {
+			return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Platform lookup failed", err.Error())}
+		}
+		return &netbox.BriefPlatformRequest{
+			Name: resource.GetName(),
+			Slug: resource.GetSlug(),
+		}, nil
+	}
+	// Lookup by slug
+	list, resp, err := client.DcimAPI.DcimPlatformsList(ctx).Slug([]string{value}).Execute()
+	if err != nil || resp.StatusCode != 200 {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Platform lookup failed", fmt.Sprintf("Could not find platform with slug '%s': %v", value, err))}
+	}
+	if list != nil && len(list.Results) > 0 {
+		resource := list.Results[0]
+		return &netbox.BriefPlatformRequest{
+			Name: resource.GetName(),
+			Slug: resource.GetSlug(),
+		}, nil
+	}
+	return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Platform lookup failed", fmt.Sprintf("No platform found with slug '%s'", value))}
+}
+
+// LookupDeviceTypeBrief returns a BriefDeviceTypeRequest from an ID or slug
+func LookupDeviceTypeBrief(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefDeviceTypeRequest, diag.Diagnostics) {
+	var id int32
+	if _, err := fmt.Sscanf(value, "%d", &id); err == nil {
+		resource, resp, err := client.DcimAPI.DcimDeviceTypesRetrieve(ctx, id).Execute()
+		if err != nil || resp.StatusCode != 200 {
+			return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Device type lookup failed", err.Error())}
+		}
+		// Get manufacturer for the request
+		manufacturer := resource.GetManufacturer()
+		manufacturerRequest := netbox.BriefManufacturerRequest{
+			Name: manufacturer.GetName(),
+			Slug: manufacturer.GetSlug(),
+		}
+		return &netbox.BriefDeviceTypeRequest{
+			Manufacturer: manufacturerRequest,
+			Model:        resource.GetModel(),
+			Slug:         resource.GetSlug(),
+		}, nil
+	}
+	// Lookup by slug
+	list, resp, err := client.DcimAPI.DcimDeviceTypesList(ctx).Slug([]string{value}).Execute()
+	if err != nil || resp.StatusCode != 200 {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Device type lookup failed", fmt.Sprintf("Could not find device type with slug '%s': %v", value, err))}
+	}
+	if list != nil && len(list.Results) > 0 {
+		resource := list.Results[0]
+		manufacturer := resource.GetManufacturer()
+		manufacturerRequest := netbox.BriefManufacturerRequest{
+			Name: manufacturer.GetName(),
+			Slug: manufacturer.GetSlug(),
+		}
+		return &netbox.BriefDeviceTypeRequest{
+			Manufacturer: manufacturerRequest,
+			Model:        resource.GetModel(),
+			Slug:         resource.GetSlug(),
+		}, nil
+	}
+	return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Device type lookup failed", fmt.Sprintf("No device type found with slug '%s'", value))}
+}
+
+// LookupDeviceRoleBrief returns a BriefDeviceRoleRequest from an ID or slug
+func LookupDeviceRoleBrief(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefDeviceRoleRequest, diag.Diagnostics) {
+	var id int32
+	if _, err := fmt.Sscanf(value, "%d", &id); err == nil {
+		resource, resp, err := client.DcimAPI.DcimDeviceRolesRetrieve(ctx, id).Execute()
+		if err != nil || resp.StatusCode != 200 {
+			return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Device role lookup failed", err.Error())}
+		}
+		return &netbox.BriefDeviceRoleRequest{
+			Name: resource.GetName(),
+			Slug: resource.GetSlug(),
+		}, nil
+	}
+	// Lookup by slug
+	list, resp, err := client.DcimAPI.DcimDeviceRolesList(ctx).Slug([]string{value}).Execute()
+	if err != nil || resp.StatusCode != 200 {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Device role lookup failed", fmt.Sprintf("Could not find device role with slug '%s': %v", value, err))}
+	}
+	if list != nil && len(list.Results) > 0 {
+		resource := list.Results[0]
+		return &netbox.BriefDeviceRoleRequest{
+			Name: resource.GetName(),
+			Slug: resource.GetSlug(),
+		}, nil
+	}
+	return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Device role lookup failed", fmt.Sprintf("No device role found with slug '%s'", value))}
+}
+
+// LookupRackBrief returns a BriefRackRequest from an ID or name
+func LookupRackBrief(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefRackRequest, diag.Diagnostics) {
+	var id int32
+	if _, err := fmt.Sscanf(value, "%d", &id); err == nil {
+		resource, resp, err := client.DcimAPI.DcimRacksRetrieve(ctx, id).Execute()
+		if err != nil || resp.StatusCode != 200 {
+			return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Rack lookup failed", err.Error())}
+		}
+		return &netbox.BriefRackRequest{
+			Name: resource.GetName(),
+		}, nil
+	}
+	// Lookup by name
+	list, resp, err := client.DcimAPI.DcimRacksList(ctx).Name([]string{value}).Execute()
+	if err != nil || resp.StatusCode != 200 {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Rack lookup failed", fmt.Sprintf("Could not find rack with name '%s': %v", value, err))}
+	}
+	if list != nil && len(list.Results) > 0 {
+		resource := list.Results[0]
+		return &netbox.BriefRackRequest{
+			Name: resource.GetName(),
+		}, nil
+	}
+	return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Rack lookup failed", fmt.Sprintf("No rack found with name '%s'", value))}
+}

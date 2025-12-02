@@ -509,3 +509,174 @@ data "netbox_rack" "test" {
 }
 `, siteName, siteSlug, rackName)
 }
+
+func TestAccRackRoleDataSource_basic(t *testing.T) {
+	// Generate unique names
+	name := testutil.RandomName("tf-test-rackrole-ds")
+	slug := testutil.RandomSlug("tf-test-rr-ds")
+
+	// Register cleanup
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckRackRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackRoleDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_rack_role.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_rack_role.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_rack_role.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
+func testAccRackRoleDataSourceConfig(name, slug string) string {
+	return fmt.Sprintf(`
+terraform {
+  required_providers {
+    netbox = {
+      source = "bab3l/netbox"
+      version = ">= 0.1.0"
+    }
+  }
+}
+
+provider "netbox" {}
+
+resource "netbox_rack_role" "test" {
+  name = %q
+  slug = %q
+}
+
+data "netbox_rack_role" "test" {
+  slug = netbox_rack_role.test.slug
+}
+`, name, slug)
+}
+
+func TestAccDeviceRoleDataSource_basic(t *testing.T) {
+	// Generate unique names
+	name := testutil.RandomName("tf-test-devicerole-ds")
+	slug := testutil.RandomSlug("tf-test-dr-ds")
+
+	// Register cleanup
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckDeviceRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceRoleDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_device_role.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_device_role.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_device_role.test", "slug", slug),
+					resource.TestCheckResourceAttr("data.netbox_device_role.test", "vm_role", "true"),
+				),
+			},
+		},
+	})
+}
+
+func testAccDeviceRoleDataSourceConfig(name, slug string) string {
+	return fmt.Sprintf(`
+terraform {
+  required_providers {
+    netbox = {
+      source = "bab3l/netbox"
+      version = ">= 0.1.0"
+    }
+  }
+}
+
+provider "netbox" {}
+
+resource "netbox_device_role" "test" {
+  name = %q
+  slug = %q
+}
+
+data "netbox_device_role" "test" {
+  slug = netbox_device_role.test.slug
+}
+`, name, slug)
+}
+
+func TestAccDeviceTypeDataSource_basic(t *testing.T) {
+	// Generate unique names
+	model := testutil.RandomName("tf-test-devicetype-ds")
+	slug := testutil.RandomSlug("tf-test-dt-ds")
+	manufacturerName := testutil.RandomName("tf-test-mfr-ds")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-ds")
+
+	// Register cleanup
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(slug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceTypeDataSourceConfig(model, slug, manufacturerName, manufacturerSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_device_type.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_device_type.test", "model", model),
+					resource.TestCheckResourceAttr("data.netbox_device_type.test", "slug", slug),
+					resource.TestCheckResourceAttr("data.netbox_device_type.test", "manufacturer", manufacturerSlug),
+					resource.TestCheckResourceAttr("data.netbox_device_type.test", "u_height", "1"),
+				),
+			},
+		},
+	})
+}
+
+func testAccDeviceTypeDataSourceConfig(model, slug, manufacturerName, manufacturerSlug string) string {
+	return fmt.Sprintf(`
+terraform {
+  required_providers {
+    netbox = {
+      source = "bab3l/netbox"
+      version = ">= 0.1.0"
+    }
+  }
+}
+
+provider "netbox" {}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.slug
+  model        = %q
+  slug         = %q
+}
+
+data "netbox_device_type" "test" {
+  slug = netbox_device_type.test.slug
+}
+`, manufacturerName, manufacturerSlug, model, slug)
+}

@@ -162,6 +162,9 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewLocationResource,
 		resources.NewRackResource,
 		resources.NewRackRoleResource,
+		resources.NewDeviceRoleResource,
+		resources.NewDeviceTypeResource,
+		resources.NewDeviceResource,
 	}
 }
 
@@ -177,6 +180,9 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewLocationDataSource,
 		datasources.NewRackDataSource,
 		datasources.NewRackRoleDataSource,
+		datasources.NewDeviceRoleDataSource,
+		datasources.NewDeviceTypeDataSource,
+		datasources.NewDeviceDataSource,
 	}
 }
 

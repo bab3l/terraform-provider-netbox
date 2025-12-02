@@ -343,3 +343,111 @@ func (c *CleanupResource) RegisterRackCleanup(name string) {
 		}
 	})
 }
+
+// RegisterDeviceRoleCleanup registers a cleanup function that will delete
+// a device role by slug after the test completes.
+func (c *CleanupResource) RegisterDeviceRoleCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimDeviceRolesList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list device roles with slug %s: %v", slug, err)
+			return
+		}
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+			c.t.Logf("Cleanup: device role with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimDeviceRolesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete device role %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted device role %d (slug: %s)", id, slug)
+		}
+	})
+}
+
+// RegisterRackRoleCleanup registers a cleanup function that will delete
+// a rack role by slug after the test completes.
+func (c *CleanupResource) RegisterRackRoleCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimRackRolesList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list rack roles with slug %s: %v", slug, err)
+			return
+		}
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+			c.t.Logf("Cleanup: rack role with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimRackRolesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete rack role %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted rack role %d (slug: %s)", id, slug)
+		}
+	})
+}
+
+// RegisterDeviceTypeCleanup registers a cleanup function that will delete
+// a device type by slug after the test completes.
+func (c *CleanupResource) RegisterDeviceTypeCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimDeviceTypesList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list device types with slug %s: %v", slug, err)
+			return
+		}
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+			c.t.Logf("Cleanup: device type with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimDeviceTypesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete device type %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted device type %d (slug: %s)", id, slug)
+		}
+	})
+}
+
+// RegisterDeviceCleanup registers a cleanup function that will delete
+// a device by name after the test completes.
+func (c *CleanupResource) RegisterDeviceCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimDevicesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list devices with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+			c.t.Logf("Cleanup: device with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimDevicesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete device %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted device %d (name: %s)", id, name)
+		}
+	})
+}
