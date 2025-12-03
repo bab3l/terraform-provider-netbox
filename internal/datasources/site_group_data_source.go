@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
@@ -50,95 +51,35 @@ func (d *SiteGroupDataSource) Schema(ctx context.Context, req datasource.SchemaR
 		MarkdownDescription: "Use this data source to get information about a site group in Netbox. Site groups provide hierarchical organization of sites with support for parent-child relationships. You can identify the site group using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier for the site group. Specify `id`, `slug`, or `name` to identify the site group.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Full name of the site group. Can be used to identify the site group instead of `id` or `slug`.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"slug": schema.StringAttribute{
-				MarkdownDescription: "URL-friendly identifier for the site group. Specify `id`, `slug`, or `name` to identify the site group.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"parent": schema.StringAttribute{
-				MarkdownDescription: "Name or ID of the parent site group. Null if this is a top-level group.",
-				Computed:            true,
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Detailed description of the site group.",
-				Computed:            true,
-			},
-			"tags": schema.SetNestedAttribute{
-				MarkdownDescription: "Tags assigned to this site group.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the tag.",
-							Computed:            true,
-						},
-						"slug": schema.StringAttribute{
-							MarkdownDescription: "Slug of the tag.",
-							Computed:            true,
-						},
-					},
-				},
-			},
-			"custom_fields": schema.SetNestedAttribute{
-				MarkdownDescription: "Custom fields assigned to this site group.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the custom field.",
-							Computed:            true,
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of the custom field.",
-							Computed:            true,
-						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "Value of the custom field.",
-							Computed:            true,
-						},
-					},
-				},
-			},
+			"id":            nbschema.DSIDAttribute("site group"),
+			"name":          nbschema.DSNameAttribute("site group"),
+			"slug":          nbschema.DSSlugAttribute("site group"),
+			"parent":        nbschema.DSComputedStringAttribute("ID of the parent site group. Null if this is a top-level group."),
+			"description":   nbschema.DSComputedStringAttribute("Detailed description of the site group."),
+			"tags":          nbschema.DSTagsAttribute(),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
 
 func (d *SiteGroupDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
 	}
-
 	client, ok := req.ProviderData.(*netbox.APIClient)
-
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
 			fmt.Sprintf("Expected *netbox.APIClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
-
 		return
 	}
-
 	d.client = client
 }
 
 func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data SiteGroupDataSourceModel
-
-	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -149,121 +90,79 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 	// Determine if we're searching by ID, slug, or name
 	if !data.ID.IsNull() {
-		// Search by ID
 		siteGroupID := data.ID.ValueString()
-		tflog.Debug(ctx, "Reading site group by ID", map[string]interface{}{
-			"id": siteGroupID,
-		})
+		tflog.Debug(ctx, "Reading site group by ID", map[string]interface{}{"id": siteGroupID})
 
-		// Parse the site group ID to int32 for the API call
 		var siteGroupIDInt int32
 		if _, parseErr := fmt.Sscanf(siteGroupID, "%d", &siteGroupIDInt); parseErr != nil {
-			resp.Diagnostics.AddError(
-				"Invalid Site Group ID",
-				fmt.Sprintf("Site Group ID must be a number, got: %s", siteGroupID),
-			)
+			resp.Diagnostics.AddError("Invalid Site Group ID", fmt.Sprintf("Site Group ID must be a number, got: %s", siteGroupID))
 			return
 		}
-
-		// Retrieve the site group via API
 		siteGroup, httpResp, err = d.client.DcimAPI.DcimSiteGroupsRetrieve(ctx, siteGroupIDInt).Execute()
 	} else if !data.Slug.IsNull() {
-		// Search by slug
 		siteGroupSlug := data.Slug.ValueString()
-		tflog.Debug(ctx, "Reading site group by slug", map[string]interface{}{
-			"slug": siteGroupSlug,
-		})
+		tflog.Debug(ctx, "Reading site group by slug", map[string]interface{}{"slug": siteGroupSlug})
 
-		// List site groups with slug filter
 		var siteGroups *netbox.PaginatedSiteGroupList
 		siteGroups, httpResp, err = d.client.DcimAPI.DcimSiteGroupsList(ctx).Slug([]string{siteGroupSlug}).Execute()
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error reading site group",
-				utils.FormatAPIError("read site group by slug", err, httpResp),
-			)
+			resp.Diagnostics.AddError("Error reading site group", utils.FormatAPIError("read site group by slug", err, httpResp))
 			return
 		}
 		if len(siteGroups.GetResults()) == 0 {
-			resp.Diagnostics.AddError(
-				"Site Group Not Found",
-				fmt.Sprintf("No site group found with slug: %s", siteGroupSlug),
-			)
+			resp.Diagnostics.AddError("Site Group Not Found", fmt.Sprintf("No site group found with slug: %s", siteGroupSlug))
 			return
 		}
 		if len(siteGroups.GetResults()) > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple Site Groups Found",
-				fmt.Sprintf("Multiple site groups found with slug: %s. This should not happen as slugs should be unique.", siteGroupSlug),
-			)
+			resp.Diagnostics.AddError("Multiple Site Groups Found", fmt.Sprintf("Multiple site groups found with slug: %s. This should not happen as slugs should be unique.", siteGroupSlug))
 			return
 		}
 		siteGroup = &siteGroups.GetResults()[0]
 	} else if !data.Name.IsNull() {
-		// Search by name
 		siteGroupName := data.Name.ValueString()
-		tflog.Debug(ctx, "Reading site group by name", map[string]interface{}{
-			"name": siteGroupName,
-		})
+		tflog.Debug(ctx, "Reading site group by name", map[string]interface{}{"name": siteGroupName})
 
-		// List site groups with name filter
 		var siteGroups *netbox.PaginatedSiteGroupList
 		siteGroups, httpResp, err = d.client.DcimAPI.DcimSiteGroupsList(ctx).Name([]string{siteGroupName}).Execute()
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error reading site group",
-				utils.FormatAPIError("read site group by name", err, httpResp),
-			)
+			resp.Diagnostics.AddError("Error reading site group", utils.FormatAPIError("read site group by name", err, httpResp))
 			return
 		}
 		if len(siteGroups.GetResults()) == 0 {
-			resp.Diagnostics.AddError(
-				"Site Group Not Found",
-				fmt.Sprintf("No site group found with name: %s", siteGroupName),
-			)
+			resp.Diagnostics.AddError("Site Group Not Found", fmt.Sprintf("No site group found with name: %s", siteGroupName))
 			return
 		}
 		if len(siteGroups.GetResults()) > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple Site Groups Found",
-				fmt.Sprintf("Multiple site groups found with name: %s. Site group names may not be unique in Netbox.", siteGroupName),
-			)
+			resp.Diagnostics.AddError("Multiple Site Groups Found", fmt.Sprintf("Multiple site groups found with name: %s. Site group names may not be unique in Netbox.", siteGroupName))
 			return
 		}
 		siteGroup = &siteGroups.GetResults()[0]
 	} else {
-		resp.Diagnostics.AddError(
-			"Missing Site Group Identifier",
-			"Either 'id', 'slug', or 'name' must be specified to identify the site group.",
-		)
+		resp.Diagnostics.AddError("Missing Site Group Identifier", "Either 'id', 'slug', or 'name' must be specified to identify the site group.")
 		return
 	}
 
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading site group",
-			utils.FormatAPIError("read site group", err, httpResp),
-		)
+		resp.Diagnostics.AddError("Error reading site group", utils.FormatAPIError("read site group", err, httpResp))
 		return
 	}
-
 	if httpResp.StatusCode == 404 {
-		resp.Diagnostics.AddError(
-			"Site Group Not Found",
-			"The specified site group was not found in Netbox.",
-		)
+		resp.Diagnostics.AddError("Site Group Not Found", "The specified site group was not found in Netbox.")
 		return
 	}
-
 	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Error reading site group",
-			fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode),
-		)
+		resp.Diagnostics.AddError("Error reading site group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
 
-	// Update the model with the response from the API
+	// Map response to state using helper
+	d.mapSiteGroupToState(ctx, siteGroup, &data)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+// mapSiteGroupToState maps API response to Terraform state for data sources.
+func (d *SiteGroupDataSource) mapSiteGroupToState(ctx context.Context, siteGroup *netbox.SiteGroup, data *SiteGroupDataSourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", siteGroup.GetId()))
 	data.Name = types.StringValue(siteGroup.GetName())
 	data.Slug = types.StringValue(siteGroup.GetSlug())
@@ -271,45 +170,33 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 	// Handle parent site group
 	if siteGroup.HasParent() {
 		parent := siteGroup.GetParent()
-		// Set parent to the ID for consistency with the resource
 		data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
 	} else {
 		data.Parent = types.StringNull()
 	}
 
-	if siteGroup.HasDescription() {
-		data.Description = types.StringValue(siteGroup.GetDescription())
-	} else {
-		data.Description = types.StringNull()
-	}
+	// Handle description
+	data.Description = utils.StringFromAPIPreserveEmpty(siteGroup.HasDescription(), siteGroup.GetDescription, data.Description)
 
 	// Handle tags
 	if siteGroup.HasTags() {
 		tags := utils.NestedTagsToTagModels(siteGroup.GetTags())
-		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
+		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
+		if !tagDiags.HasError() {
+			data.Tags = tagsValue
 		}
-		data.Tags = tagsValue
 	} else {
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 	}
 
 	// Handle custom fields
 	if siteGroup.HasCustomFields() {
-		// For data sources, we extract all available custom fields
 		customFields := utils.MapToCustomFieldModels(siteGroup.GetCustomFields(), nil)
-		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
 		}
-		data.CustomFields = customFieldsValue
 	} else {
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
-
-	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

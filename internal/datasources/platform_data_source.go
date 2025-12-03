@@ -6,10 +6,12 @@ import (
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
-	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
 var _ datasource.DataSource = &PlatformDataSource{}
@@ -38,29 +40,11 @@ func (d *PlatformDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Use this data source to get information about a platform type in Netbox. Platforms represent operating systems or firmware types for devices.",
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier for the platform. Specify `id`, `slug`, or `name` to identify the platform.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Full name of the platform. Can be used to identify the platform instead of `id` or `slug`.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"slug": schema.StringAttribute{
-				MarkdownDescription: "URL-friendly identifier for the platform. Specify `id`, `slug`, or `name` to identify the platform.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"manufacturer": schema.StringAttribute{
-				MarkdownDescription: "Name or ID of the manufacturer for this platform.",
-				Computed:            true,
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Detailed description of the platform.",
-				Computed:            true,
-			},
+			"id":           nbschema.DSIDAttribute("platform"),
+			"name":         nbschema.DSNameAttribute("platform"),
+			"slug":         nbschema.DSSlugAttribute("platform"),
+			"manufacturer": nbschema.DSComputedStringAttribute("Name or ID of the manufacturer for this platform."),
+			"description":  nbschema.DSComputedStringAttribute("Detailed description of the platform."),
 		},
 	}
 }

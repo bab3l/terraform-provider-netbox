@@ -6,20 +6,15 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
-	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -56,109 +51,14 @@ func (r *DeviceRoleResource) Schema(ctx context.Context, req resource.SchemaRequ
 		MarkdownDescription: "Manages a device role in Netbox. Device roles are used to categorize devices by their function within the network infrastructure (e.g., 'Router', 'Switch', 'Server', 'Firewall').",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Unique identifier for the device role (assigned by Netbox).",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Full name of the device role. This is the human-readable display name.",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 100),
-				},
-			},
-			"slug": schema.StringAttribute{
-				MarkdownDescription: "URL-friendly identifier for the device role. Must be unique and contain only alphanumeric characters, hyphens, and underscores.",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 100),
-					validators.ValidSlug(),
-				},
-			},
-			"color": schema.StringAttribute{
-				MarkdownDescription: "Color code for the device role in hexadecimal format (e.g., 'aa1409' for red). Used for visual identification in the Netbox UI. If not specified, Netbox assigns a default color.",
-				Optional:            true,
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(6, 6),
-					stringvalidator.RegexMatches(
-						validators.HexColorRegex(),
-						"must be a valid 6-character hexadecimal color code (e.g., 'aa1409')",
-					),
-				},
-			},
-			"vm_role": schema.BoolAttribute{
-				MarkdownDescription: "Whether virtual machines may be assigned to this role. Set to true to allow VMs to use this role, false otherwise. Defaults to true.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Detailed description of the device role, its purpose, or other relevant information.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(200),
-				},
-			},
-			"tags": schema.SetNestedAttribute{
-				MarkdownDescription: "Tags assigned to this device role. Tags provide a way to categorize and organize resources.",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the existing tag.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 100),
-							},
-						},
-						"slug": schema.StringAttribute{
-							MarkdownDescription: "Slug of the existing tag.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 100),
-								validators.ValidSlug(),
-							},
-						},
-					},
-				},
-			},
-			"custom_fields": schema.SetNestedAttribute{
-				MarkdownDescription: "Custom fields assigned to this device role. Custom fields allow you to store additional structured data.",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 50),
-								validators.ValidCustomFieldName(),
-							},
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).",
-							Required:            true,
-							Validators: []validator.String{
-								validators.ValidCustomFieldType(),
-							},
-						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "Value of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthAtMost(1000),
-							},
-						},
-					},
-				},
-			},
+			"id":            nbschema.IDAttribute("device role"),
+			"name":          nbschema.NameAttribute("device role", 100),
+			"slug":          nbschema.SlugAttribute("device role"),
+			"color":         nbschema.ComputedColorAttribute("device role"),
+			"vm_role":       nbschema.BoolAttributeWithDefault("Whether virtual machines may be assigned to this role. Set to true to allow VMs to use this role, false otherwise. Defaults to true.", true),
+			"description":   nbschema.DescriptionAttribute("device role"),
+			"tags":          nbschema.TagsAttribute(),
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 }

@@ -65,6 +65,11 @@ output "child_by_id_parent" {
   value       = data.netbox_tenant_group.child_by_id.parent
 }
 
+output "child_by_id_parent_id" {
+  description = "Parent ID of child from ID lookup"
+  value       = data.netbox_tenant_group.child_by_id.parent_id
+}
+
 # Verification
 output "all_ids_match" {
   description = "Verification that all lookup methods return the same tenant group"
@@ -72,6 +77,6 @@ output "all_ids_match" {
 }
 
 output "child_parent_matches" {
-  description = "Verification that child's parent matches source"
-  value       = data.netbox_tenant_group.child_by_id.parent == netbox_tenant_group.source_parent.id
+  description = "Verification that child's parent ID matches source ID"
+  value       = data.netbox_tenant_group.child_by_id.parent_id == netbox_tenant_group.source_parent.id
 }

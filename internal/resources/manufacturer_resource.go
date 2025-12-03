@@ -5,12 +5,11 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -41,25 +40,10 @@ func (r *ManufacturerResource) Schema(ctx context.Context, req resource.SchemaRe
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a manufacturer in Netbox. Manufacturers are used to group devices and platforms by vendor.",
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Unique identifier for the manufacturer (assigned by Netbox).",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Full name of the manufacturer.",
-			},
-			"slug": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "URL-friendly identifier for the manufacturer.",
-			},
-			"description": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Detailed description of the manufacturer.",
-			},
+			"id":          nbschema.IDAttribute("manufacturer"),
+			"name":        nbschema.NameAttribute("manufacturer", 100),
+			"slug":        nbschema.SlugAttribute("manufacturer"),
+			"description": nbschema.DescriptionAttribute("manufacturer"),
 		},
 	}
 }
@@ -86,25 +70,16 @@ func (r *ManufacturerResource) Create(ctx context.Context, req resource.CreateRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	manufacturerRequest := netbox.ManufacturerRequest{
 		Name: data.Name.ValueString(),
 		Slug: data.Slug.ValueString(),
 	}
-	if !data.Description.IsNull() {
-		desc := data.Description.ValueString()
-		manufacturerRequest.Description = &desc
-	}
+
+	// Use helper for optional string field
+	manufacturerRequest.Description = utils.StringPtr(data.Description)
+
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersCreate(ctx).ManufacturerRequest(manufacturerRequest).Execute()
-	tflog.Debug(ctx, "Manufacturer create API response", map[string]interface{}{
-		"http_status":  httpResp.StatusCode,
-		"manufacturer": manufacturer,
-		"error":        err,
-	})
-	tflog.Debug(ctx, "Raw manufacturer API response", map[string]interface{}{
-		"manufacturer_raw": fmt.Sprintf("%#v", manufacturer),
-		"httpResp_raw":     fmt.Sprintf("%#v", httpResp),
-		"error":            err,
-	})
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating manufacturer", utils.FormatAPIError("create manufacturer", err, httpResp))
 		return
@@ -117,38 +92,16 @@ func (r *ManufacturerResource) Create(ctx context.Context, req resource.CreateRe
 		resp.Diagnostics.AddError("Manufacturer API returned nil", "No manufacturer object returned from Netbox API.")
 		return
 	}
-	data.ID = types.StringValue(fmt.Sprintf("%d", manufacturer.GetId()))
-	data.Name = types.StringValue(manufacturer.GetName())
-	data.Slug = types.StringValue(manufacturer.GetSlug())
-	if manufacturer.HasDescription() {
-		desc := manufacturer.GetDescription()
-		// Preserve null if original was null and API returns empty string
-		if desc == "" && data.Description.IsNull() {
-			data.Description = types.StringNull()
-		} else {
-			data.Description = types.StringValue(desc)
-		}
-	} else {
-		data.Description = types.StringNull()
-	}
-	tflog.Debug(ctx, "Setting resource state after manufacturer create", map[string]interface{}{
-		"id":          data.ID.ValueString(),
-		"name":        data.Name.ValueString(),
-		"slug":        data.Slug.ValueString(),
-		"description": data.Description.ValueString(),
+
+	// Map response to state using helpers
+	r.mapManufacturerToState(manufacturer, &data)
+
+	tflog.Debug(ctx, "Created manufacturer", map[string]interface{}{
+		"id":   data.ID.ValueString(),
+		"name": data.Name.ValueString(),
 	})
-	diags := resp.State.Set(ctx, &data)
-	resp.Diagnostics.Append(diags...)
-	if diags.HasError() {
-		tflog.Error(ctx, "Error setting resource state after manufacturer create", map[string]interface{}{
-			"diagnostics": diags,
-			"id":          data.ID.ValueString(),
-			"name":        data.Name.ValueString(),
-			"slug":        data.Slug.ValueString(),
-			"description": data.Description.ValueString(),
-		})
-		return
-	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *ManufacturerResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -157,12 +110,14 @@ func (r *ManufacturerResource) Read(ctx context.Context, req resource.ReadReques
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	manufacturerID := data.ID.ValueString()
 	var manufacturerIDInt int32
 	if _, err := fmt.Sscanf(manufacturerID, "%d", &manufacturerIDInt); err != nil {
 		resp.Diagnostics.AddError("Invalid Manufacturer ID", fmt.Sprintf("Manufacturer ID must be a number, got: %s", manufacturerID))
 		return
 	}
+
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersRetrieve(ctx, manufacturerIDInt).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading manufacturer", utils.FormatAPIError(fmt.Sprintf("read manufacturer ID %s", manufacturerID), err, httpResp))
@@ -172,20 +127,10 @@ func (r *ManufacturerResource) Read(ctx context.Context, req resource.ReadReques
 		resp.Diagnostics.AddError("Error reading manufacturer", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
-	data.ID = types.StringValue(fmt.Sprintf("%d", manufacturer.GetId()))
-	data.Name = types.StringValue(manufacturer.GetName())
-	data.Slug = types.StringValue(manufacturer.GetSlug())
-	if manufacturer.HasDescription() {
-		desc := manufacturer.GetDescription()
-		// Preserve null if original was null and API returns empty string
-		if desc == "" && data.Description.IsNull() {
-			data.Description = types.StringNull()
-		} else {
-			data.Description = types.StringValue(desc)
-		}
-	} else {
-		data.Description = types.StringNull()
-	}
+
+	// Map response to state using helpers
+	r.mapManufacturerToState(manufacturer, &data)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -195,20 +140,22 @@ func (r *ManufacturerResource) Update(ctx context.Context, req resource.UpdateRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	manufacturerID := data.ID.ValueString()
 	var manufacturerIDInt int32
 	if _, err := fmt.Sscanf(manufacturerID, "%d", &manufacturerIDInt); err != nil {
 		resp.Diagnostics.AddError("Invalid Manufacturer ID", fmt.Sprintf("Manufacturer ID must be a number, got: %s", manufacturerID))
 		return
 	}
+
 	manufacturerRequest := netbox.ManufacturerRequest{
 		Name: data.Name.ValueString(),
 		Slug: data.Slug.ValueString(),
 	}
-	if !data.Description.IsNull() {
-		desc := data.Description.ValueString()
-		manufacturerRequest.Description = &desc
-	}
+
+	// Use helper for optional string field
+	manufacturerRequest.Description = utils.StringPtr(data.Description)
+
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersUpdate(ctx, manufacturerIDInt).ManufacturerRequest(manufacturerRequest).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating manufacturer", utils.FormatAPIError(fmt.Sprintf("update manufacturer ID %s", manufacturerID), err, httpResp))
@@ -218,20 +165,10 @@ func (r *ManufacturerResource) Update(ctx context.Context, req resource.UpdateRe
 		resp.Diagnostics.AddError("Error updating manufacturer", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
-	data.ID = types.StringValue(fmt.Sprintf("%d", manufacturer.GetId()))
-	data.Name = types.StringValue(manufacturer.GetName())
-	data.Slug = types.StringValue(manufacturer.GetSlug())
-	if manufacturer.HasDescription() {
-		desc := manufacturer.GetDescription()
-		// Preserve null if original was null and API returns empty string
-		if desc == "" && data.Description.IsNull() {
-			data.Description = types.StringNull()
-		} else {
-			data.Description = types.StringValue(desc)
-		}
-	} else {
-		data.Description = types.StringNull()
-	}
+
+	// Map response to state using helpers
+	r.mapManufacturerToState(manufacturer, &data)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -260,4 +197,12 @@ func (r *ManufacturerResource) Delete(ctx context.Context, req resource.DeleteRe
 
 func (r *ManufacturerResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+// mapManufacturerToState maps API response to Terraform state using state helpers.
+func (r *ManufacturerResource) mapManufacturerToState(manufacturer *netbox.Manufacturer, data *ManufacturerResourceModel) {
+	data.ID = types.StringValue(fmt.Sprintf("%d", manufacturer.GetId()))
+	data.Name = types.StringValue(manufacturer.GetName())
+	data.Slug = types.StringValue(manufacturer.GetSlug())
+	data.Description = utils.StringFromAPI(manufacturer.HasDescription(), manufacturer.GetDescription, data.Description)
 }

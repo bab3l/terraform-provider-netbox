@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -37,25 +38,10 @@ func (d *ManufacturerDataSource) Schema(ctx context.Context, req datasource.Sche
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Use this data source to get information about a manufacturer in Netbox. Manufacturers are used to group devices and platforms by vendor.",
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier for the manufacturer. Specify `id`, `slug`, or `name` to identify the manufacturer.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Full name of the manufacturer. Can be used to identify the manufacturer instead of `id` or `slug`.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"slug": schema.StringAttribute{
-				MarkdownDescription: "URL-friendly identifier for the manufacturer. Specify `id`, `slug`, or `name` to identify the manufacturer.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Detailed description of the manufacturer.",
-				Computed:            true,
-			},
+			"id":          nbschema.DSIDAttribute("manufacturer"),
+			"name":        nbschema.DSNameAttribute("manufacturer"),
+			"slug":        nbschema.DSSlugAttribute("manufacturer"),
+			"description": nbschema.DSComputedStringAttribute("Description of the manufacturer."),
 		},
 	}
 }
@@ -133,15 +119,16 @@ func (d *ManufacturerDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	// Map API response to model
+	// Map API response to model using helpers
+	d.mapManufacturerToState(manufacturer, &data)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+// mapManufacturerToState maps API response to Terraform state using state helpers.
+func (d *ManufacturerDataSource) mapManufacturerToState(manufacturer *netbox.Manufacturer, data *ManufacturerDataSourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", manufacturer.GetId()))
 	data.Name = types.StringValue(manufacturer.GetName())
 	data.Slug = types.StringValue(manufacturer.GetSlug())
-	if manufacturer.HasDescription() && manufacturer.GetDescription() != "" {
-		data.Description = types.StringValue(manufacturer.GetDescription())
-	} else {
-		data.Description = types.StringNull()
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	data.Description = utils.StringFromAPI(manufacturer.HasDescription(), manufacturer.GetDescription, data.Description)
 }

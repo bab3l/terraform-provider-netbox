@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
@@ -61,109 +62,28 @@ func (d *DeviceTypeDataSource) Schema(ctx context.Context, req datasource.Schema
 		MarkdownDescription: "Use this data source to get information about a device type in Netbox. Device types represent a particular make and model of device. You can identify the device type using `id`, `slug`, or `model`.",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier for the device type. Specify `id`, `slug`, or `model` to identify the device type.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"manufacturer": schema.StringAttribute{
-				MarkdownDescription: "The manufacturer of this device type. Returns the manufacturer slug.",
-				Computed:            true,
-			},
+			"id":           nbschema.DSIDAttribute("device type"),
+			"manufacturer": nbschema.DSComputedStringAttribute("The manufacturer of this device type. Returns the manufacturer slug."),
 			"model": schema.StringAttribute{
 				MarkdownDescription: "Model name of the device type. Can be used to identify the device type instead of `id` or `slug`.",
 				Optional:            true,
 				Computed:            true,
 			},
-			"slug": schema.StringAttribute{
-				MarkdownDescription: "URL-friendly identifier for the device type. Specify `id`, `slug`, or `model` to identify the device type.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"default_platform": schema.StringAttribute{
-				MarkdownDescription: "Default platform for devices of this type. Returns the platform slug.",
-				Computed:            true,
-			},
-			"part_number": schema.StringAttribute{
-				MarkdownDescription: "Discrete part number for this device type.",
-				Computed:            true,
-			},
-			"u_height": schema.Float64Attribute{
-				MarkdownDescription: "Height of the device type in rack units.",
-				Computed:            true,
-			},
-			"exclude_from_utilization": schema.BoolAttribute{
-				MarkdownDescription: "Whether devices of this type are excluded when calculating rack utilization.",
-				Computed:            true,
-			},
-			"is_full_depth": schema.BoolAttribute{
-				MarkdownDescription: "Whether the device type consumes both front and rear rack faces.",
-				Computed:            true,
-			},
-			"subdevice_role": schema.StringAttribute{
-				MarkdownDescription: "Subdevice role (parent or child).",
-				Computed:            true,
-			},
-			"airflow": schema.StringAttribute{
-				MarkdownDescription: "Airflow direction for the device type.",
-				Computed:            true,
-			},
-			"weight": schema.Float64Attribute{
-				MarkdownDescription: "Weight of the device type.",
-				Computed:            true,
-			},
-			"weight_unit": schema.StringAttribute{
-				MarkdownDescription: "Unit of weight (kg, g, lb, oz).",
-				Computed:            true,
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Detailed description of the device type.",
-				Computed:            true,
-			},
-			"comments": schema.StringAttribute{
-				MarkdownDescription: "Comments about the device type (supports Markdown).",
-				Computed:            true,
-			},
-			"tags": schema.SetNestedAttribute{
-				MarkdownDescription: "Tags assigned to this device type.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the tag.",
-							Computed:            true,
-						},
-						"slug": schema.StringAttribute{
-							MarkdownDescription: "Slug of the tag.",
-							Computed:            true,
-						},
-					},
-				},
-			},
-			"custom_fields": schema.SetNestedAttribute{
-				MarkdownDescription: "Custom fields assigned to this device type.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the custom field.",
-							Computed:            true,
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of the custom field.",
-							Computed:            true,
-						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "Value of the custom field.",
-							Computed:            true,
-						},
-					},
-				},
-			},
-			"device_count": schema.Int64Attribute{
-				MarkdownDescription: "Number of devices of this type.",
-				Computed:            true,
-			},
+			"slug":                     nbschema.DSSlugAttribute("device type"),
+			"default_platform":         nbschema.DSComputedStringAttribute("Default platform for devices of this type. Returns the platform slug."),
+			"part_number":              nbschema.DSComputedStringAttribute("Discrete part number for this device type."),
+			"u_height":                 nbschema.DSComputedFloat64Attribute("Height of the device type in rack units."),
+			"exclude_from_utilization": nbschema.DSComputedBoolAttribute("Whether devices of this type are excluded when calculating rack utilization."),
+			"is_full_depth":            nbschema.DSComputedBoolAttribute("Whether the device type consumes both front and rear rack faces."),
+			"subdevice_role":           nbschema.DSComputedStringAttribute("Subdevice role (parent or child)."),
+			"airflow":                  nbschema.DSComputedStringAttribute("Airflow direction for the device type."),
+			"weight":                   nbschema.DSComputedFloat64Attribute("Weight of the device type."),
+			"weight_unit":              nbschema.DSComputedStringAttribute("Unit of weight (kg, g, lb, oz)."),
+			"description":              nbschema.DSComputedStringAttribute("Detailed description of the device type."),
+			"comments":                 nbschema.DSComputedStringAttribute("Comments about the device type (supports Markdown)."),
+			"tags":                     nbschema.DSTagsAttribute(),
+			"custom_fields":            nbschema.DSCustomFieldsAttribute(),
+			"device_count":             nbschema.DSComputedInt64Attribute("Number of devices of this type."),
 		},
 	}
 }

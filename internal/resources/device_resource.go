@@ -13,16 +13,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
-	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -74,62 +72,17 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 		MarkdownDescription: "Manages a device in Netbox. Devices represent physical or virtual hardware in your infrastructure, such as servers, switches, routers, and other network equipment.",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Unique identifier for the device (assigned by Netbox).",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Name of the device. While optional in Netbox, this is typically used to identify the device.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(64),
-				},
-			},
-			"device_type": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the device type for this device. Required.",
-				Required:            true,
-			},
-			"role": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the device role. Required.",
-				Required:            true,
-			},
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the tenant that owns this device.",
-				Optional:            true,
-			},
-			"platform": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the platform (operating system/software) running on this device.",
-				Optional:            true,
-			},
-			"serial": schema.StringAttribute{
-				MarkdownDescription: "Chassis serial number, assigned by the manufacturer.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(50),
-				},
-			},
-			"asset_tag": schema.StringAttribute{
-				MarkdownDescription: "A unique tag used to identify this device for asset tracking.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(50),
-				},
-			},
-			"site": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the site where this device is located. Required.",
-				Required:            true,
-			},
-			"location": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the location within the site where this device is installed.",
-				Optional:            true,
-			},
-			"rack": schema.StringAttribute{
-				MarkdownDescription: "ID or name of the rack where this device is mounted.",
-				Optional:            true,
-			},
+			"id":          nbschema.IDAttribute("device"),
+			"name":        nbschema.OptionalNameAttribute("device", 64),
+			"device_type": nbschema.RequiredReferenceAttribute("device type", "ID or slug of the device type for this device. Required."),
+			"role":        nbschema.RequiredReferenceAttribute("device role", "ID or slug of the device role. Required."),
+			"tenant":      nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this device."),
+			"platform":    nbschema.ReferenceAttribute("platform", "ID or slug of the platform (operating system/software) running on this device."),
+			"serial":      nbschema.SerialAttribute(),
+			"asset_tag":   nbschema.AssetTagAttribute(),
+			"site":        nbschema.RequiredReferenceAttribute("site", "ID or slug of the site where this device is located. Required."),
+			"location":    nbschema.ReferenceAttribute("location", "ID or slug of the location within the site where this device is installed."),
+			"rack":        nbschema.ReferenceAttribute("rack", "ID or name of the rack where this device is mounted."),
 			"position": schema.Float64Attribute{
 				MarkdownDescription: "Position in the rack (in rack units from the bottom). Must be a positive number.",
 				Optional:            true,
@@ -188,70 +141,10 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					int64validator.Between(0, 255),
 				},
 			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Brief description of the device.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(200),
-				},
-			},
-			"comments": schema.StringAttribute{
-				MarkdownDescription: "Additional comments or notes about this device. Supports Markdown formatting.",
-				Optional:            true,
-			},
-			"tags": schema.SetNestedAttribute{
-				MarkdownDescription: "Tags assigned to this device.",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the existing tag.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 100),
-							},
-						},
-						"slug": schema.StringAttribute{
-							MarkdownDescription: "Slug of the existing tag.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 100),
-								validators.ValidSlug(),
-							},
-						},
-					},
-				},
-			},
-			"custom_fields": schema.SetNestedAttribute{
-				MarkdownDescription: "Custom fields assigned to this device.",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 50),
-								validators.ValidCustomFieldName(),
-							},
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								validators.ValidCustomFieldType(),
-							},
-						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "Value of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthAtMost(1000),
-							},
-						},
-					},
-				},
-			},
+			"description":   nbschema.DescriptionAttribute("device"),
+			"comments":      nbschema.CommentsAttribute("device"),
+			"tags":          nbschema.TagsAttribute(),
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 }

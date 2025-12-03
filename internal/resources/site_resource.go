@@ -7,22 +7,19 @@ package resources
 import (
 	"context"
 	"fmt"
-	"regexp"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
-	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -63,54 +60,16 @@ func (r *SiteResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 		MarkdownDescription: "Manages a site in Netbox. Sites represent physical locations such as data centers, offices, or other facilities where network infrastructure is deployed.",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Unique identifier for the site (assigned by Netbox).",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Full name of the site. This is the human-readable display name.",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 100),
-				},
-			},
-			"slug": schema.StringAttribute{
-				MarkdownDescription: "URL-friendly identifier for the site. Must be unique and contain only alphanumeric characters, hyphens, and underscores.",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 100),
-					validators.ValidSlug(),
-				},
-			},
-			"status": schema.StringAttribute{
-				MarkdownDescription: "Operational status of the site. Valid values include: `planned`, `staging`, `active`, `decommissioning`, `retired`.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						"planned",
-						"staging",
-						"active",
-						"decommissioning",
-						"retired",
-					),
-				},
-			},
-			"region": schema.StringAttribute{
-				MarkdownDescription: "Name or ID of the region where this site is located. Regions help organize sites geographically.",
-				Optional:            true,
-			},
-			"group": schema.StringAttribute{
-				MarkdownDescription: "Name or ID of the site group. Site groups provide an additional level of organization.",
-				Optional:            true,
-			},
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "Name or ID of the tenant that owns this site. Used for multi-tenancy scenarios.",
-				Optional:            true,
-			},
+			"id":   nbschema.IDAttribute("site"),
+			"name": nbschema.NameAttribute("site", 100),
+			"slug": nbschema.SlugAttribute("site"),
+			"status": nbschema.StatusAttribute(
+				[]string{"planned", "staging", "active", "decommissioning", "retired"},
+				"Operational status of the site.",
+			),
+			"region": nbschema.IDOnlyReferenceAttribute("region", "ID of the region where this site is located."),
+			"group":  nbschema.IDOnlyReferenceAttribute("site group", "ID of the site group."),
+			"tenant": nbschema.IDOnlyReferenceAttribute("tenant", "ID of the tenant that owns this site."),
 			"facility": schema.StringAttribute{
 				MarkdownDescription: "Local facility identifier or description (e.g., building name, floor, room number).",
 				Optional:            true,
@@ -118,90 +77,10 @@ func (r *SiteResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 					stringvalidator.LengthAtMost(50),
 				},
 			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Detailed description of the site, its purpose, or other relevant information.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(200),
-				},
-			},
-			"comments": schema.StringAttribute{
-				MarkdownDescription: "Additional comments or notes about the site. Supports Markdown formatting.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1000),
-				},
-			},
-			"tags": schema.SetNestedAttribute{
-				MarkdownDescription: "Tags assigned to this site. Tags provide a way to categorize and organize resources.",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the existing tag.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 100),
-							},
-						},
-						"slug": schema.StringAttribute{
-							MarkdownDescription: "Slug of the existing tag.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 100),
-								validators.ValidSlug(),
-							},
-						},
-					},
-				},
-			},
-			"custom_fields": schema.SetNestedAttribute{
-				MarkdownDescription: "Custom fields assigned to this site. Custom fields allow you to store additional structured data.",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 50),
-								stringvalidator.RegexMatches(
-									regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]*$`),
-									"must start with a letter and contain only letters, numbers, and underscores",
-								),
-							},
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.OneOf(
-									"text",
-									"longtext",
-									"integer",
-									"boolean",
-									"date",
-									"url",
-									"json",
-									"select",
-									"multiselect",
-									"object",
-									"multiobject",
-									"multiple",  // legacy
-									"selection", // legacy
-								),
-							},
-						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "Value of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthAtMost(1000),
-							},
-						},
-					},
-				},
-			},
+			"description":   nbschema.DescriptionAttribute("site"),
+			"comments":      nbschema.CommentsAttributeWithLimit("site", 1000),
+			"tags":          nbschema.TagsAttribute(),
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 }
@@ -228,15 +107,11 @@ func (r *SiteResource) Configure(ctx context.Context, req resource.ConfigureRequ
 
 func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data SiteResourceModel
-
-	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Create site using go-netbox client
 	tflog.Debug(ctx, "Creating site", map[string]interface{}{
 		"name": data.Name.ValueString(),
 		"slug": data.Slug.ValueString(),
@@ -248,73 +123,59 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Handle tenant relationship
-	if !data.Tenant.IsNull() {
-		var tenantIDInt int32
-		if _, err := fmt.Sscanf(data.Tenant.ValueString(), "%d", &tenantIDInt); err == nil {
-			tenantRef, diags := netboxlookup.LookupTenantBrief(ctx, r.client, fmt.Sprintf("%d", tenantIDInt))
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
-			siteRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
-		}
-	}
-	// Handle region relationship
-	if !data.Region.IsNull() {
-		var regionIDInt int32
-		if _, err := fmt.Sscanf(data.Region.ValueString(), "%d", &regionIDInt); err == nil {
-			regionRef, diags := netboxlookup.LookupRegionBrief(ctx, r.client, fmt.Sprintf("%d", regionIDInt))
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
-			siteRequest.Region = *netbox.NewNullableBriefRegionRequest(regionRef)
-		}
-	}
-	// Handle group relationship
-	if !data.Group.IsNull() {
-		var groupIDInt int32
-		if _, err := fmt.Sscanf(data.Group.ValueString(), "%d", &groupIDInt); err == nil {
-			groupRef, diags := netboxlookup.LookupSiteGroupBrief(ctx, r.client, fmt.Sprintf("%d", groupIDInt))
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
-			siteRequest.Group = *netbox.NewNullableBriefSiteGroupRequest(groupRef)
-		}
-	}
+	// Use helper for optional string fields
+	siteRequest.Description = utils.StringPtr(data.Description)
+	siteRequest.Comments = utils.StringPtr(data.Comments)
+	siteRequest.Facility = utils.StringPtr(data.Facility)
 
-	// Set optional fields if provided
-	if !data.Status.IsNull() {
+	// Set status if provided
+	if utils.IsSet(data.Status) {
 		statusValue := netbox.LocationStatusValue(data.Status.ValueString())
 		siteRequest.Status = &statusValue
 	}
-	if !data.Description.IsNull() {
-		description := data.Description.ValueString()
-		siteRequest.Description = &description
-	}
-	if !data.Comments.IsNull() {
-		comments := data.Comments.ValueString()
-		siteRequest.Comments = &comments
-	}
-	if !data.Facility.IsNull() {
-		facility := data.Facility.ValueString()
-		siteRequest.Facility = &facility
-	}
 
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		var tags []utils.TagModel
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
+	// Handle tenant relationship
+	if utils.IsSet(data.Tenant) {
+		tenantRef, diags := netboxlookup.LookupTenantBrief(ctx, r.client, data.Tenant.ValueString())
+		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		siteRequest.Tags = utils.TagsToNestedTagRequests(tags)
+		siteRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
+	}
+
+	// Handle region relationship
+	if utils.IsSet(data.Region) {
+		regionRef, diags := netboxlookup.LookupRegionBrief(ctx, r.client, data.Region.ValueString())
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		siteRequest.Region = *netbox.NewNullableBriefRegionRequest(regionRef)
+	}
+
+	// Handle group relationship
+	if utils.IsSet(data.Group) {
+		groupRef, diags := netboxlookup.LookupSiteGroupBrief(ctx, r.client, data.Group.ValueString())
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		siteRequest.Group = *netbox.NewNullableBriefSiteGroupRequest(groupRef)
+	}
+
+	// Handle tags
+	if utils.IsSet(data.Tags) {
+		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		siteRequest.Tags = tags
 	}
 
 	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
+	if utils.IsSet(data.CustomFields) {
 		var customFields []utils.CustomFieldModel
 		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
 		if resp.Diagnostics.HasError() {
@@ -326,13 +187,11 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 	// Create the site via API
 	site, httpResp, err := r.client.DcimAPI.DcimSitesCreate(ctx).WritableSiteRequest(siteRequest).Execute()
 	if err != nil {
-		// Use enhanced error handler that detects duplicates and provides import hints
 		handler := utils.CreateErrorHandler{
 			ResourceType: "netbox_site",
-			ResourceName: "this.site", // Terraform resource name placeholder
+			ResourceName: "this.site",
 			SlugValue:    data.Slug.ValueString(),
 			LookupFunc: func(lookupCtx context.Context, slug string) (string, error) {
-				// Try to look up existing site by slug
 				list, _, lookupErr := r.client.DcimAPI.DcimSitesList(lookupCtx).Slug([]string{slug}).Execute()
 				if lookupErr != nil {
 					return "", lookupErr
@@ -346,228 +205,71 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
-
 	if httpResp.StatusCode != 201 {
-		resp.Diagnostics.AddError(
-			"Error creating site",
-			fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode),
-		)
+		resp.Diagnostics.AddError("Error creating site", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
+		return
+	}
+	if site == nil {
+		resp.Diagnostics.AddError("Site API returned nil", "No site object returned from Netbox API.")
 		return
 	}
 
-	// Update the model with the response from the API
-	data.ID = types.StringValue(fmt.Sprintf("%d", site.GetId()))
-	data.Name = types.StringValue(site.GetName())
-	data.Slug = types.StringValue(site.GetSlug())
+	// Map response to state using helper
+	r.mapSiteToState(ctx, site, &data)
 
-	if site.HasStatus() {
-		status := site.GetStatus()
-		if status.HasValue() {
-			statusValue, _ := status.GetValueOk()
-			data.Status = types.StringValue(string(*statusValue))
-		}
-	} else {
-		data.Status = types.StringValue("active") // default status
-	}
+	tflog.Debug(ctx, "Created site", map[string]interface{}{
+		"id":   data.ID.ValueString(),
+		"name": data.Name.ValueString(),
+	})
 
-	if site.HasDescription() {
-		desc := site.GetDescription()
-		// Keep null if original was null and API returns empty string
-		if desc == "" && data.Description.IsNull() {
-			// Keep as null
-		} else {
-			data.Description = types.StringValue(desc)
-		}
-	}
-
-	if site.HasComments() {
-		comments := site.GetComments()
-		// Keep null if original was null and API returns empty string
-		if comments == "" && data.Comments.IsNull() {
-			// Keep as null
-		} else {
-			data.Comments = types.StringValue(comments)
-		}
-	}
-
-	if site.HasFacility() {
-		facility := site.GetFacility()
-		// Keep null if original was null and API returns empty string
-		if facility == "" && data.Facility.IsNull() {
-			// Keep as null
-		} else {
-			data.Facility = types.StringValue(facility)
-		}
-	}
-
-	tflog.Trace(ctx, "created a site resource")
-
-	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *SiteResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data SiteResourceModel
-
-	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get the site ID from state
 	siteID := data.ID.ValueString()
-
-	tflog.Debug(ctx, "Reading site", map[string]interface{}{
-		"id": siteID,
-	})
-
-	// Parse the site ID to int32 for the API call
 	var siteIDInt int32
 	if _, err := fmt.Sscanf(siteID, "%d", &siteIDInt); err != nil {
-		resp.Diagnostics.AddError(
-			"Invalid Site ID",
-			fmt.Sprintf("Site ID must be a number, got: %s", siteID),
-		)
+		resp.Diagnostics.AddError("Invalid Site ID", fmt.Sprintf("Site ID must be a number, got: %s", siteID))
 		return
 	}
 
-	// Retrieve the site via API
 	site, httpResp, err := r.client.DcimAPI.DcimSitesRetrieve(ctx, siteIDInt).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading site",
-			utils.FormatAPIError(fmt.Sprintf("read site ID %s", siteID), err, httpResp),
-		)
+		resp.Diagnostics.AddError("Error reading site", utils.FormatAPIError(fmt.Sprintf("read site ID %s", siteID), err, httpResp))
 		return
 	}
-
 	if httpResp.StatusCode == 404 {
-		// Site no longer exists, remove from state
 		resp.State.RemoveResource(ctx)
 		return
 	}
-
 	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Error reading site",
-			fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode),
-		)
+		resp.Diagnostics.AddError("Error reading site", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
 
-	// Update the model with the response from the API
-	data.ID = types.StringValue(fmt.Sprintf("%d", site.GetId()))
-	data.Name = types.StringValue(site.GetName())
-	data.Slug = types.StringValue(site.GetSlug())
+	// Map response to state using helper
+	r.mapSiteToState(ctx, site, &data)
 
-	if site.HasStatus() {
-		status := site.GetStatus()
-		if status.HasValue() {
-			statusValue, _ := status.GetValueOk()
-			data.Status = types.StringValue(string(*statusValue))
-		}
-	}
-
-	if site.HasDescription() {
-		desc := site.GetDescription()
-		// Keep null if original was null and API returns empty string
-		if desc == "" && data.Description.IsNull() {
-			data.Description = types.StringNull()
-		} else {
-			data.Description = types.StringValue(desc)
-		}
-	} else {
-		data.Description = types.StringNull()
-	}
-
-	if site.HasComments() {
-		comments := site.GetComments()
-		// Keep null if original was null and API returns empty string
-		if comments == "" && data.Comments.IsNull() {
-			data.Comments = types.StringNull()
-		} else {
-			data.Comments = types.StringValue(comments)
-		}
-	} else {
-		data.Comments = types.StringNull()
-	}
-
-	if site.HasFacility() {
-		facility := site.GetFacility()
-		// Keep null if original was null and API returns empty string
-		if facility == "" && data.Facility.IsNull() {
-			data.Facility = types.StringNull()
-		} else {
-			data.Facility = types.StringValue(facility)
-		}
-	} else {
-		data.Facility = types.StringNull()
-	}
-
-	// Handle tags
-	if site.HasTags() {
-		tags := utils.NestedTagsToTagModels(site.GetTags())
-		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
-
-	// Handle custom fields - we need to preserve the state structure
-	if site.HasCustomFields() && !data.CustomFields.IsNull() {
-		var stateCustomFields []utils.CustomFieldModel
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		customFields := utils.MapToCustomFieldModels(site.GetCustomFields(), stateCustomFields)
-		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else if data.CustomFields.IsNull() {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
-
-	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data SiteResourceModel
-
-	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get the site ID from state
 	siteID := data.ID.ValueString()
-
-	tflog.Debug(ctx, "Updating site", map[string]interface{}{
-		"id":   siteID,
-		"name": data.Name.ValueString(),
-		"slug": data.Slug.ValueString(),
-	})
-
-	// Parse the site ID to int32 for the API call
 	var siteIDInt int32
 	if _, err := fmt.Sscanf(siteID, "%d", &siteIDInt); err != nil {
-		resp.Diagnostics.AddError(
-			"Invalid Site ID",
-			fmt.Sprintf("Site ID must be a number, got: %s", siteID),
-		)
+		resp.Diagnostics.AddError("Invalid Site ID", fmt.Sprintf("Site ID must be a number, got: %s", siteID))
 		return
 	}
 
@@ -577,75 +279,59 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		Slug: data.Slug.ValueString(),
 	}
 
+	// Use helper for optional string fields
+	siteRequest.Description = utils.StringPtr(data.Description)
+	siteRequest.Comments = utils.StringPtr(data.Comments)
+	siteRequest.Facility = utils.StringPtr(data.Facility)
+
 	// Set status if provided
-	if !data.Status.IsNull() {
+	if utils.IsSet(data.Status) {
 		statusValue := netbox.LocationStatusValue(data.Status.ValueString())
 		siteRequest.Status = &statusValue
 	}
 
 	// Handle tenant relationship
-	if !data.Tenant.IsNull() {
-		var tenantIDInt int32
-		if _, err := fmt.Sscanf(data.Tenant.ValueString(), "%d", &tenantIDInt); err == nil {
-			tenantRef, diags := netboxlookup.LookupTenantBrief(ctx, r.client, fmt.Sprintf("%d", tenantIDInt))
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
-			siteRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
-		}
-	}
-	// Handle region relationship
-	if !data.Region.IsNull() {
-		var regionIDInt int32
-		if _, err := fmt.Sscanf(data.Region.ValueString(), "%d", &regionIDInt); err == nil {
-			regionRef, diags := netboxlookup.LookupRegionBrief(ctx, r.client, fmt.Sprintf("%d", regionIDInt))
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
-			siteRequest.Region = *netbox.NewNullableBriefRegionRequest(regionRef)
-		}
-	}
-	// Handle group relationship
-	if !data.Group.IsNull() {
-		var groupIDInt int32
-		if _, err := fmt.Sscanf(data.Group.ValueString(), "%d", &groupIDInt); err == nil {
-			groupRef, diags := netboxlookup.LookupSiteGroupBrief(ctx, r.client, fmt.Sprintf("%d", groupIDInt))
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
-			siteRequest.Group = *netbox.NewNullableBriefSiteGroupRequest(groupRef)
-		}
-	}
-
-	// Set optional fields if provided
-	if !data.Description.IsNull() {
-		description := data.Description.ValueString()
-		siteRequest.Description = &description
-	}
-	if !data.Comments.IsNull() {
-		comments := data.Comments.ValueString()
-		siteRequest.Comments = &comments
-	}
-	if !data.Facility.IsNull() {
-		facility := data.Facility.ValueString()
-		siteRequest.Facility = &facility
-	}
-
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		var tags []utils.TagModel
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
+	if utils.IsSet(data.Tenant) {
+		tenantRef, diags := netboxlookup.LookupTenantBrief(ctx, r.client, data.Tenant.ValueString())
+		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		siteRequest.Tags = utils.TagsToNestedTagRequests(tags)
+		siteRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
+	}
+
+	// Handle region relationship
+	if utils.IsSet(data.Region) {
+		regionRef, diags := netboxlookup.LookupRegionBrief(ctx, r.client, data.Region.ValueString())
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		siteRequest.Region = *netbox.NewNullableBriefRegionRequest(regionRef)
+	}
+
+	// Handle group relationship
+	if utils.IsSet(data.Group) {
+		groupRef, diags := netboxlookup.LookupSiteGroupBrief(ctx, r.client, data.Group.ValueString())
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		siteRequest.Group = *netbox.NewNullableBriefSiteGroupRequest(groupRef)
+	}
+
+	// Handle tags
+	if utils.IsSet(data.Tags) {
+		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		siteRequest.Tags = tags
 	}
 
 	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
+	if utils.IsSet(data.CustomFields) {
 		var customFields []utils.CustomFieldModel
 		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
 		if resp.Diagnostics.HasError() {
@@ -657,151 +343,130 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// Update the site via API
 	site, httpResp, err := r.client.DcimAPI.DcimSitesUpdate(ctx, siteIDInt).WritableSiteRequest(siteRequest).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error updating site",
-			utils.FormatAPIError(fmt.Sprintf("update site ID %s", siteID), err, httpResp),
-		)
+		resp.Diagnostics.AddError("Error updating site", utils.FormatAPIError(fmt.Sprintf("update site ID %s", siteID), err, httpResp))
 		return
 	}
-
 	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Error updating site",
-			fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode),
-		)
+		resp.Diagnostics.AddError("Error updating site", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
 
-	// Update the model with the response from the API
+	// Map response to state using helper
+	r.mapSiteToState(ctx, site, &data)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *SiteResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data SiteResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	siteID := data.ID.ValueString()
+	var siteIDInt int32
+	if _, err := fmt.Sscanf(siteID, "%d", &siteIDInt); err != nil {
+		resp.Diagnostics.AddError("Invalid Site ID", fmt.Sprintf("Site ID must be a number, got: %s", siteID))
+		return
+	}
+
+	httpResp, err := r.client.DcimAPI.DcimSitesDestroy(ctx, siteIDInt).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError("Error deleting site", utils.FormatAPIError(fmt.Sprintf("delete site ID %s", siteID), err, httpResp))
+		return
+	}
+	if httpResp.StatusCode != 204 {
+		resp.Diagnostics.AddError("Error deleting site", fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
+		return
+	}
+}
+
+func (r *SiteResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+// mapSiteToState maps API response to Terraform state using state helpers.
+func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, data *SiteResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", site.GetId()))
 	data.Name = types.StringValue(site.GetName())
 	data.Slug = types.StringValue(site.GetSlug())
 
+	// Handle status
 	if site.HasStatus() {
 		status := site.GetStatus()
 		if status.HasValue() {
 			statusValue, _ := status.GetValueOk()
 			data.Status = types.StringValue(string(*statusValue))
 		}
+	} else {
+		data.Status = types.StringValue("active")
 	}
 
-	if site.HasDescription() {
-		desc := site.GetDescription()
-		if desc == "" && data.Description.IsNull() {
-			// Keep null if originally null and API returns empty
+	// Handle tenant reference
+	if site.HasTenant() {
+		tenant := site.GetTenant()
+		if tenant.Id != 0 {
+			data.Tenant = utils.ReferenceIDFromAPI(true, func() int32 { return tenant.Id }, data.Tenant)
 		} else {
-			data.Description = types.StringValue(desc)
+			data.Tenant = types.StringNull()
 		}
 	} else {
-		data.Description = types.StringNull()
+		data.Tenant = types.StringNull()
 	}
 
-	if site.HasComments() {
-		comments := site.GetComments()
-		if comments == "" && data.Comments.IsNull() {
-			// Keep null if originally null and API returns empty
+	// Handle region reference
+	if site.HasRegion() {
+		region := site.GetRegion()
+		if region.Id != 0 {
+			data.Region = utils.ReferenceIDFromAPI(true, func() int32 { return region.Id }, data.Region)
 		} else {
-			data.Comments = types.StringValue(comments)
+			data.Region = types.StringNull()
 		}
 	} else {
-		data.Comments = types.StringNull()
+		data.Region = types.StringNull()
 	}
 
-	if site.HasFacility() {
-		facility := site.GetFacility()
-		if facility == "" && data.Facility.IsNull() {
-			// Keep null if originally null and API returns empty
+	// Handle group reference
+	if site.HasGroup() {
+		group := site.GetGroup()
+		if group.Id != 0 {
+			data.Group = utils.ReferenceIDFromAPI(true, func() int32 { return group.Id }, data.Group)
 		} else {
-			data.Facility = types.StringValue(facility)
+			data.Group = types.StringNull()
 		}
 	} else {
-		data.Facility = types.StringNull()
+		data.Group = types.StringNull()
 	}
 
-	// Handle tags in response
+	// Handle optional string fields using helpers
+	data.Facility = utils.StringFromAPI(site.HasFacility(), site.GetFacility, data.Facility)
+	data.Description = utils.StringFromAPI(site.HasDescription(), site.GetDescription, data.Description)
+	data.Comments = utils.StringFromAPI(site.HasComments(), site.GetComments, data.Comments)
+
+	// Handle tags
 	if site.HasTags() {
 		tags := utils.NestedTagsToTagModels(site.GetTags())
-		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
+		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
+		if !tagDiags.HasError() {
+			data.Tags = tagsValue
 		}
-		data.Tags = tagsValue
 	} else {
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 	}
 
-	// Handle custom fields in response
+	// Handle custom fields - preserve state structure
 	if site.HasCustomFields() && !data.CustomFields.IsNull() {
 		var stateCustomFields []utils.CustomFieldModel
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)...)
-		if resp.Diagnostics.HasError() {
-			return
+		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
+		if !cfDiags.HasError() {
+			customFields := utils.MapToCustomFieldModels(site.GetCustomFields(), stateCustomFields)
+			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+			if !cfValueDiags.HasError() {
+				data.CustomFields = customFieldsValue
+			}
 		}
-
-		customFields := utils.MapToCustomFieldModels(site.GetCustomFields(), stateCustomFields)
-		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
 	} else if data.CustomFields.IsNull() {
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
-
-	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (r *SiteResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data SiteResourceModel
-
-	// Read Terraform prior state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Get the site ID from state
-	siteID := data.ID.ValueString()
-
-	tflog.Debug(ctx, "Deleting site", map[string]interface{}{
-		"id": siteID,
-	})
-
-	// Parse the site ID to int32 for the API call
-	var siteIDInt int32
-	if _, err := fmt.Sscanf(siteID, "%d", &siteIDInt); err != nil {
-		resp.Diagnostics.AddError(
-			"Invalid Site ID",
-			fmt.Sprintf("Site ID must be a number, got: %s", siteID),
-		)
-		return
-	}
-
-	// Delete the site via API
-	httpResp, err := r.client.DcimAPI.DcimSitesDestroy(ctx, siteIDInt).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error deleting site",
-			utils.FormatAPIError(fmt.Sprintf("delete site ID %s", siteID), err, httpResp),
-		)
-		return
-	}
-
-	if httpResp.StatusCode != 204 {
-		resp.Diagnostics.AddError(
-			"Error deleting site",
-			fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode),
-		)
-		return
-	}
-
-	tflog.Trace(ctx, "deleted a site resource")
-}
-
-func (r *SiteResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

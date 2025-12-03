@@ -9,13 +9,11 @@ import (
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
@@ -53,82 +51,15 @@ func (d *TenantDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 		MarkdownDescription: "Use this data source to get information about a tenant in Netbox. Tenants represent individual customers or organizational units in multi-tenancy scenarios. You can identify the tenant using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier for the tenant. Specify `id`, `slug`, or `name` to identify the tenant.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 50),
-				},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Full name of the tenant. Can be used to identify the tenant instead of `id` or `slug`.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 100),
-				},
-			},
-			"slug": schema.StringAttribute{
-				MarkdownDescription: "URL-friendly identifier for the tenant. Specify `id`, `slug`, or `name` to identify the tenant.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 100),
-				},
-			},
-			"group": schema.StringAttribute{
-				MarkdownDescription: "Name of the tenant group that this tenant belongs to.",
-				Computed:            true,
-			},
-			"group_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the tenant group that this tenant belongs to.",
-				Computed:            true,
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Detailed description of the tenant.",
-				Computed:            true,
-			},
-			"comments": schema.StringAttribute{
-				MarkdownDescription: "Additional comments or notes about the tenant.",
-				Computed:            true,
-			},
-			"tags": schema.SetNestedAttribute{
-				MarkdownDescription: "Tags assigned to this tenant.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the tag.",
-							Computed:            true,
-						},
-						"slug": schema.StringAttribute{
-							MarkdownDescription: "Slug of the tag.",
-							Computed:            true,
-						},
-					},
-				},
-			},
-			"custom_fields": schema.SetNestedAttribute{
-				MarkdownDescription: "Custom fields assigned to this tenant.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the custom field.",
-							Computed:            true,
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of the custom field.",
-							Computed:            true,
-						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "Value of the custom field.",
-							Computed:            true,
-						},
-					},
-				},
-			},
+			"id":            nbschema.DSIDAttribute("tenant"),
+			"name":          nbschema.DSNameAttribute("tenant"),
+			"slug":          nbschema.DSSlugAttribute("tenant"),
+			"group":         nbschema.DSComputedStringAttribute("Name of the tenant group that this tenant belongs to."),
+			"group_id":      nbschema.DSComputedStringAttribute("ID of the tenant group that this tenant belongs to."),
+			"description":   nbschema.DSComputedStringAttribute("Detailed description of the tenant."),
+			"comments":      nbschema.DSComputedStringAttribute("Additional comments or notes about the tenant."),
+			"tags":          nbschema.DSTagsAttribute(),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -155,10 +86,7 @@ func (d *TenantDataSource) Configure(ctx context.Context, req datasource.Configu
 
 func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data TenantDataSourceModel
-
-	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -167,149 +95,81 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	var err error
 	var httpResp *http.Response
 
-	// Determine if we're searching by ID, slug, or name
+	// Lookup by id, slug, or name
 	if !data.ID.IsNull() {
-		// Search by ID
 		tenantID := data.ID.ValueString()
-		tflog.Debug(ctx, "Reading tenant by ID", map[string]interface{}{
-			"id": tenantID,
-		})
-
-		// Parse the tenant ID to int32 for the API call
 		var tenantIDInt int32
 		if _, parseErr := fmt.Sscanf(tenantID, "%d", &tenantIDInt); parseErr != nil {
-			resp.Diagnostics.AddError(
-				"Invalid Tenant ID",
-				fmt.Sprintf("Tenant ID must be a number, got: %s", tenantID),
-			)
+			resp.Diagnostics.AddError("Invalid Tenant ID", "Tenant ID must be a number.")
 			return
 		}
-
-		// Retrieve the tenant via API
-		tenant, httpResp, err = d.client.TenancyAPI.TenancyTenantsRetrieve(ctx, tenantIDInt).Execute()
+		var t *netbox.Tenant
+		t, httpResp, err = d.client.TenancyAPI.TenancyTenantsRetrieve(ctx, tenantIDInt).Execute()
+		if err == nil && httpResp.StatusCode == 200 {
+			tenant = t
+		}
 	} else if !data.Slug.IsNull() {
-		// Search by slug
-		tenantSlug := data.Slug.ValueString()
-		tflog.Debug(ctx, "Reading tenant by slug", map[string]interface{}{
-			"slug": tenantSlug,
-		})
-
-		// List tenants with slug filter
+		slug := data.Slug.ValueString()
 		var tenants *netbox.PaginatedTenantList
-		tenants, httpResp, err = d.client.TenancyAPI.TenancyTenantsList(ctx).Slug([]string{tenantSlug}).Execute()
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error reading tenant",
-				utils.FormatAPIError("read tenant by slug", err, httpResp),
-			)
-			return
+		tenants, httpResp, err = d.client.TenancyAPI.TenancyTenantsList(ctx).Slug([]string{slug}).Execute()
+		if err == nil && httpResp.StatusCode == 200 && len(tenants.GetResults()) > 0 {
+			tenant = &tenants.GetResults()[0]
 		}
-		if len(tenants.GetResults()) == 0 {
-			resp.Diagnostics.AddError(
-				"Tenant Not Found",
-				fmt.Sprintf("No tenant found with slug: %s", tenantSlug),
-			)
-			return
-		}
-		if len(tenants.GetResults()) > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple Tenants Found",
-				fmt.Sprintf("Multiple tenants found with slug: %s. This should not happen as slugs should be unique.", tenantSlug),
-			)
-			return
-		}
-		tenant = &tenants.GetResults()[0]
 	} else if !data.Name.IsNull() {
-		// Search by name
-		tenantName := data.Name.ValueString()
-		tflog.Debug(ctx, "Reading tenant by name", map[string]interface{}{
-			"name": tenantName,
-		})
-
-		// List tenants with name filter
+		name := data.Name.ValueString()
 		var tenants *netbox.PaginatedTenantList
-		tenants, httpResp, err = d.client.TenancyAPI.TenancyTenantsList(ctx).Name([]string{tenantName}).Execute()
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error reading tenant",
-				utils.FormatAPIError("read tenant by name", err, httpResp),
-			)
-			return
+		tenants, httpResp, err = d.client.TenancyAPI.TenancyTenantsList(ctx).Name([]string{name}).Execute()
+		if err == nil && httpResp.StatusCode == 200 && len(tenants.GetResults()) > 0 {
+			tenant = &tenants.GetResults()[0]
 		}
-		if len(tenants.GetResults()) == 0 {
-			resp.Diagnostics.AddError(
-				"Tenant Not Found",
-				fmt.Sprintf("No tenant found with name: %s", tenantName),
-			)
-			return
-		}
-		if len(tenants.GetResults()) > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple Tenants Found",
-				fmt.Sprintf("Multiple tenants found with name: %s. Tenant names may not be unique in Netbox.", tenantName),
-			)
-			return
-		}
-		tenant = &tenants.GetResults()[0]
 	} else {
-		resp.Diagnostics.AddError(
-			"Missing Tenant Identifier",
-			"Either 'id', 'slug', or 'name' must be specified to identify the tenant.",
-		)
+		resp.Diagnostics.AddError("Missing Tenant Identifier", "Either 'id', 'slug', or 'name' must be specified.")
 		return
 	}
 
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading tenant",
-			utils.FormatAPIError("read tenant", err, httpResp),
-		)
+		resp.Diagnostics.AddError("Error reading tenant", utils.FormatAPIError("read tenant", err, httpResp))
 		return
 	}
 
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Error reading tenant",
-			fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode),
-		)
+	if httpResp == nil || httpResp.StatusCode != 200 || tenant == nil {
+		resp.Diagnostics.AddError("Tenant Not Found", "No tenant found with the specified identifier.")
 		return
 	}
 
-	// Update the model with the response from the API
+	// Map API response to model using helper
+	d.mapTenantToState(ctx, tenant, &data)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+// mapTenantToState maps API response to Terraform state using state helpers.
+func (d *TenantDataSource) mapTenantToState(ctx context.Context, tenant *netbox.Tenant, data *TenantDataSourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 	data.Name = types.StringValue(tenant.GetName())
 	data.Slug = types.StringValue(tenant.GetSlug())
 
+	// Handle group reference - data source exposes both name and ID
 	if tenant.HasGroup() {
 		group := tenant.GetGroup()
-		data.Group = types.StringValue(group.GetName())
-		data.GroupID = types.StringValue(fmt.Sprintf("%d", group.GetId()))
+		data.Group = types.StringValue(group.Name)
+		data.GroupID = types.StringValue(fmt.Sprintf("%d", group.Id))
 	} else {
 		data.Group = types.StringNull()
 		data.GroupID = types.StringNull()
 	}
 
-	if tenant.HasDescription() {
-		data.Description = types.StringValue(tenant.GetDescription())
-	} else {
-		data.Description = types.StringNull()
-	}
-
-	if tenant.HasComments() {
-		data.Comments = types.StringValue(tenant.GetComments())
-	} else {
-		data.Comments = types.StringNull()
-	}
+	// Handle optional string fields using helpers
+	data.Description = utils.StringFromAPI(tenant.HasDescription(), tenant.GetDescription, data.Description)
+	data.Comments = utils.StringFromAPI(tenant.HasComments(), tenant.GetComments, data.Comments)
 
 	// Handle tags
 	if tenant.HasTags() {
 		tags := utils.NestedTagsToTagModels(tenant.GetTags())
-		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
+		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
+		if !tagDiags.HasError() {
+			data.Tags = tagsValue
 		}
-		data.Tags = tagsValue
 	} else {
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 	}
@@ -317,16 +177,11 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	// Handle custom fields
 	if tenant.HasCustomFields() {
 		customFields := utils.MapToCustomFieldModels(tenant.GetCustomFields(), []utils.CustomFieldModel{})
-		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
 		}
-		data.CustomFields = customFieldsValue
 	} else {
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
-
-	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

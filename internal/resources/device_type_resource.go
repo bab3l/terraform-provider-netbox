@@ -12,17 +12,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
-	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -68,36 +65,11 @@ func (r *DeviceTypeResource) Schema(ctx context.Context, req resource.SchemaRequ
 		MarkdownDescription: "Manages a device type in Netbox. Device types define the make and model of physical hardware, including specifications like rack height, airflow direction, and weight. Device types serve as templates when creating new devices.",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Unique identifier for the device type (assigned by Netbox).",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"manufacturer": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the manufacturer of this device type. Required.",
-				Required:            true,
-			},
-			"model": schema.StringAttribute{
-				MarkdownDescription: "Model name/number of the device type (e.g., 'Catalyst 9300-48P', 'PowerEdge R640').",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 100),
-				},
-			},
-			"slug": schema.StringAttribute{
-				MarkdownDescription: "URL-friendly identifier for the device type. Must be unique and contain only alphanumeric characters, hyphens, and underscores.",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 100),
-					validators.ValidSlug(),
-				},
-			},
-			"default_platform": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the default platform for devices of this type.",
-				Optional:            true,
-			},
+			"id":               nbschema.IDAttribute("device type"),
+			"manufacturer":     nbschema.RequiredReferenceAttribute("manufacturer", "ID or slug of the manufacturer of this device type. Required."),
+			"model":            nbschema.ModelAttribute("device type", 100),
+			"slug":             nbschema.SlugAttribute("device type"),
+			"default_platform": nbschema.ReferenceAttribute("platform", "ID or slug of the default platform for devices of this type."),
 			"part_number": schema.StringAttribute{
 				MarkdownDescription: "Discrete manufacturer part number for ordering/inventory purposes.",
 				Optional:            true,
@@ -115,18 +87,8 @@ func (r *DeviceTypeResource) Schema(ctx context.Context, req resource.SchemaRequ
 					float64validator.AtMost(32767),
 				},
 			},
-			"exclude_from_utilization": schema.BoolAttribute{
-				MarkdownDescription: "If true, devices of this type are excluded when calculating rack utilization. Defaults to false.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-			},
-			"is_full_depth": schema.BoolAttribute{
-				MarkdownDescription: "If true, device consumes both front and rear rack faces. Defaults to true.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-			},
+			"exclude_from_utilization": nbschema.BoolAttributeWithDefault("If true, devices of this type are excluded when calculating rack utilization. Defaults to false.", false),
+			"is_full_depth":            nbschema.BoolAttributeWithDefault("If true, device consumes both front and rear rack faces. Defaults to true.", true),
 			"subdevice_role": schema.StringAttribute{
 				MarkdownDescription: "Role of this device type as a subdevice. Valid values: 'parent' or 'child'. Leave empty if not a subdevice.",
 				Optional:            true,
@@ -155,70 +117,10 @@ func (r *DeviceTypeResource) Schema(ctx context.Context, req resource.SchemaRequ
 					stringvalidator.OneOf("kg", "g", "lb", "oz", ""),
 				},
 			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Brief description of the device type.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(200),
-				},
-			},
-			"comments": schema.StringAttribute{
-				MarkdownDescription: "Additional comments or notes about this device type. Supports Markdown formatting.",
-				Optional:            true,
-			},
-			"tags": schema.SetNestedAttribute{
-				MarkdownDescription: "Tags assigned to this device type.",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the existing tag.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 100),
-							},
-						},
-						"slug": schema.StringAttribute{
-							MarkdownDescription: "Slug of the existing tag.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 100),
-								validators.ValidSlug(),
-							},
-						},
-					},
-				},
-			},
-			"custom_fields": schema.SetNestedAttribute{
-				MarkdownDescription: "Custom fields assigned to this device type.",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 50),
-								validators.ValidCustomFieldName(),
-							},
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								validators.ValidCustomFieldType(),
-							},
-						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "Value of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthAtMost(1000),
-							},
-						},
-					},
-				},
-			},
+			"description":   nbschema.DescriptionAttribute("device type"),
+			"comments":      nbschema.CommentsAttribute("device type"),
+			"tags":          nbschema.TagsAttribute(),
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 }
