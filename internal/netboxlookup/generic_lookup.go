@@ -700,3 +700,135 @@ func VLANLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.VLAN, netbo
 func LookupVLAN(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefVLANRequest, diag.Diagnostics) {
 	return GenericLookup(ctx, value, VLANLookupConfig(client))
 }
+
+// =====================================================
+// VIRTUALIZATION LOOKUPS
+// =====================================================
+
+// ClusterTypeLookupConfig returns the lookup configuration for Cluster Types.
+func ClusterTypeLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.ClusterType, netbox.BriefClusterTypeRequest] {
+	return LookupConfig[*netbox.ClusterType, netbox.BriefClusterTypeRequest]{
+		ResourceName: "Cluster Type",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.ClusterType, *http.Response, error) {
+			return client.VirtualizationAPI.VirtualizationClusterTypesRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.ClusterType, *http.Response, error) {
+			list, resp, err := client.VirtualizationAPI.VirtualizationClusterTypesList(ctx).Slug([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.ClusterType, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(ct *netbox.ClusterType) netbox.BriefClusterTypeRequest {
+			return netbox.BriefClusterTypeRequest{
+				Name: ct.GetName(),
+				Slug: ct.GetSlug(),
+			}
+		},
+	}
+}
+
+// LookupClusterType looks up a Cluster Type by ID or slug.
+func LookupClusterType(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefClusterTypeRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, ClusterTypeLookupConfig(client))
+}
+
+// ClusterGroupLookupConfig returns the lookup configuration for Cluster Groups.
+func ClusterGroupLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.ClusterGroup, netbox.BriefClusterGroupRequest] {
+	return LookupConfig[*netbox.ClusterGroup, netbox.BriefClusterGroupRequest]{
+		ResourceName: "Cluster Group",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.ClusterGroup, *http.Response, error) {
+			return client.VirtualizationAPI.VirtualizationClusterGroupsRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.ClusterGroup, *http.Response, error) {
+			list, resp, err := client.VirtualizationAPI.VirtualizationClusterGroupsList(ctx).Slug([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.ClusterGroup, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(cg *netbox.ClusterGroup) netbox.BriefClusterGroupRequest {
+			return netbox.BriefClusterGroupRequest{
+				Name: cg.GetName(),
+				Slug: cg.GetSlug(),
+			}
+		},
+	}
+}
+
+// LookupClusterGroup looks up a Cluster Group by ID or slug.
+func LookupClusterGroup(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefClusterGroupRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, ClusterGroupLookupConfig(client))
+}
+
+// ClusterLookupConfig returns the lookup configuration for Clusters.
+func ClusterLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Cluster, netbox.BriefClusterRequest] {
+	return LookupConfig[*netbox.Cluster, netbox.BriefClusterRequest]{
+		ResourceName: "Cluster",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.Cluster, *http.Response, error) {
+			return client.VirtualizationAPI.VirtualizationClustersRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.Cluster, *http.Response, error) {
+			// Cluster doesn't have slug, lookup by name instead
+			list, resp, err := client.VirtualizationAPI.VirtualizationClustersList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.Cluster, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(c *netbox.Cluster) netbox.BriefClusterRequest {
+			return netbox.BriefClusterRequest{
+				Name: c.GetName(),
+			}
+		},
+	}
+}
+
+// LookupCluster looks up a Cluster by ID or name.
+func LookupCluster(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefClusterRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, ClusterLookupConfig(client))
+}
+
+// VirtualMachineLookupConfig returns the lookup configuration for Virtual Machines.
+func VirtualMachineLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.VirtualMachineWithConfigContext, netbox.BriefVirtualMachineRequest] {
+	return LookupConfig[*netbox.VirtualMachineWithConfigContext, netbox.BriefVirtualMachineRequest]{
+		ResourceName: "Virtual Machine",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.VirtualMachineWithConfigContext, *http.Response, error) {
+			return client.VirtualizationAPI.VirtualizationVirtualMachinesRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.VirtualMachineWithConfigContext, *http.Response, error) {
+			// Virtual Machine doesn't have slug, lookup by name instead
+			list, resp, err := client.VirtualizationAPI.VirtualizationVirtualMachinesList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.VirtualMachineWithConfigContext, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(vm *netbox.VirtualMachineWithConfigContext) netbox.BriefVirtualMachineRequest {
+			return netbox.BriefVirtualMachineRequest{
+				Name: vm.GetName(),
+			}
+		},
+	}
+}
+
+// LookupVirtualMachine looks up a Virtual Machine by ID or name.
+func LookupVirtualMachine(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefVirtualMachineRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, VirtualMachineLookupConfig(client))
+}

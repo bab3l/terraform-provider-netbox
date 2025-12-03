@@ -634,3 +634,111 @@ func (c *CleanupResource) RegisterIPAddressCleanup(address string) {
 		}
 	})
 }
+
+// RegisterClusterTypeCleanup registers a cleanup function that will delete
+// a cluster type by slug after the test completes.
+func (c *CleanupResource) RegisterClusterTypeCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.VirtualizationAPI.VirtualizationClusterTypesList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list cluster types with slug %s: %v", slug, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: cluster type with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.VirtualizationAPI.VirtualizationClusterTypesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete cluster type %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted cluster type %d (slug: %s)", id, slug)
+		}
+	})
+}
+
+// RegisterClusterCleanup registers a cleanup function that will delete
+// a cluster by name after the test completes.
+func (c *CleanupResource) RegisterClusterCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.VirtualizationAPI.VirtualizationClustersList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list clusters with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: cluster with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.VirtualizationAPI.VirtualizationClustersDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete cluster %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted cluster %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterVirtualMachineCleanup registers a cleanup function that will delete
+// a virtual machine by name after the test completes.
+func (c *CleanupResource) RegisterVirtualMachineCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.VirtualizationAPI.VirtualizationVirtualMachinesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list virtual machines with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: virtual machine with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.VirtualizationAPI.VirtualizationVirtualMachinesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete virtual machine %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted virtual machine %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterVMInterfaceCleanup registers a cleanup function that will delete
+// a VM interface by name and virtual machine after the test completes.
+func (c *CleanupResource) RegisterVMInterfaceCleanup(name string, vmName string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.VirtualizationAPI.VirtualizationInterfacesList(ctx).Name([]string{name}).VirtualMachine([]string{vmName}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list VM interfaces with name %s on VM %s: %v", name, vmName, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: VM interface with name %s on VM %s not found (already deleted)", name, vmName)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.VirtualizationAPI.VirtualizationInterfacesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete VM interface %d (name: %s, VM: %s): %v", id, name, vmName, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted VM interface %d (name: %s, VM: %s)", id, name, vmName)
+		}
+	})
+}
