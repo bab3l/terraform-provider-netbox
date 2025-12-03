@@ -171,6 +171,11 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewVLANResource,
 		resources.NewPrefixResource,
 		resources.NewIPAddressResource,
+		// Phase 3: Virtualization resources
+		resources.NewClusterTypeResource,
+		resources.NewClusterResource,
+		resources.NewVirtualMachineResource,
+		resources.NewVMInterfaceResource,
 	}
 }
 
@@ -195,6 +200,11 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewVLANDataSource,
 		datasources.NewPrefixDataSource,
 		datasources.NewIPAddressDataSource,
+		// Phase 3: Virtualization data sources
+		datasources.NewClusterTypeDataSource,
+		datasources.NewClusterDataSource,
+		datasources.NewVirtualMachineDataSource,
+		datasources.NewVMInterfaceDataSource,
 	}
 }
 

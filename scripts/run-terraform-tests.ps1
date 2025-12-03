@@ -249,7 +249,27 @@ function Main {
         # tenant_group before tenant, site_group before site
         # region has no deps, location depends on site, rack depends on site+location
         # rack_role has no deps (used to categorize racks)
-        $testOrder = @("manufacturer", "platform", "tenant_group", "tenant", "site_group", "site", "region", "location", "rack_role", "rack")
+        # Phase 3: cluster_type before cluster, cluster before virtual_machine, virtual_machine before vm_interface
+        $testOrder = @(
+            # Phase 1: Core Infrastructure
+            "manufacturer", 
+            "platform", 
+            "tenant_group", 
+            "tenant", 
+            "site_group", 
+            "site", 
+            "region", 
+            "location", 
+            "rack_role", 
+            "rack",
+            "device_role",
+            # Phase 2: IPAM (future)
+            # Phase 3: Virtualization
+            "cluster_type",
+            "cluster",
+            "virtual_machine",
+            "vm_interface"
+        )
         
         foreach ($name in $testOrder) {
             $test = $resourceTests | Where-Object { $_.Name -eq $name }

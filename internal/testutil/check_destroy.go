@@ -621,3 +621,132 @@ func CheckIPAddressDestroy(s *terraform.State) error {
 
 	return nil
 }
+
+// CheckClusterTypeDestroy verifies that a cluster type has been destroyed.
+func CheckClusterTypeDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_cluster_type" {
+			continue
+		}
+
+		slug := rs.Primary.Attributes["slug"]
+		if slug == "" {
+			continue
+		}
+
+		list, resp, err := client.VirtualizationAPI.VirtualizationClusterTypesList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("cluster type with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckClusterDestroy verifies that a cluster has been destroyed.
+func CheckClusterDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_cluster" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.VirtualizationAPI.VirtualizationClustersList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("cluster with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckVirtualMachineDestroy verifies that a virtual machine has been destroyed.
+func CheckVirtualMachineDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_virtual_machine" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.VirtualizationAPI.VirtualizationVirtualMachinesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("virtual machine with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckVMInterfaceDestroy verifies that a VM interface has been destroyed.
+func CheckVMInterfaceDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_vm_interface" {
+			continue
+		}
+
+		id := rs.Primary.ID
+		if id != "" {
+			var idInt int32
+			if _, parseErr := fmt.Sscanf(id, "%d", &idInt); parseErr == nil {
+				_, resp, err := client.VirtualizationAPI.VirtualizationInterfacesRetrieve(ctx, idInt).Execute()
+				if err == nil && resp.StatusCode == 200 {
+					return fmt.Errorf("VM interface with ID %s still exists", id)
+				}
+			}
+		}
+	}
+
+	return nil
+}
