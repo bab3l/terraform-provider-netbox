@@ -465,3 +465,159 @@ func ComposeCheckDestroy(checks ...resource.TestCheckFunc) resource.TestCheckFun
 		return nil
 	}
 }
+
+// CheckVRFDestroy verifies that a VRF has been destroyed.
+func CheckVRFDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_vrf" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.IpamAPI.IpamVrfsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("VRF with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckVLANGroupDestroy verifies that a VLAN group has been destroyed.
+func CheckVLANGroupDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_vlan_group" {
+			continue
+		}
+
+		slug := rs.Primary.Attributes["slug"]
+		if slug == "" {
+			continue
+		}
+
+		list, resp, err := client.IpamAPI.IpamVlanGroupsList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("VLAN group with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckVLANDestroy verifies that a VLAN has been destroyed.
+func CheckVLANDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_vlan" {
+			continue
+		}
+
+		id := rs.Primary.ID
+		if id != "" {
+			var idInt int32
+			if _, parseErr := fmt.Sscanf(id, "%d", &idInt); parseErr == nil {
+				_, resp, err := client.IpamAPI.IpamVlansRetrieve(ctx, idInt).Execute()
+				if err == nil && resp.StatusCode == 200 {
+					return fmt.Errorf("VLAN with ID %s still exists", id)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// CheckPrefixDestroy verifies that a prefix has been destroyed.
+func CheckPrefixDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_prefix" {
+			continue
+		}
+
+		id := rs.Primary.ID
+		if id != "" {
+			var idInt int32
+			if _, parseErr := fmt.Sscanf(id, "%d", &idInt); parseErr == nil {
+				_, resp, err := client.IpamAPI.IpamPrefixesRetrieve(ctx, idInt).Execute()
+				if err == nil && resp.StatusCode == 200 {
+					return fmt.Errorf("prefix with ID %s still exists", id)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// CheckIPAddressDestroy verifies that an IP address has been destroyed.
+func CheckIPAddressDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_ip_address" {
+			continue
+		}
+
+		id := rs.Primary.ID
+		if id != "" {
+			var idInt int32
+			if _, parseErr := fmt.Sscanf(id, "%d", &idInt); parseErr == nil {
+				_, resp, err := client.IpamAPI.IpamIpAddressesRetrieve(ctx, idInt).Execute()
+				if err == nil && resp.StatusCode == 200 {
+					return fmt.Errorf("IP address with ID %s still exists", id)
+				}
+			}
+		}
+	}
+
+	return nil
+}

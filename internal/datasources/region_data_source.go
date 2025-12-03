@@ -173,8 +173,8 @@ func (d *RegionDataSource) mapRegionToState(ctx context.Context, region *netbox.
 		data.ParentID = types.StringNull()
 	}
 
-	// Handle description
-	data.Description = utils.StringFromAPIPreserveEmpty(region.HasDescription(), region.GetDescription, data.Description)
+	// Handle description - use StringFromAPI to treat empty string as null
+	data.Description = utils.StringFromAPI(region.HasDescription(), region.GetDescription, data.Description)
 
 	// Handle tags
 	if region.HasTags() {
