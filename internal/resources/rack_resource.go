@@ -6,18 +6,18 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
-	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
-	"github.com/bab3l/terraform-provider-netbox/internal/utils"
-	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -73,74 +73,16 @@ func (r *RackResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 		MarkdownDescription: "Manages a rack in Netbox. Racks represent physical equipment enclosures used to organize network infrastructure within a site or location.",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Unique identifier for the rack (assigned by Netbox).",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Name of the rack (e.g., 'Rack A1', 'Row 2 Cabinet 3').",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 100),
-				},
-			},
-			"site": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the site where this rack is located. Required.",
-				Required:            true,
-			},
-			"location": schema.StringAttribute{
-				MarkdownDescription: "ID of the location within the site (e.g., building, floor, room).",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						validators.IntegerRegex(),
-						"must be a valid integer ID",
-					),
-				},
-			},
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the tenant that owns this rack.",
-				Optional:            true,
-			},
-			"status": schema.StringAttribute{
-				MarkdownDescription: "Operational status of the rack. Valid values: `reserved`, `available`, `planned`, `active`, `deprecated`. Defaults to `active`.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.OneOf("reserved", "available", "planned", "active", "deprecated"),
-				},
-			},
-			"role": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the functional role of the rack.",
-				Optional:            true,
-			},
-			"serial": schema.StringAttribute{
-				MarkdownDescription: "Serial number of the rack.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(50),
-				},
-			},
-			"asset_tag": schema.StringAttribute{
-				MarkdownDescription: "Unique asset tag for the rack.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(50),
-				},
-			},
-			"rack_type": schema.StringAttribute{
-				MarkdownDescription: "ID of the rack type (model/form factor definition).",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						validators.IntegerRegex(),
-						"must be a valid integer ID",
-					),
-				},
-			},
+			"id":        nbschema.IDAttribute("rack"),
+			"name":      nbschema.NameAttribute("rack", 100),
+			"site":      nbschema.RequiredReferenceAttribute("site", "ID or slug of the site where this rack is located. Required."),
+			"location":  nbschema.IDOnlyReferenceAttribute("location", "ID of the location within the site (e.g., building, floor, room)."),
+			"tenant":    nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this rack."),
+			"status":    nbschema.StatusAttribute([]string{"reserved", "available", "planned", "active", "deprecated"}, "Operational status of the rack. Defaults to `active`."),
+			"role":      nbschema.ReferenceAttribute("rack role", "ID or slug of the functional role of the rack."),
+			"serial":    nbschema.SerialAttribute(),
+			"asset_tag": nbschema.AssetTagAttribute(),
+			"rack_type": nbschema.IDOnlyReferenceAttribute("rack type", "ID of the rack type (model/form factor definition)."),
 			"form_factor": schema.StringAttribute{
 				MarkdownDescription: "Physical form factor of the rack. Valid values: `2-post-frame`, `4-post-frame`, `4-post-cabinet`, `wall-frame`, `wall-frame-vertical`, `wall-cabinet`, `wall-cabinet-vertical`.",
 				Optional:            true,
@@ -248,71 +190,10 @@ func (r *RackResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 					stringvalidator.OneOf("front-to-rear", "rear-to-front", "passive", "mixed"),
 				},
 			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Description of the rack.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(200),
-				},
-			},
-			"comments": schema.StringAttribute{
-				MarkdownDescription: "Additional comments or notes about the rack.",
-				Optional:            true,
-			},
-			"tags": schema.SetNestedAttribute{
-				MarkdownDescription: "Tags assigned to this rack.",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the existing tag.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 100),
-							},
-						},
-						"slug": schema.StringAttribute{
-							MarkdownDescription: "Slug of the existing tag.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 100),
-								validators.ValidSlug(),
-							},
-						},
-					},
-				},
-			},
-			"custom_fields": schema.SetNestedAttribute{
-				MarkdownDescription: "Custom fields assigned to this rack.",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 50),
-								validators.ValidCustomFieldName(),
-							},
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								validators.ValidCustomFieldType(),
-							},
-						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "Value of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthAtMost(1000),
-								validators.SimpleValidCustomFieldValue(),
-							},
-						},
-					},
-				},
-			},
+			"description":   nbschema.DescriptionAttribute("rack"),
+			"comments":      nbschema.CommentsAttribute("rack"),
+			"tags":          nbschema.TagsAttribute(),
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 }

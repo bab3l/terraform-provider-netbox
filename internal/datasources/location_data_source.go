@@ -10,13 +10,12 @@ import (
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
@@ -59,102 +58,20 @@ func (d *LocationDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 		MarkdownDescription: "Use this data source to get information about a location in Netbox. Locations represent physical areas within a site, such as buildings, floors, or rooms. Locations can be nested hierarchically to model complex site layouts. You can identify the location using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier for the location. Specify `id`, `slug`, or `name` to identify the location.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 50),
-				},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Full name of the location. Can be used to identify the location instead of `id` or `slug`.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 100),
-				},
-			},
-			"slug": schema.StringAttribute{
-				MarkdownDescription: "URL-friendly identifier for the location. Specify `id`, `slug`, or `name` to identify the location.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 100),
-				},
-			},
-			"site": schema.StringAttribute{
-				MarkdownDescription: "Name of the site where this location resides.",
-				Computed:            true,
-			},
-			"site_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the site where this location resides.",
-				Computed:            true,
-			},
-			"parent": schema.StringAttribute{
-				MarkdownDescription: "Name of the parent location.",
-				Computed:            true,
-			},
-			"parent_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the parent location.",
-				Computed:            true,
-			},
-			"status": schema.StringAttribute{
-				MarkdownDescription: "Operational status of the location (e.g., `planned`, `staging`, `active`, `decommissioning`, `retired`).",
-				Computed:            true,
-			},
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "Name of the tenant that owns this location.",
-				Computed:            true,
-			},
-			"tenant_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the tenant that owns this location.",
-				Computed:            true,
-			},
-			"facility": schema.StringAttribute{
-				MarkdownDescription: "Local facility identifier or description.",
-				Computed:            true,
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Detailed description of the location.",
-				Computed:            true,
-			},
-			"tags": schema.SetNestedAttribute{
-				MarkdownDescription: "Tags assigned to this location.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the tag.",
-							Computed:            true,
-						},
-						"slug": schema.StringAttribute{
-							MarkdownDescription: "Slug of the tag.",
-							Computed:            true,
-						},
-					},
-				},
-			},
-			"custom_fields": schema.SetNestedAttribute{
-				MarkdownDescription: "Custom fields assigned to this location.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the custom field.",
-							Computed:            true,
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of the custom field.",
-							Computed:            true,
-						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "Value of the custom field.",
-							Computed:            true,
-						},
-					},
-				},
-			},
+			"id":            nbschema.DSIDAttribute("location"),
+			"name":          nbschema.DSNameAttribute("location"),
+			"slug":          nbschema.DSSlugAttribute("location"),
+			"site":          nbschema.DSComputedStringAttribute("Name of the site where this location resides."),
+			"site_id":       nbschema.DSComputedStringAttribute("ID of the site where this location resides."),
+			"parent":        nbschema.DSComputedStringAttribute("Name of the parent location."),
+			"parent_id":     nbschema.DSComputedStringAttribute("ID of the parent location."),
+			"status":        nbschema.DSComputedStringAttribute("Operational status of the location (e.g., `planned`, `staging`, `active`, `decommissioning`, `retired`)."),
+			"tenant":        nbschema.DSComputedStringAttribute("Name of the tenant that owns this location."),
+			"tenant_id":     nbschema.DSComputedStringAttribute("ID of the tenant that owns this location."),
+			"facility":      nbschema.DSComputedStringAttribute("Local facility identifier or description."),
+			"description":   nbschema.DSComputedStringAttribute("Detailed description of the location."),
+			"tags":          nbschema.DSTagsAttribute(),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }

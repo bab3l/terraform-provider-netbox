@@ -6,19 +6,16 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
-	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
-	"github.com/bab3l/terraform-provider-netbox/internal/utils"
-	"github.com/bab3l/terraform-provider-netbox/internal/validators"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -58,122 +55,17 @@ func (r *LocationResource) Schema(ctx context.Context, req resource.SchemaReques
 		MarkdownDescription: "Manages a location in Netbox. Locations represent physical areas within a site, such as buildings, floors, or rooms. Locations can be nested hierarchically.",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Unique identifier for the location (assigned by Netbox).",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Full name of the location (e.g., 'Building A', 'Floor 3', 'Server Room').",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 100),
-				},
-			},
-			"slug": schema.StringAttribute{
-				MarkdownDescription: "URL-friendly identifier for the location. Must be unique within the site.",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 100),
-					validators.ValidSlug(),
-				},
-			},
-			"site": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the site this location belongs to. Required.",
-				Required:            true,
-			},
-			"parent": schema.StringAttribute{
-				MarkdownDescription: "ID of the parent location. Leave empty for top-level locations within the site.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						validators.IntegerRegex(),
-						"must be a valid integer ID",
-					),
-				},
-			},
-			"status": schema.StringAttribute{
-				MarkdownDescription: "Operational status of the location. Valid values: `planned`, `staging`, `active`, `decommissioning`, `retired`. Defaults to `active`.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.OneOf("planned", "staging", "active", "decommissioning", "retired"),
-				},
-			},
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the tenant that owns this location.",
-				Optional:            true,
-			},
-			"facility": schema.StringAttribute{
-				MarkdownDescription: "Local facility ID or description.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(50),
-				},
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Detailed description of the location.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(200),
-				},
-			},
-			"tags": schema.SetNestedAttribute{
-				MarkdownDescription: "Tags assigned to this location.",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the existing tag.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 100),
-							},
-						},
-						"slug": schema.StringAttribute{
-							MarkdownDescription: "Slug of the existing tag.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 100),
-								validators.ValidSlug(),
-							},
-						},
-					},
-				},
-			},
-			"custom_fields": schema.SetNestedAttribute{
-				MarkdownDescription: "Custom fields assigned to this location.",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 50),
-								validators.ValidCustomFieldName(),
-							},
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								validators.ValidCustomFieldType(),
-							},
-						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "Value of the custom field.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthAtMost(1000),
-								validators.SimpleValidCustomFieldValue(),
-							},
-						},
-					},
-				},
-			},
+			"id":            nbschema.IDAttribute("location"),
+			"name":          nbschema.NameAttribute("location", 100),
+			"slug":          nbschema.SlugAttribute("location"),
+			"site":          nbschema.RequiredReferenceAttribute("site", "ID or slug of the site this location belongs to. Required."),
+			"parent":        nbschema.IDOnlyReferenceAttribute("parent location", "ID of the parent location. Leave empty for top-level locations within the site."),
+			"status":        nbschema.StatusAttribute([]string{"planned", "staging", "active", "decommissioning", "retired"}, "Operational status of the location. Defaults to `active`."),
+			"tenant":        nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this location."),
+			"facility":      nbschema.FacilityAttribute(),
+			"description":   nbschema.DescriptionAttribute("location"),
+			"tags":          nbschema.TagsAttribute(),
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
@@ -51,69 +52,14 @@ func (d *DeviceRoleDataSource) Schema(ctx context.Context, req datasource.Schema
 		MarkdownDescription: "Use this data source to get information about a device role in Netbox. Device roles categorize devices by their function (e.g., Router, Switch, Server, Firewall). You can identify the device role using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier for the device role. Specify `id`, `slug`, or `name` to identify the device role.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Full name of the device role. Can be used to identify the device role instead of `id` or `slug`.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"slug": schema.StringAttribute{
-				MarkdownDescription: "URL-friendly identifier for the device role. Specify `id`, `slug`, or `name` to identify the device role.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"color": schema.StringAttribute{
-				MarkdownDescription: "Color for the device role in 6-character hexadecimal format (e.g., 'aa1409').",
-				Computed:            true,
-			},
-			"vm_role": schema.BoolAttribute{
-				MarkdownDescription: "Whether virtual machines may be assigned to this role.",
-				Computed:            true,
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Detailed description of the device role.",
-				Computed:            true,
-			},
-			"tags": schema.SetNestedAttribute{
-				MarkdownDescription: "Tags assigned to this device role.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the tag.",
-							Computed:            true,
-						},
-						"slug": schema.StringAttribute{
-							MarkdownDescription: "Slug of the tag.",
-							Computed:            true,
-						},
-					},
-				},
-			},
-			"custom_fields": schema.SetNestedAttribute{
-				MarkdownDescription: "Custom fields assigned to this device role.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the custom field.",
-							Computed:            true,
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of the custom field.",
-							Computed:            true,
-						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "Value of the custom field.",
-							Computed:            true,
-						},
-					},
-				},
-			},
+			"id":            nbschema.DSIDAttribute("device role"),
+			"name":          nbschema.DSNameAttribute("device role"),
+			"slug":          nbschema.DSSlugAttribute("device role"),
+			"color":         nbschema.DSComputedStringAttribute("Color for the device role in 6-character hexadecimal format (e.g., 'aa1409')."),
+			"vm_role":       nbschema.DSComputedBoolAttribute("Whether virtual machines may be assigned to this role."),
+			"description":   nbschema.DSComputedStringAttribute("Detailed description of the device role."),
+			"tags":          nbschema.DSTagsAttribute(),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }

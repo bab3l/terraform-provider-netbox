@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
@@ -66,129 +67,33 @@ func (d *DeviceDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 		MarkdownDescription: "Use this data source to get information about a device in Netbox. Devices represent physical or virtual hardware. You can identify the device using `id`, `name`, or `serial`.",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier for the device. Specify `id`, `name`, or `serial` to identify the device.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Name of the device. Can be used to identify the device instead of `id` or `serial`.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"device_type": schema.StringAttribute{
-				MarkdownDescription: "The device type. Returns the device type slug.",
-				Computed:            true,
-			},
-			"role": schema.StringAttribute{
-				MarkdownDescription: "The device role. Returns the device role slug.",
-				Computed:            true,
-			},
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "The tenant that owns this device. Returns the tenant slug.",
-				Computed:            true,
-			},
-			"platform": schema.StringAttribute{
-				MarkdownDescription: "The platform running on this device. Returns the platform slug.",
-				Computed:            true,
-			},
+			"id":          nbschema.DSIDAttribute("device"),
+			"name":        nbschema.DSNameAttribute("device"),
+			"device_type": nbschema.DSComputedStringAttribute("The device type. Returns the device type slug."),
+			"role":        nbschema.DSComputedStringAttribute("The device role. Returns the device role slug."),
+			"tenant":      nbschema.DSComputedStringAttribute("The tenant that owns this device. Returns the tenant slug."),
+			"platform":    nbschema.DSComputedStringAttribute("The platform running on this device. Returns the platform slug."),
 			"serial": schema.StringAttribute{
 				MarkdownDescription: "Chassis serial number. Can be used to identify the device instead of `id` or `name`.",
 				Optional:            true,
 				Computed:            true,
 			},
-			"asset_tag": schema.StringAttribute{
-				MarkdownDescription: "A unique tag used to identify this device.",
-				Computed:            true,
-			},
-			"site": schema.StringAttribute{
-				MarkdownDescription: "The site where this device is located. Returns the site slug.",
-				Computed:            true,
-			},
-			"location": schema.StringAttribute{
-				MarkdownDescription: "The location within the site. Returns the location slug.",
-				Computed:            true,
-			},
-			"rack": schema.StringAttribute{
-				MarkdownDescription: "The rack where this device is mounted. Returns the rack name.",
-				Computed:            true,
-			},
-			"position": schema.Float64Attribute{
-				MarkdownDescription: "Position in the rack (in rack units from the bottom).",
-				Computed:            true,
-			},
-			"face": schema.StringAttribute{
-				MarkdownDescription: "Which face of the rack the device is mounted on (front or rear).",
-				Computed:            true,
-			},
-			"latitude": schema.Float64Attribute{
-				MarkdownDescription: "GPS latitude coordinate in decimal format.",
-				Computed:            true,
-			},
-			"longitude": schema.Float64Attribute{
-				MarkdownDescription: "GPS longitude coordinate in decimal format.",
-				Computed:            true,
-			},
-			"status": schema.StringAttribute{
-				MarkdownDescription: "Operational status of the device.",
-				Computed:            true,
-			},
-			"airflow": schema.StringAttribute{
-				MarkdownDescription: "Direction of airflow through the device.",
-				Computed:            true,
-			},
-			"vc_position": schema.Int64Attribute{
-				MarkdownDescription: "Position within a virtual chassis.",
-				Computed:            true,
-			},
-			"vc_priority": schema.Int64Attribute{
-				MarkdownDescription: "Virtual chassis master election priority.",
-				Computed:            true,
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Brief description of the device.",
-				Computed:            true,
-			},
-			"comments": schema.StringAttribute{
-				MarkdownDescription: "Comments about the device (supports Markdown).",
-				Computed:            true,
-			},
-			"tags": schema.SetNestedAttribute{
-				MarkdownDescription: "Tags assigned to this device.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the tag.",
-							Computed:            true,
-						},
-						"slug": schema.StringAttribute{
-							MarkdownDescription: "Slug of the tag.",
-							Computed:            true,
-						},
-					},
-				},
-			},
-			"custom_fields": schema.SetNestedAttribute{
-				MarkdownDescription: "Custom fields assigned to this device.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the custom field.",
-							Computed:            true,
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of the custom field.",
-							Computed:            true,
-						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "Value of the custom field.",
-							Computed:            true,
-						},
-					},
-				},
-			},
+			"asset_tag":     nbschema.DSComputedStringAttribute("A unique tag used to identify this device."),
+			"site":          nbschema.DSComputedStringAttribute("The site where this device is located. Returns the site slug."),
+			"location":      nbschema.DSComputedStringAttribute("The location within the site. Returns the location slug."),
+			"rack":          nbschema.DSComputedStringAttribute("The rack where this device is mounted. Returns the rack name."),
+			"position":      nbschema.DSComputedFloat64Attribute("Position in the rack (in rack units from the bottom)."),
+			"face":          nbschema.DSComputedStringAttribute("Which face of the rack the device is mounted on (front or rear)."),
+			"latitude":      nbschema.DSComputedFloat64Attribute("GPS latitude coordinate in decimal format."),
+			"longitude":     nbschema.DSComputedFloat64Attribute("GPS longitude coordinate in decimal format."),
+			"status":        nbschema.DSComputedStringAttribute("Operational status of the device."),
+			"airflow":       nbschema.DSComputedStringAttribute("Direction of airflow through the device."),
+			"vc_position":   nbschema.DSComputedInt64Attribute("Position within a virtual chassis."),
+			"vc_priority":   nbschema.DSComputedInt64Attribute("Virtual chassis master election priority."),
+			"description":   nbschema.DSComputedStringAttribute("Brief description of the device."),
+			"comments":      nbschema.DSComputedStringAttribute("Comments about the device (supports Markdown)."),
+			"tags":          nbschema.DSTagsAttribute(),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
@@ -50,65 +51,13 @@ func (d *RackRoleDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 		MarkdownDescription: "Use this data source to get information about a rack role in Netbox. Rack roles categorize racks by their function (e.g., Production, Testing, Storage). You can identify the rack role using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier for the rack role. Specify `id`, `slug`, or `name` to identify the rack role.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Full name of the rack role. Can be used to identify the rack role instead of `id` or `slug`.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"slug": schema.StringAttribute{
-				MarkdownDescription: "URL-friendly identifier for the rack role. Specify `id`, `slug`, or `name` to identify the rack role.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"color": schema.StringAttribute{
-				MarkdownDescription: "Color for the rack role in 6-character hexadecimal format (e.g., 'aa1409').",
-				Computed:            true,
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Detailed description of the rack role.",
-				Computed:            true,
-			},
-			"tags": schema.SetNestedAttribute{
-				MarkdownDescription: "Tags assigned to this rack role.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the tag.",
-							Computed:            true,
-						},
-						"slug": schema.StringAttribute{
-							MarkdownDescription: "Slug of the tag.",
-							Computed:            true,
-						},
-					},
-				},
-			},
-			"custom_fields": schema.SetNestedAttribute{
-				MarkdownDescription: "Custom fields assigned to this rack role.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the custom field.",
-							Computed:            true,
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of the custom field.",
-							Computed:            true,
-						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "Value of the custom field.",
-							Computed:            true,
-						},
-					},
-				},
-			},
+			"id":            nbschema.DSIDAttribute("rack role"),
+			"name":          nbschema.DSNameAttribute("rack role"),
+			"slug":          nbschema.DSSlugAttribute("rack role"),
+			"color":         nbschema.DSComputedStringAttribute("Color for the rack role in 6-character hexadecimal format (e.g., 'aa1409')."),
+			"description":   nbschema.DSComputedStringAttribute("Detailed description of the rack role."),
+			"tags":          nbschema.DSTagsAttribute(),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }

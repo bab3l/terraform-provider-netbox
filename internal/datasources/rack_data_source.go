@@ -7,13 +7,12 @@ import (
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
@@ -78,172 +77,46 @@ func (d *RackDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 
 		Attributes: map[string]schema.Attribute{
 			// Lookup fields
-			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier for the rack. Specify `id` or `name` to identify the rack.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 50),
-				},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Name of the rack. Can be used to identify the rack instead of `id`.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 100),
-				},
-			},
+			"id":   nbschema.DSIDAttribute("rack"),
+			"name": nbschema.DSNameAttribute("rack"),
 
-			// Computed fields
-			"site": schema.StringAttribute{
-				MarkdownDescription: "Name of the site where this rack is located.",
-				Computed:            true,
-			},
-			"site_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the site where this rack is located.",
-				Computed:            true,
-			},
-			"location": schema.StringAttribute{
-				MarkdownDescription: "Name of the location within the site.",
-				Computed:            true,
-			},
-			"location_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the location within the site.",
-				Computed:            true,
-			},
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "Name of the tenant that owns this rack.",
-				Computed:            true,
-			},
-			"tenant_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the tenant that owns this rack.",
-				Computed:            true,
-			},
-			"status": schema.StringAttribute{
-				MarkdownDescription: "Operational status of the rack (`reserved`, `available`, `planned`, `active`, `deprecated`).",
-				Computed:            true,
-			},
-			"role": schema.StringAttribute{
-				MarkdownDescription: "Name of the functional role of the rack.",
-				Computed:            true,
-			},
-			"role_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the functional role of the rack.",
-				Computed:            true,
-			},
-			"serial": schema.StringAttribute{
-				MarkdownDescription: "Serial number of the rack.",
-				Computed:            true,
-			},
-			"asset_tag": schema.StringAttribute{
-				MarkdownDescription: "Unique asset tag for the rack.",
-				Computed:            true,
-			},
-			"rack_type": schema.StringAttribute{
-				MarkdownDescription: "Model/name of the rack type.",
-				Computed:            true,
-			},
-			"rack_type_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the rack type.",
-				Computed:            true,
-			},
-			"form_factor": schema.StringAttribute{
-				MarkdownDescription: "Physical form factor of the rack (`2-post-frame`, `4-post-frame`, `4-post-cabinet`, `wall-frame`, `wall-frame-vertical`, `wall-cabinet`, `wall-cabinet-vertical`).",
-				Computed:            true,
-			},
-			"width": schema.StringAttribute{
-				MarkdownDescription: "Rail-to-rail width of the rack in inches (`10`, `19`, `21`, `23`).",
-				Computed:            true,
-			},
-			"u_height": schema.StringAttribute{
-				MarkdownDescription: "Height of the rack in rack units.",
-				Computed:            true,
-			},
-			"starting_unit": schema.StringAttribute{
-				MarkdownDescription: "Starting unit number for the rack (bottom).",
-				Computed:            true,
-			},
-			"weight": schema.StringAttribute{
-				MarkdownDescription: "Weight of the rack itself.",
-				Computed:            true,
-			},
-			"max_weight": schema.StringAttribute{
-				MarkdownDescription: "Maximum weight capacity of the rack.",
-				Computed:            true,
-			},
-			"weight_unit": schema.StringAttribute{
-				MarkdownDescription: "Unit of measurement for weight (`kg`, `g`, `lb`, `oz`).",
-				Computed:            true,
-			},
-			"desc_units": schema.BoolAttribute{
-				MarkdownDescription: "If true, rack units are numbered in descending order (top to bottom).",
-				Computed:            true,
-			},
-			"outer_width": schema.StringAttribute{
-				MarkdownDescription: "Outer width of the rack.",
-				Computed:            true,
-			},
-			"outer_depth": schema.StringAttribute{
-				MarkdownDescription: "Outer depth of the rack.",
-				Computed:            true,
-			},
-			"outer_unit": schema.StringAttribute{
-				MarkdownDescription: "Unit of measurement for outer dimensions (`mm`, `in`).",
-				Computed:            true,
-			},
-			"mounting_depth": schema.StringAttribute{
-				MarkdownDescription: "Maximum depth of equipment that can be installed (in mm).",
-				Computed:            true,
-			},
-			"airflow": schema.StringAttribute{
-				MarkdownDescription: "Direction of airflow through the rack (`front-to-rear`, `rear-to-front`, `passive`, `mixed`).",
-				Computed:            true,
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Description of the rack.",
-				Computed:            true,
-			},
-			"comments": schema.StringAttribute{
-				MarkdownDescription: "Additional comments or notes about the rack.",
-				Computed:            true,
-			},
-			"tags": schema.SetNestedAttribute{
-				MarkdownDescription: "Tags assigned to this rack.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the tag.",
-							Computed:            true,
-						},
-						"slug": schema.StringAttribute{
-							MarkdownDescription: "Slug of the tag.",
-							Computed:            true,
-						},
-					},
-				},
-			},
-			"custom_fields": schema.SetNestedAttribute{
-				MarkdownDescription: "Custom fields assigned to this rack.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the custom field.",
-							Computed:            true,
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of the custom field.",
-							Computed:            true,
-						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "Value of the custom field.",
-							Computed:            true,
-						},
-					},
-				},
-			},
+			// Reference computed fields with name/id pairs
+			"site":         nbschema.DSComputedStringAttribute("Name of the site where this rack is located."),
+			"site_id":      nbschema.DSComputedStringAttribute("ID of the site where this rack is located."),
+			"location":     nbschema.DSComputedStringAttribute("Name of the location within the site."),
+			"location_id":  nbschema.DSComputedStringAttribute("ID of the location within the site."),
+			"tenant":       nbschema.DSComputedStringAttribute("Name of the tenant that owns this rack."),
+			"tenant_id":    nbschema.DSComputedStringAttribute("ID of the tenant that owns this rack."),
+			"role":         nbschema.DSComputedStringAttribute("Name of the functional role of the rack."),
+			"role_id":      nbschema.DSComputedStringAttribute("ID of the functional role of the rack."),
+			"rack_type":    nbschema.DSComputedStringAttribute("Model/name of the rack type."),
+			"rack_type_id": nbschema.DSComputedStringAttribute("ID of the rack type."),
+
+			// Status and physical attributes
+			"status":         nbschema.DSComputedStringAttribute("Operational status of the rack (`reserved`, `available`, `planned`, `active`, `deprecated`)."),
+			"serial":         nbschema.DSComputedStringAttribute("Serial number of the rack."),
+			"asset_tag":      nbschema.DSComputedStringAttribute("Unique asset tag for the rack."),
+			"form_factor":    nbschema.DSComputedStringAttribute("Physical form factor of the rack (`2-post-frame`, `4-post-frame`, `4-post-cabinet`, `wall-frame`, `wall-frame-vertical`, `wall-cabinet`, `wall-cabinet-vertical`)."),
+			"width":          nbschema.DSComputedStringAttribute("Rail-to-rail width of the rack in inches (`10`, `19`, `21`, `23`)."),
+			"u_height":       nbschema.DSComputedStringAttribute("Height of the rack in rack units."),
+			"starting_unit":  nbschema.DSComputedStringAttribute("Starting unit number for the rack (bottom)."),
+			"weight":         nbschema.DSComputedStringAttribute("Weight of the rack itself."),
+			"max_weight":     nbschema.DSComputedStringAttribute("Maximum weight capacity of the rack."),
+			"weight_unit":    nbschema.DSComputedStringAttribute("Unit of measurement for weight (`kg`, `g`, `lb`, `oz`)."),
+			"desc_units":     nbschema.DSComputedBoolAttribute("If true, rack units are numbered in descending order (top to bottom)."),
+			"outer_width":    nbschema.DSComputedStringAttribute("Outer width of the rack."),
+			"outer_depth":    nbschema.DSComputedStringAttribute("Outer depth of the rack."),
+			"outer_unit":     nbschema.DSComputedStringAttribute("Unit of measurement for outer dimensions (`mm`, `in`)."),
+			"mounting_depth": nbschema.DSComputedStringAttribute("Maximum depth of equipment that can be installed (in mm)."),
+			"airflow":        nbschema.DSComputedStringAttribute("Direction of airflow through the rack (`front-to-rear`, `rear-to-front`, `passive`, `mixed`)."),
+
+			// Text fields
+			"description": nbschema.DSComputedStringAttribute("Description of the rack."),
+			"comments":    nbschema.DSComputedStringAttribute("Additional comments or notes about the rack."),
+
+			// Tags and custom fields
+			"tags":          nbschema.DSTagsAttribute(),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }

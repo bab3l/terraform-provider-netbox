@@ -5,15 +5,15 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
-	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
-	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
 var _ resource.Resource = &PlatformResource{}
@@ -41,30 +41,14 @@ func (r *PlatformResource) Metadata(ctx context.Context, req resource.MetadataRe
 
 func (r *PlatformResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Manages a platform in Netbox. Platforms represent the software running on a device, such as an operating system or firmware version.",
+
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Unique identifier for the platform (assigned by Netbox).",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Full name of the platform.",
-			},
-			"slug": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "URL-friendly identifier for the platform.",
-			},
-			"manufacturer": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Reference to the manufacturer (ID or slug).",
-			},
-			"description": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Detailed description of the platform.",
-			},
+			"id":           nbschema.IDAttribute("platform"),
+			"name":         nbschema.NameAttribute("platform", 100),
+			"slug":         nbschema.SlugAttribute("platform"),
+			"manufacturer": nbschema.IDOnlyReferenceAttribute("manufacturer", "Reference to the manufacturer (ID or slug)."),
+			"description":  nbschema.DescriptionAttribute("platform"),
 		},
 	}
 }
