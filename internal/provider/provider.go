@@ -165,6 +165,12 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewDeviceRoleResource,
 		resources.NewDeviceTypeResource,
 		resources.NewDeviceResource,
+		resources.NewInterfaceResource,
+		resources.NewVRFResource,
+		resources.NewVLANGroupResource,
+		resources.NewVLANResource,
+		resources.NewPrefixResource,
+		resources.NewIPAddressResource,
 	}
 }
 
@@ -183,6 +189,12 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewDeviceRoleDataSource,
 		datasources.NewDeviceTypeDataSource,
 		datasources.NewDeviceDataSource,
+		datasources.NewInterfaceDataSource,
+		datasources.NewVRFDataSource,
+		datasources.NewVLANGroupDataSource,
+		datasources.NewVLANDataSource,
+		datasources.NewPrefixDataSource,
+		datasources.NewIPAddressDataSource,
 	}
 }
 

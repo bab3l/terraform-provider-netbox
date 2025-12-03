@@ -1,0 +1,55 @@
+# Basic interface
+resource "netbox_interface" "example" {
+  device      = netbox_device.example.id
+  name        = "eth0"
+  type        = "1000base-t"
+  description = "Main network interface"
+}
+
+# Interface with full configuration
+resource "netbox_interface" "complete" {
+  device         = netbox_device.example.id
+  name           = "eth1"
+  type           = "10gbase-x-sfpp"
+  label          = "SFP+ Port 1"
+  enabled        = true
+  mtu            = 9000
+  speed          = 10000000
+  duplex         = "full"
+  mgmt_only      = false
+  description    = "High-speed data interface"
+  mode           = "tagged"
+  mark_connected = true
+}
+
+# Virtual interface
+resource "netbox_interface" "vlan100" {
+  device      = netbox_device.example.id
+  name        = "vlan100"
+  type        = "virtual"
+  description = "VLAN 100 virtual interface"
+}
+
+# LAG interface
+resource "netbox_interface" "bond0" {
+  device      = netbox_device.example.id
+  name        = "bond0"
+  type        = "lag"
+  description = "Link aggregation group"
+}
+
+# LAG member interface
+resource "netbox_interface" "lag_member" {
+  device = netbox_device.example.id
+  name   = "eth2"
+  type   = "1000base-t"
+  lag    = netbox_interface.bond0.id
+}
+
+# Management-only interface
+resource "netbox_interface" "mgmt" {
+  device    = netbox_device.example.id
+  name      = "mgmt0"
+  type      = "1000base-t"
+  mgmt_only = true
+}

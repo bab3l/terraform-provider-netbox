@@ -59,6 +59,54 @@ func RandomSlug(prefix string) string {
 	return fmt.Sprintf("%s-%s", strings.ToLower(prefix), strings.ToLower(acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum)))
 }
 
+// GenerateSlug generates a unique slug with a given prefix.
+// This is an alias for RandomSlug for readability.
+func GenerateSlug(prefix string) string {
+	return RandomSlug(prefix)
+}
+
+// RandomVID generates a random VLAN ID between 2 and 4094.
+// Range is limited to avoid reserved VLAN IDs.
+func RandomVID() int32 {
+	return int32(acctest.RandIntRange(2, 4094))
+}
+
+// RandomIPv4Prefix generates a random private IPv4 prefix.
+// Uses 10.x.x.0/24 format to avoid conflicts.
+func RandomIPv4Prefix() string {
+	// Use 10.x.x.0/24 format
+	second := acctest.RandIntRange(0, 255)
+	third := acctest.RandIntRange(0, 255)
+	return fmt.Sprintf("10.%d.%d.0/24", second, third)
+}
+
+// RandomIPv6Prefix generates a random IPv6 prefix using ULA (Unique Local Address).
+// Uses fd00:xxxx:xxxx::/48 format.
+func RandomIPv6Prefix() string {
+	// Use fd00:xxxx:xxxx::/48 format (ULA)
+	segment1 := acctest.RandIntRange(0, 65535)
+	segment2 := acctest.RandIntRange(0, 65535)
+	return fmt.Sprintf("fd00:%04x:%04x::/48", segment1, segment2)
+}
+
+// RandomIPv4Address generates a random private IPv4 address with CIDR notation.
+// Uses 10.x.x.x/32 format to avoid conflicts.
+func RandomIPv4Address() string {
+	second := acctest.RandIntRange(0, 255)
+	third := acctest.RandIntRange(0, 255)
+	fourth := acctest.RandIntRange(1, 254)
+	return fmt.Sprintf("10.%d.%d.%d/32", second, third, fourth)
+}
+
+// RandomIPv6Address generates a random IPv6 address with CIDR notation using ULA.
+// Uses fd00:xxxx:xxxx::x/128 format.
+func RandomIPv6Address() string {
+	segment1 := acctest.RandIntRange(0, 65535)
+	segment2 := acctest.RandIntRange(0, 65535)
+	host := acctest.RandIntRange(1, 65535)
+	return fmt.Sprintf("fd00:%04x:%04x::%x/128", segment1, segment2, host)
+}
+
 // TestAccPreCheck validates the necessary test environment variables exist.
 // It should be called at the beginning of each acceptance test.
 func TestAccPreCheck(t *testing.T) {
@@ -448,6 +496,141 @@ func (c *CleanupResource) RegisterDeviceCleanup(name string) {
 			c.t.Logf("Cleanup: failed to delete device %d (name: %s): %v", id, name, err)
 		} else {
 			c.t.Logf("Cleanup: successfully deleted device %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterVRFCleanup registers a cleanup function that will delete
+// a VRF by name after the test completes.
+func (c *CleanupResource) RegisterVRFCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamVrfsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list VRFs with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: VRF with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.IpamAPI.IpamVrfsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete VRF %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted VRF %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterVLANGroupCleanup registers a cleanup function that will delete
+// a VLAN group by slug after the test completes.
+func (c *CleanupResource) RegisterVLANGroupCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamVlanGroupsList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list VLAN groups with slug %s: %v", slug, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: VLAN group with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.IpamAPI.IpamVlanGroupsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete VLAN group %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted VLAN group %d (slug: %s)", id, slug)
+		}
+	})
+}
+
+// RegisterVLANCleanup registers a cleanup function that will delete
+// a VLAN by vid after the test completes.
+func (c *CleanupResource) RegisterVLANCleanup(vid int32) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamVlansList(ctx).Vid([]int32{vid}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list VLANs with VID %d: %v", vid, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: VLAN with VID %d not found (already deleted)", vid)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.IpamAPI.IpamVlansDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete VLAN %d (VID: %d): %v", id, vid, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted VLAN %d (VID: %d)", id, vid)
+		}
+	})
+}
+
+// RegisterPrefixCleanup registers a cleanup function that will delete
+// a prefix by CIDR after the test completes.
+func (c *CleanupResource) RegisterPrefixCleanup(prefix string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamPrefixesList(ctx).Prefix([]string{prefix}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list prefixes with CIDR %s: %v", prefix, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: prefix with CIDR %s not found (already deleted)", prefix)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.IpamAPI.IpamPrefixesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete prefix %d (CIDR: %s): %v", id, prefix, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted prefix %d (CIDR: %s)", id, prefix)
+		}
+	})
+}
+
+// RegisterIPAddressCleanup registers a cleanup function that will delete
+// an IP address by address after the test completes.
+func (c *CleanupResource) RegisterIPAddressCleanup(address string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamIpAddressesList(ctx).Address([]string{address}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list IP addresses with address %s: %v", address, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: IP address %s not found (already deleted)", address)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.IpamAPI.IpamIpAddressesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete IP address %d (address: %s): %v", id, address, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted IP address %d (address: %s)", id, address)
 		}
 	})
 }

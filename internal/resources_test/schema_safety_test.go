@@ -72,8 +72,8 @@ func allResources() []resourceInfo {
 		{
 			name:             "netbox_platform",
 			factory:          resources.NewPlatformResource,
-			requiredFields:   []string{"name", "slug", "manufacturer"},
-			optionalFields:   []string{},
+			requiredFields:   []string{"name", "slug"},
+			optionalFields:   []string{"manufacturer", "description"},
 			computedFields:   []string{"id"},
 			optionalComputed: []string{},
 		},

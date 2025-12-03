@@ -528,3 +528,175 @@ func LookupRackType(ctx context.Context, client *netbox.APIClient, value string)
 func LookupRack(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefRackRequest, diag.Diagnostics) {
 	return GenericLookup(ctx, value, RackLookupConfig(client))
 }
+
+// DeviceLookupConfig returns the lookup configuration for Devices.
+func DeviceLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.DeviceWithConfigContext, netbox.BriefDeviceRequest] {
+	return LookupConfig[*netbox.DeviceWithConfigContext, netbox.BriefDeviceRequest]{
+		ResourceName: "Device",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.DeviceWithConfigContext, *http.Response, error) {
+			return client.DcimAPI.DcimDevicesRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, nameOrSlug string) ([]*netbox.DeviceWithConfigContext, *http.Response, error) {
+			// Devices use name, not slug
+			list, resp, err := client.DcimAPI.DcimDevicesList(ctx).Name([]string{nameOrSlug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.DeviceWithConfigContext, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(d *netbox.DeviceWithConfigContext) netbox.BriefDeviceRequest {
+			req := netbox.NewBriefDeviceRequest()
+			name := d.GetName()
+			req.Name = *netbox.NewNullableString(&name)
+			return *req
+		},
+	}
+}
+
+// LookupDevice looks up a Device by ID or name.
+func LookupDevice(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefDeviceRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, DeviceLookupConfig(client))
+}
+
+// LookupDeviceBrief returns a BriefDeviceRequest from an ID or name.
+// Deprecated: Use LookupDevice instead.
+func LookupDeviceBrief(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefDeviceRequest, diag.Diagnostics) {
+	return LookupDevice(ctx, client, value)
+}
+
+// =====================================================
+// IPAM LOOKUP CONFIGS
+// =====================================================
+
+// VLANGroupLookupConfig returns the lookup configuration for VLAN Groups.
+func VLANGroupLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.VLANGroup, netbox.BriefVLANGroupRequest] {
+	return LookupConfig[*netbox.VLANGroup, netbox.BriefVLANGroupRequest]{
+		ResourceName: "VLAN Group",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.VLANGroup, *http.Response, error) {
+			return client.IpamAPI.IpamVlanGroupsRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.VLANGroup, *http.Response, error) {
+			list, resp, err := client.IpamAPI.IpamVlanGroupsList(ctx).Slug([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.VLANGroup, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(vg *netbox.VLANGroup) netbox.BriefVLANGroupRequest {
+			return netbox.BriefVLANGroupRequest{
+				Name: vg.GetName(),
+				Slug: vg.GetSlug(),
+			}
+		},
+	}
+}
+
+// LookupVLANGroup looks up a VLAN Group by ID or slug.
+func LookupVLANGroup(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefVLANGroupRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, VLANGroupLookupConfig(client))
+}
+
+// RoleLookupConfig returns the lookup configuration for Roles (IPAM roles used for VLANs, Prefixes).
+func RoleLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Role, netbox.BriefRoleRequest] {
+	return LookupConfig[*netbox.Role, netbox.BriefRoleRequest]{
+		ResourceName: "Role",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.Role, *http.Response, error) {
+			return client.IpamAPI.IpamRolesRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.Role, *http.Response, error) {
+			list, resp, err := client.IpamAPI.IpamRolesList(ctx).Slug([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.Role, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(r *netbox.Role) netbox.BriefRoleRequest {
+			return netbox.BriefRoleRequest{
+				Name: r.GetName(),
+				Slug: r.GetSlug(),
+			}
+		},
+	}
+}
+
+// LookupRole looks up an IPAM Role by ID or slug.
+func LookupRole(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefRoleRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, RoleLookupConfig(client))
+}
+
+// VRFLookupConfig returns the lookup configuration for VRFs.
+func VRFLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.VRF, netbox.BriefVRFRequest] {
+	return LookupConfig[*netbox.VRF, netbox.BriefVRFRequest]{
+		ResourceName: "VRF",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.VRF, *http.Response, error) {
+			return client.IpamAPI.IpamVrfsRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.VRF, *http.Response, error) {
+			// VRF doesn't have slug, lookup by name instead
+			list, resp, err := client.IpamAPI.IpamVrfsList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.VRF, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(v *netbox.VRF) netbox.BriefVRFRequest {
+			return netbox.BriefVRFRequest{
+				Name: v.GetName(),
+			}
+		},
+	}
+}
+
+// LookupVRF looks up a VRF by ID or name.
+func LookupVRF(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefVRFRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, VRFLookupConfig(client))
+}
+
+// VLANLookupConfig returns the lookup configuration for VLANs.
+func VLANLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.VLAN, netbox.BriefVLANRequest] {
+	return LookupConfig[*netbox.VLAN, netbox.BriefVLANRequest]{
+		ResourceName: "VLAN",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.VLAN, *http.Response, error) {
+			return client.IpamAPI.IpamVlansRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.VLAN, *http.Response, error) {
+			// VLAN doesn't have slug, lookup by name instead
+			list, resp, err := client.IpamAPI.IpamVlansList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.VLAN, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(v *netbox.VLAN) netbox.BriefVLANRequest {
+			return netbox.BriefVLANRequest{
+				Vid:  v.GetVid(),
+				Name: v.GetName(),
+			}
+		},
+	}
+}
+
+// LookupVLAN looks up a VLAN by ID or name.
+func LookupVLAN(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefVLANRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, VLANLookupConfig(client))
+}
