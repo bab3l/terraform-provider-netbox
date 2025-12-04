@@ -189,7 +189,8 @@ func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	tenantID := data.ID.ValueString()
 	var tenantIDInt int32
-	if _, err := fmt.Sscanf(tenantID, "%d", &tenantIDInt); err != nil {
+	tenantIDInt, err := utils.ParseID(tenantID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Tenant ID", fmt.Sprintf("Tenant ID must be a number, got: %s", tenantID))
 		return
 	}
@@ -223,7 +224,8 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	tenantID := data.ID.ValueString()
 	var tenantIDInt int32
-	if _, err := fmt.Sscanf(tenantID, "%d", &tenantIDInt); err != nil {
+	tenantIDInt, err := utils.ParseID(tenantID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Tenant ID", fmt.Sprintf("Tenant ID must be a number, got: %s", tenantID))
 		return
 	}
@@ -293,7 +295,8 @@ func (r *TenantResource) Delete(ctx context.Context, req resource.DeleteRequest,
 
 	tenantID := data.ID.ValueString()
 	var tenantIDInt int32
-	if _, err := fmt.Sscanf(tenantID, "%d", &tenantIDInt); err != nil {
+	tenantIDInt, err := utils.ParseID(tenantID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Tenant ID", fmt.Sprintf("Tenant ID must be a number, got: %s", tenantID))
 		return
 	}

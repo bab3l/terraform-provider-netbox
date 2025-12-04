@@ -4,6 +4,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -357,4 +358,39 @@ func ParseInt32FromString(s string) int32 {
 	var result int32
 	fmt.Sscanf(s, "%d", &result)
 	return result
+}
+
+// ParseID parses a string ID to int32, returning an error if parsing fails.
+// This is the preferred method for parsing resource IDs in Read, Update, and Delete
+// operations where invalid IDs should result in an error.
+//
+// Example:
+//
+//	id, err := utils.ParseID(data.ID.ValueString())
+//	if err != nil {
+//	    resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("Could not parse resource ID: %s", err))
+//	    return
+//	}
+func ParseID(idString string) (int32, error) {
+	if idString == "" {
+		return 0, fmt.Errorf("ID cannot be empty")
+	}
+
+	// Try parsing as int64 first to handle potential overflow gracefully
+	parsed, err := strconv.ParseInt(idString, 10, 32)
+	if err != nil {
+		return 0, fmt.Errorf("invalid ID %q: %w", idString, err)
+	}
+
+	return int32(parsed), nil
+}
+
+// MustParseID parses a string ID to int32, panicking if parsing fails.
+// Use this only in tests or when you're certain the ID is valid.
+func MustParseID(idString string) int32 {
+	id, err := ParseID(idString)
+	if err != nil {
+		panic(err)
+	}
+	return id
 }

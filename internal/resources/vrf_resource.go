@@ -147,7 +147,8 @@ func (r *VRFResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	// Parse the ID
 	vrfID := data.ID.ValueString()
 	var id int32
-	if _, err := fmt.Sscanf(vrfID, "%d", &id); err != nil {
+	id, err := utils.ParseID(vrfID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid VRF ID", fmt.Sprintf("VRF ID must be a number, got: %s", vrfID))
 		return
 	}
@@ -197,7 +198,8 @@ func (r *VRFResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	// Parse the ID
 	vrfID := data.ID.ValueString()
 	var id int32
-	if _, err := fmt.Sscanf(vrfID, "%d", &id); err != nil {
+	id, err := utils.ParseID(vrfID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid VRF ID", fmt.Sprintf("VRF ID must be a number, got: %s", vrfID))
 		return
 	}
@@ -252,7 +254,8 @@ func (r *VRFResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	// Parse the ID
 	vrfID := data.ID.ValueString()
 	var id int32
-	if _, err := fmt.Sscanf(vrfID, "%d", &id); err != nil {
+	id, err := utils.ParseID(vrfID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid VRF ID", fmt.Sprintf("VRF ID must be a number, got: %s", vrfID))
 		return
 	}

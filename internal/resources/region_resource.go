@@ -101,7 +101,8 @@ func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest,
 	if utils.IsSet(data.Parent) {
 		parentID := data.Parent.ValueString()
 		var parentIDInt int32
-		if _, err := fmt.Sscanf(parentID, "%d", &parentIDInt); err != nil {
+		parentIDInt, err := utils.ParseID(parentID)
+	if err != nil {
 			resp.Diagnostics.AddError("Invalid Parent ID", fmt.Sprintf("Parent ID must be a number, got: %s", parentID))
 			return
 		}
@@ -161,7 +162,8 @@ func (r *RegionResource) Read(ctx context.Context, req resource.ReadRequest, res
 	tflog.Debug(ctx, "Reading region", map[string]interface{}{"id": regionID})
 
 	var regionIDInt int32
-	if _, err := fmt.Sscanf(regionID, "%d", &regionIDInt); err != nil {
+	regionIDInt, err := utils.ParseID(regionID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Region ID", fmt.Sprintf("Region ID must be a number, got: %s", regionID))
 		return
 	}
@@ -196,7 +198,8 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 	tflog.Debug(ctx, "Updating region", map[string]interface{}{"id": regionID})
 
 	var regionIDInt int32
-	if _, err := fmt.Sscanf(regionID, "%d", &regionIDInt); err != nil {
+	regionIDInt, err := utils.ParseID(regionID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Region ID", fmt.Sprintf("Region ID must be a number, got: %s", regionID))
 		return
 	}
@@ -214,7 +217,8 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 	if utils.IsSet(data.Parent) {
 		parentID := data.Parent.ValueString()
 		var parentIDInt int32
-		if _, err := fmt.Sscanf(parentID, "%d", &parentIDInt); err != nil {
+		parentIDInt, err := utils.ParseID(parentID)
+	if err != nil {
 			resp.Diagnostics.AddError("Invalid Parent ID", fmt.Sprintf("Parent ID must be a number, got: %s", parentID))
 			return
 		}
@@ -274,7 +278,8 @@ func (r *RegionResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	tflog.Debug(ctx, "Deleting region", map[string]interface{}{"id": regionID})
 
 	var regionIDInt int32
-	if _, err := fmt.Sscanf(regionID, "%d", &regionIDInt); err != nil {
+	regionIDInt, err := utils.ParseID(regionID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Region ID", fmt.Sprintf("Region ID must be a number, got: %s", regionID))
 		return
 	}

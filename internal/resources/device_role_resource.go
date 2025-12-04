@@ -233,7 +233,8 @@ func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest,
 	// Parse the ID
 	deviceRoleID := data.ID.ValueString()
 	var deviceRoleIDInt int32
-	if _, err := fmt.Sscanf(deviceRoleID, "%d", &deviceRoleIDInt); err != nil {
+	deviceRoleIDInt, err := utils.ParseID(deviceRoleID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Device Role ID",
 			fmt.Sprintf("Device Role ID must be a number, got: %s", deviceRoleID),
@@ -282,7 +283,8 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 	// Parse the ID
 	deviceRoleID := data.ID.ValueString()
 	var deviceRoleIDInt int32
-	if _, err := fmt.Sscanf(deviceRoleID, "%d", &deviceRoleIDInt); err != nil {
+	deviceRoleIDInt, err := utils.ParseID(deviceRoleID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Device Role ID",
 			fmt.Sprintf("Device Role ID must be a number, got: %s", deviceRoleID),
@@ -373,7 +375,8 @@ func (r *DeviceRoleResource) Delete(ctx context.Context, req resource.DeleteRequ
 	// Parse the ID
 	deviceRoleID := data.ID.ValueString()
 	var deviceRoleIDInt int32
-	if _, err := fmt.Sscanf(deviceRoleID, "%d", &deviceRoleIDInt); err != nil {
+	deviceRoleIDInt, err := utils.ParseID(deviceRoleID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Device Role ID",
 			fmt.Sprintf("Device Role ID must be a number, got: %s", deviceRoleID),

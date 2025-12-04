@@ -203,8 +203,7 @@ func (r *PrefixResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Parse the ID
-	var id int
-	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
+	id, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid ID",
@@ -218,7 +217,7 @@ func (r *PrefixResource) Read(ctx context.Context, req resource.ReadRequest, res
 	})
 
 	// Get the prefix from Netbox
-	prefix, httpResp, err := r.client.IpamAPI.IpamPrefixesRetrieve(ctx, int32(id)).Execute()
+	prefix, httpResp, err := r.client.IpamAPI.IpamPrefixesRetrieve(ctx, id).Execute()
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -254,8 +253,7 @@ func (r *PrefixResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	// Parse the ID
-	var id int
-	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
+	id, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid ID",
@@ -311,8 +309,7 @@ func (r *PrefixResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 
 	// Parse the ID
-	var id int
-	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
+	id, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid ID",
@@ -326,7 +323,7 @@ func (r *PrefixResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	})
 
 	// Delete the prefix
-	httpResp, err := r.client.IpamAPI.IpamPrefixesDestroy(ctx, int32(id)).Execute()
+	httpResp, err := r.client.IpamAPI.IpamPrefixesDestroy(ctx, id).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting prefix",
@@ -436,30 +433,54 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 	data.ID = types.StringValue(fmt.Sprintf("%d", prefix.Id))
 	data.Prefix = types.StringValue(prefix.Prefix)
 
-	// Site
+	// Site - preserve user input if it matches
 	if prefix.Site.IsSet() && prefix.Site.Get() != nil {
-		data.Site = types.StringValue(prefix.Site.Get().Name)
+		siteObj := prefix.Site.Get()
+		userSite := data.Site.ValueString()
+		if userSite == siteObj.Name || userSite == siteObj.Slug || userSite == fmt.Sprintf("%d", siteObj.Id) {
+			// Keep user's original value
+		} else {
+			data.Site = types.StringValue(siteObj.Name)
+		}
 	} else {
 		data.Site = types.StringNull()
 	}
 
-	// VRF
+	// VRF - preserve user input if it matches
 	if prefix.Vrf.IsSet() && prefix.Vrf.Get() != nil {
-		data.VRF = types.StringValue(prefix.Vrf.Get().Name)
+		vrfObj := prefix.Vrf.Get()
+		userVrf := data.VRF.ValueString()
+		if userVrf == vrfObj.Name || userVrf == fmt.Sprintf("%d", vrfObj.Id) {
+			// Keep user's original value
+		} else {
+			data.VRF = types.StringValue(vrfObj.Name)
+		}
 	} else {
 		data.VRF = types.StringNull()
 	}
 
-	// Tenant
+	// Tenant - preserve user input if it matches
 	if prefix.Tenant.IsSet() && prefix.Tenant.Get() != nil {
-		data.Tenant = types.StringValue(prefix.Tenant.Get().Name)
+		tenantObj := prefix.Tenant.Get()
+		userTenant := data.Tenant.ValueString()
+		if userTenant == tenantObj.Name || userTenant == tenantObj.Slug || userTenant == fmt.Sprintf("%d", tenantObj.Id) {
+			// Keep user's original value
+		} else {
+			data.Tenant = types.StringValue(tenantObj.Name)
+		}
 	} else {
 		data.Tenant = types.StringNull()
 	}
 
-	// VLAN
+	// VLAN - preserve user input if it matches
 	if prefix.Vlan.IsSet() && prefix.Vlan.Get() != nil {
-		data.VLAN = types.StringValue(prefix.Vlan.Get().Display)
+		vlanObj := prefix.Vlan.Get()
+		userVlan := data.VLAN.ValueString()
+		if userVlan == vlanObj.Display || userVlan == vlanObj.Name || userVlan == fmt.Sprintf("%d", vlanObj.Id) || userVlan == fmt.Sprintf("%d", vlanObj.Vid) {
+			// Keep user's original value
+		} else {
+			data.VLAN = types.StringValue(vlanObj.Display)
+		}
 	} else {
 		data.VLAN = types.StringNull()
 	}
@@ -471,9 +492,15 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 		data.Status = types.StringNull()
 	}
 
-	// Role
+	// Role - preserve user input if it matches
 	if prefix.Role.IsSet() && prefix.Role.Get() != nil {
-		data.Role = types.StringValue(prefix.Role.Get().Name)
+		roleObj := prefix.Role.Get()
+		userRole := data.Role.ValueString()
+		if userRole == roleObj.Name || userRole == roleObj.Slug || userRole == fmt.Sprintf("%d", roleObj.Id) {
+			// Keep user's original value
+		} else {
+			data.Role = types.StringValue(roleObj.Name)
+		}
 	} else {
 		data.Role = types.StringNull()
 	}

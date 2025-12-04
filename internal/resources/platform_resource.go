@@ -131,7 +131,8 @@ func (r *PlatformResource) Read(ctx context.Context, req resource.ReadRequest, r
 	platformID := data.ID.ValueString()
 	tflog.Debug(ctx, "Reading platform", map[string]interface{}{"id": platformID})
 	var platformIDInt int32
-	if _, err := fmt.Sscanf(platformID, "%d", &platformIDInt); err != nil {
+	platformIDInt, err := utils.ParseID(platformID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Platform ID", fmt.Sprintf("Platform ID must be a number, got: %s", platformID))
 		return
 	}
@@ -180,7 +181,8 @@ func (r *PlatformResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 	platformID := data.ID.ValueString()
 	var platformIDInt int32
-	if _, err := fmt.Sscanf(platformID, "%d", &platformIDInt); err != nil {
+	platformIDInt, err := utils.ParseID(platformID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Platform ID", fmt.Sprintf("Platform ID must be a number, got: %s", platformID))
 		return
 	}
@@ -244,7 +246,8 @@ func (r *PlatformResource) Delete(ctx context.Context, req resource.DeleteReques
 	}
 	platformID := data.ID.ValueString()
 	var platformIDInt int32
-	if _, err := fmt.Sscanf(platformID, "%d", &platformIDInt); err != nil {
+	platformIDInt, err := utils.ParseID(platformID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Platform ID", fmt.Sprintf("Platform ID must be a number, got: %s", platformID))
 		return
 	}

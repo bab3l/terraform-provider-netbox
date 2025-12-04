@@ -234,7 +234,8 @@ func (r *SiteResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	siteID := data.ID.ValueString()
 	var siteIDInt int32
-	if _, err := fmt.Sscanf(siteID, "%d", &siteIDInt); err != nil {
+	siteIDInt, err := utils.ParseID(siteID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Site ID", fmt.Sprintf("Site ID must be a number, got: %s", siteID))
 		return
 	}
@@ -268,7 +269,8 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	siteID := data.ID.ValueString()
 	var siteIDInt int32
-	if _, err := fmt.Sscanf(siteID, "%d", &siteIDInt); err != nil {
+	siteIDInt, err := utils.ParseID(siteID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Site ID", fmt.Sprintf("Site ID must be a number, got: %s", siteID))
 		return
 	}
@@ -366,7 +368,8 @@ func (r *SiteResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 	siteID := data.ID.ValueString()
 	var siteIDInt int32
-	if _, err := fmt.Sscanf(siteID, "%d", &siteIDInt); err != nil {
+	siteIDInt, err := utils.ParseID(siteID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Site ID", fmt.Sprintf("Site ID must be a number, got: %s", siteID))
 		return
 	}

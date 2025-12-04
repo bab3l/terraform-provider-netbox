@@ -200,7 +200,8 @@ func (r *RackRoleResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	// Parse the rack role ID to int32 for the API call
 	var rackRoleIDInt int32
-	if _, err := fmt.Sscanf(rackRoleID, "%d", &rackRoleIDInt); err != nil {
+	rackRoleIDInt, err := utils.ParseID(rackRoleID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Rack Role ID",
 			fmt.Sprintf("Rack Role ID must be a number, got: %s", rackRoleID),
@@ -262,7 +263,8 @@ func (r *RackRoleResource) Update(ctx context.Context, req resource.UpdateReques
 
 	// Parse the rack role ID to int32 for the API call
 	var rackRoleIDInt int32
-	if _, err := fmt.Sscanf(rackRoleID, "%d", &rackRoleIDInt); err != nil {
+	rackRoleIDInt, err := utils.ParseID(rackRoleID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Rack Role ID",
 			fmt.Sprintf("Rack Role ID must be a number, got: %s", rackRoleID),
@@ -354,7 +356,8 @@ func (r *RackRoleResource) Delete(ctx context.Context, req resource.DeleteReques
 
 	// Parse the rack role ID to int32 for the API call
 	var rackRoleIDInt int32
-	if _, err := fmt.Sscanf(rackRoleID, "%d", &rackRoleIDInt); err != nil {
+	rackRoleIDInt, err := utils.ParseID(rackRoleID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Rack Role ID",
 			fmt.Sprintf("Rack Role ID must be a number, got: %s", rackRoleID),
