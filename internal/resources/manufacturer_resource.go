@@ -113,7 +113,8 @@ func (r *ManufacturerResource) Read(ctx context.Context, req resource.ReadReques
 
 	manufacturerID := data.ID.ValueString()
 	var manufacturerIDInt int32
-	if _, err := fmt.Sscanf(manufacturerID, "%d", &manufacturerIDInt); err != nil {
+	manufacturerIDInt, err := utils.ParseID(manufacturerID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Manufacturer ID", fmt.Sprintf("Manufacturer ID must be a number, got: %s", manufacturerID))
 		return
 	}
@@ -143,7 +144,8 @@ func (r *ManufacturerResource) Update(ctx context.Context, req resource.UpdateRe
 
 	manufacturerID := data.ID.ValueString()
 	var manufacturerIDInt int32
-	if _, err := fmt.Sscanf(manufacturerID, "%d", &manufacturerIDInt); err != nil {
+	manufacturerIDInt, err := utils.ParseID(manufacturerID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Manufacturer ID", fmt.Sprintf("Manufacturer ID must be a number, got: %s", manufacturerID))
 		return
 	}
@@ -180,7 +182,8 @@ func (r *ManufacturerResource) Delete(ctx context.Context, req resource.DeleteRe
 	}
 	manufacturerID := data.ID.ValueString()
 	var manufacturerIDInt int32
-	if _, err := fmt.Sscanf(manufacturerID, "%d", &manufacturerIDInt); err != nil {
+	manufacturerIDInt, err := utils.ParseID(manufacturerID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Manufacturer ID", fmt.Sprintf("Manufacturer ID must be a number, got: %s", manufacturerID))
 		return
 	}

@@ -365,7 +365,8 @@ func (r *VMInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 	// Parse the ID
 	ifaceID := data.ID.ValueString()
 	var ifaceIDInt int32
-	if _, err := fmt.Sscanf(ifaceID, "%d", &ifaceIDInt); err != nil {
+	ifaceIDInt, err := utils.ParseID(ifaceID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid VM Interface ID",
 			fmt.Sprintf("VM Interface ID must be a number, got: %s", ifaceID),
@@ -415,7 +416,8 @@ func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	// Parse the ID
 	ifaceID := data.ID.ValueString()
 	var ifaceIDInt int32
-	if _, err := fmt.Sscanf(ifaceID, "%d", &ifaceIDInt); err != nil {
+	ifaceIDInt, err := utils.ParseID(ifaceID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid VM Interface ID",
 			fmt.Sprintf("VM Interface ID must be a number, got: %s", ifaceID),
@@ -470,7 +472,8 @@ func (r *VMInterfaceResource) Delete(ctx context.Context, req resource.DeleteReq
 	// Parse the ID
 	ifaceID := data.ID.ValueString()
 	var ifaceIDInt int32
-	if _, err := fmt.Sscanf(ifaceID, "%d", &ifaceIDInt); err != nil {
+	ifaceIDInt, err := utils.ParseID(ifaceID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid VM Interface ID",
 			fmt.Sprintf("VM Interface ID must be a number, got: %s", ifaceID),

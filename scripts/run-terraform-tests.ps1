@@ -250,6 +250,9 @@ function Main {
         # region has no deps, location depends on site, rack depends on site+location
         # rack_role has no deps (used to categorize racks)
         # Phase 3: cluster_type before cluster, cluster before virtual_machine, virtual_machine before vm_interface
+        # interface depends on device (which depends on device_type, manufacturer, site, device_role)
+        # Phase 4: Circuits - provider and circuit_type before circuit
+        # Phase 2: IPAM - vrf, vlan_group, vlan, prefix, ip_address
         $testOrder = @(
             # Phase 1: Core Infrastructure
             "manufacturer", 
@@ -263,12 +266,24 @@ function Main {
             "rack_role", 
             "rack",
             "device_role",
-            # Phase 2: IPAM (future)
+            "device_type",
+            "device",
+            "interface",
+            # Phase 2: IPAM
+            "vrf",
+            "vlan_group",
+            "vlan",
+            "prefix",
+            "ip_address",
             # Phase 3: Virtualization
             "cluster_type",
             "cluster",
             "virtual_machine",
-            "vm_interface"
+            "vm_interface",
+            # Phase 4: Circuits
+            "provider",
+            "circuit_type",
+            "circuit"
         )
         
         foreach ($name in $testOrder) {

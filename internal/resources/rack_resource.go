@@ -495,8 +495,8 @@ func (r *RackResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	})
 
 	// Parse ID
-	var rackID int32
-	if _, err := fmt.Sscanf(data.ID.ValueString(), "%d", &rackID); err != nil {
+	rackID, err := utils.ParseID(data.ID.ValueString())
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error parsing rack ID",
 			fmt.Sprintf("Could not parse rack ID '%s': %s", data.ID.ValueString(), err.Error()),
@@ -766,8 +766,8 @@ func (r *RackResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	})
 
 	// Parse ID
-	var rackID int32
-	if _, err := fmt.Sscanf(state.ID.ValueString(), "%d", &rackID); err != nil {
+	rackID, err := utils.ParseID(state.ID.ValueString())
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error parsing rack ID",
 			fmt.Sprintf("Could not parse rack ID '%s': %s", state.ID.ValueString(), err.Error()),
@@ -822,8 +822,8 @@ func (r *RackResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	})
 
 	// Parse ID
-	var rackID int32
-	if _, err := fmt.Sscanf(data.ID.ValueString(), "%d", &rackID); err != nil {
+	rackID, err := utils.ParseID(data.ID.ValueString())
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error parsing rack ID",
 			fmt.Sprintf("Could not parse rack ID '%s': %s", data.ID.ValueString(), err.Error()),

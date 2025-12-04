@@ -154,7 +154,8 @@ func (r *VLANGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	// Parse the ID
 	vlanGroupID := data.ID.ValueString()
 	var id int32
-	if _, err := fmt.Sscanf(vlanGroupID, "%d", &id); err != nil {
+	id, err := utils.ParseID(vlanGroupID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid VLAN Group ID", fmt.Sprintf("VLAN Group ID must be a number, got: %s", vlanGroupID))
 		return
 	}
@@ -204,7 +205,8 @@ func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	// Parse the ID
 	vlanGroupID := data.ID.ValueString()
 	var id int32
-	if _, err := fmt.Sscanf(vlanGroupID, "%d", &id); err != nil {
+	id, err := utils.ParseID(vlanGroupID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid VLAN Group ID", fmt.Sprintf("VLAN Group ID must be a number, got: %s", vlanGroupID))
 		return
 	}
@@ -260,7 +262,8 @@ func (r *VLANGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 	// Parse the ID
 	vlanGroupID := data.ID.ValueString()
 	var id int32
-	if _, err := fmt.Sscanf(vlanGroupID, "%d", &id); err != nil {
+	id, err := utils.ParseID(vlanGroupID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid VLAN Group ID", fmt.Sprintf("VLAN Group ID must be a number, got: %s", vlanGroupID))
 		return
 	}
@@ -308,8 +311,8 @@ func (r *VLANGroupResource) setOptionalFields(ctx context.Context, vlanGroupRequ
 
 	// Scope ID
 	if utils.IsSet(data.ScopeID) {
-		var scopeID int32
-		if _, err := fmt.Sscanf(data.ScopeID.ValueString(), "%d", &scopeID); err != nil {
+		scopeID, err := utils.ParseID(data.ScopeID.ValueString())
+		if err != nil {
 			diags.AddError("Invalid Scope ID", fmt.Sprintf("Scope ID must be a number, got: %s", data.ScopeID.ValueString()))
 			return
 		}

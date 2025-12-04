@@ -362,7 +362,8 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 	// Parse the ID
 	deviceID := data.ID.ValueString()
 	var deviceIDInt int32
-	if _, err := fmt.Sscanf(deviceID, "%d", &deviceIDInt); err != nil {
+	deviceIDInt, err := utils.ParseID(deviceID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Device ID",
 			fmt.Sprintf("Device ID must be a number, got: %s", deviceID),
@@ -411,7 +412,8 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	// Parse the ID
 	deviceID := data.ID.ValueString()
 	var deviceIDInt int32
-	if _, err := fmt.Sscanf(deviceID, "%d", &deviceIDInt); err != nil {
+	deviceIDInt, err := utils.ParseID(deviceID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Device ID",
 			fmt.Sprintf("Device ID must be a number, got: %s", deviceID),
@@ -605,7 +607,8 @@ func (r *DeviceResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	// Parse the ID
 	deviceID := data.ID.ValueString()
 	var deviceIDInt int32
-	if _, err := fmt.Sscanf(deviceID, "%d", &deviceIDInt); err != nil {
+	deviceIDInt, err := utils.ParseID(deviceID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Device ID",
 			fmt.Sprintf("Device ID must be a number, got: %s", deviceID),

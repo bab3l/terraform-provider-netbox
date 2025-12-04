@@ -750,3 +750,102 @@ func CheckVMInterfaceDestroy(s *terraform.State) error {
 
 	return nil
 }
+
+// CheckProviderDestroy verifies that a circuit provider has been destroyed.
+func CheckProviderDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_provider" {
+			continue
+		}
+
+		slug := rs.Primary.Attributes["slug"]
+		if slug == "" {
+			continue
+		}
+
+		list, resp, err := client.CircuitsAPI.CircuitsProvidersList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("provider with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckCircuitTypeDestroy verifies that a circuit type has been destroyed.
+func CheckCircuitTypeDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_circuit_type" {
+			continue
+		}
+
+		slug := rs.Primary.Attributes["slug"]
+		if slug == "" {
+			continue
+		}
+
+		list, resp, err := client.CircuitsAPI.CircuitsCircuitTypesList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("circuit type with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckCircuitDestroy verifies that a circuit has been destroyed.
+func CheckCircuitDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_circuit" {
+			continue
+		}
+
+		cid := rs.Primary.Attributes["cid"]
+		if cid == "" {
+			continue
+		}
+
+		list, resp, err := client.CircuitsAPI.CircuitsCircuitsList(ctx).Cid([]string{cid}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("circuit with CID %s still exists (ID: %d)", cid, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}

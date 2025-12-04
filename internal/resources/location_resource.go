@@ -115,7 +115,8 @@ func (r *LocationResource) Create(ctx context.Context, req resource.CreateReques
 	if !data.Parent.IsNull() && !data.Parent.IsUnknown() {
 		parentID := data.Parent.ValueString()
 		var parentIDInt int32
-		if _, err := fmt.Sscanf(parentID, "%d", &parentIDInt); err != nil {
+		parentIDInt, err := utils.ParseID(parentID)
+	if err != nil {
 			resp.Diagnostics.AddError(
 				"Invalid Parent ID",
 				fmt.Sprintf("Parent ID must be a number, got: %s", parentID),
@@ -216,7 +217,8 @@ func (r *LocationResource) Read(ctx context.Context, req resource.ReadRequest, r
 	})
 
 	var locationIDInt int32
-	if _, err := fmt.Sscanf(locationID, "%d", &locationIDInt); err != nil {
+	locationIDInt, err := utils.ParseID(locationID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Location ID",
 			fmt.Sprintf("Location ID must be a number, got: %s", locationID),
@@ -264,7 +266,8 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 	})
 
 	var locationIDInt int32
-	if _, err := fmt.Sscanf(locationID, "%d", &locationIDInt); err != nil {
+	locationIDInt, err := utils.ParseID(locationID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Location ID",
 			fmt.Sprintf("Location ID must be a number, got: %s", locationID),
@@ -286,7 +289,8 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 	if !data.Parent.IsNull() && !data.Parent.IsUnknown() {
 		parentID := data.Parent.ValueString()
 		var parentIDInt int32
-		if _, err := fmt.Sscanf(parentID, "%d", &parentIDInt); err != nil {
+		parentIDInt, err := utils.ParseID(parentID)
+	if err != nil {
 			resp.Diagnostics.AddError(
 				"Invalid Parent ID",
 				fmt.Sprintf("Parent ID must be a number, got: %s", parentID),
@@ -387,7 +391,8 @@ func (r *LocationResource) Delete(ctx context.Context, req resource.DeleteReques
 	})
 
 	var locationIDInt int32
-	if _, err := fmt.Sscanf(locationID, "%d", &locationIDInt); err != nil {
+	locationIDInt, err := utils.ParseID(locationID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Location ID",
 			fmt.Sprintf("Location ID must be a number, got: %s", locationID),

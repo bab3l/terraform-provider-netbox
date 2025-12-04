@@ -1,0 +1,289 @@
+package resources_test
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/provider"
+	"github.com/bab3l/terraform-provider-netbox/internal/resources"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+)
+
+func TestCircuitResource(t *testing.T) {
+	t.Parallel()
+
+	r := resources.NewCircuitResource()
+	if r == nil {
+		t.Fatal("Expected non-nil Circuit resource")
+	}
+}
+
+func TestCircuitResourceSchema(t *testing.T) {
+	t.Parallel()
+
+	r := resources.NewCircuitResource()
+	schemaRequest := fwresource.SchemaRequest{}
+	schemaResponse := &fwresource.SchemaResponse{}
+
+	r.Schema(context.Background(), schemaRequest, schemaResponse)
+
+	if schemaResponse.Diagnostics.HasError() {
+		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+	}
+
+	if schemaResponse.Schema.Attributes == nil {
+		t.Fatal("Expected schema to have attributes")
+	}
+
+	requiredAttrs := []string{"cid", "circuit_provider", "type"}
+	for _, attr := range requiredAttrs {
+		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
+			t.Errorf("Expected required attribute %s to exist in schema", attr)
+		}
+	}
+
+	computedAttrs := []string{"id"}
+	for _, attr := range computedAttrs {
+		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
+			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+		}
+	}
+
+	optionalAttrs := []string{"status", "tenant", "install_date", "termination_date", "commit_rate", "description", "comments", "tags", "custom_fields"}
+	for _, attr := range optionalAttrs {
+		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
+			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+		}
+	}
+}
+
+func TestCircuitResourceMetadata(t *testing.T) {
+	t.Parallel()
+
+	r := resources.NewCircuitResource()
+	metadataRequest := fwresource.MetadataRequest{
+		ProviderTypeName: "netbox",
+	}
+	metadataResponse := &fwresource.MetadataResponse{}
+
+	r.Metadata(context.Background(), metadataRequest, metadataResponse)
+
+	expected := "netbox_circuit"
+	if metadataResponse.TypeName != expected {
+		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+	}
+}
+
+func TestCircuitResourceConfigure(t *testing.T) {
+	t.Parallel()
+
+	r := resources.NewCircuitResource().(*resources.CircuitResource)
+
+	configureRequest := fwresource.ConfigureRequest{
+		ProviderData: nil,
+	}
+	configureResponse := &fwresource.ConfigureResponse{}
+
+	r.Configure(context.Background(), configureRequest, configureResponse)
+
+	if configureResponse.Diagnostics.HasError() {
+		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+	}
+
+	client := &netbox.APIClient{}
+	configureRequest.ProviderData = client
+	configureResponse = &fwresource.ConfigureResponse{}
+
+	r.Configure(context.Background(), configureRequest, configureResponse)
+
+	if configureResponse.Diagnostics.HasError() {
+		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+	}
+
+	configureRequest.ProviderData = "invalid"
+	configureResponse = &fwresource.ConfigureResponse{}
+
+	r.Configure(context.Background(), configureRequest, configureResponse)
+
+	if !configureResponse.Diagnostics.HasError() {
+		t.Error("Expected error with incorrect provider data")
+	}
+}
+
+func TestAccCircuitResource_basic(t *testing.T) {
+	cid := testutil.RandomName("tf-test-circuit")
+	providerName := testutil.RandomName("tf-test-provider")
+	providerSlug := testutil.RandomSlug("tf-test-provider")
+	typeName := testutil.RandomName("tf-test-circuit-type")
+	typeSlug := testutil.RandomSlug("tf-test-circuit-type")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitCleanup(cid)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(typeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckCircuitDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitResourceConfig_basic(cid, providerName, providerSlug, typeName, typeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "circuit_provider", providerSlug),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "type", typeSlug),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCircuitResource_full(t *testing.T) {
+	cid := testutil.RandomName("tf-test-circuit-full")
+	providerName := testutil.RandomName("tf-test-provider-full")
+	providerSlug := testutil.RandomSlug("tf-test-provider-full")
+	typeName := testutil.RandomName("tf-test-circuit-type-full")
+	typeSlug := testutil.RandomSlug("tf-test-circuit-type-full")
+	description := "Test circuit with all fields"
+	comments := "Test comments for circuit"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitCleanup(cid)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(typeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckCircuitDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitResourceConfig_full(cid, providerName, providerSlug, typeName, typeSlug, description, comments),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "circuit_provider", providerSlug),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "type", typeSlug),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "status", "active"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "comments", comments),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "commit_rate", "10000"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCircuitResource_update(t *testing.T) {
+	cid := testutil.RandomName("tf-test-circuit-update")
+	providerName := testutil.RandomName("tf-test-provider-update")
+	providerSlug := testutil.RandomSlug("tf-test-provider-update")
+	typeName := testutil.RandomName("tf-test-circuit-type-update")
+	typeSlug := testutil.RandomSlug("tf-test-circuit-type-update")
+	updatedDescription := "Updated description"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitCleanup(cid)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(typeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckCircuitDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitResourceConfig_basic(cid, providerName, providerSlug, typeName, typeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+				),
+			},
+			{
+				Config: testAccCircuitResourceConfig_withDescription(cid, providerName, providerSlug, typeName, typeSlug, updatedDescription),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "description", updatedDescription),
+				),
+			},
+		},
+	})
+}
+
+func testAccCircuitResourceConfig_basic(cid, providerName, providerSlug, typeName, typeSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %q
+  circuit_provider = netbox_provider.test.slug
+  type             = netbox_circuit_type.test.slug
+}
+`, providerName, providerSlug, typeName, typeSlug, cid)
+}
+
+func testAccCircuitResourceConfig_full(cid, providerName, providerSlug, typeName, typeSlug, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %q
+  circuit_provider = netbox_provider.test.slug
+  type             = netbox_circuit_type.test.slug
+  status           = "active"
+  description      = %q
+  comments         = %q
+  commit_rate      = 10000
+}
+`, providerName, providerSlug, typeName, typeSlug, cid, description, comments)
+}
+
+func testAccCircuitResourceConfig_withDescription(cid, providerName, providerSlug, typeName, typeSlug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %q
+  circuit_provider = netbox_provider.test.slug
+  type             = netbox_circuit_type.test.slug
+  description      = %q
+}
+`, providerName, providerSlug, typeName, typeSlug, cid, description)
+}

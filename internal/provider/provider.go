@@ -176,6 +176,10 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewClusterResource,
 		resources.NewVirtualMachineResource,
 		resources.NewVMInterfaceResource,
+		// Phase 4: Circuits & Connectivity resources
+		resources.NewProviderResource,
+		resources.NewCircuitTypeResource,
+		resources.NewCircuitResource,
 	}
 }
 
@@ -205,6 +209,10 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewClusterDataSource,
 		datasources.NewVirtualMachineDataSource,
 		datasources.NewVMInterfaceDataSource,
+		// Phase 4: Circuits & Connectivity data sources
+		datasources.NewProviderDataSource,
+		datasources.NewCircuitTypeDataSource,
+		datasources.NewCircuitDataSource,
 	}
 }
 

@@ -742,3 +742,84 @@ func (c *CleanupResource) RegisterVMInterfaceCleanup(name string, vmName string)
 		}
 	})
 }
+
+// RegisterProviderCleanup registers a cleanup function that will delete
+// a circuit provider by slug after the test completes.
+func (c *CleanupResource) RegisterProviderCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.CircuitsAPI.CircuitsProvidersList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list providers with slug %s: %v", slug, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: provider with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.CircuitsAPI.CircuitsProvidersDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete provider %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted provider %d (slug: %s)", id, slug)
+		}
+	})
+}
+
+// RegisterCircuitTypeCleanup registers a cleanup function that will delete
+// a circuit type by slug after the test completes.
+func (c *CleanupResource) RegisterCircuitTypeCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.CircuitsAPI.CircuitsCircuitTypesList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list circuit types with slug %s: %v", slug, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: circuit type with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.CircuitsAPI.CircuitsCircuitTypesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete circuit type %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted circuit type %d (slug: %s)", id, slug)
+		}
+	})
+}
+
+// RegisterCircuitCleanup registers a cleanup function that will delete
+// a circuit by CID after the test completes.
+func (c *CleanupResource) RegisterCircuitCleanup(cid string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.CircuitsAPI.CircuitsCircuitsList(ctx).Cid([]string{cid}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list circuits with CID %s: %v", cid, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: circuit with CID %s not found (already deleted)", cid)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.CircuitsAPI.CircuitsCircuitsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete circuit %d (CID: %s): %v", id, cid, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted circuit %d (CID: %s)", id, cid)
+		}
+	})
+}

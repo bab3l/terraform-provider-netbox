@@ -162,7 +162,8 @@ func (r *VLANResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	// Parse the ID
 	vlanID := data.ID.ValueString()
 	var id int32
-	if _, err := fmt.Sscanf(vlanID, "%d", &id); err != nil {
+	id, err := utils.ParseID(vlanID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid VLAN ID", fmt.Sprintf("VLAN ID must be a number, got: %s", vlanID))
 		return
 	}
@@ -213,7 +214,8 @@ func (r *VLANResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// Parse the ID
 	vlanID := data.ID.ValueString()
 	var id int32
-	if _, err := fmt.Sscanf(vlanID, "%d", &id); err != nil {
+	id, err := utils.ParseID(vlanID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid VLAN ID", fmt.Sprintf("VLAN ID must be a number, got: %s", vlanID))
 		return
 	}
@@ -271,7 +273,8 @@ func (r *VLANResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	// Parse the ID
 	vlanID := data.ID.ValueString()
 	var id int32
-	if _, err := fmt.Sscanf(vlanID, "%d", &id); err != nil {
+	id, err := utils.ParseID(vlanID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid VLAN ID", fmt.Sprintf("VLAN ID must be a number, got: %s", vlanID))
 		return
 	}

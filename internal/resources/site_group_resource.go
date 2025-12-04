@@ -101,8 +101,8 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 
 	// Handle parent reference
 	if utils.IsSet(data.Parent) {
-		var parentIDInt int32
-		if _, err := fmt.Sscanf(data.Parent.ValueString(), "%d", &parentIDInt); err != nil {
+		parentIDInt, err := utils.ParseID(data.Parent.ValueString())
+		if err != nil {
 			resp.Diagnostics.AddError("Invalid Parent ID", fmt.Sprintf("Parent ID must be a number, got: %s", data.Parent.ValueString()))
 			return
 		}
@@ -179,7 +179,8 @@ func (r *SiteGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	siteGroupID := data.ID.ValueString()
 	var siteGroupIDInt int32
-	if _, err := fmt.Sscanf(siteGroupID, "%d", &siteGroupIDInt); err != nil {
+	siteGroupIDInt, err := utils.ParseID(siteGroupID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Site Group ID", fmt.Sprintf("Site Group ID must be a number, got: %s", siteGroupID))
 		return
 	}
@@ -213,7 +214,8 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 
 	siteGroupID := data.ID.ValueString()
 	var siteGroupIDInt int32
-	if _, err := fmt.Sscanf(siteGroupID, "%d", &siteGroupIDInt); err != nil {
+	siteGroupIDInt, err := utils.ParseID(siteGroupID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Site Group ID", fmt.Sprintf("Site Group ID must be a number, got: %s", siteGroupID))
 		return
 	}
@@ -229,8 +231,8 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Handle parent reference
 	if utils.IsSet(data.Parent) {
-		var parentIDInt int32
-		if _, err := fmt.Sscanf(data.Parent.ValueString(), "%d", &parentIDInt); err != nil {
+		parentIDInt, err := utils.ParseID(data.Parent.ValueString())
+		if err != nil {
 			resp.Diagnostics.AddError("Invalid Parent ID", fmt.Sprintf("Parent ID must be a number, got: %s", data.Parent.ValueString()))
 			return
 		}
@@ -282,7 +284,8 @@ func (r *SiteGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 
 	siteGroupID := data.ID.ValueString()
 	var siteGroupIDInt int32
-	if _, err := fmt.Sscanf(siteGroupID, "%d", &siteGroupIDInt); err != nil {
+	siteGroupIDInt, err := utils.ParseID(siteGroupID)
+	if err != nil {
 		resp.Diagnostics.AddError("Invalid Site Group ID", fmt.Sprintf("Site Group ID must be a number, got: %s", siteGroupID))
 		return
 	}

@@ -436,7 +436,8 @@ func (r *VirtualMachineResource) Read(ctx context.Context, req resource.ReadRequ
 	// Parse the ID
 	vmID := data.ID.ValueString()
 	var vmIDInt int32
-	if _, err := fmt.Sscanf(vmID, "%d", &vmIDInt); err != nil {
+	vmIDInt, err := utils.ParseID(vmID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Virtual Machine ID",
 			fmt.Sprintf("Virtual Machine ID must be a number, got: %s", vmID),
@@ -486,7 +487,8 @@ func (r *VirtualMachineResource) Update(ctx context.Context, req resource.Update
 	// Parse the ID
 	vmID := data.ID.ValueString()
 	var vmIDInt int32
-	if _, err := fmt.Sscanf(vmID, "%d", &vmIDInt); err != nil {
+	vmIDInt, err := utils.ParseID(vmID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Virtual Machine ID",
 			fmt.Sprintf("Virtual Machine ID must be a number, got: %s", vmID),
@@ -541,7 +543,8 @@ func (r *VirtualMachineResource) Delete(ctx context.Context, req resource.Delete
 	// Parse the ID
 	vmID := data.ID.ValueString()
 	var vmIDInt int32
-	if _, err := fmt.Sscanf(vmID, "%d", &vmIDInt); err != nil {
+	vmIDInt, err := utils.ParseID(vmID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Virtual Machine ID",
 			fmt.Sprintf("Virtual Machine ID must be a number, got: %s", vmID),

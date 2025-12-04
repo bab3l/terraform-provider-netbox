@@ -193,8 +193,7 @@ func (r *IPAddressResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	// Parse the ID
-	var id int
-	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
+	id, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid ID",
@@ -208,7 +207,7 @@ func (r *IPAddressResource) Read(ctx context.Context, req resource.ReadRequest, 
 	})
 
 	// Get the IP address from Netbox
-	ipAddress, httpResp, err := r.client.IpamAPI.IpamIpAddressesRetrieve(ctx, int32(id)).Execute()
+	ipAddress, httpResp, err := r.client.IpamAPI.IpamIpAddressesRetrieve(ctx, id).Execute()
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -244,8 +243,7 @@ func (r *IPAddressResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Parse the ID
-	var id int
-	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
+	id, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid ID",
@@ -301,8 +299,7 @@ func (r *IPAddressResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 
 	// Parse the ID
-	var id int
-	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
+	id, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid ID",
@@ -316,7 +313,7 @@ func (r *IPAddressResource) Delete(ctx context.Context, req resource.DeleteReque
 	})
 
 	// Delete the IP address
-	httpResp, err := r.client.IpamAPI.IpamIpAddressesDestroy(ctx, int32(id)).Execute()
+	httpResp, err := r.client.IpamAPI.IpamIpAddressesDestroy(ctx, id).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting IP address",
@@ -408,16 +405,28 @@ func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipAddress.Id))
 	data.Address = types.StringValue(ipAddress.Address)
 
-	// VRF
+	// VRF - preserve user input if it matches
 	if ipAddress.Vrf.IsSet() && ipAddress.Vrf.Get() != nil {
-		data.VRF = types.StringValue(ipAddress.Vrf.Get().Name)
+		vrfObj := ipAddress.Vrf.Get()
+		userVrf := data.VRF.ValueString()
+		if userVrf == vrfObj.Name || userVrf == fmt.Sprintf("%d", vrfObj.Id) {
+			// Keep user's original value
+		} else {
+			data.VRF = types.StringValue(vrfObj.Name)
+		}
 	} else {
 		data.VRF = types.StringNull()
 	}
 
-	// Tenant
+	// Tenant - preserve user input if it matches
 	if ipAddress.Tenant.IsSet() && ipAddress.Tenant.Get() != nil {
-		data.Tenant = types.StringValue(ipAddress.Tenant.Get().Name)
+		tenantObj := ipAddress.Tenant.Get()
+		userTenant := data.Tenant.ValueString()
+		if userTenant == tenantObj.Name || userTenant == tenantObj.Slug || userTenant == fmt.Sprintf("%d", tenantObj.Id) {
+			// Keep user's original value
+		} else {
+			data.Tenant = types.StringValue(tenantObj.Name)
+		}
 	} else {
 		data.Tenant = types.StringNull()
 	}

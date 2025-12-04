@@ -832,3 +832,71 @@ func VirtualMachineLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.V
 func LookupVirtualMachine(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefVirtualMachineRequest, diag.Diagnostics) {
 	return GenericLookup(ctx, value, VirtualMachineLookupConfig(client))
 }
+
+// =====================================================
+// CIRCUITS LOOKUP CONFIGURATIONS
+// =====================================================
+
+// ProviderLookupConfig returns the lookup configuration for circuit Providers.
+func ProviderLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Provider, netbox.BriefProviderRequest] {
+	return LookupConfig[*netbox.Provider, netbox.BriefProviderRequest]{
+		ResourceName: "Provider",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.Provider, *http.Response, error) {
+			return client.CircuitsAPI.CircuitsProvidersRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.Provider, *http.Response, error) {
+			list, resp, err := client.CircuitsAPI.CircuitsProvidersList(ctx).Slug([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.Provider, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(p *netbox.Provider) netbox.BriefProviderRequest {
+			return netbox.BriefProviderRequest{
+				Name: p.GetName(),
+				Slug: p.GetSlug(),
+			}
+		},
+	}
+}
+
+// LookupProvider looks up a circuit Provider by ID or slug.
+func LookupProvider(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefProviderRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, ProviderLookupConfig(client))
+}
+
+// CircuitTypeLookupConfig returns the lookup configuration for Circuit Types.
+func CircuitTypeLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.CircuitType, netbox.BriefCircuitTypeRequest] {
+	return LookupConfig[*netbox.CircuitType, netbox.BriefCircuitTypeRequest]{
+		ResourceName: "Circuit Type",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.CircuitType, *http.Response, error) {
+			return client.CircuitsAPI.CircuitsCircuitTypesRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.CircuitType, *http.Response, error) {
+			list, resp, err := client.CircuitsAPI.CircuitsCircuitTypesList(ctx).Slug([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.CircuitType, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(ct *netbox.CircuitType) netbox.BriefCircuitTypeRequest {
+			return netbox.BriefCircuitTypeRequest{
+				Name: ct.GetName(),
+				Slug: ct.GetSlug(),
+			}
+		},
+	}
+}
+
+// LookupCircuitType looks up a Circuit Type by ID or slug.
+func LookupCircuitType(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefCircuitTypeRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, CircuitTypeLookupConfig(client))
+}

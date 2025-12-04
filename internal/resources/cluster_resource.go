@@ -360,7 +360,8 @@ func (r *ClusterResource) Read(ctx context.Context, req resource.ReadRequest, re
 	// Parse the ID
 	clusterID := data.ID.ValueString()
 	var clusterIDInt int32
-	if _, err := fmt.Sscanf(clusterID, "%d", &clusterIDInt); err != nil {
+	clusterIDInt, err := utils.ParseID(clusterID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Cluster ID",
 			fmt.Sprintf("Cluster ID must be a number, got: %s", clusterID),
@@ -410,7 +411,8 @@ func (r *ClusterResource) Update(ctx context.Context, req resource.UpdateRequest
 	// Parse the ID
 	clusterID := data.ID.ValueString()
 	var clusterIDInt int32
-	if _, err := fmt.Sscanf(clusterID, "%d", &clusterIDInt); err != nil {
+	clusterIDInt, err := utils.ParseID(clusterID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Cluster ID",
 			fmt.Sprintf("Cluster ID must be a number, got: %s", clusterID),
@@ -465,7 +467,8 @@ func (r *ClusterResource) Delete(ctx context.Context, req resource.DeleteRequest
 	// Parse the ID
 	clusterID := data.ID.ValueString()
 	var clusterIDInt int32
-	if _, err := fmt.Sscanf(clusterID, "%d", &clusterIDInt); err != nil {
+	clusterIDInt, err := utils.ParseID(clusterID)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Cluster ID",
 			fmt.Sprintf("Cluster ID must be a number, got: %s", clusterID),
