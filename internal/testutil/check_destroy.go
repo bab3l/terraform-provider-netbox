@@ -453,6 +453,36 @@ func CheckDeviceDestroy(s *terraform.State) error {
 	return nil
 }
 
+// CheckInterfaceDestroy verifies that an interface has been destroyed.
+func CheckInterfaceDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_interface" {
+			continue
+		}
+
+		id := rs.Primary.ID
+		if id != "" {
+			var idInt int32
+			if _, parseErr := fmt.Sscanf(id, "%d", &idInt); parseErr == nil {
+				_, resp, err := client.DcimAPI.DcimInterfacesRetrieve(ctx, idInt).Execute()
+				if err == nil && resp.StatusCode == 200 {
+					return fmt.Errorf("interface with ID %s still exists", id)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 // ComposeCheckDestroy combines multiple CheckDestroy functions.
 // Useful when a test creates multiple resource types.
 func ComposeCheckDestroy(checks ...resource.TestCheckFunc) resource.TestCheckFunc {
