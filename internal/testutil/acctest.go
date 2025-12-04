@@ -500,6 +500,33 @@ func (c *CleanupResource) RegisterDeviceCleanup(name string) {
 	})
 }
 
+// RegisterInterfaceCleanup registers a cleanup function that will delete
+// an interface by name and device after the test completes.
+func (c *CleanupResource) RegisterInterfaceCleanup(name string, deviceName string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimInterfacesList(ctx).Name([]string{name}).Device([]*string{&deviceName}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list interfaces with name %s on device %s: %v", name, deviceName, err)
+			return
+		}
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+			c.t.Logf("Cleanup: interface with name %s on device %s not found (already deleted)", name, deviceName)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimInterfacesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete interface %d (name: %s, device: %s): %v", id, name, deviceName, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted interface %d (name: %s, device: %s)", id, name, deviceName)
+		}
+	})
+}
+
 // RegisterVRFCleanup registers a cleanup function that will delete
 // a VRF by name after the test completes.
 func (c *CleanupResource) RegisterVRFCleanup(name string) {

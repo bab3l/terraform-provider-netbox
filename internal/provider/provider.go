@@ -180,6 +180,7 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewProviderResource,
 		resources.NewCircuitTypeResource,
 		resources.NewCircuitResource,
+		resources.NewCableResource,
 	}
 }
 
@@ -213,6 +214,7 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewProviderDataSource,
 		datasources.NewCircuitTypeDataSource,
 		datasources.NewCircuitDataSource,
+		datasources.NewCableDataSource,
 	}
 }
 
