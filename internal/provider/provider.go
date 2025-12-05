@@ -185,6 +185,7 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewTagResource,
 		resources.NewContactResource,
 		resources.NewWebhookResource,
+		resources.NewConfigContextResource,
 	}
 }
 
@@ -223,6 +224,7 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewTagDataSource,
 		datasources.NewContactDataSource,
 		datasources.NewWebhookDataSource,
+		datasources.NewConfigContextDataSource,
 	}
 }
 
