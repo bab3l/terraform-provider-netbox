@@ -288,7 +288,8 @@ function Main {
             # Phase 5: Extras & Customization
             "tag",
             "contact",
-            "webhook"
+            "webhook",
+            "config_context"
         )
         
         foreach ($name in $testOrder) {
