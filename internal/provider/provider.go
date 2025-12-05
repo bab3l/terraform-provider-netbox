@@ -181,6 +181,10 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewCircuitTypeResource,
 		resources.NewCircuitResource,
 		resources.NewCableResource,
+		// Phase 5: Extras & Customization resources
+		resources.NewTagResource,
+		resources.NewContactResource,
+		resources.NewWebhookResource,
 	}
 }
 
@@ -215,6 +219,10 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewCircuitTypeDataSource,
 		datasources.NewCircuitDataSource,
 		datasources.NewCableDataSource,
+		// Phase 5: Extras & Customization data sources
+		datasources.NewTagDataSource,
+		datasources.NewContactDataSource,
+		datasources.NewWebhookDataSource,
 	}
 }
 
