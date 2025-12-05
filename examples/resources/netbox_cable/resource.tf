@@ -8,13 +8,13 @@ resource "netbox_cable" "example" {
   # A-side termination - specify the object type and ID
   a_terminations = [{
     object_type = "dcim.interface"
-    object_id   = 1  # ID of interface on first device
+    object_id   = 1 # ID of interface on first device
   }]
 
   # B-side termination - specify the object type and ID
   b_terminations = [{
     object_type = "dcim.interface"
-    object_id   = 2  # ID of interface on second device
+    object_id   = 2 # ID of interface on second device
   }]
 
   # Cable type - common values: cat5e, cat6, cat6a, mmf, smf

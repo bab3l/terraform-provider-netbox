@@ -900,3 +900,35 @@ func CircuitTypeLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Circ
 func LookupCircuitType(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefCircuitTypeRequest, diag.Diagnostics) {
 	return GenericLookup(ctx, value, CircuitTypeLookupConfig(client))
 }
+
+// ContactGroupLookupConfig returns the lookup configuration for Contact Groups.
+func ContactGroupLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.ContactGroup, netbox.BriefContactGroupRequest] {
+	return LookupConfig[*netbox.ContactGroup, netbox.BriefContactGroupRequest]{
+		ResourceName: "Contact Group",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.ContactGroup, *http.Response, error) {
+			return client.TenancyAPI.TenancyContactGroupsRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.ContactGroup, *http.Response, error) {
+			list, resp, err := client.TenancyAPI.TenancyContactGroupsList(ctx).Slug([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.ContactGroup, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(cg *netbox.ContactGroup) netbox.BriefContactGroupRequest {
+			return netbox.BriefContactGroupRequest{
+				Name: cg.GetName(),
+				Slug: cg.GetSlug(),
+			}
+		},
+	}
+}
+
+// LookupContactGroup looks up a Contact Group by ID or slug.
+func LookupContactGroup(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefContactGroupRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, ContactGroupLookupConfig(client))
+}

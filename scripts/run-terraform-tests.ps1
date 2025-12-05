@@ -284,7 +284,11 @@ function Main {
             "provider",
             "circuit_type",
             "circuit",
-            "cable"
+            "cable",
+            # Phase 5: Extras & Customization
+            "tag",
+            "contact",
+            "webhook"
         )
         
         foreach ($name in $testOrder) {

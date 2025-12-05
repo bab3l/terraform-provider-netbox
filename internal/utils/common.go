@@ -370,3 +370,29 @@ func GetCustomFieldsAttributeType() types.SetType {
 		},
 	}
 }
+
+// ExtractIDFromResponse attempts to extract an ID from an HTTP response body.
+// This is used as a workaround when the API returns a valid response but the
+// go-netbox client fails to parse it (e.g., missing required fields in response).
+func ExtractIDFromResponse(httpResp *http.Response) int32 {
+	if httpResp == nil || httpResp.Body == nil {
+		return 0
+	}
+
+	// Read and restore the body
+	bodyBytes, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return 0
+	}
+	httpResp.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+	// Try to parse as JSON and extract ID
+	var response struct {
+		ID int32 `json:"id"`
+	}
+	if err := json.Unmarshal(bodyBytes, &response); err != nil {
+		return 0
+	}
+
+	return response.ID
+}
