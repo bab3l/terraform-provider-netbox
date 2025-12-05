@@ -186,6 +186,23 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewContactResource,
 		resources.NewWebhookResource,
 		resources.NewConfigContextResource,
+		// Phase 6: Additional resources
+		resources.NewContactGroupResource,
+		resources.NewContactRoleResource,
+		resources.NewClusterGroupResource,
+		// Phase 7: IPAM & Advanced resources
+		resources.NewIPRangeResource,
+		resources.NewRIRResource,
+		resources.NewAggregateResource,
+		resources.NewProviderAccountResource,
+		resources.NewCircuitTerminationResource,
+		resources.NewCustomFieldResource,
+		// Phase 8: Additional IPAM & Infrastructure resources
+		resources.NewRoleResource,
+		resources.NewASNResource,
+		resources.NewProviderNetworkResource,
+		resources.NewRackTypeResource,
+		resources.NewVirtualChassisResource,
 	}
 }
 
@@ -225,6 +242,23 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewContactDataSource,
 		datasources.NewWebhookDataSource,
 		datasources.NewConfigContextDataSource,
+		// Phase 6: Additional data sources
+		datasources.NewContactGroupDataSource,
+		datasources.NewContactRoleDataSource,
+		datasources.NewClusterGroupDataSource,
+		// Phase 7: IPAM & Advanced data sources
+		datasources.NewIPRangeDataSource,
+		datasources.NewRIRDataSource,
+		datasources.NewAggregateDataSource,
+		datasources.NewProviderAccountDataSource,
+		datasources.NewCircuitTerminationDataSource,
+		datasources.NewCustomFieldDataSource,
+		// Phase 8: Additional IPAM & Infrastructure data sources
+		datasources.NewRoleDataSource,
+		datasources.NewASNDataSource,
+		datasources.NewProviderNetworkDataSource,
+		datasources.NewRackTypeDataSource,
+		datasources.NewVirtualChassisDataSource,
 	}
 }
 

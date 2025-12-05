@@ -14,7 +14,7 @@ resource "netbox_config_context" "site_specific" {
   weight      = 1500
   is_active   = true
   data = jsonencode({
-    syslog_server = "10.1.0.10"
+    syslog_server  = "10.1.0.10"
     snmp_community = "public"
     timezone       = "America/New_York"
   })
@@ -50,9 +50,9 @@ resource "netbox_config_context" "production_servers" {
   weight      = 2000
   data = jsonencode({
     monitoring = {
-      enabled      = true
-      interval     = 60
-      alert_email  = "ops@example.com"
+      enabled     = true
+      interval    = 60
+      alert_email = "ops@example.com"
     }
     backup = {
       enabled   = true

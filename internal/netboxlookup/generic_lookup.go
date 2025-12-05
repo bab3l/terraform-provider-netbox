@@ -932,3 +932,76 @@ func ContactGroupLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Con
 func LookupContactGroup(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefContactGroupRequest, diag.Diagnostics) {
 	return GenericLookup(ctx, value, ContactGroupLookupConfig(client))
 }
+
+// =====================================================
+// IPAM RIR LOOKUPS
+// =====================================================
+
+// RIRLookupConfig returns the lookup configuration for RIRs (Regional Internet Registries).
+func RIRLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.RIR, netbox.BriefRIRRequest] {
+	return LookupConfig[*netbox.RIR, netbox.BriefRIRRequest]{
+		ResourceName: "RIR",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.RIR, *http.Response, error) {
+			return client.IpamAPI.IpamRirsRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.RIR, *http.Response, error) {
+			list, resp, err := client.IpamAPI.IpamRirsList(ctx).Slug([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.RIR, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(r *netbox.RIR) netbox.BriefRIRRequest {
+			return netbox.BriefRIRRequest{
+				Name: r.GetName(),
+				Slug: r.GetSlug(),
+			}
+		},
+	}
+}
+
+// LookupRIR looks up a RIR by ID or slug.
+func LookupRIR(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefRIRRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, RIRLookupConfig(client))
+}
+
+// =====================================================
+// CIRCUIT LOOKUPS
+// =====================================================
+
+// CircuitLookupConfig returns the lookup configuration for Circuits.
+func CircuitLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Circuit, netbox.BriefCircuitRequest] {
+	return LookupConfig[*netbox.Circuit, netbox.BriefCircuitRequest]{
+		ResourceName: "Circuit",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.Circuit, *http.Response, error) {
+			return client.CircuitsAPI.CircuitsCircuitsRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, cid string) ([]*netbox.Circuit, *http.Response, error) {
+			// Circuits use CID (circuit ID) instead of slug
+			list, resp, err := client.CircuitsAPI.CircuitsCircuitsList(ctx).Cid([]string{cid}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.Circuit, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(c *netbox.Circuit) netbox.BriefCircuitRequest {
+			return netbox.BriefCircuitRequest{
+				Cid:      c.GetCid(),
+				Provider: *netbox.NewBriefProviderRequest(c.Provider.GetName(), c.Provider.GetSlug()),
+			}
+		},
+	}
+}
+
+// LookupCircuit looks up a Circuit by ID or CID.
+func LookupCircuit(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefCircuitRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, CircuitLookupConfig(client))
+}
