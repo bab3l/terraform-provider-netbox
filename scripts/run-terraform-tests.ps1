@@ -289,7 +289,11 @@ function Main {
             "tag",
             "contact",
             "webhook",
-            "config_context"
+            "config_context",
+            # Phase 6: Additional/Organizational Resources
+            "contact_group",
+            "contact_role",
+            "cluster_group"
         )
         
         foreach ($name in $testOrder) {
