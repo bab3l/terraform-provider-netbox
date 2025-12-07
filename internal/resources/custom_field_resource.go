@@ -557,7 +557,7 @@ func (r *CustomFieldResource) mapResponseToModel(ctx context.Context, customFiel
 	}
 
 	// Map description
-	if desc, ok := customField.GetDescriptionOk(); ok && desc != nil {
+	if desc, ok := customField.GetDescriptionOk(); ok && desc != nil && *desc != "" {
 		data.Description = types.StringValue(*desc)
 	} else {
 		data.Description = types.StringNull()
@@ -656,7 +656,7 @@ func (r *CustomFieldResource) mapResponseToModel(ctx context.Context, customFiel
 	}
 
 	// Map comments
-	if comments, ok := customField.GetCommentsOk(); ok && comments != nil {
+	if comments, ok := customField.GetCommentsOk(); ok && comments != nil && *comments != "" {
 		data.Comments = types.StringValue(*comments)
 	} else {
 		data.Comments = types.StringNull()

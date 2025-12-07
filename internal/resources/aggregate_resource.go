@@ -397,7 +397,7 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 	}
 
 	// Map description
-	if description, ok := aggregate.GetDescriptionOk(); ok && description != nil {
+	if description, ok := aggregate.GetDescriptionOk(); ok && description != nil && *description != "" {
 		data.Description = types.StringValue(*description)
 	} else if data.Description.IsNull() {
 		// Keep null if it was null
@@ -406,7 +406,7 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 	}
 
 	// Map comments
-	if comments, ok := aggregate.GetCommentsOk(); ok && comments != nil {
+	if comments, ok := aggregate.GetCommentsOk(); ok && comments != nil && *comments != "" {
 		data.Comments = types.StringValue(*comments)
 	} else if data.Comments.IsNull() {
 		// Keep null if it was null

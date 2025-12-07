@@ -3,6 +3,7 @@
 
 param(
     [string]$TestDir = "",
+    [string]$StartFrom = "",
     [switch]$SkipDestroy,
     [switch]$ShowDetails
 )
@@ -16,6 +17,382 @@ function Write-Success { param($msg) Write-Host $msg -ForegroundColor Green }
 function Write-Failure { param($msg) Write-Host $msg -ForegroundColor Red }
 function Write-Info { param($msg) Write-Host $msg -ForegroundColor Cyan }
 function Write-Warn { param($msg) Write-Host $msg -ForegroundColor Yellow }
+
+# Mapping of Terraform resource types to NetBox API endpoints
+$global:ResourceApiMap = @{
+    # DCIM
+    "netbox_manufacturer" = @{ Endpoint = "/api/dcim/manufacturers/"; NameField = "name" }
+    "netbox_site" = @{ Endpoint = "/api/dcim/sites/"; NameField = "name" }
+    "netbox_site_group" = @{ Endpoint = "/api/dcim/site-groups/"; NameField = "name" }
+    "netbox_region" = @{ Endpoint = "/api/dcim/regions/"; NameField = "name" }
+    "netbox_location" = @{ Endpoint = "/api/dcim/locations/"; NameField = "name" }
+    "netbox_rack" = @{ Endpoint = "/api/dcim/racks/"; NameField = "name" }
+    "netbox_rack_role" = @{ Endpoint = "/api/dcim/rack-roles/"; NameField = "name" }
+    "netbox_rack_type" = @{ Endpoint = "/api/dcim/rack-types/"; NameField = "model" }
+    "netbox_device" = @{ Endpoint = "/api/dcim/devices/"; NameField = "name" }
+    "netbox_device_role" = @{ Endpoint = "/api/dcim/device-roles/"; NameField = "name" }
+    "netbox_device_type" = @{ Endpoint = "/api/dcim/device-types/"; NameField = "model" }
+    "netbox_module_type" = @{ Endpoint = "/api/dcim/module-types/"; NameField = "model" }
+    "netbox_module" = @{ Endpoint = "/api/dcim/modules/"; NameField = "id" }
+    "netbox_module_bay" = @{ Endpoint = "/api/dcim/module-bays/"; NameField = "name" }
+    "netbox_device_bay" = @{ Endpoint = "/api/dcim/device-bays/"; NameField = "name" }
+    "netbox_interface" = @{ Endpoint = "/api/dcim/interfaces/"; NameField = "name" }
+    "netbox_interface_template" = @{ Endpoint = "/api/dcim/interface-templates/"; NameField = "name" }
+    "netbox_console_port" = @{ Endpoint = "/api/dcim/console-ports/"; NameField = "name" }
+    "netbox_console_port_template" = @{ Endpoint = "/api/dcim/console-port-templates/"; NameField = "name" }
+    "netbox_console_server_port" = @{ Endpoint = "/api/dcim/console-server-ports/"; NameField = "name" }
+    "netbox_console_server_port_template" = @{ Endpoint = "/api/dcim/console-server-port-templates/"; NameField = "name" }
+    "netbox_power_port" = @{ Endpoint = "/api/dcim/power-ports/"; NameField = "name" }
+    "netbox_power_port_template" = @{ Endpoint = "/api/dcim/power-port-templates/"; NameField = "name" }
+    "netbox_power_outlet" = @{ Endpoint = "/api/dcim/power-outlets/"; NameField = "name" }
+    "netbox_power_outlet_template" = @{ Endpoint = "/api/dcim/power-outlet-templates/"; NameField = "name" }
+    "netbox_power_panel" = @{ Endpoint = "/api/dcim/power-panels/"; NameField = "name" }
+    "netbox_power_feed" = @{ Endpoint = "/api/dcim/power-feeds/"; NameField = "name" }
+    "netbox_platform" = @{ Endpoint = "/api/dcim/platforms/"; NameField = "name" }
+    "netbox_inventory_item" = @{ Endpoint = "/api/dcim/inventory-items/"; NameField = "name" }
+    "netbox_inventory_item_role" = @{ Endpoint = "/api/dcim/inventory-item-roles/"; NameField = "name" }
+    "netbox_virtual_chassis" = @{ Endpoint = "/api/dcim/virtual-chassis/"; NameField = "name" }
+    "netbox_cable" = @{ Endpoint = "/api/dcim/cables/"; NameField = "id" }
+    
+    # IPAM
+    "netbox_vrf" = @{ Endpoint = "/api/ipam/vrfs/"; NameField = "name" }
+    "netbox_vlan" = @{ Endpoint = "/api/ipam/vlans/"; NameField = "name" }
+    "netbox_vlan_group" = @{ Endpoint = "/api/ipam/vlan-groups/"; NameField = "name" }
+    "netbox_prefix" = @{ Endpoint = "/api/ipam/prefixes/"; NameField = "prefix" }
+    "netbox_ip_address" = @{ Endpoint = "/api/ipam/ip-addresses/"; NameField = "address" }
+    "netbox_ip_range" = @{ Endpoint = "/api/ipam/ip-ranges/"; NameField = "start_address" }
+    "netbox_aggregate" = @{ Endpoint = "/api/ipam/aggregates/"; NameField = "prefix" }
+    "netbox_rir" = @{ Endpoint = "/api/ipam/rirs/"; NameField = "name" }
+    "netbox_role" = @{ Endpoint = "/api/ipam/roles/"; NameField = "name" }
+    "netbox_asn" = @{ Endpoint = "/api/ipam/asns/"; NameField = "asn" }
+    "netbox_service" = @{ Endpoint = "/api/ipam/services/"; NameField = "name" }
+    
+    # Tenancy
+    "netbox_tenant" = @{ Endpoint = "/api/tenancy/tenants/"; NameField = "name" }
+    "netbox_tenant_group" = @{ Endpoint = "/api/tenancy/tenant-groups/"; NameField = "name" }
+    "netbox_contact" = @{ Endpoint = "/api/tenancy/contacts/"; NameField = "name" }
+    "netbox_contact_group" = @{ Endpoint = "/api/tenancy/contact-groups/"; NameField = "name" }
+    "netbox_contact_role" = @{ Endpoint = "/api/tenancy/contact-roles/"; NameField = "name" }
+    
+    # Virtualization
+    "netbox_cluster" = @{ Endpoint = "/api/virtualization/clusters/"; NameField = "name" }
+    "netbox_cluster_type" = @{ Endpoint = "/api/virtualization/cluster-types/"; NameField = "name" }
+    "netbox_cluster_group" = @{ Endpoint = "/api/virtualization/cluster-groups/"; NameField = "name" }
+    "netbox_virtual_machine" = @{ Endpoint = "/api/virtualization/virtual-machines/"; NameField = "name" }
+    "netbox_vm_interface" = @{ Endpoint = "/api/virtualization/interfaces/"; NameField = "name" }
+    
+    # Circuits
+    "netbox_provider" = @{ Endpoint = "/api/circuits/providers/"; NameField = "name" }
+    "netbox_provider_account" = @{ Endpoint = "/api/circuits/provider-accounts/"; NameField = "name" }
+    "netbox_provider_network" = @{ Endpoint = "/api/circuits/provider-networks/"; NameField = "name" }
+    "netbox_circuit" = @{ Endpoint = "/api/circuits/circuits/"; NameField = "cid" }
+    "netbox_circuit_type" = @{ Endpoint = "/api/circuits/circuit-types/"; NameField = "name" }
+    "netbox_circuit_termination" = @{ Endpoint = "/api/circuits/circuit-terminations/"; NameField = "id" }
+    
+    # Wireless
+    "netbox_wireless_lan" = @{ Endpoint = "/api/wireless/wireless-lans/"; NameField = "ssid" }
+    "netbox_wireless_lan_group" = @{ Endpoint = "/api/wireless/wireless-lan-groups/"; NameField = "name" }
+    
+    # Extras
+    "netbox_tag" = @{ Endpoint = "/api/extras/tags/"; NameField = "name" }
+    "netbox_custom_field" = @{ Endpoint = "/api/extras/custom-fields/"; NameField = "name" }
+    "netbox_webhook" = @{ Endpoint = "/api/extras/webhooks/"; NameField = "name" }
+    "netbox_config_context" = @{ Endpoint = "/api/extras/config-contexts/"; NameField = "name" }
+    "netbox_config_template" = @{ Endpoint = "/api/extras/config-templates/"; NameField = "name" }
+}
+
+function Get-NetboxHeaders {
+    return @{ 
+        "Authorization" = "Token $($env:NETBOX_API_TOKEN)"
+        "Content-Type" = "application/json"
+    }
+}
+
+function Remove-NetboxResource {
+    param(
+        [string]$Endpoint,
+        [int]$Id
+    )
+    
+    $headers = Get-NetboxHeaders
+    $uri = "$($env:NETBOX_SERVER_URL)$Endpoint$Id/"
+    
+    try {
+        Invoke-RestMethod -Uri $uri -Method Delete -Headers $headers | Out-Null
+        return $true
+    }
+    catch {
+        # Resource couldn't be deleted (likely has dependencies)
+        return $false
+    }
+}
+
+function Find-NetboxResourceByName {
+    param(
+        [string]$Endpoint,
+        [string]$NameField,
+        [string]$Value
+    )
+    
+    $headers = Get-NetboxHeaders
+    $encodedValue = [uri]::EscapeDataString($Value)
+    $uri = "$($env:NETBOX_SERVER_URL)$Endpoint`?$NameField=$encodedValue"
+    
+    try {
+        $response = Invoke-RestMethod -Uri $uri -Method Get -Headers $headers
+        if ($response.results -and $response.results.Count -gt 0) {
+            return $response.results
+        }
+    }
+    catch {
+        # Ignore errors - resource might not exist
+    }
+    
+    return @()
+}
+
+function Get-ResourceNamesFromTerraform {
+    param(
+        [string]$MainTfPath
+    )
+    
+    $resources = @()
+    
+    if (-not (Test-Path $MainTfPath)) {
+        return $resources
+    }
+    
+    $content = Get-Content $MainTfPath -Raw
+    
+    # Pattern to match resource blocks: resource "netbox_xxx" "name" { ... name = "value" ... }
+    $resourcePattern = 'resource\s+"(netbox_\w+)"\s+"(\w+)"\s*\{([^}]*(?:\{[^}]*\}[^}]*)*)\}'
+    $regexMatches = [regex]::Matches($content, $resourcePattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+    
+    foreach ($match in $regexMatches) {
+        $resourceType = $match.Groups[1].Value
+        $terraformName = $match.Groups[2].Value
+        $resourceBody = $match.Groups[3].Value
+        
+        $apiInfo = $global:ResourceApiMap[$resourceType]
+        if (-not $apiInfo) {
+            continue
+        }
+        
+        $nameField = $apiInfo.NameField
+        $nameValue = $null
+        
+        # Extract the name/identifier value from the resource body
+        # Handle different field names based on resource type
+        switch ($nameField) {
+            "name" {
+                if ($resourceBody -match '\bname\s*=\s*"([^"]+)"') {
+                    $nameValue = $Matches[1]
+                }
+            }
+            "model" {
+                if ($resourceBody -match '\bmodel\s*=\s*"([^"]+)"') {
+                    $nameValue = $Matches[1]
+                }
+            }
+            "ssid" {
+                if ($resourceBody -match '\bssid\s*=\s*"([^"]+)"') {
+                    $nameValue = $Matches[1]
+                }
+            }
+            "cid" {
+                if ($resourceBody -match '\bcid\s*=\s*"([^"]+)"') {
+                    $nameValue = $Matches[1]
+                }
+            }
+            "prefix" {
+                if ($resourceBody -match '\bprefix\s*=\s*"([^"]+)"') {
+                    $nameValue = $Matches[1]
+                }
+            }
+            "address" {
+                if ($resourceBody -match '\baddress\s*=\s*"([^"]+)"') {
+                    $nameValue = $Matches[1]
+                }
+            }
+            "start_address" {
+                if ($resourceBody -match '\bstart_address\s*=\s*"([^"]+)"') {
+                    $nameValue = $Matches[1]
+                }
+            }
+            "asn" {
+                if ($resourceBody -match '\basn\s*=\s*(\d+)') {
+                    $nameValue = $Matches[1]
+                }
+            }
+        }
+        
+        if ($nameValue) {
+            $resources += @{
+                ResourceType = $resourceType
+                TerraformName = $terraformName
+                NameField = $nameField
+                NameValue = $nameValue
+                Endpoint = $apiInfo.Endpoint
+            }
+        }
+    }
+    
+    return $resources
+}
+
+function Clear-OrphanedNetboxResources {
+    param(
+        [string]$TestPath
+    )
+    
+    # If we're already in the test directory (via Push-Location), just use main.tf
+    # Otherwise join the path
+    if (Test-Path "main.tf") {
+        $mainTfPath = "main.tf"
+    } else {
+        $mainTfPath = Join-Path $TestPath "main.tf"
+    }
+    
+    $resources = Get-ResourceNamesFromTerraform -MainTfPath $mainTfPath
+    
+    if ($resources.Count -eq 0) {
+        Write-Info "  No resources found in main.tf to check for orphans"
+        return
+    }
+    
+    Write-Info "  Checking for orphaned resources in Netbox ($($resources.Count) resources defined)..."
+    
+    # Reverse order to handle dependencies (delete children first)
+    $deletionOrder = @(
+        # Components and connections first
+        "netbox_cable",
+        "netbox_circuit_termination",
+        "netbox_vm_interface",
+        "netbox_interface",
+        "netbox_console_port",
+        "netbox_console_server_port",
+        "netbox_power_port",
+        "netbox_power_outlet",
+        "netbox_inventory_item",
+        "netbox_module",
+        "netbox_module_bay",
+        "netbox_device_bay",
+        "netbox_interface_template",
+        "netbox_console_port_template",
+        "netbox_console_server_port_template",
+        "netbox_power_port_template",
+        "netbox_power_outlet_template",
+        "netbox_service",
+        "netbox_ip_address",
+        "netbox_ip_range",
+        "netbox_prefix",
+        "netbox_vlan",
+        "netbox_aggregate",
+        "netbox_asn",
+        "netbox_wireless_lan",
+        "netbox_virtual_machine",
+        "netbox_device",
+        "netbox_virtual_chassis",
+        "netbox_power_feed",
+        "netbox_power_panel",
+        "netbox_circuit",
+        "netbox_rack",
+        "netbox_cluster",
+        "netbox_location",
+        "netbox_site",
+        "netbox_provider_network",
+        "netbox_provider_account",
+        "netbox_provider",
+        "netbox_circuit_type",
+        "netbox_tenant",
+        "netbox_rack_type",
+        "netbox_device_type",
+        "netbox_module_type",
+        "netbox_platform",
+        "netbox_vrf",
+        "netbox_vlan_group",
+        "netbox_config_template",
+        "netbox_config_context",
+        "netbox_webhook",
+        "netbox_custom_field",
+        "netbox_contact",
+        "netbox_manufacturer",
+        "netbox_rir",
+        "netbox_tag",
+        "netbox_tenant_group",
+        "netbox_site_group",
+        "netbox_region",
+        "netbox_cluster_group",
+        "netbox_cluster_type",
+        "netbox_contact_group",
+        "netbox_contact_role",
+        "netbox_rack_role",
+        "netbox_role",
+        "netbox_device_role",
+        "netbox_wireless_lan_group",
+        "netbox_inventory_item_role"
+    )
+    
+    $resourcesByType = @{}
+    foreach ($resource in $resources) {
+        if (-not $resourcesByType.ContainsKey($resource.ResourceType)) {
+            $resourcesByType[$resource.ResourceType] = @()
+        }
+        $resourcesByType[$resource.ResourceType] += $resource
+    }
+    
+    # Loop until all resources are deleted or max iterations reached
+    # This handles dependency issues where some resources can't be deleted until others are gone
+    $maxIterations = 10
+    $totalDeleted = 0
+    
+    for ($iteration = 1; $iteration -le $maxIterations; $iteration++) {
+        $deletedThisIteration = 0
+        $remainingCount = 0
+        
+        foreach ($resourceType in $deletionOrder) {
+            if (-not $resourcesByType.ContainsKey($resourceType)) {
+                continue
+            }
+            
+            foreach ($resource in $resourcesByType[$resourceType]) {
+                $existing = Find-NetboxResourceByName -Endpoint $resource.Endpoint -NameField $resource.NameField -Value $resource.NameValue
+                
+                if ($existing.Count -gt 0) {
+                    Write-Info "    Found $($existing.Count) $($resource.ResourceType)(s) named '$($resource.NameValue)'"
+                }
+                
+                foreach ($item in $existing) {
+                    $deleted = Remove-NetboxResource -Endpoint $resource.Endpoint -Id $item.id
+                    if ($deleted) {
+                        Write-Warn "    Deleted orphaned $($resource.ResourceType): $($resource.NameValue) (ID: $($item.id))"
+                        $deletedThisIteration++
+                        $totalDeleted++
+                    } else {
+                        Write-Info "    Could not delete $($resource.ResourceType): $($resource.NameValue) (ID: $($item.id)) - has dependencies"
+                        $remainingCount++
+                    }
+                }
+            }
+        }
+        
+        # If nothing was deleted this iteration, we're done (either all clean or stuck)
+        if ($deletedThisIteration -eq 0) {
+            break
+        }
+        
+        # If we deleted something but there are still remaining, continue looping
+        if ($remainingCount -eq 0) {
+            break
+        }
+        
+        Write-Info "    Iteration $iteration deleted $deletedThisIteration, $remainingCount remaining (retrying...)"
+    }
+    
+    if ($totalDeleted -gt 0) {
+        Write-Info "  Cleaned up $totalDeleted orphaned resource(s)"
+    }
+}
 
 function Test-Environment {
     Write-Info "Checking environment..."
@@ -124,6 +501,9 @@ function Invoke-TerraformTest {
         Remove-Item -Force "terraform.tfstate" -ErrorAction SilentlyContinue
         Remove-Item -Force "terraform.tfstate.backup" -ErrorAction SilentlyContinue
         
+        # Clean up orphaned resources in Netbox that might be left over from failed tests
+        Clear-OrphanedNetboxResources -TestPath $TestPath
+        
         $startTime = Get-Date
         
         # Check for dev_overrides - if present, skip init as per Terraform guidance
@@ -159,9 +539,10 @@ function Invoke-TerraformTest {
         
         # Apply
         Write-Info "  terraform apply..."
-        $applyOutput = terraform apply -auto-approve -no-color 2>&1
+        $applyOutput = terraform apply -auto-approve -no-color 2>&1 | Out-String
         if ($LASTEXITCODE -ne 0) {
-            throw "terraform apply failed: $applyOutput"
+            Write-Failure "  Apply output: $applyOutput"
+            throw "terraform apply failed"
         }
         Write-Success "  Apply completed"
         
@@ -245,55 +626,95 @@ function Main {
         $dataSourceTests = Get-ChildItem -Path (Join-Path $TestRoot "data-sources") -Directory -ErrorAction SilentlyContinue
         
         # Order matters: dependencies must come before dependents
-        # manufacturer before platform (platform depends on manufacturer)
-        # tenant_group before tenant, site_group before site
-        # region has no deps, location depends on site, rack depends on site+location
-        # rack_role has no deps (used to categorize racks)
-        # Phase 3: cluster_type before cluster, cluster before virtual_machine, virtual_machine before vm_interface
-        # interface depends on device (which depends on device_type, manufacturer, site, device_role)
-        # Phase 4: Circuits - provider and circuit_type before circuit; cable depends on interface
-        # Phase 2: IPAM - vrf, vlan_group, vlan, prefix, ip_address
+        # This is a comprehensive ordering of all resources based on their dependencies
         $testOrder = @(
-            # Phase 1: Core Infrastructure
-            "manufacturer", 
-            "platform", 
-            "tenant_group", 
-            "tenant", 
-            "site_group", 
-            "site", 
-            "region", 
-            "location", 
-            "rack_role", 
-            "rack",
-            "device_role",
-            "device_type",
-            "device",
-            "interface",
-            # Phase 2: IPAM
-            "vrf",
-            "vlan_group",
-            "vlan",
-            "prefix",
-            "ip_address",
-            # Phase 3: Virtualization
-            "cluster_type",
-            "cluster",
-            "virtual_machine",
-            "vm_interface",
-            # Phase 4: Circuits & Cabling
-            "provider",
-            "circuit_type",
-            "circuit",
-            "cable",
-            # Phase 5: Extras & Customization
+            # Phase 1: Core Infrastructure - No dependencies
+            "manufacturer",
+            "rir",
             "tag",
-            "contact",
-            "webhook",
-            "config_context",
-            # Phase 6: Additional/Organizational Resources
+            "tenant_group",
+            "site_group",
+            "region",
+            "cluster_group",
+            "cluster_type",
             "contact_group",
             "contact_role",
-            "cluster_group"
+            "rack_role",
+            "role",                      # IPAM role
+            "device_role",
+            "wireless_lan_group",
+            "vlan_group",
+            
+            # Phase 2: Core Infrastructure - Simple dependencies
+            "platform",                  # depends on manufacturer
+            "tenant",                    # depends on tenant_group
+            "site",                      # depends on site_group, region, tenant
+            "rack_type",                 # depends on manufacturer
+            "device_type",               # depends on manufacturer
+            "module_type",               # depends on manufacturer
+            "inventory_item_role",
+            "provider",                  # circuit provider
+            "vrf",
+            "custom_field",
+            "config_template",
+            
+            # Phase 3: Location & Infrastructure
+            "location",                  # depends on site
+            "rack",                      # depends on site, location, rack_role, rack_type, tenant
+            "power_panel",               # depends on site, location
+            "power_feed",                # depends on power_panel, rack
+            "cluster",                   # depends on cluster_type, cluster_group, site, tenant
+            
+            # Phase 4: Device Infrastructure
+            "device",                    # depends on device_type, device_role, site, location, rack, tenant, platform
+            "virtual_chassis",
+            "device_bay",                # depends on device
+            "module_bay",                # depends on device
+            "module",                    # depends on device, module_bay, module_type
+            
+            # Phase 5: Device Components & Templates
+            "console_port_template",     # depends on device_type
+            "console_server_port_template", # depends on device_type
+            "power_port_template",       # depends on device_type
+            "power_outlet_template",     # depends on device_type
+            "interface_template",        # depends on device_type
+            "console_port",              # depends on device
+            "console_server_port",       # depends on device
+            "power_port",                # depends on device
+            "power_outlet",              # depends on device, power_port
+            "interface",                 # depends on device
+            "inventory_item",            # depends on device, inventory_item_role, manufacturer
+            
+            # Phase 6: Virtualization
+            "virtual_machine",           # depends on cluster, site, tenant, device, platform
+            "vm_interface",              # depends on virtual_machine
+            
+            # Phase 7: IPAM - IP Address Management
+            "asn",                       # depends on rir, tenant
+            "aggregate",                 # depends on rir, tenant
+            "vlan",                      # depends on vlan_group, site, tenant, role
+            "prefix",                    # depends on vrf, vlan, site, tenant, role
+            "ip_address",                # depends on vrf, tenant, interface, vm_interface
+            "ip_range",                  # depends on vrf, tenant, role
+            "service",                   # depends on device, virtual_machine, ip_address
+            
+            # Phase 8: Circuits
+            "circuit_type",
+            "provider_account",          # depends on provider
+            "provider_network",          # depends on provider
+            "circuit",                   # depends on provider, circuit_type, tenant
+            "circuit_termination",       # depends on circuit, site, provider_network
+            
+            # Phase 9: Wireless
+            "wireless_lan",              # depends on wireless_lan_group, vlan, tenant
+            
+            # Phase 10: Cabling & Connections
+            "cable",                     # depends on interfaces, console ports, power ports, etc.
+            
+            # Phase 11: Extras & Customization
+            "contact",                   # depends on contact_group
+            "webhook",
+            "config_context"             # depends on many resources for assignment
         )
         
         foreach ($name in $testOrder) {
@@ -314,6 +735,28 @@ function Main {
     if ($testDirs.Count -eq 0) {
         Write-Warn "No test directories found"
         exit 1
+    }
+    
+    # If StartFrom is specified, skip tests until we reach it
+    if ($StartFrom) {
+        $startIndex = -1
+        for ($i = 0; $i -lt $testDirs.Count; $i++) {
+            if ($testDirs[$i].Name -eq $StartFrom -or $testDirs[$i].Name -like "*/$StartFrom") {
+                $startIndex = $i
+                break
+            }
+        }
+        
+        if ($startIndex -eq -1) {
+            Write-Warn "StartFrom test '$StartFrom' not found. Available tests:"
+            foreach ($test in $testDirs) {
+                Write-Info "  $($test.Name)"
+            }
+            exit 1
+        }
+        
+        $testDirs = $testDirs[$startIndex..($testDirs.Count - 1)]
+        Write-Info "Starting from test: $StartFrom (skipping $startIndex test(s))"
     }
     
     Write-Info ""

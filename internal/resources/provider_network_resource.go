@@ -41,14 +41,14 @@ type ProviderNetworkResource struct {
 
 // ProviderNetworkResourceModel describes the resource data model.
 type ProviderNetworkResourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	Provider     types.String `tfsdk:"provider"`
-	Name         types.String `tfsdk:"name"`
-	ServiceID    types.String `tfsdk:"service_id"`
-	Description  types.String `tfsdk:"description"`
-	Comments     types.String `tfsdk:"comments"`
-	Tags         types.Set    `tfsdk:"tags"`
-	CustomFields types.Set    `tfsdk:"custom_fields"`
+	ID              types.String `tfsdk:"id"`
+	CircuitProvider types.String `tfsdk:"circuit_provider"`
+	Name            types.String `tfsdk:"name"`
+	ServiceID       types.String `tfsdk:"service_id"`
+	Description     types.String `tfsdk:"description"`
+	Comments        types.String `tfsdk:"comments"`
+	Tags            types.Set    `tfsdk:"tags"`
+	CustomFields    types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the resource type name.
@@ -69,7 +69,7 @@ func (r *ProviderNetworkResource) Schema(ctx context.Context, req resource.Schem
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"provider": schema.StringAttribute{
+			"circuit_provider": schema.StringAttribute{
 				MarkdownDescription: "The circuit provider that owns this network. Can be specified by name, slug, or ID.",
 				Required:            true,
 			},
@@ -132,8 +132,8 @@ func (r *ProviderNetworkResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	tflog.Debug(ctx, "Creating provider network", map[string]interface{}{
-		"provider": data.Provider.ValueString(),
-		"name":     data.Name.ValueString(),
+		"circuit_provider": data.CircuitProvider.ValueString(),
+		"name":             data.Name.ValueString(),
 	})
 
 	// Build the provider network request
@@ -324,7 +324,7 @@ func (r *ProviderNetworkResource) buildProviderNetworkRequest(ctx context.Contex
 	var diags diag.Diagnostics
 
 	// Lookup provider (required)
-	provider, providerDiags := netboxlookup.LookupProvider(ctx, r.client, data.Provider.ValueString())
+	provider, providerDiags := netboxlookup.LookupProvider(ctx, r.client, data.CircuitProvider.ValueString())
 	diags.Append(providerDiags...)
 	if diags.HasError() {
 		return nil, diags
@@ -380,29 +380,17 @@ func (r *ProviderNetworkResource) mapResponseToModel(ctx context.Context, pn *ne
 	data.ID = types.StringValue(fmt.Sprintf("%d", pn.GetId()))
 	data.Name = types.StringValue(pn.GetName())
 
-	// Map Provider
-	data.Provider = types.StringValue(pn.Provider.GetName())
+	// Map Provider (use ID to match what was passed in)
+	data.CircuitProvider = types.StringValue(fmt.Sprintf("%d", pn.Provider.GetId()))
 
 	// Map service_id
-	if serviceID, ok := pn.GetServiceIdOk(); ok && serviceID != nil && *serviceID != "" {
-		data.ServiceID = types.StringValue(*serviceID)
-	} else {
-		data.ServiceID = types.StringNull()
-	}
+	data.ServiceID = utils.StringFromAPI(pn.HasServiceId(), pn.GetServiceId, data.ServiceID)
 
 	// Map description
-	if desc, ok := pn.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-		data.Description = types.StringValue(*desc)
-	} else {
-		data.Description = types.StringNull()
-	}
+	data.Description = utils.StringFromAPI(pn.HasDescription(), pn.GetDescription, data.Description)
 
 	// Map comments
-	if comments, ok := pn.GetCommentsOk(); ok && comments != nil && *comments != "" {
-		data.Comments = types.StringValue(*comments)
-	} else {
-		data.Comments = types.StringNull()
-	}
+	data.Comments = utils.StringFromAPI(pn.HasComments(), pn.GetComments, data.Comments)
 
 	// Handle tags
 	if pn.HasTags() {

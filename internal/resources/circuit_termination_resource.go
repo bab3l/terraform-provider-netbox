@@ -438,7 +438,7 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 
 	// Map Site
 	if site, ok := termination.GetSiteOk(); ok && site != nil && site.Id != 0 {
-		data.Site = types.StringValue(site.GetName())
+		data.Site = types.StringValue(fmt.Sprintf("%d", site.Id))
 	} else if data.Site.IsNull() {
 		// Keep null if it was null
 	} else {
@@ -447,7 +447,7 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 
 	// Map ProviderNetwork
 	if pn, ok := termination.GetProviderNetworkOk(); ok && pn != nil && pn.Id != 0 {
-		data.ProviderNetwork = types.StringValue(pn.GetName())
+		data.ProviderNetwork = types.StringValue(fmt.Sprintf("%d", pn.Id))
 	} else if data.ProviderNetwork.IsNull() {
 		// Keep null if it was null
 	} else {
@@ -473,7 +473,7 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 	}
 
 	// Map xconnect_id
-	if xconnectID, ok := termination.GetXconnectIdOk(); ok && xconnectID != nil {
+	if xconnectID, ok := termination.GetXconnectIdOk(); ok && xconnectID != nil && *xconnectID != "" {
 		data.XconnectID = types.StringValue(*xconnectID)
 	} else if data.XconnectID.IsNull() {
 		// Keep null if it was null
@@ -482,7 +482,7 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 	}
 
 	// Map pp_info
-	if ppInfo, ok := termination.GetPpInfoOk(); ok && ppInfo != nil {
+	if ppInfo, ok := termination.GetPpInfoOk(); ok && ppInfo != nil && *ppInfo != "" {
 		data.PPInfo = types.StringValue(*ppInfo)
 	} else if data.PPInfo.IsNull() {
 		// Keep null if it was null
@@ -491,7 +491,7 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 	}
 
 	// Map description
-	if description, ok := termination.GetDescriptionOk(); ok && description != nil {
+	if description, ok := termination.GetDescriptionOk(); ok && description != nil && *description != "" {
 		data.Description = types.StringValue(*description)
 	} else if data.Description.IsNull() {
 		// Keep null if it was null

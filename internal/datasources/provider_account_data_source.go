@@ -32,14 +32,14 @@ type ProviderAccountDataSource struct {
 
 // ProviderAccountDataSourceModel describes the data source data model.
 type ProviderAccountDataSourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	Provider     types.String `tfsdk:"provider"`
-	ProviderName types.String `tfsdk:"provider_name"`
-	Name         types.String `tfsdk:"name"`
-	Account      types.String `tfsdk:"account"`
-	Description  types.String `tfsdk:"description"`
-	Comments     types.String `tfsdk:"comments"`
-	Tags         types.List   `tfsdk:"tags"`
+	ID              types.String `tfsdk:"id"`
+	CircuitProvider types.String `tfsdk:"circuit_provider"`
+	ProviderName    types.String `tfsdk:"provider_name"`
+	Name            types.String `tfsdk:"name"`
+	Account         types.String `tfsdk:"account"`
+	Description     types.String `tfsdk:"description"`
+	Comments        types.String `tfsdk:"comments"`
+	Tags            types.List   `tfsdk:"tags"`
 }
 
 // Metadata returns the data source type name.
@@ -58,7 +58,7 @@ func (d *ProviderAccountDataSource) Schema(ctx context.Context, req datasource.S
 				Optional:            true,
 				Computed:            true,
 			},
-			"provider": schema.StringAttribute{
+			"circuit_provider": schema.StringAttribute{
 				MarkdownDescription: "The ID of the circuit provider this account belongs to.",
 				Computed:            true,
 			},
@@ -209,7 +209,7 @@ func (d *ProviderAccountDataSource) mapResponseToModel(ctx context.Context, prov
 
 	// Map Provider
 	if provider := providerAccount.GetProvider(); provider.Id != 0 {
-		data.Provider = types.StringValue(fmt.Sprintf("%d", provider.Id))
+		data.CircuitProvider = types.StringValue(fmt.Sprintf("%d", provider.Id))
 		data.ProviderName = types.StringValue(provider.GetName())
 	}
 

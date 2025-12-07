@@ -396,3 +396,13 @@ func ExtractIDFromResponse(httpResp *http.Response) int32 {
 
 	return response.ID
 }
+
+// ParseInt32ID parses a string ID into an int32, suitable for use in ImportState
+// functions where the import ID is provided as a string but the resource uses Int32.
+func ParseInt32ID(idStr string) (int32, error) {
+	id, err := strconv.ParseInt(idStr, 10, 32)
+	if err != nil {
+		return 0, fmt.Errorf("invalid ID %q: must be an integer", idStr)
+	}
+	return int32(id), nil
+}

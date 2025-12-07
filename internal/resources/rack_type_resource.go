@@ -90,10 +90,12 @@ func (r *RackTypeResource) Schema(ctx context.Context, req resource.SchemaReques
 			"starting_unit": schema.Int64Attribute{
 				MarkdownDescription: "Starting unit number for the rack. Default is 1.",
 				Optional:            true,
+				Computed:            true,
 			},
 			"desc_units": schema.BoolAttribute{
 				MarkdownDescription: "Whether units are numbered top-to-bottom (descending). Default is false.",
 				Optional:            true,
+				Computed:            true,
 			},
 			"outer_width": schema.Int64Attribute{
 				MarkdownDescription: "Outer dimension of rack (width) in millimeters or inches.",
@@ -435,8 +437,8 @@ func (r *RackTypeResource) mapResponseToModel(ctx context.Context, rackType *net
 	data.Model = types.StringValue(rackType.GetModel())
 	data.Slug = types.StringValue(rackType.GetSlug())
 
-	// Map manufacturer
-	data.Manufacturer = types.StringValue(rackType.Manufacturer.GetName())
+	// Map manufacturer - return ID
+	data.Manufacturer = types.StringValue(fmt.Sprintf("%d", rackType.Manufacturer.GetId()))
 
 	// Map description
 	if desc, ok := rackType.GetDescriptionOk(); ok && desc != nil && *desc != "" {
@@ -473,8 +475,8 @@ func (r *RackTypeResource) mapResponseToModel(ctx context.Context, rackType *net
 		data.StartingUnit = types.Int64Null()
 	}
 
-	// Map desc_units
-	if descUnits, ok := rackType.GetDescUnitsOk(); ok && descUnits != nil {
+	// Map desc_units - API returns false by default, so we should preserve that
+	if descUnits, ok := rackType.GetDescUnitsOk(); ok {
 		data.DescUnits = types.BoolValue(*descUnits)
 	} else {
 		data.DescUnits = types.BoolNull()
