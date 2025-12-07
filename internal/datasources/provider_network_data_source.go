@@ -34,14 +34,14 @@ type ProviderNetworkDataSource struct {
 
 // ProviderNetworkDataSourceModel describes the data source data model.
 type ProviderNetworkDataSourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	Provider     types.String `tfsdk:"provider"`
-	Name         types.String `tfsdk:"name"`
-	ServiceID    types.String `tfsdk:"service_id"`
-	Description  types.String `tfsdk:"description"`
-	Comments     types.String `tfsdk:"comments"`
-	Tags         types.Set    `tfsdk:"tags"`
-	CustomFields types.Set    `tfsdk:"custom_fields"`
+	ID              types.String `tfsdk:"id"`
+	CircuitProvider types.String `tfsdk:"circuit_provider"`
+	Name            types.String `tfsdk:"name"`
+	ServiceID       types.String `tfsdk:"service_id"`
+	Description     types.String `tfsdk:"description"`
+	Comments        types.String `tfsdk:"comments"`
+	Tags            types.Set    `tfsdk:"tags"`
+	CustomFields    types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -60,7 +60,7 @@ func (d *ProviderNetworkDataSource) Schema(ctx context.Context, req datasource.S
 				Optional:            true,
 				Computed:            true,
 			},
-			"provider": schema.StringAttribute{
+			"circuit_provider": schema.StringAttribute{
 				MarkdownDescription: "The circuit provider that owns this network. Can be used with name to filter.",
 				Optional:            true,
 				Computed:            true,
@@ -150,8 +150,8 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 		listReq := d.client.CircuitsAPI.CircuitsProviderNetworksList(ctx).Name([]string{data.Name.ValueString()})
 
 		// Optionally filter by provider as well
-		if !data.Provider.IsNull() && !data.Provider.IsUnknown() {
-			listReq = listReq.Provider([]string{data.Provider.ValueString()})
+		if !data.CircuitProvider.IsNull() && !data.CircuitProvider.IsUnknown() {
+			listReq = listReq.Provider([]string{data.CircuitProvider.ValueString()})
 		}
 
 		listResp, httpResp, err := listReq.Execute()
@@ -203,7 +203,7 @@ func (d *ProviderNetworkDataSource) mapResponseToModel(ctx context.Context, pn *
 	data.Name = types.StringValue(pn.GetName())
 
 	// Map Provider
-	data.Provider = types.StringValue(pn.Provider.GetName())
+	data.CircuitProvider = types.StringValue(pn.Provider.GetName())
 
 	// Map service_id
 	if serviceID, ok := pn.GetServiceIdOk(); ok && serviceID != nil && *serviceID != "" {

@@ -39,14 +39,14 @@ type ProviderAccountResource struct {
 
 // ProviderAccountResourceModel describes the resource data model.
 type ProviderAccountResourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	Provider     types.String `tfsdk:"provider"`
-	Name         types.String `tfsdk:"name"`
-	Account      types.String `tfsdk:"account"`
-	Description  types.String `tfsdk:"description"`
-	Comments     types.String `tfsdk:"comments"`
-	Tags         types.Set    `tfsdk:"tags"`
-	CustomFields types.Set    `tfsdk:"custom_fields"`
+	ID              types.String `tfsdk:"id"`
+	CircuitProvider types.String `tfsdk:"circuit_provider"`
+	Name            types.String `tfsdk:"name"`
+	Account         types.String `tfsdk:"account"`
+	Description     types.String `tfsdk:"description"`
+	Comments        types.String `tfsdk:"comments"`
+	Tags            types.Set    `tfsdk:"tags"`
+	CustomFields    types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the resource type name.
@@ -67,7 +67,7 @@ func (r *ProviderAccountResource) Schema(ctx context.Context, req resource.Schem
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"provider": schema.StringAttribute{
+			"circuit_provider": schema.StringAttribute{
 				MarkdownDescription: "The name, slug, or ID of the circuit provider this account belongs to.",
 				Required:            true,
 			},
@@ -306,7 +306,7 @@ func (r *ProviderAccountResource) buildCreateRequest(ctx context.Context, data *
 	var diags diag.Diagnostics
 
 	// Look up Provider (required)
-	provider, providerDiags := netboxlookup.LookupProvider(ctx, r.client, data.Provider.ValueString())
+	provider, providerDiags := netboxlookup.LookupProvider(ctx, r.client, data.CircuitProvider.ValueString())
 	diags.Append(providerDiags...)
 	if diags.HasError() {
 		return nil, diags
@@ -360,35 +360,17 @@ func (r *ProviderAccountResource) mapResponseToModel(ctx context.Context, provid
 
 	// Map Provider
 	if provider := providerAccount.GetProvider(); provider.Id != 0 {
-		data.Provider = types.StringValue(fmt.Sprintf("%d", provider.Id))
+		data.CircuitProvider = types.StringValue(fmt.Sprintf("%d", provider.Id))
 	}
 
 	// Map name
-	if name, ok := providerAccount.GetNameOk(); ok && name != nil && *name != "" {
-		data.Name = types.StringValue(*name)
-	} else if data.Name.IsNull() {
-		// Keep null if it was null
-	} else {
-		data.Name = types.StringNull()
-	}
+	data.Name = utils.StringFromAPI(providerAccount.HasName(), providerAccount.GetName, data.Name)
 
 	// Map description
-	if description, ok := providerAccount.GetDescriptionOk(); ok && description != nil {
-		data.Description = types.StringValue(*description)
-	} else if data.Description.IsNull() {
-		// Keep null if it was null
-	} else {
-		data.Description = types.StringNull()
-	}
+	data.Description = utils.StringFromAPI(providerAccount.HasDescription(), providerAccount.GetDescription, data.Description)
 
 	// Map comments
-	if comments, ok := providerAccount.GetCommentsOk(); ok && comments != nil {
-		data.Comments = types.StringValue(*comments)
-	} else if data.Comments.IsNull() {
-		// Keep null if it was null
-	} else {
-		data.Comments = types.StringNull()
-	}
+	data.Comments = utils.StringFromAPI(providerAccount.HasComments(), providerAccount.GetComments, data.Comments)
 
 	// Tags
 	if len(providerAccount.Tags) > 0 {

@@ -1,0 +1,208 @@
+package resources_test
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/provider"
+	"github.com/bab3l/terraform-provider-netbox/internal/resources"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+)
+
+func TestIPRangeResource(t *testing.T) {
+	t.Parallel()
+
+	r := resources.NewIPRangeResource()
+	if r == nil {
+		t.Fatal("Expected non-nil IPRange resource")
+	}
+}
+
+func TestIPRangeResourceSchema(t *testing.T) {
+	t.Parallel()
+
+	r := resources.NewIPRangeResource()
+	schemaRequest := fwresource.SchemaRequest{}
+	schemaResponse := &fwresource.SchemaResponse{}
+
+	r.Schema(context.Background(), schemaRequest, schemaResponse)
+
+	if schemaResponse.Diagnostics.HasError() {
+		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+	}
+
+	if schemaResponse.Schema.Attributes == nil {
+		t.Fatal("Expected schema to have attributes")
+	}
+
+	requiredAttrs := []string{"start_address", "end_address"}
+	for _, attr := range requiredAttrs {
+		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
+			t.Errorf("Expected required attribute %s to exist in schema", attr)
+		}
+	}
+
+	computedAttrs := []string{"id", "size"}
+	for _, attr := range computedAttrs {
+		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
+			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+		}
+	}
+
+	optionalAttrs := []string{"vrf", "tenant", "status", "role", "description", "comments", "mark_utilized", "tags", "custom_fields"}
+	for _, attr := range optionalAttrs {
+		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
+			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+		}
+	}
+}
+
+func TestIPRangeResourceMetadata(t *testing.T) {
+	t.Parallel()
+
+	r := resources.NewIPRangeResource()
+	metadataRequest := fwresource.MetadataRequest{
+		ProviderTypeName: "netbox",
+	}
+	metadataResponse := &fwresource.MetadataResponse{}
+
+	r.Metadata(context.Background(), metadataRequest, metadataResponse)
+
+	expected := "netbox_ip_range"
+	if metadataResponse.TypeName != expected {
+		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+	}
+}
+
+func TestIPRangeResourceConfigure(t *testing.T) {
+	t.Parallel()
+
+	r := resources.NewIPRangeResource().(*resources.IPRangeResource)
+
+	configureRequest := fwresource.ConfigureRequest{
+		ProviderData: nil,
+	}
+	configureResponse := &fwresource.ConfigureResponse{}
+
+	r.Configure(context.Background(), configureRequest, configureResponse)
+
+	if configureResponse.Diagnostics.HasError() {
+		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+	}
+
+	client := &netbox.APIClient{}
+	configureRequest.ProviderData = client
+	configureResponse = &fwresource.ConfigureResponse{}
+
+	r.Configure(context.Background(), configureRequest, configureResponse)
+
+	if configureResponse.Diagnostics.HasError() {
+		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+	}
+
+	configureRequest.ProviderData = "invalid"
+	configureResponse = &fwresource.ConfigureResponse{}
+
+	r.Configure(context.Background(), configureRequest, configureResponse)
+
+	if !configureResponse.Diagnostics.HasError() {
+		t.Error("Expected error with incorrect provider data")
+	}
+}
+
+func TestAccIPRangeResource_basic(t *testing.T) {
+	// Generate random octets for unique IP range
+	second := acctest.RandIntRange(0, 255)
+	third := acctest.RandIntRange(0, 255)
+	startAddr := fmt.Sprintf("10.%d.%d.10/24", second, third)
+	endAddr := fmt.Sprintf("10.%d.%d.20/24", second, third)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPRangeResourceConfig_basic(startAddr, endAddr),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", startAddr),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "end_address", endAddr),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "status", "active"),
+				),
+			},
+			{
+				ResourceName:      "netbox_ip_range.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccIPRangeResource_full(t *testing.T) {
+	// Generate random octets for unique IP range
+	second := acctest.RandIntRange(0, 255)
+	third := acctest.RandIntRange(0, 255)
+	startAddr := fmt.Sprintf("10.%d.%d.10/24", second, third)
+	endAddr := fmt.Sprintf("10.%d.%d.20/24", second, third)
+	description := "Test IP range with all fields"
+	updatedDescription := "Updated IP range description"
+	comments := "Test comments"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPRangeResourceConfig_full(startAddr, endAddr, "active", description, comments),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", startAddr),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "end_address", endAddr),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "status", "active"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "comments", comments),
+				),
+			},
+			{
+				Config: testAccIPRangeResourceConfig_full(startAddr, endAddr, "reserved", updatedDescription, comments),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "status", "reserved"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "description", updatedDescription),
+				),
+			},
+		},
+	})
+}
+
+func testAccIPRangeResourceConfig_basic(startAddr, endAddr string) string {
+	return fmt.Sprintf(`
+resource "netbox_ip_range" "test" {
+  start_address = %q
+  end_address   = %q
+}
+`, startAddr, endAddr)
+}
+
+func testAccIPRangeResourceConfig_full(startAddr, endAddr, status, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_ip_range" "test" {
+  start_address = %q
+  end_address   = %q
+  status        = %q
+  description   = %q
+  comments      = %q
+}
+`, startAddr, endAddr, status, description, comments)
+}

@@ -459,6 +459,33 @@ func RackLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Rack, netbo
 	}
 }
 
+// PowerPanelLookupConfig returns the lookup configuration for Power Panels.
+func PowerPanelLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.PowerPanel, netbox.BriefPowerPanelRequest] {
+	return LookupConfig[*netbox.PowerPanel, netbox.BriefPowerPanelRequest]{
+		ResourceName: "Power Panel",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.PowerPanel, *http.Response, error) {
+			return client.DcimAPI.DcimPowerPanelsRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, name string) ([]*netbox.PowerPanel, *http.Response, error) {
+			// PowerPanel uses name instead of slug
+			list, resp, err := client.DcimAPI.DcimPowerPanelsList(ctx).Name([]string{name}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.PowerPanel, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(p *netbox.PowerPanel) netbox.BriefPowerPanelRequest {
+			return netbox.BriefPowerPanelRequest{
+				Name: p.GetName(),
+			}
+		},
+	}
+}
+
 // =====================================================
 // CONVENIENCE WRAPPER FUNCTIONS
 // =====================================================
@@ -527,6 +554,11 @@ func LookupRackType(ctx context.Context, client *netbox.APIClient, value string)
 // LookupRack looks up a Rack by ID or name.
 func LookupRack(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefRackRequest, diag.Diagnostics) {
 	return GenericLookup(ctx, value, RackLookupConfig(client))
+}
+
+// LookupPowerPanel looks up a Power Panel by ID or name.
+func LookupPowerPanel(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefPowerPanelRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, PowerPanelLookupConfig(client))
 }
 
 // DeviceLookupConfig returns the lookup configuration for Devices.
@@ -1004,4 +1036,117 @@ func CircuitLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Circuit,
 // LookupCircuit looks up a Circuit by ID or CID.
 func LookupCircuit(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefCircuitRequest, diag.Diagnostics) {
 	return GenericLookup(ctx, value, CircuitLookupConfig(client))
+}
+
+// =====================================================
+// WIRELESS LOOKUPS
+// =====================================================
+
+// WirelessLANGroupLookupConfig returns the lookup configuration for Wireless LAN Groups.
+func WirelessLANGroupLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.WirelessLANGroup, netbox.BriefWirelessLANGroupRequest] {
+	return LookupConfig[*netbox.WirelessLANGroup, netbox.BriefWirelessLANGroupRequest]{
+		ResourceName: "Wireless LAN Group",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.WirelessLANGroup, *http.Response, error) {
+			return client.WirelessAPI.WirelessWirelessLanGroupsRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.WirelessLANGroup, *http.Response, error) {
+			list, resp, err := client.WirelessAPI.WirelessWirelessLanGroupsList(ctx).Slug([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.WirelessLANGroup, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(g *netbox.WirelessLANGroup) netbox.BriefWirelessLANGroupRequest {
+			return netbox.BriefWirelessLANGroupRequest{
+				Name: g.GetName(),
+				Slug: g.GetSlug(),
+			}
+		},
+	}
+}
+
+// LookupWirelessLANGroup looks up a Wireless LAN Group by ID or slug.
+func LookupWirelessLANGroup(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefWirelessLANGroupRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, WirelessLANGroupLookupConfig(client))
+}
+
+// =====================================================
+// INVENTORY ITEM ROLE LOOKUPS
+// =====================================================
+
+// InventoryItemRoleLookupConfig returns the lookup configuration for Inventory Item Roles.
+func InventoryItemRoleLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.InventoryItemRole, netbox.BriefInventoryItemRoleRequest] {
+	return LookupConfig[*netbox.InventoryItemRole, netbox.BriefInventoryItemRoleRequest]{
+		ResourceName: "Inventory Item Role",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.InventoryItemRole, *http.Response, error) {
+			return client.DcimAPI.DcimInventoryItemRolesRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.InventoryItemRole, *http.Response, error) {
+			list, resp, err := client.DcimAPI.DcimInventoryItemRolesList(ctx).Slug([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.InventoryItemRole, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(r *netbox.InventoryItemRole) netbox.BriefInventoryItemRoleRequest {
+			return netbox.BriefInventoryItemRoleRequest{
+				Name: r.GetName(),
+				Slug: r.GetSlug(),
+			}
+		},
+	}
+}
+
+// LookupInventoryItemRole looks up an Inventory Item Role by ID or slug.
+func LookupInventoryItemRole(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefInventoryItemRoleRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, InventoryItemRoleLookupConfig(client))
+}
+
+// =====================================================
+// MODULE TYPE LOOKUPS
+// =====================================================
+
+// ModuleTypeLookupConfig returns the lookup configuration for Module Types.
+func ModuleTypeLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.ModuleType, netbox.BriefModuleTypeRequest] {
+	return LookupConfig[*netbox.ModuleType, netbox.BriefModuleTypeRequest]{
+		ResourceName: "Module Type",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.ModuleType, *http.Response, error) {
+			return client.DcimAPI.DcimModuleTypesRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, model string) ([]*netbox.ModuleType, *http.Response, error) {
+			// Module types don't have slugs, so we search by model name
+			list, resp, err := client.DcimAPI.DcimModuleTypesList(ctx).Model([]string{model}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.ModuleType, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(mt *netbox.ModuleType) netbox.BriefModuleTypeRequest {
+			mfr := mt.GetManufacturer()
+			return netbox.BriefModuleTypeRequest{
+				Manufacturer: netbox.BriefManufacturerRequest{
+					Name: mfr.GetName(),
+					Slug: mfr.GetSlug(),
+				},
+				Model: mt.GetModel(),
+			}
+		},
+	}
+}
+
+// LookupModuleType looks up a Module Type by ID or model name.
+func LookupModuleType(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefModuleTypeRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, ModuleTypeLookupConfig(client))
 }
