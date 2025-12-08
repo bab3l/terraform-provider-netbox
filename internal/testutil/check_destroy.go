@@ -1044,3 +1044,168 @@ func CheckRIRDestroy(s *terraform.State) error {
 
 	return nil
 }
+
+// CheckIKEProposalDestroy verifies that an IKE proposal has been destroyed.
+func CheckIKEProposalDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_ike_proposal" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.VpnAPI.VpnIkeProposalsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("IKE proposal with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckIKEPolicyDestroy verifies that an IKE policy has been destroyed.
+func CheckIKEPolicyDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_ike_policy" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.VpnAPI.VpnIkePoliciesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("IKE policy with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckIPSecProposalDestroy verifies that an IPSec proposal has been destroyed.
+func CheckIPSecProposalDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_ipsec_proposal" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.VpnAPI.VpnIpsecProposalsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("IPSec proposal with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckIPSecPolicyDestroy verifies that an IPSec policy has been destroyed.
+func CheckIPSecPolicyDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_ipsec_policy" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.VpnAPI.VpnIpsecPoliciesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("IPSec policy with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckIPSecProfileDestroy verifies that an IPSec profile has been destroyed.
+func CheckIPSecProfileDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_ipsec_profile" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.VpnAPI.VpnIpsecProfilesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("IPSec profile with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
