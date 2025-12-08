@@ -233,6 +233,12 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewASNRangeResource,
 		// Phase 13: DCIM Templates
 		resources.NewDeviceBayTemplateResource,
+		// Phase 14: VPN resources
+		resources.NewIKEProposalResource,
+		resources.NewIKEPolicyResource,
+		resources.NewIPSecProposalResource,
+		resources.NewIPSecPolicyResource,
+		resources.NewIPSecProfileResource,
 	}
 }
 
@@ -319,6 +325,12 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewASNRangeDataSource,
 		// Phase 13: DCIM Templates
 		datasources.NewDeviceBayTemplateDataSource,
+		// Phase 14: VPN data sources
+		datasources.NewIKEProposalDataSource,
+		datasources.NewIKEPolicyDataSource,
+		datasources.NewIPSecProposalDataSource,
+		datasources.NewIPSecPolicyDataSource,
+		datasources.NewIPSecProfileDataSource,
 	}
 }
 

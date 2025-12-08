@@ -985,3 +985,138 @@ func (c *CleanupResource) RegisterRIRCleanup(slug string) {
 		}
 	})
 }
+
+// RegisterIKEProposalCleanup registers a cleanup function that will delete
+// an IKE proposal by name after the test completes.
+func (c *CleanupResource) RegisterIKEProposalCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.VpnAPI.VpnIkeProposalsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list IKE proposals with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: IKE proposal with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.VpnAPI.VpnIkeProposalsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete IKE proposal %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted IKE proposal %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterIKEPolicyCleanup registers a cleanup function that will delete
+// an IKE policy by name after the test completes.
+func (c *CleanupResource) RegisterIKEPolicyCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.VpnAPI.VpnIkePoliciesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list IKE policies with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: IKE policy with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.VpnAPI.VpnIkePoliciesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete IKE policy %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted IKE policy %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterIPSecProposalCleanup registers a cleanup function that will delete
+// an IPSec proposal by name after the test completes.
+func (c *CleanupResource) RegisterIPSecProposalCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.VpnAPI.VpnIpsecProposalsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list IPSec proposals with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: IPSec proposal with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.VpnAPI.VpnIpsecProposalsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete IPSec proposal %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted IPSec proposal %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterIPSecPolicyCleanup registers a cleanup function that will delete
+// an IPSec policy by name after the test completes.
+func (c *CleanupResource) RegisterIPSecPolicyCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.VpnAPI.VpnIpsecPoliciesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list IPSec policies with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: IPSec policy with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.VpnAPI.VpnIpsecPoliciesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete IPSec policy %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted IPSec policy %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterIPSecProfileCleanup registers a cleanup function that will delete
+// an IPSec profile by name after the test completes.
+func (c *CleanupResource) RegisterIPSecProfileCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.VpnAPI.VpnIpsecProfilesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list IPSec profiles with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: IPSec profile with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.VpnAPI.VpnIpsecProfilesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete IPSec profile %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted IPSec profile %d (name: %s)", id, name)
+		}
+	})
+}
