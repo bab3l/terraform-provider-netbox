@@ -680,3 +680,285 @@ data "netbox_device_type" "test" {
 }
 `, manufacturerName, manufacturerSlug, model, slug)
 }
+
+// Route Target Data Source Tests
+
+func TestAccRouteTargetDataSource_basic(t *testing.T) {
+	// Generate unique name - route targets have 21 char max, use format like "65000:400-<random>"
+	name := fmt.Sprintf("65000:400-%s", testutil.RandomSlug("ds")[:8])
+
+	// Register cleanup
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRouteTargetCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckRouteTargetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRouteTargetDataSourceConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_route_target.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_route_target.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
+func testAccRouteTargetDataSourceConfig(name string) string {
+	return fmt.Sprintf(`
+terraform {
+  required_providers {
+    netbox = {
+      source = "bab3l/netbox"
+      version = ">= 0.1.0"
+    }
+  }
+}
+
+provider "netbox" {}
+
+resource "netbox_route_target" "test" {
+  name = %q
+}
+
+data "netbox_route_target" "test" {
+  name = netbox_route_target.test.name
+}
+`, name)
+}
+
+// Virtual Disk Data Source Tests
+
+func TestAccVirtualDiskDataSource_basic(t *testing.T) {
+	// Generate unique names
+	name := testutil.RandomName("tf-test-vdisk-ds")
+	clusterTypeName := testutil.RandomName("tf-test-ct")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-ct")
+	clusterName := testutil.RandomName("tf-test-cluster")
+	vmName := testutil.RandomName("tf-test-vm")
+
+	// Register cleanup
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualDiskCleanup(name)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVirtualDiskDestroy,
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualDiskDataSourceConfig(name, clusterTypeName, clusterTypeSlug, clusterName, vmName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_virtual_disk.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_virtual_disk.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_virtual_disk.test", "size", "100"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVirtualDiskDataSourceConfig(name, clusterTypeName, clusterTypeSlug, clusterName, vmName string) string {
+	return fmt.Sprintf(`
+terraform {
+  required_providers {
+    netbox = {
+      source = "bab3l/netbox"
+      version = ">= 0.1.0"
+    }
+  }
+}
+
+provider "netbox" {}
+
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = %q
+  cluster = netbox_cluster.test.id
+
+  # Ignore disk changes since Netbox auto-computes this from virtual_disks
+  lifecycle {
+    ignore_changes = [disk]
+  }
+}
+
+resource "netbox_virtual_disk" "test" {
+  virtual_machine = netbox_virtual_machine.test.id
+  name            = %q
+  size            = 100
+}
+
+data "netbox_virtual_disk" "test" {
+  id = netbox_virtual_disk.test.id
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName, name)
+}
+
+// ASN Range Data Source Tests
+
+func TestAccASNRangeDataSource_basic(t *testing.T) {
+	// Generate unique names
+	name := testutil.RandomName("tf-test-asnrange-ds")
+	slug := testutil.RandomSlug("tf-test-asnrange-ds")
+	rirName := testutil.RandomName("tf-test-rir")
+	rirSlug := testutil.RandomSlug("tf-test-rir")
+
+	// Register cleanup
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterASNRangeCleanup(slug)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckASNRangeDestroy,
+			testutil.CheckRIRDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccASNRangeDataSourceConfig(name, slug, rirName, rirSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_asn_range.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_asn_range.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_asn_range.test", "slug", slug),
+					resource.TestCheckResourceAttr("data.netbox_asn_range.test", "start", "64512"),
+					resource.TestCheckResourceAttr("data.netbox_asn_range.test", "end", "64520"),
+				),
+			},
+		},
+	})
+}
+
+func testAccASNRangeDataSourceConfig(name, slug, rirName, rirSlug string) string {
+	return fmt.Sprintf(`
+terraform {
+  required_providers {
+    netbox = {
+      source = "bab3l/netbox"
+      version = ">= 0.1.0"
+    }
+  }
+}
+
+provider "netbox" {}
+
+resource "netbox_rir" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_asn_range" "test" {
+  name  = %q
+  slug  = %q
+  rir   = netbox_rir.test.id
+  start = 64512
+  end   = 64520
+}
+
+data "netbox_asn_range" "test" {
+  slug = netbox_asn_range.test.slug
+}
+`, rirName, rirSlug, name, slug)
+}
+
+// Device Bay Template Data Source Tests
+
+func TestAccDeviceBayTemplateDataSource_basic(t *testing.T) {
+	// Generate unique names
+	name := testutil.RandomName("tf-test-dbt-ds")
+	manufacturerName := testutil.RandomName("tf-test-mfr")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr")
+	deviceTypeName := testutil.RandomName("tf-test-dt")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dt")
+
+	// Register cleanup
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceBayTemplateCleanup(name)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceBayTemplateDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceBayTemplateDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_device_bay_template.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_device_bay_template.test", "name", name),
+					resource.TestCheckResourceAttrSet("data.netbox_device_bay_template.test", "device_type"),
+				),
+			},
+		},
+	})
+}
+
+func testAccDeviceBayTemplateDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug string) string {
+	return fmt.Sprintf(`
+terraform {
+  required_providers {
+    netbox = {
+      source = "bab3l/netbox"
+      version = ">= 0.1.0"
+    }
+  }
+}
+
+provider "netbox" {}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  model          = %q
+  slug           = %q
+  manufacturer   = netbox_manufacturer.test.slug
+  subdevice_role = "parent"
+}
+
+resource "netbox_device_bay_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %q
+}
+
+data "netbox_device_bay_template" "test" {
+  id = netbox_device_bay_template.test.id
+}
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
+}

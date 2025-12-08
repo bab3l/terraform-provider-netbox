@@ -225,6 +225,14 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewPowerOutletTemplateResource,
 		resources.NewInterfaceTemplateResource,
 		resources.NewConfigTemplateResource,
+		// Phase 10: Additional IPAM resources
+		resources.NewRouteTargetResource,
+		// Phase 11: Virtualization additions
+		resources.NewVirtualDiskResource,
+		// Phase 12: Additional IPAM
+		resources.NewASNRangeResource,
+		// Phase 13: DCIM Templates
+		resources.NewDeviceBayTemplateResource,
 	}
 }
 
@@ -303,6 +311,14 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewPowerOutletTemplateDataSource,
 		datasources.NewInterfaceTemplateDataSource,
 		datasources.NewConfigTemplateDataSource,
+		// Phase 10: Additional IPAM data sources
+		datasources.NewRouteTargetDataSource,
+		// Phase 11: Virtualization additions
+		datasources.NewVirtualDiskDataSource,
+		// Phase 12: Additional IPAM
+		datasources.NewASNRangeDataSource,
+		// Phase 13: DCIM Templates
+		datasources.NewDeviceBayTemplateDataSource,
 	}
 }
 

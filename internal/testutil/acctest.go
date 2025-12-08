@@ -850,3 +850,138 @@ func (c *CleanupResource) RegisterCircuitCleanup(cid string) {
 		}
 	})
 }
+
+// RegisterRouteTargetCleanup registers a cleanup function that will delete
+// a route target by name after the test completes.
+func (c *CleanupResource) RegisterRouteTargetCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamRouteTargetsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list route targets with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: route target with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.IpamAPI.IpamRouteTargetsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete route target %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted route target %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterVirtualDiskCleanup registers a cleanup function that will delete
+// a virtual disk by name after the test completes.
+func (c *CleanupResource) RegisterVirtualDiskCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.VirtualizationAPI.VirtualizationVirtualDisksList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list virtual disks with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: virtual disk with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.VirtualizationAPI.VirtualizationVirtualDisksDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete virtual disk %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted virtual disk %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterASNRangeCleanup registers a cleanup function that will delete
+// an ASN range by name after the test completes.
+func (c *CleanupResource) RegisterASNRangeCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamAsnRangesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list ASN ranges with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: ASN range with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.IpamAPI.IpamAsnRangesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete ASN range %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted ASN range %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterDeviceBayTemplateCleanup registers a cleanup function that will delete
+// a device bay template by name after the test completes.
+func (c *CleanupResource) RegisterDeviceBayTemplateCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimDeviceBayTemplatesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list device bay templates with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: device bay template with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimDeviceBayTemplatesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete device bay template %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted device bay template %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterRIRCleanup registers a cleanup function that will delete
+// an RIR by slug after the test completes.
+func (c *CleanupResource) RegisterRIRCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamRirsList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list RIRs with slug %s: %v", slug, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: RIR with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.IpamAPI.IpamRirsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete RIR %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted RIR %d (slug: %s)", id, slug)
+		}
+	})
+}

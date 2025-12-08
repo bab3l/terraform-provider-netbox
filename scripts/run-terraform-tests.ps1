@@ -36,6 +36,7 @@ $global:ResourceApiMap = @{
     "netbox_module" = @{ Endpoint = "/api/dcim/modules/"; NameField = "id" }
     "netbox_module_bay" = @{ Endpoint = "/api/dcim/module-bays/"; NameField = "name" }
     "netbox_device_bay" = @{ Endpoint = "/api/dcim/device-bays/"; NameField = "name" }
+    "netbox_device_bay_template" = @{ Endpoint = "/api/dcim/device-bay-templates/"; NameField = "name" }
     "netbox_interface" = @{ Endpoint = "/api/dcim/interfaces/"; NameField = "name" }
     "netbox_interface_template" = @{ Endpoint = "/api/dcim/interface-templates/"; NameField = "name" }
     "netbox_console_port" = @{ Endpoint = "/api/dcim/console-ports/"; NameField = "name" }
@@ -65,7 +66,10 @@ $global:ResourceApiMap = @{
     "netbox_rir" = @{ Endpoint = "/api/ipam/rirs/"; NameField = "name" }
     "netbox_role" = @{ Endpoint = "/api/ipam/roles/"; NameField = "name" }
     "netbox_asn" = @{ Endpoint = "/api/ipam/asns/"; NameField = "asn" }
+    "netbox_asn_range" = @{ Endpoint = "/api/ipam/asn-ranges/"; NameField = "name" }
     "netbox_service" = @{ Endpoint = "/api/ipam/services/"; NameField = "name" }
+    "netbox_route_target" = @{ Endpoint = "/api/ipam/route-targets/"; NameField = "name" }
+    "netbox_virtual_disk" = @{ Endpoint = "/api/virtualization/virtual-disks/"; NameField = "name" }
     
     # Tenancy
     "netbox_tenant" = @{ Endpoint = "/api/tenancy/tenants/"; NameField = "name" }
@@ -289,6 +293,10 @@ function Clear-OrphanedNetboxResources {
         "netbox_vlan",
         "netbox_aggregate",
         "netbox_asn",
+        "netbox_asn_range",
+        "netbox_route_target",
+        "netbox_virtual_disk",
+        "netbox_device_bay_template",
         "netbox_wireless_lan",
         "netbox_virtual_machine",
         "netbox_device",
@@ -397,6 +405,9 @@ function Clear-OrphanedNetboxResources {
 function Test-Environment {
     Write-Info "Checking environment..."
     
+    # Disable Terraform debug logging to avoid output pollution
+    $env:TF_LOG = ""
+    
     if (-not $env:NETBOX_SERVER_URL) {
         $env:NETBOX_SERVER_URL = "http://localhost:8000"
         Write-Warn "NETBOX_SERVER_URL not set, using default: $($env:NETBOX_SERVER_URL)"
@@ -420,11 +431,11 @@ function Test-Environment {
     }
     
     try {
-        $tfVersion = terraform version -json | ConvertFrom-Json
+        $tfVersion = terraform version -json 2>$null | ConvertFrom-Json
         Write-Success "Terraform version: $($tfVersion.terraform_version)"
     }
     catch {
-        Write-Failure "Terraform not found in PATH"
+        Write-Failure "Terraform not found in PATH: $($_.Exception.Message)"
         exit 1
     }
     
@@ -531,7 +542,7 @@ function Invoke-TerraformTest {
         
         # Plan
         Write-Info "  terraform plan..."
-        $planOutput = terraform plan -no-color 2>&1
+        $planOutput = terraform plan -no-color 2>&1 | Out-String
         if ($LASTEXITCODE -ne 0) {
             throw "terraform plan failed: $planOutput"
         }
@@ -579,7 +590,7 @@ function Invoke-TerraformTest {
         # Destroy
         if (-not $SkipDestroy) {
             Write-Info "  terraform destroy..."
-            $destroyOutput = terraform destroy -auto-approve -no-color 2>&1
+            $destroyOutput = terraform destroy -auto-approve -no-color 2>&1 | Out-String
             if ($LASTEXITCODE -ne 0) {
                 throw "terraform destroy failed: $destroyOutput"
             }
@@ -678,6 +689,7 @@ function Main {
             "power_port_template",       # depends on device_type
             "power_outlet_template",     # depends on device_type
             "interface_template",        # depends on device_type
+            "device_bay_template",       # depends on device_type
             "console_port",              # depends on device
             "console_server_port",       # depends on device
             "power_port",                # depends on device
@@ -688,14 +700,17 @@ function Main {
             # Phase 6: Virtualization
             "virtual_machine",           # depends on cluster, site, tenant, device, platform
             "vm_interface",              # depends on virtual_machine
+            "virtual_disk",              # depends on virtual_machine
             
             # Phase 7: IPAM - IP Address Management
             "asn",                       # depends on rir, tenant
+            "asn_range",                 # depends on rir, tenant
             "aggregate",                 # depends on rir, tenant
             "vlan",                      # depends on vlan_group, site, tenant, role
             "prefix",                    # depends on vrf, vlan, site, tenant, role
             "ip_address",                # depends on vrf, tenant, interface, vm_interface
             "ip_range",                  # depends on vrf, tenant, role
+            "route_target",              # depends on tenant
             "service",                   # depends on device, virtual_machine, ip_address
             
             # Phase 8: Circuits
