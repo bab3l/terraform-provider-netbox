@@ -171,7 +171,20 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 	// Cluster
 	if vm.Cluster.IsSet() && vm.Cluster.Get() != nil {
-		data.Cluster = types.StringValue(vm.Cluster.Get().GetName())
+		cluster := vm.Cluster.Get()
+		clusterID := fmt.Sprintf("%d", cluster.GetId())
+		clusterName := cluster.GetName()
+		// Preserve the user's input format (ID or name) to avoid state drift
+		if !data.Cluster.IsNull() && !data.Cluster.IsUnknown() {
+			configuredValue := data.Cluster.ValueString()
+			if configuredValue == clusterID {
+				data.Cluster = types.StringValue(clusterID)
+			} else {
+				data.Cluster = types.StringValue(clusterName)
+			}
+		} else {
+			data.Cluster = types.StringValue(clusterName)
+		}
 	} else {
 		data.Cluster = types.StringNull()
 	}
