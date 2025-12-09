@@ -239,6 +239,9 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewIPSecProposalResource,
 		resources.NewIPSecPolicyResource,
 		resources.NewIPSecProfileResource,
+		resources.NewTunnelGroupResource,
+		resources.NewTunnelResource,
+		resources.NewTunnelTerminationResource,
 	}
 }
 
@@ -331,6 +334,9 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewIPSecProposalDataSource,
 		datasources.NewIPSecPolicyDataSource,
 		datasources.NewIPSecProfileDataSource,
+		datasources.NewTunnelGroupDataSource,
+		datasources.NewTunnelDataSource,
+		datasources.NewTunnelTerminationDataSource,
 	}
 }
 

@@ -1120,3 +1120,95 @@ func (c *CleanupResource) RegisterIPSecProfileCleanup(name string) {
 		}
 	})
 }
+
+// RegisterTunnelGroupCleanup registers a cleanup function that will delete
+// a tunnel group by name after the test completes.
+func (c *CleanupResource) RegisterTunnelGroupCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.VpnAPI.VpnTunnelGroupsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list tunnel groups with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: tunnel group with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.VpnAPI.VpnTunnelGroupsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete tunnel group %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted tunnel group %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterTunnelCleanup registers a cleanup function that will delete
+// a tunnel by name after the test completes.
+func (c *CleanupResource) RegisterTunnelCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.VpnAPI.VpnTunnelsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list tunnels with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: tunnel with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.VpnAPI.VpnTunnelsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete tunnel %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted tunnel %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterTunnelTerminationCleanup registers a cleanup function that will delete
+// a tunnel termination by ID after the test completes.
+func (c *CleanupResource) RegisterTunnelTerminationCleanup(tunnelName string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		// First find the tunnel by name
+		tunnelList, resp, err := c.client.VpnAPI.VpnTunnelsList(ctx).Name([]string{tunnelName}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list tunnels with name %s: %v", tunnelName, err)
+			return
+		}
+		if resp.StatusCode != 200 || tunnelList.Count == 0 {
+			c.t.Logf("Cleanup: tunnel with name %s not found (already deleted)", tunnelName)
+			return
+		}
+
+		tunnelID := tunnelList.Results[0].GetId()
+
+		// List terminations for this tunnel
+		termList, _, err := c.client.VpnAPI.VpnTunnelTerminationsList(ctx).TunnelId([]int32{tunnelID}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list tunnel terminations for tunnel %d: %v", tunnelID, err)
+			return
+		}
+
+		for _, term := range termList.Results {
+			_, err := c.client.VpnAPI.VpnTunnelTerminationsDestroy(ctx, term.GetId()).Execute()
+			if err != nil {
+				c.t.Logf("Cleanup: failed to delete tunnel termination %d: %v", term.GetId(), err)
+			} else {
+				c.t.Logf("Cleanup: successfully deleted tunnel termination %d", term.GetId())
+			}
+		}
+	})
+}
