@@ -1,0 +1,287 @@
+package resources_test
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/provider"
+	"github.com/bab3l/terraform-provider-netbox/internal/resources"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+)
+
+func TestRearPortResource(t *testing.T) {
+	t.Parallel()
+
+	r := resources.NewRearPortResource()
+	if r == nil {
+		t.Fatal("Expected non-nil RearPort resource")
+	}
+}
+
+func TestRearPortResourceSchema(t *testing.T) {
+	t.Parallel()
+
+	r := resources.NewRearPortResource()
+	schemaRequest := fwresource.SchemaRequest{}
+	schemaResponse := &fwresource.SchemaResponse{}
+
+	r.Schema(context.Background(), schemaRequest, schemaResponse)
+
+	if schemaResponse.Diagnostics.HasError() {
+		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+	}
+
+	if schemaResponse.Schema.Attributes == nil {
+		t.Fatal("Expected schema to have attributes")
+	}
+
+	requiredAttrs := []string{"device", "name", "type"}
+	for _, attr := range requiredAttrs {
+		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
+			t.Errorf("Expected required attribute %s to exist in schema", attr)
+		}
+	}
+
+	computedAttrs := []string{"id"}
+	for _, attr := range computedAttrs {
+		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
+			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+		}
+	}
+
+	optionalAttrs := []string{"label", "color", "positions", "description", "mark_connected", "tags", "custom_fields"}
+	for _, attr := range optionalAttrs {
+		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
+			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+		}
+	}
+}
+
+func TestRearPortResourceMetadata(t *testing.T) {
+	t.Parallel()
+
+	r := resources.NewRearPortResource()
+	metadataRequest := fwresource.MetadataRequest{
+		ProviderTypeName: "netbox",
+	}
+	metadataResponse := &fwresource.MetadataResponse{}
+
+	r.Metadata(context.Background(), metadataRequest, metadataResponse)
+
+	expected := "netbox_rear_port"
+	if metadataResponse.TypeName != expected {
+		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+	}
+}
+
+func TestRearPortResourceConfigure(t *testing.T) {
+	t.Parallel()
+
+	r := resources.NewRearPortResource().(*resources.RearPortResource)
+
+	configureRequest := fwresource.ConfigureRequest{
+		ProviderData: nil,
+	}
+	configureResponse := &fwresource.ConfigureResponse{}
+
+	r.Configure(context.Background(), configureRequest, configureResponse)
+
+	if configureResponse.Diagnostics.HasError() {
+		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+	}
+
+	client := &netbox.APIClient{}
+	configureRequest.ProviderData = client
+	configureResponse = &fwresource.ConfigureResponse{}
+
+	r.Configure(context.Background(), configureRequest, configureResponse)
+
+	if configureResponse.Diagnostics.HasError() {
+		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+	}
+
+	configureRequest.ProviderData = "invalid"
+	configureResponse = &fwresource.ConfigureResponse{}
+
+	r.Configure(context.Background(), configureRequest, configureResponse)
+
+	if !configureResponse.Diagnostics.HasError() {
+		t.Error("Expected error with incorrect provider data")
+	}
+}
+
+func TestAccRearPortResource_basic(t *testing.T) {
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+	mfgName := testutil.RandomName("tf-test-mfg")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg")
+	dtModel := testutil.RandomName("tf-test-dt")
+	dtSlug := testutil.RandomSlug("tf-test-dt")
+	roleName := testutil.RandomName("tf-test-role")
+	roleSlug := testutil.RandomSlug("tf-test-role")
+	deviceName := testutil.RandomName("tf-test-device")
+	rearPortName := testutil.RandomName("tf-test-rp")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRearPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rear_port.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "name", rearPortName),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "type", "8p8c"),
+				),
+			},
+			{
+				ResourceName:      "netbox_rear_port.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccRearPortResource_full(t *testing.T) {
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+	mfgName := testutil.RandomName("tf-test-mfg")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg")
+	dtModel := testutil.RandomName("tf-test-dt")
+	dtSlug := testutil.RandomSlug("tf-test-dt")
+	roleName := testutil.RandomName("tf-test-role")
+	roleSlug := testutil.RandomSlug("tf-test-role")
+	deviceName := testutil.RandomName("tf-test-device")
+	rearPortName := testutil.RandomName("tf-test-rp")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRearPortResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rear_port.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "name", rearPortName),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "type", "lc"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "label", "Rear Port Test"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "color", "aa1409"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "positions", "4"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "description", "Test rear port"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "mark_connected", "true"),
+				),
+			},
+			{
+				ResourceName:      "netbox_rear_port.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccRearPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_device_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+}
+
+resource "netbox_rear_port" "test" {
+  device = netbox_device.test.id
+  name   = %q
+  type   = "8p8c"
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName)
+}
+
+func testAccRearPortResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_device_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+}
+
+resource "netbox_rear_port" "test" {
+  device         = netbox_device.test.id
+  name           = %q
+  type           = "lc"
+  label          = "Rear Port Test"
+  color          = "aa1409"
+  positions      = 4
+  description    = "Test rear port"
+  mark_connected = true
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName)
+}

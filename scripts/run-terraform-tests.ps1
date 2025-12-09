@@ -47,6 +47,10 @@ $global:ResourceApiMap = @{
     "netbox_power_port_template" = @{ Endpoint = "/api/dcim/power-port-templates/"; NameField = "name" }
     "netbox_power_outlet" = @{ Endpoint = "/api/dcim/power-outlets/"; NameField = "name" }
     "netbox_power_outlet_template" = @{ Endpoint = "/api/dcim/power-outlet-templates/"; NameField = "name" }
+    "netbox_rear_port" = @{ Endpoint = "/api/dcim/rear-ports/"; NameField = "name" }
+    "netbox_rear_port_template" = @{ Endpoint = "/api/dcim/rear-port-templates/"; NameField = "name" }
+    "netbox_front_port" = @{ Endpoint = "/api/dcim/front-ports/"; NameField = "name" }
+    "netbox_front_port_template" = @{ Endpoint = "/api/dcim/front-port-templates/"; NameField = "name" }
     "netbox_power_panel" = @{ Endpoint = "/api/dcim/power-panels/"; NameField = "name" }
     "netbox_power_feed" = @{ Endpoint = "/api/dcim/power-feeds/"; NameField = "name" }
     "netbox_platform" = @{ Endpoint = "/api/dcim/platforms/"; NameField = "name" }
@@ -92,6 +96,8 @@ $global:ResourceApiMap = @{
     "netbox_circuit" = @{ Endpoint = "/api/circuits/circuits/"; NameField = "cid" }
     "netbox_circuit_type" = @{ Endpoint = "/api/circuits/circuit-types/"; NameField = "name" }
     "netbox_circuit_termination" = @{ Endpoint = "/api/circuits/circuit-terminations/"; NameField = "id" }
+    "netbox_circuit_group" = @{ Endpoint = "/api/circuits/circuit-groups/"; NameField = "name" }
+    "netbox_circuit_group_assignment" = @{ Endpoint = "/api/circuits/circuit-group-assignments/"; NameField = "id" }
     
     # Wireless
     "netbox_wireless_lan" = @{ Endpoint = "/api/wireless/wireless-lans/"; NameField = "ssid" }
@@ -106,6 +112,8 @@ $global:ResourceApiMap = @{
     "netbox_tunnel_group" = @{ Endpoint = "/api/vpn/tunnel-groups/"; NameField = "name" }
     "netbox_tunnel" = @{ Endpoint = "/api/vpn/tunnels/"; NameField = "name" }
     "netbox_tunnel_termination" = @{ Endpoint = "/api/vpn/tunnel-terminations/"; NameField = "id" }
+    "netbox_l2vpn" = @{ Endpoint = "/api/vpn/l2vpns/"; NameField = "name" }
+    "netbox_l2vpn_termination" = @{ Endpoint = "/api/vpn/l2vpn-terminations/"; NameField = "id" }
     
     # Extras
     "netbox_tag" = @{ Endpoint = "/api/extras/tags/"; NameField = "name" }

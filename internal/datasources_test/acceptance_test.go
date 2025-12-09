@@ -1,4 +1,4 @@
-﻿package datasources_test
+package datasources_test
 
 import (
 	"fmt"

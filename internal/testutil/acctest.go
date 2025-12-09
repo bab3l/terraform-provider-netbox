@@ -1212,3 +1212,158 @@ func (c *CleanupResource) RegisterTunnelTerminationCleanup(tunnelName string) {
 		}
 	})
 }
+
+// RegisterCircuitGroupCleanup registers a cleanup function that will delete
+// a circuit group by name after the test completes.
+func (c *CleanupResource) RegisterCircuitGroupCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.CircuitsAPI.CircuitsCircuitGroupsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list circuit groups with name %s: %v", name, err)
+			return
+		}
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: circuit group with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.CircuitsAPI.CircuitsCircuitGroupsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete circuit group %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted circuit group %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterCircuitGroupAssignmentCleanup registers a cleanup function that will delete
+// a circuit group assignment by ID after the test completes.
+func (c *CleanupResource) RegisterCircuitGroupAssignmentCleanup(groupName string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		// First find the circuit group by name
+		groupList, resp, err := c.client.CircuitsAPI.CircuitsCircuitGroupsList(ctx).Name([]string{groupName}).Execute()
+		if err != nil || resp.StatusCode != 200 || groupList.Count == 0 {
+			c.t.Logf("Cleanup: circuit group with name %s not found, cannot cleanup assignments", groupName)
+			return
+		}
+
+		groupID := groupList.Results[0].GetId()
+
+		// Find all assignments for this group
+		assignmentList, _, err := c.client.CircuitsAPI.CircuitsCircuitGroupAssignmentsList(ctx).GroupId([]int32{groupID}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list circuit group assignments for group %d: %v", groupID, err)
+			return
+		}
+
+		for _, assignment := range assignmentList.Results {
+			_, err := c.client.CircuitsAPI.CircuitsCircuitGroupAssignmentsDestroy(ctx, assignment.GetId()).Execute()
+			if err != nil {
+				c.t.Logf("Cleanup: failed to delete circuit group assignment %d: %v", assignment.GetId(), err)
+			} else {
+				c.t.Logf("Cleanup: successfully deleted circuit group assignment %d", assignment.GetId())
+			}
+		}
+	})
+}
+
+// RegisterRearPortTemplateCleanup registers a cleanup function that will delete
+// a rear port template by name and device type after the test completes.
+func (c *CleanupResource) RegisterRearPortTemplateCleanup(name string, deviceTypeID int32) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		dtID := deviceTypeID
+		list, resp, err := c.client.DcimAPI.DcimRearPortTemplatesList(ctx).Name([]string{name}).DeviceTypeId([]*int32{&dtID}).Execute()
+		if err != nil || resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: rear port template with name %s and device type %d not found: %v", name, deviceTypeID, err)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimRearPortTemplatesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete rear port template %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted rear port template %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterFrontPortTemplateCleanup registers a cleanup function that will delete
+// a front port template by name and device type after the test completes.
+func (c *CleanupResource) RegisterFrontPortTemplateCleanup(name string, deviceTypeID int32) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		dtID := deviceTypeID
+		list, resp, err := c.client.DcimAPI.DcimFrontPortTemplatesList(ctx).Name([]string{name}).DeviceTypeId([]*int32{&dtID}).Execute()
+		if err != nil || resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: front port template with name %s and device type %d not found: %v", name, deviceTypeID, err)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimFrontPortTemplatesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete front port template %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted front port template %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterRearPortCleanup registers a cleanup function that will delete
+// a rear port by name and device after the test completes.
+func (c *CleanupResource) RegisterRearPortCleanup(name string, deviceID int32) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimRearPortsList(ctx).Name([]string{name}).DeviceId([]int32{deviceID}).Execute()
+		if err != nil || resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: rear port with name %s and device %d not found: %v", name, deviceID, err)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimRearPortsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete rear port %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted rear port %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterFrontPortCleanup registers a cleanup function that will delete
+// a front port by name and device after the test completes.
+func (c *CleanupResource) RegisterFrontPortCleanup(name string, deviceID int32) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimFrontPortsList(ctx).Name([]string{name}).DeviceId([]int32{deviceID}).Execute()
+		if err != nil || resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: front port with name %s and device %d not found: %v", name, deviceID, err)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimFrontPortsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete front port %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted front port %d (name: %s)", id, name)
+		}
+	})
+}
