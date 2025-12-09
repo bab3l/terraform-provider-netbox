@@ -242,6 +242,17 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewTunnelGroupResource,
 		resources.NewTunnelResource,
 		resources.NewTunnelTerminationResource,
+		// Phase 15: L2VPN resources
+		resources.NewL2VPNResource,
+		resources.NewL2VPNTerminationResource,
+		// Phase 16: Circuit Groups
+		resources.NewCircuitGroupResource,
+		resources.NewCircuitGroupAssignmentResource,
+		// Phase 17: Front/Rear Ports
+		resources.NewRearPortTemplateResource,
+		resources.NewFrontPortTemplateResource,
+		resources.NewRearPortResource,
+		resources.NewFrontPortResource,
 	}
 }
 
@@ -337,6 +348,17 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewTunnelGroupDataSource,
 		datasources.NewTunnelDataSource,
 		datasources.NewTunnelTerminationDataSource,
+		// Phase 15: L2VPN data sources
+		datasources.NewL2VPNDataSource,
+		datasources.NewL2VPNTerminationDataSource,
+		// Phase 16: Circuit Groups
+		datasources.NewCircuitGroupDataSource,
+		datasources.NewCircuitGroupAssignmentDataSource,
+		// Phase 17: Front/Rear Ports
+		datasources.NewRearPortTemplateDataSource,
+		datasources.NewFrontPortTemplateDataSource,
+		datasources.NewRearPortDataSource,
+		datasources.NewFrontPortDataSource,
 	}
 }
 

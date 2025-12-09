@@ -116,7 +116,7 @@ func (r *LocationResource) Create(ctx context.Context, req resource.CreateReques
 		parentID := data.Parent.ValueString()
 		var parentIDInt int32
 		parentIDInt, err := utils.ParseID(parentID)
-	if err != nil {
+		if err != nil {
 			resp.Diagnostics.AddError(
 				"Invalid Parent ID",
 				fmt.Sprintf("Parent ID must be a number, got: %s", parentID),
@@ -290,7 +290,7 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 		parentID := data.Parent.ValueString()
 		var parentIDInt int32
 		parentIDInt, err := utils.ParseID(parentID)
-	if err != nil {
+		if err != nil {
 			resp.Diagnostics.AddError(
 				"Invalid Parent ID",
 				fmt.Sprintf("Parent ID must be a number, got: %s", parentID),

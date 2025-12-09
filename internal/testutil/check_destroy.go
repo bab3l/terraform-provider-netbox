@@ -1310,3 +1310,206 @@ func CheckTunnelTerminationDestroy(s *terraform.State) error {
 
 	return nil
 }
+
+// CheckCircuitGroupDestroy verifies that a circuit group has been destroyed.
+func CheckCircuitGroupDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_circuit_group" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.CircuitsAPI.CircuitsCircuitGroupsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("circuit group with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckCircuitGroupAssignmentDestroy verifies that a circuit group assignment has been destroyed.
+func CheckCircuitGroupAssignmentDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_circuit_group_assignment" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.CircuitsAPI.CircuitsCircuitGroupAssignmentsRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("circuit group assignment with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}
+
+// CheckRearPortTemplateDestroy verifies that a rear port template has been destroyed.
+func CheckRearPortTemplateDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_rear_port_template" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.DcimAPI.DcimRearPortTemplatesRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("rear port template with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}
+
+// CheckFrontPortTemplateDestroy verifies that a front port template has been destroyed.
+func CheckFrontPortTemplateDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_front_port_template" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.DcimAPI.DcimFrontPortTemplatesRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("front port template with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}
+
+// CheckRearPortDestroy verifies that a rear port has been destroyed.
+func CheckRearPortDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_rear_port" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.DcimAPI.DcimRearPortsRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("rear port with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}
+
+// CheckFrontPortDestroy verifies that a front port has been destroyed.
+func CheckFrontPortDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_front_port" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.DcimAPI.DcimFrontPortsRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("front port with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}

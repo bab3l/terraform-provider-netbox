@@ -102,7 +102,7 @@ func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest,
 		parentID := data.Parent.ValueString()
 		var parentIDInt int32
 		parentIDInt, err := utils.ParseID(parentID)
-	if err != nil {
+		if err != nil {
 			resp.Diagnostics.AddError("Invalid Parent ID", fmt.Sprintf("Parent ID must be a number, got: %s", parentID))
 			return
 		}
@@ -218,7 +218,7 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 		parentID := data.Parent.ValueString()
 		var parentIDInt int32
 		parentIDInt, err := utils.ParseID(parentID)
-	if err != nil {
+		if err != nil {
 			resp.Diagnostics.AddError("Invalid Parent ID", fmt.Sprintf("Parent ID must be a number, got: %s", parentID))
 			return
 		}
