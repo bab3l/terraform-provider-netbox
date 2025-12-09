@@ -97,6 +97,16 @@ $global:ResourceApiMap = @{
     "netbox_wireless_lan" = @{ Endpoint = "/api/wireless/wireless-lans/"; NameField = "ssid" }
     "netbox_wireless_lan_group" = @{ Endpoint = "/api/wireless/wireless-lan-groups/"; NameField = "name" }
     
+    # VPN
+    "netbox_ike_proposal" = @{ Endpoint = "/api/vpn/ike-proposals/"; NameField = "name" }
+    "netbox_ike_policy" = @{ Endpoint = "/api/vpn/ike-policies/"; NameField = "name" }
+    "netbox_ipsec_proposal" = @{ Endpoint = "/api/vpn/ipsec-proposals/"; NameField = "name" }
+    "netbox_ipsec_policy" = @{ Endpoint = "/api/vpn/ipsec-policies/"; NameField = "name" }
+    "netbox_ipsec_profile" = @{ Endpoint = "/api/vpn/ipsec-profiles/"; NameField = "name" }
+    "netbox_tunnel_group" = @{ Endpoint = "/api/vpn/tunnel-groups/"; NameField = "name" }
+    "netbox_tunnel" = @{ Endpoint = "/api/vpn/tunnels/"; NameField = "name" }
+    "netbox_tunnel_termination" = @{ Endpoint = "/api/vpn/tunnel-terminations/"; NameField = "id" }
+    
     # Extras
     "netbox_tag" = @{ Endpoint = "/api/extras/tags/"; NameField = "name" }
     "netbox_custom_field" = @{ Endpoint = "/api/extras/custom-fields/"; NameField = "name" }

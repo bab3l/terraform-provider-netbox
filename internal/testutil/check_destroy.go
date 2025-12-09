@@ -4,6 +4,7 @@ package testutil
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -1204,6 +1205,106 @@ func CheckIPSecProfileDestroy(s *terraform.State) error {
 
 		if resp.StatusCode == 200 && list.Count > 0 {
 			return fmt.Errorf("IPSec profile with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckTunnelGroupDestroy verifies that a tunnel group has been destroyed.
+func CheckTunnelGroupDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_tunnel_group" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.VpnAPI.VpnTunnelGroupsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("tunnel group with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckTunnelDestroy verifies that a tunnel has been destroyed.
+func CheckTunnelDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_tunnel" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.VpnAPI.VpnTunnelsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list.Count > 0 {
+			return fmt.Errorf("tunnel with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckTunnelTerminationDestroy verifies that a tunnel termination has been destroyed.
+func CheckTunnelTerminationDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_tunnel_termination" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.VpnAPI.VpnTunnelTerminationsRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("tunnel termination with ID %d still exists", id)
 		}
 	}
 
