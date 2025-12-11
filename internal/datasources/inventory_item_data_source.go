@@ -205,7 +205,12 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 		}
 
 		if !data.DeviceID.IsNull() && !data.DeviceID.IsUnknown() {
-			listReq = listReq.DeviceId([]int32{int32(data.DeviceID.ValueInt64())})
+			deviceID32, err := utils.SafeInt32FromValue(data.DeviceID)
+			if err != nil {
+				resp.Diagnostics.AddError("Invalid Device ID", fmt.Sprintf("Device ID value overflow: %s", err))
+				return
+			}
+			listReq = listReq.DeviceId([]int32{deviceID32})
 		}
 
 		response, httpResp, err := listReq.Execute()

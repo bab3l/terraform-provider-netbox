@@ -125,7 +125,7 @@ func TestFHRPGroupResourceConfigure(t *testing.T) {
 
 func TestAccFHRPGroupResource_basic(t *testing.T) {
 	protocol := "vrrp2"
-	groupID := int32(acctest.RandIntRange(1, 254))
+	groupID := int32(acctest.RandIntRange(1, 254)) // #nosec G115 -- test value range is 1-254, safe for int32
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
@@ -151,7 +151,7 @@ func TestAccFHRPGroupResource_basic(t *testing.T) {
 
 func TestAccFHRPGroupResource_full(t *testing.T) {
 	protocol := "hsrp"
-	groupID := int32(acctest.RandIntRange(1, 254))
+	groupID := int32(acctest.RandIntRange(1, 254)) // #nosec G115 -- test value range is 1-254, safe for int32
 	name := testutil.RandomName("tf-test-fhrp")
 	description := "Test FHRP Group with all fields"
 	authType := "plaintext"
@@ -185,7 +185,7 @@ func TestAccFHRPGroupResource_full(t *testing.T) {
 
 func TestAccFHRPGroupResource_update(t *testing.T) {
 	protocol := "vrrp3"
-	groupID := int32(acctest.RandIntRange(1, 254))
+	groupID := int32(acctest.RandIntRange(1, 254)) // #nosec G115 -- test value range is 1-254, safe for int32
 	updatedName := testutil.RandomName("tf-test-fhrp-updated")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -226,7 +226,7 @@ func TestAccFHRPGroupResource_protocols(t *testing.T) {
 
 	for _, protocol := range protocols {
 		t.Run(protocol, func(t *testing.T) {
-			groupID := int32(acctest.RandIntRange(1, 254))
+			groupID := int32(acctest.RandIntRange(1, 254)) // #nosec G115 -- test value range is 1-254, safe for int32
 
 			cleanup := testutil.NewCleanupResource(t)
 			cleanup.RegisterFHRPGroupCleanup(protocol, groupID)

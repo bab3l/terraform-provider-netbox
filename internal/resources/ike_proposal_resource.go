@@ -151,7 +151,12 @@ func (r *IKEProposalResource) Create(ctx context.Context, req resource.CreateReq
 	// Create the IKEProposal request
 	authMethod := netbox.IKEProposalAuthenticationMethodValue(data.AuthenticationMethod.ValueString())
 	encAlg := netbox.IKEProposalEncryptionAlgorithmValue(data.EncryptionAlgorithm.ValueString())
-	group := netbox.PatchedWritableIKEProposalRequestGroup(int32(data.Group.ValueInt64()))
+	groupVal, err := utils.SafeInt32FromValue(data.Group)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Group value overflow: %s", err))
+		return
+	}
+	group := netbox.PatchedWritableIKEProposalRequestGroup(groupVal)
 
 	ikeRequest := netbox.NewWritableIKEProposalRequest(
 		data.Name.ValueString(),
@@ -261,7 +266,12 @@ func (r *IKEProposalResource) Update(ctx context.Context, req resource.UpdateReq
 	// Create the IKEProposal request
 	authMethod := netbox.IKEProposalAuthenticationMethodValue(data.AuthenticationMethod.ValueString())
 	encAlg := netbox.IKEProposalEncryptionAlgorithmValue(data.EncryptionAlgorithm.ValueString())
-	group := netbox.PatchedWritableIKEProposalRequestGroup(int32(data.Group.ValueInt64()))
+	groupVal, err := utils.SafeInt32FromValue(data.Group)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Group value overflow: %s", err))
+		return
+	}
+	group := netbox.PatchedWritableIKEProposalRequestGroup(groupVal)
 
 	ikeRequest := netbox.NewWritableIKEProposalRequest(
 		data.Name.ValueString(),
@@ -364,7 +374,11 @@ func (r *IKEProposalResource) setOptionalFields(ctx context.Context, ikeRequest 
 
 	// SA Lifetime
 	if utils.IsSet(data.SALifetime) {
-		lifetime := int32(data.SALifetime.ValueInt64())
+		lifetime, err := utils.SafeInt32FromValue(data.SALifetime)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("SALifetime value overflow: %s", err))
+			return
+		}
 		ikeRequest.SaLifetime = *netbox.NewNullableInt32(&lifetime)
 	}
 

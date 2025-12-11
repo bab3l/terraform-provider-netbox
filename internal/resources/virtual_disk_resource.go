@@ -275,7 +275,7 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 	})
 
 	// Update the VirtualDisk
-	vd, httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualDisksUpdate(ctx, int32(id)).VirtualDiskRequest(*vdRequest).Execute()
+	vd, httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualDisksUpdate(ctx, id).VirtualDiskRequest(*vdRequest).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating VirtualDisk",

@@ -227,7 +227,7 @@ func (r *RouteTargetResource) Update(ctx context.Context, req resource.UpdateReq
 	})
 
 	// Update the RouteTarget
-	rt, httpResp, err := r.client.IpamAPI.IpamRouteTargetsUpdate(ctx, int32(id)).RouteTargetRequest(*rtRequest).Execute()
+	rt, httpResp, err := r.client.IpamAPI.IpamRouteTargetsUpdate(ctx, id).RouteTargetRequest(*rtRequest).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating RouteTarget",

@@ -506,9 +506,14 @@ func (r *CableResource) parseTerminations(ctx context.Context, terminations type
 
 	result := make([]netbox.GenericObjectRequest, len(models))
 	for i, m := range models {
+		objectID, err := utils.SafeInt32FromValue(m.ObjectID)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("ObjectID value overflow: %s", err))
+			return nil, diags
+		}
 		result[i] = *netbox.NewGenericObjectRequest(
 			m.ObjectType.ValueString(),
-			int32(m.ObjectID.ValueInt64()),
+			objectID,
 		)
 	}
 

@@ -149,7 +149,12 @@ func (r *RackReservationResource) Create(ctx context.Context, req resource.Creat
 	}
 	units := make([]int32, len(unitsInt64))
 	for i, u := range unitsInt64 {
-		units[i] = int32(u)
+		val, err := utils.SafeInt32(u)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Units value overflow: %s", err))
+			return
+		}
+		units[i] = val
 	}
 
 	// Build request
@@ -302,7 +307,12 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 	}
 	units := make([]int32, len(unitsInt64))
 	for i, u := range unitsInt64 {
-		units[i] = int32(u)
+		val, err := utils.SafeInt32(u)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Units value overflow: %s", err))
+			return
+		}
+		units[i] = val
 	}
 
 	// Build request

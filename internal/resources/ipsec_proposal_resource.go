@@ -343,13 +343,21 @@ func (r *IPSecProposalResource) setOptionalFields(ctx context.Context, ipsecRequ
 
 	// SA Lifetime Seconds
 	if utils.IsSet(data.SALifetimeSeconds) {
-		lifetime := int32(data.SALifetimeSeconds.ValueInt64())
+		lifetime, err := utils.SafeInt32FromValue(data.SALifetimeSeconds)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("SALifetimeSeconds value overflow: %s", err))
+			return
+		}
 		ipsecRequest.SaLifetimeSeconds = *netbox.NewNullableInt32(&lifetime)
 	}
 
 	// SA Lifetime Data
 	if utils.IsSet(data.SALifetimeData) {
-		lifetime := int32(data.SALifetimeData.ValueInt64())
+		lifetime, err := utils.SafeInt32FromValue(data.SALifetimeData)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("SALifetimeData value overflow: %s", err))
+			return
+		}
 		ipsecRequest.SaLifetimeData = *netbox.NewNullableInt32(&lifetime)
 	}
 

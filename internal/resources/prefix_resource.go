@@ -277,7 +277,7 @@ func (r *PrefixResource) Update(ctx context.Context, req resource.UpdateRequest,
 	})
 
 	// Update the prefix
-	prefix, httpResp, err := r.client.IpamAPI.IpamPrefixesUpdate(ctx, int32(id)).WritablePrefixRequest(*prefixRequest).Execute()
+	prefix, httpResp, err := r.client.IpamAPI.IpamPrefixesUpdate(ctx, id).WritablePrefixRequest(*prefixRequest).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating prefix",

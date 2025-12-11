@@ -112,9 +112,16 @@ func (r *VLANResource) Create(ctx context.Context, req resource.CreateRequest, r
 		"name": data.Name.ValueString(),
 	})
 
+	// Convert VID to int32 with overflow check
+	vid, err := utils.SafeInt32FromValue(data.VID)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid VLAN ID", fmt.Sprintf("VID overflow: %s", err))
+		return
+	}
+
 	// Prepare the VLAN request
 	vlanRequest := netbox.WritableVLANRequest{
-		Vid:  int32(data.VID.ValueInt64()),
+		Vid:  vid,
 		Name: data.Name.ValueString(),
 	}
 
@@ -226,9 +233,16 @@ func (r *VLANResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		"name": data.Name.ValueString(),
 	})
 
+	// Convert VID to int32 with overflow check
+	vid, err := utils.SafeInt32FromValue(data.VID)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid VLAN ID", fmt.Sprintf("VID overflow: %s", err))
+		return
+	}
+
 	// Prepare the VLAN request
 	vlanRequest := netbox.WritableVLANRequest{
-		Vid:  int32(data.VID.ValueInt64()),
+		Vid:  vid,
 		Name: data.Name.ValueString(),
 	}
 

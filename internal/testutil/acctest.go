@@ -68,7 +68,7 @@ func GenerateSlug(prefix string) string {
 // RandomVID generates a random VLAN ID between 2 and 4094.
 // Range is limited to avoid reserved VLAN IDs.
 func RandomVID() int32 {
-	return int32(acctest.RandIntRange(2, 4094))
+	return int32(acctest.RandIntRange(2, 4094)) // #nosec G115 -- test value in safe range
 }
 
 // RandomIPv4Prefix generates a random private IPv4 prefix.

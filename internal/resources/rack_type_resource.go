@@ -357,16 +357,31 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResou
 	// (no need to set again since we pass it in the constructor)
 
 	if !data.Width.IsNull() && !data.Width.IsUnknown() {
-		width := netbox.PatchedWritableRackRequestWidth(int32(data.Width.ValueInt64()))
+		widthVal, err := utils.SafeInt32FromValue(data.Width)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("Width value overflow: %s", err))
+			return nil, diags
+		}
+		width := netbox.PatchedWritableRackRequestWidth(widthVal)
 		rackTypeRequest.SetWidth(width)
 	}
 
 	if !data.UHeight.IsNull() && !data.UHeight.IsUnknown() {
-		rackTypeRequest.SetUHeight(int32(data.UHeight.ValueInt64()))
+		uHeight, err := utils.SafeInt32FromValue(data.UHeight)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("UHeight value overflow: %s", err))
+			return nil, diags
+		}
+		rackTypeRequest.SetUHeight(uHeight)
 	}
 
 	if !data.StartingUnit.IsNull() && !data.StartingUnit.IsUnknown() {
-		rackTypeRequest.SetStartingUnit(int32(data.StartingUnit.ValueInt64()))
+		startingUnit, err := utils.SafeInt32FromValue(data.StartingUnit)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("StartingUnit value overflow: %s", err))
+			return nil, diags
+		}
+		rackTypeRequest.SetStartingUnit(startingUnit)
 	}
 
 	if !data.DescUnits.IsNull() && !data.DescUnits.IsUnknown() {
@@ -374,11 +389,21 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResou
 	}
 
 	if !data.OuterWidth.IsNull() && !data.OuterWidth.IsUnknown() {
-		rackTypeRequest.SetOuterWidth(int32(data.OuterWidth.ValueInt64()))
+		outerWidth, err := utils.SafeInt32FromValue(data.OuterWidth)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("OuterWidth value overflow: %s", err))
+			return nil, diags
+		}
+		rackTypeRequest.SetOuterWidth(outerWidth)
 	}
 
 	if !data.OuterDepth.IsNull() && !data.OuterDepth.IsUnknown() {
-		rackTypeRequest.SetOuterDepth(int32(data.OuterDepth.ValueInt64()))
+		outerDepth, err := utils.SafeInt32FromValue(data.OuterDepth)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("OuterDepth value overflow: %s", err))
+			return nil, diags
+		}
+		rackTypeRequest.SetOuterDepth(outerDepth)
 	}
 
 	if !data.OuterUnit.IsNull() && !data.OuterUnit.IsUnknown() {
@@ -391,7 +416,12 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResou
 	}
 
 	if !data.MaxWeight.IsNull() && !data.MaxWeight.IsUnknown() {
-		rackTypeRequest.SetMaxWeight(int32(data.MaxWeight.ValueInt64()))
+		maxWeight, err := utils.SafeInt32FromValue(data.MaxWeight)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("MaxWeight value overflow: %s", err))
+			return nil, diags
+		}
+		rackTypeRequest.SetMaxWeight(maxWeight)
 	}
 
 	if !data.WeightUnit.IsNull() && !data.WeightUnit.IsUnknown() {
@@ -400,7 +430,12 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResou
 	}
 
 	if !data.MountingDepth.IsNull() && !data.MountingDepth.IsUnknown() {
-		rackTypeRequest.SetMountingDepth(int32(data.MountingDepth.ValueInt64()))
+		mountingDepth, err := utils.SafeInt32FromValue(data.MountingDepth)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("MountingDepth value overflow: %s", err))
+			return nil, diags
+		}
+		rackTypeRequest.SetMountingDepth(mountingDepth)
 	}
 
 	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {

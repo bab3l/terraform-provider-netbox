@@ -328,7 +328,12 @@ func (r *IKEPolicyResource) setOptionalFields(ctx context.Context, ikeRequest *n
 
 	// Version
 	if utils.IsSet(data.Version) {
-		version := netbox.PatchedWritableIKEPolicyRequestVersion(int32(data.Version.ValueInt64()))
+		versionVal, err := utils.SafeInt32FromValue(data.Version)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("Version value overflow: %s", err))
+			return
+		}
+		version := netbox.PatchedWritableIKEPolicyRequestVersion(versionVal)
 		ikeRequest.Version = &version
 	}
 
@@ -347,7 +352,12 @@ func (r *IKEPolicyResource) setOptionalFields(ctx context.Context, ikeRequest *n
 		}
 		proposals := make([]int32, len(proposalIDs))
 		for i, id := range proposalIDs {
-			proposals[i] = int32(id)
+			val, err := utils.SafeInt32(id)
+			if err != nil {
+				diags.AddError("Invalid value", fmt.Sprintf("Proposal ID value overflow: %s", err))
+				return
+			}
+			proposals[i] = val
 		}
 		ikeRequest.Proposals = proposals
 	}

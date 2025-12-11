@@ -467,7 +467,11 @@ func (r *InterfaceResource) setOptionalFields(ctx context.Context, interfaceReq 
 
 	// MTU
 	if !data.Mtu.IsNull() && !data.Mtu.IsUnknown() {
-		mtu := int32(data.Mtu.ValueInt64())
+		mtu, err := utils.SafeInt32FromValue(data.Mtu)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("Mtu value overflow: %s", err))
+			return
+		}
 		interfaceReq.Mtu = *netbox.NewNullableInt32(&mtu)
 	}
 
@@ -479,7 +483,11 @@ func (r *InterfaceResource) setOptionalFields(ctx context.Context, interfaceReq 
 
 	// Speed
 	if !data.Speed.IsNull() && !data.Speed.IsUnknown() {
-		speed := int32(data.Speed.ValueInt64())
+		speed, err := utils.SafeInt32FromValue(data.Speed)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("Speed value overflow: %s", err))
+			return
+		}
 		interfaceReq.Speed = *netbox.NewNullableInt32(&speed)
 	}
 
