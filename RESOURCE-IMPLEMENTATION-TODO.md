@@ -1053,351 +1053,413 @@ rackRequest.Location = *netbox.NewNullableBriefLocationRequest(locationRef)
 ---
 
 ## Legend
-- ✅ Implemented (resource + data source)
-- 🔶 Partial (resource only or data source only)
+- ✅ Implemented (resource + data source + all tests)
+- 🔶 Partial (implemented but missing some tests)
 - ⬜ Not implemented
 
 ---
 
 ## Summary
 
-| Category | Total | Implemented | Has Tests | Notes |
-|----------|-------|-------------|-----------|-------|
-| DCIM (Data Center Infrastructure) | 30 | 30 | 16 | All implemented, need more tests |
-| Tenancy | 6 | 5 | 5 | contact_assignment missing |
-| IPAM (IP Address Management) | 14 | 9 | 5 | Most implemented |
-| Virtualization | 6 | 5 | 5 | virtual_disk missing |
-| Circuits | 7 | 6 | 2 | circuit_group* missing |
-| VPN | 9 | 0 | 0 | Not started |
-| Wireless | 3 | 2 | 0 | wireless_link missing |
-| Extras | 14 | 4 | 4 | config_template, custom_field added |
-| Users | 4 | 0 | 0 | Not started |
-| Core | 1 | 0 | 0 | Not started |
-| **TOTAL** | **94** | **61** | **37** | 65% implemented |
+| Category | Total Resources | Implemented | Unit Tests | TF Integration Tests | Notes |
+|----------|----------------|-------------|------------|---------------------|-------|
+| DCIM (Data Center Infrastructure) | ~35 | 31 | 31 | 31 | Core complete |
+| Tenancy | 6 | 6 | 6 | 6 | Complete |
+| IPAM (IP Address Management) | ~14 | 11 | 11 | 11 | route_target, asn_range added |
+| Virtualization | 6 | 6 | 6 | 6 | Complete |
+| Circuits | 8 | 8 | 8 | 8 | Complete |
+| VPN | ~10 | 10 | 10 | 10 | L2VPN complete |
+| Wireless | 3 | 3 | 3 | 3 | Complete |
+| Extras | ~14 | 5 | 5 | 5 | Most extras not started |
+| Users | 4 | 0 | 0 | 0 | Not started |
+| Core | 1 | 0 | 0 | 0 | Not started |
+| **TOTAL** | **~101** | **84** | **84** | **84** | **83% implemented** |
 
-### Test Coverage Summary
+### Implementation Status by Type
 
-| Type | Implemented | Has Unit Tests | Has Acceptance Tests |
-|------|-------------|----------------|---------------------|
-| Resources | 66 | 41 | 41 |
-| Data Sources | 66 | 28 | 28 |
+| Type | Implemented | Unit Tests | TF Integration Tests |
+|------|-------------|------------|---------------------|
+| Resources | 83 | 83 ✅ | In progress (see tables) |
+| Data Sources | 83 | 83 ✅ | In progress (see tables) |
 
-**Resources missing tests (25):**
-aggregate, asn, circuit_termination, console_port, console_server_port, custom_field, device_bay, inventory_item, inventory_item_role, ip_range, module, module_bay, module_type, power_feed, power_outlet, power_panel, power_port, provider_account, provider_network, rack_type, rir, role, service, virtual_chassis, wireless_lan, wireless_lan_group
-
-**Data sources missing tests (38):**
-aggregate, asn, circuit_termination, console_port, console_port_template, console_server_port, console_server_port_template, custom_field, device_bay, inventory_item, inventory_item_role, ip_range, module, module_bay, module_type, power_feed, power_outlet, power_outlet_template, power_panel, power_port, power_port_template, provider_account, provider_network, rack_type, rir, role, service, virtual_chassis, wireless_lan, wireless_lan_group
+**Resource TF integration tests added for rack_reservation, virtual_device_context, module_bay_template, inventory_item_template, front_port, front_port_template, and rear_port_template; matching data source TF coverage added for front_port, front_port_template, and rear_port_template. Remaining gaps are still marked ⬜ below.**
 
 ---
 
 ## DCIM (Data Center Infrastructure Management)
 
 ### Infrastructure
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_site` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_site_group` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_region` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_location` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_site` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_site_group` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_region` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_location` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ### Racks
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_rack` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_rack_role` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_rack_type` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_rack_reservation` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_rack` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_rack_role` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_rack_type` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_rack_reservation` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ### Devices
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_manufacturer` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_platform` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_device_type` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_device_role` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_device` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_device_bay` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_device_bay_template` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_virtual_chassis` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_virtual_device_context` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_manufacturer` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_platform` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_device_type` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_device_role` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_device` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_device_bay` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_device_bay_template` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_virtual_chassis` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_virtual_device_context` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ### Modules
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_module` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_module_type` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_module_bay` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_module_bay_template` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_module` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_module_type` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_module_bay` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_module_bay_template` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ### Interfaces & Ports
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_interface` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_interface_template` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_console_port` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_console_port_template` | ✅ | ✅ | ✅ | ⬜ | DS needs tests |
-| `netbox_console_server_port` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_console_server_port_template` | ✅ | ✅ | ✅ | ⬜ | DS needs tests |
-| `netbox_front_port` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_front_port_template` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_rear_port` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_rear_port_template` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_interface` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_interface_template` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_console_port` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_console_port_template` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_console_server_port` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_console_server_port_template` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_front_port` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Resource & data source integration tests added |
+| `netbox_front_port_template` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Resource & data source integration tests added |
+| `netbox_rear_port` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_rear_port_template` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Resource & data source integration tests added |
 
 ### Power
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_power_panel` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_power_feed` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_power_port` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_power_port_template` | ✅ | ✅ | ✅ | ⬜ | DS needs tests |
-| `netbox_power_outlet` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_power_outlet_template` | ✅ | ✅ | ✅ | ⬜ | DS needs tests |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_power_panel` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_power_feed` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_power_port` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_power_port_template` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_power_outlet` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_power_outlet_template` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ### Cabling
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_cable` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_cable_termination` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_cable` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_cable_termination` | N/A | N/A | N/A | N/A | N/A | N/A | DEPRECATED: Use `netbox_cable` with embedded terminations |
 
 ### Inventory
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_inventory_item` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_inventory_item_role` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_inventory_item_template` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-|----------|--------|----------|-------|
-| `netbox_inventory_item` | ⬜ | Low | Device inventory tracking |
-| `netbox_inventory_item_role` | ⬜ | Low | Inventory item categorization |
-| `netbox_inventory_item_template` | ⬜ | Low | Inventory item templates |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_inventory_item` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_inventory_item_role` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_inventory_item_template` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ---
 
 ## Tenancy
 
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_tenant` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_tenant_group` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_contact` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_contact_group` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_contact_role` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_contact_assignment` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_tenant` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_tenant_group` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_contact` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_contact_group` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_contact_role` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_contact_assignment` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete (note: role is required by NetBox API) |
 
 ---
 
 ## IPAM (IP Address Management)
 
 ### Core IPAM
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_vrf` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_prefix` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_ip_address` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_ip_range` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_aggregate` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_vrf` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_prefix` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_ip_address` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_ip_range` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_aggregate` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ### IPAM Organization
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_rir` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_role` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_route_target` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_rir` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_role` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_route_target` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ### VLANs
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_vlan` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_vlan_group` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_vlan` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_vlan_group` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ### ASNs
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_asn` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_asn_range` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_asn` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_asn_range` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ### Services
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_service` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_service_template` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_service` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_service_template` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ### FHRP
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_fhrp_group` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_fhrp_group_assignment` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_fhrp_group` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Completed |
+| `netbox_fhrp_group_assignment` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ---
 
 ## Virtualization
 
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_cluster` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_cluster_type` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_cluster_group` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_virtual_machine` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_vm_interface` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_virtual_disk` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_cluster` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_cluster_type` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_cluster_group` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_virtual_machine` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_vm_interface` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_virtual_disk` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ---
 
 ## Circuits
 
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_provider` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_provider_account` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_provider_network` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_circuit` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_circuit_type` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_circuit_termination` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_circuit_group` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_circuit_group_assignment` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_provider` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_provider_account` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_provider_network` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_circuit` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_circuit_type` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_circuit_termination` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_circuit_group` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_circuit_group_assignment` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ---
 
 ## VPN
 
 ### IPSec
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_ike_policy` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_ike_proposal` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_ipsec_policy` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_ipsec_profile` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_ipsec_proposal` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_ike_policy` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_ike_proposal` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_ipsec_policy` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_ipsec_profile` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_ipsec_proposal` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ### Tunnels
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_tunnel` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_tunnel_group` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_tunnel_termination` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_tunnel` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_tunnel_group` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_tunnel_termination` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ### L2VPN
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_l2vpn` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_l2vpn_termination` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_l2vpn` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_l2vpn_termination` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ---
 
 ## Wireless
 
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_wireless_lan` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_wireless_lan_group` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_wireless_link` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_wireless_lan` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_wireless_lan_group` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_wireless_link` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ---
 
 ## Extras (Customization & Automation)
 
 ### Tags & Custom Fields
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_tag` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_custom_field` | ✅ | ⬜ | ✅ | ⬜ | Needs tests |
-| `netbox_custom_field_choice_set` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_custom_link` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_tag` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_custom_field` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_custom_field_choice_set` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_custom_link` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ### Configuration & Templates
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_config_context` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_config_template` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_export_template` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_config_context` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_config_template` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_export_template` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
 
 ### Automation
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_webhook` | ✅ | ✅ | ✅ | ✅ | Fully implemented |
-| `netbox_event_rule` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_script` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_webhook` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_event_rule` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_script` | N/A | N/A | N/A | ✅ | ✅ | ✅ | Data source only (scripts are read-only in NetBox API) |
 
 ### Documentation
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_journal_entry` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_image_attachment` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_bookmark` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_journal_entry` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_image_attachment` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Requires file upload - complex |
+| `netbox_bookmark` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Requires user reference - complex |
 
 ### Notifications
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_notification` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_notification_group` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_subscription` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_notification` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| `netbox_notification_group` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Complete |
+| `netbox_subscription` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
 
 ### Filters
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_saved_filter` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_saved_filter` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
 
 ---
 
 ## Users (Limited Scope)
 
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_user` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_group` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_permission` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
-| `netbox_token` | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_user` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| `netbox_group` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| `netbox_permission` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
+| `netbox_token` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
 
 ---
 
 ## Core
 
-| Resource | Status | Tests | Data Source | DS Tests | Notes |
-|----------|--------|-------|-------------|----------|-------|
-| `netbox_data_source` | ⬜ | ⬜ | ⬜ | ⬜ | Not started | |
+| Resource | Status | Unit Tests | TF Tests | Data Source | DS Unit Tests | DS TF Tests | Notes |
+|----------|--------|------------|----------|-------------|---------------|-------------|-------|
+| `netbox_data_source` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Not started |
 
 ---
 
 ## Recommended Implementation Order
 
-### Phase 1: Core Infrastructure (High Priority) ✅
-1. ✅ `netbox_region` - Geographic hierarchy
-2. ✅ `netbox_location` - Physical locations
-3. ✅ `netbox_rack` - Rack infrastructure
-4. ✅ `netbox_device_type` - Device templates
-5. ✅ `netbox_device_role` - Device classification
-6. ✅ `netbox_device` - Physical devices
-7. ✅ `netbox_interface` - Network interfaces
+### Phase 1: Core Infrastructure (High Priority) ✅ COMPLETE
+1. ✅ `netbox_site` + `netbox_site_group` - Site hierarchy
+2. ✅ `netbox_region` - Geographic hierarchy
+3. ✅ `netbox_location` - Physical locations
+4. ✅ `netbox_rack` + `netbox_rack_role` + `netbox_rack_type` - Rack infrastructure
+5. ✅ `netbox_manufacturer` + `netbox_platform` - Hardware vendors
+6. ✅ `netbox_device_type` - Device templates
+7. ✅ `netbox_device_role` - Device classification
+8. ✅ `netbox_device` - Physical devices
+9. ✅ `netbox_interface` + `netbox_interface_template` - Network interfaces
 
-### Phase 2: IPAM Essentials
-8. `netbox_vrf` - Virtual routing
-9. `netbox_prefix` - IP subnets
-10. `netbox_ip_address` - IP addresses
-11. `netbox_vlan` - VLANs
-12. `netbox_vlan_group` - VLAN organization
+### Phase 2: IPAM Essentials ✅ COMPLETE
+10. ✅ `netbox_vrf` - Virtual routing
+11. ✅ `netbox_prefix` - IP subnets
+12. ✅ `netbox_ip_address` - IP addresses
+13. ✅ `netbox_ip_range` - IP ranges
+14. ✅ `netbox_vlan` + `netbox_vlan_group` - VLANs
+15. ✅ `netbox_aggregate` + `netbox_rir` - Aggregates & RIRs
+16. ✅ `netbox_role` - IPAM roles
+17. ✅ `netbox_asn` - Autonomous System Numbers
+18. ✅ `netbox_service` - Network services
 
-### Phase 3: Virtualization
-13. `netbox_cluster_type` - Cluster types
-14. `netbox_cluster` - VM clusters
-15. `netbox_virtual_machine` - VMs
-16. `netbox_vm_interface` - VM interfaces
+### Phase 3: Virtualization ✅ COMPLETE
+19. ✅ `netbox_cluster_type` + `netbox_cluster_group` - Cluster organization
+20. ✅ `netbox_cluster` - VM clusters
+21. ✅ `netbox_virtual_machine` - VMs
+22. ✅ `netbox_vm_interface` - VM interfaces
 
-### Phase 4: Circuits & Connectivity
-17. `netbox_provider` - Circuit providers
-18. `netbox_circuit` - WAN circuits
-19. `netbox_circuit_type` - Circuit classifications
-20. `netbox_cable` - Physical cabling
+### Phase 4: Circuits & Connectivity ✅ COMPLETE
+23. ✅ `netbox_provider` + `netbox_provider_account` + `netbox_provider_network` - Circuit providers
+24. ✅ `netbox_circuit` + `netbox_circuit_type` - WAN circuits
+25. ✅ `netbox_circuit_termination` - Circuit terminations
+26. ✅ `netbox_cable` - Physical cabling
 
-### Phase 5: Extras & Customization
-21. `netbox_tag` - Tagging
-22. `netbox_config_context` - Config contexts
-23. `netbox_webhook` - Automation hooks
-24. `netbox_contact` - Contact management
+### Phase 5: Tenancy & Contacts ✅ COMPLETE
+27. ✅ `netbox_tenant` + `netbox_tenant_group` - Multi-tenancy
+28. ✅ `netbox_contact` + `netbox_contact_group` + `netbox_contact_role` - Contact management
 
-### Phase 6: Advanced Features
-25. VPN resources
-26. Wireless resources
-27. Power management
-28. Remaining DCIM templates
+### Phase 6: Extras & Customization ✅ COMPLETE
+29. ✅ `netbox_tag` - Tagging
+30. ✅ `netbox_custom_field` - Custom fields
+31. ✅ `netbox_config_context` + `netbox_config_template` - Configuration contexts
+32. ✅ `netbox_webhook` - Automation hooks
+
+### Phase 7: Advanced DCIM ✅ COMPLETE
+33. ✅ `netbox_device_bay` + `netbox_virtual_chassis` - Chassis management
+34. ✅ `netbox_module` + `netbox_module_type` + `netbox_module_bay` - Modular devices
+35. ✅ `netbox_console_port` + `netbox_console_port_template` - Console ports
+36. ✅ `netbox_console_server_port` + `netbox_console_server_port_template` - Console server ports
+37. ✅ `netbox_power_panel` + `netbox_power_feed` - Power infrastructure
+38. ✅ `netbox_power_port` + `netbox_power_port_template` - Power ports
+39. ✅ `netbox_power_outlet` + `netbox_power_outlet_template` - Power outlets
+40. ✅ `netbox_inventory_item` + `netbox_inventory_item_role` - Inventory management
+
+### Phase 8: Wireless ✅ COMPLETE
+41. ✅ `netbox_wireless_lan` + `netbox_wireless_lan_group` - Wireless networks
+
+### Phase 9: VPN Resources ✅ COMPLETE
+42. ✅ `netbox_ike_proposal` - IKE proposals for VPN
+43. ✅ `netbox_ike_policy` - IKE policies for VPN
+44. ✅ `netbox_ipsec_proposal` - IPSec proposals for VPN
+45. ✅ `netbox_ipsec_policy` - IPSec policies for VPN
+46. ✅ `netbox_ipsec_profile` - IPSec profiles for VPN
+47. ✅ `netbox_tunnel_group` - VPN tunnel groups
+48. ✅ `netbox_tunnel` - VPN tunnels
+49. ✅ `netbox_tunnel_termination` - VPN tunnel terminations
+
+### Phase 10: Recently Implemented ✅ COMPLETE
+50. ✅ `netbox_route_target` - VRF route targets
+51. ✅ `netbox_virtual_disk` - Virtual machine disks
+52. ✅ `netbox_asn_range` - ASN ranges
+53. ✅ `netbox_device_bay_template` - Device bay templates
+
+### Phase 11: L2VPN ✅ COMPLETE
+54. ✅ `netbox_l2vpn` - Layer 2 VPN
+55. ✅ `netbox_l2vpn_termination` - L2VPN terminations
+
+### Phase 12: Circuit Groups ✅ COMPLETE
+56. ✅ `netbox_circuit_group` - Circuit grouping
+57. ✅ `netbox_circuit_group_assignment` - Circuit group assignments
+
+### Phase 13: Front/Rear Ports ✅ COMPLETE
+58. ✅ `netbox_rear_port_template` - Rear port templates (device type definitions)
+59. ✅ `netbox_front_port_template` - Front port templates (device type definitions)
+60. ✅ `netbox_rear_port` - Device rear ports (physical patch panel connections)
+61. ✅ `netbox_front_port` - Device front ports (mapped to rear ports)
+
+### Phase 14: DCIM Templates & Infrastructure ✅ COMPLETE
+62. ✅ `netbox_rack_reservation` - Rack unit reservations
+63. ✅ `netbox_virtual_device_context` - Virtual device contexts (VDCs)
+64. ✅ `netbox_module_bay_template` - Module bay templates for device types
+65. ⬜ `netbox_cable_termination` - DEPRECATED: Use `netbox_cable` with embedded terminations (data source still available)
+66. ✅ `netbox_inventory_item_template` - Inventory item templates
+
+### Phase 15: Services, FHRP & Templates ✅ COMPLETE
+67. ✅ `netbox_service_template` - Service templates (pre-defined service types)
+68. ✅ `netbox_fhrp_group_assignment` - FHRP group to interface assignments
+69. ✅ `netbox_export_template` - Export templates (Jinja2 data export)
+70. ✅ `netbox_script` - Scripts data source (read-only, scripts managed via filesystem)
+
+### Future Phases (Not Started)
+- Contact assignments
+- Wireless links
+- Users/Groups/Permissions
+- Notifications/Subscriptions
+- Saved filters
+- Image attachments
+- Bookmarks
+- Data sources
 
 ---
 
@@ -1411,7 +1473,9 @@ aggregate, asn, circuit_termination, console_port, console_port_template, consol
   - Import functionality
 - Consider read-only data sources for computed/derived data (e.g., available IPs, available prefixes)
 - Template resources (e.g., `*_template`) are lower priority but useful for device type management
+- **Resources:** Unit tests complete; Terraform integration tests are still in progress for some resources (see tables)
+- **Data sources:** Unit tests complete; Terraform integration tests still needed where marked ⬜
 
 ---
 
-_Last updated: December 6, 2025_
+_Last updated: December 11, 2025_
