@@ -1,5 +1,4 @@
 # Rear Port Data Source Test
-
 terraform {
   required_providers {
     netbox = {

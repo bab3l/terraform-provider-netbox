@@ -3,10 +3,10 @@
 
 # First, create or reference a device type (chassis)
 resource "netbox_device_type" "chassis" {
-  manufacturer = netbox_manufacturer.example.id
-  model        = "Example Blade Chassis"
-  slug         = "example-blade-chassis"
-  u_height     = 10
+  manufacturer  = netbox_manufacturer.example.id
+  model         = "Example Blade Chassis"
+  slug          = "example-blade-chassis"
+  u_height      = 10
   is_full_depth = true
 }
 

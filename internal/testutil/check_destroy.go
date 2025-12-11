@@ -1513,3 +1513,312 @@ func CheckFrontPortDestroy(s *terraform.State) error {
 
 	return nil
 }
+
+// CheckFHRPGroupDestroy verifies that an FHRP group has been destroyed.
+func CheckFHRPGroupDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_fhrp_group" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.IpamAPI.IpamFhrpGroupsRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("FHRP group with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}
+
+// CheckJournalEntryDestroy verifies that a journal entry has been destroyed.
+func CheckJournalEntryDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_journal_entry" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.ExtrasAPI.ExtrasJournalEntriesRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("journal entry with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}
+
+// CheckCustomFieldChoiceSetDestroy verifies that a custom field choice set has been destroyed.
+func CheckCustomFieldChoiceSetDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_custom_field_choice_set" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.ExtrasAPI.ExtrasCustomFieldChoiceSetsRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("custom field choice set with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}
+
+// CheckCustomLinkDestroy verifies that a custom link has been destroyed.
+func CheckCustomLinkDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_custom_link" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.ExtrasAPI.ExtrasCustomLinksRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("custom link with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}
+
+// CheckWirelessLinkDestroy verifies that a wireless link has been destroyed.
+func CheckWirelessLinkDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_wireless_link" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.WirelessAPI.WirelessWirelessLinksRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("wireless link with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}
+
+// CheckRackReservationDestroy verifies that a rack reservation has been destroyed.
+func CheckRackReservationDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_rack_reservation" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.DcimAPI.DcimRackReservationsRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("rack reservation with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}
+
+// CheckVirtualDeviceContextDestroy verifies that a virtual device context has been destroyed.
+func CheckVirtualDeviceContextDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_virtual_device_context" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.DcimAPI.DcimVirtualDeviceContextsRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("virtual device context with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}
+
+// CheckModuleBayTemplateDestroy verifies that a module bay template has been destroyed.
+func CheckModuleBayTemplateDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_module_bay_template" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.DcimAPI.DcimModuleBayTemplatesRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("module bay template with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}
+
+// Note: CheckCableTerminationDestroy removed - netbox_cable_termination resource deprecated
+// Use netbox_cable with embedded terminations instead
+
+// CheckInventoryItemTemplateDestroy verifies that an inventory item template has been destroyed.
+func CheckInventoryItemTemplateDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_inventory_item_template" {
+			continue
+		}
+
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, parseErr := strconv.Atoi(idStr)
+		if parseErr != nil {
+			continue
+		}
+
+		_, resp, err := client.DcimAPI.DcimInventoryItemTemplatesRetrieve(ctx, int32(id)).Execute()
+		if err == nil && resp.StatusCode == 200 {
+			return fmt.Errorf("inventory item template with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}

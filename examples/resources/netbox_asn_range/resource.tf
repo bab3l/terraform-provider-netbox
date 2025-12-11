@@ -13,8 +13,8 @@ resource "netbox_asn_range" "basic" {
   name  = "Private ASN Pool"
   slug  = "private-asn-pool"
   rir   = netbox_rir.private.id
-  start = 64512  # Start of private ASN range
-  end   = 65534  # End of private ASN range
+  start = 64512 # Start of private ASN range
+  end   = 65534 # End of private ASN range
 }
 
 # Full ASN range with all optional fields

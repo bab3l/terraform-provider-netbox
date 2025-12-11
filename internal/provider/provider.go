@@ -210,6 +210,7 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewServiceResource,
 		resources.NewWirelessLANResource,
 		resources.NewWirelessLANGroupResource,
+		resources.NewWirelessLinkResource,
 		resources.NewInventoryItemResource,
 		resources.NewInventoryItemRoleResource,
 		resources.NewModuleTypeResource,
@@ -253,6 +254,30 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewFrontPortTemplateResource,
 		resources.NewRearPortResource,
 		resources.NewFrontPortResource,
+		// Phase 18: FHRP Groups
+		resources.NewFHRPGroupResource,
+		// Phase 19: Documentation (Extras)
+		resources.NewJournalEntryResource,
+		// Phase 20: Custom Field Extensions
+		resources.NewCustomFieldChoiceSetResource,
+		resources.NewCustomLinkResource,
+		// Phase 21: Event Rules and Automation
+		resources.NewEventRuleResource,
+		resources.NewNotificationGroupResource,
+		// Phase 22: DCIM Templates & Infrastructure
+		resources.NewRackReservationResource,
+		resources.NewVirtualDeviceContextResource,
+		resources.NewModuleBayTemplateResource,
+		// Note: CableTerminationResource removed - use netbox_cable with embedded terminations instead
+		resources.NewInventoryItemTemplateResource,
+		// Phase 23: Contact Assignments
+		resources.NewContactAssignmentResource,
+		// Phase 24: Service Templates
+		resources.NewServiceTemplateResource,
+		// Phase 25: FHRP Group Assignments
+		resources.NewFHRPGroupAssignmentResource,
+		// Phase 26: Export Templates
+		resources.NewExportTemplateResource,
 	}
 }
 
@@ -316,6 +341,7 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewServiceDataSource,
 		datasources.NewWirelessLANDataSource,
 		datasources.NewWirelessLANGroupDataSource,
+		datasources.NewWirelessLinkDataSource,
 		datasources.NewInventoryItemDataSource,
 		datasources.NewInventoryItemRoleDataSource,
 		datasources.NewModuleTypeDataSource,
@@ -359,6 +385,34 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewFrontPortTemplateDataSource,
 		datasources.NewRearPortDataSource,
 		datasources.NewFrontPortDataSource,
+		// Phase 18: FHRP Groups
+		datasources.NewFHRPGroupDataSource,
+		// Phase 19: Documentation (Extras)
+		datasources.NewJournalEntryDataSource,
+		// Phase 20: Custom Field Extensions
+		datasources.NewCustomFieldChoiceSetDataSource,
+		datasources.NewCustomLinkDataSource,
+		// Phase 21: Event Rules and Automation
+		datasources.NewEventRuleDataSource,
+		datasources.NewNotificationGroupDataSource,
+		// Phase 22: DCIM Templates & Infrastructure
+		datasources.NewRackReservationDataSource,
+		datasources.NewVirtualDeviceContextDataSource,
+		datasources.NewModuleBayTemplateDataSource,
+		datasources.NewCableTerminationDataSource,
+		datasources.NewInventoryItemTemplateDataSource,
+		// Phase 23: Users
+		datasources.NewUserDataSource,
+		// Phase 24: Contact Assignments
+		datasources.NewContactAssignmentDataSource,
+		// Phase 25: Service Templates
+		datasources.NewServiceTemplateDataSource,
+		// Phase 26: FHRP Group Assignments
+		datasources.NewFHRPGroupAssignmentDataSource,
+		// Phase 27: Export Templates
+		datasources.NewExportTemplateDataSource,
+		// Phase 28: Scripts (read-only)
+		datasources.NewScriptDataSource,
 	}
 }
 
