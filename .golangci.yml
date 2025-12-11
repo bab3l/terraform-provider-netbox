@@ -5,7 +5,6 @@ run:
 linters:
   enable:
     - govet
-    - revive
     - staticcheck
     - errcheck
     - gosimple
@@ -20,15 +19,3 @@ issues:
   exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
-  new: true
-
-revive:
-  rules:
-    - name: exports
-    - name: if-return
-    - name: indent-error-flow
-    - name: var-declaration
-    - name: unused-parameter
-    - name: banned-characters
-    - name: confusing-naming
-    - name: dot-imports
