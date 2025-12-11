@@ -56,7 +56,11 @@ $global:ResourceApiMap = @{
     "netbox_platform" = @{ Endpoint = "/api/dcim/platforms/"; NameField = "name" }
     "netbox_inventory_item" = @{ Endpoint = "/api/dcim/inventory-items/"; NameField = "name" }
     "netbox_inventory_item_role" = @{ Endpoint = "/api/dcim/inventory-item-roles/"; NameField = "name" }
+    "netbox_inventory_item_template" = @{ Endpoint = "/api/dcim/inventory-item-templates/"; NameField = "name" }
     "netbox_virtual_chassis" = @{ Endpoint = "/api/dcim/virtual-chassis/"; NameField = "name" }
+    "netbox_rack_reservation" = @{ Endpoint = "/api/dcim/rack-reservations/"; NameField = "id" }
+    "netbox_virtual_device_context" = @{ Endpoint = "/api/dcim/virtual-device-contexts/"; NameField = "name" }
+    "netbox_module_bay_template" = @{ Endpoint = "/api/dcim/module-bay-templates/"; NameField = "name" }
     "netbox_cable" = @{ Endpoint = "/api/dcim/cables/"; NameField = "id" }
     
     # IPAM
@@ -73,6 +77,9 @@ $global:ResourceApiMap = @{
     "netbox_asn_range" = @{ Endpoint = "/api/ipam/asn-ranges/"; NameField = "name" }
     "netbox_service" = @{ Endpoint = "/api/ipam/services/"; NameField = "name" }
     "netbox_route_target" = @{ Endpoint = "/api/ipam/route-targets/"; NameField = "name" }
+    "netbox_fhrp_group" = @{ Endpoint = "/api/ipam/fhrp-groups/"; NameField = "id" }
+    "netbox_fhrp_group_assignment" = @{ Endpoint = "/api/ipam/fhrp-group-assignments/"; NameField = "id" }
+    "netbox_service_template" = @{ Endpoint = "/api/ipam/service-templates/"; NameField = "name" }
     "netbox_virtual_disk" = @{ Endpoint = "/api/virtualization/virtual-disks/"; NameField = "name" }
     
     # Tenancy
@@ -118,9 +125,13 @@ $global:ResourceApiMap = @{
     # Extras
     "netbox_tag" = @{ Endpoint = "/api/extras/tags/"; NameField = "name" }
     "netbox_custom_field" = @{ Endpoint = "/api/extras/custom-fields/"; NameField = "name" }
+    "netbox_custom_field_choice_set" = @{ Endpoint = "/api/extras/custom-field-choice-sets/"; NameField = "name" }
+    "netbox_custom_link" = @{ Endpoint = "/api/extras/custom-links/"; NameField = "name" }
     "netbox_webhook" = @{ Endpoint = "/api/extras/webhooks/"; NameField = "name" }
     "netbox_config_context" = @{ Endpoint = "/api/extras/config-contexts/"; NameField = "name" }
     "netbox_config_template" = @{ Endpoint = "/api/extras/config-templates/"; NameField = "name" }
+    "netbox_journal_entry" = @{ Endpoint = "/api/extras/journal-entries/"; NameField = "id" }
+    "netbox_export_template" = @{ Endpoint = "/api/extras/export-templates/"; NameField = "name" }
 }
 
 function Get-NetboxHeaders {
@@ -315,6 +326,10 @@ function Clear-OrphanedNetboxResources {
         "netbox_route_target",
         "netbox_virtual_disk",
         "netbox_device_bay_template",
+        "netbox_module_bay_template",
+        "netbox_inventory_item_template",
+        "netbox_rack_reservation",
+        "netbox_virtual_device_context",
         "netbox_wireless_lan",
         "netbox_virtual_machine",
         "netbox_device",
@@ -708,12 +723,16 @@ function Main {
             "power_outlet_template",     # depends on device_type
             "interface_template",        # depends on device_type
             "device_bay_template",       # depends on device_type
+            "module_bay_template",       # depends on device_type
+            "inventory_item_template",   # depends on device_type
             "console_port",              # depends on device
             "console_server_port",       # depends on device
             "power_port",                # depends on device
             "power_outlet",              # depends on device, power_port
             "interface",                 # depends on device
             "inventory_item",            # depends on device, inventory_item_role, manufacturer
+            "rack_reservation",          # depends on rack, user
+            "virtual_device_context",    # depends on device
             
             # Phase 6: Virtualization
             "virtual_machine",           # depends on cluster, site, tenant, device, platform
@@ -730,6 +749,9 @@ function Main {
             "ip_range",                  # depends on vrf, tenant, role
             "route_target",              # depends on tenant
             "service",                   # depends on device, virtual_machine, ip_address
+            "service_template",          # no dependencies
+            "fhrp_group",                # depends on auth settings
+            "fhrp_group_assignment",     # depends on fhrp_group, interface
             
             # Phase 8: Circuits
             "circuit_type",
@@ -747,7 +769,8 @@ function Main {
             # Phase 11: Extras & Customization
             "contact",                   # depends on contact_group
             "webhook",
-            "config_context"             # depends on many resources for assignment
+            "config_context",            # depends on many resources for assignment
+            "export_template"            # no dependencies
         )
         
         foreach ($name in $testOrder) {

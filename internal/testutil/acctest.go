@@ -1367,3 +1367,157 @@ func (c *CleanupResource) RegisterFrontPortCleanup(name string, deviceID int32) 
 		}
 	})
 }
+
+// RegisterFHRPGroupCleanup registers a cleanup function that will delete
+// an FHRP group by protocol and group_id after the test completes.
+func (c *CleanupResource) RegisterFHRPGroupCleanup(protocol string, groupID int32) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamFhrpGroupsList(ctx).Protocol([]string{protocol}).GroupId([]int32{groupID}).Execute()
+		if err != nil || resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: FHRP group with protocol %s and group_id %d not found: %v", protocol, groupID, err)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.IpamAPI.IpamFhrpGroupsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete FHRP group %d (protocol: %s, group_id: %d): %v", id, protocol, groupID, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted FHRP group %d (protocol: %s, group_id: %d)", id, protocol, groupID)
+		}
+	})
+}
+
+// RegisterJournalEntryCleanup registers a cleanup function that will delete
+// a journal entry by ID after the test completes.
+func (c *CleanupResource) RegisterJournalEntryCleanup(id int32) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		_, err := c.client.ExtrasAPI.ExtrasJournalEntriesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete journal entry %d: %v", id, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted journal entry %d", id)
+		}
+	})
+}
+
+// RegisterCustomFieldChoiceSetCleanup registers a cleanup function that will delete
+// a custom field choice set by ID after the test completes.
+func (c *CleanupResource) RegisterCustomFieldChoiceSetCleanup(id int32) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		_, err := c.client.ExtrasAPI.ExtrasCustomFieldChoiceSetsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete custom field choice set %d: %v", id, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted custom field choice set %d", id)
+		}
+	})
+}
+
+// RegisterCustomLinkCleanup registers a cleanup function that will delete
+// a custom link by ID after the test completes.
+func (c *CleanupResource) RegisterCustomLinkCleanup(id int32) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		_, err := c.client.ExtrasAPI.ExtrasCustomLinksDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete custom link %d: %v", id, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted custom link %d", id)
+		}
+	})
+}
+
+// RegisterWirelessLinkCleanup registers a cleanup function that will delete
+// a wireless link by ID after the test completes.
+func (c *CleanupResource) RegisterWirelessLinkCleanup(id int32) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		_, err := c.client.WirelessAPI.WirelessWirelessLinksDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete wireless link %d: %v", id, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted wireless link %d", id)
+		}
+	})
+}
+
+// RegisterRackReservationCleanup registers a cleanup function that will delete
+// a rack reservation by ID after the test completes.
+func (c *CleanupResource) RegisterRackReservationCleanup(id int32) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		_, err := c.client.DcimAPI.DcimRackReservationsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete rack reservation %d: %v", id, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted rack reservation %d", id)
+		}
+	})
+}
+
+// RegisterVirtualDeviceContextCleanup registers a cleanup function that will delete
+// a virtual device context by ID after the test completes.
+func (c *CleanupResource) RegisterVirtualDeviceContextCleanup(id int32) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		_, err := c.client.DcimAPI.DcimVirtualDeviceContextsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete virtual device context %d: %v", id, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted virtual device context %d", id)
+		}
+	})
+}
+
+// RegisterModuleBayTemplateCleanup registers a cleanup function that will delete
+// a module bay template by ID after the test completes.
+func (c *CleanupResource) RegisterModuleBayTemplateCleanup(id int32) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		_, err := c.client.DcimAPI.DcimModuleBayTemplatesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete module bay template %d: %v", id, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted module bay template %d", id)
+		}
+	})
+}
+
+// Note: RegisterCableTerminationCleanup removed - netbox_cable_termination resource deprecated
+// Use netbox_cable with embedded terminations instead
+
+// RegisterInventoryItemTemplateCleanup registers a cleanup function that will delete
+// an inventory item template by ID after the test completes.
+func (c *CleanupResource) RegisterInventoryItemTemplateCleanup(id int32) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		_, err := c.client.DcimAPI.DcimInventoryItemTemplatesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete inventory item template %d: %v", id, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted inventory item template %d", id)
+		}
+	})
+}

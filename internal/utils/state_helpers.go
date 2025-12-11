@@ -3,6 +3,7 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -393,4 +394,32 @@ func MustParseID(idString string) int32 {
 		panic(err)
 	}
 	return id
+}
+
+// ParseID64 parses a string ID to int64.
+// Returns an error if the string cannot be parsed as a valid 64-bit integer.
+func ParseID64(idString string) (int64, error) {
+	if idString == "" {
+		return 0, fmt.Errorf("ID cannot be empty")
+	}
+
+	parsed, err := strconv.ParseInt(idString, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid ID %q: %w", idString, err)
+	}
+
+	return parsed, nil
+}
+
+// ToJSONString converts an interface{} to a JSON string.
+// Returns an empty string if the value is nil or if serialization fails.
+func ToJSONString(v interface{}) (string, error) {
+	if v == nil {
+		return "", nil
+	}
+	bytes, err := json.Marshal(v)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
 }

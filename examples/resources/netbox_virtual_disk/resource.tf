@@ -2,7 +2,7 @@
 resource "netbox_virtual_disk" "root" {
   virtual_machine = netbox_virtual_machine.example.id
   name            = "disk0"
-  size            = "50"  # 50 GB
+  size            = "50" # 50 GB
 }
 
 # Example: Virtual disk with description

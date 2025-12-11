@@ -1150,3 +1150,75 @@ func ModuleTypeLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Modul
 func LookupModuleType(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefModuleTypeRequest, diag.Diagnostics) {
 	return GenericLookup(ctx, value, ModuleTypeLookupConfig(client))
 }
+
+// =====================================================
+// USER LOOKUPS
+// =====================================================
+
+// UserLookupConfig returns the lookup configuration for Users.
+func UserLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.User, netbox.BriefUserRequest] {
+	return LookupConfig[*netbox.User, netbox.BriefUserRequest]{
+		ResourceName: "User",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.User, *http.Response, error) {
+			return client.UsersAPI.UsersUsersRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, username string) ([]*netbox.User, *http.Response, error) {
+			// Users don't have slugs, so we search by username
+			list, resp, err := client.UsersAPI.UsersUsersList(ctx).Username([]string{username}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.User, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(u *netbox.User) netbox.BriefUserRequest {
+			return netbox.BriefUserRequest{
+				Username: u.GetUsername(),
+			}
+		},
+	}
+}
+
+// LookupUser looks up a User by ID or username.
+func LookupUser(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefUserRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, UserLookupConfig(client))
+}
+
+// =====================================================
+// IP ADDRESS LOOKUPS
+// =====================================================
+
+// IPAddressLookupConfig returns the lookup configuration for IP Addresses.
+func IPAddressLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.IPAddress, netbox.BriefIPAddressRequest] {
+	return LookupConfig[*netbox.IPAddress, netbox.BriefIPAddressRequest]{
+		ResourceName: "IP Address",
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.IPAddress, *http.Response, error) {
+			return client.IpamAPI.IpamIpAddressesRetrieve(ctx, id).Execute()
+		},
+		ListBySlug: func(ctx context.Context, address string) ([]*netbox.IPAddress, *http.Response, error) {
+			// IP addresses don't have slugs, so we search by address
+			list, resp, err := client.IpamAPI.IpamIpAddressesList(ctx).Address([]string{address}).Execute()
+			if err != nil {
+				return nil, resp, err
+			}
+			results := make([]*netbox.IPAddress, len(list.Results))
+			for i := range list.Results {
+				results[i] = &list.Results[i]
+			}
+			return results, resp, nil
+		},
+		ToBriefRequest: func(ip *netbox.IPAddress) netbox.BriefIPAddressRequest {
+			return netbox.BriefIPAddressRequest{
+				Address: ip.GetAddress(),
+			}
+		},
+	}
+}
+
+// LookupIPAddress looks up an IP Address by ID or address string.
+func LookupIPAddress(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefIPAddressRequest, diag.Diagnostics) {
+	return GenericLookup(ctx, value, IPAddressLookupConfig(client))
+}

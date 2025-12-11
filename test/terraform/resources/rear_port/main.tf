@@ -1,5 +1,4 @@
 # Rear Port Resource Test
-
 terraform {
   required_providers {
     netbox = {

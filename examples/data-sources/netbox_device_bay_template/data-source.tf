@@ -8,7 +8,7 @@ data "netbox_device_bay_template" "by_id" {
 # Look up a device bay template by name (requires device_type for uniqueness)
 data "netbox_device_bay_template" "by_name" {
   name        = "Bay 1"
-  device_type = "123"  # Device type ID
+  device_type = "123" # Device type ID
 }
 
 # Use the data source to reference device bay template properties
