@@ -156,7 +156,13 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			"asn": data.ASN.ValueInt64(),
 		})
 
-		listResp, httpResp, err := d.client.IpamAPI.IpamAsnsList(ctx).Asn([]int32{int32(data.ASN.ValueInt64())}).Execute()
+		asn32, err := utils.SafeInt32FromValue(data.ASN)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid ASN", fmt.Sprintf("ASN value overflow: %s", err))
+			return
+		}
+
+		listResp, httpResp, err := d.client.IpamAPI.IpamAsnsList(ctx).Asn([]int32{asn32}).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading ASN",

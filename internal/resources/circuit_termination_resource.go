@@ -374,12 +374,22 @@ func (r *CircuitTerminationResource) buildCreateRequest(ctx context.Context, dat
 
 	// Handle port_speed (optional)
 	if !data.PortSpeed.IsNull() && !data.PortSpeed.IsUnknown() {
-		createReq.SetPortSpeed(int32(data.PortSpeed.ValueInt64()))
+		portSpeed, err := utils.SafeInt32FromValue(data.PortSpeed)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("PortSpeed value overflow: %s", err))
+			return nil, diags
+		}
+		createReq.SetPortSpeed(portSpeed)
 	}
 
 	// Handle upstream_speed (optional)
 	if !data.UpstreamSpeed.IsNull() && !data.UpstreamSpeed.IsUnknown() {
-		createReq.SetUpstreamSpeed(int32(data.UpstreamSpeed.ValueInt64()))
+		upstreamSpeed, err := utils.SafeInt32FromValue(data.UpstreamSpeed)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("UpstreamSpeed value overflow: %s", err))
+			return nil, diags
+		}
+		createReq.SetUpstreamSpeed(upstreamSpeed)
 	}
 
 	// Handle xconnect_id (optional)

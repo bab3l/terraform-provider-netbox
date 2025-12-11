@@ -319,14 +319,24 @@ func (r *IPSecPolicyResource) setOptionalFields(ctx context.Context, ipsecReques
 		}
 		proposals := make([]int32, len(proposalIDs))
 		for i, id := range proposalIDs {
-			proposals[i] = int32(id)
+			val, err := utils.SafeInt32(id)
+			if err != nil {
+				diags.AddError("Invalid value", fmt.Sprintf("Proposal ID value overflow: %s", err))
+				return
+			}
+			proposals[i] = val
 		}
 		ipsecRequest.Proposals = proposals
 	}
 
 	// PFS Group
 	if utils.IsSet(data.PFSGroup) {
-		pfsGroup := netbox.PatchedWritableIPSecPolicyRequestPfsGroup(int32(data.PFSGroup.ValueInt64()))
+		pfsGroupVal, err := utils.SafeInt32FromValue(data.PFSGroup)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("PFSGroup value overflow: %s", err))
+			return
+		}
+		pfsGroup := netbox.PatchedWritableIPSecPolicyRequestPfsGroup(pfsGroupVal)
 		ipsecRequest.PfsGroup = *netbox.NewNullablePatchedWritableIPSecPolicyRequestPfsGroup(&pfsGroup)
 	}
 

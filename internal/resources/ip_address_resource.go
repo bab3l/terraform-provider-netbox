@@ -267,7 +267,7 @@ func (r *IPAddressResource) Update(ctx context.Context, req resource.UpdateReque
 	})
 
 	// Update the IP address
-	ipAddress, httpResp, err := r.client.IpamAPI.IpamIpAddressesUpdate(ctx, int32(id)).WritableIPAddressRequest(*ipRequest).Execute()
+	ipAddress, httpResp, err := r.client.IpamAPI.IpamIpAddressesUpdate(ctx, id).WritableIPAddressRequest(*ipRequest).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating IP address",

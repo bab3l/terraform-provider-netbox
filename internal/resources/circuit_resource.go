@@ -395,7 +395,12 @@ func (r *CircuitResource) buildCircuitRequest(ctx context.Context, data *Circuit
 
 	// Commit rate
 	if utils.IsSet(data.CommitRate) {
-		circuitReq.CommitRate = *netbox.NewNullableInt32(netbox.PtrInt32(int32(data.CommitRate.ValueInt64())))
+		commitRate, err := utils.SafeInt32FromValue(data.CommitRate)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("CommitRate value overflow: %s", err))
+			return nil, diags
+		}
+		circuitReq.CommitRate = *netbox.NewNullableInt32(netbox.PtrInt32(commitRate))
 	}
 
 	// Description

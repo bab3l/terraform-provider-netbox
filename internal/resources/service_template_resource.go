@@ -139,7 +139,12 @@ func (r *ServiceTemplateResource) Create(ctx context.Context, req resource.Creat
 			return
 		}
 		for _, p := range portValues {
-			ports = append(ports, int32(p))
+			p32, err := utils.SafeInt32(p)
+			if err != nil {
+				resp.Diagnostics.AddError("Invalid port number", fmt.Sprintf("Port number overflow: %s", err))
+				return
+			}
+			ports = append(ports, p32)
 		}
 	}
 
@@ -276,7 +281,12 @@ func (r *ServiceTemplateResource) Update(ctx context.Context, req resource.Updat
 			return
 		}
 		for _, p := range portValues {
-			ports = append(ports, int32(p))
+			p32, err := utils.SafeInt32(p)
+			if err != nil {
+				resp.Diagnostics.AddError("Invalid port number", fmt.Sprintf("Port number overflow: %s", err))
+				return
+			}
+			ports = append(ports, p32)
 		}
 	}
 

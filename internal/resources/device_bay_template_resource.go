@@ -189,7 +189,12 @@ func (r *DeviceBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 	})
 
 	// Get the device bay template
-	template, httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesRetrieve(ctx, int32(id)).Execute()
+	id32, err := utils.SafeInt32(int64(id))
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", err))
+		return
+	}
+	template, httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesRetrieve(ctx, id32).Execute()
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "DeviceBayTemplate not found, removing from state", map[string]interface{}{
@@ -263,7 +268,12 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 	})
 
 	// Update the device bay template
-	template, httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesUpdate(ctx, int32(id)).
+	id32, convErr := utils.SafeInt32(int64(id))
+	if convErr != nil {
+		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", convErr))
+		return
+	}
+	template, httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesUpdate(ctx, id32).
 		DeviceBayTemplateRequest(updateReq).
 		Execute()
 	if err != nil {
@@ -310,7 +320,12 @@ func (r *DeviceBayTemplateResource) Delete(ctx context.Context, req resource.Del
 	})
 
 	// Delete the device bay template
-	httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesDestroy(ctx, int32(id)).Execute()
+	id32, convErr := utils.SafeInt32(int64(id))
+	if convErr != nil {
+		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", convErr))
+		return
+	}
+	httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesDestroy(ctx, id32).Execute()
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "DeviceBayTemplate already deleted", map[string]interface{}{

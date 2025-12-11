@@ -349,13 +349,21 @@ func (r *VirtualMachineResource) buildVirtualMachineRequest(ctx context.Context,
 
 	// Memory
 	if utils.IsSet(data.Memory) {
-		memory := int32(data.Memory.ValueInt64())
+		memory, err := utils.SafeInt32FromValue(data.Memory)
+		if err != nil {
+			diags.AddError("Invalid memory value", fmt.Sprintf("Memory value overflow: %s", err))
+			return nil
+		}
 		vmRequest.Memory = *netbox.NewNullableInt32(&memory)
 	}
 
 	// Disk
 	if utils.IsSet(data.Disk) {
-		disk := int32(data.Disk.ValueInt64())
+		disk, err := utils.SafeInt32FromValue(data.Disk)
+		if err != nil {
+			diags.AddError("Invalid disk value", fmt.Sprintf("Disk value overflow: %s", err))
+			return nil
+		}
 		vmRequest.Disk = *netbox.NewNullableInt32(&disk)
 	}
 

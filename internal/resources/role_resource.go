@@ -327,7 +327,11 @@ func (r *RoleResource) buildRoleRequest(ctx context.Context, data *RoleResourceM
 
 	// Handle weight (optional)
 	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
-		weight := int32(data.Weight.ValueInt64())
+		weight, err := utils.SafeInt32FromValue(data.Weight)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("Weight value overflow: %s", err))
+			return nil, diags
+		}
 		roleRequest.Weight = &weight
 	}
 

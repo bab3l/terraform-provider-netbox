@@ -144,7 +144,12 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 	portsInt32 := make([]int32, len(ports))
 	for i, p := range ports {
-		portsInt32[i] = int32(p)
+		p32, err := utils.SafeInt32(p)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid port", fmt.Sprintf("Port value overflow: %s", err))
+			return
+		}
+		portsInt32[i] = p32
 	}
 
 	// Build request
@@ -179,7 +184,12 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 		}
 		ipIDsInt32 := make([]int32, len(ipIDs))
 		for i, id := range ipIDs {
-			ipIDsInt32[i] = int32(id)
+			id32, err := utils.SafeInt32(id)
+			if err != nil {
+				resp.Diagnostics.AddError("Invalid IP address ID", fmt.Sprintf("IP address ID overflow: %s", err))
+				return
+			}
+			ipIDsInt32[i] = id32
 		}
 		apiReq.SetIpaddresses(ipIDsInt32)
 	}
@@ -309,7 +319,12 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 	portsInt32 := make([]int32, len(ports))
 	for i, p := range ports {
-		portsInt32[i] = int32(p)
+		p32, err := utils.SafeInt32(p)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid port number", fmt.Sprintf("Port number overflow: %s", err))
+			return
+		}
+		portsInt32[i] = p32
 	}
 
 	// Build request
@@ -344,7 +359,12 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 		}
 		ipIDsInt32 := make([]int32, len(ipIDs))
 		for i, id := range ipIDs {
-			ipIDsInt32[i] = int32(id)
+			id32, err := utils.SafeInt32(id)
+			if err != nil {
+				resp.Diagnostics.AddError("Invalid IP address ID", fmt.Sprintf("IP address ID overflow: %s", err))
+				return
+			}
+			ipIDsInt32[i] = id32
 		}
 		apiReq.SetIpaddresses(ipIDsInt32)
 	}

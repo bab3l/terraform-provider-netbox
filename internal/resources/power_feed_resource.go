@@ -222,15 +222,30 @@ func (r *PowerFeedResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	if !data.Voltage.IsNull() && !data.Voltage.IsUnknown() {
-		apiReq.SetVoltage(int32(data.Voltage.ValueInt64()))
+		voltage, err := utils.SafeInt32FromValue(data.Voltage)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Voltage value overflow: %s", err))
+			return
+		}
+		apiReq.SetVoltage(voltage)
 	}
 
 	if !data.Amperage.IsNull() && !data.Amperage.IsUnknown() {
-		apiReq.SetAmperage(int32(data.Amperage.ValueInt64()))
+		amperage, err := utils.SafeInt32FromValue(data.Amperage)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Amperage value overflow: %s", err))
+			return
+		}
+		apiReq.SetAmperage(amperage)
 	}
 
 	if !data.MaxUtilization.IsNull() && !data.MaxUtilization.IsUnknown() {
-		apiReq.SetMaxUtilization(int32(data.MaxUtilization.ValueInt64()))
+		maxUtilization, err := utils.SafeInt32FromValue(data.MaxUtilization)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("MaxUtilization value overflow: %s", err))
+			return
+		}
+		apiReq.SetMaxUtilization(maxUtilization)
 	}
 
 	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
@@ -404,15 +419,30 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	if !data.Voltage.IsNull() && !data.Voltage.IsUnknown() {
-		apiReq.SetVoltage(int32(data.Voltage.ValueInt64()))
+		voltage, err := utils.SafeInt32FromValue(data.Voltage)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Voltage value overflow: %s", err))
+			return
+		}
+		apiReq.SetVoltage(voltage)
 	}
 
 	if !data.Amperage.IsNull() && !data.Amperage.IsUnknown() {
-		apiReq.SetAmperage(int32(data.Amperage.ValueInt64()))
+		amperage, err := utils.SafeInt32FromValue(data.Amperage)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Amperage value overflow: %s", err))
+			return
+		}
+		apiReq.SetAmperage(amperage)
 	}
 
 	if !data.MaxUtilization.IsNull() && !data.MaxUtilization.IsUnknown() {
-		apiReq.SetMaxUtilization(int32(data.MaxUtilization.ValueInt64()))
+		maxUtilization, err := utils.SafeInt32FromValue(data.MaxUtilization)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("MaxUtilization value overflow: %s", err))
+			return
+		}
+		apiReq.SetMaxUtilization(maxUtilization)
 	}
 
 	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
