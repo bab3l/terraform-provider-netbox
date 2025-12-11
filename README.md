@@ -1,6 +1,10 @@
 # Terraform Provider for Netbox
 
+[![License: MPL-2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
+
 A Terraform provider for [Netbox](https://github.com/netbox-community/netbox) using the modern [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) and the [go-netbox](https://github.com/bab3l/go-netbox) API wrapper.
+
+License: This project is licensed under the Mozilla Public License 2.0 (MPL-2.0). See `LICENSE`.
 
 ## Requirements
 
@@ -14,9 +18,13 @@ A Terraform provider for [Netbox](https://github.com/netbox-community/netbox) us
 
 1. Clone the repository
 2. Enter the repository directory
-3. Build the provider using the Go `build` command:
+3. Build the provider using the provided VS Code task or Go directly:
 
-```bash
+```powershell
+# VS Code task
+# Terminal: Run Task → Build Terraform Provider
+
+# Or via Go directly
 go build .
 ```
 
@@ -85,7 +93,7 @@ The provider supports authentication via API token. You can provide the token in
 2. Ensure you have the go-netbox dependency available locally at `../go-netbox`
 3. Run the development cycle:
 
-```bash
+```powershell
 make dev  # Runs format, vet, test, and build
 ```
 
@@ -93,19 +101,25 @@ make dev  # Runs format, vet, test, and build
 
 To install the provider locally for testing:
 
-```bash
+```powershell
 make install
 ```
 
-This will build and install the provider to your local Terraform plugin directory.
+This builds and installs the provider to `~/.terraform.d/plugins/bab3l/netbox/0.1.0/<GOOS>_<GOARCH>/`.
 
 ### Running Tests
 
-```bash
+```powershell
 # Run unit tests
 make test
 
-# Run acceptance tests (requires running Netbox instance)
+# Run acceptance tests (requires NetBox and env vars)
+$env:TF_ACC = "1"
+$env:NETBOX_SERVER_URL = "http://localhost:8000"
+$env:NETBOX_API_TOKEN = "your-token"
+go test ./... -v -run "TestAcc"
+
+# Or via Make alias (env vars must be set)
 make testacc
 ```
 
@@ -159,7 +173,9 @@ resource "netbox_site" "datacenter" {
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the Mozilla Public License 2.0 (MPL-2.0). See `LICENSE`.
+
+[Contributing Guidelines](CONTRIBUTING.md) • [Security Policy](SECURITY.md)
 
 ## Credits
 
