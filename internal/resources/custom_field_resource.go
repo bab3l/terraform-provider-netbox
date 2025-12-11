@@ -455,7 +455,12 @@ func (r *CustomFieldResource) buildCustomFieldRequest(ctx context.Context, data 
 
 	// Handle search_weight (optional)
 	if !data.SearchWeight.IsNull() && !data.SearchWeight.IsUnknown() {
-		createReq.SetSearchWeight(int32(data.SearchWeight.ValueInt64()))
+		searchWeight, err := utils.SafeInt32FromValue(data.SearchWeight)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("SearchWeight value overflow: %s", err))
+			return nil, diags
+		}
+		createReq.SetSearchWeight(searchWeight)
 	}
 
 	// Handle filter_logic (optional)
@@ -489,7 +494,12 @@ func (r *CustomFieldResource) buildCustomFieldRequest(ctx context.Context, data 
 
 	// Handle weight (optional)
 	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
-		createReq.SetWeight(int32(data.Weight.ValueInt64()))
+		weight, err := utils.SafeInt32FromValue(data.Weight)
+		if err != nil {
+			diags.AddError("Invalid value", fmt.Sprintf("Weight value overflow: %s", err))
+			return nil, diags
+		}
+		createReq.SetWeight(weight)
 	}
 
 	// Handle validation_minimum (optional)

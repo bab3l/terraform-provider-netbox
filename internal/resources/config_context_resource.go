@@ -195,7 +195,11 @@ func (r *ConfigContextResource) Create(ctx context.Context, req resource.CreateR
 	}
 
 	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
-		weight := int32(data.Weight.ValueInt64())
+		weight, err := utils.SafeInt32FromValue(data.Weight)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Weight value overflow: %s", err))
+			return
+		}
 		request.Weight = &weight
 	}
 
@@ -353,7 +357,11 @@ func (r *ConfigContextResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
-		weight := int32(data.Weight.ValueInt64())
+		weight, err := utils.SafeInt32FromValue(data.Weight)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Weight value overflow: %s", err))
+			return
+		}
 		request.Weight = &weight
 	}
 
@@ -450,7 +458,12 @@ func setToInt32Slice(ctx context.Context, set types.Set) []int32 {
 
 	result := make([]int32, len(int64Values))
 	for i, v := range int64Values {
-		result[i] = int32(v)
+		val32, err := utils.SafeInt32(v)
+		if err != nil {
+			// Return empty slice on error - caller should validate data
+			return []int32{}
+		}
+		result[i] = val32
 	}
 	return result
 }

@@ -174,7 +174,13 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			"id": idInt,
 		})
 
-		result, httpResp, err := d.client.IpamAPI.IpamIpRangesRetrieve(ctx, int32(idInt)).Execute()
+		id32, err := utils.SafeInt32(int64(idInt))
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", err))
+			return
+		}
+
+		result, httpResp, err := d.client.IpamAPI.IpamIpRangesRetrieve(ctx, id32).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading IP range",

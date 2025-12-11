@@ -244,7 +244,11 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, data 
 
 	// MTU
 	if utils.IsSet(data.MTU) {
-		mtu := int32(data.MTU.ValueInt64())
+		mtu, err := utils.SafeInt32FromValue(data.MTU)
+		if err != nil {
+			diags.AddError("Invalid MTU value", fmt.Sprintf("MTU value overflow: %s", err))
+			return nil
+		}
 		ifaceRequest.Mtu = *netbox.NewNullableInt32(&mtu)
 	}
 

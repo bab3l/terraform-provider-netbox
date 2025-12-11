@@ -168,11 +168,17 @@ func (r *FHRPGroupAssignmentResource) Create(ctx context.Context, req resource.C
 	// Protocol is already a BriefFHRPGroupProtocol string type
 	briefGroup := netbox.NewBriefFHRPGroupRequest(fhrpGroup.GetProtocol(), fhrpGroup.GetGroupId())
 
+	priority, err := utils.SafeInt32FromValue(data.Priority)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Priority value overflow: %s", err))
+		return
+	}
+
 	assignmentRequest := netbox.NewFHRPGroupAssignmentRequest(
 		*briefGroup,
 		data.InterfaceType.ValueString(),
 		int64(interfaceID),
-		int32(data.Priority.ValueInt64()),
+		priority,
 	)
 
 	// Use AdditionalProperties to pass the group ID
@@ -307,11 +313,17 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 	// Protocol is already a BriefFHRPGroupProtocol string type
 	briefGroup := netbox.NewBriefFHRPGroupRequest(fhrpGroup.GetProtocol(), fhrpGroup.GetGroupId())
 
+	priority, err := utils.SafeInt32FromValue(data.Priority)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Priority value overflow: %s", err))
+		return
+	}
+
 	assignmentRequest := netbox.NewFHRPGroupAssignmentRequest(
 		*briefGroup,
 		data.InterfaceType.ValueString(),
 		int64(interfaceID),
-		int32(data.Priority.ValueInt64()),
+		priority,
 	)
 
 	// Use AdditionalProperties to pass the group ID

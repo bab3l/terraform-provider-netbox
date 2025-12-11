@@ -313,7 +313,7 @@ func (r *ASNRangeResource) Update(ctx context.Context, req resource.UpdateReques
 	})
 
 	// Update the ASNRange
-	asnRange, httpResp, err := r.client.IpamAPI.IpamAsnRangesUpdate(ctx, int32(id)).ASNRangeRequest(*asnRangeRequest).Execute()
+	asnRange, httpResp, err := r.client.IpamAPI.IpamAsnRangesUpdate(ctx, id).ASNRangeRequest(*asnRangeRequest).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating ASNRange",

@@ -230,7 +230,7 @@ func (r *RIRResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	})
 
 	// Update the RIR
-	rir, httpResp, err := r.client.IpamAPI.IpamRirsUpdate(ctx, int32(id)).RIRRequest(*rirRequest).Execute()
+	rir, httpResp, err := r.client.IpamAPI.IpamRirsUpdate(ctx, id).RIRRequest(*rirRequest).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating RIR",

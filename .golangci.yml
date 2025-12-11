@@ -11,6 +11,10 @@ linters:
     - unused
     - misspell
     - staticcheck
+    - errcheck
+    - gosec
+    - nilerr         # Detect returning nil when error is not nil
+    - unconvert      # Remove unnecessary type conversions
   settings:
     staticcheck:
       checks:

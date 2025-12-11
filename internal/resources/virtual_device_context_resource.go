@@ -158,7 +158,11 @@ func (r *VirtualDeviceContextResource) Create(ctx context.Context, req resource.
 
 	// Set optional fields
 	if !data.Identifier.IsNull() && !data.Identifier.IsUnknown() {
-		identifier := int32(data.Identifier.ValueInt64())
+		identifier, err := utils.SafeInt32FromValue(data.Identifier)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid identifier", fmt.Sprintf("Identifier overflow: %s", err))
+			return
+		}
 		apiReq.SetIdentifier(identifier)
 	}
 
@@ -319,7 +323,11 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 
 	// Set optional fields
 	if !data.Identifier.IsNull() && !data.Identifier.IsUnknown() {
-		identifier := int32(data.Identifier.ValueInt64())
+		identifier, err := utils.SafeInt32FromValue(data.Identifier)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid identifier", fmt.Sprintf("Identifier overflow: %s", err))
+			return
+		}
 		apiReq.SetIdentifier(identifier)
 	}
 

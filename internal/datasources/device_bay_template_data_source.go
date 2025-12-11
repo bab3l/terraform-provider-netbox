@@ -128,7 +128,12 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 			"id": id,
 		})
 
-		t, httpResp, err := d.client.DcimAPI.DcimDeviceBayTemplatesRetrieve(ctx, int32(id)).Execute()
+		id32, err := utils.SafeInt32(int64(id))
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", err))
+			return
+		}
+		t, httpResp, err := d.client.DcimAPI.DcimDeviceBayTemplatesRetrieve(ctx, id32).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading DeviceBayTemplate",
@@ -151,7 +156,12 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 		if utils.IsSet(data.DeviceType) {
 			// Try to parse as ID first
 			if deviceTypeID, err := strconv.Atoi(data.DeviceType.ValueString()); err == nil {
-				listReq = listReq.DeviceTypeId([]int32{int32(deviceTypeID)})
+				deviceTypeID32, convErr := utils.SafeInt32(int64(deviceTypeID))
+				if convErr != nil {
+					resp.Diagnostics.AddError("Invalid device_type ID", fmt.Sprintf("device_type ID overflow: %s", convErr))
+					return
+				}
+				listReq = listReq.DeviceTypeId([]int32{deviceTypeID32})
 			}
 		}
 

@@ -1302,7 +1302,7 @@ func CheckTunnelTerminationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.VpnAPI.VpnTunnelTerminationsRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.VpnAPI.VpnTunnelTerminationsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("tunnel termination with ID %d still exists", id)
 		}
@@ -1369,7 +1369,7 @@ func CheckCircuitGroupAssignmentDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.CircuitsAPI.CircuitsCircuitGroupAssignmentsRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.CircuitsAPI.CircuitsCircuitGroupAssignmentsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("circuit group assignment with ID %d still exists", id)
 		}
@@ -1403,7 +1403,7 @@ func CheckRearPortTemplateDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.DcimAPI.DcimRearPortTemplatesRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.DcimAPI.DcimRearPortTemplatesRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("rear port template with ID %d still exists", id)
 		}
@@ -1437,7 +1437,7 @@ func CheckFrontPortTemplateDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.DcimAPI.DcimFrontPortTemplatesRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.DcimAPI.DcimFrontPortTemplatesRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("front port template with ID %d still exists", id)
 		}
@@ -1471,7 +1471,7 @@ func CheckRearPortDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.DcimAPI.DcimRearPortsRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.DcimAPI.DcimRearPortsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("rear port with ID %d still exists", id)
 		}
@@ -1505,7 +1505,7 @@ func CheckFrontPortDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.DcimAPI.DcimFrontPortsRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.DcimAPI.DcimFrontPortsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("front port with ID %d still exists", id)
 		}
@@ -1539,7 +1539,7 @@ func CheckFHRPGroupDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.IpamAPI.IpamFhrpGroupsRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.IpamAPI.IpamFhrpGroupsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("FHRP group with ID %d still exists", id)
 		}
@@ -1573,7 +1573,7 @@ func CheckJournalEntryDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.ExtrasAPI.ExtrasJournalEntriesRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.ExtrasAPI.ExtrasJournalEntriesRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("journal entry with ID %d still exists", id)
 		}
@@ -1607,7 +1607,7 @@ func CheckCustomFieldChoiceSetDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.ExtrasAPI.ExtrasCustomFieldChoiceSetsRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.ExtrasAPI.ExtrasCustomFieldChoiceSetsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("custom field choice set with ID %d still exists", id)
 		}
@@ -1641,7 +1641,7 @@ func CheckCustomLinkDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.ExtrasAPI.ExtrasCustomLinksRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.ExtrasAPI.ExtrasCustomLinksRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("custom link with ID %d still exists", id)
 		}
@@ -1675,7 +1675,7 @@ func CheckWirelessLinkDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.WirelessAPI.WirelessWirelessLinksRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.WirelessAPI.WirelessWirelessLinksRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("wireless link with ID %d still exists", id)
 		}
@@ -1709,7 +1709,7 @@ func CheckRackReservationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.DcimAPI.DcimRackReservationsRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.DcimAPI.DcimRackReservationsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("rack reservation with ID %d still exists", id)
 		}
@@ -1743,7 +1743,7 @@ func CheckVirtualDeviceContextDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.DcimAPI.DcimVirtualDeviceContextsRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.DcimAPI.DcimVirtualDeviceContextsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("virtual device context with ID %d still exists", id)
 		}
@@ -1777,7 +1777,7 @@ func CheckModuleBayTemplateDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.DcimAPI.DcimModuleBayTemplatesRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.DcimAPI.DcimModuleBayTemplatesRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("module bay template with ID %d still exists", id)
 		}
@@ -1814,7 +1814,7 @@ func CheckInventoryItemTemplateDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resp, err := client.DcimAPI.DcimInventoryItemTemplatesRetrieve(ctx, int32(id)).Execute()
+		_, resp, err := client.DcimAPI.DcimInventoryItemTemplatesRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 		if err == nil && resp.StatusCode == 200 {
 			return fmt.Errorf("inventory item template with ID %d still exists", id)
 		}

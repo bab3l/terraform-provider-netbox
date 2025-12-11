@@ -158,7 +158,11 @@ func (r *CustomLinkResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
-		weight := int32(data.Weight.ValueInt64())
+		weight, err := utils.SafeInt32FromValue(data.Weight)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Weight value overflow: %s", err))
+			return
+		}
 		request.Weight = &weight
 	}
 
@@ -266,7 +270,11 @@ func (r *CustomLinkResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
-		weight := int32(data.Weight.ValueInt64())
+		weight, err := utils.SafeInt32FromValue(data.Weight)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Weight value overflow: %s", err))
+			return
+		}
 		request.Weight = &weight
 	}
 

@@ -270,7 +270,7 @@ func (r *IPRangeResource) Update(ctx context.Context, req resource.UpdateRequest
 	})
 
 	// Update the IP range
-	ipRange, httpResp, err := r.client.IpamAPI.IpamIpRangesUpdate(ctx, int32(id)).WritableIPRangeRequest(*ipRangeRequest).Execute()
+	ipRange, httpResp, err := r.client.IpamAPI.IpamIpRangesUpdate(ctx, id).WritableIPRangeRequest(*ipRangeRequest).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating IP range",

@@ -134,7 +134,13 @@ func (d *VirtualDiskDataSource) Read(ctx context.Context, req datasource.ReadReq
 			"id": idInt,
 		})
 
-		result, httpResp, err := d.client.VirtualizationAPI.VirtualizationVirtualDisksRetrieve(ctx, int32(idInt)).Execute()
+		id32, err := utils.SafeInt32(int64(idInt))
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", err))
+			return
+		}
+
+		result, httpResp, err := d.client.VirtualizationAPI.VirtualizationVirtualDisksRetrieve(ctx, id32).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading VirtualDisk",
@@ -164,7 +170,12 @@ func (d *VirtualDiskDataSource) Read(ctx context.Context, req datasource.ReadReq
 		// Try to parse virtual_machine as ID first
 		var vmID int
 		if _, err := fmt.Sscanf(data.VirtualMachine.ValueString(), "%d", &vmID); err == nil {
-			listReq = listReq.VirtualMachineId([]int32{int32(vmID)})
+			vmID32, err := utils.SafeInt32(int64(vmID))
+			if err != nil {
+				resp.Diagnostics.AddError("Invalid Virtual Machine ID", fmt.Sprintf("Virtual Machine ID value overflow: %s", err))
+				return
+			}
+			listReq = listReq.VirtualMachineId([]int32{vmID32})
 		} else {
 			// Otherwise, use as name
 			listReq = listReq.VirtualMachine([]string{data.VirtualMachine.ValueString()})

@@ -288,12 +288,20 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	if !data.VcPosition.IsNull() && !data.VcPosition.IsUnknown() {
-		vcPosition := int32(data.VcPosition.ValueInt64())
+		vcPosition, err := utils.SafeInt32FromValue(data.VcPosition)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("VcPosition value overflow: %s", err))
+			return
+		}
 		deviceRequest.SetVcPosition(vcPosition)
 	}
 
 	if !data.VcPriority.IsNull() && !data.VcPriority.IsUnknown() {
-		vcPriority := int32(data.VcPriority.ValueInt64())
+		vcPriority, err := utils.SafeInt32FromValue(data.VcPriority)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("VcPriority value overflow: %s", err))
+			return
+		}
 		deviceRequest.SetVcPriority(vcPriority)
 	}
 
@@ -533,12 +541,20 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	if !data.VcPosition.IsNull() && !data.VcPosition.IsUnknown() {
-		vcPosition := int32(data.VcPosition.ValueInt64())
+		vcPosition, err := utils.SafeInt32FromValue(data.VcPosition)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("VcPosition value overflow: %s", err))
+			return
+		}
 		deviceRequest.SetVcPosition(vcPosition)
 	}
 
 	if !data.VcPriority.IsNull() && !data.VcPriority.IsUnknown() {
-		vcPriority := int32(data.VcPriority.ValueInt64())
+		vcPriority, err := utils.SafeInt32FromValue(data.VcPriority)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("VcPriority value overflow: %s", err))
+			return
+		}
 		deviceRequest.SetVcPriority(vcPriority)
 	}
 

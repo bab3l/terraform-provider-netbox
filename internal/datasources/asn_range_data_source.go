@@ -159,7 +159,13 @@ func (d *ASNRangeDataSource) Read(ctx context.Context, req datasource.ReadReques
 			"id": idInt,
 		})
 
-		result, httpResp, err := d.client.IpamAPI.IpamAsnRangesRetrieve(ctx, int32(idInt)).Execute()
+		id32, err := utils.SafeInt32(int64(idInt))
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", err))
+			return
+		}
+
+		result, httpResp, err := d.client.IpamAPI.IpamAsnRangesRetrieve(ctx, id32).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading ASNRange",
