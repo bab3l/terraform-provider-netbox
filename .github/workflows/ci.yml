@@ -23,10 +23,13 @@ jobs:
         with:
           path: |
             ~/.cache/go-build
-            ${{ github.workspace }}/go.sum
+            ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+
+      - name: Download dependencies
+        run: go mod download
 
       - name: Go Vet
         run: go vet ./...
