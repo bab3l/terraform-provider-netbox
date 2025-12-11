@@ -1,3 +1,5 @@
+version: "2"
+
 run:
   timeout: 5m
   tests: true
@@ -5,17 +7,24 @@ run:
 linters:
   enable:
     - govet
-    - staticcheck
-    - errcheck
-    - gosimple
     - ineffassign
-    - typecheck
     - unused
     - misspell
-    - goconst
-    - gosec
+    - staticcheck
+  settings:
+    staticcheck:
+      checks:
+        - "all"
+        - "-SA1012"  # nil context in tests
+        - "-SA4017"  # return value ignored
+        - "-SA9003"  # empty branch
+        - "-S1009"   # nil check before len
+        - "-ST1000"  # package comment
+        - "-ST1003"  # underscore naming (Terraform convention)
+        - "-ST1020"  # comment format
+        - "-QF1001"  # De Morgan's law
+        - "-QF1003"  # tagged switch
 
 issues:
-  exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0

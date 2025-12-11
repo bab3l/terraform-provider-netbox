@@ -3,7 +3,7 @@ module github.com/bab3l/terraform-provider-netbox
 go 1.24.5
 
 require (
-	github.com/bab3l/go-netbox v0.0.0-20250803051335-3b7c9a5df626
+	github.com/bab3l/go-netbox v0.0.0-20251211090307-a36f250675a8
 	github.com/hashicorp/terraform-plugin-framework v1.15.1
 	github.com/hashicorp/terraform-plugin-framework-validators v0.18.0
 	github.com/hashicorp/terraform-plugin-go v0.28.0
@@ -64,5 +64,3 @@ require (
 	google.golang.org/grpc v1.72.1 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 )
-
-replace github.com/bab3l/go-netbox => ../go-netbox

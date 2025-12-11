@@ -346,7 +346,7 @@ func ParseInt32(value types.String) int32 {
 		return 0
 	}
 	var result int32
-	fmt.Sscanf(value.ValueString(), "%d", &result)
+	_, _ = fmt.Sscanf(value.ValueString(), "%d", &result)
 	return result
 }
 
@@ -357,7 +357,7 @@ func ParseInt32FromString(s string) int32 {
 		return 0
 	}
 	var result int32
-	fmt.Sscanf(s, "%d", &result)
+	_, _ = fmt.Sscanf(s, "%d", &result)
 	return result
 }
 
