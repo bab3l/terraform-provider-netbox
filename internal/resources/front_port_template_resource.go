@@ -189,6 +189,7 @@ func (r *FrontPortTemplateResource) Create(ctx context.Context, req resource.Cre
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimFrontPortTemplatesCreate(ctx).WritableFrontPortTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating front port template",
@@ -223,6 +224,7 @@ func (r *FrontPortTemplateResource) Read(ctx context.Context, req resource.ReadR
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimFrontPortTemplatesRetrieve(ctx, templateID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Front port template not found, removing from state", map[string]interface{}{
@@ -302,6 +304,7 @@ func (r *FrontPortTemplateResource) Update(ctx context.Context, req resource.Upd
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimFrontPortTemplatesUpdate(ctx, templateID).WritableFrontPortTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating front port template",
@@ -332,6 +335,7 @@ func (r *FrontPortTemplateResource) Delete(ctx context.Context, req resource.Del
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimFrontPortTemplatesDestroy(ctx, templateID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Resource already deleted

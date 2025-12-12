@@ -202,6 +202,7 @@ func (d *ConfigContextDataSource) Read(ctx context.Context, req datasource.ReadR
 		})
 
 		result, httpResp, err = d.client.ExtrasAPI.ExtrasConfigContextsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else {
 		// Lookup by name
 		tflog.Debug(ctx, "Reading config context by name", map[string]interface{}{
@@ -211,6 +212,7 @@ func (d *ConfigContextDataSource) Read(ctx context.Context, req datasource.ReadR
 		listResult, listHttpResp, listErr := d.client.ExtrasAPI.ExtrasConfigContextsList(ctx).
 			Name([]string{data.Name.ValueString()}).
 			Execute()
+		defer utils.CloseResponseBody(listHttpResp)
 		httpResp = listHttpResp
 		err = listErr
 

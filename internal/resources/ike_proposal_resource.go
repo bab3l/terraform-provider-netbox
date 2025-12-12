@@ -177,6 +177,7 @@ func (r *IKEProposalResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Create the IKEProposal
 	ike, httpResp, err := r.client.VpnAPI.VpnIkeProposalsCreate(ctx).WritableIKEProposalRequest(*ikeRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating IKEProposal",
@@ -222,6 +223,7 @@ func (r *IKEProposalResource) Read(ctx context.Context, req resource.ReadRequest
 
 	// Read the IKEProposal
 	ike, httpResp, err := r.client.VpnAPI.VpnIkeProposalsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "IKEProposal not found, removing from state", map[string]interface{}{
@@ -293,6 +295,7 @@ func (r *IKEProposalResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Update the IKEProposal
 	ike, httpResp, err := r.client.VpnAPI.VpnIkeProposalsUpdate(ctx, id).WritableIKEProposalRequest(*ikeRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating IKEProposal",
@@ -339,6 +342,7 @@ func (r *IKEProposalResource) Delete(ctx context.Context, req resource.DeleteReq
 
 	// Delete the IKEProposal
 	httpResp, err := r.client.VpnAPI.VpnIkeProposalsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted

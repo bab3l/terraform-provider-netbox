@@ -151,6 +151,7 @@ func (r *TagResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	tag, httpResp, err := r.client.ExtrasAPI.ExtrasTagsRetrieve(ctx, tagID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading tag", utils.FormatAPIError(fmt.Sprintf("read tag ID %s", data.ID.ValueString()), err, httpResp))
 		return
@@ -200,6 +201,7 @@ func (r *TagResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 
 	tag, httpResp, err := r.client.ExtrasAPI.ExtrasTagsUpdate(ctx, tagID).TagRequest(*tagRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating tag", utils.FormatAPIError(fmt.Sprintf("update tag ID %s", data.ID.ValueString()), err, httpResp))
 		return
@@ -229,6 +231,7 @@ func (r *TagResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 
 	httpResp, err := r.client.ExtrasAPI.ExtrasTagsDestroy(ctx, tagID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting tag", utils.FormatAPIError(fmt.Sprintf("delete tag ID %s", data.ID.ValueString()), err, httpResp))
 		return

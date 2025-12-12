@@ -118,6 +118,7 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 		// Retrieve the device role via API
 		deviceRole, httpResp, err = d.client.DcimAPI.DcimDeviceRolesRetrieve(ctx, deviceRoleIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Slug.IsNull() {
 		// Search by slug
 		deviceRoleSlug := data.Slug.ValueString()
@@ -128,6 +129,7 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		// List device roles with slug filter
 		var deviceRoles *netbox.PaginatedDeviceRoleList
 		deviceRoles, httpResp, err = d.client.DcimAPI.DcimDeviceRolesList(ctx).Slug([]string{deviceRoleSlug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading device role",
@@ -160,6 +162,7 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		// List device roles with name filter
 		var deviceRoles *netbox.PaginatedDeviceRoleList
 		deviceRoles, httpResp, err = d.client.DcimAPI.DcimDeviceRolesList(ctx).Name([]string{deviceRoleName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading device role",

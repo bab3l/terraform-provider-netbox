@@ -195,6 +195,7 @@ func (d *PrefixDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		}
 
 		result, httpResp, err := d.client.IpamAPI.IpamPrefixesRetrieve(ctx, id32).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading prefix",
@@ -213,6 +214,7 @@ func (d *PrefixDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		listReq = listReq.Prefix([]string{data.Prefix.ValueString()})
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing prefixes",

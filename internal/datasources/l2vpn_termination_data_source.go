@@ -110,6 +110,7 @@ func (d *L2VPNTerminationDataSource) Read(ctx context.Context, req datasource.Re
 
 	// Read from API
 	termination, httpResp, err := d.client.VpnAPI.VpnL2vpnTerminationsRetrieve(ctx, idInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading L2VPN termination",

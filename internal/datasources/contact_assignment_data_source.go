@@ -112,6 +112,7 @@ func (d *ContactAssignmentDataSource) Read(ctx context.Context, req datasource.R
 	})
 
 	result, httpResp, err := d.client.TenancyAPI.TenancyContactAssignmentsRetrieve(ctx, idInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading contact assignment",

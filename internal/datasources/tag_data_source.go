@@ -92,6 +92,7 @@ func (d *TagDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			return
 		}
 		tag, httpResp, err = d.client.ExtrasAPI.ExtrasTagsRetrieve(ctx, tagID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error reading tag", utils.FormatAPIError("read tag", err, httpResp))
 			return
@@ -99,6 +100,7 @@ func (d *TagDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	} else if !data.Slug.IsNull() && !data.Slug.IsUnknown() {
 		slug := data.Slug.ValueString()
 		tags, httpResp, listErr := d.client.ExtrasAPI.ExtrasTagsList(ctx).Slug([]string{slug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if listErr != nil {
 			resp.Diagnostics.AddError("Error reading tag", utils.FormatAPIError("read tag by slug", listErr, httpResp))
 			return
@@ -111,6 +113,7 @@ func (d *TagDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		name := data.Name.ValueString()
 		tags, httpResp, listErr := d.client.ExtrasAPI.ExtrasTagsList(ctx).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if listErr != nil {
 			resp.Diagnostics.AddError("Error reading tag", utils.FormatAPIError("read tag by name", listErr, httpResp))
 			return

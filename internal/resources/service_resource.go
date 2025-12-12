@@ -227,6 +227,7 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 	})
 
 	response, httpResp, err := r.client.IpamAPI.IpamServicesCreate(ctx).WritableServiceRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating service",
@@ -272,6 +273,7 @@ func (r *ServiceResource) Read(ctx context.Context, req resource.ReadRequest, re
 	})
 
 	response, httpResp, err := r.client.IpamAPI.IpamServicesRetrieve(ctx, svcID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -402,6 +404,7 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 	})
 
 	response, httpResp, err := r.client.IpamAPI.IpamServicesUpdate(ctx, svcID).WritableServiceRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating service",
@@ -442,6 +445,7 @@ func (r *ServiceResource) Delete(ctx context.Context, req resource.DeleteRequest
 	})
 
 	httpResp, err := r.client.IpamAPI.IpamServicesDestroy(ctx, svcID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return
@@ -466,6 +470,7 @@ func (r *ServiceResource) ImportState(ctx context.Context, req resource.ImportSt
 	}
 
 	response, httpResp, err := r.client.IpamAPI.IpamServicesRetrieve(ctx, svcID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing service",

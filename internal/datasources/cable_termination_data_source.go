@@ -122,6 +122,7 @@ func (d *CableTerminationDataSource) Read(ctx context.Context, req datasource.Re
 
 	// Read from API
 	result, httpResp, err := d.client.DcimAPI.DcimCableTerminationsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading cable termination",

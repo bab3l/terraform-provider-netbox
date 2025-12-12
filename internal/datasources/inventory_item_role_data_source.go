@@ -131,6 +131,7 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimInventoryItemRolesRetrieve(ctx, roleID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading inventory item role",
@@ -157,6 +158,7 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 		}
 
 		response, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading inventory item roles",

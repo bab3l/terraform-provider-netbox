@@ -251,6 +251,7 @@ func (r *ContactAssignmentResource) Read(ctx context.Context, req resource.ReadR
 	})
 
 	assignment, httpResp, err := r.client.TenancyAPI.TenancyContactAssignmentsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Info(ctx, "Contact assignment not found, removing from state", map[string]interface{}{
@@ -420,6 +421,7 @@ func (r *ContactAssignmentResource) Delete(ctx context.Context, req resource.Del
 	})
 
 	httpResp, err := r.client.TenancyAPI.TenancyContactAssignmentsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Info(ctx, "Contact assignment already deleted", map[string]interface{}{

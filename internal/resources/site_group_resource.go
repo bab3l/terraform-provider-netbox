@@ -131,6 +131,7 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 
 	// Create the site group via API
 	siteGroup, httpResp, err := r.client.DcimAPI.DcimSiteGroupsCreate(ctx).WritableSiteGroupRequest(siteGroupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		handler := utils.CreateErrorHandler{
 			ResourceType: "netbox_site_group",
@@ -186,6 +187,7 @@ func (r *SiteGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	siteGroup, httpResp, err := r.client.DcimAPI.DcimSiteGroupsRetrieve(ctx, siteGroupIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading site group", utils.FormatAPIError(fmt.Sprintf("read site group ID %s", siteGroupID), err, httpResp))
 		return
@@ -260,6 +262,7 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	siteGroup, httpResp, err := r.client.DcimAPI.DcimSiteGroupsUpdate(ctx, siteGroupIDInt).WritableSiteGroupRequest(siteGroupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating site group", utils.FormatAPIError(fmt.Sprintf("update site group ID %s", siteGroupID), err, httpResp))
 		return
@@ -291,6 +294,7 @@ func (r *SiteGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 
 	httpResp, err := r.client.DcimAPI.DcimSiteGroupsDestroy(ctx, siteGroupIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting site group", utils.FormatAPIError(fmt.Sprintf("delete site group ID %s", siteGroupID), err, httpResp))
 		return

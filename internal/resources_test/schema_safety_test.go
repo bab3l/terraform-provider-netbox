@@ -86,7 +86,6 @@ func TestAllResourcesHaveIDField(t *testing.T) {
 	t.Parallel()
 
 	for _, ri := range allResources() {
-		ri := ri // capture range variable
 		t.Run(ri.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -121,7 +120,6 @@ func TestOptionalFieldsAreNotRequired(t *testing.T) {
 	t.Parallel()
 
 	for _, ri := range allResources() {
-		ri := ri
 		t.Run(ri.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -155,7 +153,6 @@ func TestRequiredFieldsAreMarkedRequired(t *testing.T) {
 	t.Parallel()
 
 	for _, ri := range allResources() {
-		ri := ri
 		t.Run(ri.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -188,7 +185,6 @@ func TestComputedFieldsAreMarkedComputed(t *testing.T) {
 	t.Parallel()
 
 	for _, ri := range allResources() {
-		ri := ri
 		t.Run(ri.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -231,7 +227,6 @@ func TestOptionalStringFieldsAllowNull(t *testing.T) {
 	}
 
 	for _, ri := range allResources() {
-		ri := ri
 		fieldsToCheck, ok := stringFieldsToCheck[ri.name]
 		if !ok {
 			continue
@@ -279,7 +274,6 @@ func TestResourceMetadataPrefix(t *testing.T) {
 	t.Parallel()
 
 	for _, ri := range allResources() {
-		ri := ri
 		t.Run(ri.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -300,7 +294,6 @@ func TestAllDeclaredFieldsExistInSchema(t *testing.T) {
 	t.Parallel()
 
 	for _, ri := range allResources() {
-		ri := ri
 		t.Run(ri.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -333,7 +326,6 @@ func TestNoUnexpectedFieldsInSchema(t *testing.T) {
 	t.Parallel()
 
 	for _, ri := range allResources() {
-		ri := ri
 		t.Run(ri.name, func(t *testing.T) {
 			t.Parallel()
 

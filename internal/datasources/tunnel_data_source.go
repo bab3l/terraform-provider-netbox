@@ -132,6 +132,7 @@ func (d *TunnelDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 		// Retrieve the tunnel via API
 		tunnel, httpResp, err = d.client.VpnAPI.VpnTunnelsRetrieve(ctx, tunnelIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Name.IsNull() {
 		// Search by name
 		tunnelName := data.Name.ValueString()
@@ -142,6 +143,7 @@ func (d *TunnelDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		// List tunnels with name filter
 		var tunnels *netbox.PaginatedTunnelList
 		tunnels, httpResp, err = d.client.VpnAPI.VpnTunnelsList(ctx).Name([]string{tunnelName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading tunnel",

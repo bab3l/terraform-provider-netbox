@@ -58,7 +58,6 @@ func TestAllDataSourcesHaveSearchFields(t *testing.T) {
 	t.Parallel()
 
 	for _, dsi := range allDataSources() {
-		dsi := dsi
 		t.Run(dsi.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -102,7 +101,6 @@ func TestDataSourceReturnedFieldsAreComputed(t *testing.T) {
 	t.Parallel()
 
 	for _, dsi := range allDataSources() {
-		dsi := dsi
 		t.Run(dsi.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -135,7 +133,6 @@ func TestDataSourceMetadataPrefix(t *testing.T) {
 	t.Parallel()
 
 	for _, dsi := range allDataSources() {
-		dsi := dsi
 		t.Run(dsi.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -157,7 +154,6 @@ func TestDataSourceSearchFieldsAreOptionalAndComputed(t *testing.T) {
 	t.Parallel()
 
 	for _, dsi := range allDataSources() {
-		dsi := dsi
 		t.Run(dsi.name, func(t *testing.T) {
 			t.Parallel()
 

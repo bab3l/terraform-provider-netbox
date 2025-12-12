@@ -120,6 +120,7 @@ func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	l2vpn, httpResp, err := r.client.VpnAPI.VpnL2vpnsRetrieve(ctx, l2vpnID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error looking up L2VPN",
@@ -166,6 +167,7 @@ func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.Crea
 
 	// Call the API
 	termination, httpResp, err := r.client.VpnAPI.VpnL2vpnTerminationsCreate(ctx).L2VPNTerminationRequest(*terminationRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating L2VPN termination",
@@ -207,6 +209,7 @@ func (r *L2VPNTerminationResource) Read(ctx context.Context, req resource.ReadRe
 
 	// Read from API
 	termination, httpResp, err := r.client.VpnAPI.VpnL2vpnTerminationsRetrieve(ctx, idInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -257,6 +260,7 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	l2vpn, httpResp, err := r.client.VpnAPI.VpnL2vpnsRetrieve(ctx, l2vpnID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error looking up L2VPN",
@@ -304,6 +308,7 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 
 	// Call the API
 	termination, httpResp, err := r.client.VpnAPI.VpnL2vpnTerminationsUpdate(ctx, idInt).L2VPNTerminationRequest(*terminationRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating L2VPN termination",
@@ -345,6 +350,7 @@ func (r *L2VPNTerminationResource) Delete(ctx context.Context, req resource.Dele
 
 	// Call the API
 	httpResp, err := r.client.VpnAPI.VpnL2vpnTerminationsDestroy(ctx, idInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted

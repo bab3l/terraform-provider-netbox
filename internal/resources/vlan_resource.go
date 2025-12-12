@@ -133,6 +133,7 @@ func (r *VLANResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// Create the VLAN via API
 	vlan, httpResp, err := r.client.IpamAPI.IpamVlansCreate(ctx).WritableVLANRequest(vlanRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		handler := utils.CreateErrorHandler{
 			ResourceType: "netbox_vlan",
@@ -181,6 +182,7 @@ func (r *VLANResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	// Read the VLAN via API
 	vlan, httpResp, err := r.client.IpamAPI.IpamVlansRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "VLAN not found, removing from state", map[string]interface{}{
@@ -254,6 +256,7 @@ func (r *VLANResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// Update the VLAN via API
 	vlan, httpResp, err := r.client.IpamAPI.IpamVlansUpdate(ctx, id).WritableVLANRequest(vlanRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating VLAN",
@@ -301,6 +304,7 @@ func (r *VLANResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 	// Delete the VLAN via API
 	httpResp, err := r.client.IpamAPI.IpamVlansDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "VLAN already deleted", map[string]interface{}{

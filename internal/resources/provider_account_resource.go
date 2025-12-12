@@ -135,6 +135,7 @@ func (r *ProviderAccountResource) Create(ctx context.Context, req resource.Creat
 
 	// Call API to create provider account
 	providerAccount, httpResp, err := r.client.CircuitsAPI.CircuitsProviderAccountsCreate(ctx).ProviderAccountRequest(*createReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating provider account",
@@ -179,6 +180,7 @@ func (r *ProviderAccountResource) Read(ctx context.Context, req resource.ReadReq
 
 	// Call API to read provider account
 	providerAccount, httpResp, err := r.client.CircuitsAPI.CircuitsProviderAccountsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Provider account not found, removing from state", map[string]interface{}{
@@ -233,6 +235,7 @@ func (r *ProviderAccountResource) Update(ctx context.Context, req resource.Updat
 
 	// Call API to update provider account
 	providerAccount, httpResp, err := r.client.CircuitsAPI.CircuitsProviderAccountsUpdate(ctx, id).ProviderAccountRequest(*updateReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating provider account",
@@ -277,6 +280,7 @@ func (r *ProviderAccountResource) Delete(ctx context.Context, req resource.Delet
 
 	// Call API to delete provider account
 	httpResp, err := r.client.CircuitsAPI.CircuitsProviderAccountsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Provider account already deleted", map[string]interface{}{

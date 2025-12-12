@@ -143,6 +143,7 @@ func (d *IPSecProposalDataSource) Read(ctx context.Context, req datasource.ReadR
 		})
 
 		result, httpResp, err := d.client.VpnAPI.VpnIpsecProposalsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading IPSecProposal",
@@ -161,6 +162,7 @@ func (d *IPSecProposalDataSource) Read(ctx context.Context, req datasource.ReadR
 		listReq = listReq.Name([]string{data.Name.ValueString()})
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing IPSecProposals",

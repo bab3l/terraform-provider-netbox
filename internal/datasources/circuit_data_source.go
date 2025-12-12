@@ -123,6 +123,7 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		}
 
 		circuit, httpResp, err = d.client.CircuitsAPI.CircuitsCircuitsRetrieve(ctx, circuitIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Cid.IsNull() {
 		// Search by cid
 		circuitCid := data.Cid.ValueString()
@@ -132,6 +133,7 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 		var circuits *netbox.PaginatedCircuitList
 		circuits, httpResp, err = d.client.CircuitsAPI.CircuitsCircuitsList(ctx).Cid([]string{circuitCid}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading circuit",

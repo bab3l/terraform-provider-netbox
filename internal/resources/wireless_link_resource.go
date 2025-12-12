@@ -173,6 +173,7 @@ func (r *WirelessLinkResource) lookupInterfaceBrief(ctx context.Context, interfa
 	}
 
 	iface, httpResp, err := r.client.DcimAPI.DcimInterfacesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		diags.AddError("Error Looking Up Interface",
 			utils.FormatAPIError(fmt.Sprintf("lookup interface ID %d", id), err, httpResp))
@@ -239,6 +240,7 @@ func (r *WirelessLinkResource) Create(ctx context.Context, req resource.CreateRe
 			return
 		}
 		tenant, httpResp, err := r.client.TenancyAPI.TenancyTenantsRetrieve(ctx, tenantID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error Looking Up Tenant",
 				utils.FormatAPIError(fmt.Sprintf("lookup tenant ID %d", tenantID), err, httpResp))
@@ -345,6 +347,7 @@ func (r *WirelessLinkResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	result, httpResp, err := r.client.WirelessAPI.WirelessWirelessLinksRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Wireless link not found, removing from state", map[string]interface{}{"id": id})
@@ -420,6 +423,7 @@ func (r *WirelessLinkResource) Update(ctx context.Context, req resource.UpdateRe
 			return
 		}
 		tenant, httpResp, err := r.client.TenancyAPI.TenancyTenantsRetrieve(ctx, tenantID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error Looking Up Tenant",
 				utils.FormatAPIError(fmt.Sprintf("lookup tenant ID %d", tenantID), err, httpResp))
@@ -524,6 +528,7 @@ func (r *WirelessLinkResource) Delete(ctx context.Context, req resource.DeleteRe
 	tflog.Debug(ctx, "Deleting wireless link", map[string]interface{}{"id": id})
 
 	httpResp, err := r.client.WirelessAPI.WirelessWirelessLinksDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Deleting Wireless Link",
 			utils.FormatAPIError(fmt.Sprintf("delete wireless link ID %d", id), err, httpResp))

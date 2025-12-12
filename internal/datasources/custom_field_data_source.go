@@ -206,6 +206,7 @@ func (d *CustomFieldDataSource) Read(ctx context.Context, req datasource.ReadReq
 		})
 
 		cf, httpResp, err := d.client.ExtrasAPI.ExtrasCustomFieldsRetrieve(ctx, customFieldID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading custom field",
@@ -221,6 +222,7 @@ func (d *CustomFieldDataSource) Read(ctx context.Context, req datasource.ReadReq
 		})
 
 		listResp, httpResp, err := d.client.ExtrasAPI.ExtrasCustomFieldsList(ctx).Name([]string{data.Name.ValueString()}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading custom field",

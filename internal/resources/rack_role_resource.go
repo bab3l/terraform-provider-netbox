@@ -139,6 +139,7 @@ func (r *RackRoleResource) Create(ctx context.Context, req resource.CreateReques
 
 	// Create the rack role via API
 	rackRole, httpResp, err := r.client.DcimAPI.DcimRackRolesCreate(ctx).RackRoleRequest(rackRoleRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// Use enhanced error handler that detects duplicates and provides import hints
 		handler := utils.CreateErrorHandler{
@@ -211,6 +212,7 @@ func (r *RackRoleResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	// Retrieve the rack role via API
 	rackRole, httpResp, err := r.client.DcimAPI.DcimRackRolesRetrieve(ctx, rackRoleIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Rack role no longer exists, remove from state
@@ -311,6 +313,7 @@ func (r *RackRoleResource) Update(ctx context.Context, req resource.UpdateReques
 
 	// Update the rack role via API
 	rackRole, httpResp, err := r.client.DcimAPI.DcimRackRolesUpdate(ctx, rackRoleIDInt).RackRoleRequest(rackRoleRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating rack role",
@@ -367,6 +370,7 @@ func (r *RackRoleResource) Delete(ctx context.Context, req resource.DeleteReques
 
 	// Delete the rack role via API
 	httpResp, err := r.client.DcimAPI.DcimRackRolesDestroy(ctx, rackRoleIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting rack role",

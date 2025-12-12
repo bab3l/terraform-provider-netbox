@@ -98,6 +98,7 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		})
 
 		script, httpResp, err = d.client.ExtrasAPI.ExtrasScriptsRetrieve(ctx, data.ID.ValueString()).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		// Lookup by name
 		tflog.Debug(ctx, "Reading script by name", map[string]interface{}{
@@ -108,6 +109,7 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			Name([]string{data.Name.ValueString()}).
 			Execute()
 		httpResp = listResp
+		defer utils.CloseResponseBody(httpResp)
 		err = listErr
 
 		if err == nil {

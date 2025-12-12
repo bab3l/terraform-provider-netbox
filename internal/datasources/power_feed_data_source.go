@@ -178,6 +178,7 @@ func (d *PowerFeedDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		result, httpResp, err := d.client.DcimAPI.DcimPowerFeedsRetrieve(ctx, pfID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading power feed",
@@ -208,6 +209,7 @@ func (d *PowerFeedDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 
 		listResp, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading power feed",

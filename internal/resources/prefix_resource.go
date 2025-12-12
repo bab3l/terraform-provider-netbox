@@ -172,6 +172,7 @@ func (r *PrefixResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Create the prefix
 	prefix, httpResp, err := r.client.IpamAPI.IpamPrefixesCreate(ctx).WritablePrefixRequest(*prefixRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating prefix",
@@ -218,6 +219,7 @@ func (r *PrefixResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	// Get the prefix from Netbox
 	prefix, httpResp, err := r.client.IpamAPI.IpamPrefixesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -278,6 +280,7 @@ func (r *PrefixResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	// Update the prefix
 	prefix, httpResp, err := r.client.IpamAPI.IpamPrefixesUpdate(ctx, id).WritablePrefixRequest(*prefixRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating prefix",
@@ -324,6 +327,7 @@ func (r *PrefixResource) Delete(ctx context.Context, req resource.DeleteRequest,
 
 	// Delete the prefix
 	httpResp, err := r.client.IpamAPI.IpamPrefixesDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting prefix",

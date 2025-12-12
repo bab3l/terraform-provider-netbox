@@ -164,6 +164,7 @@ func (d *NotificationGroupDataSource) Read(ctx context.Context, req datasource.R
 	tflog.Debug(ctx, "Reading notification group", map[string]interface{}{"id": id})
 
 	result, httpResp, err := d.client.ExtrasAPI.ExtrasNotificationGroupsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Reading Notification Group",
 			utils.FormatAPIError(fmt.Sprintf("read notification group ID %d", id), err, httpResp))

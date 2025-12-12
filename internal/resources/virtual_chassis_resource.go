@@ -119,6 +119,7 @@ func (r *VirtualChassisResource) Create(ctx context.Context, req resource.Create
 	})
 
 	vc, httpResp, err := r.client.DcimAPI.DcimVirtualChassisCreate(ctx).WritableVirtualChassisRequest(*vcRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating virtual chassis",
@@ -164,6 +165,7 @@ func (r *VirtualChassisResource) Read(ctx context.Context, req resource.ReadRequ
 	})
 
 	vc, httpResp, err := r.client.DcimAPI.DcimVirtualChassisRetrieve(ctx, vcID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -215,6 +217,7 @@ func (r *VirtualChassisResource) Update(ctx context.Context, req resource.Update
 	})
 
 	vc, httpResp, err := r.client.DcimAPI.DcimVirtualChassisUpdate(ctx, vcID).WritableVirtualChassisRequest(*vcRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating virtual chassis",
@@ -255,6 +258,7 @@ func (r *VirtualChassisResource) Delete(ctx context.Context, req resource.Delete
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimVirtualChassisDestroy(ctx, vcID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return

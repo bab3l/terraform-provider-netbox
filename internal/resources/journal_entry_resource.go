@@ -132,6 +132,7 @@ func (r *JournalEntryResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Create the Journal Entry via API
 	journalEntry, httpResp, err := r.client.ExtrasAPI.ExtrasJournalEntriesCreate(ctx).WritableJournalEntryRequest(journalEntryRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Journal Entry",
@@ -163,6 +164,7 @@ func (r *JournalEntryResource) Read(ctx context.Context, req resource.ReadReques
 	// Get the Journal Entry via API
 	id := data.ID.ValueInt32()
 	journalEntry, httpResp, err := r.client.ExtrasAPI.ExtrasJournalEntriesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Journal Entry not found, removing from state", map[string]interface{}{
@@ -215,6 +217,7 @@ func (r *JournalEntryResource) Update(ctx context.Context, req resource.UpdateRe
 
 	// Update the Journal Entry via API
 	journalEntry, httpResp, err := r.client.ExtrasAPI.ExtrasJournalEntriesUpdate(ctx, id).WritableJournalEntryRequest(journalEntryRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Journal Entry",
@@ -251,6 +254,7 @@ func (r *JournalEntryResource) Delete(ctx context.Context, req resource.DeleteRe
 
 	// Delete the Journal Entry via API
 	httpResp, err := r.client.ExtrasAPI.ExtrasJournalEntriesDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted

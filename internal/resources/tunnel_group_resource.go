@@ -129,6 +129,7 @@ func (r *TunnelGroupResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Create via API
 	tunnelGroup, httpResp, err := r.client.VpnAPI.VpnTunnelGroupsCreate(ctx).TunnelGroupRequest(tunnelGroupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		handler := utils.CreateErrorHandler{
 			ResourceType: "netbox_tunnel_group",
@@ -186,6 +187,7 @@ func (r *TunnelGroupResource) Read(ctx context.Context, req resource.ReadRequest
 	})
 
 	tunnelGroup, httpResp, err := r.client.VpnAPI.VpnTunnelGroupsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -263,6 +265,7 @@ func (r *TunnelGroupResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Update via API
 	tunnelGroup, httpResp, err := r.client.VpnAPI.VpnTunnelGroupsUpdate(ctx, id).TunnelGroupRequest(tunnelGroupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating tunnel group",
@@ -307,6 +310,7 @@ func (r *TunnelGroupResource) Delete(ctx context.Context, req resource.DeleteReq
 	})
 
 	httpResp, err := r.client.VpnAPI.VpnTunnelGroupsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting tunnel group",

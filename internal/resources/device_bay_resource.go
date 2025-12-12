@@ -116,6 +116,7 @@ func (r *DeviceBayResource) Create(ctx context.Context, req resource.CreateReque
 	})
 
 	db, httpResp, err := r.client.DcimAPI.DcimDeviceBaysCreate(ctx).DeviceBayRequest(*dbRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating device bay",
@@ -161,6 +162,7 @@ func (r *DeviceBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 	})
 
 	db, httpResp, err := r.client.DcimAPI.DcimDeviceBaysRetrieve(ctx, dbID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -212,6 +214,7 @@ func (r *DeviceBayResource) Update(ctx context.Context, req resource.UpdateReque
 	})
 
 	db, httpResp, err := r.client.DcimAPI.DcimDeviceBaysUpdate(ctx, dbID).DeviceBayRequest(*dbRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating device bay",
@@ -252,6 +255,7 @@ func (r *DeviceBayResource) Delete(ctx context.Context, req resource.DeleteReque
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimDeviceBaysDestroy(ctx, dbID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return

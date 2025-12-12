@@ -122,6 +122,7 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		result, httpResp, err := d.client.IpamAPI.IpamFhrpGroupsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error Reading FHRP Group",
@@ -145,6 +146,7 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		listReq = listReq.GroupId([]int32{groupID})
 
 		list, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error Reading FHRP Group",

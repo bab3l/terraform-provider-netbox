@@ -134,6 +134,7 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 			return
 		}
 		t, httpResp, err := d.client.DcimAPI.DcimDeviceBayTemplatesRetrieve(ctx, id32).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading DeviceBayTemplate",
@@ -166,6 +167,7 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 		}
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing DeviceBayTemplates",

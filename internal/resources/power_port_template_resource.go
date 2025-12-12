@@ -174,6 +174,7 @@ func (r *PowerPortTemplateResource) Create(ctx context.Context, req resource.Cre
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerPortTemplatesCreate(ctx).WritablePowerPortTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating power port template",
@@ -208,6 +209,7 @@ func (r *PowerPortTemplateResource) Read(ctx context.Context, req resource.ReadR
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerPortTemplatesRetrieve(ctx, templateID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Power port template not found, removing from state", map[string]interface{}{
@@ -283,6 +285,7 @@ func (r *PowerPortTemplateResource) Update(ctx context.Context, req resource.Upd
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerPortTemplatesUpdate(ctx, templateID).WritablePowerPortTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating power port template",
@@ -313,6 +316,7 @@ func (r *PowerPortTemplateResource) Delete(ctx context.Context, req resource.Del
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimPowerPortTemplatesDestroy(ctx, templateID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Resource already deleted

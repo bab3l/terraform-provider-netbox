@@ -169,6 +169,7 @@ func (d *CircuitTerminationDataSource) Read(ctx context.Context, req datasource.
 		})
 
 		result, httpResp, err := d.client.CircuitsAPI.CircuitsCircuitTerminationsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading circuit termination",

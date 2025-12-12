@@ -162,6 +162,7 @@ func (r *IPRangeResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// Create the IP range
 	ipRange, httpResp, err := r.client.IpamAPI.IpamIpRangesCreate(ctx).WritableIPRangeRequest(*ipRangeRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating IP range",
@@ -209,6 +210,7 @@ func (r *IPRangeResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	// Get the IP range from Netbox
 	ipRange, httpResp, err := r.client.IpamAPI.IpamIpRangesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -271,6 +273,7 @@ func (r *IPRangeResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// Update the IP range
 	ipRange, httpResp, err := r.client.IpamAPI.IpamIpRangesUpdate(ctx, id).WritableIPRangeRequest(*ipRangeRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating IP range",
@@ -318,6 +321,7 @@ func (r *IPRangeResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 	// Delete the IP range
 	httpResp, err := r.client.IpamAPI.IpamIpRangesDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting IP range",

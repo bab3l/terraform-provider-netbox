@@ -102,6 +102,7 @@ func (d *ContactDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			return
 		}
 		contact, httpResp, err = d.client.TenancyAPI.TenancyContactsRetrieve(ctx, contactID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error reading contact", utils.FormatAPIError("read contact", err, httpResp))
 			return
@@ -109,6 +110,7 @@ func (d *ContactDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		name := data.Name.ValueString()
 		contacts, httpResp, listErr := d.client.TenancyAPI.TenancyContactsList(ctx).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if listErr != nil {
 			resp.Diagnostics.AddError("Error reading contact", utils.FormatAPIError("read contact by name", listErr, httpResp))
 			return
@@ -121,6 +123,7 @@ func (d *ContactDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	} else if !data.Email.IsNull() && !data.Email.IsUnknown() {
 		email := data.Email.ValueString()
 		contacts, httpResp, listErr := d.client.TenancyAPI.TenancyContactsList(ctx).Email([]string{email}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if listErr != nil {
 			resp.Diagnostics.AddError("Error reading contact", utils.FormatAPIError("read contact by email", listErr, httpResp))
 			return

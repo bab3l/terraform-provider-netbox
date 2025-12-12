@@ -151,6 +151,7 @@ func (r *IKEPolicyResource) Create(ctx context.Context, req resource.CreateReque
 
 	// Create the IKEPolicy
 	ike, httpResp, err := r.client.VpnAPI.VpnIkePoliciesCreate(ctx).WritableIKEPolicyRequest(*ikeRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating IKEPolicy",
@@ -196,6 +197,7 @@ func (r *IKEPolicyResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	// Read the IKEPolicy
 	ike, httpResp, err := r.client.VpnAPI.VpnIkePoliciesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "IKEPolicy not found, removing from state", map[string]interface{}{
@@ -253,6 +255,7 @@ func (r *IKEPolicyResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Update the IKEPolicy
 	ike, httpResp, err := r.client.VpnAPI.VpnIkePoliciesUpdate(ctx, id).WritableIKEPolicyRequest(*ikeRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating IKEPolicy",
@@ -299,6 +302,7 @@ func (r *IKEPolicyResource) Delete(ctx context.Context, req resource.DeleteReque
 
 	// Delete the IKEPolicy
 	httpResp, err := r.client.VpnAPI.VpnIkePoliciesDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted

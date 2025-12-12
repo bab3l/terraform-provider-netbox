@@ -127,6 +127,7 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 		}
 
 		vm, httpResp, err = d.client.VirtualizationAPI.VirtualizationVirtualMachinesRetrieve(ctx, vmIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Name.IsNull() {
 		// Search by name
 		vmName := data.Name.ValueString()
@@ -136,6 +137,7 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 
 		var vms *netbox.PaginatedVirtualMachineWithConfigContextList
 		vms, httpResp, err = d.client.VirtualizationAPI.VirtualizationVirtualMachinesList(ctx).Name([]string{vmName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading virtual machine",

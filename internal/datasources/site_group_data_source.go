@@ -99,12 +99,14 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			return
 		}
 		siteGroup, httpResp, err = d.client.DcimAPI.DcimSiteGroupsRetrieve(ctx, siteGroupIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Slug.IsNull() {
 		siteGroupSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading site group by slug", map[string]interface{}{"slug": siteGroupSlug})
 
 		var siteGroups *netbox.PaginatedSiteGroupList
 		siteGroups, httpResp, err = d.client.DcimAPI.DcimSiteGroupsList(ctx).Slug([]string{siteGroupSlug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error reading site group", utils.FormatAPIError("read site group by slug", err, httpResp))
 			return
@@ -124,6 +126,7 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 		var siteGroups *netbox.PaginatedSiteGroupList
 		siteGroups, httpResp, err = d.client.DcimAPI.DcimSiteGroupsList(ctx).Name([]string{siteGroupName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error reading site group", utils.FormatAPIError("read site group by name", err, httpResp))
 			return

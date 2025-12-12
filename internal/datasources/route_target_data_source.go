@@ -140,6 +140,7 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 
 		result, httpResp, err := d.client.IpamAPI.IpamRouteTargetsRetrieve(ctx, id32).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading RouteTarget",
@@ -158,6 +159,7 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 		listReq = listReq.Name([]string{data.Name.ValueString()})
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing RouteTargets",

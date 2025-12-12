@@ -243,6 +243,7 @@ func (r *InventoryItemResource) Create(ctx context.Context, req resource.CreateR
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimInventoryItemsCreate(ctx).InventoryItemRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating inventory item",
@@ -288,6 +289,7 @@ func (r *InventoryItemResource) Read(ctx context.Context, req resource.ReadReque
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimInventoryItemsRetrieve(ctx, itemID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -417,6 +419,7 @@ func (r *InventoryItemResource) Update(ctx context.Context, req resource.UpdateR
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimInventoryItemsUpdate(ctx, itemID).InventoryItemRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating inventory item",
@@ -457,6 +460,7 @@ func (r *InventoryItemResource) Delete(ctx context.Context, req resource.DeleteR
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimInventoryItemsDestroy(ctx, itemID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return
@@ -481,6 +485,7 @@ func (r *InventoryItemResource) ImportState(ctx context.Context, req resource.Im
 	}
 
 	response, httpResp, err := r.client.DcimAPI.DcimInventoryItemsRetrieve(ctx, itemID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing inventory item",

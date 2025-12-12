@@ -105,6 +105,7 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		}
 		var t *netbox.Tenant
 		t, httpResp, err = d.client.TenancyAPI.TenancyTenantsRetrieve(ctx, tenantIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err == nil && httpResp.StatusCode == 200 {
 			tenant = t
 		}
@@ -112,6 +113,7 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		slug := data.Slug.ValueString()
 		var tenants *netbox.PaginatedTenantList
 		tenants, httpResp, err = d.client.TenancyAPI.TenancyTenantsList(ctx).Slug([]string{slug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err == nil && httpResp.StatusCode == 200 && len(tenants.GetResults()) > 0 {
 			tenant = &tenants.GetResults()[0]
 		}
@@ -119,6 +121,7 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		name := data.Name.ValueString()
 		var tenants *netbox.PaginatedTenantList
 		tenants, httpResp, err = d.client.TenancyAPI.TenancyTenantsList(ctx).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err == nil && httpResp.StatusCode == 200 && len(tenants.GetResults()) > 0 {
 			tenant = &tenants.GetResults()[0]
 		}

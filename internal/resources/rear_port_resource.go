@@ -197,6 +197,7 @@ func (r *RearPortResource) Create(ctx context.Context, req resource.CreateReques
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimRearPortsCreate(ctx).WritableRearPortRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating rear port",
@@ -241,6 +242,7 @@ func (r *RearPortResource) Read(ctx context.Context, req resource.ReadRequest, r
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimRearPortsRetrieve(ctx, portID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Rear port not found, removing from state", map[string]interface{}{
@@ -339,6 +341,7 @@ func (r *RearPortResource) Update(ctx context.Context, req resource.UpdateReques
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimRearPortsUpdate(ctx, portID).WritableRearPortRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating rear port",
@@ -379,6 +382,7 @@ func (r *RearPortResource) Delete(ctx context.Context, req resource.DeleteReques
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimRearPortsDestroy(ctx, portID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Resource already deleted
@@ -404,6 +408,7 @@ func (r *RearPortResource) ImportState(ctx context.Context, req resource.ImportS
 	}
 
 	response, httpResp, err := r.client.DcimAPI.DcimRearPortsRetrieve(ctx, portID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing rear port",

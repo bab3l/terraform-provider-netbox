@@ -197,6 +197,7 @@ func (r *ModuleTypeResource) Create(ctx context.Context, req resource.CreateRequ
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimModuleTypesCreate(ctx).WritableModuleTypeRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating module type",
@@ -242,6 +243,7 @@ func (r *ModuleTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimModuleTypesRetrieve(ctx, typeID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -343,6 +345,7 @@ func (r *ModuleTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimModuleTypesUpdate(ctx, typeID).WritableModuleTypeRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating module type",
@@ -383,6 +386,7 @@ func (r *ModuleTypeResource) Delete(ctx context.Context, req resource.DeleteRequ
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimModuleTypesDestroy(ctx, typeID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return
@@ -407,6 +411,7 @@ func (r *ModuleTypeResource) ImportState(ctx context.Context, req resource.Impor
 	}
 
 	response, httpResp, err := r.client.DcimAPI.DcimModuleTypesRetrieve(ctx, typeID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing module type",

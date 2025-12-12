@@ -305,6 +305,7 @@ func (r *ConfigContextResource) Read(ctx context.Context, req resource.ReadReque
 	})
 
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasConfigContextsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Warn(ctx, "Config context not found, removing from state", map[string]interface{}{
@@ -430,6 +431,7 @@ func (r *ConfigContextResource) Delete(ctx context.Context, req resource.DeleteR
 	})
 
 	httpResp, err := r.client.ExtrasAPI.ExtrasConfigContextsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting config context",

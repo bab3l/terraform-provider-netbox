@@ -136,6 +136,7 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		}
 
 		result, httpResp, err := d.client.IpamAPI.IpamRirsRetrieve(ctx, id32).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading RIR",
@@ -154,6 +155,7 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		listReq = listReq.Name([]string{data.Name.ValueString()})
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing RIRs",
@@ -189,6 +191,7 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		listReq = listReq.Slug([]string{data.Slug.ValueString()})
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing RIRs",

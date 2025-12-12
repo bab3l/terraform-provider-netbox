@@ -133,6 +133,7 @@ func (d *PowerPortTemplateDataSource) Read(ctx context.Context, req datasource.R
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimPowerPortTemplatesRetrieve(ctx, templateID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading power port template",
@@ -161,6 +162,7 @@ func (d *PowerPortTemplateDataSource) Read(ctx context.Context, req datasource.R
 		}
 
 		response, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading power port template",

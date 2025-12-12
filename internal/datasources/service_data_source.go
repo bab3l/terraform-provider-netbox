@@ -151,6 +151,7 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		})
 
 		result, httpResp, err := d.client.IpamAPI.IpamServicesRetrieve(ctx, svcID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading service",
@@ -194,6 +195,7 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		}
 
 		listResp, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading service",

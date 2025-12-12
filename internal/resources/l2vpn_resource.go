@@ -235,6 +235,7 @@ func (r *L2VPNResource) Create(ctx context.Context, req resource.CreateRequest, 
 
 	// Call the API
 	l2vpn, httpResp, err := r.client.VpnAPI.VpnL2vpnsCreate(ctx).WritableL2VPNRequest(*l2vpnRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating L2VPN",
@@ -277,6 +278,7 @@ func (r *L2VPNResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 	// Read from API
 	l2vpn, httpResp, err := r.client.VpnAPI.VpnL2vpnsRetrieve(ctx, idInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -420,6 +422,7 @@ func (r *L2VPNResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 	// Call the API
 	l2vpn, httpResp, err := r.client.VpnAPI.VpnL2vpnsUpdate(ctx, idInt).WritableL2VPNRequest(*l2vpnRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating L2VPN",
@@ -462,6 +465,7 @@ func (r *L2VPNResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 
 	// Call the API
 	httpResp, err := r.client.VpnAPI.VpnL2vpnsDestroy(ctx, idInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted

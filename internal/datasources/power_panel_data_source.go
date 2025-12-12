@@ -133,6 +133,7 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		})
 
 		result, httpResp, err := d.client.DcimAPI.DcimPowerPanelsRetrieve(ctx, ppID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading power panel",
@@ -163,6 +164,7 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		}
 
 		listResp, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading power panel",

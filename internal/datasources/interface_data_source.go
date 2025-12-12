@@ -139,6 +139,7 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		iface, httpResp, err = d.client.DcimAPI.DcimInterfacesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading interface",
@@ -159,6 +160,7 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 		if _, parseErr := fmt.Sscanf(deviceValue, "%d", &deviceID); parseErr != nil {
 			// Not a number, try to look up by name
 			deviceList, deviceResp, deviceErr := d.client.DcimAPI.DcimDevicesList(ctx).Name([]string{deviceValue}).Execute()
+			defer utils.CloseResponseBody(deviceResp)
 			if deviceErr != nil {
 				resp.Diagnostics.AddError(
 					"Error looking up device",
@@ -188,6 +190,7 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 			DeviceId([]int32{deviceID}).
 			Name([]string{data.Name.ValueString()}).
 			Execute()
+		defer utils.CloseResponseBody(listResp)
 		if listErr != nil {
 			resp.Diagnostics.AddError(
 				"Error reading interface",

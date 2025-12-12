@@ -178,6 +178,7 @@ func (r *ASNRangeResource) Create(ctx context.Context, req resource.CreateReques
 
 	// Create the ASNRange
 	asnRange, httpResp, err := r.client.IpamAPI.IpamAsnRangesCreate(ctx).ASNRangeRequest(*asnRangeRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating ASNRange",
@@ -224,6 +225,7 @@ func (r *ASNRangeResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	// Get the ASNRange from Netbox
 	asnRange, httpResp, err := r.client.IpamAPI.IpamAsnRangesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -314,6 +316,7 @@ func (r *ASNRangeResource) Update(ctx context.Context, req resource.UpdateReques
 
 	// Update the ASNRange
 	asnRange, httpResp, err := r.client.IpamAPI.IpamAsnRangesUpdate(ctx, id).ASNRangeRequest(*asnRangeRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating ASNRange",
@@ -360,6 +363,7 @@ func (r *ASNRangeResource) Delete(ctx context.Context, req resource.DeleteReques
 
 	// Delete the ASNRange
 	httpResp, err := r.client.IpamAPI.IpamAsnRangesDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting ASNRange",

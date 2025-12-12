@@ -154,6 +154,7 @@ func (d *InterfaceTemplateDataSource) Read(ctx context.Context, req datasource.R
 		})
 
 		result, httpResp, err := d.client.DcimAPI.DcimInterfaceTemplatesRetrieve(ctx, templateID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading interface template",
@@ -184,6 +185,7 @@ func (d *InterfaceTemplateDataSource) Read(ctx context.Context, req datasource.R
 		tflog.Debug(ctx, "Searching for interface template")
 
 		result, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error searching for interface template",

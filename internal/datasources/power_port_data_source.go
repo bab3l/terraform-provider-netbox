@@ -137,6 +137,7 @@ func (d *PowerPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimPowerPortsRetrieve(ctx, portID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading power port",
@@ -156,6 +157,7 @@ func (d *PowerPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimPowerPortsList(ctx).DeviceId([]int32{deviceID}).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading power port",

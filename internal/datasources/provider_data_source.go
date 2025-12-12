@@ -111,6 +111,7 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 		}
 
 		provider, httpResp, err = d.client.CircuitsAPI.CircuitsProvidersRetrieve(ctx, providerIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Slug.IsNull() {
 		// Search by slug
 		providerSlug := data.Slug.ValueString()
@@ -120,6 +121,7 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 		var providers *netbox.PaginatedProviderList
 		providers, httpResp, err = d.client.CircuitsAPI.CircuitsProvidersList(ctx).Slug([]string{providerSlug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading circuit provider",
@@ -144,6 +146,7 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 		var providers *netbox.PaginatedProviderList
 		providers, httpResp, err = d.client.CircuitsAPI.CircuitsProvidersList(ctx).Name([]string{providerName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading circuit provider",

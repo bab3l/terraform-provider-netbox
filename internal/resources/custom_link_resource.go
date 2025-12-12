@@ -219,6 +219,7 @@ func (r *CustomLinkResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasCustomLinksRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -326,6 +327,7 @@ func (r *CustomLinkResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 
 	httpResp, err := r.client.ExtrasAPI.ExtrasCustomLinksDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting custom link",
 			utils.FormatAPIError(fmt.Sprintf("delete custom link ID %s", data.ID.ValueString()), err, httpResp))

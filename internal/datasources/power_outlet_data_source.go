@@ -137,6 +137,7 @@ func (d *PowerOutletDataSource) Read(ctx context.Context, req datasource.ReadReq
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimPowerOutletsRetrieve(ctx, outletID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading power outlet",
@@ -156,6 +157,7 @@ func (d *PowerOutletDataSource) Read(ctx context.Context, req datasource.ReadReq
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimPowerOutletsList(ctx).DeviceId([]int32{deviceID}).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading power outlet",

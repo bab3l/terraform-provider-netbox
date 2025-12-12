@@ -265,6 +265,7 @@ func (r *CableResource) Create(ctx context.Context, req resource.CreateRequest, 
 
 	// Create the cable
 	result, httpResp, err := r.client.DcimAPI.DcimCablesCreate(ctx).WritableCableRequest(*cableRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating cable",
@@ -300,6 +301,7 @@ func (r *CableResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	tflog.Debug(ctx, "Reading cable resource", map[string]interface{}{"id": id})
 
 	result, httpResp, err := r.client.DcimAPI.DcimCablesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Cable not found, removing from state", map[string]interface{}{"id": id})
@@ -436,6 +438,7 @@ func (r *CableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 	// Update the cable
 	result, httpResp, err := r.client.DcimAPI.DcimCablesUpdate(ctx, id).WritableCableRequest(*cableRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating cable",
@@ -471,6 +474,7 @@ func (r *CableResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 	tflog.Debug(ctx, "Deleting cable resource", map[string]interface{}{"id": id})
 
 	httpResp, err := r.client.DcimAPI.DcimCablesDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Cable already deleted", map[string]interface{}{"id": id})

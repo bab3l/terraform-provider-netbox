@@ -138,6 +138,7 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 
 		// Retrieve the user via API
 		user, httpResp, err = d.client.UsersAPI.UsersUsersRetrieve(ctx, userIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Username.IsNull() {
 		// Search by username
 		username := data.Username.ValueString()
@@ -148,6 +149,7 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		// List users with username filter
 		var users *netbox.PaginatedUserList
 		users, httpResp, err = d.client.UsersAPI.UsersUsersList(ctx).Username([]string{username}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading user",

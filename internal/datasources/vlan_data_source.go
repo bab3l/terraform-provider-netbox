@@ -183,6 +183,7 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		}
 
 		result, httpResp, err := d.client.IpamAPI.IpamVlansRetrieve(ctx, id32).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading VLAN",
@@ -206,6 +207,7 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		}
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing VLANs",
@@ -241,6 +243,7 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		listReq = listReq.Name([]string{data.Name.ValueString()})
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing VLANs",

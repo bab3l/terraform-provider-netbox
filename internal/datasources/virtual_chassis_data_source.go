@@ -137,6 +137,7 @@ func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.Read
 		})
 
 		v, httpResp, err := d.client.DcimAPI.DcimVirtualChassisRetrieve(ctx, vcID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading virtual chassis",
@@ -152,6 +153,7 @@ func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.Read
 		})
 
 		listResp, httpResp, err := d.client.DcimAPI.DcimVirtualChassisList(ctx).Name([]string{data.Name.ValueString()}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading virtual chassis",

@@ -105,6 +105,7 @@ func (d *JournalEntryDataSource) Read(ctx context.Context, req datasource.ReadRe
 	})
 
 	journalEntry, httpResp, err := d.client.ExtrasAPI.ExtrasJournalEntriesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Journal Entry",
