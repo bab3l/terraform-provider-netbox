@@ -88,7 +88,8 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID, slug, or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		regionID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading region by ID", map[string]interface{}{"id": regionID})
 
@@ -99,7 +100,7 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		}
 		region, httpResp, err = d.client.DcimAPI.DcimRegionsRetrieve(ctx, regionIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Slug.IsNull() {
+	case !data.Slug.IsNull():
 		regionSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading region by slug", map[string]interface{}{"slug": regionSlug})
 
@@ -119,7 +120,7 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			return
 		}
 		region = &regions.GetResults()[0]
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		regionName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading region by name", map[string]interface{}{"name": regionName})
 
@@ -139,7 +140,7 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			return
 		}
 		region = &regions.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError("Missing Region Identifier", "Either 'id', 'slug', or 'name' must be specified to identify the region.")
 		return
 	}

@@ -94,7 +94,8 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID, slug, or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		// Search by ID
 		providerID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading circuit provider by ID", map[string]interface{}{
@@ -112,7 +113,7 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 		provider, httpResp, err = d.client.CircuitsAPI.CircuitsProvidersRetrieve(ctx, providerIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Slug.IsNull() {
+	case !data.Slug.IsNull():
 		// Search by slug
 		providerSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading circuit provider by slug", map[string]interface{}{
@@ -137,7 +138,7 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 			return
 		}
 		provider = &providers.GetResults()[0]
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		// Search by name
 		providerName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading circuit provider by name", map[string]interface{}{
@@ -162,7 +163,7 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 			return
 		}
 		provider = &providers.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"At least one of 'id', 'name', or 'slug' must be specified to look up a circuit provider.",

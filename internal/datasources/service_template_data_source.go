@@ -119,8 +119,9 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 	var httpResp *http.Response
 	var err error
 
-	// Lookup by ID
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	// Lookup by ID or name
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		id, parseErr := utils.ParseID(data.ID.ValueString())
 		if parseErr != nil {
 			resp.Diagnostics.AddError(
@@ -136,7 +137,7 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 
 		serviceTemplate, httpResp, err = d.client.IpamAPI.IpamServiceTemplatesRetrieve(ctx, id).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Lookup by name
 		tflog.Debug(ctx, "Reading service template by name", map[string]interface{}{
 			"name": data.Name.ValueString(),
@@ -167,7 +168,7 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 			}
 			serviceTemplate = &results[0]
 		}
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Identifier",
 			"Either 'id' or 'name' must be specified to look up a service template.",

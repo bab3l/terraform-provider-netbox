@@ -136,7 +136,7 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// Handle tenant relationship
 	if utils.IsSet(data.Tenant) {
-		tenantRef, diags := netboxlookup.LookupTenantBrief(ctx, r.client, data.Tenant.ValueString())
+		tenantRef, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -146,7 +146,7 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// Handle region relationship
 	if utils.IsSet(data.Region) {
-		regionRef, diags := netboxlookup.LookupRegionBrief(ctx, r.client, data.Region.ValueString())
+		regionRef, diags := netboxlookup.LookupRegion(ctx, r.client, data.Region.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -156,7 +156,7 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// Handle group relationship
 	if utils.IsSet(data.Group) {
-		groupRef, diags := netboxlookup.LookupSiteGroupBrief(ctx, r.client, data.Group.ValueString())
+		groupRef, diags := netboxlookup.LookupSiteGroup(ctx, r.client, data.Group.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -296,7 +296,7 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// Handle tenant relationship
 	if utils.IsSet(data.Tenant) {
-		tenantRef, diags := netboxlookup.LookupTenantBrief(ctx, r.client, data.Tenant.ValueString())
+		tenantRef, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -306,7 +306,7 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// Handle region relationship
 	if utils.IsSet(data.Region) {
-		regionRef, diags := netboxlookup.LookupRegionBrief(ctx, r.client, data.Region.ValueString())
+		regionRef, diags := netboxlookup.LookupRegion(ctx, r.client, data.Region.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -316,7 +316,7 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// Handle group relationship
 	if utils.IsSet(data.Group) {
-		groupRef, diags := netboxlookup.LookupSiteGroupBrief(ctx, r.client, data.Group.ValueString())
+		groupRef, diags := netboxlookup.LookupSiteGroup(ctx, r.client, data.Group.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return

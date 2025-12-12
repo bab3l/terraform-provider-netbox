@@ -108,8 +108,9 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 	var tunnelTermination *netbox.TunnelTermination
 	var err error
 
-	// Look up by ID
-	if !data.ID.IsNull() && data.ID.ValueString() != "" {
+	// Look up by ID or tunnel reference
+	switch {
+	case !data.ID.IsNull() && data.ID.ValueString() != "":
 		id, parseErr := utils.ParseID(data.ID.ValueString())
 		if parseErr != nil {
 			resp.Diagnostics.AddError(
@@ -133,7 +134,7 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 			)
 			return
 		}
-	} else if !data.Tunnel.IsNull() || !data.TunnelName.IsNull() {
+	case !data.Tunnel.IsNull() || !data.TunnelName.IsNull():
 		// Look up by tunnel reference
 		var tunnelID int32
 
@@ -193,7 +194,7 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 
 		// Return the first termination found
 		tunnelTermination = &list.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Invalid Configuration",
 			"Either 'id' or 'tunnel'/'tunnel_name' must be specified.",

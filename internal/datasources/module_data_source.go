@@ -139,7 +139,8 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	var module *netbox.Module
 
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		// Lookup by ID
 		moduleID := data.ID.ValueInt32()
 
@@ -157,7 +158,7 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			return
 		}
 		module = response
-	} else if !data.DeviceID.IsNull() && !data.DeviceID.IsUnknown() {
+	case !data.DeviceID.IsNull() && !data.DeviceID.IsUnknown():
 		// Lookup by device_id and optionally module_bay_id or serial
 		deviceID := data.DeviceID.ValueInt32()
 
@@ -202,7 +203,7 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		}
 
 		module = &response.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either 'id' or 'device_id' must be specified to lookup a module.",

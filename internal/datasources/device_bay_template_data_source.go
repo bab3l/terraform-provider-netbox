@@ -113,7 +113,8 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 
 	var template *netbox.DeviceBayTemplate
 
-	if utils.IsSet(data.ID) {
+	switch {
+	case utils.IsSet(data.ID):
 		// Looking up by ID
 		id, err := strconv.Atoi(data.ID.ValueString())
 		if err != nil {
@@ -143,7 +144,7 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 			return
 		}
 		template = t
-	} else if utils.IsSet(data.Name) {
+	case utils.IsSet(data.Name):
 		// Looking up by name (requires device_type)
 		tflog.Debug(ctx, "Reading DeviceBayTemplate by name", map[string]interface{}{
 			"name":        data.Name.ValueString(),
@@ -193,7 +194,7 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 		}
 
 		template = &results.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing search criteria",
 			"Either 'id' or 'name' must be specified to look up a device bay template.",

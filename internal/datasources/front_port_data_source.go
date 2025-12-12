@@ -138,7 +138,8 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 	var port *netbox.FrontPort
 
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		// Lookup by ID
 		portID := data.ID.ValueInt32()
 
@@ -156,7 +157,7 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 			return
 		}
 		port = response
-	} else if !data.DeviceID.IsNull() && !data.DeviceID.IsUnknown() && !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.DeviceID.IsNull() && !data.DeviceID.IsUnknown() && !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Lookup by device_id and name
 		deviceID := data.DeviceID.ValueInt32()
 		name := data.Name.ValueString()
@@ -193,7 +194,7 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 
 		port = &response.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either 'id' or both 'device_id' and 'name' must be specified to lookup a front port.",

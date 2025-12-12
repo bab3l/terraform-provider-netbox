@@ -128,7 +128,8 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 	var moduleType *netbox.ModuleType
 
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		// Lookup by ID
 		typeID := data.ID.ValueInt32()
 
@@ -146,7 +147,7 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			return
 		}
 		moduleType = response
-	} else if !data.Model.IsNull() && !data.Model.IsUnknown() {
+	case !data.Model.IsNull() && !data.Model.IsUnknown():
 		// Lookup by model (and optionally manufacturer_id)
 		model := data.Model.ValueString()
 
@@ -187,7 +188,7 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		}
 
 		moduleType = &response.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either 'id' or 'model' must be specified to lookup a module type.",

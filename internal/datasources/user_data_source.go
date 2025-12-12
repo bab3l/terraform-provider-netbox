@@ -119,7 +119,8 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID or username
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		// Search by ID
 		userID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading user by ID", map[string]interface{}{
@@ -139,7 +140,7 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		// Retrieve the user via API
 		user, httpResp, err = d.client.UsersAPI.UsersUsersRetrieve(ctx, userIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Username.IsNull() {
+	case !data.Username.IsNull():
 		// Search by username
 		username := data.Username.ValueString()
 		tflog.Debug(ctx, "Reading user by username", map[string]interface{}{
@@ -172,7 +173,7 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			return
 		}
 		user = &users.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Identifier",
 			"Either 'id' or 'username' must be specified to look up a user.",

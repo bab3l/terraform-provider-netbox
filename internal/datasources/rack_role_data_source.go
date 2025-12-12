@@ -97,7 +97,8 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID, slug, or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		// Search by ID
 		rackRoleID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading rack role by ID", map[string]interface{}{
@@ -117,7 +118,7 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		// Retrieve the rack role via API
 		rackRole, httpResp, err = d.client.DcimAPI.DcimRackRolesRetrieve(ctx, rackRoleIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Slug.IsNull() {
+	case !data.Slug.IsNull():
 		// Search by slug
 		rackRoleSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading rack role by slug", map[string]interface{}{
@@ -150,7 +151,7 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 			return
 		}
 		rackRole = &rackRoles.GetResults()[0]
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		// Search by name
 		rackRoleName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading rack role by name", map[string]interface{}{
@@ -183,7 +184,7 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 			return
 		}
 		rackRole = &rackRoles.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Rack Role Identifier",
 			"Either 'id', 'slug', or 'name' must be specified to identify the rack role.",

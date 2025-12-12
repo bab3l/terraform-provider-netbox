@@ -107,7 +107,8 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID, slug, or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		siteID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading site by ID", map[string]interface{}{"id": siteID})
 
@@ -118,7 +119,7 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		}
 		site, httpResp, err = d.client.DcimAPI.DcimSitesRetrieve(ctx, siteIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Slug.IsNull() {
+	case !data.Slug.IsNull():
 		siteSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading site by slug", map[string]interface{}{"slug": siteSlug})
 
@@ -138,7 +139,7 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			return
 		}
 		site = &sites.GetResults()[0]
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		siteName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading site by name", map[string]interface{}{"name": siteName})
 
@@ -158,7 +159,7 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			return
 		}
 		site = &sites.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError("Missing Site Identifier", "Either 'id', 'slug', or 'name' must be specified to identify the site.")
 		return
 	}

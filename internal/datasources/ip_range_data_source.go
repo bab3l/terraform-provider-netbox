@@ -159,7 +159,8 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	var ipRange *netbox.IPRange
 
 	// Check if we're looking up by ID
-	if utils.IsSet(data.ID) {
+	switch {
+	case utils.IsSet(data.ID):
 		var idInt int
 		_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt)
 		if err != nil {
@@ -190,7 +191,7 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			return
 		}
 		ipRange = result
-	} else if utils.IsSet(data.StartAddress) && utils.IsSet(data.EndAddress) {
+	case utils.IsSet(data.StartAddress) && utils.IsSet(data.EndAddress):
 		// Looking up by start and end address
 		tflog.Debug(ctx, "Reading IP range by addresses", map[string]interface{}{
 			"start_address": data.StartAddress.ValueString(),
@@ -228,7 +229,7 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		}
 
 		ipRange = &results.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing search criteria",
 			"Either 'id' or both 'start_address' and 'end_address' must be specified to look up an IP range.",

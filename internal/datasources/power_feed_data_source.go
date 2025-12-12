@@ -163,7 +163,8 @@ func (d *PowerFeedDataSource) Read(ctx context.Context, req datasource.ReadReque
 	var pf *netbox.PowerFeed
 
 	// Look up by ID if provided
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		pfID, err := utils.ParseID(data.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -187,7 +188,7 @@ func (d *PowerFeedDataSource) Read(ctx context.Context, req datasource.ReadReque
 			return
 		}
 		pf = result
-	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Look up by name
 		tflog.Debug(ctx, "Reading power feed by name", map[string]interface{}{
 			"name": data.Name.ValueString(),
@@ -235,7 +236,7 @@ func (d *PowerFeedDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 
 		pf = &listResp.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either 'id' or 'name' must be specified to look up a power feed.",

@@ -123,7 +123,8 @@ func (d *ConsoleServerPortDataSource) Read(ctx context.Context, req datasource.R
 
 	var consoleServerPort *netbox.ConsoleServerPort
 
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		// Lookup by ID
 		portID := data.ID.ValueInt32()
 
@@ -141,7 +142,7 @@ func (d *ConsoleServerPortDataSource) Read(ctx context.Context, req datasource.R
 			return
 		}
 		consoleServerPort = response
-	} else if !data.DeviceID.IsNull() && !data.DeviceID.IsUnknown() && !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.DeviceID.IsNull() && !data.DeviceID.IsUnknown() && !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Lookup by device_id and name
 		deviceID := data.DeviceID.ValueInt32()
 		name := data.Name.ValueString()
@@ -178,7 +179,7 @@ func (d *ConsoleServerPortDataSource) Read(ctx context.Context, req datasource.R
 		}
 
 		consoleServerPort = &response.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either 'id' or both 'device_id' and 'name' must be specified to lookup a console server port.",

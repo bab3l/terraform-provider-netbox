@@ -134,7 +134,8 @@ func (d *FrontPortTemplateDataSource) Read(ctx context.Context, req datasource.R
 
 	var template *netbox.FrontPortTemplate
 
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		// Lookup by ID
 		templateID := data.ID.ValueInt32()
 
@@ -152,7 +153,7 @@ func (d *FrontPortTemplateDataSource) Read(ctx context.Context, req datasource.R
 			return
 		}
 		template = response
-	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Lookup by device_type/module_type and name
 		name := data.Name.ValueString()
 
@@ -198,7 +199,7 @@ func (d *FrontPortTemplateDataSource) Read(ctx context.Context, req datasource.R
 		}
 
 		template = &response.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either 'id' or 'name' must be specified to lookup a front port template.",

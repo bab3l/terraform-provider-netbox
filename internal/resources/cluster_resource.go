@@ -135,11 +135,12 @@ func (r *ClusterResource) mapClusterToState(ctx context.Context, cluster *netbox
 	clusterTypeSlug := cluster.Type.GetSlug()
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		configuredValue := data.Type.ValueString()
-		if configuredValue == clusterTypeID {
+		switch configuredValue {
+		case clusterTypeID:
 			data.Type = types.StringValue(clusterTypeID)
-		} else if configuredValue == clusterTypeSlug {
+		case clusterTypeSlug:
 			data.Type = types.StringValue(clusterTypeSlug)
-		} else {
+		default:
 			data.Type = types.StringValue(clusterTypeName)
 		}
 	} else {

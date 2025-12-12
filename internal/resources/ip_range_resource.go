@@ -494,17 +494,18 @@ func (r *IPRangeResource) mapIPRangeToState(ctx context.Context, ipRange *netbox
 	}
 
 	// Custom Fields
-	if len(ipRange.CustomFields) > 0 && !data.CustomFields.IsNull() {
+	switch {
+	case len(ipRange.CustomFields) > 0 && !data.CustomFields.IsNull():
 		var stateCustomFields []utils.CustomFieldModel
 		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
 		customFields := utils.MapToCustomFieldModels(ipRange.CustomFields, stateCustomFields)
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		data.CustomFields = customFieldsValue
-	} else if len(ipRange.CustomFields) > 0 {
+	case len(ipRange.CustomFields) > 0:
 		customFields := utils.MapToCustomFieldModels(ipRange.CustomFields, []utils.CustomFieldModel{})
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		data.CustomFields = customFieldsValue
-	} else {
+	default:
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

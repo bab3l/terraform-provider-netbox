@@ -109,7 +109,8 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 	var l2vpn *netbox.L2VPN
 
 	// Lookup by ID
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		var idInt int32
 		if _, parseErr := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt); parseErr != nil {
 			resp.Diagnostics.AddError(
@@ -133,7 +134,7 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 			return
 		}
 		l2vpn = result
-	} else if !data.Slug.IsNull() && !data.Slug.IsUnknown() {
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
 		// Lookup by slug
 		tflog.Debug(ctx, "Looking up L2VPN by slug", map[string]interface{}{
 			"slug": data.Slug.ValueString(),
@@ -161,7 +162,7 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 		result := list.GetResults()[0]
 		l2vpn = &result
-	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Lookup by name
 		tflog.Debug(ctx, "Looking up L2VPN by name", map[string]interface{}{
 			"name": data.Name.ValueString(),
@@ -198,7 +199,7 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 		result := list.GetResults()[0]
 		l2vpn = &result
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing required identifier",
 			"Either 'id', 'slug', or 'name' must be specified to lookup an L2VPN.",

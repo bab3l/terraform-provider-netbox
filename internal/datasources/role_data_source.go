@@ -122,8 +122,9 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	var role *netbox.Role
 
-	// Look up by ID if provided
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	// Look up by ID, slug, or name
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		roleID, err := utils.ParseID(data.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -147,7 +148,7 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			return
 		}
 		role = r
-	} else if !data.Slug.IsNull() && !data.Slug.IsUnknown() {
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
 		// Look up by slug
 		tflog.Debug(ctx, "Reading role by slug", map[string]interface{}{
 			"slug": data.Slug.ValueString(),
@@ -180,7 +181,7 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		}
 
 		role = &listResp.GetResults()[0]
-	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Look up by name
 		tflog.Debug(ctx, "Reading role by name", map[string]interface{}{
 			"name": data.Name.ValueString(),
@@ -213,7 +214,7 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		}
 
 		role = &listResp.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either 'id', 'slug', or 'name' must be specified to look up a role.",

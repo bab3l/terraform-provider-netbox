@@ -144,7 +144,8 @@ func (d *ASNRangeDataSource) Read(ctx context.Context, req datasource.ReadReques
 	var asnRange *netbox.ASNRange
 
 	// Check if we're looking up by ID
-	if utils.IsSet(data.ID) {
+	switch {
+	case utils.IsSet(data.ID):
 		var idInt int
 		_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt)
 		if err != nil {
@@ -175,7 +176,7 @@ func (d *ASNRangeDataSource) Read(ctx context.Context, req datasource.ReadReques
 			return
 		}
 		asnRange = result
-	} else if utils.IsSet(data.Name) {
+	case utils.IsSet(data.Name):
 		// Looking up by name
 		tflog.Debug(ctx, "Reading ASNRange by name", map[string]interface{}{
 			"name": data.Name.ValueString(),
@@ -211,7 +212,7 @@ func (d *ASNRangeDataSource) Read(ctx context.Context, req datasource.ReadReques
 		}
 
 		asnRange = &results.Results[0]
-	} else if utils.IsSet(data.Slug) {
+	case utils.IsSet(data.Slug):
 		// Looking up by slug
 		tflog.Debug(ctx, "Reading ASNRange by slug", map[string]interface{}{
 			"slug": data.Slug.ValueString(),
@@ -239,7 +240,7 @@ func (d *ASNRangeDataSource) Read(ctx context.Context, req datasource.ReadReques
 		}
 
 		asnRange = &results.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing search criteria",
 			"Either 'id', 'name', or 'slug' must be specified to look up an ASNRange.",

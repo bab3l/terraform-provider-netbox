@@ -306,7 +306,8 @@ func (r *ContactRoleResource) mapContactRoleToState(ctx context.Context, contact
 	}
 
 	// Handle custom fields
-	if contactRole.HasCustomFields() && !data.CustomFields.IsNull() {
+	switch {
+	case contactRole.HasCustomFields() && !data.CustomFields.IsNull():
 		var stateCustomFields []utils.CustomFieldModel
 		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
 		diags.Append(cfDiags...)
@@ -318,14 +319,14 @@ func (r *ContactRoleResource) mapContactRoleToState(ctx context.Context, contact
 				data.CustomFields = customFieldsValue
 			}
 		}
-	} else if contactRole.HasCustomFields() {
+	case contactRole.HasCustomFields():
 		customFields := utils.MapToCustomFieldModels(contactRole.GetCustomFields(), []utils.CustomFieldModel{})
 		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		diags.Append(cfValueDiags...)
 		if !diags.HasError() {
 			data.CustomFields = customFieldsValue
 		}
-	} else {
+	default:
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

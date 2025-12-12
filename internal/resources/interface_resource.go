@@ -192,7 +192,7 @@ func (r *InterfaceResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Lookup the device
-	deviceRef, diags := netboxlookup.LookupDeviceBrief(ctx, r.client, data.Device.ValueString())
+	deviceRef, diags := netboxlookup.LookupDevice(ctx, r.client, data.Device.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -319,7 +319,7 @@ func (r *InterfaceResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Lookup the device
-	deviceRef, diags := netboxlookup.LookupDeviceBrief(ctx, r.client, data.Device.ValueString())
+	deviceRef, diags := netboxlookup.LookupDevice(ctx, r.client, data.Device.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

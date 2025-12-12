@@ -90,7 +90,8 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 	var group *netbox.CircuitGroup
 
 	// Lookup by ID
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		var idInt int32
 		if _, parseErr := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt); parseErr != nil {
 			resp.Diagnostics.AddError(
@@ -114,7 +115,7 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 			return
 		}
 		group = result
-	} else if !data.Slug.IsNull() && !data.Slug.IsUnknown() {
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
 		// Lookup by slug
 		tflog.Debug(ctx, "Looking up circuit group by slug", map[string]interface{}{
 			"slug": data.Slug.ValueString(),
@@ -142,7 +143,7 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 		result := list.GetResults()[0]
 		group = &result
-	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Lookup by name
 		tflog.Debug(ctx, "Looking up circuit group by name", map[string]interface{}{
 			"name": data.Name.ValueString(),
@@ -179,7 +180,7 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 		result := list.GetResults()[0]
 		group = &result
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing required identifier",
 			"Either 'id', 'slug', or 'name' must be specified to lookup a circuit group.",

@@ -450,17 +450,18 @@ func (r *ASNRangeResource) mapASNRangeToState(ctx context.Context, asnRange *net
 	}
 
 	// Custom Fields
-	if len(asnRange.CustomFields) > 0 && !data.CustomFields.IsNull() {
+	switch {
+	case len(asnRange.CustomFields) > 0 && !data.CustomFields.IsNull():
 		var stateCustomFields []utils.CustomFieldModel
 		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
 		customFields := utils.MapToCustomFieldModels(asnRange.CustomFields, stateCustomFields)
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		data.CustomFields = customFieldsValue
-	} else if len(asnRange.CustomFields) > 0 {
+	case len(asnRange.CustomFields) > 0:
 		customFields := utils.MapToCustomFieldModels(asnRange.CustomFields, []utils.CustomFieldModel{})
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		data.CustomFields = customFieldsValue
-	} else {
+	default:
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

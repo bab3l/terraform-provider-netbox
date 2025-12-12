@@ -393,17 +393,18 @@ func (r *VirtualDiskResource) mapVirtualDiskToState(ctx context.Context, vd *net
 	}
 
 	// Custom Fields
-	if len(vd.CustomFields) > 0 && !data.CustomFields.IsNull() {
+	switch {
+	case len(vd.CustomFields) > 0 && !data.CustomFields.IsNull():
 		var stateCustomFields []utils.CustomFieldModel
 		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
 		customFields := utils.MapToCustomFieldModels(vd.CustomFields, stateCustomFields)
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		data.CustomFields = customFieldsValue
-	} else if len(vd.CustomFields) > 0 {
+	case len(vd.CustomFields) > 0:
 		customFields := utils.MapToCustomFieldModels(vd.CustomFields, []utils.CustomFieldModel{})
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		data.CustomFields = customFieldsValue
-	} else {
+	default:
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

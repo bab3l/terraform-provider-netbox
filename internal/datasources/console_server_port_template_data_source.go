@@ -114,7 +114,8 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 
 	var template *netbox.ConsoleServerPortTemplate
 
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		// Lookup by ID
 		templateID := data.ID.ValueInt32()
 
@@ -132,7 +133,7 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 			return
 		}
 		template = response
-	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Lookup by device_type/module_type and name
 		name := data.Name.ValueString()
 
@@ -178,7 +179,7 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 		}
 
 		template = &response.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either 'id' or 'name' must be specified to lookup a console server port template.",

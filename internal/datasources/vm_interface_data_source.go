@@ -112,7 +112,8 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID or by name+virtual_machine
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		// Search by ID
 		ifaceID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading VM interface by ID", map[string]interface{}{
@@ -130,7 +131,7 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		iface, httpResp, err = d.client.VirtualizationAPI.VirtualizationInterfacesRetrieve(ctx, ifaceIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Name.IsNull() && !data.VirtualMachine.IsNull() {
+	case !data.Name.IsNull() && !data.VirtualMachine.IsNull():
 		// Search by name and virtual machine
 		ifaceName := data.Name.ValueString()
 		vmName := data.VirtualMachine.ValueString()
@@ -164,7 +165,7 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 		iface = &ifaces.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing VM Interface Identifier",
 			"Either 'id' or both 'name' and 'virtual_machine' must be specified to identify the VM interface.",

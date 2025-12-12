@@ -179,7 +179,8 @@ func (d *RackTypeDataSource) Read(ctx context.Context, req datasource.ReadReques
 	var rackType *netbox.RackType
 
 	// Look up by ID if provided
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		rtID, err := utils.ParseID(data.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -203,7 +204,7 @@ func (d *RackTypeDataSource) Read(ctx context.Context, req datasource.ReadReques
 			return
 		}
 		rackType = rt
-	} else if !data.Model.IsNull() && !data.Model.IsUnknown() {
+	case !data.Model.IsNull() && !data.Model.IsUnknown():
 		// Look up by model name
 		tflog.Debug(ctx, "Reading rack type by model", map[string]interface{}{
 			"model": data.Model.ValueString(),
@@ -243,7 +244,7 @@ func (d *RackTypeDataSource) Read(ctx context.Context, req datasource.ReadReques
 		}
 
 		rackType = &listResp.GetResults()[0]
-	} else if !data.Slug.IsNull() && !data.Slug.IsUnknown() {
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
 		// Look up by slug
 		tflog.Debug(ctx, "Reading rack type by slug", map[string]interface{}{
 			"slug": data.Slug.ValueString(),
@@ -268,7 +269,7 @@ func (d *RackTypeDataSource) Read(ctx context.Context, req datasource.ReadReques
 		}
 
 		rackType = &listResp.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either 'id', 'model', or 'slug' must be specified to look up a rack type.",

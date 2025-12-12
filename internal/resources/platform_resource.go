@@ -80,7 +80,7 @@ func (r *PlatformResource) Create(ctx context.Context, req resource.CreateReques
 	})
 	platformRequest := netbox.NewPlatformRequest(data.Name.ValueString(), data.Slug.ValueString())
 	if !data.Manufacturer.IsNull() {
-		manufacturerRef, diags := netboxlookup.LookupManufacturerBrief(ctx, r.client, data.Manufacturer.ValueString())
+		manufacturerRef, diags := netboxlookup.LookupManufacturer(ctx, r.client, data.Manufacturer.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -193,7 +193,7 @@ func (r *PlatformResource) Update(ctx context.Context, req resource.UpdateReques
 		Slug: data.Slug.ValueString(),
 	}
 	if !data.Manufacturer.IsNull() {
-		manufacturerRef, diags := netboxlookup.LookupManufacturerBrief(ctx, r.client, data.Manufacturer.ValueString())
+		manufacturerRef, diags := netboxlookup.LookupManufacturer(ctx, r.client, data.Manufacturer.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return

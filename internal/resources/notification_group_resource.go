@@ -313,11 +313,8 @@ func (r *NotificationGroupResource) mapToState(ctx context.Context, result *netb
 		groupIDsValue, groupDiags := types.SetValueFrom(ctx, types.Int32Type, groupIDs)
 		diags.Append(groupDiags...)
 		data.GroupIDs = groupIDsValue
-	} else if data.GroupIDs.IsNull() || data.GroupIDs.IsUnknown() {
-		// Keep it null if it was null
-		data.GroupIDs = types.SetNull(types.Int32Type)
 	} else {
-		// Was set but now empty - keep it as empty set
+		// No groups - set to null
 		data.GroupIDs = types.SetNull(types.Int32Type)
 	}
 
@@ -332,11 +329,8 @@ func (r *NotificationGroupResource) mapToState(ctx context.Context, result *netb
 		userIDsValue, userDiags := types.SetValueFrom(ctx, types.Int32Type, userIDs)
 		diags.Append(userDiags...)
 		data.UserIDs = userIDsValue
-	} else if data.UserIDs.IsNull() || data.UserIDs.IsUnknown() {
-		// Keep it null if it was null
-		data.UserIDs = types.SetNull(types.Int32Type)
 	} else {
-		// Was set but now empty - keep it as empty set
+		// No users - set to null
 		data.UserIDs = types.SetNull(types.Int32Type)
 	}
 }

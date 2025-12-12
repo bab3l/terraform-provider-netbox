@@ -125,7 +125,8 @@ func (d *ProviderAccountDataSource) Read(ctx context.Context, req datasource.Rea
 	var providerAccount *netbox.ProviderAccount
 
 	// Look up by ID if provided
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		id, err := utils.ParseID(data.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -149,7 +150,7 @@ func (d *ProviderAccountDataSource) Read(ctx context.Context, req datasource.Rea
 			return
 		}
 		providerAccount = result
-	} else if !data.Account.IsNull() && !data.Account.IsUnknown() {
+	case !data.Account.IsNull() && !data.Account.IsUnknown():
 		// Look up by account identifier
 		account := data.Account.ValueString()
 
@@ -184,7 +185,7 @@ func (d *ProviderAccountDataSource) Read(ctx context.Context, req datasource.Rea
 		}
 
 		providerAccount = &list.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing required attribute",
 			"Either 'id' or 'account' must be specified to look up a provider account.",

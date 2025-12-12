@@ -332,7 +332,8 @@ func (r *ContactGroupResource) mapContactGroupToState(ctx context.Context, conta
 	}
 
 	// Handle custom fields
-	if contactGroup.HasCustomFields() && !data.CustomFields.IsNull() {
+	switch {
+	case contactGroup.HasCustomFields() && !data.CustomFields.IsNull():
 		var stateCustomFields []utils.CustomFieldModel
 		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
 		diags.Append(cfDiags...)
@@ -344,14 +345,14 @@ func (r *ContactGroupResource) mapContactGroupToState(ctx context.Context, conta
 				data.CustomFields = customFieldsValue
 			}
 		}
-	} else if contactGroup.HasCustomFields() {
+	case contactGroup.HasCustomFields():
 		customFields := utils.MapToCustomFieldModels(contactGroup.GetCustomFields(), []utils.CustomFieldModel{})
 		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		diags.Append(cfValueDiags...)
 		if !diags.HasError() {
 			data.CustomFields = customFieldsValue
 		}
-	} else {
+	default:
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

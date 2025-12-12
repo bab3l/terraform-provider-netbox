@@ -110,7 +110,8 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		// Search by ID
 		vmID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading virtual machine by ID", map[string]interface{}{
@@ -128,7 +129,7 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 
 		vm, httpResp, err = d.client.VirtualizationAPI.VirtualizationVirtualMachinesRetrieve(ctx, vmIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		// Search by name
 		vmName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading virtual machine by name", map[string]interface{}{
@@ -160,7 +161,7 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 			return
 		}
 		vm = &vms.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Virtual Machine Identifier",
 			"Either 'id' or 'name' must be specified to identify the virtual machine.",

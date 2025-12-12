@@ -360,17 +360,18 @@ func (r *RIRResource) mapRIRToState(ctx context.Context, rir *netbox.RIR, data *
 	}
 
 	// Custom Fields
-	if len(rir.CustomFields) > 0 && !data.CustomFields.IsNull() {
+	switch {
+	case len(rir.CustomFields) > 0 && !data.CustomFields.IsNull():
 		var stateCustomFields []utils.CustomFieldModel
 		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
 		customFields := utils.MapToCustomFieldModels(rir.CustomFields, stateCustomFields)
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		data.CustomFields = customFieldsValue
-	} else if len(rir.CustomFields) > 0 {
+	case len(rir.CustomFields) > 0:
 		customFields := utils.MapToCustomFieldModels(rir.CustomFields, []utils.CustomFieldModel{})
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		data.CustomFields = customFieldsValue
-	} else {
+	default:
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

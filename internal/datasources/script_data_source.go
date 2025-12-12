@@ -91,15 +91,16 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	var httpResp *http.Response
 	var err error
 
-	// Lookup by ID
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	// Lookup by ID or name
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		tflog.Debug(ctx, "Reading script by ID", map[string]interface{}{
 			"id": data.ID.ValueString(),
 		})
 
 		script, httpResp, err = d.client.ExtrasAPI.ExtrasScriptsRetrieve(ctx, data.ID.ValueString()).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Lookup by name
 		tflog.Debug(ctx, "Reading script by name", map[string]interface{}{
 			"name": data.Name.ValueString(),
@@ -130,7 +131,7 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			}
 			script = &results[0]
 		}
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Identifier",
 			"Either 'id' or 'name' must be specified to look up a script.",

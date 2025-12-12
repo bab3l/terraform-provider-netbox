@@ -135,8 +135,9 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 	var svc *netbox.Service
 
-	// Look up by ID if provided
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	// Look up by ID or name
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		svcID, err := utils.ParseID(data.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -160,7 +161,7 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			return
 		}
 		svc = result
-	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Look up by name
 		tflog.Debug(ctx, "Reading service by name", map[string]interface{}{
 			"name": data.Name.ValueString(),
@@ -221,7 +222,7 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		}
 
 		svc = &listResp.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either 'id' or 'name' must be specified to look up a service.",

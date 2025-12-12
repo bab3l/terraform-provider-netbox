@@ -134,7 +134,8 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 	var aggregate *netbox.Aggregate
 
 	// Look up by ID if provided
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		id, err := utils.ParseID(data.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -158,7 +159,7 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 			return
 		}
 		aggregate = result
-	} else if !data.Prefix.IsNull() && !data.Prefix.IsUnknown() {
+	case !data.Prefix.IsNull() && !data.Prefix.IsUnknown():
 		// Look up by prefix
 		prefix := data.Prefix.ValueString()
 
@@ -193,7 +194,7 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 
 		aggregate = &list.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing required attribute",
 			"Either 'id' or 'prefix' must be specified to look up an aggregate.",

@@ -95,7 +95,8 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID, slug, or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		// Search by ID
 		tunnelGroupID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading tunnel group by ID", map[string]interface{}{
@@ -115,7 +116,7 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		// Retrieve the tunnel group via API
 		tunnelGroup, httpResp, err = d.client.VpnAPI.VpnTunnelGroupsRetrieve(ctx, tunnelGroupIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Slug.IsNull() {
+	case !data.Slug.IsNull():
 		// Search by slug
 		tunnelGroupSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading tunnel group by slug", map[string]interface{}{
@@ -148,7 +149,7 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 		tunnelGroup = &tunnelGroups.GetResults()[0]
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		// Search by name
 		tunnelGroupName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading tunnel group by name", map[string]interface{}{
@@ -181,7 +182,7 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 		tunnelGroup = &tunnelGroups.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Tunnel Group Identifier",
 			"Either 'id', 'slug', or 'name' must be specified to identify the tunnel group.",

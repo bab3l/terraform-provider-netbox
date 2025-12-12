@@ -108,7 +108,8 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID, slug, or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		locationID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading location by ID", map[string]interface{}{
 			"id": locationID,
@@ -125,7 +126,7 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 		location, httpResp, err = d.client.DcimAPI.DcimLocationsRetrieve(ctx, locationIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Slug.IsNull() {
+	case !data.Slug.IsNull():
 		locationSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading location by slug", map[string]interface{}{
 			"slug": locationSlug,
@@ -156,7 +157,7 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 			return
 		}
 		location = &locations.GetResults()[0]
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		locationName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading location by name", map[string]interface{}{
 			"name": locationName,
@@ -187,7 +188,7 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 			return
 		}
 		location = &locations.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Location Identifier",
 			"Either 'id', 'slug', or 'name' must be specified to identify the location.",

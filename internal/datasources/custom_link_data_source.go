@@ -119,7 +119,8 @@ func (d *CustomLinkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	var httpResp *http.Response
 	var err error
 
-	if !data.ID.IsNull() && data.ID.ValueString() != "" {
+	switch {
+	case !data.ID.IsNull() && data.ID.ValueString() != "":
 		// Lookup by ID
 		id, parseErr := utils.ParseID(data.ID.ValueString())
 		if parseErr != nil {
@@ -128,7 +129,7 @@ func (d *CustomLinkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		}
 		result, httpResp, err = d.client.ExtrasAPI.ExtrasCustomLinksRetrieve(ctx, id).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Name.IsNull() && data.Name.ValueString() != "" {
+	case !data.Name.IsNull() && data.Name.ValueString() != "":
 		// Lookup by name
 		list, listResp, listErr := d.client.ExtrasAPI.ExtrasCustomLinksList(ctx).
 			Name([]string{data.Name.ValueString()}).Execute()
@@ -149,7 +150,7 @@ func (d *CustomLinkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			}
 			result = &results[0]
 		}
-	} else {
+	default:
 		resp.Diagnostics.AddError("Missing Identifier", "Either 'id' or 'name' must be specified")
 		return
 	}

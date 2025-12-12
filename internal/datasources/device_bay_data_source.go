@@ -118,7 +118,8 @@ func (d *DeviceBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 	var db *netbox.DeviceBay
 
 	// Look up by ID if provided
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		dbID, err := utils.ParseID(data.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -142,7 +143,7 @@ func (d *DeviceBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 			return
 		}
 		db = result
-	} else if !data.Device.IsNull() && !data.Device.IsUnknown() && !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.Device.IsNull() && !data.Device.IsUnknown() && !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Look up by device and name
 		tflog.Debug(ctx, "Reading device bay by device and name", map[string]interface{}{
 			"device": data.Device.ValueString(),
@@ -181,7 +182,7 @@ func (d *DeviceBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 
 		db = &listResp.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either 'id' or both 'device' and 'name' must be specified to look up a device bay.",

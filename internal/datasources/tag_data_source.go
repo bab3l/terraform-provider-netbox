@@ -85,7 +85,8 @@ func (d *TagDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	var httpResp *http.Response
 
 	// Lookup by id, slug, or name
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		tagID, parseErr := utils.ParseID(data.ID.ValueString())
 		if parseErr != nil {
 			resp.Diagnostics.AddError("Invalid Tag ID", "Tag ID must be a number.")
@@ -97,7 +98,7 @@ func (d *TagDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			resp.Diagnostics.AddError("Error reading tag", utils.FormatAPIError("read tag", err, httpResp))
 			return
 		}
-	} else if !data.Slug.IsNull() && !data.Slug.IsUnknown() {
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
 		slug := data.Slug.ValueString()
 		tags, httpResp, listErr := d.client.ExtrasAPI.ExtrasTagsList(ctx).Slug([]string{slug}).Execute()
 		defer utils.CloseResponseBody(httpResp)
@@ -110,7 +111,7 @@ func (d *TagDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			return
 		}
 		tag = &tags.GetResults()[0]
-	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		name := data.Name.ValueString()
 		tags, httpResp, listErr := d.client.ExtrasAPI.ExtrasTagsList(ctx).Name([]string{name}).Execute()
 		defer utils.CloseResponseBody(httpResp)
@@ -123,7 +124,7 @@ func (d *TagDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			return
 		}
 		tag = &tags.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError("Missing Tag Identifier", "Either 'id', 'slug', or 'name' must be specified.")
 		return
 	}

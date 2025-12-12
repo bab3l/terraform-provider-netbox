@@ -118,7 +118,8 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 	var moduleBay *netbox.ModuleBay
 
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		// Lookup by ID
 		bayID := data.ID.ValueInt32()
 
@@ -136,7 +137,7 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 			return
 		}
 		moduleBay = response
-	} else if !data.DeviceID.IsNull() && !data.DeviceID.IsUnknown() && !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.DeviceID.IsNull() && !data.DeviceID.IsUnknown() && !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Lookup by device_id and name
 		deviceID := data.DeviceID.ValueInt32()
 		name := data.Name.ValueString()
@@ -173,7 +174,7 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 
 		moduleBay = &response.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either 'id' or both 'device_id' and 'name' must be specified to lookup a module bay.",

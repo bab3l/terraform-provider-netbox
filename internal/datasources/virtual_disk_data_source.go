@@ -118,8 +118,9 @@ func (d *VirtualDiskDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	var vd *netbox.VirtualDisk
 
-	// Check if we're looking up by ID
-	if utils.IsSet(data.ID) {
+	// Check if we're looking up by ID or name
+	switch {
+	case utils.IsSet(data.ID):
 		var idInt int
 		_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt)
 		if err != nil {
@@ -150,7 +151,7 @@ func (d *VirtualDiskDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 		vd = result
-	} else if utils.IsSet(data.Name) {
+	case utils.IsSet(data.Name):
 		// Looking up by name - requires virtual_machine
 		if !utils.IsSet(data.VirtualMachine) {
 			resp.Diagnostics.AddError(
@@ -209,7 +210,7 @@ func (d *VirtualDiskDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 
 		vd = &results.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing search criteria",
 			"Either 'id' or 'name' (with 'virtual_machine') must be specified to look up a VirtualDisk.",
