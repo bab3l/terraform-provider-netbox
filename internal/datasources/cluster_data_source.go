@@ -119,6 +119,7 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		}
 
 		cluster, httpResp, err = d.client.VirtualizationAPI.VirtualizationClustersRetrieve(ctx, clusterIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Name.IsNull() {
 		// Search by name
 		clusterName := data.Name.ValueString()
@@ -128,6 +129,7 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 		var clusters *netbox.PaginatedClusterList
 		clusters, httpResp, err = d.client.VirtualizationAPI.VirtualizationClustersList(ctx).Name([]string{clusterName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading cluster",

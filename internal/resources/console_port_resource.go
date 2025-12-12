@@ -191,6 +191,7 @@ func (r *ConsolePortResource) Create(ctx context.Context, req resource.CreateReq
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimConsolePortsCreate(ctx).WritableConsolePortRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating console port",
@@ -236,6 +237,7 @@ func (r *ConsolePortResource) Read(ctx context.Context, req resource.ReadRequest
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimConsolePortsRetrieve(ctx, portID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -333,6 +335,7 @@ func (r *ConsolePortResource) Update(ctx context.Context, req resource.UpdateReq
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimConsolePortsUpdate(ctx, portID).WritableConsolePortRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating console port",
@@ -373,6 +376,7 @@ func (r *ConsolePortResource) Delete(ctx context.Context, req resource.DeleteReq
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimConsolePortsDestroy(ctx, portID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return
@@ -397,6 +401,7 @@ func (r *ConsolePortResource) ImportState(ctx context.Context, req resource.Impo
 	}
 
 	response, httpResp, err := r.client.DcimAPI.DcimConsolePortsRetrieve(ctx, portID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing console port",

@@ -123,6 +123,7 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Create via API
 	tenantGroup, httpResp, err := r.client.TenancyAPI.TenancyTenantGroupsCreate(ctx).WritableTenantGroupRequest(tenantGroupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		handler := utils.CreateErrorHandler{
 			ResourceType: "netbox_tenant_group",
@@ -171,6 +172,7 @@ func (r *TenantGroupResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	tenantGroup, httpResp, err := r.client.TenancyAPI.TenancyTenantGroupsRetrieve(ctx, tenantGroupIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading tenant group", utils.FormatAPIError(fmt.Sprintf("read tenant group ID %s", tenantGroupID), err, httpResp))
 		return
@@ -246,6 +248,7 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Update via API
 	tenantGroup, httpResp, err := r.client.TenancyAPI.TenancyTenantGroupsUpdate(ctx, tenantGroupIDInt).WritableTenantGroupRequest(tenantGroupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating tenant group", utils.FormatAPIError(fmt.Sprintf("update tenant group ID %s", tenantGroupID), err, httpResp))
 		return
@@ -280,6 +283,7 @@ func (r *TenantGroupResource) Delete(ctx context.Context, req resource.DeleteReq
 	tflog.Debug(ctx, "Deleting tenant group", map[string]interface{}{"id": tenantGroupID})
 
 	httpResp, err := r.client.TenancyAPI.TenancyTenantGroupsDestroy(ctx, tenantGroupIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting tenant group", utils.FormatAPIError(fmt.Sprintf("delete tenant group ID %s", tenantGroupID), err, httpResp))
 		return

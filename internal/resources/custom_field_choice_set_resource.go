@@ -190,6 +190,7 @@ func (r *CustomFieldChoiceSetResource) Read(ctx context.Context, req resource.Re
 	}
 
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasCustomFieldChoiceSetsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -280,6 +281,7 @@ func (r *CustomFieldChoiceSetResource) Delete(ctx context.Context, req resource.
 	}
 
 	httpResp, err := r.client.ExtrasAPI.ExtrasCustomFieldChoiceSetsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting custom field choice set",
 			utils.FormatAPIError(fmt.Sprintf("delete custom field choice set ID %s", data.ID.ValueString()), err, httpResp))

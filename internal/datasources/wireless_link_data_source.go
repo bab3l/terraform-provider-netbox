@@ -137,6 +137,7 @@ func (d *WirelessLinkDataSource) Read(ctx context.Context, req datasource.ReadRe
 		tflog.Debug(ctx, "Looking up wireless link by ID", map[string]interface{}{"id": id})
 
 		result, httpResp, err = d.client.WirelessAPI.WirelessWirelessLinksRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error Reading Wireless Link",
 				utils.FormatAPIError(fmt.Sprintf("read wireless link ID %d", id), err, httpResp))

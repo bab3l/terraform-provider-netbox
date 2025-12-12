@@ -141,6 +141,7 @@ func (d *VirtualDiskDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 
 		result, httpResp, err := d.client.VirtualizationAPI.VirtualizationVirtualDisksRetrieve(ctx, id32).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading VirtualDisk",
@@ -182,6 +183,7 @@ func (d *VirtualDiskDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing VirtualDisks",

@@ -195,6 +195,7 @@ func (r *DeviceBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 	template, httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesRetrieve(ctx, id32).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "DeviceBayTemplate not found, removing from state", map[string]interface{}{
@@ -326,6 +327,7 @@ func (r *DeviceBayTemplateResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 	httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesDestroy(ctx, id32).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "DeviceBayTemplate already deleted", map[string]interface{}{

@@ -94,6 +94,7 @@ func (r *PlatformResource) Create(ctx context.Context, req resource.CreateReques
 	// Tags and custom fields can be added here if needed
 
 	platform, httpResp, err := r.client.DcimAPI.DcimPlatformsCreate(ctx).PlatformRequest(*platformRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating platform", utils.FormatAPIError("create platform", err, httpResp))
 		return
@@ -137,6 +138,7 @@ func (r *PlatformResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 	platform, httpResp, err := r.client.DcimAPI.DcimPlatformsRetrieve(ctx, platformIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading platform", utils.FormatAPIError(fmt.Sprintf("read platform ID %s", platformID), err, httpResp))
 		return
@@ -203,6 +205,7 @@ func (r *PlatformResource) Update(ctx context.Context, req resource.UpdateReques
 		platformRequest.Description = &desc
 	}
 	platform, httpResp, err := r.client.DcimAPI.DcimPlatformsUpdate(ctx, platformIDInt).PlatformRequest(platformRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating platform", utils.FormatAPIError(fmt.Sprintf("update platform ID %s", platformID), err, httpResp))
 		return
@@ -252,6 +255,7 @@ func (r *PlatformResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 	httpResp, err := r.client.DcimAPI.DcimPlatformsDestroy(ctx, platformIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting platform", utils.FormatAPIError(fmt.Sprintf("delete platform ID %s", platformID), err, httpResp))
 		return

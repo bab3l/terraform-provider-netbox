@@ -213,6 +213,7 @@ func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateReque
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimFrontPortsCreate(ctx).WritableFrontPortRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating front port",
@@ -257,6 +258,7 @@ func (r *FrontPortResource) Read(ctx context.Context, req resource.ReadRequest, 
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimFrontPortsRetrieve(ctx, portID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Front port not found, removing from state", map[string]interface{}{
@@ -365,6 +367,7 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimFrontPortsUpdate(ctx, portID).WritableFrontPortRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating front port",
@@ -405,6 +408,7 @@ func (r *FrontPortResource) Delete(ctx context.Context, req resource.DeleteReque
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimFrontPortsDestroy(ctx, portID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Resource already deleted
@@ -430,6 +434,7 @@ func (r *FrontPortResource) ImportState(ctx context.Context, req resource.Import
 	}
 
 	response, httpResp, err := r.client.DcimAPI.DcimFrontPortsRetrieve(ctx, portID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing front port",

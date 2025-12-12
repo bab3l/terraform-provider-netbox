@@ -144,6 +144,7 @@ func (r *RoleResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// Call the API
 	role, httpResp, err := r.client.IpamAPI.IpamRolesCreate(ctx).RoleRequest(*roleRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating role",
@@ -191,6 +192,7 @@ func (r *RoleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	// Call the API
 	role, httpResp, err := r.client.IpamAPI.IpamRolesRetrieve(ctx, roleID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Role not found, removing from state", map[string]interface{}{
@@ -248,6 +250,7 @@ func (r *RoleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// Call the API
 	role, httpResp, err := r.client.IpamAPI.IpamRolesUpdate(ctx, roleID).RoleRequest(*roleRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating role",
@@ -296,6 +299,7 @@ func (r *RoleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 	// Call the API
 	httpResp, err := r.client.IpamAPI.IpamRolesDestroy(ctx, roleID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Resource already deleted

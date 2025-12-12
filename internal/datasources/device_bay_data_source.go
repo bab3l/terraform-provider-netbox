@@ -133,6 +133,7 @@ func (d *DeviceBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		result, httpResp, err := d.client.DcimAPI.DcimDeviceBaysRetrieve(ctx, dbID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading device bay",
@@ -162,6 +163,7 @@ func (d *DeviceBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 		listReq = listReq.DeviceId([]int32{deviceID})
 
 		listResp, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading device bay",

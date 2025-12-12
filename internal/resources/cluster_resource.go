@@ -329,6 +329,7 @@ func (r *ClusterResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// Call the API
 	cluster, httpResp, err := r.client.VirtualizationAPI.VirtualizationClustersCreate(ctx).WritableClusterRequest(*clusterRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating cluster",
@@ -378,6 +379,7 @@ func (r *ClusterResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	// Call the API
 	cluster, httpResp, err := r.client.VirtualizationAPI.VirtualizationClustersRetrieve(ctx, clusterIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Cluster not found, removing from state", map[string]interface{}{
@@ -436,6 +438,7 @@ func (r *ClusterResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// Call the API
 	cluster, httpResp, err := r.client.VirtualizationAPI.VirtualizationClustersUpdate(ctx, clusterIDInt).WritableClusterRequest(*clusterRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating cluster",
@@ -485,6 +488,7 @@ func (r *ClusterResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 	// Call the API
 	httpResp, err := r.client.VirtualizationAPI.VirtualizationClustersDestroy(ctx, clusterIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted, consider success

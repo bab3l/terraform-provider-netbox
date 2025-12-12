@@ -171,6 +171,7 @@ func (r *RackTypeResource) Create(ctx context.Context, req resource.CreateReques
 	})
 
 	rackType, httpResp, err := r.client.DcimAPI.DcimRackTypesCreate(ctx).WritableRackTypeRequest(*rackTypeRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating rack type",
@@ -216,6 +217,7 @@ func (r *RackTypeResource) Read(ctx context.Context, req resource.ReadRequest, r
 	})
 
 	rackType, httpResp, err := r.client.DcimAPI.DcimRackTypesRetrieve(ctx, rackTypeID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -267,6 +269,7 @@ func (r *RackTypeResource) Update(ctx context.Context, req resource.UpdateReques
 	})
 
 	rackType, httpResp, err := r.client.DcimAPI.DcimRackTypesUpdate(ctx, rackTypeID).WritableRackTypeRequest(*rackTypeRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating rack type",
@@ -307,6 +310,7 @@ func (r *RackTypeResource) Delete(ctx context.Context, req resource.DeleteReques
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimRackTypesDestroy(ctx, rackTypeID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return

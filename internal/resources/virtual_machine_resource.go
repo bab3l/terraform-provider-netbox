@@ -423,6 +423,7 @@ func (r *VirtualMachineResource) Create(ctx context.Context, req resource.Create
 
 	// Call the API
 	vm, httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualMachinesCreate(ctx).WritableVirtualMachineWithConfigContextRequest(*vmRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating virtual machine",
@@ -472,6 +473,7 @@ func (r *VirtualMachineResource) Read(ctx context.Context, req resource.ReadRequ
 
 	// Call the API
 	vm, httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualMachinesRetrieve(ctx, vmIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Virtual machine not found, removing from state", map[string]interface{}{
@@ -530,6 +532,7 @@ func (r *VirtualMachineResource) Update(ctx context.Context, req resource.Update
 
 	// Call the API
 	vm, httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualMachinesUpdate(ctx, vmIDInt).WritableVirtualMachineWithConfigContextRequest(*vmRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating virtual machine",
@@ -579,6 +582,7 @@ func (r *VirtualMachineResource) Delete(ctx context.Context, req resource.Delete
 
 	// Call the API
 	httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualMachinesDestroy(ctx, vmIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted, consider success

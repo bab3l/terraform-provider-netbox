@@ -148,6 +148,7 @@ func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadReq
 		})
 
 		result, httpResp, err := d.client.VpnAPI.VpnIkeProposalsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading IKEProposal",
@@ -166,6 +167,7 @@ func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadReq
 		listReq = listReq.Name([]string{data.Name.ValueString()})
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing IKEProposals",

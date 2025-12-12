@@ -148,6 +148,7 @@ func (d *RackReservationDataSource) Read(ctx context.Context, req datasource.Rea
 
 	// Read from API
 	result, httpResp, err := d.client.DcimAPI.DcimRackReservationsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading rack reservation",

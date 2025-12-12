@@ -119,6 +119,7 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		vlanGroupResp, httpResp, err := d.client.IpamAPI.IpamVlanGroupsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading VLAN Group",
@@ -136,6 +137,7 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		list, httpResp, err := d.client.IpamAPI.IpamVlanGroupsList(ctx).Slug([]string{slug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading VLAN Group",
@@ -162,6 +164,7 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		list, httpResp, err := d.client.IpamAPI.IpamVlanGroupsList(ctx).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading VLAN Group",

@@ -231,6 +231,7 @@ func (r *WirelessLANResource) Create(ctx context.Context, req resource.CreateReq
 	})
 
 	response, httpResp, err := r.client.WirelessAPI.WirelessWirelessLansCreate(ctx).WritableWirelessLANRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating wireless LAN",
@@ -276,6 +277,7 @@ func (r *WirelessLANResource) Read(ctx context.Context, req resource.ReadRequest
 	})
 
 	response, httpResp, err := r.client.WirelessAPI.WirelessWirelessLansRetrieve(ctx, wlanID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -404,6 +406,7 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 	})
 
 	response, httpResp, err := r.client.WirelessAPI.WirelessWirelessLansUpdate(ctx, wlanID).WritableWirelessLANRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating wireless LAN",
@@ -450,6 +453,7 @@ func (r *WirelessLANResource) Delete(ctx context.Context, req resource.DeleteReq
 	})
 
 	httpResp, err := r.client.WirelessAPI.WirelessWirelessLansDestroy(ctx, wlanID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return
@@ -474,6 +478,7 @@ func (r *WirelessLANResource) ImportState(ctx context.Context, req resource.Impo
 	}
 
 	response, httpResp, err := r.client.WirelessAPI.WirelessWirelessLansRetrieve(ctx, wlanID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing wireless LAN",

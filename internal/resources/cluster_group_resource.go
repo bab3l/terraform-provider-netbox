@@ -115,6 +115,7 @@ func (r *ClusterGroupResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Create via API
 	clusterGroup, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterGroupsCreate(ctx).ClusterGroupRequest(clusterGroupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		handler := utils.CreateErrorHandler{
 			ResourceType: "netbox_cluster_group",
@@ -163,6 +164,7 @@ func (r *ClusterGroupResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	clusterGroup, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterGroupsRetrieve(ctx, clusterGroupIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading cluster group", utils.FormatAPIError(fmt.Sprintf("read cluster group ID %s", clusterGroupID), err, httpResp))
 		return
@@ -232,6 +234,7 @@ func (r *ClusterGroupResource) Update(ctx context.Context, req resource.UpdateRe
 
 	// Update via API
 	clusterGroup, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterGroupsUpdate(ctx, clusterGroupIDInt).ClusterGroupRequest(clusterGroupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating cluster group", utils.FormatAPIError(fmt.Sprintf("update cluster group ID %s", clusterGroupID), err, httpResp))
 		return
@@ -266,6 +269,7 @@ func (r *ClusterGroupResource) Delete(ctx context.Context, req resource.DeleteRe
 	tflog.Debug(ctx, "Deleting cluster group", map[string]interface{}{"id": clusterGroupID})
 
 	httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterGroupsDestroy(ctx, clusterGroupIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting cluster group", utils.FormatAPIError(fmt.Sprintf("delete cluster group ID %s", clusterGroupID), err, httpResp))
 		return

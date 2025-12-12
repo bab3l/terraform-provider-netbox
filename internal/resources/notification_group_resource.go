@@ -174,6 +174,7 @@ func (r *NotificationGroupResource) Read(ctx context.Context, req resource.ReadR
 	}
 
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasNotificationGroupsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Notification group not found, removing from state", map[string]interface{}{"id": id})
@@ -276,6 +277,7 @@ func (r *NotificationGroupResource) Delete(ctx context.Context, req resource.Del
 	tflog.Debug(ctx, "Deleting notification group", map[string]interface{}{"id": id})
 
 	httpResp, err := r.client.ExtrasAPI.ExtrasNotificationGroupsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Deleting Notification Group",
 			utils.FormatAPIError(fmt.Sprintf("delete notification group ID %d", id), err, httpResp))

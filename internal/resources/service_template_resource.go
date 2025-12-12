@@ -233,7 +233,7 @@ func (r *ServiceTemplateResource) Read(ctx context.Context, req resource.ReadReq
 
 	// Call the API
 	serviceTemplate, httpResp, err := r.client.IpamAPI.IpamServiceTemplatesRetrieve(ctx, id).Execute()
-
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -374,6 +374,7 @@ func (r *ServiceTemplateResource) Delete(ctx context.Context, req resource.Delet
 	})
 
 	httpResp, err := r.client.IpamAPI.IpamServiceTemplatesDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return

@@ -266,6 +266,7 @@ func (r *EventRuleResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasEventRulesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Event rule not found, removing from state", map[string]interface{}{"id": id})
@@ -422,6 +423,7 @@ func (r *EventRuleResource) Delete(ctx context.Context, req resource.DeleteReque
 	tflog.Debug(ctx, "Deleting event rule", map[string]interface{}{"id": id})
 
 	httpResp, err := r.client.ExtrasAPI.ExtrasEventRulesDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Deleting Event Rule",
 			utils.FormatAPIError(fmt.Sprintf("delete event rule ID %d", id), err, httpResp))

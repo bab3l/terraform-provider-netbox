@@ -124,6 +124,7 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		})
 
 		result, httpResp, err := d.client.VpnAPI.VpnL2vpnsRetrieve(ctx, idInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading L2VPN",
@@ -140,6 +141,7 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 		list, httpResp, err := d.client.VpnAPI.VpnL2vpnsList(ctx).
 			Slug([]string{data.Slug.ValueString()}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -167,6 +169,7 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 		list, httpResp, err := d.client.VpnAPI.VpnL2vpnsList(ctx).
 			Name([]string{data.Name.ValueString()}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
 			resp.Diagnostics.AddError(

@@ -151,6 +151,7 @@ func (r *ContactResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	contact, httpResp, err := r.client.TenancyAPI.TenancyContactsCreate(ctx).ContactRequest(*contactRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating contact", utils.FormatAPIError("create contact", err, httpResp))
 		return
@@ -189,6 +190,7 @@ func (r *ContactResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	contact, httpResp, err := r.client.TenancyAPI.TenancyContactsRetrieve(ctx, contactID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -248,6 +250,7 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	contact, httpResp, err := r.client.TenancyAPI.TenancyContactsUpdate(ctx, contactID).ContactRequest(*contactRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating contact", utils.FormatAPIError("update contact", err, httpResp))
 		return
@@ -281,6 +284,7 @@ func (r *ContactResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	httpResp, err := r.client.TenancyAPI.TenancyContactsDestroy(ctx, contactID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted, nothing to do

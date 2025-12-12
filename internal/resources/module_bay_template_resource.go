@@ -172,6 +172,7 @@ func (r *ModuleBayTemplateResource) Create(ctx context.Context, req resource.Cre
 
 	// Create the resource
 	result, httpResp, err := r.client.DcimAPI.DcimModuleBayTemplatesCreate(ctx).ModuleBayTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating module bay template",
@@ -211,6 +212,7 @@ func (r *ModuleBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 
 	// Read from API
 	result, httpResp, err := r.client.DcimAPI.DcimModuleBayTemplatesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -305,6 +307,7 @@ func (r *ModuleBayTemplateResource) Update(ctx context.Context, req resource.Upd
 
 	// Update the resource
 	result, httpResp, err := r.client.DcimAPI.DcimModuleBayTemplatesUpdate(ctx, id).ModuleBayTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating module bay template",
@@ -346,6 +349,7 @@ func (r *ModuleBayTemplateResource) Delete(ctx context.Context, req resource.Del
 
 	// Delete the resource
 	httpResp, err := r.client.DcimAPI.DcimModuleBayTemplatesDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return

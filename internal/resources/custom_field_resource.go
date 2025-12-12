@@ -236,6 +236,7 @@ func (r *CustomFieldResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Call the API
 	customField, httpResp, err := r.client.ExtrasAPI.ExtrasCustomFieldsCreate(ctx).WritableCustomFieldRequest(*customFieldRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating custom field",
@@ -283,6 +284,7 @@ func (r *CustomFieldResource) Read(ctx context.Context, req resource.ReadRequest
 
 	// Call the API
 	customField, httpResp, err := r.client.ExtrasAPI.ExtrasCustomFieldsRetrieve(ctx, customFieldID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Custom field not found, removing from state", map[string]interface{}{
@@ -340,6 +342,7 @@ func (r *CustomFieldResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Call the API
 	customField, httpResp, err := r.client.ExtrasAPI.ExtrasCustomFieldsUpdate(ctx, customFieldID).WritableCustomFieldRequest(*customFieldRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating custom field",
@@ -388,6 +391,7 @@ func (r *CustomFieldResource) Delete(ctx context.Context, req resource.DeleteReq
 
 	// Call the API
 	httpResp, err := r.client.ExtrasAPI.ExtrasCustomFieldsDestroy(ctx, customFieldID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Resource already deleted

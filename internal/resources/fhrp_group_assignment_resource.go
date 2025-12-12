@@ -156,6 +156,7 @@ func (r *FHRPGroupAssignmentResource) Create(ctx context.Context, req resource.C
 
 	// Build the API request - we need to look up the FHRP group first to get its details
 	fhrpGroup, httpResp, err := r.client.IpamAPI.IpamFhrpGroupsRetrieve(ctx, groupID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error looking up FHRP group",
@@ -233,7 +234,7 @@ func (r *FHRPGroupAssignmentResource) Read(ctx context.Context, req resource.Rea
 
 	// Call the API
 	assignment, httpResp, err := r.client.IpamAPI.IpamFhrpGroupAssignmentsRetrieve(ctx, id).Execute()
-
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -301,6 +302,7 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 
 	// Build the API request - we need to look up the FHRP group first to get its details
 	fhrpGroup, httpResp, err := r.client.IpamAPI.IpamFhrpGroupsRetrieve(ctx, groupID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error looking up FHRP group",
@@ -377,6 +379,7 @@ func (r *FHRPGroupAssignmentResource) Delete(ctx context.Context, req resource.D
 	})
 
 	httpResp, err := r.client.IpamAPI.IpamFhrpGroupAssignmentsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return

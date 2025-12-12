@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"net/http"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -488,4 +489,23 @@ func ToJSONString(v interface{}) (string, error) {
 		return "", err
 	}
 	return string(bytes), nil
+}
+
+// =====================================================
+// HTTP RESPONSE HELPERS
+// =====================================================
+
+// CloseResponseBody safely closes an HTTP response body if it's not nil.
+// This should be called via defer immediately after any API call that returns
+// an *http.Response to prevent resource leaks.
+//
+// Example:
+//
+//	result, httpResp, err := client.API.SomeEndpoint(ctx).Execute()
+//	defer utils.CloseResponseBody(httpResp)
+//	if err != nil { ... }
+func CloseResponseBody(resp *http.Response) {
+	if resp != nil && resp.Body != nil {
+		_ = resp.Body.Close()
+	}
 }

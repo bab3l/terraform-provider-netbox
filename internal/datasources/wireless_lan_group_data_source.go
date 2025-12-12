@@ -136,6 +136,7 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 		})
 
 		response, httpResp, err := d.client.WirelessAPI.WirelessWirelessLanGroupsRetrieve(ctx, groupID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading wireless LAN group",
@@ -162,6 +163,7 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 		}
 
 		response, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading wireless LAN groups",

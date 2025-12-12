@@ -169,6 +169,7 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		}
 
 		rack, httpResp, err = d.client.DcimAPI.DcimRacksRetrieve(ctx, rackIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Name.IsNull() {
 		rackName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading rack by name", map[string]interface{}{
@@ -177,6 +178,7 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 
 		var racks *netbox.PaginatedRackList
 		racks, httpResp, err = d.client.DcimAPI.DcimRacksList(ctx).Name([]string{rackName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading rack",

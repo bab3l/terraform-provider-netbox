@@ -149,6 +149,7 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		result, httpResp, err := d.client.IpamAPI.IpamAggregatesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading aggregate",
@@ -166,6 +167,7 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		list, httpResp, err := d.client.IpamAPI.IpamAggregatesList(ctx).Prefix(prefix).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading aggregate",

@@ -123,6 +123,7 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimConsoleServerPortTemplatesRetrieve(ctx, templateID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading console server port template",
@@ -151,6 +152,7 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 		}
 
 		response, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading console server port template",

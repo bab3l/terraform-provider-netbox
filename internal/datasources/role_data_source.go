@@ -138,6 +138,7 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		})
 
 		r, httpResp, err := d.client.IpamAPI.IpamRolesRetrieve(ctx, roleID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading role",
@@ -153,6 +154,7 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		})
 
 		listResp, httpResp, err := d.client.IpamAPI.IpamRolesList(ctx).Slug([]string{data.Slug.ValueString()}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading role",
@@ -185,6 +187,7 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		})
 
 		listResp, httpResp, err := d.client.IpamAPI.IpamRolesList(ctx).Name([]string{data.Name.ValueString()}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading role",

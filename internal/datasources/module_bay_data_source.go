@@ -127,6 +127,7 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimModuleBaysRetrieve(ctx, bayID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading module bay",
@@ -146,6 +147,7 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimModuleBaysList(ctx).DeviceId([]int32{deviceID}).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading module bay",

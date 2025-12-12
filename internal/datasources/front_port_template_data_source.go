@@ -143,6 +143,7 @@ func (d *FrontPortTemplateDataSource) Read(ctx context.Context, req datasource.R
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimFrontPortTemplatesRetrieve(ctx, templateID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading front port template",
@@ -171,6 +172,7 @@ func (d *FrontPortTemplateDataSource) Read(ctx context.Context, req datasource.R
 		}
 
 		response, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading front port template",

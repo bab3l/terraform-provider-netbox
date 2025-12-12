@@ -148,6 +148,7 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimModulesRetrieve(ctx, moduleID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading module",
@@ -175,6 +176,7 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		}
 
 		response, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading module",

@@ -133,6 +133,7 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 		})
 
 		p, httpResp, err := d.client.CircuitsAPI.CircuitsProviderNetworksRetrieve(ctx, pnID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading provider network",
@@ -155,6 +156,7 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 		}
 
 		listResp, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading provider network",

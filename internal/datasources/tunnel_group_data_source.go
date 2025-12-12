@@ -114,6 +114,7 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		// Retrieve the tunnel group via API
 		tunnelGroup, httpResp, err = d.client.VpnAPI.VpnTunnelGroupsRetrieve(ctx, tunnelGroupIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Slug.IsNull() {
 		// Search by slug
 		tunnelGroupSlug := data.Slug.ValueString()
@@ -124,6 +125,7 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		// List tunnel groups with slug filter
 		var tunnelGroups *netbox.PaginatedTunnelGroupList
 		tunnelGroups, httpResp, err = d.client.VpnAPI.VpnTunnelGroupsList(ctx).Slug([]string{tunnelGroupSlug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading tunnel group",
@@ -156,6 +158,7 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		// List tunnel groups with name filter
 		var tunnelGroups *netbox.PaginatedTunnelGroupList
 		tunnelGroups, httpResp, err = d.client.VpnAPI.VpnTunnelGroupsList(ctx).Name([]string{tunnelGroupName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading tunnel group",

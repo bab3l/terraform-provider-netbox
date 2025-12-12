@@ -149,6 +149,7 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		})
 
 		device, httpResp, err = d.client.DcimAPI.DcimDevicesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading device",
@@ -163,6 +164,7 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		})
 
 		list, listResp, listErr := d.client.DcimAPI.DcimDevicesList(ctx).Name([]string{data.Name.ValueString()}).Execute()
+		defer utils.CloseResponseBody(listResp)
 		if listErr != nil {
 			resp.Diagnostics.AddError(
 				"Error reading device",
@@ -195,6 +197,7 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		})
 
 		list, listResp, listErr := d.client.DcimAPI.DcimDevicesList(ctx).Serial([]string{data.Serial.ValueString()}).Execute()
+		defer utils.CloseResponseBody(listResp)
 		if listErr != nil {
 			resp.Diagnostics.AddError(
 				"Error reading device",

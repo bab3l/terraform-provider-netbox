@@ -151,6 +151,7 @@ func (r *InventoryItemRoleResource) Create(ctx context.Context, req resource.Cre
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimInventoryItemRolesCreate(ctx).InventoryItemRoleRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating inventory item role",
@@ -196,6 +197,7 @@ func (r *InventoryItemRoleResource) Read(ctx context.Context, req resource.ReadR
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimInventoryItemRolesRetrieve(ctx, roleID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -272,6 +274,7 @@ func (r *InventoryItemRoleResource) Update(ctx context.Context, req resource.Upd
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimInventoryItemRolesUpdate(ctx, roleID).InventoryItemRoleRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating inventory item role",
@@ -312,6 +315,7 @@ func (r *InventoryItemRoleResource) Delete(ctx context.Context, req resource.Del
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimInventoryItemRolesDestroy(ctx, roleID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return
@@ -336,6 +340,7 @@ func (r *InventoryItemRoleResource) ImportState(ctx context.Context, req resourc
 	}
 
 	response, httpResp, err := r.client.DcimAPI.DcimInventoryItemRolesRetrieve(ctx, roleID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing inventory item role",

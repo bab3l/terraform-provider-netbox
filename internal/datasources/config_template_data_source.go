@@ -116,6 +116,7 @@ func (d *ConfigTemplateDataSource) Read(ctx context.Context, req datasource.Read
 		})
 
 		result, httpResp, err := d.client.ExtrasAPI.ExtrasConfigTemplatesRetrieve(ctx, templateID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading config template",
@@ -135,6 +136,7 @@ func (d *ConfigTemplateDataSource) Read(ctx context.Context, req datasource.Read
 		tflog.Debug(ctx, "Searching for config template")
 
 		result, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error searching for config template",

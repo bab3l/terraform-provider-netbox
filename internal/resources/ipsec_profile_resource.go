@@ -162,6 +162,7 @@ func (r *IPSecProfileResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Create the IPSecProfile
 	ipsec, httpResp, err := r.client.VpnAPI.VpnIpsecProfilesCreate(ctx).WritableIPSecProfileRequest(*ipsecRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating IPSecProfile",
@@ -207,6 +208,7 @@ func (r *IPSecProfileResource) Read(ctx context.Context, req resource.ReadReques
 
 	// Read the IPSecProfile
 	ipsec, httpResp, err := r.client.VpnAPI.VpnIpsecProfilesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "IPSecProfile not found, removing from state", map[string]interface{}{
@@ -286,6 +288,7 @@ func (r *IPSecProfileResource) Update(ctx context.Context, req resource.UpdateRe
 
 	// Update the IPSecProfile
 	ipsec, httpResp, err := r.client.VpnAPI.VpnIpsecProfilesUpdate(ctx, id).WritableIPSecProfileRequest(*ipsecRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating IPSecProfile",
@@ -332,6 +335,7 @@ func (r *IPSecProfileResource) Delete(ctx context.Context, req resource.DeleteRe
 
 	// Delete the IPSecProfile
 	httpResp, err := r.client.VpnAPI.VpnIpsecProfilesDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted

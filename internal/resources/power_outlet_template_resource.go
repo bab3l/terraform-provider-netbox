@@ -163,6 +163,7 @@ func (r *PowerOutletTemplateResource) Create(ctx context.Context, req resource.C
 		// Lookup the power port template by ID - we need the name for BriefPowerPortTemplateRequest
 		powerPortID := data.PowerPort.ValueInt32()
 		powerPort, httpResp, err := r.client.DcimAPI.DcimPowerPortTemplatesRetrieve(ctx, powerPortID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error looking up power port template",
@@ -186,6 +187,7 @@ func (r *PowerOutletTemplateResource) Create(ctx context.Context, req resource.C
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerOutletTemplatesCreate(ctx).WritablePowerOutletTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating power outlet template",
@@ -220,6 +222,7 @@ func (r *PowerOutletTemplateResource) Read(ctx context.Context, req resource.Rea
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerOutletTemplatesRetrieve(ctx, templateID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Power outlet template not found, removing from state", map[string]interface{}{
@@ -284,6 +287,7 @@ func (r *PowerOutletTemplateResource) Update(ctx context.Context, req resource.U
 		// Lookup the power port template by ID - we need the name for BriefPowerPortTemplateRequest
 		powerPortID := data.PowerPort.ValueInt32()
 		powerPort, httpResp, err := r.client.DcimAPI.DcimPowerPortTemplatesRetrieve(ctx, powerPortID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error looking up power port template",
@@ -307,6 +311,7 @@ func (r *PowerOutletTemplateResource) Update(ctx context.Context, req resource.U
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerOutletTemplatesUpdate(ctx, templateID).WritablePowerOutletTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating power outlet template",
@@ -337,6 +342,7 @@ func (r *PowerOutletTemplateResource) Delete(ctx context.Context, req resource.D
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimPowerOutletTemplatesDestroy(ctx, templateID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Resource already deleted

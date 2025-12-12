@@ -218,6 +218,7 @@ func (r *InventoryItemTemplateResource) Create(ctx context.Context, req resource
 
 	// Create the resource
 	result, httpResp, err := r.client.DcimAPI.DcimInventoryItemTemplatesCreate(ctx).InventoryItemTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating inventory item template",
@@ -257,6 +258,7 @@ func (r *InventoryItemTemplateResource) Read(ctx context.Context, req resource.R
 
 	// Read from API
 	result, httpResp, err := r.client.DcimAPI.DcimInventoryItemTemplatesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -377,6 +379,7 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 
 	// Update the resource
 	result, httpResp, err := r.client.DcimAPI.DcimInventoryItemTemplatesUpdate(ctx, id).InventoryItemTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating inventory item template",
@@ -418,6 +421,7 @@ func (r *InventoryItemTemplateResource) Delete(ctx context.Context, req resource
 
 	// Delete the resource
 	httpResp, err := r.client.DcimAPI.DcimInventoryItemTemplatesDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return

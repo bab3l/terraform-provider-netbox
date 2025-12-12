@@ -157,6 +157,7 @@ func (d *EventRuleDataSource) Read(ctx context.Context, req datasource.ReadReque
 	tflog.Debug(ctx, "Reading event rule", map[string]interface{}{"id": id})
 
 	result, httpResp, err := d.client.ExtrasAPI.ExtrasEventRulesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Reading Event Rule",
 			utils.FormatAPIError(fmt.Sprintf("read event rule ID %d", id), err, httpResp))

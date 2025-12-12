@@ -123,6 +123,7 @@ func (r *ContactGroupResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Create via API
 	contactGroup, httpResp, err := r.client.TenancyAPI.TenancyContactGroupsCreate(ctx).WritableContactGroupRequest(contactGroupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		handler := utils.CreateErrorHandler{
 			ResourceType: "netbox_contact_group",
@@ -171,6 +172,7 @@ func (r *ContactGroupResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	contactGroup, httpResp, err := r.client.TenancyAPI.TenancyContactGroupsRetrieve(ctx, contactGroupIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading contact group", utils.FormatAPIError(fmt.Sprintf("read contact group ID %s", contactGroupID), err, httpResp))
 		return
@@ -246,6 +248,7 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 
 	// Update via API
 	contactGroup, httpResp, err := r.client.TenancyAPI.TenancyContactGroupsUpdate(ctx, contactGroupIDInt).WritableContactGroupRequest(contactGroupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating contact group", utils.FormatAPIError(fmt.Sprintf("update contact group ID %s", contactGroupID), err, httpResp))
 		return
@@ -280,6 +283,7 @@ func (r *ContactGroupResource) Delete(ctx context.Context, req resource.DeleteRe
 	tflog.Debug(ctx, "Deleting contact group", map[string]interface{}{"id": contactGroupID})
 
 	httpResp, err := r.client.TenancyAPI.TenancyContactGroupsDestroy(ctx, contactGroupIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting contact group", utils.FormatAPIError(fmt.Sprintf("delete contact group ID %s", contactGroupID), err, httpResp))
 		return

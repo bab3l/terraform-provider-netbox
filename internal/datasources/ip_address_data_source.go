@@ -175,6 +175,7 @@ func (d *IPAddressDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 
 		result, httpResp, err := d.client.IpamAPI.IpamIpAddressesRetrieve(ctx, id32).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading IP address",
@@ -193,6 +194,7 @@ func (d *IPAddressDataSource) Read(ctx context.Context, req datasource.ReadReque
 		listReq = listReq.Address([]string{data.Address.ValueString()})
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing IP addresses",

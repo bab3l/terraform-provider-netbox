@@ -172,6 +172,7 @@ func (r *PowerPanelResource) Create(ctx context.Context, req resource.CreateRequ
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerPanelsCreate(ctx).PowerPanelRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating power panel",
@@ -217,6 +218,7 @@ func (r *PowerPanelResource) Read(ctx context.Context, req resource.ReadRequest,
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerPanelsRetrieve(ctx, ppID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -309,6 +311,7 @@ func (r *PowerPanelResource) Update(ctx context.Context, req resource.UpdateRequ
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerPanelsUpdate(ctx, ppID).PowerPanelRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating power panel",
@@ -349,6 +352,7 @@ func (r *PowerPanelResource) Delete(ctx context.Context, req resource.DeleteRequ
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimPowerPanelsDestroy(ctx, ppID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return
@@ -374,6 +378,7 @@ func (r *PowerPanelResource) ImportState(ctx context.Context, req resource.Impor
 	}
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerPanelsRetrieve(ctx, ppID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing power panel",

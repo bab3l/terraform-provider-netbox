@@ -138,6 +138,7 @@ func (r *FHRPGroupResource) Create(ctx context.Context, req resource.CreateReque
 
 	// Create the FHRP Group via API
 	fhrpGroup, httpResp, err := r.client.IpamAPI.IpamFhrpGroupsCreate(ctx).FHRPGroupRequest(fhrpGroupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating FHRP Group",
@@ -171,6 +172,7 @@ func (r *FHRPGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	// Get the FHRP Group via API
 	id := data.ID.ValueInt32()
 	fhrpGroup, httpResp, err := r.client.IpamAPI.IpamFhrpGroupsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "FHRP Group not found, removing from state", map[string]interface{}{
@@ -228,6 +230,7 @@ func (r *FHRPGroupResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Update the FHRP Group via API
 	fhrpGroup, httpResp, err := r.client.IpamAPI.IpamFhrpGroupsUpdate(ctx, id).FHRPGroupRequest(fhrpGroupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating FHRP Group",
@@ -264,6 +267,7 @@ func (r *FHRPGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 
 	// Delete the FHRP Group via API
 	httpResp, err := r.client.IpamAPI.IpamFhrpGroupsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted

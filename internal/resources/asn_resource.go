@@ -138,6 +138,7 @@ func (r *ASNResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Call the API
 	asn, httpResp, err := r.client.IpamAPI.IpamAsnsCreate(ctx).ASNRequest(*asnRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating ASN",
@@ -185,6 +186,7 @@ func (r *ASNResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	// Call the API
 	asn, httpResp, err := r.client.IpamAPI.IpamAsnsRetrieve(ctx, asnID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "ASN not found, removing from state", map[string]interface{}{
@@ -242,6 +244,7 @@ func (r *ASNResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	// Call the API
 	asn, httpResp, err := r.client.IpamAPI.IpamAsnsUpdate(ctx, asnID).ASNRequest(*asnRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating ASN",
@@ -290,6 +293,7 @@ func (r *ASNResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	// Call the API
 	httpResp, err := r.client.IpamAPI.IpamAsnsDestroy(ctx, asnID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Resource already deleted

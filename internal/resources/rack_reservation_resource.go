@@ -204,6 +204,7 @@ func (r *RackReservationResource) Create(ctx context.Context, req resource.Creat
 
 	// Create the resource
 	result, httpResp, err := r.client.DcimAPI.DcimRackReservationsCreate(ctx).RackReservationRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating rack reservation",
@@ -243,6 +244,7 @@ func (r *RackReservationResource) Read(ctx context.Context, req resource.ReadReq
 
 	// Read from API
 	result, httpResp, err := r.client.DcimAPI.DcimRackReservationsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -363,6 +365,7 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 
 	// Update the resource
 	result, httpResp, err := r.client.DcimAPI.DcimRackReservationsUpdate(ctx, id).RackReservationRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating rack reservation",
@@ -404,6 +407,7 @@ func (r *RackReservationResource) Delete(ctx context.Context, req resource.Delet
 
 	// Delete the resource
 	httpResp, err := r.client.DcimAPI.DcimRackReservationsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return

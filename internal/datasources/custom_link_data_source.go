@@ -127,10 +127,12 @@ func (d *CustomLinkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			return
 		}
 		result, httpResp, err = d.client.ExtrasAPI.ExtrasCustomLinksRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Name.IsNull() && data.Name.ValueString() != "" {
 		// Lookup by name
 		list, listResp, listErr := d.client.ExtrasAPI.ExtrasCustomLinksList(ctx).
 			Name([]string{data.Name.ValueString()}).Execute()
+		defer utils.CloseResponseBody(listResp)
 		httpResp = listResp
 		err = listErr
 		if err == nil && list != nil {

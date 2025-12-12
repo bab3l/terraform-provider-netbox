@@ -153,6 +153,7 @@ func (r *VirtualDiskResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Create the VirtualDisk
 	vd, httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualDisksCreate(ctx).VirtualDiskRequest(*vdRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating VirtualDisk",
@@ -199,6 +200,7 @@ func (r *VirtualDiskResource) Read(ctx context.Context, req resource.ReadRequest
 
 	// Get the VirtualDisk from Netbox
 	vd, httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualDisksRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -276,6 +278,7 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Update the VirtualDisk
 	vd, httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualDisksUpdate(ctx, id).VirtualDiskRequest(*vdRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating VirtualDisk",
@@ -322,6 +325,7 @@ func (r *VirtualDiskResource) Delete(ctx context.Context, req resource.DeleteReq
 
 	// Delete the VirtualDisk
 	httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualDisksDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting VirtualDisk",

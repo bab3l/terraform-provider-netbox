@@ -176,6 +176,7 @@ func (r *RearPortTemplateResource) Create(ctx context.Context, req resource.Crea
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimRearPortTemplatesCreate(ctx).WritableRearPortTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating rear port template",
@@ -210,6 +211,7 @@ func (r *RearPortTemplateResource) Read(ctx context.Context, req resource.ReadRe
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimRearPortTemplatesRetrieve(ctx, templateID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Rear port template not found, removing from state", map[string]interface{}{
@@ -282,6 +284,7 @@ func (r *RearPortTemplateResource) Update(ctx context.Context, req resource.Upda
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimRearPortTemplatesUpdate(ctx, templateID).WritableRearPortTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating rear port template",
@@ -312,6 +315,7 @@ func (r *RearPortTemplateResource) Delete(ctx context.Context, req resource.Dele
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimRearPortTemplatesDestroy(ctx, templateID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Resource already deleted

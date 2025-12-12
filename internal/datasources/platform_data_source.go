@@ -88,6 +88,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 		}
 		var p *netbox.Platform
 		p, httpResp, err = d.client.DcimAPI.DcimPlatformsRetrieve(ctx, platformIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err == nil && httpResp.StatusCode == 200 {
 			platform = p
 		}
@@ -95,6 +96,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 		slug := data.Slug.ValueString()
 		var platforms *netbox.PaginatedPlatformList
 		platforms, httpResp, err = d.client.DcimAPI.DcimPlatformsList(ctx).Slug([]string{slug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err == nil && httpResp.StatusCode == 200 && len(platforms.GetResults()) > 0 {
 			platform = &platforms.GetResults()[0]
 		}
@@ -102,6 +104,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 		name := data.Name.ValueString()
 		var platforms *netbox.PaginatedPlatformList
 		platforms, httpResp, err = d.client.DcimAPI.DcimPlatformsList(ctx).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err == nil && httpResp.StatusCode == 200 && len(platforms.GetResults()) > 0 {
 			platform = &platforms.GetResults()[0]
 		}

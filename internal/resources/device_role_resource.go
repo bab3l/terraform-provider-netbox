@@ -200,6 +200,7 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 
 	// Call the API
 	deviceRole, httpResp, err := r.client.DcimAPI.DcimDeviceRolesCreate(ctx).DeviceRoleRequest(deviceRoleRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating device role",
@@ -248,6 +249,7 @@ func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	// Call the API
 	deviceRole, httpResp, err := r.client.DcimAPI.DcimDeviceRolesRetrieve(ctx, deviceRoleIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Device role not found, removing from state", map[string]interface{}{
@@ -342,6 +344,7 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	// Call the API
 	deviceRole, httpResp, err := r.client.DcimAPI.DcimDeviceRolesUpdate(ctx, deviceRoleIDInt).DeviceRoleRequest(deviceRoleRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating device role",
@@ -390,6 +393,7 @@ func (r *DeviceRoleResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 	// Call the API
 	httpResp, err := r.client.DcimAPI.DcimDeviceRolesDestroy(ctx, deviceRoleIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted, consider success

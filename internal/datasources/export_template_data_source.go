@@ -115,6 +115,7 @@ func (d *ExportTemplateDataSource) Read(ctx context.Context, req datasource.Read
 		})
 
 		exportTemplate, httpResp, err = d.client.ExtrasAPI.ExtrasExportTemplatesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		// Lookup by name
 		tflog.Debug(ctx, "Reading export template by name", map[string]interface{}{
@@ -124,6 +125,7 @@ func (d *ExportTemplateDataSource) Read(ctx context.Context, req datasource.Read
 		list, listResp, listErr := d.client.ExtrasAPI.ExtrasExportTemplatesList(ctx).
 			Name([]string{data.Name.ValueString()}).
 			Execute()
+		defer utils.CloseResponseBody(listResp)
 		httpResp = listResp
 		err = listErr
 

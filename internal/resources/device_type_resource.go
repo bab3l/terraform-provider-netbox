@@ -251,6 +251,7 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 
 	// Call the API
 	deviceType, httpResp, err := r.client.DcimAPI.DcimDeviceTypesCreate(ctx).WritableDeviceTypeRequest(deviceTypeRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating device type",
@@ -299,6 +300,7 @@ func (r *DeviceTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	// Call the API
 	deviceType, httpResp, err := r.client.DcimAPI.DcimDeviceTypesRetrieve(ctx, deviceTypeIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Device type not found, removing from state", map[string]interface{}{
@@ -445,6 +447,7 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	// Call the API
 	deviceType, httpResp, err := r.client.DcimAPI.DcimDeviceTypesUpdate(ctx, deviceTypeIDInt).WritableDeviceTypeRequest(deviceTypeRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating device type",
@@ -493,6 +496,7 @@ func (r *DeviceTypeResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 	// Call the API
 	httpResp, err := r.client.DcimAPI.DcimDeviceTypesDestroy(ctx, deviceTypeIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted

@@ -443,6 +443,7 @@ func (r *RackResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// Create the rack via API
 	rack, httpResp, err := r.client.DcimAPI.DcimRacksCreate(ctx).WritableRackRequest(*rackRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		handler := utils.CreateErrorHandler{
 			ResourceType: "netbox_rack",
@@ -505,6 +506,7 @@ func (r *RackResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	}
 
 	rack, httpResp, err := r.client.DcimAPI.DcimRacksRetrieve(ctx, rackID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Rack not found, removing from state", map[string]interface{}{
@@ -782,6 +784,7 @@ func (r *RackResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// Update the rack via API
 	rack, httpResp, err := r.client.DcimAPI.DcimRacksUpdate(ctx, rackID).WritableRackRequest(*rackRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating rack",
@@ -832,6 +835,7 @@ func (r *RackResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	}
 
 	httpResp, err := r.client.DcimAPI.DcimRacksDestroy(ctx, rackID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Rack already deleted", map[string]interface{}{

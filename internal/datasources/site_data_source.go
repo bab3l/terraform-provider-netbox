@@ -117,12 +117,14 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			return
 		}
 		site, httpResp, err = d.client.DcimAPI.DcimSitesRetrieve(ctx, siteIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Slug.IsNull() {
 		siteSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading site by slug", map[string]interface{}{"slug": siteSlug})
 
 		var sites *netbox.PaginatedSiteList
 		sites, httpResp, err = d.client.DcimAPI.DcimSitesList(ctx).Slug([]string{siteSlug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error reading site", utils.FormatAPIError("read site by slug", err, httpResp))
 			return
@@ -142,6 +144,7 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 
 		var sites *netbox.PaginatedSiteList
 		sites, httpResp, err = d.client.DcimAPI.DcimSitesList(ctx).Name([]string{siteName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error reading site", utils.FormatAPIError("read site by name", err, httpResp))
 			return

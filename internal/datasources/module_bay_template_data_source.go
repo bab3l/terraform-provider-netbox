@@ -137,6 +137,7 @@ func (d *ModuleBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 
 	// Read from API
 	result, httpResp, err := d.client.DcimAPI.DcimModuleBayTemplatesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading module bay template",

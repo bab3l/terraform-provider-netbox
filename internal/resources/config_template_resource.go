@@ -124,6 +124,7 @@ func (r *ConfigTemplateResource) Create(ctx context.Context, req resource.Create
 	})
 
 	response, httpResp, err := r.client.ExtrasAPI.ExtrasConfigTemplatesCreate(ctx).ConfigTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating config template",
@@ -158,6 +159,7 @@ func (r *ConfigTemplateResource) Read(ctx context.Context, req resource.ReadRequ
 	})
 
 	response, httpResp, err := r.client.ExtrasAPI.ExtrasConfigTemplatesRetrieve(ctx, templateID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Config template not found, removing from state", map[string]interface{}{
@@ -206,6 +208,7 @@ func (r *ConfigTemplateResource) Update(ctx context.Context, req resource.Update
 	})
 
 	response, httpResp, err := r.client.ExtrasAPI.ExtrasConfigTemplatesUpdate(ctx, templateID).ConfigTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating config template",
@@ -236,6 +239,7 @@ func (r *ConfigTemplateResource) Delete(ctx context.Context, req resource.Delete
 	})
 
 	httpResp, err := r.client.ExtrasAPI.ExtrasConfigTemplatesDestroy(ctx, templateID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Resource already deleted

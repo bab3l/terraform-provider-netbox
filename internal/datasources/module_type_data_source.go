@@ -137,6 +137,7 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimModuleTypesRetrieve(ctx, typeID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading module type",
@@ -160,6 +161,7 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		}
 
 		response, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading module type",

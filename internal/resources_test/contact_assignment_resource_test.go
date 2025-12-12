@@ -224,12 +224,18 @@ resource "netbox_contact" "test" {
   email = "test@example.com"
 }
 
+resource "netbox_contact_role" "test" {
+  name = "%s-role"
+  slug = "%s-role"
+}
+
 resource "netbox_contact_assignment" "test" {
   object_type = "dcim.site"
   object_id   = netbox_site.test.id
   contact_id  = netbox_contact.test.id
+  role_id     = netbox_contact_role.test.id
 }
-`, name, slug, name)
+`, name, slug, name, name, slug)
 }
 
 func testAccContactAssignmentResourceWithRole(name, slug string) string {
@@ -273,11 +279,17 @@ resource "netbox_contact" "test" {
   email = "test@example.com"
 }
 
+resource "netbox_contact_role" "test" {
+  name = "%s-role"
+  slug = "%s-role"
+}
+
 resource "netbox_contact_assignment" "test" {
   object_type = "dcim.site"
   object_id   = netbox_site.test.id
   contact_id  = netbox_contact.test.id
+  role_id     = netbox_contact_role.test.id
   priority    = "%s"
 }
-`, name, slug, name, priority)
+`, name, slug, name, name, slug, priority)
 }

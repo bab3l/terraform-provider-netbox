@@ -83,11 +83,13 @@ func (d *ContactRoleDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 		tflog.Debug(ctx, "Looking up contact role by ID", map[string]interface{}{"id": id})
 		contactRole, httpResp, err = d.client.TenancyAPI.TenancyContactRolesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Slug.IsNull() && !data.Slug.IsUnknown() {
 		// Lookup by slug
 		slug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Looking up contact role by slug", map[string]interface{}{"slug": slug})
 		list, listResp, listErr := d.client.TenancyAPI.TenancyContactRolesList(ctx).Slug([]string{slug}).Execute()
+		defer utils.CloseResponseBody(listResp)
 		httpResp = listResp
 		err = listErr
 		if err == nil && list != nil && len(list.Results) > 0 {
@@ -101,6 +103,7 @@ func (d *ContactRoleDataSource) Read(ctx context.Context, req datasource.ReadReq
 		name := data.Name.ValueString()
 		tflog.Debug(ctx, "Looking up contact role by name", map[string]interface{}{"name": name})
 		list, listResp, listErr := d.client.TenancyAPI.TenancyContactRolesList(ctx).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(listResp)
 		httpResp = listResp
 		err = listErr
 		if err == nil && list != nil {

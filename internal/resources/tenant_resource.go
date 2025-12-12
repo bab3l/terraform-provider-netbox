@@ -140,6 +140,7 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Create the tenant via API
 	tenant, httpResp, err := r.client.TenancyAPI.TenancyTenantsCreate(ctx).TenantRequest(tenantRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// Use enhanced error handler that detects duplicates and provides import hints
 		handler := utils.CreateErrorHandler{
@@ -196,6 +197,7 @@ func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	tenant, httpResp, err := r.client.TenancyAPI.TenancyTenantsRetrieve(ctx, tenantIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading tenant", utils.FormatAPIError(fmt.Sprintf("read tenant ID %s", tenantID), err, httpResp))
 		return
@@ -271,6 +273,7 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	tenant, httpResp, err := r.client.TenancyAPI.TenancyTenantsUpdate(ctx, tenantIDInt).TenantRequest(tenantRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating tenant", utils.FormatAPIError(fmt.Sprintf("update tenant ID %s", tenantID), err, httpResp))
 		return
@@ -302,6 +305,7 @@ func (r *TenantResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 
 	httpResp, err := r.client.TenancyAPI.TenancyTenantsDestroy(ctx, tenantIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting tenant", utils.FormatAPIError(fmt.Sprintf("delete tenant ID %s", tenantID), err, httpResp))
 		return

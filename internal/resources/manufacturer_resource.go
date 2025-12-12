@@ -80,6 +80,7 @@ func (r *ManufacturerResource) Create(ctx context.Context, req resource.CreateRe
 	manufacturerRequest.Description = utils.StringPtr(data.Description)
 
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersCreate(ctx).ManufacturerRequest(manufacturerRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating manufacturer", utils.FormatAPIError("create manufacturer", err, httpResp))
 		return
@@ -120,6 +121,7 @@ func (r *ManufacturerResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersRetrieve(ctx, manufacturerIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading manufacturer", utils.FormatAPIError(fmt.Sprintf("read manufacturer ID %s", manufacturerID), err, httpResp))
 		return
@@ -159,6 +161,7 @@ func (r *ManufacturerResource) Update(ctx context.Context, req resource.UpdateRe
 	manufacturerRequest.Description = utils.StringPtr(data.Description)
 
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersUpdate(ctx, manufacturerIDInt).ManufacturerRequest(manufacturerRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating manufacturer", utils.FormatAPIError(fmt.Sprintf("update manufacturer ID %s", manufacturerID), err, httpResp))
 		return
@@ -188,6 +191,7 @@ func (r *ManufacturerResource) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 	httpResp, err := r.client.DcimAPI.DcimManufacturersDestroy(ctx, manufacturerIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting manufacturer", utils.FormatAPIError(fmt.Sprintf("delete manufacturer ID %s", manufacturerID), err, httpResp))
 		return

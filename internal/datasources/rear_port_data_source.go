@@ -137,6 +137,7 @@ func (d *RearPortDataSource) Read(ctx context.Context, req datasource.ReadReques
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimRearPortsRetrieve(ctx, portID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading rear port",
@@ -156,6 +157,7 @@ func (d *RearPortDataSource) Read(ctx context.Context, req datasource.ReadReques
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimRearPortsList(ctx).DeviceId([]int32{deviceID}).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading rear port",

@@ -238,6 +238,7 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Create the tunnel via API
 	tunnel, httpResp, err := r.client.VpnAPI.VpnTunnelsCreate(ctx).WritableTunnelRequest(*tunnelRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating tunnel",
@@ -291,6 +292,7 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	// Get the tunnel from the API
 	tunnel, httpResp, err := r.client.VpnAPI.VpnTunnelsRetrieve(ctx, tunnelID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Tunnel not found, removing from state", map[string]interface{}{
@@ -528,6 +530,7 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	// Update the tunnel via API
 	tunnel, httpResp, err := r.client.VpnAPI.VpnTunnelsUpdate(ctx, tunnelID).WritableTunnelRequest(*tunnelRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating tunnel",
@@ -585,6 +588,7 @@ func (r *TunnelResource) Delete(ctx context.Context, req resource.DeleteRequest,
 
 	// Delete the tunnel via API
 	httpResp, err := r.client.VpnAPI.VpnTunnelsDestroy(ctx, tunnelID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Resource already deleted

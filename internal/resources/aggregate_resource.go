@@ -140,6 +140,7 @@ func (r *AggregateResource) Create(ctx context.Context, req resource.CreateReque
 
 	// Call API to create aggregate
 	aggregate, httpResp, err := r.client.IpamAPI.IpamAggregatesCreate(ctx).WritableAggregateRequest(*createReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating aggregate",
@@ -184,6 +185,7 @@ func (r *AggregateResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	// Call API to read aggregate
 	aggregate, httpResp, err := r.client.IpamAPI.IpamAggregatesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Aggregate not found, removing from state", map[string]interface{}{
@@ -238,6 +240,7 @@ func (r *AggregateResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Call API to update aggregate
 	aggregate, httpResp, err := r.client.IpamAPI.IpamAggregatesUpdate(ctx, id).WritableAggregateRequest(*updateReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating aggregate",
@@ -282,6 +285,7 @@ func (r *AggregateResource) Delete(ctx context.Context, req resource.DeleteReque
 
 	// Call API to delete aggregate
 	httpResp, err := r.client.IpamAPI.IpamAggregatesDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Aggregate already deleted", map[string]interface{}{

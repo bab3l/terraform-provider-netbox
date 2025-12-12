@@ -116,6 +116,7 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 		// Retrieve the rack role via API
 		rackRole, httpResp, err = d.client.DcimAPI.DcimRackRolesRetrieve(ctx, rackRoleIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Slug.IsNull() {
 		// Search by slug
 		rackRoleSlug := data.Slug.ValueString()
@@ -126,6 +127,7 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		// List rack roles with slug filter
 		var rackRoles *netbox.PaginatedRackRoleList
 		rackRoles, httpResp, err = d.client.DcimAPI.DcimRackRolesList(ctx).Slug([]string{rackRoleSlug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading rack role",
@@ -158,6 +160,7 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		// List rack roles with name filter
 		var rackRoles *netbox.PaginatedRackRoleList
 		rackRoles, httpResp, err = d.client.DcimAPI.DcimRackRolesList(ctx).Name([]string{rackRoleName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading rack role",

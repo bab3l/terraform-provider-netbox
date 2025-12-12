@@ -162,6 +162,7 @@ func (r *IPAddressResource) Create(ctx context.Context, req resource.CreateReque
 
 	// Create the IP address
 	ipAddress, httpResp, err := r.client.IpamAPI.IpamIpAddressesCreate(ctx).WritableIPAddressRequest(*ipRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating IP address",
@@ -208,6 +209,7 @@ func (r *IPAddressResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	// Get the IP address from Netbox
 	ipAddress, httpResp, err := r.client.IpamAPI.IpamIpAddressesRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -268,6 +270,7 @@ func (r *IPAddressResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Update the IP address
 	ipAddress, httpResp, err := r.client.IpamAPI.IpamIpAddressesUpdate(ctx, id).WritableIPAddressRequest(*ipRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating IP address",
@@ -314,6 +317,7 @@ func (r *IPAddressResource) Delete(ctx context.Context, req resource.DeleteReque
 
 	// Delete the IP address
 	httpResp, err := r.client.IpamAPI.IpamIpAddressesDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting IP address",

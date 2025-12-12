@@ -129,6 +129,7 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 
 		iface, httpResp, err = d.client.VirtualizationAPI.VirtualizationInterfacesRetrieve(ctx, ifaceIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Name.IsNull() && !data.VirtualMachine.IsNull() {
 		// Search by name and virtual machine
 		ifaceName := data.Name.ValueString()
@@ -140,6 +141,7 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		var ifaces *netbox.PaginatedVMInterfaceList
 		ifaces, httpResp, err = d.client.VirtualizationAPI.VirtualizationInterfacesList(ctx).Name([]string{ifaceName}).VirtualMachine([]string{vmName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading VM interface",

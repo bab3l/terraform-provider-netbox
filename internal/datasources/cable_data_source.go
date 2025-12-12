@@ -142,6 +142,7 @@ func (d *CableDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		tflog.Debug(ctx, "Reading cable by ID", map[string]interface{}{"id": id})
 
 		cable, httpResp, err := d.client.DcimAPI.DcimCablesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading cable",
