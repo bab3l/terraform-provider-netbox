@@ -177,6 +177,7 @@ func (r *LocationResource) Create(ctx context.Context, req resource.CreateReques
 
 	// Call the API
 	location, httpResp, err := r.client.DcimAPI.DcimLocationsCreate(ctx).WritableLocationRequest(*locationRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating location",
@@ -227,6 +228,7 @@ func (r *LocationResource) Read(ctx context.Context, req resource.ReadRequest, r
 	}
 
 	location, httpResp, err := r.client.DcimAPI.DcimLocationsRetrieve(ctx, locationIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading location",
@@ -351,6 +353,7 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 
 	// Call the API
 	location, httpResp, err := r.client.DcimAPI.DcimLocationsUpdate(ctx, locationIDInt).WritableLocationRequest(*locationRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating location",
@@ -401,6 +404,7 @@ func (r *LocationResource) Delete(ctx context.Context, req resource.DeleteReques
 	}
 
 	httpResp, err := r.client.DcimAPI.DcimLocationsDestroy(ctx, locationIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting location",

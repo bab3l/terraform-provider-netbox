@@ -133,6 +133,7 @@ func (d *RearPortTemplateDataSource) Read(ctx context.Context, req datasource.Re
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimRearPortTemplatesRetrieve(ctx, templateID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading rear port template",
@@ -161,6 +162,7 @@ func (d *RearPortTemplateDataSource) Read(ctx context.Context, req datasource.Re
 		}
 
 		response, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading rear port template",

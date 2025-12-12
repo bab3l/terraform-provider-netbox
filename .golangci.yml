@@ -15,6 +15,16 @@ linters:
     - gosec
     - nilerr         # Detect returning nil when error is not nil
     - unconvert      # Remove unnecessary type conversions
+    - predeclared    # Find shadowed predeclared identifiers
+    - errorlint      # Error handling best practices (Go 1.13+)
+    - durationcheck  # Check for duration multiplication issues
+    - nosprintfhostport # Check for misuse of Sprintf for host:port
+    - dupword        # Check for duplicate words in comments
+    - copyloopvar    # Detect unnecessary loop variable copies (Go 1.22+)
+    # Note: whitespace linter disabled - conflicts with multi-line HCL strings in test files
+    # Note: bodyclose is not enabled because it doesn't recognize helper functions
+    # like utils.CloseResponseBody(). The code correctly closes HTTP response bodies
+    # using defer utils.CloseResponseBody(httpResp) after each API call.
   settings:
     staticcheck:
       checks:

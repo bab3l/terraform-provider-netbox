@@ -122,6 +122,7 @@ func (r *RouteTargetResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Create the RouteTarget
 	rt, httpResp, err := r.client.IpamAPI.IpamRouteTargetsCreate(ctx).RouteTargetRequest(*rtRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating RouteTarget",
@@ -168,6 +169,7 @@ func (r *RouteTargetResource) Read(ctx context.Context, req resource.ReadRequest
 
 	// Get the RouteTarget from Netbox
 	rt, httpResp, err := r.client.IpamAPI.IpamRouteTargetsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -228,6 +230,7 @@ func (r *RouteTargetResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Update the RouteTarget
 	rt, httpResp, err := r.client.IpamAPI.IpamRouteTargetsUpdate(ctx, id).RouteTargetRequest(*rtRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating RouteTarget",
@@ -274,6 +277,7 @@ func (r *RouteTargetResource) Delete(ctx context.Context, req resource.DeleteReq
 
 	// Delete the RouteTarget
 	httpResp, err := r.client.IpamAPI.IpamRouteTargetsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting RouteTarget",

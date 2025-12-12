@@ -135,6 +135,7 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 		})
 
 		serviceTemplate, httpResp, err = d.client.IpamAPI.IpamServiceTemplatesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		// Lookup by name
 		tflog.Debug(ctx, "Reading service template by name", map[string]interface{}{
@@ -145,6 +146,7 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 			Name([]string{data.Name.ValueString()}).
 			Execute()
 		httpResp = listResp
+		defer utils.CloseResponseBody(httpResp)
 		err = listErr
 
 		if err == nil {

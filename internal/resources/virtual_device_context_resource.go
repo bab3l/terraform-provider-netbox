@@ -230,6 +230,7 @@ func (r *VirtualDeviceContextResource) Create(ctx context.Context, req resource.
 
 	// Create the resource
 	result, httpResp, err := r.client.DcimAPI.DcimVirtualDeviceContextsCreate(ctx).WritableVirtualDeviceContextRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating virtual device context",
@@ -269,6 +270,7 @@ func (r *VirtualDeviceContextResource) Read(ctx context.Context, req resource.Re
 
 	// Read from API
 	result, httpResp, err := r.client.DcimAPI.DcimVirtualDeviceContextsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -396,6 +398,7 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 
 	// Update the resource
 	result, httpResp, err := r.client.DcimAPI.DcimVirtualDeviceContextsUpdate(ctx, id).WritableVirtualDeviceContextRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating virtual device context",
@@ -437,6 +440,7 @@ func (r *VirtualDeviceContextResource) Delete(ctx context.Context, req resource.
 
 	// Delete the resource
 	httpResp, err := r.client.DcimAPI.DcimVirtualDeviceContextsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return

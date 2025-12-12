@@ -145,6 +145,7 @@ func (r *ProviderNetworkResource) Create(ctx context.Context, req resource.Creat
 
 	// Call the API
 	pn, httpResp, err := r.client.CircuitsAPI.CircuitsProviderNetworksCreate(ctx).ProviderNetworkRequest(*pnRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating provider network",
@@ -192,6 +193,7 @@ func (r *ProviderNetworkResource) Read(ctx context.Context, req resource.ReadReq
 
 	// Call the API
 	pn, httpResp, err := r.client.CircuitsAPI.CircuitsProviderNetworksRetrieve(ctx, pnID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Provider network not found, removing from state", map[string]interface{}{
@@ -249,6 +251,7 @@ func (r *ProviderNetworkResource) Update(ctx context.Context, req resource.Updat
 
 	// Call the API
 	pn, httpResp, err := r.client.CircuitsAPI.CircuitsProviderNetworksUpdate(ctx, pnID).ProviderNetworkRequest(*pnRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating provider network",
@@ -297,6 +300,7 @@ func (r *ProviderNetworkResource) Delete(ctx context.Context, req resource.Delet
 
 	// Call the API
 	httpResp, err := r.client.CircuitsAPI.CircuitsProviderNetworksDestroy(ctx, pnID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Resource already deleted

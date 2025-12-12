@@ -203,6 +203,7 @@ func (r *PowerOutletResource) Create(ctx context.Context, req resource.CreateReq
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerOutletsCreate(ctx).WritablePowerOutletRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating power outlet",
@@ -248,6 +249,7 @@ func (r *PowerOutletResource) Read(ctx context.Context, req resource.ReadRequest
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerOutletsRetrieve(ctx, outletID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -352,6 +354,7 @@ func (r *PowerOutletResource) Update(ctx context.Context, req resource.UpdateReq
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerOutletsUpdate(ctx, outletID).WritablePowerOutletRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating power outlet",
@@ -392,6 +395,7 @@ func (r *PowerOutletResource) Delete(ctx context.Context, req resource.DeleteReq
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimPowerOutletsDestroy(ctx, outletID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return
@@ -416,6 +420,7 @@ func (r *PowerOutletResource) ImportState(ctx context.Context, req resource.Impo
 	}
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerOutletsRetrieve(ctx, outletID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing power outlet",

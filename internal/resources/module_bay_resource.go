@@ -168,6 +168,7 @@ func (r *ModuleBayResource) Create(ctx context.Context, req resource.CreateReque
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimModuleBaysCreate(ctx).ModuleBayRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating module bay",
@@ -213,6 +214,7 @@ func (r *ModuleBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimModuleBaysRetrieve(ctx, bayID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -300,6 +302,7 @@ func (r *ModuleBayResource) Update(ctx context.Context, req resource.UpdateReque
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimModuleBaysUpdate(ctx, bayID).ModuleBayRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating module bay",
@@ -340,6 +343,7 @@ func (r *ModuleBayResource) Delete(ctx context.Context, req resource.DeleteReque
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimModuleBaysDestroy(ctx, bayID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return
@@ -364,6 +368,7 @@ func (r *ModuleBayResource) ImportState(ctx context.Context, req resource.Import
 	}
 
 	response, httpResp, err := r.client.DcimAPI.DcimModuleBaysRetrieve(ctx, bayID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing module bay",

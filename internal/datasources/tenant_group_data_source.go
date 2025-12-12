@@ -87,10 +87,12 @@ func (d *TenantGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 		tenantGroup, httpResp, err = d.client.TenancyAPI.TenancyTenantGroupsRetrieve(ctx, tenantGroupIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Slug.IsNull() {
 		tflog.Debug(ctx, "Reading tenant group by slug", map[string]interface{}{"slug": data.Slug.ValueString()})
 		var tenantGroups *netbox.PaginatedTenantGroupList
 		tenantGroups, httpResp, err = d.client.TenancyAPI.TenancyTenantGroupsList(ctx).Slug([]string{data.Slug.ValueString()}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err == nil && len(tenantGroups.GetResults()) > 0 {
 			tenantGroup = &tenantGroups.GetResults()[0]
 		} else if err == nil {
@@ -101,6 +103,7 @@ func (d *TenantGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		tflog.Debug(ctx, "Reading tenant group by name", map[string]interface{}{"name": data.Name.ValueString()})
 		var tenantGroups *netbox.PaginatedTenantGroupList
 		tenantGroups, httpResp, err = d.client.TenancyAPI.TenancyTenantGroupsList(ctx).Name([]string{data.Name.ValueString()}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err == nil && len(tenantGroups.GetResults()) > 0 {
 			tenantGroup = &tenantGroups.GetResults()[0]
 		} else if err == nil {

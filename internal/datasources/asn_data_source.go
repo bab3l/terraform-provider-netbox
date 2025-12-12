@@ -142,6 +142,7 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		})
 
 		a, httpResp, err := d.client.IpamAPI.IpamAsnsRetrieve(ctx, asnID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading ASN",
@@ -163,6 +164,7 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		}
 
 		listResp, httpResp, err := d.client.IpamAPI.IpamAsnsList(ctx).Asn([]int32{asn32}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading ASN",

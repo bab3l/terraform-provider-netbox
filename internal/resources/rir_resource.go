@@ -125,6 +125,7 @@ func (r *RIRResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Create the RIR
 	rir, httpResp, err := r.client.IpamAPI.IpamRirsCreate(ctx).RIRRequest(*rirRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating RIR",
@@ -171,6 +172,7 @@ func (r *RIRResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	// Get the RIR from Netbox
 	rir, httpResp, err := r.client.IpamAPI.IpamRirsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -231,6 +233,7 @@ func (r *RIRResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	// Update the RIR
 	rir, httpResp, err := r.client.IpamAPI.IpamRirsUpdate(ctx, id).RIRRequest(*rirRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating RIR",
@@ -277,6 +280,7 @@ func (r *RIRResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	// Delete the RIR
 	httpResp, err := r.client.IpamAPI.IpamRirsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting RIR",

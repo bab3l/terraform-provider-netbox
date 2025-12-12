@@ -110,6 +110,7 @@ func (r *VLANGroupResource) Create(ctx context.Context, req resource.CreateReque
 
 	// Create the VLAN Group via API
 	vlanGroup, httpResp, err := r.client.IpamAPI.IpamVlanGroupsCreate(ctx).VLANGroupRequest(vlanGroupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		handler := utils.CreateErrorHandler{
 			ResourceType: "netbox_vlan_group",
@@ -166,6 +167,7 @@ func (r *VLANGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	// Read the VLAN Group via API
 	vlanGroup, httpResp, err := r.client.IpamAPI.IpamVlanGroupsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "VLAN Group not found, removing from state", map[string]interface{}{
@@ -230,6 +232,7 @@ func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Update the VLAN Group via API
 	vlanGroup, httpResp, err := r.client.IpamAPI.IpamVlanGroupsUpdate(ctx, id).VLANGroupRequest(vlanGroupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating VLAN Group",
@@ -275,6 +278,7 @@ func (r *VLANGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 
 	// Delete the VLAN Group via API
 	httpResp, err := r.client.IpamAPI.IpamVlanGroupsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "VLAN Group already deleted", map[string]interface{}{

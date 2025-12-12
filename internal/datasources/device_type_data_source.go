@@ -142,6 +142,7 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 		// Retrieve the device type via API
 		deviceType, httpResp, err = d.client.DcimAPI.DcimDeviceTypesRetrieve(ctx, deviceTypeIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Slug.IsNull() {
 		// Search by slug
 		deviceTypeSlug := data.Slug.ValueString()
@@ -152,6 +153,7 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		// List device types with slug filter
 		var deviceTypes *netbox.PaginatedDeviceTypeList
 		deviceTypes, httpResp, err = d.client.DcimAPI.DcimDeviceTypesList(ctx).Slug([]string{deviceTypeSlug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading device type",
@@ -184,6 +186,7 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		// List device types with model filter
 		var deviceTypes *netbox.PaginatedDeviceTypeList
 		deviceTypes, httpResp, err = d.client.DcimAPI.DcimDeviceTypesList(ctx).Model([]string{deviceTypeModel}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading device type",

@@ -116,7 +116,7 @@ func TestAccL2VPNTerminationDataSource_byID(t *testing.T) {
 				Config: testAccL2VPNTerminationDataSourceConfig_byID(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_l2vpn_termination.test", "assigned_object_type", "ipam.vlan"),
-					resource.TestCheckResourceAttrSet("data.netbox_l2vpn_termination.test", "l2vpn_id"),
+					resource.TestCheckResourceAttrSet("data.netbox_l2vpn_termination.test", "l2vpn"),
 					resource.TestCheckResourceAttrSet("data.netbox_l2vpn_termination.test", "assigned_object_id"),
 				),
 			},
@@ -138,7 +138,7 @@ resource "netbox_vlan" "test" {
 }
 
 resource "netbox_l2vpn_termination" "test" {
-  l2vpn_id             = netbox_l2vpn.test.id
+  l2vpn                = netbox_l2vpn.test.id
   assigned_object_type = "ipam.vlan"
   assigned_object_id   = netbox_vlan.test.id
 }

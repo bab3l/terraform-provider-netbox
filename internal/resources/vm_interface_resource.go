@@ -335,6 +335,7 @@ func (r *VMInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Call the API
 	iface, httpResp, err := r.client.VirtualizationAPI.VirtualizationInterfacesCreate(ctx).WritableVMInterfaceRequest(*ifaceRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating VM interface",
@@ -384,6 +385,7 @@ func (r *VMInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 
 	// Call the API
 	iface, httpResp, err := r.client.VirtualizationAPI.VirtualizationInterfacesRetrieve(ctx, ifaceIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "VM interface not found, removing from state", map[string]interface{}{
@@ -442,6 +444,7 @@ func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Call the API
 	iface, httpResp, err := r.client.VirtualizationAPI.VirtualizationInterfacesUpdate(ctx, ifaceIDInt).WritableVMInterfaceRequest(*ifaceRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating VM interface",
@@ -491,6 +494,7 @@ func (r *VMInterfaceResource) Delete(ctx context.Context, req resource.DeleteReq
 
 	// Call the API
 	httpResp, err := r.client.VirtualizationAPI.VirtualizationInterfacesDestroy(ctx, ifaceIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted, consider success

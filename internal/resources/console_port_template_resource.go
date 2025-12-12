@@ -158,6 +158,7 @@ func (r *ConsolePortTemplateResource) Create(ctx context.Context, req resource.C
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimConsolePortTemplatesCreate(ctx).WritableConsolePortTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating console port template",
@@ -192,6 +193,7 @@ func (r *ConsolePortTemplateResource) Read(ctx context.Context, req resource.Rea
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimConsolePortTemplatesRetrieve(ctx, templateID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Console port template not found, removing from state", map[string]interface{}{
@@ -261,6 +263,7 @@ func (r *ConsolePortTemplateResource) Update(ctx context.Context, req resource.U
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimConsolePortTemplatesUpdate(ctx, templateID).WritableConsolePortTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating console port template",
@@ -291,6 +294,7 @@ func (r *ConsolePortTemplateResource) Delete(ctx context.Context, req resource.D
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimConsolePortTemplatesDestroy(ctx, templateID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Resource already deleted

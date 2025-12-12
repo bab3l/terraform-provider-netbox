@@ -134,6 +134,7 @@ func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadReq
 		})
 
 		result, httpResp, err := d.client.VpnAPI.VpnIpsecPoliciesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading IPSecPolicy",
@@ -152,6 +153,7 @@ func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadReq
 		listReq = listReq.Name([]string{data.Name.ValueString()})
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing IPSecPolicies",

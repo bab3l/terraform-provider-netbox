@@ -181,6 +181,7 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		}
 
 		result, httpResp, err := d.client.IpamAPI.IpamIpRangesRetrieve(ctx, id32).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading IP range",
@@ -201,6 +202,7 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		listReq = listReq.EndAddress([]string{data.EndAddress.ValueString()})
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing IP ranges",

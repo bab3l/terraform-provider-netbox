@@ -166,6 +166,7 @@ func (d *ASNRangeDataSource) Read(ctx context.Context, req datasource.ReadReques
 		}
 
 		result, httpResp, err := d.client.IpamAPI.IpamAsnRangesRetrieve(ctx, id32).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading ASNRange",
@@ -184,6 +185,7 @@ func (d *ASNRangeDataSource) Read(ctx context.Context, req datasource.ReadReques
 		listReq = listReq.Name([]string{data.Name.ValueString()})
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing ASNRanges",
@@ -219,6 +221,7 @@ func (d *ASNRangeDataSource) Read(ctx context.Context, req datasource.ReadReques
 		listReq = listReq.Slug([]string{data.Slug.ValueString()})
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing ASNRanges",

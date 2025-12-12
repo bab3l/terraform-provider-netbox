@@ -199,6 +199,7 @@ func (r *PowerPortResource) Create(ctx context.Context, req resource.CreateReque
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerPortsCreate(ctx).WritablePowerPortRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating power port",
@@ -244,6 +245,7 @@ func (r *PowerPortResource) Read(ctx context.Context, req resource.ReadRequest, 
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerPortsRetrieve(ctx, portID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -344,6 +346,7 @@ func (r *PowerPortResource) Update(ctx context.Context, req resource.UpdateReque
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerPortsUpdate(ctx, portID).WritablePowerPortRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating power port",
@@ -384,6 +387,7 @@ func (r *PowerPortResource) Delete(ctx context.Context, req resource.DeleteReque
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimPowerPortsDestroy(ctx, portID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return
@@ -408,6 +412,7 @@ func (r *PowerPortResource) ImportState(ctx context.Context, req resource.Import
 	}
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerPortsRetrieve(ctx, portID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing power port",

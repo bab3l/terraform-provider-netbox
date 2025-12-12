@@ -178,6 +178,7 @@ func (r *ClusterTypeResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Call the API
 	clusterType, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterTypesCreate(ctx).ClusterTypeRequest(clusterTypeRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating cluster type",
@@ -227,6 +228,7 @@ func (r *ClusterTypeResource) Read(ctx context.Context, req resource.ReadRequest
 
 	// Call the API
 	clusterType, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterTypesRetrieve(ctx, clusterTypeIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Cluster type not found, removing from state", map[string]interface{}{
@@ -312,6 +314,7 @@ func (r *ClusterTypeResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Call the API
 	clusterType, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterTypesUpdate(ctx, clusterTypeIDInt).ClusterTypeRequest(clusterTypeRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating cluster type",
@@ -361,6 +364,7 @@ func (r *ClusterTypeResource) Delete(ctx context.Context, req resource.DeleteReq
 
 	// Call the API
 	httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterTypesDestroy(ctx, clusterTypeIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted, consider success

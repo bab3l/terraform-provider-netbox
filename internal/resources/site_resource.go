@@ -186,6 +186,7 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// Create the site via API
 	site, httpResp, err := r.client.DcimAPI.DcimSitesCreate(ctx).WritableSiteRequest(siteRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		handler := utils.CreateErrorHandler{
 			ResourceType: "netbox_site",
@@ -241,6 +242,7 @@ func (r *SiteResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	}
 
 	site, httpResp, err := r.client.DcimAPI.DcimSitesRetrieve(ctx, siteIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading site", utils.FormatAPIError(fmt.Sprintf("read site ID %s", siteID), err, httpResp))
 		return
@@ -344,6 +346,7 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// Update the site via API
 	site, httpResp, err := r.client.DcimAPI.DcimSitesUpdate(ctx, siteIDInt).WritableSiteRequest(siteRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating site", utils.FormatAPIError(fmt.Sprintf("update site ID %s", siteID), err, httpResp))
 		return
@@ -375,6 +378,7 @@ func (r *SiteResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	}
 
 	httpResp, err := r.client.DcimAPI.DcimSitesDestroy(ctx, siteIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting site", utils.FormatAPIError(fmt.Sprintf("delete site ID %s", siteID), err, httpResp))
 		return

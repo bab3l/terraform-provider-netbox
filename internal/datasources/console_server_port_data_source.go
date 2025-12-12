@@ -132,6 +132,7 @@ func (d *ConsoleServerPortDataSource) Read(ctx context.Context, req datasource.R
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimConsoleServerPortsRetrieve(ctx, portID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading console server port",
@@ -151,6 +152,7 @@ func (d *ConsoleServerPortDataSource) Read(ctx context.Context, req datasource.R
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimConsoleServerPortsList(ctx).DeviceId([]int32{deviceID}).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading console server port",

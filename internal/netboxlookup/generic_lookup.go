@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
@@ -48,6 +49,7 @@ func GenericLookup[TFull any, TBrief any](
 	if _, err := fmt.Sscanf(value, "%d", &id); err == nil {
 		// Lookup by ID
 		resource, resp, err := config.RetrieveByID(ctx, id)
+		defer utils.CloseResponseBody(resp)
 		if err != nil || resp.StatusCode != 200 {
 			errMsg := "unknown error"
 			if err != nil {
@@ -64,6 +66,7 @@ func GenericLookup[TFull any, TBrief any](
 
 	// Lookup by slug
 	resources, resp, err := config.ListBySlug(ctx, value)
+	defer utils.CloseResponseBody(resp)
 	if err != nil || resp.StatusCode != 200 {
 		errMsg := "unknown error"
 		if err != nil {

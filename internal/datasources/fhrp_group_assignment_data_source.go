@@ -107,6 +107,7 @@ func (d *FHRPGroupAssignmentDataSource) Read(ctx context.Context, req datasource
 		})
 
 		assignment, httpResp, err = d.client.IpamAPI.IpamFhrpGroupAssignmentsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else {
 		resp.Diagnostics.AddError(
 			"Missing Identifier",

@@ -140,6 +140,7 @@ func (d *ProviderAccountDataSource) Read(ctx context.Context, req datasource.Rea
 		})
 
 		result, httpResp, err := d.client.CircuitsAPI.CircuitsProviderAccountsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading provider account",
@@ -157,6 +158,7 @@ func (d *ProviderAccountDataSource) Read(ctx context.Context, req datasource.Rea
 		})
 
 		list, httpResp, err := d.client.CircuitsAPI.CircuitsProviderAccountsList(ctx).Account([]string{account}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading provider account",

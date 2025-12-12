@@ -98,12 +98,14 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			return
 		}
 		region, httpResp, err = d.client.DcimAPI.DcimRegionsRetrieve(ctx, regionIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Slug.IsNull() {
 		regionSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading region by slug", map[string]interface{}{"slug": regionSlug})
 
 		var regions *netbox.PaginatedRegionList
 		regions, httpResp, err = d.client.DcimAPI.DcimRegionsList(ctx).Slug([]string{regionSlug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error reading region", utils.FormatAPIError("read region by slug", err, httpResp))
 			return
@@ -123,6 +125,7 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 		var regions *netbox.PaginatedRegionList
 		regions, httpResp, err = d.client.DcimAPI.DcimRegionsList(ctx).Name([]string{regionName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error reading region", utils.FormatAPIError("read region by name", err, httpResp))
 			return

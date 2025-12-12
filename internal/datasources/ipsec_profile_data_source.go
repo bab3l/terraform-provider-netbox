@@ -138,6 +138,7 @@ func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRe
 		})
 
 		result, httpResp, err := d.client.VpnAPI.VpnIpsecProfilesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading IPSecProfile",
@@ -156,6 +157,7 @@ func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRe
 		listReq = listReq.Name([]string{data.Name.ValueString()})
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing IPSecProfiles",

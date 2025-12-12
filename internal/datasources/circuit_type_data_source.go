@@ -111,6 +111,7 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 
 		circuitType, httpResp, err = d.client.CircuitsAPI.CircuitsCircuitTypesRetrieve(ctx, circuitTypeIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Slug.IsNull() {
 		// Search by slug
 		circuitTypeSlug := data.Slug.ValueString()
@@ -120,6 +121,7 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		var circuitTypes *netbox.PaginatedCircuitTypeList
 		circuitTypes, httpResp, err = d.client.CircuitsAPI.CircuitsCircuitTypesList(ctx).Slug([]string{circuitTypeSlug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading circuit type",
@@ -144,6 +146,7 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		var circuitTypes *netbox.PaginatedCircuitTypeList
 		circuitTypes, httpResp, err = d.client.CircuitsAPI.CircuitsCircuitTypesList(ctx).Name([]string{circuitTypeName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading circuit type",

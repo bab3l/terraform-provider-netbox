@@ -211,6 +211,7 @@ func (r *InterfaceTemplateResource) Create(ctx context.Context, req resource.Cre
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimInterfaceTemplatesCreate(ctx).WritableInterfaceTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating interface template",
@@ -245,6 +246,7 @@ func (r *InterfaceTemplateResource) Read(ctx context.Context, req resource.ReadR
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimInterfaceTemplatesRetrieve(ctx, templateID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Interface template not found, removing from state", map[string]interface{}{
@@ -332,6 +334,7 @@ func (r *InterfaceTemplateResource) Update(ctx context.Context, req resource.Upd
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimInterfaceTemplatesUpdate(ctx, templateID).WritableInterfaceTemplateRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating interface template",
@@ -362,6 +365,7 @@ func (r *InterfaceTemplateResource) Delete(ctx context.Context, req resource.Del
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimInterfaceTemplatesDestroy(ctx, templateID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Resource already deleted

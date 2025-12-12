@@ -115,6 +115,7 @@ func (r *ContactRoleResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Create via API
 	contactRole, httpResp, err := r.client.TenancyAPI.TenancyContactRolesCreate(ctx).ContactRoleRequest(contactRoleRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		handler := utils.CreateErrorHandler{
 			ResourceType: "netbox_contact_role",
@@ -163,6 +164,7 @@ func (r *ContactRoleResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	contactRole, httpResp, err := r.client.TenancyAPI.TenancyContactRolesRetrieve(ctx, contactRoleIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading contact role", utils.FormatAPIError(fmt.Sprintf("read contact role ID %s", contactRoleID), err, httpResp))
 		return
@@ -232,6 +234,7 @@ func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Update via API
 	contactRole, httpResp, err := r.client.TenancyAPI.TenancyContactRolesUpdate(ctx, contactRoleIDInt).ContactRoleRequest(contactRoleRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating contact role", utils.FormatAPIError(fmt.Sprintf("update contact role ID %s", contactRoleID), err, httpResp))
 		return
@@ -266,6 +269,7 @@ func (r *ContactRoleResource) Delete(ctx context.Context, req resource.DeleteReq
 	tflog.Debug(ctx, "Deleting contact role", map[string]interface{}{"id": contactRoleID})
 
 	httpResp, err := r.client.TenancyAPI.TenancyContactRolesDestroy(ctx, contactRoleIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting contact role", utils.FormatAPIError(fmt.Sprintf("delete contact role ID %s", contactRoleID), err, httpResp))
 		return

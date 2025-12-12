@@ -183,6 +183,7 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	webhook, httpResp, err := r.client.ExtrasAPI.ExtrasWebhooksCreate(ctx).WebhookRequest(*webhookRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating webhook", utils.FormatAPIError("create webhook", err, httpResp))
 		return
@@ -221,6 +222,7 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	webhook, httpResp, err := r.client.ExtrasAPI.ExtrasWebhooksRetrieve(ctx, webhookID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -293,6 +295,7 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	webhook, httpResp, err := r.client.ExtrasAPI.ExtrasWebhooksUpdate(ctx, webhookID).WebhookRequest(*webhookRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating webhook", utils.FormatAPIError("update webhook", err, httpResp))
 		return
@@ -326,6 +329,7 @@ func (r *WebhookResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	httpResp, err := r.client.ExtrasAPI.ExtrasWebhooksDestroy(ctx, webhookID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted, nothing to do

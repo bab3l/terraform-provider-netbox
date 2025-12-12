@@ -87,6 +87,7 @@ func (d *ManufacturerDataSource) Read(ctx context.Context, req datasource.ReadRe
 		}
 		var m *netbox.Manufacturer
 		m, httpResp, err = d.client.DcimAPI.DcimManufacturersRetrieve(ctx, manufacturerIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err == nil && httpResp.StatusCode == 200 {
 			manufacturer = m
 		}
@@ -94,6 +95,7 @@ func (d *ManufacturerDataSource) Read(ctx context.Context, req datasource.ReadRe
 		slug := data.Slug.ValueString()
 		var manufacturers *netbox.PaginatedManufacturerList
 		manufacturers, httpResp, err = d.client.DcimAPI.DcimManufacturersList(ctx).Slug([]string{slug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err == nil && httpResp.StatusCode == 200 && len(manufacturers.GetResults()) > 0 {
 			manufacturer = &manufacturers.GetResults()[0]
 		}
@@ -101,6 +103,7 @@ func (d *ManufacturerDataSource) Read(ctx context.Context, req datasource.ReadRe
 		name := data.Name.ValueString()
 		var manufacturers *netbox.PaginatedManufacturerList
 		manufacturers, httpResp, err = d.client.DcimAPI.DcimManufacturersList(ctx).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err == nil && httpResp.StatusCode == 200 && len(manufacturers.GetResults()) > 0 {
 			manufacturer = &manufacturers.GetResults()[0]
 		}

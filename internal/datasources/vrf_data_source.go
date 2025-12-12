@@ -123,6 +123,7 @@ func (d *VRFDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		})
 
 		vrfResp, httpResp, err := d.client.IpamAPI.IpamVrfsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading VRF",
@@ -140,6 +141,7 @@ func (d *VRFDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		})
 
 		list, httpResp, err := d.client.IpamAPI.IpamVrfsList(ctx).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading VRF",

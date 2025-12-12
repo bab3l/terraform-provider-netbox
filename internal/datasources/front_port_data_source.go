@@ -147,6 +147,7 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimFrontPortsRetrieve(ctx, portID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading front port",
@@ -166,6 +167,7 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		response, httpResp, err := d.client.DcimAPI.DcimFrontPortsList(ctx).DeviceId([]int32{deviceID}).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading front port",

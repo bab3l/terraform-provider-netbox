@@ -151,6 +151,7 @@ func (r *CircuitGroupResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Call the API
 	group, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitGroupsCreate(ctx).CircuitGroupRequest(*groupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating circuit group",
@@ -193,6 +194,7 @@ func (r *CircuitGroupResource) Read(ctx context.Context, req resource.ReadReques
 
 	// Read from API
 	group, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitGroupsRetrieve(ctx, idInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -296,6 +298,7 @@ func (r *CircuitGroupResource) Update(ctx context.Context, req resource.UpdateRe
 
 	// Call the API
 	group, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitGroupsUpdate(ctx, idInt).CircuitGroupRequest(*groupRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating circuit group",
@@ -338,6 +341,7 @@ func (r *CircuitGroupResource) Delete(ctx context.Context, req resource.DeleteRe
 
 	// Call the API
 	httpResp, err := r.client.CircuitsAPI.CircuitsCircuitGroupsDestroy(ctx, idInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted

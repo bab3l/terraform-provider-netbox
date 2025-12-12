@@ -159,6 +159,7 @@ func (r *WirelessLANGroupResource) Create(ctx context.Context, req resource.Crea
 	})
 
 	response, httpResp, err := r.client.WirelessAPI.WirelessWirelessLanGroupsCreate(ctx).WritableWirelessLANGroupRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating wireless LAN group",
@@ -204,6 +205,7 @@ func (r *WirelessLANGroupResource) Read(ctx context.Context, req resource.ReadRe
 	})
 
 	response, httpResp, err := r.client.WirelessAPI.WirelessWirelessLanGroupsRetrieve(ctx, groupID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -288,6 +290,7 @@ func (r *WirelessLANGroupResource) Update(ctx context.Context, req resource.Upda
 	})
 
 	response, httpResp, err := r.client.WirelessAPI.WirelessWirelessLanGroupsUpdate(ctx, groupID).WritableWirelessLANGroupRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating wireless LAN group",
@@ -328,6 +331,7 @@ func (r *WirelessLANGroupResource) Delete(ctx context.Context, req resource.Dele
 	})
 
 	httpResp, err := r.client.WirelessAPI.WirelessWirelessLanGroupsDestroy(ctx, groupID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return
@@ -352,6 +356,7 @@ func (r *WirelessLANGroupResource) ImportState(ctx context.Context, req resource
 	}
 
 	response, httpResp, err := r.client.WirelessAPI.WirelessWirelessLanGroupsRetrieve(ctx, groupID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing wireless LAN group",

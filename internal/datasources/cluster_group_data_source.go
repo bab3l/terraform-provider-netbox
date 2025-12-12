@@ -83,11 +83,13 @@ func (d *ClusterGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		}
 		tflog.Debug(ctx, "Looking up cluster group by ID", map[string]interface{}{"id": id})
 		clusterGroup, httpResp, err = d.client.VirtualizationAPI.VirtualizationClusterGroupsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Slug.IsNull() && !data.Slug.IsUnknown() {
 		// Lookup by slug
 		slug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Looking up cluster group by slug", map[string]interface{}{"slug": slug})
 		list, listResp, listErr := d.client.VirtualizationAPI.VirtualizationClusterGroupsList(ctx).Slug([]string{slug}).Execute()
+		defer utils.CloseResponseBody(listResp)
 		httpResp = listResp
 		err = listErr
 		if err == nil && list != nil && len(list.Results) > 0 {
@@ -101,6 +103,7 @@ func (d *ClusterGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		name := data.Name.ValueString()
 		tflog.Debug(ctx, "Looking up cluster group by name", map[string]interface{}{"name": name})
 		list, listResp, listErr := d.client.VirtualizationAPI.VirtualizationClusterGroupsList(ctx).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(listResp)
 		httpResp = listResp
 		err = listErr
 		if err == nil && list != nil {

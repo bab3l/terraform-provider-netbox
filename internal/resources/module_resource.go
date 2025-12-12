@@ -201,6 +201,7 @@ func (r *ModuleResource) Create(ctx context.Context, req resource.CreateRequest,
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimModulesCreate(ctx).WritableModuleRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating module",
@@ -245,6 +246,7 @@ func (r *ModuleResource) Read(ctx context.Context, req resource.ReadRequest, res
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimModulesRetrieve(ctx, moduleID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -348,6 +350,7 @@ func (r *ModuleResource) Update(ctx context.Context, req resource.UpdateRequest,
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimModulesUpdate(ctx, moduleID).WritableModuleRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating module",
@@ -388,6 +391,7 @@ func (r *ModuleResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimModulesDestroy(ctx, moduleID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return
@@ -412,6 +416,7 @@ func (r *ModuleResource) ImportState(ctx context.Context, req resource.ImportSta
 	}
 
 	response, httpResp, err := r.client.DcimAPI.DcimModulesRetrieve(ctx, moduleID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing module",

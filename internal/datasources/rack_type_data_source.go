@@ -194,6 +194,7 @@ func (d *RackTypeDataSource) Read(ctx context.Context, req datasource.ReadReques
 		})
 
 		rt, httpResp, err := d.client.DcimAPI.DcimRackTypesRetrieve(ctx, rtID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading rack type",
@@ -216,6 +217,7 @@ func (d *RackTypeDataSource) Read(ctx context.Context, req datasource.ReadReques
 		}
 
 		listResp, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading rack type",
@@ -248,6 +250,7 @@ func (d *RackTypeDataSource) Read(ctx context.Context, req datasource.ReadReques
 		})
 
 		listResp, httpResp, err := d.client.DcimAPI.DcimRackTypesList(ctx).Slug([]string{data.Slug.ValueString()}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading rack type",

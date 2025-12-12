@@ -169,6 +169,7 @@ func (r *CircuitTerminationResource) Create(ctx context.Context, req resource.Cr
 
 	// Call API to create circuit termination
 	termination, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitTerminationsCreate(ctx).CircuitTerminationRequest(*createReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating circuit termination",
@@ -213,6 +214,7 @@ func (r *CircuitTerminationResource) Read(ctx context.Context, req resource.Read
 
 	// Call API to read circuit termination
 	termination, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitTerminationsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Circuit termination not found, removing from state", map[string]interface{}{
@@ -267,6 +269,7 @@ func (r *CircuitTerminationResource) Update(ctx context.Context, req resource.Up
 
 	// Call API to update circuit termination
 	termination, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitTerminationsUpdate(ctx, id).CircuitTerminationRequest(*updateReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating circuit termination",
@@ -311,6 +314,7 @@ func (r *CircuitTerminationResource) Delete(ctx context.Context, req resource.De
 
 	// Call API to delete circuit termination
 	httpResp, err := r.client.CircuitsAPI.CircuitsCircuitTerminationsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Circuit termination already deleted", map[string]interface{}{

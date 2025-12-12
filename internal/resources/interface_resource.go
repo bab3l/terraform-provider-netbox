@@ -235,6 +235,7 @@ func (r *InterfaceResource) Create(ctx context.Context, req resource.CreateReque
 	})
 
 	iface, httpResp, err := r.client.DcimAPI.DcimInterfacesCreate(ctx).WritableInterfaceRequest(*interfaceReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating interface",
@@ -277,6 +278,7 @@ func (r *InterfaceResource) Read(ctx context.Context, req resource.ReadRequest, 
 	})
 
 	iface, httpResp, err := r.client.DcimAPI.DcimInterfacesRetrieve(ctx, interfaceID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Interface not found, removing from state", map[string]interface{}{
@@ -361,6 +363,7 @@ func (r *InterfaceResource) Update(ctx context.Context, req resource.UpdateReque
 	})
 
 	iface, httpResp, err := r.client.DcimAPI.DcimInterfacesUpdate(ctx, interfaceID).WritableInterfaceRequest(*interfaceReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating interface",
@@ -403,6 +406,7 @@ func (r *InterfaceResource) Delete(ctx context.Context, req resource.DeleteReque
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimInterfacesDestroy(ctx, interfaceID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Interface already deleted", map[string]interface{}{

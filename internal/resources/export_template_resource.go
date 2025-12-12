@@ -206,7 +206,7 @@ func (r *ExportTemplateResource) Read(ctx context.Context, req resource.ReadRequ
 
 	// Call the API
 	exportTemplate, httpResp, err := r.client.ExtrasAPI.ExtrasExportTemplatesRetrieve(ctx, id).Execute()
-
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -323,6 +323,7 @@ func (r *ExportTemplateResource) Delete(ctx context.Context, req resource.Delete
 	})
 
 	httpResp, err := r.client.ExtrasAPI.ExtrasExportTemplatesDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return

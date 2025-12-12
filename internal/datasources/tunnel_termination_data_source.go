@@ -7,6 +7,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -122,7 +123,9 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 			"id": id,
 		})
 
-		tunnelTermination, _, err = d.client.VpnAPI.VpnTunnelTerminationsRetrieve(ctx, id).Execute()
+		var httpResp *http.Response
+		tunnelTermination, httpResp, err = d.client.VpnAPI.VpnTunnelTerminationsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading tunnel termination",
@@ -147,6 +150,7 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 		} else if !data.TunnelName.IsNull() && data.TunnelName.ValueString() != "" {
 			// Look up tunnel by name
 			tunnelList, httpResp, lookupErr := d.client.VpnAPI.VpnTunnelsList(ctx).Name([]string{data.TunnelName.ValueString()}).Execute()
+			defer utils.CloseResponseBody(httpResp)
 			if lookupErr != nil {
 				resp.Diagnostics.AddError(
 					"Error looking up tunnel",
@@ -170,6 +174,7 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 
 		// List tunnel terminations for this tunnel
 		list, httpResp, listErr := d.client.VpnAPI.VpnTunnelTerminationsList(ctx).TunnelId([]int32{tunnelID}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if listErr != nil {
 			resp.Diagnostics.AddError(
 				"Error listing tunnel terminations",

@@ -112,6 +112,7 @@ func (r *VRFResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Create the VRF via API
 	vrf, httpResp, err := r.client.IpamAPI.IpamVrfsCreate(ctx).VRFRequest(vrfRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		handler := utils.CreateErrorHandler{
 			ResourceType: "netbox_vrf",
@@ -159,6 +160,7 @@ func (r *VRFResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	// Read the VRF via API
 	vrf, httpResp, err := r.client.IpamAPI.IpamVrfsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "VRF not found, removing from state", map[string]interface{}{
@@ -222,6 +224,7 @@ func (r *VRFResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	// Update the VRF via API
 	vrf, httpResp, err := r.client.IpamAPI.IpamVrfsUpdate(ctx, id).VRFRequest(vrfRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating VRF",
@@ -267,6 +270,7 @@ func (r *VRFResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	// Delete the VRF via API
 	httpResp, err := r.client.IpamAPI.IpamVrfsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "VRF already deleted", map[string]interface{}{

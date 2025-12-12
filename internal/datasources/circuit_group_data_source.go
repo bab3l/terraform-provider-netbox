@@ -105,6 +105,7 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		})
 
 		result, httpResp, err := d.client.CircuitsAPI.CircuitsCircuitGroupsRetrieve(ctx, idInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading circuit group",
@@ -121,6 +122,7 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 		list, httpResp, err := d.client.CircuitsAPI.CircuitsCircuitGroupsList(ctx).
 			Slug([]string{data.Slug.ValueString()}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -148,6 +150,7 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 		list, httpResp, err := d.client.CircuitsAPI.CircuitsCircuitGroupsList(ctx).
 			Name([]string{data.Name.ValueString()}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
 			resp.Diagnostics.AddError(

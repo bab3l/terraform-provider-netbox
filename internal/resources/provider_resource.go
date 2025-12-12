@@ -195,6 +195,7 @@ func (r *ProviderResource) Create(ctx context.Context, req resource.CreateReques
 
 	// Call the API
 	provider, httpResp, err := r.client.CircuitsAPI.CircuitsProvidersCreate(ctx).ProviderRequest(providerRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating circuit provider",
@@ -237,6 +238,7 @@ func (r *ProviderResource) Read(ctx context.Context, req resource.ReadRequest, r
 	})
 
 	provider, httpResp, err := r.client.CircuitsAPI.CircuitsProvidersRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Circuit provider not found, removing from state", map[string]interface{}{
@@ -320,6 +322,7 @@ func (r *ProviderResource) Update(ctx context.Context, req resource.UpdateReques
 
 	// Call the API
 	provider, httpResp, err := r.client.CircuitsAPI.CircuitsProvidersUpdate(ctx, id).ProviderRequest(providerRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating circuit provider",
@@ -362,6 +365,7 @@ func (r *ProviderResource) Delete(ctx context.Context, req resource.DeleteReques
 	})
 
 	httpResp, err := r.client.CircuitsAPI.CircuitsProvidersDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "Circuit provider already deleted", map[string]interface{}{

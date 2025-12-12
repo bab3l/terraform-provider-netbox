@@ -294,6 +294,7 @@ func (r *PowerFeedResource) Create(ctx context.Context, req resource.CreateReque
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerFeedsCreate(ctx).WritablePowerFeedRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating power feed",
@@ -339,6 +340,7 @@ func (r *PowerFeedResource) Read(ctx context.Context, req resource.ReadRequest, 
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerFeedsRetrieve(ctx, pfID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -491,6 +493,7 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 	})
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerFeedsUpdate(ctx, pfID).WritablePowerFeedRequest(*apiReq).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating power feed",
@@ -531,6 +534,7 @@ func (r *PowerFeedResource) Delete(ctx context.Context, req resource.DeleteReque
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimPowerFeedsDestroy(ctx, pfID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return
@@ -555,6 +559,7 @@ func (r *PowerFeedResource) ImportState(ctx context.Context, req resource.Import
 	}
 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerFeedsRetrieve(ctx, pfID).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing power feed",

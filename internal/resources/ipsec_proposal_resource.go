@@ -154,6 +154,7 @@ func (r *IPSecProposalResource) Create(ctx context.Context, req resource.CreateR
 
 	// Create the IPSecProposal
 	ipsec, httpResp, err := r.client.VpnAPI.VpnIpsecProposalsCreate(ctx).WritableIPSecProposalRequest(*ipsecRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating IPSecProposal",
@@ -199,6 +200,7 @@ func (r *IPSecProposalResource) Read(ctx context.Context, req resource.ReadReque
 
 	// Read the IPSecProposal
 	ipsec, httpResp, err := r.client.VpnAPI.VpnIpsecProposalsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "IPSecProposal not found, removing from state", map[string]interface{}{
@@ -256,6 +258,7 @@ func (r *IPSecProposalResource) Update(ctx context.Context, req resource.UpdateR
 
 	// Update the IPSecProposal
 	ipsec, httpResp, err := r.client.VpnAPI.VpnIpsecProposalsUpdate(ctx, id).WritableIPSecProposalRequest(*ipsecRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating IPSecProposal",
@@ -302,6 +305,7 @@ func (r *IPSecProposalResource) Delete(ctx context.Context, req resource.DeleteR
 
 	// Delete the IPSecProposal
 	httpResp, err := r.client.VpnAPI.VpnIpsecProposalsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			// Already deleted

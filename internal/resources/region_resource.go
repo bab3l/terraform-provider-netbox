@@ -132,6 +132,7 @@ func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Call the API
 	region, httpResp, err := r.client.DcimAPI.DcimRegionsCreate(ctx).WritableRegionRequest(regionRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating region", utils.FormatAPIError("create region", err, httpResp))
 		return
@@ -169,6 +170,7 @@ func (r *RegionResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	region, httpResp, err := r.client.DcimAPI.DcimRegionsRetrieve(ctx, regionIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading region", utils.FormatAPIError(fmt.Sprintf("read region ID %s", regionID), err, httpResp))
 		return
@@ -248,6 +250,7 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	// Call the API
 	region, httpResp, err := r.client.DcimAPI.DcimRegionsUpdate(ctx, regionIDInt).WritableRegionRequest(regionRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating region", utils.FormatAPIError(fmt.Sprintf("update region ID %s", regionID), err, httpResp))
 		return
@@ -285,6 +288,7 @@ func (r *RegionResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 
 	httpResp, err := r.client.DcimAPI.DcimRegionsDestroy(ctx, regionIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting region", utils.FormatAPIError(fmt.Sprintf("delete region ID %s", regionID), err, httpResp))
 		return

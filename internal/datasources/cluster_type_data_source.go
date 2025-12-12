@@ -109,6 +109,7 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 
 		clusterType, httpResp, err = d.client.VirtualizationAPI.VirtualizationClusterTypesRetrieve(ctx, clusterTypeIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Slug.IsNull() {
 		// Search by slug
 		clusterTypeSlug := data.Slug.ValueString()
@@ -118,6 +119,7 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		var clusterTypes *netbox.PaginatedClusterTypeList
 		clusterTypes, httpResp, err = d.client.VirtualizationAPI.VirtualizationClusterTypesList(ctx).Slug([]string{clusterTypeSlug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading cluster type",
@@ -149,6 +151,7 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		var clusterTypes *netbox.PaginatedClusterTypeList
 		clusterTypes, httpResp, err = d.client.VirtualizationAPI.VirtualizationClusterTypesList(ctx).Name([]string{clusterTypeName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading cluster type",

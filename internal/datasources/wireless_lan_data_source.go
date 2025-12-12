@@ -171,6 +171,7 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 		})
 
 		response, httpResp, err := d.client.WirelessAPI.WirelessWirelessLansRetrieve(ctx, wlanID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading wireless LAN",
@@ -197,6 +198,7 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 
 		response, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading wireless LANs",

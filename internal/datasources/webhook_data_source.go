@@ -98,6 +98,7 @@ func (d *WebhookDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			return
 		}
 		webhook, httpResp, err = d.client.ExtrasAPI.ExtrasWebhooksRetrieve(ctx, webhookID).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error reading webhook", utils.FormatAPIError("read webhook", err, httpResp))
 			return
@@ -105,6 +106,7 @@ func (d *WebhookDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		name := data.Name.ValueString()
 		webhooks, httpResp, listErr := d.client.ExtrasAPI.ExtrasWebhooksList(ctx).Name([]string{name}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if listErr != nil {
 			resp.Diagnostics.AddError("Error reading webhook", utils.FormatAPIError("read webhook by name", listErr, httpResp))
 			return

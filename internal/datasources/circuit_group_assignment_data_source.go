@@ -108,6 +108,7 @@ func (d *CircuitGroupAssignmentDataSource) Read(ctx context.Context, req datasou
 	})
 
 	result, httpResp, err := d.client.CircuitsAPI.CircuitsCircuitGroupAssignmentsRetrieve(ctx, idInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading circuit group assignment",

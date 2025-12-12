@@ -139,6 +139,7 @@ func (d *IKEPolicyDataSource) Read(ctx context.Context, req datasource.ReadReque
 		})
 
 		result, httpResp, err := d.client.VpnAPI.VpnIkePoliciesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading IKEPolicy",
@@ -157,6 +158,7 @@ func (d *IKEPolicyDataSource) Read(ctx context.Context, req datasource.ReadReque
 		listReq = listReq.Name([]string{data.Name.ValueString()})
 
 		results, httpResp, err := listReq.Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error listing IKEPolicies",

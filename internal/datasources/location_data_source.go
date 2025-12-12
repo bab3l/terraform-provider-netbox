@@ -124,6 +124,7 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 		}
 
 		location, httpResp, err = d.client.DcimAPI.DcimLocationsRetrieve(ctx, locationIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
 	} else if !data.Slug.IsNull() {
 		locationSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading location by slug", map[string]interface{}{
@@ -132,6 +133,7 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 		var locations *netbox.PaginatedLocationList
 		locations, httpResp, err = d.client.DcimAPI.DcimLocationsList(ctx).Slug([]string{locationSlug}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading location",
@@ -162,6 +164,7 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 		var locations *netbox.PaginatedLocationList
 		locations, httpResp, err = d.client.DcimAPI.DcimLocationsList(ctx).Name([]string{locationName}).Execute()
+		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading location",

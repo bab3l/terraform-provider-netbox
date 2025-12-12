@@ -206,7 +206,7 @@ func (r *CircuitGroupAssignmentResource) Read(ctx context.Context, req resource.
 
 	// Call the API to read the circuit group assignment
 	assignment, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitGroupAssignmentsRetrieve(ctx, id).Execute()
-
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// Check if resource was deleted outside of Terraform
 		if httpResp != nil && httpResp.StatusCode == 404 {
@@ -350,7 +350,7 @@ func (r *CircuitGroupAssignmentResource) Delete(ctx context.Context, req resourc
 
 	// Call the API to delete the circuit group assignment
 	httpResp, err := r.client.CircuitsAPI.CircuitsCircuitGroupAssignmentsDestroy(ctx, id).Execute()
-
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// Ignore 404 errors (resource already deleted)
 		if httpResp != nil && httpResp.StatusCode == 404 {
@@ -387,7 +387,7 @@ func (r *CircuitGroupAssignmentResource) ImportState(ctx context.Context, req re
 
 	// Call the API to read the circuit group assignment
 	assignment, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitGroupAssignmentsRetrieve(ctx, id).Execute()
-
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing circuit group assignment",

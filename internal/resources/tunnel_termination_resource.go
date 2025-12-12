@@ -200,6 +200,7 @@ func (r *TunnelTerminationResource) Create(ctx context.Context, req resource.Cre
 
 	// Create the tunnel termination via API
 	tunnelTermination, httpResp, err := r.client.VpnAPI.VpnTunnelTerminationsCreate(ctx).WritableTunnelTerminationRequest(*tunnelTerminationRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating tunnel termination",
@@ -243,6 +244,7 @@ func (r *TunnelTerminationResource) Read(ctx context.Context, req resource.ReadR
 	})
 
 	tunnelTermination, httpResp, err := r.client.VpnAPI.VpnTunnelTerminationsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			resp.State.RemoveResource(ctx)
@@ -365,6 +367,7 @@ func (r *TunnelTerminationResource) Update(ctx context.Context, req resource.Upd
 
 	// Update the tunnel termination via API
 	tunnelTermination, httpResp, err := r.client.VpnAPI.VpnTunnelTerminationsUpdate(ctx, id).WritableTunnelTerminationRequest(*tunnelTerminationRequest).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating tunnel termination",
@@ -403,6 +406,7 @@ func (r *TunnelTerminationResource) Delete(ctx context.Context, req resource.Del
 	})
 
 	httpResp, err := r.client.VpnAPI.VpnTunnelTerminationsDestroy(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			return

@@ -161,14 +161,20 @@ resource "netbox_contact" "test" {
   email = "test@example.com"
 }
 
+resource "netbox_contact_role" "test" {
+  name = "%s-role"
+  slug = "%s-role"
+}
+
 resource "netbox_contact_assignment" "test" {
   object_type = "dcim.site"
   object_id   = netbox_site.test.id
   contact_id  = netbox_contact.test.id
+  role_id     = netbox_contact_role.test.id
 }
 
 data "netbox_contact_assignment" "test" {
   id = netbox_contact_assignment.test.id
 }
-`, name, slug, name)
+`, name, slug, name, name, slug)
 }

@@ -157,6 +157,7 @@ func (d *VirtualDeviceContextDataSource) Read(ctx context.Context, req datasourc
 
 	// Read from API
 	result, httpResp, err := d.client.DcimAPI.DcimVirtualDeviceContextsRetrieve(ctx, id).Execute()
+	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading virtual device context",
