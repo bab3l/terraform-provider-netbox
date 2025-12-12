@@ -107,7 +107,7 @@ func TestIPRangeResourceConfigure(t *testing.T) {
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
 	}
 
-	configureRequest.ProviderData = "invalid"
+	configureRequest.ProviderData = invalidProviderData
 	configureResponse = &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
@@ -156,7 +156,7 @@ func TestAccIPRangeResource_full(t *testing.T) {
 	endAddr := fmt.Sprintf("10.%d.%d.20/24", second, third)
 	description := "Test IP range with all fields"
 	updatedDescription := "Updated IP range description"
-	comments := "Test comments"
+	const comments = "Test comments"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },

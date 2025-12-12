@@ -105,7 +105,7 @@ func TestFHRPGroupDataSourceConfigure(t *testing.T) {
 	}
 
 	// Test with incorrect provider data type
-	configureRequest.ProviderData = "invalid"
+	configureRequest.ProviderData = invalidProviderData
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
 	d.Configure(context.Background(), configureRequest, configureResponse)

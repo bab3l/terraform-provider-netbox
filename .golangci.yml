@@ -22,6 +22,7 @@ linters:
     - dupword        # Check for duplicate words in comments
     - copyloopvar    # Detect unnecessary loop variable copies (Go 1.22+)
     - gocritic       # Style and performance checks (ifElseChain, dupBranchBody, etc.)
+    - goconst        # Find repeated strings that could be replaced by a constant
     # Note: whitespace linter disabled - conflicts with multi-line HCL strings in test files
     # Note: bodyclose is not enabled because it doesn't recognize helper functions
     # like utils.CloseResponseBody(). The code correctly closes HTTP response bodies

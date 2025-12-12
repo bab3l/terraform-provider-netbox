@@ -110,7 +110,7 @@ func TestTenantGroupResourceConfigure(t *testing.T) {
 		t.Error("Expected client to be set")
 	}
 
-	configureRequest.ProviderData = "invalid"
+	configureRequest.ProviderData = invalidProviderData
 	configureResponse = &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)

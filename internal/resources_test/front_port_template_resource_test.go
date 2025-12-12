@@ -112,7 +112,7 @@ func TestFrontPortTemplateResourceConfigure(t *testing.T) {
 	}
 
 	// Test with incorrect provider data
-	configureRequest.ProviderData = "invalid"
+	configureRequest.ProviderData = invalidProviderData
 	configureResponse = &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
@@ -191,7 +191,6 @@ func TestAccFrontPortTemplateResource_basic(t *testing.T) {
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
 	deviceTypeSlug := testutil.RandomSlug("dt")
-	rearPortName := "rear0"
 	frontPortName := "front0"
 	portType := "8p8c"
 
@@ -224,11 +223,9 @@ func TestAccFrontPortTemplateResource_full(t *testing.T) {
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
 	deviceTypeSlug := testutil.RandomSlug("dt")
-	rearPortName := "rear0"
 	frontPortName := "front0"
 	portType := "lc"
 	label := "Front Port 0"
-	color := "aa1409"
 	description := "Test front port template"
 	rearPortPosition := int32(1)
 

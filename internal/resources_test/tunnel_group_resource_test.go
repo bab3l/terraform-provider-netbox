@@ -179,7 +179,7 @@ func TestAccTunnelGroupResource_update(t *testing.T) {
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tunnel-group-upd")
 	slug := testutil.RandomSlug("tf-test-tg-upd")
-	updatedDescription := "Updated description"
+	updatedDescription := description2
 
 	// Register cleanup
 	cleanup := testutil.NewCleanupResource(t)

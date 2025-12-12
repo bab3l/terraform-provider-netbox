@@ -93,7 +93,7 @@ func TestLocationResourceConfigure(t *testing.T) {
 		t.Errorf("Configure should not error with correct provider data: %v", configureResp.Diagnostics.Errors())
 	}
 
-	configureReq.ProviderData = "invalid"
+	configureReq.ProviderData = invalidProviderData
 	configureResp = &fwresource.ConfigureResponse{}
 
 	r.Configure(ctx, configureReq, configureResp)
