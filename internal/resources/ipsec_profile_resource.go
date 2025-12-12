@@ -430,17 +430,18 @@ func (r *IPSecProfileResource) mapIPSecProfileToState(ctx context.Context, ipsec
 	}
 
 	// Custom Fields
-	if len(ipsec.CustomFields) > 0 && !data.CustomFields.IsNull() {
+	switch {
+	case len(ipsec.CustomFields) > 0 && !data.CustomFields.IsNull():
 		var stateCustomFields []utils.CustomFieldModel
 		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
 		customFields := utils.MapToCustomFieldModels(ipsec.CustomFields, stateCustomFields)
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		data.CustomFields = customFieldsValue
-	} else if len(ipsec.CustomFields) > 0 {
+	case len(ipsec.CustomFields) > 0:
 		customFields := utils.MapToCustomFieldModels(ipsec.CustomFields, []utils.CustomFieldModel{})
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		data.CustomFields = customFieldsValue
-	} else {
+	default:
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

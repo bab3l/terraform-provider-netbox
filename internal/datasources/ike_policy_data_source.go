@@ -124,7 +124,8 @@ func (d *IKEPolicyDataSource) Read(ctx context.Context, req datasource.ReadReque
 	var ike *netbox.IKEPolicy
 
 	// Check if we're looking up by ID
-	if utils.IsSet(data.ID) {
+	switch {
+	case utils.IsSet(data.ID):
 		id, err := utils.ParseID(data.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -148,7 +149,7 @@ func (d *IKEPolicyDataSource) Read(ctx context.Context, req datasource.ReadReque
 			return
 		}
 		ike = result
-	} else if utils.IsSet(data.Name) {
+	case utils.IsSet(data.Name):
 		// Looking up by name
 		tflog.Debug(ctx, "Reading IKEPolicy by name", map[string]interface{}{
 			"name": data.Name.ValueString(),
@@ -184,7 +185,7 @@ func (d *IKEPolicyDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 
 		ike = &results.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either id or name must be specified.",

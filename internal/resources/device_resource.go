@@ -182,19 +182,19 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	})
 
 	// Look up required references
-	deviceType, diags := netboxlookup.LookupDeviceTypeBrief(ctx, r.client, data.DeviceType.ValueString())
+	deviceType, diags := netboxlookup.LookupDeviceType(ctx, r.client, data.DeviceType.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	role, diags := netboxlookup.LookupDeviceRoleBrief(ctx, r.client, data.Role.ValueString())
+	role, diags := netboxlookup.LookupDeviceRole(ctx, r.client, data.Role.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	site, diags := netboxlookup.LookupSiteBrief(ctx, r.client, data.Site.ValueString())
+	site, diags := netboxlookup.LookupSite(ctx, r.client, data.Site.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -213,7 +213,7 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenant, diags := netboxlookup.LookupTenantBrief(ctx, r.client, data.Tenant.ValueString())
+		tenant, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -222,7 +222,7 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	if !data.Platform.IsNull() && !data.Platform.IsUnknown() {
-		platform, diags := netboxlookup.LookupPlatformBrief(ctx, r.client, data.Platform.ValueString())
+		platform, diags := netboxlookup.LookupPlatform(ctx, r.client, data.Platform.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -240,7 +240,7 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	if !data.Location.IsNull() && !data.Location.IsUnknown() {
-		location, diags := netboxlookup.LookupLocationBrief(ctx, r.client, data.Location.ValueString())
+		location, diags := netboxlookup.LookupLocation(ctx, r.client, data.Location.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -249,7 +249,7 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	if !data.Rack.IsNull() && !data.Rack.IsUnknown() {
-		rack, diags := netboxlookup.LookupRackBrief(ctx, r.client, data.Rack.ValueString())
+		rack, diags := netboxlookup.LookupRack(ctx, r.client, data.Rack.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -437,19 +437,19 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	})
 
 	// Look up required references
-	deviceType, diags := netboxlookup.LookupDeviceTypeBrief(ctx, r.client, data.DeviceType.ValueString())
+	deviceType, diags := netboxlookup.LookupDeviceType(ctx, r.client, data.DeviceType.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	role, diags := netboxlookup.LookupDeviceRoleBrief(ctx, r.client, data.Role.ValueString())
+	role, diags := netboxlookup.LookupDeviceRole(ctx, r.client, data.Role.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	site, diags := netboxlookup.LookupSiteBrief(ctx, r.client, data.Site.ValueString())
+	site, diags := netboxlookup.LookupSite(ctx, r.client, data.Site.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -468,7 +468,7 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenant, diags := netboxlookup.LookupTenantBrief(ctx, r.client, data.Tenant.ValueString())
+		tenant, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -477,7 +477,7 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	if !data.Platform.IsNull() && !data.Platform.IsUnknown() {
-		platform, diags := netboxlookup.LookupPlatformBrief(ctx, r.client, data.Platform.ValueString())
+		platform, diags := netboxlookup.LookupPlatform(ctx, r.client, data.Platform.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -495,7 +495,7 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	if !data.Location.IsNull() && !data.Location.IsUnknown() {
-		location, diags := netboxlookup.LookupLocationBrief(ctx, r.client, data.Location.ValueString())
+		location, diags := netboxlookup.LookupLocation(ctx, r.client, data.Location.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -504,7 +504,7 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	if !data.Rack.IsNull() && !data.Rack.IsUnknown() {
-		rack, diags := netboxlookup.LookupRackBrief(ctx, r.client, data.Rack.ValueString())
+		rack, diags := netboxlookup.LookupRack(ctx, r.client, data.Rack.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -690,24 +690,26 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	// Otherwise keep the original value the user provided
 
 	// Handle tenant - preserve the original input value
-	if device.HasTenant() && device.Tenant.Get() != nil {
+	switch {
+	case device.HasTenant() && device.Tenant.Get() != nil:
 		if data.Tenant.IsNull() || data.Tenant.IsUnknown() {
 			data.Tenant = types.StringValue(fmt.Sprintf("%d", device.Tenant.Get().GetId()))
 		}
-	} else if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
+	case !data.Tenant.IsNull() && !data.Tenant.IsUnknown():
 		// User had a value but API says null - shouldn't happen normally
-	} else {
+	default:
 		data.Tenant = types.StringNull()
 	}
 
 	// Handle platform - preserve the original input value
-	if device.HasPlatform() && device.Platform.Get() != nil {
+	switch {
+	case device.HasPlatform() && device.Platform.Get() != nil:
 		if data.Platform.IsNull() || data.Platform.IsUnknown() {
 			data.Platform = types.StringValue(fmt.Sprintf("%d", device.Platform.Get().GetId()))
 		}
-	} else if !data.Platform.IsNull() && !data.Platform.IsUnknown() {
+	case !data.Platform.IsNull() && !data.Platform.IsUnknown():
 		// User had a value but API says null
-	} else {
+	default:
 		data.Platform = types.StringNull()
 	}
 
@@ -732,24 +734,26 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	// Otherwise keep the original value the user provided
 
 	// Handle location - preserve the original input value
-	if device.HasLocation() && device.Location.Get() != nil {
+	switch {
+	case device.HasLocation() && device.Location.Get() != nil:
 		if data.Location.IsNull() || data.Location.IsUnknown() {
 			data.Location = types.StringValue(fmt.Sprintf("%d", device.Location.Get().GetId()))
 		}
-	} else if !data.Location.IsNull() && !data.Location.IsUnknown() {
+	case !data.Location.IsNull() && !data.Location.IsUnknown():
 		// User had a value but API says null
-	} else {
+	default:
 		data.Location = types.StringNull()
 	}
 
 	// Handle rack - preserve the original input value
-	if device.HasRack() && device.Rack.Get() != nil {
+	switch {
+	case device.HasRack() && device.Rack.Get() != nil:
 		if data.Rack.IsNull() || data.Rack.IsUnknown() {
 			data.Rack = types.StringValue(fmt.Sprintf("%d", device.Rack.Get().GetId()))
 		}
-	} else if !data.Rack.IsNull() && !data.Rack.IsUnknown() {
+	case !data.Rack.IsNull() && !data.Rack.IsUnknown():
 		// User had a value but API says null
-	} else {
+	default:
 		data.Rack = types.StringNull()
 	}
 

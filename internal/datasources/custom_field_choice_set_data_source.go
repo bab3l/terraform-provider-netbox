@@ -116,7 +116,8 @@ func (d *CustomFieldChoiceSetDataSource) Read(ctx context.Context, req datasourc
 	var httpResp *http.Response
 	var err error
 
-	if !data.ID.IsNull() && data.ID.ValueString() != "" {
+	switch {
+	case !data.ID.IsNull() && data.ID.ValueString() != "":
 		// Lookup by ID
 		id, parseErr := utils.ParseID(data.ID.ValueString())
 		if parseErr != nil {
@@ -125,7 +126,7 @@ func (d *CustomFieldChoiceSetDataSource) Read(ctx context.Context, req datasourc
 		}
 		result, httpResp, err = d.client.ExtrasAPI.ExtrasCustomFieldChoiceSetsRetrieve(ctx, id).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Name.IsNull() && data.Name.ValueString() != "" {
+	case !data.Name.IsNull() && data.Name.ValueString() != "":
 		// Lookup by name
 		list, listResp, listErr := d.client.ExtrasAPI.ExtrasCustomFieldChoiceSetsList(ctx).
 			Name([]string{data.Name.ValueString()}).Execute()
@@ -146,7 +147,7 @@ func (d *CustomFieldChoiceSetDataSource) Read(ctx context.Context, req datasourc
 			}
 			result = &results[0]
 		}
-	} else {
+	default:
 		resp.Diagnostics.AddError("Missing Identifier", "Either 'id' or 'name' must be specified")
 		return
 	}

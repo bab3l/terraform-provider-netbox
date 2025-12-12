@@ -96,7 +96,8 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	var httpResp *http.Response
 
 	// Lookup by id, slug, or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		tenantID := data.ID.ValueString()
 		var tenantIDInt int32
 		if _, parseErr := fmt.Sscanf(tenantID, "%d", &tenantIDInt); parseErr != nil {
@@ -109,7 +110,7 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		if err == nil && httpResp.StatusCode == 200 {
 			tenant = t
 		}
-	} else if !data.Slug.IsNull() {
+	case !data.Slug.IsNull():
 		slug := data.Slug.ValueString()
 		var tenants *netbox.PaginatedTenantList
 		tenants, httpResp, err = d.client.TenancyAPI.TenancyTenantsList(ctx).Slug([]string{slug}).Execute()
@@ -117,7 +118,7 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		if err == nil && httpResp.StatusCode == 200 && len(tenants.GetResults()) > 0 {
 			tenant = &tenants.GetResults()[0]
 		}
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		name := data.Name.ValueString()
 		var tenants *netbox.PaginatedTenantList
 		tenants, httpResp, err = d.client.TenancyAPI.TenancyTenantsList(ctx).Name([]string{name}).Execute()
@@ -125,7 +126,7 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		if err == nil && httpResp.StatusCode == 200 && len(tenants.GetResults()) > 0 {
 			tenant = &tenants.GetResults()[0]
 		}
-	} else {
+	default:
 		resp.Diagnostics.AddError("Missing Tenant Identifier", "Either 'id', 'slug', or 'name' must be specified.")
 		return
 	}

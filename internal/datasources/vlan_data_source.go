@@ -160,8 +160,9 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	var vlan *netbox.VLAN
 
-	// Check if we're looking up by ID
-	if utils.IsSet(data.ID) {
+	// Check if we're looking up by ID, VID, or name
+	switch {
+	case utils.IsSet(data.ID):
 		var idInt int
 		_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt)
 		if err != nil {
@@ -192,7 +193,7 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			return
 		}
 		vlan = result
-	} else if utils.IsSet(data.VID) {
+	case utils.IsSet(data.VID):
 		// Looking up by VID (optionally with name and group)
 		tflog.Debug(ctx, "Reading VLAN by VID", map[string]interface{}{
 			"vid": data.VID.ValueInt32(),
@@ -233,7 +234,7 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		}
 
 		vlan = &results.Results[0]
-	} else if utils.IsSet(data.Name) {
+	case utils.IsSet(data.Name):
 		// Looking up by name
 		tflog.Debug(ctx, "Reading VLAN by name", map[string]interface{}{
 			"name": data.Name.ValueString(),
@@ -269,7 +270,7 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		}
 
 		vlan = &results.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing required attribute",
 			"Either 'id', 'vid', or 'name' must be specified to look up a VLAN.",

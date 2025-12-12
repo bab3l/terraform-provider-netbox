@@ -370,17 +370,18 @@ func (r *RouteTargetResource) mapRouteTargetToState(ctx context.Context, rt *net
 	}
 
 	// Custom Fields
-	if len(rt.CustomFields) > 0 && !data.CustomFields.IsNull() {
+	switch {
+	case len(rt.CustomFields) > 0 && !data.CustomFields.IsNull():
 		var stateCustomFields []utils.CustomFieldModel
 		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
 		customFields := utils.MapToCustomFieldModels(rt.CustomFields, stateCustomFields)
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		data.CustomFields = customFieldsValue
-	} else if len(rt.CustomFields) > 0 {
+	case len(rt.CustomFields) > 0:
 		customFields := utils.MapToCustomFieldModels(rt.CustomFields, []utils.CustomFieldModel{})
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		data.CustomFields = customFieldsValue
-	} else {
+	default:
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

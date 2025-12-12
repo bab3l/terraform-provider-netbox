@@ -94,7 +94,8 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID, slug, or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		// Search by ID
 		circuitTypeID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading circuit type by ID", map[string]interface{}{
@@ -112,7 +113,7 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		circuitType, httpResp, err = d.client.CircuitsAPI.CircuitsCircuitTypesRetrieve(ctx, circuitTypeIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Slug.IsNull() {
+	case !data.Slug.IsNull():
 		// Search by slug
 		circuitTypeSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading circuit type by slug", map[string]interface{}{
@@ -137,7 +138,7 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 		circuitType = &circuitTypes.GetResults()[0]
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		// Search by name
 		circuitTypeName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading circuit type by name", map[string]interface{}{
@@ -162,7 +163,7 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 		circuitType = &circuitTypes.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"At least one of 'id', 'name', or 'slug' must be specified to look up a circuit type.",

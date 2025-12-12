@@ -92,7 +92,8 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID, slug, or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		// Search by ID
 		clusterTypeID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading cluster type by ID", map[string]interface{}{
@@ -110,7 +111,7 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		clusterType, httpResp, err = d.client.VirtualizationAPI.VirtualizationClusterTypesRetrieve(ctx, clusterTypeIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Slug.IsNull() {
+	case !data.Slug.IsNull():
 		// Search by slug
 		clusterTypeSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading cluster type by slug", map[string]interface{}{
@@ -142,7 +143,7 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 		clusterType = &clusterTypes.GetResults()[0]
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		// Search by name
 		clusterTypeName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading cluster type by name", map[string]interface{}{
@@ -174,7 +175,7 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 		clusterType = &clusterTypes.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Cluster Type Identifier",
 			"Either 'id', 'slug', or 'name' must be specified to identify the cluster type.",

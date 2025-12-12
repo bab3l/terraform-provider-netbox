@@ -118,7 +118,8 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 	var rt *netbox.RouteTarget
 
 	// Check if we're looking up by ID
-	if utils.IsSet(data.ID) {
+	switch {
+	case utils.IsSet(data.ID):
 		var idInt int
 		_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt)
 		if err != nil {
@@ -149,7 +150,7 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 		rt = result
-	} else if utils.IsSet(data.Name) {
+	case utils.IsSet(data.Name):
 		// Looking up by name
 		tflog.Debug(ctx, "Reading RouteTarget by name", map[string]interface{}{
 			"name": data.Name.ValueString(),
@@ -185,7 +186,7 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 
 		rt = &results.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing search criteria",
 			"Either 'id' or 'name' must be specified to look up a RouteTarget.",

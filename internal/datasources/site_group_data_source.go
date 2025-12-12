@@ -89,7 +89,8 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID, slug, or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		siteGroupID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading site group by ID", map[string]interface{}{"id": siteGroupID})
 
@@ -100,7 +101,7 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 		siteGroup, httpResp, err = d.client.DcimAPI.DcimSiteGroupsRetrieve(ctx, siteGroupIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Slug.IsNull() {
+	case !data.Slug.IsNull():
 		siteGroupSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading site group by slug", map[string]interface{}{"slug": siteGroupSlug})
 
@@ -120,7 +121,7 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			return
 		}
 		siteGroup = &siteGroups.GetResults()[0]
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		siteGroupName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading site group by name", map[string]interface{}{"name": siteGroupName})
 
@@ -140,7 +141,7 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			return
 		}
 		siteGroup = &siteGroups.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError("Missing Site Group Identifier", "Either 'id', 'slug', or 'name' must be specified to identify the site group.")
 		return
 	}

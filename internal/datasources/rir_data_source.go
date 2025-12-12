@@ -113,8 +113,9 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	var rir *netbox.RIR
 
-	// Check if we're looking up by ID
-	if utils.IsSet(data.ID) {
+	// Check if we're looking up by ID, name, or slug
+	switch {
+	case utils.IsSet(data.ID):
 		var idInt int
 		_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt)
 		if err != nil {
@@ -145,7 +146,7 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			return
 		}
 		rir = result
-	} else if utils.IsSet(data.Name) {
+	case utils.IsSet(data.Name):
 		// Looking up by name
 		tflog.Debug(ctx, "Reading RIR by name", map[string]interface{}{
 			"name": data.Name.ValueString(),
@@ -181,7 +182,7 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		}
 
 		rir = &results.Results[0]
-	} else if utils.IsSet(data.Slug) {
+	case utils.IsSet(data.Slug):
 		// Looking up by slug
 		tflog.Debug(ctx, "Reading RIR by slug", map[string]interface{}{
 			"slug": data.Slug.ValueString(),
@@ -209,7 +210,7 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		}
 
 		rir = &results.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing search criteria",
 			"Either 'id', 'name', or 'slug' must be specified to look up a RIR.",

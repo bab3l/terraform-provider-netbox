@@ -332,7 +332,8 @@ func (r *TenantGroupResource) mapTenantGroupToState(ctx context.Context, tenantG
 	}
 
 	// Handle custom fields
-	if tenantGroup.HasCustomFields() && !data.CustomFields.IsNull() {
+	switch {
+	case tenantGroup.HasCustomFields() && !data.CustomFields.IsNull():
 		var stateCustomFields []utils.CustomFieldModel
 		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
 		diags.Append(cfDiags...)
@@ -344,14 +345,14 @@ func (r *TenantGroupResource) mapTenantGroupToState(ctx context.Context, tenantG
 				data.CustomFields = customFieldsValue
 			}
 		}
-	} else if tenantGroup.HasCustomFields() {
+	case tenantGroup.HasCustomFields():
 		customFields := utils.MapToCustomFieldModels(tenantGroup.GetCustomFields(), []utils.CustomFieldModel{})
 		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		diags.Append(cfValueDiags...)
 		if !diags.HasError() {
 			data.CustomFields = customFieldsValue
 		}
-	} else {
+	default:
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

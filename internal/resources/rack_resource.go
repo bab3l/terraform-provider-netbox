@@ -218,7 +218,7 @@ func (r *RackResource) Configure(ctx context.Context, req resource.ConfigureRequ
 // buildRackRequest creates a WritableRackRequest from the model
 func (r *RackResource) buildRackRequest(ctx context.Context, data *RackResourceModel, resp *resource.CreateResponse) *netbox.WritableRackRequest {
 	// Lookup required site
-	siteRef, diags := netboxlookup.LookupSiteBrief(ctx, r.client, data.Site.ValueString())
+	siteRef, diags := netboxlookup.LookupSite(ctx, r.client, data.Site.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return nil
@@ -232,7 +232,7 @@ func (r *RackResource) buildRackRequest(ctx context.Context, data *RackResourceM
 
 	// Handle location relationship
 	if !data.Location.IsNull() {
-		locationRef, diags := netboxlookup.LookupLocationBrief(ctx, r.client, data.Location.ValueString())
+		locationRef, diags := netboxlookup.LookupLocation(ctx, r.client, data.Location.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return nil
@@ -242,7 +242,7 @@ func (r *RackResource) buildRackRequest(ctx context.Context, data *RackResourceM
 
 	// Handle tenant relationship
 	if !data.Tenant.IsNull() {
-		tenantRef, diags := netboxlookup.LookupTenantBrief(ctx, r.client, data.Tenant.ValueString())
+		tenantRef, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return nil
@@ -252,7 +252,7 @@ func (r *RackResource) buildRackRequest(ctx context.Context, data *RackResourceM
 
 	// Handle role relationship
 	if !data.Role.IsNull() {
-		roleRef, diags := netboxlookup.LookupRackRoleBrief(ctx, r.client, data.Role.ValueString())
+		roleRef, diags := netboxlookup.LookupRackRole(ctx, r.client, data.Role.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return nil
@@ -262,7 +262,7 @@ func (r *RackResource) buildRackRequest(ctx context.Context, data *RackResourceM
 
 	// Handle rack_type relationship
 	if !data.RackType.IsNull() {
-		rackTypeRef, diags := netboxlookup.LookupRackTypeBrief(ctx, r.client, data.RackType.ValueString())
+		rackTypeRef, diags := netboxlookup.LookupRackType(ctx, r.client, data.RackType.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return nil
@@ -547,7 +547,7 @@ func (r *RackResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 // buildRackRequestForUpdate creates a WritableRackRequest for update operations
 func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *RackResourceModel, resp *resource.UpdateResponse) *netbox.WritableRackRequest {
 	// Lookup required site
-	siteRef, diags := netboxlookup.LookupSiteBrief(ctx, r.client, data.Site.ValueString())
+	siteRef, diags := netboxlookup.LookupSite(ctx, r.client, data.Site.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return nil
@@ -561,7 +561,7 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 
 	// Handle location relationship
 	if !data.Location.IsNull() {
-		locationRef, diags := netboxlookup.LookupLocationBrief(ctx, r.client, data.Location.ValueString())
+		locationRef, diags := netboxlookup.LookupLocation(ctx, r.client, data.Location.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return nil
@@ -571,7 +571,7 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 
 	// Handle tenant relationship
 	if !data.Tenant.IsNull() {
-		tenantRef, diags := netboxlookup.LookupTenantBrief(ctx, r.client, data.Tenant.ValueString())
+		tenantRef, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return nil
@@ -581,7 +581,7 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 
 	// Handle role relationship
 	if !data.Role.IsNull() {
-		roleRef, diags := netboxlookup.LookupRackRoleBrief(ctx, r.client, data.Role.ValueString())
+		roleRef, diags := netboxlookup.LookupRackRole(ctx, r.client, data.Role.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return nil
@@ -591,7 +591,7 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 
 	// Handle rack_type relationship
 	if !data.RackType.IsNull() {
-		rackTypeRef, diags := netboxlookup.LookupRackTypeBrief(ctx, r.client, data.RackType.ValueString())
+		rackTypeRef, diags := netboxlookup.LookupRackType(ctx, r.client, data.RackType.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return nil

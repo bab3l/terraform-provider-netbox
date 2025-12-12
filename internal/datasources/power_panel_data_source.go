@@ -118,7 +118,8 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	var pp *netbox.PowerPanel
 
 	// Look up by ID if provided
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		ppID, err := utils.ParseID(data.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -142,7 +143,7 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			return
 		}
 		pp = result
-	} else if !data.Name.IsNull() && !data.Name.IsUnknown() {
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Look up by name (optionally filtered by site)
 		tflog.Debug(ctx, "Reading power panel by name", map[string]interface{}{
 			"name": data.Name.ValueString(),
@@ -190,7 +191,7 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		}
 
 		pp = &listResp.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either 'id' or 'name' must be specified to look up a power panel.",

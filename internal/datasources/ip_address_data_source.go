@@ -153,7 +153,8 @@ func (d *IPAddressDataSource) Read(ctx context.Context, req datasource.ReadReque
 	var ipAddress *netbox.IPAddress
 
 	// Check if we're looking up by ID
-	if utils.IsSet(data.ID) {
+	switch {
+	case utils.IsSet(data.ID):
 		var idInt int
 		_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt)
 		if err != nil {
@@ -184,7 +185,7 @@ func (d *IPAddressDataSource) Read(ctx context.Context, req datasource.ReadReque
 			return
 		}
 		ipAddress = result
-	} else if utils.IsSet(data.Address) {
+	case utils.IsSet(data.Address):
 		// Looking up by address
 		tflog.Debug(ctx, "Reading IP address by address", map[string]interface{}{
 			"address": data.Address.ValueString(),
@@ -220,7 +221,7 @@ func (d *IPAddressDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 
 		ipAddress = &results.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing required attribute",
 			"Either 'id' or 'address' must be specified to look up an IP address.",

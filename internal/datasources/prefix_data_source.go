@@ -173,7 +173,8 @@ func (d *PrefixDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	var prefix *netbox.Prefix
 
 	// Check if we're looking up by ID
-	if utils.IsSet(data.ID) {
+	switch {
+	case utils.IsSet(data.ID):
 		var idInt int
 		_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt)
 		if err != nil {
@@ -204,7 +205,7 @@ func (d *PrefixDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			return
 		}
 		prefix = result
-	} else if utils.IsSet(data.Prefix) {
+	case utils.IsSet(data.Prefix):
 		// Looking up by prefix CIDR
 		tflog.Debug(ctx, "Reading prefix by CIDR", map[string]interface{}{
 			"prefix": data.Prefix.ValueString(),
@@ -240,7 +241,7 @@ func (d *PrefixDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		}
 
 		prefix = &results.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing required attribute",
 			"Either 'id' or 'prefix' must be specified to look up a prefix.",

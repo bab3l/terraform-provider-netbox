@@ -123,7 +123,8 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 	var err error
 
 	// Look up interface by ID or by device+name
-	if !data.ID.IsNull() && data.ID.ValueString() != "" {
+	switch {
+	case !data.ID.IsNull() && data.ID.ValueString() != "":
 		// Look up by ID
 		var id int32
 		if _, parseErr := fmt.Sscanf(data.ID.ValueString(), "%d", &id); parseErr != nil {
@@ -147,7 +148,7 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 			return
 		}
-	} else if !data.Device.IsNull() && data.Device.ValueString() != "" && !data.Name.IsNull() && data.Name.ValueString() != "" {
+	case !data.Device.IsNull() && data.Device.ValueString() != "" && !data.Name.IsNull() && data.Name.ValueString() != "":
 		// Look up by device + name
 		tflog.Debug(ctx, "Looking up interface by device and name", map[string]interface{}{
 			"device": data.Device.ValueString(),
@@ -216,7 +217,7 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 
 		iface = &list.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing identifier",
 			"You must specify either `id` or both `device` and `name`",

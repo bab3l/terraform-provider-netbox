@@ -106,7 +106,8 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID or cid
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		// Search by ID
 		circuitID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading circuit by ID", map[string]interface{}{
@@ -124,7 +125,7 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 		circuit, httpResp, err = d.client.CircuitsAPI.CircuitsCircuitsRetrieve(ctx, circuitIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Cid.IsNull() {
+	case !data.Cid.IsNull():
 		// Search by cid
 		circuitCid := data.Cid.ValueString()
 		tflog.Debug(ctx, "Reading circuit by cid", map[string]interface{}{
@@ -156,7 +157,7 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			return
 		}
 		circuit = &circuits.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"At least one of 'id' or 'cid' must be specified to look up a circuit.",

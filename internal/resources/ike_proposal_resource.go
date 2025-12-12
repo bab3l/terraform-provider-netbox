@@ -471,17 +471,18 @@ func (r *IKEProposalResource) mapIKEProposalToState(ctx context.Context, ike *ne
 	}
 
 	// Custom Fields
-	if len(ike.CustomFields) > 0 && !data.CustomFields.IsNull() {
+	switch {
+	case len(ike.CustomFields) > 0 && !data.CustomFields.IsNull():
 		var stateCustomFields []utils.CustomFieldModel
 		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
 		customFields := utils.MapToCustomFieldModels(ike.CustomFields, stateCustomFields)
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		data.CustomFields = customFieldsValue
-	} else if len(ike.CustomFields) > 0 {
+	case len(ike.CustomFields) > 0:
 		customFields := utils.MapToCustomFieldModels(ike.CustomFields, []utils.CustomFieldModel{})
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		data.CustomFields = customFieldsValue
-	} else {
+	default:
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

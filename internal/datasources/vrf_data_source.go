@@ -110,8 +110,9 @@ func (d *VRFDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	var vrf *netbox.VRF
 
-	// Look up by ID if provided
-	if !data.ID.IsNull() && data.ID.ValueString() != "" {
+	// Look up by ID or name
+	switch {
+	case !data.ID.IsNull() && data.ID.ValueString() != "":
 		var id int32
 		if _, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id); err != nil {
 			resp.Diagnostics.AddError("Invalid VRF ID", fmt.Sprintf("VRF ID must be a number, got: %s", data.ID.ValueString()))
@@ -132,7 +133,7 @@ func (d *VRFDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			return
 		}
 		vrf = vrfResp
-	} else if !data.Name.IsNull() && data.Name.ValueString() != "" {
+	case !data.Name.IsNull() && data.Name.ValueString() != "":
 		// Look up by name
 		name := data.Name.ValueString()
 
@@ -167,7 +168,7 @@ func (d *VRFDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		}
 
 		vrf = &list.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Invalid configuration",
 			"Either 'id' or 'name' must be specified",

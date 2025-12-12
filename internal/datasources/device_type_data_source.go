@@ -123,7 +123,8 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID, slug, or model
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		// Search by ID
 		deviceTypeID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading device type by ID", map[string]interface{}{
@@ -143,7 +144,7 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		// Retrieve the device type via API
 		deviceType, httpResp, err = d.client.DcimAPI.DcimDeviceTypesRetrieve(ctx, deviceTypeIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Slug.IsNull() {
+	case !data.Slug.IsNull():
 		// Search by slug
 		deviceTypeSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading device type by slug", map[string]interface{}{
@@ -176,7 +177,7 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			return
 		}
 		deviceType = &deviceTypes.GetResults()[0]
-	} else if !data.Model.IsNull() {
+	case !data.Model.IsNull():
 		// Search by model
 		deviceTypeModel := data.Model.ValueString()
 		tflog.Debug(ctx, "Reading device type by model", map[string]interface{}{
@@ -209,7 +210,7 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			return
 		}
 		deviceType = &deviceTypes.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Device Type Identifier",
 			"Either 'id', 'slug', or 'model' must be specified to identify the device type.",

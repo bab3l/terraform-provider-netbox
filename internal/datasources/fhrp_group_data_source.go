@@ -114,7 +114,8 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 	var fhrpGroup *netbox.FHRPGroup
 
 	// Lookup by ID if provided
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		id := data.ID.ValueInt32()
 
 		tflog.Debug(ctx, "Looking up FHRP group by ID", map[string]interface{}{
@@ -131,7 +132,7 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			return
 		}
 		fhrpGroup = result
-	} else if !data.Protocol.IsNull() && !data.Protocol.IsUnknown() && !data.GroupID.IsNull() && !data.GroupID.IsUnknown() {
+	case !data.Protocol.IsNull() && !data.Protocol.IsUnknown() && !data.GroupID.IsNull() && !data.GroupID.IsUnknown():
 		// Lookup by protocol and group_id
 		protocol := data.Protocol.ValueString()
 		groupID := data.GroupID.ValueInt32()
@@ -172,7 +173,7 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 
 		fhrpGroup = &list.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Invalid Configuration",
 			"Either 'id' or both 'protocol' and 'group_id' must be specified for FHRP group lookup",

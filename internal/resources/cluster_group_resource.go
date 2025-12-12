@@ -306,7 +306,8 @@ func (r *ClusterGroupResource) mapClusterGroupToState(ctx context.Context, clust
 	}
 
 	// Handle custom fields
-	if clusterGroup.HasCustomFields() && !data.CustomFields.IsNull() {
+	switch {
+	case clusterGroup.HasCustomFields() && !data.CustomFields.IsNull():
 		var stateCustomFields []utils.CustomFieldModel
 		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
 		diags.Append(cfDiags...)
@@ -318,14 +319,14 @@ func (r *ClusterGroupResource) mapClusterGroupToState(ctx context.Context, clust
 				data.CustomFields = customFieldsValue
 			}
 		}
-	} else if clusterGroup.HasCustomFields() {
+	case clusterGroup.HasCustomFields():
 		customFields := utils.MapToCustomFieldModels(clusterGroup.GetCustomFields(), []utils.CustomFieldModel{})
 		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		diags.Append(cfValueDiags...)
 		if !diags.HasError() {
 			data.CustomFields = customFieldsValue
 		}
-	} else {
+	default:
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

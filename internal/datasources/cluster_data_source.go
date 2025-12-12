@@ -102,7 +102,8 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		// Search by ID
 		clusterID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading cluster by ID", map[string]interface{}{
@@ -120,7 +121,7 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 		cluster, httpResp, err = d.client.VirtualizationAPI.VirtualizationClustersRetrieve(ctx, clusterIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		// Search by name
 		clusterName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading cluster by name", map[string]interface{}{
@@ -152,7 +153,7 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			return
 		}
 		cluster = &clusters.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Cluster Identifier",
 			"Either 'id' or 'name' must be specified to identify the cluster.",

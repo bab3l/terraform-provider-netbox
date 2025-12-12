@@ -110,7 +110,7 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Handle group relationship - lookup the group details by ID
 	if utils.IsSet(data.Group) {
-		groupRef, diags := netboxlookup.LookupTenantGroupBrief(ctx, r.client, data.Group.ValueString())
+		groupRef, diags := netboxlookup.LookupTenantGroup(ctx, r.client, data.Group.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -244,7 +244,7 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	// Handle group relationship
 	if utils.IsSet(data.Group) {
-		groupRef, diags := netboxlookup.LookupTenantGroupBrief(ctx, r.client, data.Group.ValueString())
+		groupRef, diags := netboxlookup.LookupTenantGroup(ctx, r.client, data.Group.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return

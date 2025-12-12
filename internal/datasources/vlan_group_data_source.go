@@ -106,8 +106,9 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 	var vlanGroup *netbox.VLANGroup
 
-	// Look up by ID if provided
-	if !data.ID.IsNull() && data.ID.ValueString() != "" {
+	// Look up by ID, slug, or name
+	switch {
+	case !data.ID.IsNull() && data.ID.ValueString() != "":
 		var id int32
 		if _, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id); err != nil {
 			resp.Diagnostics.AddError("Invalid VLAN Group ID", fmt.Sprintf("VLAN Group ID must be a number, got: %s", data.ID.ValueString()))
@@ -128,7 +129,7 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			return
 		}
 		vlanGroup = vlanGroupResp
-	} else if !data.Slug.IsNull() && data.Slug.ValueString() != "" {
+	case !data.Slug.IsNull() && data.Slug.ValueString() != "":
 		// Look up by slug
 		slug := data.Slug.ValueString()
 
@@ -155,7 +156,7 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 
 		vlanGroup = &list.Results[0]
-	} else if !data.Name.IsNull() && data.Name.ValueString() != "" {
+	case !data.Name.IsNull() && data.Name.ValueString() != "":
 		// Look up by name
 		name := data.Name.ValueString()
 
@@ -190,7 +191,7 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 
 		vlanGroup = &list.Results[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Invalid configuration",
 			"Either 'id', 'name', or 'slug' must be specified",

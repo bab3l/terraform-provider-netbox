@@ -127,7 +127,8 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	var asn *netbox.ASN
 
 	// Look up by ID if provided
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
+	switch {
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		asnID, err := utils.ParseID(data.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -151,7 +152,7 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			return
 		}
 		asn = a
-	} else if !data.ASN.IsNull() && !data.ASN.IsUnknown() {
+	case !data.ASN.IsNull() && !data.ASN.IsUnknown():
 		// Look up by ASN number
 		tflog.Debug(ctx, "Reading ASN by number", map[string]interface{}{
 			"asn": data.ASN.ValueInt64(),
@@ -190,7 +191,7 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		}
 
 		asn = &listResp.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either 'id' or 'asn' must be specified to look up an ASN.",

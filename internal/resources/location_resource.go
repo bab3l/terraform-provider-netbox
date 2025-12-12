@@ -102,7 +102,7 @@ func (r *LocationResource) Create(ctx context.Context, req resource.CreateReques
 	})
 
 	// Lookup site
-	siteRef, diags := netboxlookup.LookupSiteBrief(ctx, r.client, data.Site.ValueString())
+	siteRef, diags := netboxlookup.LookupSite(ctx, r.client, data.Site.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -134,7 +134,7 @@ func (r *LocationResource) Create(ctx context.Context, req resource.CreateReques
 
 	// Set optional tenant
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenantRef, diags := netboxlookup.LookupTenantBrief(ctx, r.client, data.Tenant.ValueString())
+		tenantRef, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -278,7 +278,7 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 
 	// Lookup site
-	siteRef, diags := netboxlookup.LookupSiteBrief(ctx, r.client, data.Site.ValueString())
+	siteRef, diags := netboxlookup.LookupSite(ctx, r.client, data.Site.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -310,7 +310,7 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 
 	// Set optional tenant
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenantRef, diags := netboxlookup.LookupTenantBrief(ctx, r.client, data.Tenant.ValueString())
+		tenantRef, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -476,11 +476,12 @@ func (r *LocationResource) mapLocationToState(ctx context.Context, location *net
 	// Facility
 	if location.HasFacility() {
 		facility := location.GetFacility()
-		if facility == "" && data.Facility.IsNull() {
+		switch {
+		case facility == "" && data.Facility.IsNull():
 			data.Facility = types.StringNull()
-		} else if facility == "" {
+		case facility == "":
 			data.Facility = types.StringNull()
-		} else {
+		default:
 			data.Facility = types.StringValue(facility)
 		}
 	} else {
@@ -490,11 +491,12 @@ func (r *LocationResource) mapLocationToState(ctx context.Context, location *net
 	// Description
 	if location.HasDescription() {
 		desc := location.GetDescription()
-		if desc == "" && data.Description.IsNull() {
+		switch {
+		case desc == "" && data.Description.IsNull():
 			data.Description = types.StringNull()
-		} else if desc == "" {
+		case desc == "":
 			data.Description = types.StringNull()
-		} else {
+		default:
 			data.Description = types.StringValue(desc)
 		}
 	} else {

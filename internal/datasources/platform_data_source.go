@@ -79,7 +79,8 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 	var err error
 	var httpResp *http.Response
 	// Lookup by id, slug, or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		platformID := data.ID.ValueString()
 		var platformIDInt int32
 		if _, parseErr := fmt.Sscanf(platformID, "%d", &platformIDInt); parseErr != nil {
@@ -92,7 +93,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 		if err == nil && httpResp.StatusCode == 200 {
 			platform = p
 		}
-	} else if !data.Slug.IsNull() {
+	case !data.Slug.IsNull():
 		slug := data.Slug.ValueString()
 		var platforms *netbox.PaginatedPlatformList
 		platforms, httpResp, err = d.client.DcimAPI.DcimPlatformsList(ctx).Slug([]string{slug}).Execute()
@@ -100,7 +101,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 		if err == nil && httpResp.StatusCode == 200 && len(platforms.GetResults()) > 0 {
 			platform = &platforms.GetResults()[0]
 		}
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		name := data.Name.ValueString()
 		var platforms *netbox.PaginatedPlatformList
 		platforms, httpResp, err = d.client.DcimAPI.DcimPlatformsList(ctx).Name([]string{name}).Execute()
@@ -108,7 +109,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 		if err == nil && httpResp.StatusCode == 200 && len(platforms.GetResults()) > 0 {
 			platform = &platforms.GetResults()[0]
 		}
-	} else {
+	default:
 		resp.Diagnostics.AddError("Missing Platform Identifier", "Either 'id', 'slug', or 'name' must be specified.")
 		return
 	}

@@ -156,7 +156,7 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 	})
 
 	// Look up manufacturer
-	manufacturer, diags := netboxlookup.LookupManufacturerBrief(ctx, r.client, data.Manufacturer.ValueString())
+	manufacturer, diags := netboxlookup.LookupManufacturer(ctx, r.client, data.Manufacturer.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -171,7 +171,7 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 
 	// Set optional fields
 	if !data.DefaultPlatform.IsNull() && !data.DefaultPlatform.IsUnknown() {
-		platform, diags := netboxlookup.LookupPlatformBrief(ctx, r.client, data.DefaultPlatform.ValueString())
+		platform, diags := netboxlookup.LookupPlatform(ctx, r.client, data.DefaultPlatform.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -352,7 +352,7 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 	})
 
 	// Look up manufacturer
-	manufacturer, diags := netboxlookup.LookupManufacturerBrief(ctx, r.client, data.Manufacturer.ValueString())
+	manufacturer, diags := netboxlookup.LookupManufacturer(ctx, r.client, data.Manufacturer.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -367,7 +367,7 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	// Set optional fields (same as Create)
 	if !data.DefaultPlatform.IsNull() && !data.DefaultPlatform.IsUnknown() {
-		platform, diags := netboxlookup.LookupPlatformBrief(ctx, r.client, data.DefaultPlatform.ValueString())
+		platform, diags := netboxlookup.LookupPlatform(ctx, r.client, data.DefaultPlatform.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -536,15 +536,16 @@ func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceTyp
 	// Otherwise keep the original value the user provided
 
 	// Handle default platform - preserve the original input value
-	if deviceType.HasDefaultPlatform() && deviceType.DefaultPlatform.Get() != nil {
+	switch {
+	case deviceType.HasDefaultPlatform() && deviceType.DefaultPlatform.Get() != nil:
 		// Only update if the value was null/unknown
 		if data.DefaultPlatform.IsNull() || data.DefaultPlatform.IsUnknown() {
 			data.DefaultPlatform = types.StringValue(fmt.Sprintf("%d", deviceType.DefaultPlatform.Get().GetId()))
 		}
-	} else if !data.DefaultPlatform.IsNull() && !data.DefaultPlatform.IsUnknown() {
+	case !data.DefaultPlatform.IsNull() && !data.DefaultPlatform.IsUnknown():
 		// API says no platform but user had one configured - keep user's value
 		// This shouldn't happen in normal operation
-	} else {
+	default:
 		data.DefaultPlatform = types.StringNull()
 	}
 

@@ -78,7 +78,8 @@ func (d *ManufacturerDataSource) Read(ctx context.Context, req datasource.ReadRe
 	var httpResp *http.Response
 
 	// Lookup by id, slug, or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		manufacturerID := data.ID.ValueString()
 		var manufacturerIDInt int32
 		if _, parseErr := fmt.Sscanf(manufacturerID, "%d", &manufacturerIDInt); parseErr != nil {
@@ -91,7 +92,7 @@ func (d *ManufacturerDataSource) Read(ctx context.Context, req datasource.ReadRe
 		if err == nil && httpResp.StatusCode == 200 {
 			manufacturer = m
 		}
-	} else if !data.Slug.IsNull() {
+	case !data.Slug.IsNull():
 		slug := data.Slug.ValueString()
 		var manufacturers *netbox.PaginatedManufacturerList
 		manufacturers, httpResp, err = d.client.DcimAPI.DcimManufacturersList(ctx).Slug([]string{slug}).Execute()
@@ -99,7 +100,7 @@ func (d *ManufacturerDataSource) Read(ctx context.Context, req datasource.ReadRe
 		if err == nil && httpResp.StatusCode == 200 && len(manufacturers.GetResults()) > 0 {
 			manufacturer = &manufacturers.GetResults()[0]
 		}
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		name := data.Name.ValueString()
 		var manufacturers *netbox.PaginatedManufacturerList
 		manufacturers, httpResp, err = d.client.DcimAPI.DcimManufacturersList(ctx).Name([]string{name}).Execute()
@@ -107,7 +108,7 @@ func (d *ManufacturerDataSource) Read(ctx context.Context, req datasource.ReadRe
 		if err == nil && httpResp.StatusCode == 200 && len(manufacturers.GetResults()) > 0 {
 			manufacturer = &manufacturers.GetResults()[0]
 		}
-	} else {
+	default:
 		resp.Diagnostics.AddError("Missing Manufacturer Identifier", "Either 'id', 'slug', or 'name' must be specified.")
 		return
 	}

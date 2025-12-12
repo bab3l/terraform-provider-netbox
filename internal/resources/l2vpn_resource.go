@@ -162,7 +162,7 @@ func (r *L2VPNResource) Create(ctx context.Context, req resource.CreateRequest, 
 
 	// Handle tenant reference
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenantRef, diags := netboxlookup.LookupTenantBrief(ctx, r.client, data.Tenant.ValueString())
+		tenantRef, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -342,7 +342,7 @@ func (r *L2VPNResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 	// Handle tenant reference
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenantRef, diags := netboxlookup.LookupTenantBrief(ctx, r.client, data.Tenant.ValueString())
+		tenantRef, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return

@@ -153,7 +153,8 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	var httpResp *http.Response
 
 	// Determine if we're searching by ID or name
-	if !data.ID.IsNull() {
+	switch {
+	case !data.ID.IsNull():
 		rackID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading rack by ID", map[string]interface{}{
 			"id": rackID,
@@ -170,7 +171,7 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 
 		rack, httpResp, err = d.client.DcimAPI.DcimRacksRetrieve(ctx, rackIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	} else if !data.Name.IsNull() {
+	case !data.Name.IsNull():
 		rackName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading rack by name", map[string]interface{}{
 			"name": rackName,
@@ -201,7 +202,7 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			return
 		}
 		rack = &racks.GetResults()[0]
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Missing Rack Identifier",
 			"Either 'id' or 'name' must be specified to identify the rack.",

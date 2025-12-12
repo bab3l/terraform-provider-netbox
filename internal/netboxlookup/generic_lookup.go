@@ -598,6 +598,7 @@ func LookupDevice(ctx context.Context, client *netbox.APIClient, value string) (
 }
 
 // LookupDeviceBrief returns a BriefDeviceRequest from an ID or name.
+//
 // Deprecated: Use LookupDevice instead.
 func LookupDeviceBrief(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefDeviceRequest, diag.Diagnostics) {
 	return LookupDevice(ctx, client, value)
