@@ -93,7 +93,7 @@ func TestTunnelDataSourceConfigure(t *testing.T) {
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
 	}
 
-	configureRequest.ProviderData = "invalid"
+	configureRequest.ProviderData = invalidProviderData
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
 	d.Configure(context.Background(), configureRequest, configureResponse)

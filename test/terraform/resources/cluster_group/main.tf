@@ -46,14 +46,14 @@ data "netbox_cluster_group" "by_id" {
 # Data source test - lookup by name
 data "netbox_cluster_group" "by_name" {
   name = netbox_cluster_group.test_full.name
-  
+
   depends_on = [netbox_cluster_group.test_full]
 }
 
 # Data source test - lookup by slug
 data "netbox_cluster_group" "by_slug" {
   slug = netbox_cluster_group.test_production.slug
-  
+
   depends_on = [netbox_cluster_group.test_production]
 }
 

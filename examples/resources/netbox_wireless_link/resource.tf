@@ -15,14 +15,14 @@ resource "netbox_wireless_link" "with_ssid" {
 
 # Wireless link with authentication
 resource "netbox_wireless_link" "with_auth" {
-  interface_a   = netbox_interface.device_a_wlan2.id
-  interface_b   = netbox_interface.device_b_wlan2.id
-  ssid          = "SecureLink"
-  status        = "connected"
-  auth_type     = "wpa-personal"
-  auth_cipher   = "aes"
-  auth_psk      = "mysecretpassword"
-  description   = "Secure wireless link"
+  interface_a = netbox_interface.device_a_wlan2.id
+  interface_b = netbox_interface.device_b_wlan2.id
+  ssid        = "SecureLink"
+  status      = "connected"
+  auth_type   = "wpa-personal"
+  auth_cipher = "aes"
+  auth_psk    = "mysecretpassword"
+  description = "Secure wireless link"
 }
 
 # Wireless link with distance and all options

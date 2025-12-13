@@ -80,7 +80,7 @@ resource "netbox_site" "valid_site" {
 # resource "netbox_site" "invalid_custom_field" {
 #   name = "Test Site"
 #   slug = "test-site"
-#   
+#
 #   custom_fields = [
 #     {
 #       name  = "123invalid"   # ERROR: Starts with number
@@ -100,7 +100,7 @@ resource "netbox_site" "valid_site" {
 # resource "netbox_site" "invalid_tag" {
 #   name = "Test Site"
 #   slug = "test-site"
-#   
+#
 #   tags = [
 #     {
 #       name = "production"

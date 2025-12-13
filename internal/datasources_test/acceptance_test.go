@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+const invalidProviderData = "invalid"
+
 func TestAccSiteDataSource_basic(t *testing.T) {
 	// Generate unique names to avoid conflicts between test runs
 	name := testutil.RandomName("tf-test-site-ds")

@@ -47,4 +47,3 @@ resource "netbox_asn_range" "full" {
   tenant      = netbox_tenant.test.id
   description = "Full ASN range with all optional fields"
 }
-

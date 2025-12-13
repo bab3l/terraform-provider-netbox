@@ -106,7 +106,7 @@ func TestVMInterfaceResourceConfigure(t *testing.T) {
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
 	}
 
-	configureRequest.ProviderData = "invalid"
+	configureRequest.ProviderData = invalidProviderData
 	configureResponse = &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
@@ -121,7 +121,7 @@ func TestAccVMInterfaceResource_basic(t *testing.T) {
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type")
 	clusterName := testutil.RandomName("tf-test-cluster")
 	vmName := testutil.RandomName("tf-test-vm")
-	ifaceName := "eth0"
+	ifaceName := interfaceName
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)

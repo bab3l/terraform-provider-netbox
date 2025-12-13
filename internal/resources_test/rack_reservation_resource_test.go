@@ -106,7 +106,7 @@ func TestRackReservationResourceConfigure(t *testing.T) {
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
 	}
 
-	configureRequest.ProviderData = "invalid"
+	configureRequest.ProviderData = invalidProviderData
 	configureResponse = &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
@@ -155,8 +155,6 @@ func TestAccRackReservationResource_update(t *testing.T) {
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.RandomSlug("tf-test-site")
 	rackName := testutil.RandomName("tf-test-rack")
-	description1 := "Initial description"
-	description2 := "Updated description"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)

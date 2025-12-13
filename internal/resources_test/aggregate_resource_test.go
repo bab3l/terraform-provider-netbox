@@ -106,7 +106,7 @@ func TestAggregateResourceConfigure(t *testing.T) {
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
 	}
 
-	configureRequest.ProviderData = "invalid"
+	configureRequest.ProviderData = invalidProviderData
 	configureResponse = &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
@@ -150,7 +150,6 @@ func TestAccAggregateResource_full(t *testing.T) {
 	prefix := "198.51.100.0/24"
 	description := "Test aggregate with all fields"
 	updatedDescription := "Updated aggregate description"
-	comments := "Test comments"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },

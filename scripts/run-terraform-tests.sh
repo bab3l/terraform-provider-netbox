@@ -210,14 +210,14 @@ find_netbox_resource() {
     local endpoint="$1"
     local name_field="$2"
     local value="$3"
-    
+
     local encoded_value
     encoded_value=$(printf '%s' "$value" | jq -sRr @uri)
-    
+
     local url="${NETBOX_SERVER_URL}${endpoint}?${name_field}=${encoded_value}"
     local response
     response=$(curl -sf -H "Authorization: Token $NETBOX_API_TOKEN" "$url" 2>/dev/null)
-    
+
     if [ $? -eq 0 ] && [ -n "$response" ]; then
         echo "$response" | jq -r '.results[].id' 2>/dev/null
     fi
@@ -227,7 +227,7 @@ find_netbox_resource() {
 delete_netbox_resource() {
     local endpoint="$1"
     local id="$2"
-    
+
     local url="${NETBOX_SERVER_URL}${endpoint}${id}/"
     if curl -sf -X DELETE -H "Authorization: Token $NETBOX_API_TOKEN" "$url" > /dev/null 2>&1; then
         return 0
@@ -238,22 +238,22 @@ delete_netbox_resource() {
 # Extract resource info from main.tf
 parse_terraform_resources() {
     local main_tf="$1"
-    
+
     if [ ! -f "$main_tf" ]; then
         return
     fi
-    
+
     # Use grep and sed to extract resource definitions
     # Look for: resource "netbox_xxx" "name" { ... name = "value" ... }
     local content
     content=$(cat "$main_tf")
-    
+
     # Use perl for multiline regex parsing (more portable than complex bash)
     perl -0777 -ne '
         while (/resource\s+"(netbox_\w+)"\s+"(\w+)"\s*\{([^}]*(?:\{[^}]*\}[^}]*)*)\}/gs) {
             my ($type, $tf_name, $body) = ($1, $2, $3);
             my $value = "";
-            
+
             if ($body =~ /\bname\s*=\s*"([^"]+)"/) { $value = $1; print "$type:name:$value\n"; }
             elsif ($body =~ /\bmodel\s*=\s*"([^"]+)"/) { $value = $1; print "$type:model:$value\n"; }
             elsif ($body =~ /\bssid\s*=\s*"([^"]+)"/) { $value = $1; print "$type:ssid:$value\n"; }
@@ -270,58 +270,58 @@ parse_terraform_resources() {
 cleanup_orphaned_resources() {
     local test_path="$1"
     local main_tf
-    
+
     # If we're already in the test directory, just use main.tf
     if [ -f "main.tf" ]; then
         main_tf="main.tf"
     else
         main_tf="$test_path/main.tf"
     fi
-    
+
     if [ ! -f "$main_tf" ]; then
         return
     fi
-    
+
     log_info "  Checking for orphaned resources in Netbox..."
-    
+
     # Get resources from terraform file
     local resources
     resources=$(parse_terraform_resources "$main_tf")
-    
+
     if [ -z "$resources" ]; then
         log_info "  No resources found in main.tf to check for orphans"
         return
     fi
-    
+
     local resource_count
     resource_count=$(echo "$resources" | wc -l)
     log_info "  Found $resource_count resources defined in main.tf"
-    
+
     # Loop until all resources are deleted or max iterations reached
     local max_iterations=10
     local total_deleted=0
-    
+
     for iteration in $(seq 1 $max_iterations); do
         local deleted_this_iteration=0
         local remaining_count=0
-        
+
         # Process in deletion order
         for resource_type in "${DELETION_ORDER[@]}"; do
             local api_info="${RESOURCE_API_MAP[$resource_type]}"
             if [ -z "$api_info" ]; then
                 continue
             fi
-            
+
             local endpoint="${api_info%:*}"
             local expected_field="${api_info##*:}"
-            
+
             # Find matching resources in our list
             while IFS=: read -r type field value; do
                 if [ "$type" = "$resource_type" ] && [ -n "$value" ]; then
                     # Find in NetBox
                     local ids
                     ids=$(find_netbox_resource "$endpoint" "$expected_field" "$value")
-                    
+
                     for id in $ids; do
                         if [ -n "$id" ]; then
                             if delete_netbox_resource "$endpoint" "$id"; then
@@ -336,20 +336,20 @@ cleanup_orphaned_resources() {
                 fi
             done <<< "$resources"
         done
-        
+
         # If nothing was deleted this iteration, we're done
         if [ "$deleted_this_iteration" -eq 0 ]; then
             break
         fi
-        
+
         # If we deleted something but there are still remaining, continue looping
         if [ "$remaining_count" -eq 0 ]; then
             break
         fi
-        
+
         log_info "    Iteration $iteration deleted $deleted_this_iteration, $remaining_count remaining (retrying...)"
     done
-    
+
     if [ "$total_deleted" -gt 0 ]; then
         log_info "  Cleaned up $total_deleted orphaned resource(s)"
     fi
@@ -358,18 +358,18 @@ cleanup_orphaned_resources() {
 # Check environment
 check_environment() {
     log_info "Checking environment..."
-    
+
     # Check for required environment variables
     if [ -z "$NETBOX_SERVER_URL" ]; then
         export NETBOX_SERVER_URL="http://localhost:8000"
         log_warning "NETBOX_SERVER_URL not set, using default: $NETBOX_SERVER_URL"
     fi
-    
+
     if [ -z "$NETBOX_API_TOKEN" ]; then
         export NETBOX_API_TOKEN="0123456789abcdef0123456789abcdef01234567"
         log_warning "NETBOX_API_TOKEN not set, using default"
     fi
-    
+
     # Check Netbox connectivity
     if ! curl -sf -H "Authorization: Token $NETBOX_API_TOKEN" "$NETBOX_SERVER_URL/api/" > /dev/null 2>&1; then
         log_error "Cannot connect to Netbox API at $NETBOX_SERVER_URL"
@@ -377,7 +377,7 @@ check_environment() {
         exit 1
     fi
     log_success "Connected to Netbox API"
-    
+
     # Check for terraform
     if ! command -v terraform &> /dev/null; then
         log_error "Terraform not found in PATH"
@@ -385,20 +385,20 @@ check_environment() {
     fi
     TF_VERSION=$(terraform version -json | jq -r '.terraform_version')
     log_success "Terraform version: $TF_VERSION"
-    
+
     # Build and install provider
     log_info "Building and installing provider..."
     cd "$PROJECT_ROOT"
-    
+
     if ! go build -o terraform-provider-netbox .; then
         log_error "Failed to build provider"
         exit 1
     fi
-    
+
     # Determine OS/arch
     OS=$(go env GOOS)
     ARCH=$(go env GOARCH)
-    
+
     # Install to local plugin directory
     PLUGIN_DIR="$HOME/.terraform.d/plugins/registry.terraform.io/bab3l/netbox/0.0.1/${OS}_${ARCH}"
     mkdir -p "$PLUGIN_DIR"
@@ -410,24 +410,24 @@ check_environment() {
 run_test() {
     local test_path="$1"
     local test_name="$2"
-    
+
     log_info ""
     log_info "============================================================"
     log_info "Running test: $test_name"
     log_info "Path: $test_path"
     log_info "============================================================"
-    
+
     cd "$test_path"
-    
+
     # Clean up any existing state
     rm -rf .terraform .terraform.lock.hcl terraform.tfstate terraform.tfstate.backup 2>/dev/null || true
-    
+
     # Clean up orphaned resources in Netbox that might be left over from failed tests
     cleanup_orphaned_resources "$test_path"
-    
+
     local status="Passed"
     local error=""
-    
+
     # Init
     log_info "  terraform init..."
     if ! terraform init -no-color > /tmp/tf_init.log 2>&1; then
@@ -438,7 +438,7 @@ run_test() {
         return 1
     fi
     log_success "  Init completed"
-    
+
     # Plan
     log_info "  terraform plan..."
     if ! terraform plan -no-color > /tmp/tf_plan.log 2>&1; then
@@ -449,7 +449,7 @@ run_test() {
         return 1
     fi
     log_success "  Plan completed"
-    
+
     # Apply
     log_info "  terraform apply..."
     if ! terraform apply -auto-approve -no-color > /tmp/tf_apply.log 2>&1; then
@@ -457,7 +457,7 @@ run_test() {
         error="terraform apply failed"
         log_error "  Apply failed"
         $VERBOSE && cat /tmp/tf_apply.log
-        
+
         # Try cleanup
         if [ "$SKIP_DESTROY" = false ]; then
             log_warning "  Attempting cleanup..."
@@ -466,12 +466,12 @@ run_test() {
         return 1
     fi
     log_success "  Apply completed"
-    
+
     # Get outputs and verify
     log_info "  terraform output..."
     local outputs
     outputs=$(terraform output -json 2>/dev/null)
-    
+
     local verification_failed=false
     for key in $(echo "$outputs" | jq -r 'keys[]'); do
         local value
@@ -485,12 +485,12 @@ run_test() {
             fi
         fi
     done
-    
+
     if [ "$verification_failed" = true ]; then
         status="Failed"
         error="Output verification failed"
     fi
-    
+
     # Destroy
     if [ "$SKIP_DESTROY" = false ]; then
         log_info "  terraform destroy..."
@@ -501,7 +501,7 @@ run_test() {
     else
         log_warning "  Skipping destroy (--skip-destroy)"
     fi
-    
+
     if [ "$status" = "Passed" ]; then
         log_success "  TEST PASSED"
         return 0
@@ -515,13 +515,13 @@ run_test() {
 main() {
     log_info "Terraform Provider for Netbox - Integration Tests"
     log_info "=================================================="
-    
+
     check_environment
-    
+
     # Collect test directories
     declare -a test_dirs
     declare -a test_names
-    
+
     if [ -n "$SPECIFIC_TEST" ]; then
         test_dirs+=("$SPECIFIC_TEST")
         test_names+=("$(basename "$SPECIFIC_TEST")")
@@ -545,7 +545,7 @@ main() {
             "device_role"
             "wireless_lan_group"
             "vlan_group"
-            
+
             # Phase 2: Core Infrastructure - Simple dependencies
             "platform"                  # depends on manufacturer
             "tenant"                    # depends on tenant_group
@@ -558,21 +558,21 @@ main() {
             "vrf"
             "custom_field"
             "config_template"
-            
+
             # Phase 3: Location & Infrastructure
             "location"                  # depends on site
             "rack"                      # depends on site, location, rack_role, rack_type, tenant
             "power_panel"               # depends on site, location
             "power_feed"                # depends on power_panel, rack
             "cluster"                   # depends on cluster_type, cluster_group, site, tenant
-            
+
             # Phase 4: Device Infrastructure
             "device"                    # depends on device_type, device_role, site, location, rack, tenant, platform
             "virtual_chassis"
             "device_bay"                # depends on device
             "module_bay"                # depends on device
             "module"                    # depends on device, module_bay, module_type
-            
+
             # Phase 5: Device Components & Templates
             "console_port_template"     # depends on device_type
             "console_server_port_template" # depends on device_type
@@ -585,11 +585,11 @@ main() {
             "power_outlet"              # depends on device, power_port
             "interface"                 # depends on device
             "inventory_item"            # depends on device, inventory_item_role, manufacturer
-            
+
             # Phase 6: Virtualization
             "virtual_machine"           # depends on cluster, site, tenant, device, platform
             "vm_interface"              # depends on virtual_machine
-            
+
             # Phase 7: IPAM - IP Address Management
             "asn"                       # depends on rir, tenant
             "aggregate"                 # depends on rir, tenant
@@ -598,26 +598,26 @@ main() {
             "ip_address"                # depends on vrf, tenant, interface, vm_interface
             "ip_range"                  # depends on vrf, tenant, role
             "service"                   # depends on device, virtual_machine, ip_address
-            
+
             # Phase 8: Circuits
             "circuit_type"
             "provider_account"          # depends on provider
             "provider_network"          # depends on provider
             "circuit"                   # depends on provider, circuit_type, tenant
             "circuit_termination"       # depends on circuit, site, provider_network
-            
+
             # Phase 9: Wireless
             "wireless_lan"              # depends on wireless_lan_group, vlan, tenant
-            
+
             # Phase 10: Cabling & Connections
             "cable"                     # depends on interfaces, console ports, power ports, etc.
-            
+
             # Phase 11: Extras & Customization
             "contact"                   # depends on contact_group
             "webhook"
             "config_context"            # depends on many resources for assignment
         )
-        
+
         # Add resource tests in order
         for name in "${test_order[@]}"; do
             if [ -d "$TEST_ROOT/resources/$name" ]; then
@@ -625,7 +625,7 @@ main() {
                 test_names+=("resource/$name")
             fi
         done
-        
+
         # Add data source tests in order
         for name in "${test_order[@]}"; do
             if [ -d "$TEST_ROOT/data-sources/$name" ]; then
@@ -634,20 +634,20 @@ main() {
             fi
         done
     fi
-    
+
     if [ ${#test_dirs[@]} -eq 0 ]; then
         log_warning "No test directories found"
         exit 1
     fi
-    
+
     log_info ""
     log_info "Found ${#test_dirs[@]} test(s) to run"
-    
+
     # Run tests
     declare -a results
     passed=0
     failed=0
-    
+
     for i in "${!test_dirs[@]}"; do
         if run_test "${test_dirs[$i]}" "${test_names[$i]}"; then
             results+=("PASSED: ${test_names[$i]}")
@@ -657,13 +657,13 @@ main() {
             ((failed++))
         fi
     done
-    
+
     # Summary
     log_info ""
     log_info "============================================================"
     log_info "TEST SUMMARY"
     log_info "============================================================"
-    
+
     for result in "${results[@]}"; do
         if [[ "$result" == PASSED* ]]; then
             log_success "  ✓ ${result#PASSED: }"
@@ -671,10 +671,10 @@ main() {
             log_error "  ✗ ${result#FAILED: }"
         fi
     done
-    
+
     total=$((passed + failed))
     log_info ""
-    
+
     if [ "$failed" -eq 0 ]; then
         log_success "All $total tests passed!"
         exit 0

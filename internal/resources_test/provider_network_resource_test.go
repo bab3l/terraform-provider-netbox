@@ -106,7 +106,7 @@ func TestProviderNetworkResourceConfigure(t *testing.T) {
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
 	}
 
-	configureRequest.ProviderData = "invalid"
+	configureRequest.ProviderData = invalidProviderData
 	configureResponse = &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
@@ -184,13 +184,13 @@ func TestAccProviderNetworkResource_full(t *testing.T) {
 
 func testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, networkName string) string {
 	return fmt.Sprintf(`
-resource "netbox_circuit_provider" "test" {
+resource "netbox_provider" "test" {
   name = %q
   slug = %q
 }
 
 resource "netbox_provider_network" "test" {
-  circuit_provider = netbox_circuit_provider.test.id
+  circuit_provider = netbox_provider.test.id
   name             = %q
 }
 `, providerName, providerSlug, networkName)
@@ -198,13 +198,13 @@ resource "netbox_provider_network" "test" {
 
 func testAccProviderNetworkResourceConfig_full(providerName, providerSlug, networkName, serviceID, description string) string {
 	return fmt.Sprintf(`
-resource "netbox_circuit_provider" "test" {
+resource "netbox_provider" "test" {
   name = %q
   slug = %q
 }
 
 resource "netbox_provider_network" "test" {
-  circuit_provider = netbox_circuit_provider.test.id
+  circuit_provider = netbox_provider.test.id
   name             = %q
   service_id       = %q
   description      = %q

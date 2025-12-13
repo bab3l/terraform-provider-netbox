@@ -62,7 +62,7 @@ $global:ResourceApiMap = @{
     "netbox_virtual_device_context" = @{ Endpoint = "/api/dcim/virtual-device-contexts/"; NameField = "name" }
     "netbox_module_bay_template" = @{ Endpoint = "/api/dcim/module-bay-templates/"; NameField = "name" }
     "netbox_cable" = @{ Endpoint = "/api/dcim/cables/"; NameField = "id" }
-    
+
     # IPAM
     "netbox_vrf" = @{ Endpoint = "/api/ipam/vrfs/"; NameField = "name" }
     "netbox_vlan" = @{ Endpoint = "/api/ipam/vlans/"; NameField = "name" }
@@ -81,21 +81,21 @@ $global:ResourceApiMap = @{
     "netbox_fhrp_group_assignment" = @{ Endpoint = "/api/ipam/fhrp-group-assignments/"; NameField = "id" }
     "netbox_service_template" = @{ Endpoint = "/api/ipam/service-templates/"; NameField = "name" }
     "netbox_virtual_disk" = @{ Endpoint = "/api/virtualization/virtual-disks/"; NameField = "name" }
-    
+
     # Tenancy
     "netbox_tenant" = @{ Endpoint = "/api/tenancy/tenants/"; NameField = "name" }
     "netbox_tenant_group" = @{ Endpoint = "/api/tenancy/tenant-groups/"; NameField = "name" }
     "netbox_contact" = @{ Endpoint = "/api/tenancy/contacts/"; NameField = "name" }
     "netbox_contact_group" = @{ Endpoint = "/api/tenancy/contact-groups/"; NameField = "name" }
     "netbox_contact_role" = @{ Endpoint = "/api/tenancy/contact-roles/"; NameField = "name" }
-    
+
     # Virtualization
     "netbox_cluster" = @{ Endpoint = "/api/virtualization/clusters/"; NameField = "name" }
     "netbox_cluster_type" = @{ Endpoint = "/api/virtualization/cluster-types/"; NameField = "name" }
     "netbox_cluster_group" = @{ Endpoint = "/api/virtualization/cluster-groups/"; NameField = "name" }
     "netbox_virtual_machine" = @{ Endpoint = "/api/virtualization/virtual-machines/"; NameField = "name" }
     "netbox_vm_interface" = @{ Endpoint = "/api/virtualization/interfaces/"; NameField = "name" }
-    
+
     # Circuits
     "netbox_provider" = @{ Endpoint = "/api/circuits/providers/"; NameField = "name" }
     "netbox_provider_account" = @{ Endpoint = "/api/circuits/provider-accounts/"; NameField = "name" }
@@ -105,11 +105,11 @@ $global:ResourceApiMap = @{
     "netbox_circuit_termination" = @{ Endpoint = "/api/circuits/circuit-terminations/"; NameField = "id" }
     "netbox_circuit_group" = @{ Endpoint = "/api/circuits/circuit-groups/"; NameField = "name" }
     "netbox_circuit_group_assignment" = @{ Endpoint = "/api/circuits/circuit-group-assignments/"; NameField = "id" }
-    
+
     # Wireless
     "netbox_wireless_lan" = @{ Endpoint = "/api/wireless/wireless-lans/"; NameField = "ssid" }
     "netbox_wireless_lan_group" = @{ Endpoint = "/api/wireless/wireless-lan-groups/"; NameField = "name" }
-    
+
     # VPN
     "netbox_ike_proposal" = @{ Endpoint = "/api/vpn/ike-proposals/"; NameField = "name" }
     "netbox_ike_policy" = @{ Endpoint = "/api/vpn/ike-policies/"; NameField = "name" }
@@ -121,7 +121,7 @@ $global:ResourceApiMap = @{
     "netbox_tunnel_termination" = @{ Endpoint = "/api/vpn/tunnel-terminations/"; NameField = "id" }
     "netbox_l2vpn" = @{ Endpoint = "/api/vpn/l2vpns/"; NameField = "name" }
     "netbox_l2vpn_termination" = @{ Endpoint = "/api/vpn/l2vpn-terminations/"; NameField = "id" }
-    
+
     # Extras
     "netbox_tag" = @{ Endpoint = "/api/extras/tags/"; NameField = "name" }
     "netbox_custom_field" = @{ Endpoint = "/api/extras/custom-fields/"; NameField = "name" }
@@ -135,7 +135,7 @@ $global:ResourceApiMap = @{
 }
 
 function Get-NetboxHeaders {
-    return @{ 
+    return @{
         "Authorization" = "Token $($env:NETBOX_API_TOKEN)"
         "Content-Type" = "application/json"
     }
@@ -146,10 +146,10 @@ function Remove-NetboxResource {
         [string]$Endpoint,
         [int]$Id
     )
-    
+
     $headers = Get-NetboxHeaders
     $uri = "$($env:NETBOX_SERVER_URL)$Endpoint$Id/"
-    
+
     try {
         Invoke-RestMethod -Uri $uri -Method Delete -Headers $headers | Out-Null
         return $true
@@ -166,11 +166,11 @@ function Find-NetboxResourceByName {
         [string]$NameField,
         [string]$Value
     )
-    
+
     $headers = Get-NetboxHeaders
     $encodedValue = [uri]::EscapeDataString($Value)
     $uri = "$($env:NETBOX_SERVER_URL)$Endpoint`?$NameField=$encodedValue"
-    
+
     try {
         $response = Invoke-RestMethod -Uri $uri -Method Get -Headers $headers
         if ($response.results -and $response.results.Count -gt 0) {
@@ -180,7 +180,7 @@ function Find-NetboxResourceByName {
     catch {
         # Ignore errors - resource might not exist
     }
-    
+
     return @()
 }
 
@@ -188,32 +188,32 @@ function Get-ResourceNamesFromTerraform {
     param(
         [string]$MainTfPath
     )
-    
+
     $resources = @()
-    
+
     if (-not (Test-Path $MainTfPath)) {
         return $resources
     }
-    
+
     $content = Get-Content $MainTfPath -Raw
-    
+
     # Pattern to match resource blocks: resource "netbox_xxx" "name" { ... name = "value" ... }
     $resourcePattern = 'resource\s+"(netbox_\w+)"\s+"(\w+)"\s*\{([^}]*(?:\{[^}]*\}[^}]*)*)\}'
     $regexMatches = [regex]::Matches($content, $resourcePattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
-    
+
     foreach ($match in $regexMatches) {
         $resourceType = $match.Groups[1].Value
         $terraformName = $match.Groups[2].Value
         $resourceBody = $match.Groups[3].Value
-        
+
         $apiInfo = $global:ResourceApiMap[$resourceType]
         if (-not $apiInfo) {
             continue
         }
-        
+
         $nameField = $apiInfo.NameField
         $nameValue = $null
-        
+
         # Extract the name/identifier value from the resource body
         # Handle different field names based on resource type
         switch ($nameField) {
@@ -258,7 +258,7 @@ function Get-ResourceNamesFromTerraform {
                 }
             }
         }
-        
+
         if ($nameValue) {
             $resources += @{
                 ResourceType = $resourceType
@@ -269,7 +269,7 @@ function Get-ResourceNamesFromTerraform {
             }
         }
     }
-    
+
     return $resources
 }
 
@@ -277,7 +277,7 @@ function Clear-OrphanedNetboxResources {
     param(
         [string]$TestPath
     )
-    
+
     # If we're already in the test directory (via Push-Location), just use main.tf
     # Otherwise join the path
     if (Test-Path "main.tf") {
@@ -285,16 +285,16 @@ function Clear-OrphanedNetboxResources {
     } else {
         $mainTfPath = Join-Path $TestPath "main.tf"
     }
-    
+
     $resources = Get-ResourceNamesFromTerraform -MainTfPath $mainTfPath
-    
+
     if ($resources.Count -eq 0) {
         Write-Info "  No resources found in main.tf to check for orphans"
         return
     }
-    
+
     Write-Info "  Checking for orphaned resources in Netbox ($($resources.Count) resources defined)..."
-    
+
     # Reverse order to handle dependencies (delete children first)
     $deletionOrder = @(
         # Components and connections first
@@ -373,7 +373,7 @@ function Clear-OrphanedNetboxResources {
         "netbox_wireless_lan_group",
         "netbox_inventory_item_role"
     )
-    
+
     $resourcesByType = @{}
     foreach ($resource in $resources) {
         if (-not $resourcesByType.ContainsKey($resource.ResourceType)) {
@@ -381,28 +381,28 @@ function Clear-OrphanedNetboxResources {
         }
         $resourcesByType[$resource.ResourceType] += $resource
     }
-    
+
     # Loop until all resources are deleted or max iterations reached
     # This handles dependency issues where some resources can't be deleted until others are gone
     $maxIterations = 10
     $totalDeleted = 0
-    
+
     for ($iteration = 1; $iteration -le $maxIterations; $iteration++) {
         $deletedThisIteration = 0
         $remainingCount = 0
-        
+
         foreach ($resourceType in $deletionOrder) {
             if (-not $resourcesByType.ContainsKey($resourceType)) {
                 continue
             }
-            
+
             foreach ($resource in $resourcesByType[$resourceType]) {
                 $existing = Find-NetboxResourceByName -Endpoint $resource.Endpoint -NameField $resource.NameField -Value $resource.NameValue
-                
+
                 if ($existing.Count -gt 0) {
                     Write-Info "    Found $($existing.Count) $($resource.ResourceType)(s) named '$($resource.NameValue)'"
                 }
-                
+
                 foreach ($item in $existing) {
                     $deleted = Remove-NetboxResource -Endpoint $resource.Endpoint -Id $item.id
                     if ($deleted) {
@@ -416,20 +416,20 @@ function Clear-OrphanedNetboxResources {
                 }
             }
         }
-        
+
         # If nothing was deleted this iteration, we're done (either all clean or stuck)
         if ($deletedThisIteration -eq 0) {
             break
         }
-        
+
         # If we deleted something but there are still remaining, continue looping
         if ($remainingCount -eq 0) {
             break
         }
-        
+
         Write-Info "    Iteration $iteration deleted $deletedThisIteration, $remainingCount remaining (retrying...)"
     }
-    
+
     if ($totalDeleted -gt 0) {
         Write-Info "  Cleaned up $totalDeleted orphaned resource(s)"
     }
@@ -437,20 +437,20 @@ function Clear-OrphanedNetboxResources {
 
 function Test-Environment {
     Write-Info "Checking environment..."
-    
+
     # Disable Terraform debug logging to avoid output pollution
     $env:TF_LOG = ""
-    
+
     if (-not $env:NETBOX_SERVER_URL) {
         $env:NETBOX_SERVER_URL = "http://localhost:8000"
         Write-Warn "NETBOX_SERVER_URL not set, using default: $($env:NETBOX_SERVER_URL)"
     }
-    
+
     if (-not $env:NETBOX_API_TOKEN) {
         $env:NETBOX_API_TOKEN = "0123456789abcdef0123456789abcdef01234567"
         Write-Warn "NETBOX_API_TOKEN not set, using default"
     }
-    
+
     try {
         $headers = @{ "Authorization" = "Token $($env:NETBOX_API_TOKEN)" }
         Invoke-RestMethod -Uri "$($env:NETBOX_SERVER_URL)/api/" -Headers $headers -TimeoutSec 5 | Out-Null
@@ -462,7 +462,7 @@ function Test-Environment {
         Write-Info "Make sure Netbox is running: docker-compose up -d"
         exit 1
     }
-    
+
     try {
         $tfVersion = terraform version -json 2>$null | ConvertFrom-Json
         Write-Success "Terraform version: $($tfVersion.terraform_version)"
@@ -471,7 +471,7 @@ function Test-Environment {
         Write-Failure "Terraform not found in PATH: $($_.Exception.Message)"
         exit 1
     }
-    
+
     # Check for dev_overrides in terraform config
     $tfrcPath = "$env:APPDATA\terraform.rc"
     if (Test-Path $tfrcPath) {
@@ -495,7 +495,7 @@ function Test-Environment {
             return
         }
     }
-    
+
     Write-Info "Building and installing provider..."
     Push-Location $ProjectRoot
     try {
@@ -504,7 +504,7 @@ function Test-Environment {
             Write-Failure "Failed to build provider"
             exit 1
         }
-        
+
         $pluginDir = "$env:APPDATA\terraform.d\plugins\registry.terraform.io\bab3l\netbox\0.0.1\windows_amd64"
         if (-not (Test-Path $pluginDir)) {
             New-Item -ItemType Directory -Path $pluginDir -Force | Out-Null
@@ -522,13 +522,13 @@ function Invoke-TerraformTest {
         [string]$TestPath,
         [string]$TestName
     )
-    
+
     Write-Info ""
     Write-Info ("=" * 60)
     Write-Info "Running test: $TestName"
     Write-Info "Path: $TestPath"
     Write-Info ("=" * 60)
-    
+
     Push-Location $TestPath
     $result = @{
         Name = $TestName
@@ -537,19 +537,19 @@ function Invoke-TerraformTest {
         Error = ""
         TotalTime = 0
     }
-    
+
     try {
         # Clean up any existing state
         Remove-Item -Recurse -Force ".terraform" -ErrorAction SilentlyContinue
         Remove-Item -Force ".terraform.lock.hcl" -ErrorAction SilentlyContinue
         Remove-Item -Force "terraform.tfstate" -ErrorAction SilentlyContinue
         Remove-Item -Force "terraform.tfstate.backup" -ErrorAction SilentlyContinue
-        
+
         # Clean up orphaned resources in Netbox that might be left over from failed tests
         Clear-OrphanedNetboxResources -TestPath $TestPath
-        
+
         $startTime = Get-Date
-        
+
         # Check for dev_overrides - if present, skip init as per Terraform guidance
         $tfrcPath = "$env:APPDATA\terraform.rc"
         $useDevOverrides = $false
@@ -559,7 +559,7 @@ function Invoke-TerraformTest {
                 $useDevOverrides = $true
             }
         }
-        
+
         if ($useDevOverrides) {
             Write-Info "  Using dev_overrides - skipping terraform init"
         }
@@ -572,7 +572,7 @@ function Invoke-TerraformTest {
             }
             Write-Success "  Init completed"
         }
-        
+
         # Plan
         Write-Info "  terraform plan..."
         $planOutput = terraform plan -no-color 2>&1 | Out-String
@@ -580,7 +580,7 @@ function Invoke-TerraformTest {
             throw "terraform plan failed: $planOutput"
         }
         Write-Success "  Plan completed"
-        
+
         # Apply
         Write-Info "  terraform apply..."
         $applyOutput = terraform apply -auto-approve -no-color 2>&1 | Out-String
@@ -589,17 +589,17 @@ function Invoke-TerraformTest {
             throw "terraform apply failed"
         }
         Write-Success "  Apply completed"
-        
+
         # Get outputs
         Write-Info "  terraform output..."
         $outputJson = terraform output -json 2>&1
         $outputs = $outputJson | ConvertFrom-Json
-        
+
         if ($ShowDetails) {
             Write-Info "  Outputs:"
             $outputJson | Write-Host
         }
-        
+
         # Verify outputs
         $verifyFailed = $false
         foreach ($prop in $outputs.PSObject.Properties) {
@@ -615,11 +615,11 @@ function Invoke-TerraformTest {
                 }
             }
         }
-        
+
         if ($verifyFailed) {
             throw "Output verification failed"
         }
-        
+
         # Destroy
         if (-not $SkipDestroy) {
             Write-Info "  terraform destroy..."
@@ -632,7 +632,7 @@ function Invoke-TerraformTest {
         else {
             Write-Warn "  Skipping destroy (SkipDestroy flag set)"
         }
-        
+
         $result.TotalTime = ((Get-Date) - $startTime).TotalSeconds
         $result.Status = "Passed"
         Write-Success "  TEST PASSED"
@@ -641,7 +641,7 @@ function Invoke-TerraformTest {
         $result.Status = "Failed"
         $result.Error = $_.Exception.Message
         Write-Failure "  TEST FAILED: $($_.Exception.Message)"
-        
+
         if (-not $SkipDestroy) {
             Write-Warn "  Attempting cleanup..."
             terraform destroy -auto-approve -no-color 2>&1 | Out-Null
@@ -650,25 +650,25 @@ function Invoke-TerraformTest {
     finally {
         Pop-Location
     }
-    
+
     return $result
 }
 
 function Main {
     Write-Info "Terraform Provider for Netbox - Integration Tests"
     Write-Info "=================================================="
-    
+
     Test-Environment
-    
+
     $testDirs = @()
-    
+
     if ($TestDir) {
         $testDirs += @{ Path = $TestDir; Name = (Split-Path -Leaf $TestDir) }
     }
     else {
         $resourceTests = Get-ChildItem -Path (Join-Path $TestRoot "resources") -Directory -ErrorAction SilentlyContinue
         $dataSourceTests = Get-ChildItem -Path (Join-Path $TestRoot "data-sources") -Directory -ErrorAction SilentlyContinue
-        
+
         # Order matters: dependencies must come before dependents
         # This is a comprehensive ordering of all resources based on their dependencies
         $testOrder = @(
@@ -688,7 +688,7 @@ function Main {
             "device_role",
             "wireless_lan_group",
             "vlan_group",
-            
+
             # Phase 2: Core Infrastructure - Simple dependencies
             "platform",                  # depends on manufacturer
             "tenant",                    # depends on tenant_group
@@ -701,21 +701,21 @@ function Main {
             "vrf",
             "custom_field",
             "config_template",
-            
+
             # Phase 3: Location & Infrastructure
             "location",                  # depends on site
             "rack",                      # depends on site, location, rack_role, rack_type, tenant
             "power_panel",               # depends on site, location
             "power_feed",                # depends on power_panel, rack
             "cluster",                   # depends on cluster_type, cluster_group, site, tenant
-            
+
             # Phase 4: Device Infrastructure
             "device",                    # depends on device_type, device_role, site, location, rack, tenant, platform
             "virtual_chassis",
             "device_bay",                # depends on device
             "module_bay",                # depends on device
             "module",                    # depends on device, module_bay, module_type
-            
+
             # Phase 5: Device Components & Templates
             "console_port_template",     # depends on device_type
             "console_server_port_template", # depends on device_type
@@ -733,12 +733,12 @@ function Main {
             "inventory_item",            # depends on device, inventory_item_role, manufacturer
             "rack_reservation",          # depends on rack, user
             "virtual_device_context",    # depends on device
-            
+
             # Phase 6: Virtualization
             "virtual_machine",           # depends on cluster, site, tenant, device, platform
             "vm_interface",              # depends on virtual_machine
             "virtual_disk",              # depends on virtual_machine
-            
+
             # Phase 7: IPAM - IP Address Management
             "asn",                       # depends on rir, tenant
             "asn_range",                 # depends on rir, tenant
@@ -752,34 +752,34 @@ function Main {
             "service_template",          # no dependencies
             "fhrp_group",                # depends on auth settings
             "fhrp_group_assignment",     # depends on fhrp_group, interface
-            
+
             # Phase 8: Circuits
             "circuit_type",
             "provider_account",          # depends on provider
             "provider_network",          # depends on provider
             "circuit",                   # depends on provider, circuit_type, tenant
             "circuit_termination",       # depends on circuit, site, provider_network
-            
+
             # Phase 9: Wireless
             "wireless_lan",              # depends on wireless_lan_group, vlan, tenant
-            
+
             # Phase 10: Cabling & Connections
             "cable",                     # depends on interfaces, console ports, power ports, etc.
-            
+
             # Phase 11: Extras & Customization
             "contact",                   # depends on contact_group
             "webhook",
             "config_context",            # depends on many resources for assignment
             "export_template"            # no dependencies
         )
-        
+
         foreach ($name in $testOrder) {
             $test = $resourceTests | Where-Object { $_.Name -eq $name }
             if ($test) {
                 $testDirs += @{ Path = $test.FullName; Name = "resource/$($test.Name)" }
             }
         }
-        
+
         foreach ($name in $testOrder) {
             $test = $dataSourceTests | Where-Object { $_.Name -eq $name }
             if ($test) {
@@ -787,12 +787,12 @@ function Main {
             }
         }
     }
-    
+
     if ($testDirs.Count -eq 0) {
         Write-Warn "No test directories found"
         exit 1
     }
-    
+
     # If StartFrom is specified, skip tests until we reach it
     if ($StartFrom) {
         $startIndex = -1
@@ -802,7 +802,7 @@ function Main {
                 break
             }
         }
-        
+
         if ($startIndex -eq -1) {
             Write-Warn "StartFrom test '$StartFrom' not found. Available tests:"
             foreach ($test in $testDirs) {
@@ -810,29 +810,29 @@ function Main {
             }
             exit 1
         }
-        
+
         $testDirs = $testDirs[$startIndex..($testDirs.Count - 1)]
         Write-Info "Starting from test: $StartFrom (skipping $startIndex test(s))"
     }
-    
+
     Write-Info ""
     Write-Info "Found $($testDirs.Count) test(s) to run"
-    
+
     $results = @()
     foreach ($test in $testDirs) {
         $result = Invoke-TerraformTest -TestPath $test.Path -TestName $test.Name
         $results += $result
     }
-    
+
     Write-Info ""
     Write-Info ("=" * 60)
     Write-Info "TEST SUMMARY"
     Write-Info ("=" * 60)
-    
+
     $passed = @($results | Where-Object { $_.Status -eq "Passed" }).Count
     $failed = @($results | Where-Object { $_.Status -eq "Failed" }).Count
     $total = $results.Count
-    
+
     foreach ($result in $results) {
         if ($result.Status -eq "Passed") {
             Write-Success "  [PASS] $($result.Name) ($([math]::Round($result.TotalTime, 1))s)"
@@ -841,7 +841,7 @@ function Main {
             Write-Failure "  [FAIL] $($result.Name): $($result.Error)"
         }
     }
-    
+
     Write-Info ""
     if ($failed -eq 0) {
         Write-Success "All $total tests passed!"

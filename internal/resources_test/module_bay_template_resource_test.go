@@ -107,7 +107,7 @@ func TestModuleBayTemplateResourceConfigure(t *testing.T) {
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
 	}
 
-	configureRequest.ProviderData = "invalid"
+	configureRequest.ProviderData = invalidProviderData
 	configureResponse = &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
@@ -193,8 +193,6 @@ func TestAccModuleBayTemplateResource_update(t *testing.T) {
 	dtModel := testutil.RandomName("tf-test-dt")
 	dtSlug := testutil.RandomSlug("tf-test-dt")
 	templateName := testutil.RandomName("tf-test-mbt")
-	description1 := "Initial description"
-	description2 := "Updated description"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(mfgSlug)

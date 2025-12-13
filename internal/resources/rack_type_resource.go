@@ -82,10 +82,12 @@ func (r *RackTypeResource) Schema(ctx context.Context, req resource.SchemaReques
 			"width": schema.Int64Attribute{
 				MarkdownDescription: "Rail-to-rail width in inches. Common values: 10, 19, 21, 23.",
 				Optional:            true,
+				Computed:            true,
 			},
 			"u_height": schema.Int64Attribute{
 				MarkdownDescription: "Height in rack units (U). Default is 42.",
 				Optional:            true,
+				Computed:            true,
 			},
 			"starting_unit": schema.Int64Attribute{
 				MarkdownDescription: "Starting unit number for the rack. Default is 1.",

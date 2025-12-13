@@ -112,7 +112,7 @@ func TestRearPortTemplateResourceConfigure(t *testing.T) {
 	}
 
 	// Test with incorrect provider data
-	configureRequest.ProviderData = "invalid"
+	configureRequest.ProviderData = invalidProviderData
 	configureResponse = &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)

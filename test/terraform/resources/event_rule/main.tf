@@ -60,7 +60,7 @@ resource "netbox_event_rule" "complete" {
   action_object_id   = netbox_webhook.test_complete.id
   enabled            = true
   description        = "Complete event rule with all configuration options"
-  
+
   tags = [
     {
       name  = netbox_tag.event_rule_test.name

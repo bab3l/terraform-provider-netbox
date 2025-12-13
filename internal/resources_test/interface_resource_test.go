@@ -116,7 +116,7 @@ func TestInterfaceResourceConfigure(t *testing.T) {
 	}
 
 	// Test with incorrect provider data type
-	configureRequest.ProviderData = "invalid"
+	configureRequest.ProviderData = invalidProviderData
 	configureResponse = &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
@@ -128,7 +128,7 @@ func TestInterfaceResourceConfigure(t *testing.T) {
 
 func TestAccInterfaceResource_basic(t *testing.T) {
 	// Generate unique names to avoid conflicts between test runs
-	interfaceName := "eth0"
+	const interfaceName = "eth0"
 	deviceName := testutil.RandomName("tf-test-iface-device")
 	manufacturerName := testutil.RandomName("tf-test-iface-mfr")
 	manufacturerSlug := testutil.RandomSlug("tf-test-iface-mfr")
@@ -242,8 +242,8 @@ func TestAccInterfaceResource_full(t *testing.T) {
 
 func TestAccInterfaceResource_update(t *testing.T) {
 	// Generate unique names
-	interfaceName := "eth0"
-	updatedInterfaceName := "eth1"
+	const interfaceName = "eth0"
+	const updatedInterfaceName = "eth1"
 	deviceName := testutil.RandomName("tf-test-iface-dev-upd")
 	manufacturerName := testutil.RandomName("tf-test-iface-mfr-upd")
 	manufacturerSlug := testutil.RandomSlug("tf-test-iface-mfr-u")

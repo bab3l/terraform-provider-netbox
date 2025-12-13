@@ -179,7 +179,7 @@ func TestAccCircuitGroupResource_update(t *testing.T) {
 	// Generate unique names
 	name := testutil.RandomName("tf-test-circuit-group-upd")
 	slug := testutil.RandomSlug("tf-test-cg-upd")
-	updatedDescription := "Updated description"
+	updatedDescription := description2
 
 	// Register cleanup
 	cleanup := testutil.NewCleanupResource(t)

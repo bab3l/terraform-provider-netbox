@@ -106,7 +106,7 @@ func TestRackTypeResourceConfigure(t *testing.T) {
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
 	}
 
-	configureRequest.ProviderData = "invalid"
+	configureRequest.ProviderData = invalidProviderData
 	configureResponse = &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
@@ -198,6 +198,7 @@ resource "netbox_rack_type" "test" {
   manufacturer = netbox_manufacturer.test.id
   model        = %q
   slug         = %q
+  form_factor  = "4-post-cabinet"
 }
 `, mfgName, mfgSlug, model, slug)
 }
@@ -216,6 +217,7 @@ resource "netbox_rack_type" "test" {
   description  = %q
   u_height     = %d
   width        = %d
+  form_factor  = "4-post-cabinet"
 }
 `, mfgName, mfgSlug, model, slug, description, uHeight, width)
 }

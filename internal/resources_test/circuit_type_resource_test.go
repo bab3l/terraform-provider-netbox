@@ -106,7 +106,7 @@ func TestCircuitTypeResourceConfigure(t *testing.T) {
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
 	}
 
-	configureRequest.ProviderData = "invalid"
+	configureRequest.ProviderData = invalidProviderData
 	configureResponse = &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
@@ -146,7 +146,7 @@ func TestAccCircuitTypeResource_full(t *testing.T) {
 	name := testutil.RandomName("tf-test-circuit-type-full")
 	slug := testutil.RandomSlug("tf-test-circuit-type-full")
 	description := "Test circuit type with all fields"
-	color := "aa1409"
+	const color = "aa1409"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterCircuitTypeCleanup(slug)

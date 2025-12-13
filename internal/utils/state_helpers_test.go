@@ -210,6 +210,7 @@ func TestParseInt32FromString(t *testing.T) {
 // =====================================================
 
 func TestStringFromAPI(t *testing.T) {
+	const ignoredValue = "ignored"
 	tests := []struct {
 		name     string
 		hasValue bool
@@ -241,14 +242,14 @@ func TestStringFromAPI(t *testing.T) {
 		{
 			name:     "no value, current is null stays null",
 			hasValue: false,
-			getValue: func() string { return "ignored" },
+			getValue: func() string { return ignoredValue },
 			current:  types.StringNull(),
 			want:     types.StringNull(),
 		},
 		{
 			name:     "no value, current has value returns null",
 			hasValue: false,
-			getValue: func() string { return "ignored" },
+			getValue: func() string { return ignoredValue },
 			current:  types.StringValue("old-value"),
 			want:     types.StringNull(),
 		},
@@ -272,6 +273,7 @@ func TestStringFromAPI(t *testing.T) {
 }
 
 func TestStringFromAPIPreserveEmpty(t *testing.T) {
+	const ignoredValue = "ignored"
 	tests := []struct {
 		name     string
 		hasValue bool
@@ -296,14 +298,14 @@ func TestStringFromAPIPreserveEmpty(t *testing.T) {
 		{
 			name:     "no value, current is null stays null",
 			hasValue: false,
-			getValue: func() string { return "ignored" },
+			getValue: func() string { return ignoredValue },
 			current:  types.StringNull(),
 			want:     types.StringNull(),
 		},
 		{
 			name:     "no value, current has value returns null",
 			hasValue: false,
-			getValue: func() string { return "ignored" },
+			getValue: func() string { return ignoredValue },
 			current:  types.StringValue("old-value"),
 			want:     types.StringNull(),
 		},

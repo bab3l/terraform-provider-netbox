@@ -159,7 +159,7 @@ func TestAccInterfaceTemplateResource_basic(t *testing.T) {
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
 	deviceTypeSlug := testutil.RandomSlug("dt")
-	name := "eth0"
+	name := interfaceName
 	interfaceType := "1000base-t"
 
 	resource.Test(t, resource.TestCase{
@@ -190,7 +190,7 @@ func TestAccInterfaceTemplateResource_full(t *testing.T) {
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
 	deviceTypeSlug := testutil.RandomSlug("dt")
-	name := "eth0"
+	name := interfaceName
 	interfaceType := "1000base-t"
 	label := "Ethernet 0"
 	description := "Test interface template"

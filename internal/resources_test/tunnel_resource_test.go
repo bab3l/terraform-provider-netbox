@@ -179,7 +179,7 @@ func TestAccTunnelResource_full(t *testing.T) {
 func TestAccTunnelResource_update(t *testing.T) {
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tunnel-upd")
-	updatedDescription := "Updated description"
+	updatedDescription := description2
 
 	// Register cleanup
 	cleanup := testutil.NewCleanupResource(t)
