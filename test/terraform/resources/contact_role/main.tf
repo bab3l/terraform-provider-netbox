@@ -39,14 +39,14 @@ data "netbox_contact_role" "by_id" {
 # Data source test - lookup by name
 data "netbox_contact_role" "by_name" {
   name = netbox_contact_role.test_full.name
-  
+
   depends_on = [netbox_contact_role.test_full]
 }
 
 # Data source test - lookup by slug
 data "netbox_contact_role" "by_slug" {
   slug = netbox_contact_role.test_operations.slug
-  
+
   depends_on = [netbox_contact_role.test_operations]
 }
 

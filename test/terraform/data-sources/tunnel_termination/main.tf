@@ -34,7 +34,7 @@ data "netbox_tunnel_termination" "by_id" {
 # Look up the tunnel termination by tunnel
 data "netbox_tunnel_termination" "by_tunnel" {
   tunnel = netbox_tunnel.example.id
-  
+
   depends_on = [netbox_tunnel_termination.example]
 }
 

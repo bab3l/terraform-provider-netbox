@@ -147,7 +147,7 @@ $env:NETBOX_API_TOKEN = "0123456789abcdef0123456789abcdef01234567"
 
 ### Common Issues
 
-1. **Provider not found**: 
+1. **Provider not found**:
    - Ensure dev_overrides are configured correctly in your terraform.rc
    - Rebuild the provider with `go build .`
    - Verify the binary exists in the dev_overrides path
@@ -156,14 +156,14 @@ $env:NETBOX_API_TOKEN = "0123456789abcdef0123456789abcdef01234567"
    - This means dev_overrides are not configured
    - See "Setting Up Dev Overrides" section above
 
-3. **Cannot connect to Netbox**: 
+3. **Cannot connect to Netbox**:
    - Ensure Netbox is running with `docker-compose up -d`
    - Wait for it to be healthy (check with `docker-compose ps`)
 
-4. **API errors**: 
+4. **API errors**:
    - Check the Netbox logs with `docker-compose logs netbox`
 
-5. **State conflicts**: 
+5. **State conflicts**:
    - Remove `.terraform`, `.terraform.lock.hcl`, and `terraform.tfstate*` files from the test directory
 
 ## Verifying Dev Overrides
