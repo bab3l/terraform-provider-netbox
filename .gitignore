@@ -78,3 +78,5 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+
+.gotmp/
