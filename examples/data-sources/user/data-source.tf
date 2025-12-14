@@ -15,3 +15,7 @@ resource "netbox_rack_reservation" "example" {
   user        = data.netbox_user.admin.id
   description = "Reserved for ${data.netbox_user.admin.username}"
 }
+
+output "user_by_id" {
+  value = data.netbox_user.by_id
+}

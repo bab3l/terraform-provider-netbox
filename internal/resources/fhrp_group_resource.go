@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -14,9 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
-	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -297,7 +296,7 @@ func (r *FHRPGroupResource) ImportState(ctx context.Context, req resource.Import
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
 }
 
-// setOptionalFields sets optional fields on the FHRP Group request
+// setOptionalFields sets optional fields on the FHRP Group request.
 func (r *FHRPGroupResource) setOptionalFields(ctx context.Context, fhrpGroupRequest *netbox.FHRPGroupRequest, data *FHRPGroupResourceModel, diags *diag.Diagnostics) {
 	// Name
 	if !data.Name.IsNull() && !data.Name.IsUnknown() {
@@ -354,7 +353,7 @@ func (r *FHRPGroupResource) setOptionalFields(ctx context.Context, fhrpGroupRequ
 	}
 }
 
-// mapFHRPGroupToState maps an FHRP Group API response to the Terraform state model
+// mapFHRPGroupToState maps an FHRP Group API response to the Terraform state model.
 func (r *FHRPGroupResource) mapFHRPGroupToState(ctx context.Context, fhrpGroup *netbox.FHRPGroup, data *FHRPGroupResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.Int32Value(fhrpGroup.GetId())
 	data.Protocol = types.StringValue(string(fhrpGroup.Protocol))

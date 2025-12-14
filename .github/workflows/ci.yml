@@ -40,17 +40,43 @@ jobs:
       - name: Go Test (unit)
         run: go test ./internal/resources/... ./internal/datasources/... -v
 
-  lint:
+  pre-commit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
           go-version: 'stable'
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v9
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
         with:
-          version: latest
-          args: --timeout=5m
+          python-version: '3.x'
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: v0.59.1
+
+      - name: Cache TFLint plugins
+        uses: actions/cache@v4
+        with:
+          path: ~/.tflint.d/plugins
+          key: ${{ runner.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
+
+      - name: Install golangci-lint
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.60.3
+
+      - name: Install pre-commit
+        run: python -m pip install --upgrade pip pre-commit
+
+      - name: Run pre-commit
+        run: pre-commit run --all-files

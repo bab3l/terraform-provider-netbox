@@ -6,16 +6,15 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
-	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
-	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -428,7 +427,7 @@ func (r *LocationResource) ImportState(ctx context.Context, req resource.ImportS
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// mapLocationToState maps a Location API response to the Terraform state model
+// mapLocationToState maps a Location API response to the Terraform state model.
 func (r *LocationResource) mapLocationToState(ctx context.Context, location *netbox.Location, data *LocationResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", location.GetId()))
 	data.Name = types.StringValue(location.GetName())

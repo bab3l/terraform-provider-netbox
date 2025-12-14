@@ -21,3 +21,11 @@ output "contact_role_name" {
 output "contact_role_description" {
   value = data.netbox_contact_role.by_name.description
 }
+
+output "contact_role_by_id" {
+  value = data.netbox_contact_role.by_id
+}
+
+output "contact_role_by_slug" {
+  value = data.netbox_contact_role.by_slug
+}

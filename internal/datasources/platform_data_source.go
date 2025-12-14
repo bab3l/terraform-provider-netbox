@@ -6,12 +6,11 @@ import (
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
-	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
 var _ datasource.DataSource = &PlatformDataSource{}

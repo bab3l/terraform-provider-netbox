@@ -17,3 +17,11 @@ data "netbox_contact" "by_email" {
 output "contact_phone" {
   value = data.netbox_contact.by_name.phone
 }
+
+output "contact_by_id" {
+  value = data.netbox_contact.by_id
+}
+
+output "contact_by_email" {
+  value = data.netbox_contact.by_email
+}

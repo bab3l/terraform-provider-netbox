@@ -112,7 +112,7 @@ func TestConfigTemplateResourceConfigure(t *testing.T) {
 	}
 }
 
-// testAccConfigTemplateResourceBasic creates a basic config template with required fields only
+// testAccConfigTemplateResourceBasic creates a basic config template with required fields only.
 func testAccConfigTemplateResourceBasic(name, templateCode string) string {
 	return fmt.Sprintf(`
 resource "netbox_config_template" "test" {
@@ -122,7 +122,7 @@ resource "netbox_config_template" "test" {
 `, name, templateCode)
 }
 
-// testAccConfigTemplateResourceFull creates a config template with all optional fields
+// testAccConfigTemplateResourceFull creates a config template with all optional fields.
 func testAccConfigTemplateResourceFull(name, templateCode, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_config_template" "test" {

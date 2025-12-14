@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -14,9 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
-	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.

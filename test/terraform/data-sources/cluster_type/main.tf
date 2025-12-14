@@ -2,6 +2,7 @@
 # This test creates a cluster type resource, then looks it up using the data source
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

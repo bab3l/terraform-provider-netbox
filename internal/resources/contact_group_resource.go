@@ -300,7 +300,7 @@ func (r *ContactGroupResource) ImportState(ctx context.Context, req resource.Imp
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// mapContactGroupToState maps API response to Terraform state
+// mapContactGroupToState maps API response to Terraform state.
 func (r *ContactGroupResource) mapContactGroupToState(ctx context.Context, contactGroup *netbox.ContactGroup, data *ContactGroupResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", contactGroup.GetId()))
 	data.Name = types.StringValue(contactGroup.GetName())

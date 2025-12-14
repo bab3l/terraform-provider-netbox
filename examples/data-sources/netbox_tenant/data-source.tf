@@ -37,3 +37,11 @@ output "tenant_info" {
     comments    = data.netbox_tenant.by_slug.comments
   }
 }
+
+output "tenant_by_id" {
+  value = data.netbox_tenant.by_id
+}
+
+output "tenant_by_name" {
+  value = data.netbox_tenant.by_name
+}

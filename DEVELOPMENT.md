@@ -81,3 +81,11 @@ To debug the provider:
    ```
 
 3. Use the provided TF_REATTACH_PROVIDERS environment variable in your Terraform commands.
+
+## Linting (pre-commit)
+
+This repo uses pre-commit hooks to run linting/formatting checks.
+
+- `golangci-lint` formatting is run via a small Go wrapper at `scripts/golangci_wrapper/`.
+  The wrapper sets a repo-local `GOTMPDIR` (in `.gotmp/`) before invoking `golangci-lint`.
+  This helps avoid occasional Windows file-lock issues when Go creates temporary `.exe` files.

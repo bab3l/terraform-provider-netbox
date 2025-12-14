@@ -6,6 +6,10 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -13,11 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
-	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
-	"github.com/bab3l/terraform-provider-netbox/internal/utils"
-	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -215,7 +214,7 @@ func (r *RackResource) Configure(ctx context.Context, req resource.ConfigureRequ
 	r.client = client
 }
 
-// buildRackRequest creates a WritableRackRequest from the model
+// buildRackRequest creates a WritableRackRequest from the model.
 func (r *RackResource) buildRackRequest(ctx context.Context, data *RackResourceModel, resp *resource.CreateResponse) *netbox.WritableRackRequest {
 	// Lookup required site
 	siteRef, diags := netboxlookup.LookupSite(ctx, r.client, data.Site.ValueString())
@@ -544,7 +543,7 @@ func (r *RackResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-// buildRackRequestForUpdate creates a WritableRackRequest for update operations
+// buildRackRequestForUpdate creates a WritableRackRequest for update operations.
 func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *RackResourceModel, resp *resource.UpdateResponse) *netbox.WritableRackRequest {
 	// Lookup required site
 	siteRef, diags := netboxlookup.LookupSite(ctx, r.client, data.Site.ValueString())

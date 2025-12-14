@@ -2,6 +2,7 @@
 # Tests the netbox_export_template data source for looking up existing export templates
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

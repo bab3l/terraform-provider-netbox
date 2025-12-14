@@ -1,6 +1,7 @@
 # RIR (Regional Internet Registry) Resource Test
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

@@ -256,7 +256,7 @@ func (d *ConfigContextDataSource) Read(ctx context.Context, req datasource.ReadR
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-// Helper function to map API response to data source model
+// Helper function to map API response to data source model.
 func mapConfigContextDataSourceResponse(ctx context.Context, result *netbox.ConfigContext, data *ConfigContextDataSourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 	data.Name = types.StringValue(result.GetName())

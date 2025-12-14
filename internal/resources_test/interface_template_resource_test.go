@@ -112,7 +112,7 @@ func TestInterfaceTemplateResourceConfigure(t *testing.T) {
 	}
 }
 
-// testAccInterfaceTemplateResourcePrereqs creates a manufacturer and device type for interface template tests
+// testAccInterfaceTemplateResourcePrereqs creates a manufacturer and device type for interface template tests.
 func testAccInterfaceTemplateResourcePrereqs(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
@@ -128,7 +128,7 @@ resource "netbox_device_type" "test" {
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug)
 }
 
-// testAccInterfaceTemplateResourceBasic creates a basic interface template with required fields only
+// testAccInterfaceTemplateResourceBasic creates a basic interface template with required fields only.
 func testAccInterfaceTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, interfaceType string) string {
 	return testAccInterfaceTemplateResourcePrereqs(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug) + fmt.Sprintf(`
 resource "netbox_interface_template" "test" {
@@ -139,7 +139,7 @@ resource "netbox_interface_template" "test" {
 `, name, interfaceType)
 }
 
-// testAccInterfaceTemplateResourceFull creates an interface template with all optional fields
+// testAccInterfaceTemplateResourceFull creates an interface template with all optional fields.
 func testAccInterfaceTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, interfaceType, label, description string) string {
 	return testAccInterfaceTemplateResourcePrereqs(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug) + fmt.Sprintf(`
 resource "netbox_interface_template" "test" {

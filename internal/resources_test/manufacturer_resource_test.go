@@ -202,7 +202,7 @@ func TestAccManufacturerResource_update(t *testing.T) {
 	})
 }
 
-// testAccManufacturerResourceConfig_basic returns a basic test configuration
+// testAccManufacturerResourceConfig_basic returns a basic test configuration.
 func testAccManufacturerResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 terraform {
@@ -223,7 +223,7 @@ resource "netbox_manufacturer" "test" {
 `, name, slug)
 }
 
-// testAccManufacturerResourceConfig_full returns a test configuration with all fields
+// testAccManufacturerResourceConfig_full returns a test configuration with all fields.
 func testAccManufacturerResourceConfig_full(name, slug, description string) string {
 	return fmt.Sprintf(`
 terraform {

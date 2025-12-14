@@ -212,7 +212,7 @@ func TestAccDeviceRoleResource_update(t *testing.T) {
 	})
 }
 
-// testAccDeviceRoleResourceConfig_basic returns a basic test configuration
+// testAccDeviceRoleResourceConfig_basic returns a basic test configuration.
 func testAccDeviceRoleResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 terraform {
@@ -233,7 +233,7 @@ resource "netbox_device_role" "test" {
 `, name, slug)
 }
 
-// testAccDeviceRoleResourceConfig_full returns a test configuration with all fields
+// testAccDeviceRoleResourceConfig_full returns a test configuration with all fields.
 func testAccDeviceRoleResourceConfig_full(name, slug, description, color string, vmRole bool) string {
 	return fmt.Sprintf(`
 terraform {

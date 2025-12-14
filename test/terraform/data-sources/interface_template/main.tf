@@ -1,6 +1,7 @@
 # Interface Template Data Source Test
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

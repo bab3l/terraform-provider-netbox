@@ -2,6 +2,7 @@
 # Creates contact groups with various configurations to test CRUD operations
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

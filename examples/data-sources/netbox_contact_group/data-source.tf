@@ -21,3 +21,11 @@ output "contact_group_name" {
 output "contact_group_parent_id" {
   value = data.netbox_contact_group.by_name.parent_id
 }
+
+output "contact_group_by_id" {
+  value = data.netbox_contact_group.by_id
+}
+
+output "contact_group_by_slug" {
+  value = data.netbox_contact_group.by_slug
+}

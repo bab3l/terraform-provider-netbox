@@ -2,6 +2,7 @@
 # Tests the netbox_fhrp_group data source for looking up existing FHRP groups
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

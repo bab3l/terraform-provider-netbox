@@ -171,7 +171,7 @@ func (d *CustomLinkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-// mapToState maps API response to Terraform state
+// mapToState maps API response to Terraform state.
 func (d *CustomLinkDataSource) mapToState(ctx context.Context, result *netbox.CustomLink, data *CustomLinkDataSourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 	data.Name = types.StringValue(result.GetName())

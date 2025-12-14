@@ -2,6 +2,7 @@
 # Tests the netbox_contact_role resource CRUD operations
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

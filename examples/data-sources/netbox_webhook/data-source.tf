@@ -16,3 +16,7 @@ output "webhook_url" {
 output "webhook_method" {
   value = data.netbox_webhook.by_name.http_method
 }
+
+output "webhook_by_id" {
+  value = data.netbox_webhook.by_id
+}

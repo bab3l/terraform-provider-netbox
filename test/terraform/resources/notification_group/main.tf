@@ -2,6 +2,7 @@
 # This file tests the netbox_notification_group resource
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

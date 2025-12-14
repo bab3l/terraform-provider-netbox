@@ -241,7 +241,7 @@ func TestAccRackResource_withLocation(t *testing.T) {
 	})
 }
 
-// testAccRackResourceConfig_basic returns a basic test configuration
+// testAccRackResourceConfig_basic returns a basic test configuration.
 func testAccRackResourceConfig_basic(siteName, siteSlug, rackName string) string {
 	return fmt.Sprintf(`
 terraform {
@@ -268,7 +268,7 @@ resource "netbox_rack" "test" {
 `, siteName, siteSlug, rackName)
 }
 
-// testAccRackResourceConfig_full returns a test configuration with all fields
+// testAccRackResourceConfig_full returns a test configuration with all fields.
 func testAccRackResourceConfig_full(siteName, siteSlug, rackName, description string) string {
 	return fmt.Sprintf(`
 terraform {
@@ -299,7 +299,7 @@ resource "netbox_rack" "test" {
 `, siteName, siteSlug, rackName, description)
 }
 
-// testAccRackResourceConfig_withLocation returns a test configuration with location
+// testAccRackResourceConfig_withLocation returns a test configuration with location.
 func testAccRackResourceConfig_withLocation(siteName, siteSlug, locationName, locationSlug, rackName string) string {
 	return fmt.Sprintf(`
 terraform {

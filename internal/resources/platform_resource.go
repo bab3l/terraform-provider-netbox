@@ -5,15 +5,14 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
-	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
-	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
 var _ resource.Resource = &PlatformResource{}
@@ -53,7 +52,7 @@ func (r *PlatformResource) Schema(ctx context.Context, req resource.SchemaReques
 	}
 }
 
-// Implement Create, Read, Update, Delete, and ImportState methods here
+// Implement Create, Read, Update, Delete, and ImportState methods here.
 func (r *PlatformResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return

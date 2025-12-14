@@ -213,7 +213,7 @@ func TestAccTenantGroupResource_update(t *testing.T) {
 	})
 }
 
-// testAccTenantGroupResourceConfig_basic returns a basic test configuration
+// testAccTenantGroupResourceConfig_basic returns a basic test configuration.
 func testAccTenantGroupResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 terraform {
@@ -234,7 +234,7 @@ resource "netbox_tenant_group" "test" {
 `, name, slug)
 }
 
-// testAccTenantGroupResourceConfig_full returns a test configuration with all fields
+// testAccTenantGroupResourceConfig_full returns a test configuration with all fields.
 func testAccTenantGroupResourceConfig_full(name, slug, description string) string {
 	return fmt.Sprintf(`
 terraform {

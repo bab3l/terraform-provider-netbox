@@ -198,7 +198,7 @@ func TestAccSiteResource_update(t *testing.T) {
 	})
 }
 
-// testAccSiteResourceConfig_basic returns a basic test configuration
+// testAccSiteResourceConfig_basic returns a basic test configuration.
 func testAccSiteResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 terraform {
@@ -220,7 +220,7 @@ resource "netbox_site" "test" {
 `, name, slug)
 }
 
-// testAccSiteResourceConfig_full returns a test configuration with all fields
+// testAccSiteResourceConfig_full returns a test configuration with all fields.
 func testAccSiteResourceConfig_full(name, slug, description string) string {
 	return fmt.Sprintf(`
 terraform {

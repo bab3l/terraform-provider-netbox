@@ -103,7 +103,7 @@ func TestConfigTemplateDataSourceConfigure(t *testing.T) {
 	}
 }
 
-// testAccConfigTemplateDataSourcePrereqs creates prerequisites for config template data source tests
+// testAccConfigTemplateDataSourcePrereqs creates prerequisites for config template data source tests.
 func testAccConfigTemplateDataSourcePrereqs(name, templateCode string) string {
 	return fmt.Sprintf(`
 resource "netbox_config_template" "test" {
@@ -113,7 +113,7 @@ resource "netbox_config_template" "test" {
 `, name, templateCode)
 }
 
-// testAccConfigTemplateDataSourceByID looks up a config template by ID
+// testAccConfigTemplateDataSourceByID looks up a config template by ID.
 func testAccConfigTemplateDataSourceByID(name, templateCode string) string {
 	return testAccConfigTemplateDataSourcePrereqs(name, templateCode) + `
 data "netbox_config_template" "test" {
@@ -122,7 +122,7 @@ data "netbox_config_template" "test" {
 `
 }
 
-// testAccConfigTemplateDataSourceByName looks up a config template by name
+// testAccConfigTemplateDataSourceByName looks up a config template by name.
 func testAccConfigTemplateDataSourceByName(name, templateCode string) string {
 	return testAccConfigTemplateDataSourcePrereqs(name, templateCode) + fmt.Sprintf(`
 data "netbox_config_template" "test" {

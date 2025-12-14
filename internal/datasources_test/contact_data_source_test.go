@@ -103,7 +103,7 @@ func TestContactDataSourceConfigure(t *testing.T) {
 	}
 }
 
-// Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables
+// Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
 func TestAccContactDataSource_byID(t *testing.T) {
 	testutil.TestAccPreCheck(t)
 
