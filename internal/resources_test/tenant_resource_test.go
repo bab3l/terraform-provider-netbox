@@ -16,238 +16,450 @@ import (
 )
 
 func TestTenantResource(t *testing.T) {
+
 	t.Parallel()
 
 	r := resources.NewTenantResource()
+
 	if r == nil {
+
 		t.Fatal("Expected non-nil tenant resource")
+
 	}
+
 }
 
 func TestTenantResourceSchema(t *testing.T) {
+
 	t.Parallel()
 
 	r := resources.NewTenantResource()
+
 	schemaRequest := fwresource.SchemaRequest{}
+
 	schemaResponse := &fwresource.SchemaResponse{}
 
 	r.Schema(context.Background(), schemaRequest, schemaResponse)
 
 	if schemaResponse.Diagnostics.HasError() {
+
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
+
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"name", "slug"}
+
 	for _, attr := range requiredAttrs {
+
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
+
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"group", "description", "tags", "custom_fields"}
+
 	for _, attr := range optionalAttrs {
+
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
+
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
+
 	for _, attr := range computedAttrs {
+
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
+
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestTenantResourceMetadata(t *testing.T) {
+
 	t.Parallel()
 
 	r := resources.NewTenantResource()
+
 	metadataRequest := fwresource.MetadataRequest{
+
 		ProviderTypeName: "netbox",
 	}
+
 	metadataResponse := &fwresource.MetadataResponse{}
 
 	r.Metadata(context.Background(), metadataRequest, metadataResponse)
 
 	expected := "netbox_tenant"
+
 	if metadataResponse.TypeName != expected {
+
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestTenantResourceConfigure(t *testing.T) {
+
 	t.Parallel()
 
 	r := resources.NewTenantResource().(*resources.TenantResource)
 
 	configureRequest := fwresource.ConfigureRequest{
+
 		ProviderData: nil,
 	}
+
 	configureResponse := &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
 
 	if configureResponse.Diagnostics.HasError() {
+
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
+
 	configureRequest.ProviderData = client
+
 	configureResponse = &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
 
 	if configureResponse.Diagnostics.HasError() {
+
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
+
 	configureResponse = &fwresource.ConfigureResponse{}
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
 
 	if !configureResponse.Diagnostics.HasError() {
+
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccTenantResource_basic(t *testing.T) {
+
 	// Generate unique names to avoid conflicts between test runs
+
 	name := testutil.RandomName("tf-test-tenant")
+
 	slug := testutil.RandomSlug("tf-test-tenant")
 
 	// Register cleanup to ensure resource is deleted even if test fails
+
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterTenantCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.CheckTenantDestroy,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccTenantResourceConfig_basic(name, slug),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_tenant.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_tenant.test", "name", name),
+
 					resource.TestCheckResourceAttr("netbox_tenant.test", "slug", slug),
 				),
 			},
 		},
 	})
+
 }
 
 func TestAccTenantResource_full(t *testing.T) {
+
 	// Generate unique names
+
 	name := testutil.RandomName("tf-test-tenant-full")
+
 	slug := testutil.RandomSlug("tf-test-tenant-full")
+
 	description := "Test tenant with all fields"
 
 	// Register cleanup
+
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterTenantCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.CheckTenantDestroy,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccTenantResourceConfig_full(name, slug, description),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_tenant.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_tenant.test", "name", name),
+
 					resource.TestCheckResourceAttr("netbox_tenant.test", "slug", slug),
+
 					resource.TestCheckResourceAttr("netbox_tenant.test", "description", description),
 				),
 			},
 		},
 	})
+
 }
 
 func TestAccTenantResource_update(t *testing.T) {
+
 	// Generate unique names
+
 	name := testutil.RandomName("tf-test-tenant-update")
+
 	slug := testutil.RandomSlug("tf-test-tenant-upd")
+
 	updatedName := testutil.RandomName("tf-test-tenant-updated")
 
 	// Register cleanup
+
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterTenantCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.CheckTenantDestroy,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccTenantResourceConfig_basic(name, slug),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_tenant.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_tenant.test", "name", name),
 				),
 			},
+
 			{
+
 				Config: testAccTenantResourceConfig_basic(updatedName, slug),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_tenant.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_tenant.test", "name", updatedName),
 				),
 			},
 		},
 	})
+
 }
 
 // testAccTenantResourceConfig_basic returns a basic test configuration.
+
 func testAccTenantResourceConfig_basic(name, slug string) string {
+
 	return fmt.Sprintf(`
+
+
+
 terraform {
+
+
+
   required_providers {
+
+
+
     netbox = {
+
+
+
       source = "bab3l/netbox"
+
+
+
       version = ">= 0.1.0"
+
+
+
     }
+
+
+
   }
+
+
+
 }
+
+
+
+
+
+
 
 provider "netbox" {}
 
+
+
+
+
+
+
 resource "netbox_tenant" "test" {
+
+
+
   name = %q
+
+
+
   slug = %q
+
+
+
 }
+
+
+
 `, name, slug)
+
 }
 
 // testAccTenantResourceConfig_full returns a test configuration with all fields.
+
 func testAccTenantResourceConfig_full(name, slug, description string) string {
+
 	return fmt.Sprintf(`
+
+
+
 terraform {
+
+
+
   required_providers {
+
+
+
     netbox = {
+
+
+
       source = "bab3l/netbox"
+
+
+
       version = ">= 0.1.0"
+
+
+
     }
+
+
+
   }
+
+
+
 }
+
+
+
+
+
+
 
 provider "netbox" {}
 
+
+
+
+
+
+
 resource "netbox_tenant" "test" {
+
+
+
   name        = %q
+
+
+
   slug        = %q
+
+
+
   description = %q
+
+
+
 }
+
+
+
 `, name, slug, description)
+
 }

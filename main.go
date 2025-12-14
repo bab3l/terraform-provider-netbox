@@ -26,6 +26,7 @@ var (
 
 	// goreleaser can pass other information to the main package, such as the specific commit
 	// https://goreleaser.com/cookbooks/using-main.version/
+	commit string = ""
 )
 
 func main() {
@@ -33,6 +34,10 @@ func main() {
 
 	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
+
+	if commit != "" {
+		version = version + "-" + commit
+	}
 
 	opts := providerserver.ServeOpts{
 		Address: "registry.terraform.io/bab3l/netbox",
