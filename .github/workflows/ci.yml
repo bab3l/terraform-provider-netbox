@@ -73,7 +73,7 @@ jobs:
           key: ${{ runner.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
 
       - name: Install golangci-lint
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.60.3
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
 
       - name: Install pre-commit
         run: python -m pip install --upgrade pip pre-commit

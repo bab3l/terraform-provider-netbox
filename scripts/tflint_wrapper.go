@@ -67,7 +67,7 @@ func main() {
 
 	// Initialize tflint plugins once
 	fmt.Println("Initializing TFLint plugins...")
-	// #nosec G204
+	//nolint:gosec // trusted config path
 	initCmd := exec.Command("tflint", "--init", "--config", configPath)
 	initCmd.Stdout = os.Stdout
 	initCmd.Stderr = os.Stderr
