@@ -40,7 +40,7 @@ jobs:
       - name: Go Test (unit)
         run: go test ./internal/resources/... ./internal/datasources/... -v
 
-  pre-commit:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
