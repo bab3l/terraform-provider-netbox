@@ -16,167 +16,307 @@ import (
 )
 
 func TestIKEProposalDataSource(t *testing.T) {
+
 	t.Parallel()
 
 	d := datasources.NewIKEProposalDataSource()
+
 	if d == nil {
+
 		t.Fatal("Expected non-nil IKE proposal data source")
+
 	}
+
 }
 
 func TestIKEProposalDataSourceSchema(t *testing.T) {
+
 	t.Parallel()
 
 	d := datasources.NewIKEProposalDataSource()
+
 	schemaRequest := fwdatasource.SchemaRequest{}
+
 	schemaResponse := &fwdatasource.SchemaResponse{}
 
 	d.Schema(context.Background(), schemaRequest, schemaResponse)
 
 	if schemaResponse.Diagnostics.HasError() {
+
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
+
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Check that key attributes exist
+
 	requiredAttrs := []string{"id", "name", "authentication_method", "encryption_algorithm", "authentication_algorithm", "group", "description", "comments", "tags", "sa_lifetime"}
+
 	for _, attr := range requiredAttrs {
+
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
+
 			t.Errorf("Expected attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestIKEProposalDataSourceMetadata(t *testing.T) {
+
 	t.Parallel()
 
 	d := datasources.NewIKEProposalDataSource()
+
 	metadataRequest := fwdatasource.MetadataRequest{
+
 		ProviderTypeName: "netbox",
 	}
+
 	metadataResponse := &fwdatasource.MetadataResponse{}
 
 	d.Metadata(context.Background(), metadataRequest, metadataResponse)
 
 	expected := "netbox_ike_proposal"
+
 	if metadataResponse.TypeName != expected {
+
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestIKEProposalDataSourceConfigure(t *testing.T) {
+
 	t.Parallel()
 
 	d := datasources.NewIKEProposalDataSource().(*datasources.IKEProposalDataSource)
 
 	configureRequest := fwdatasource.ConfigureRequest{
+
 		ProviderData: nil,
 	}
+
 	configureResponse := &fwdatasource.ConfigureResponse{}
 
 	d.Configure(context.Background(), configureRequest, configureResponse)
 
 	if configureResponse.Diagnostics.HasError() {
+
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
+
 	configureRequest.ProviderData = client
+
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
 	d.Configure(context.Background(), configureRequest, configureResponse)
 
 	if configureResponse.Diagnostics.HasError() {
+
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
+
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
 	d.Configure(context.Background(), configureRequest, configureResponse)
 
 	if !configureResponse.Diagnostics.HasError() {
+
 		t.Error("Expected error with invalid provider data")
+
 	}
+
 }
 
 // Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
+
 func TestAccIKEProposalDataSource_byID(t *testing.T) {
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("tf-test-ike-proposal-ds")
 
 	resource.Test(t, resource.TestCase{
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccIKEProposalDataSourceByID(randomName),
+
 				Check: resource.ComposeAggregateTestCheckFunc(
+
 					resource.TestCheckResourceAttr("data.netbox_ike_proposal.test", "name", randomName),
+
 					resource.TestCheckResourceAttrSet("data.netbox_ike_proposal.test", "id"),
+
 					resource.TestCheckResourceAttr("data.netbox_ike_proposal.test", "authentication_method", "preshared-keys"),
+
 					resource.TestCheckResourceAttr("data.netbox_ike_proposal.test", "encryption_algorithm", "aes-256-cbc"),
 				),
 			},
 		},
 	})
+
 }
 
 func TestAccIKEProposalDataSource_byName(t *testing.T) {
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("tf-test-ike-proposal-ds")
 
 	resource.Test(t, resource.TestCase{
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccIKEProposalDataSourceByName(randomName),
+
 				Check: resource.ComposeAggregateTestCheckFunc(
+
 					resource.TestCheckResourceAttr("data.netbox_ike_proposal.test", "name", randomName),
+
 					resource.TestCheckResourceAttrSet("data.netbox_ike_proposal.test", "id"),
+
 					resource.TestCheckResourceAttr("data.netbox_ike_proposal.test", "authentication_method", "preshared-keys"),
 				),
 			},
 		},
 	})
+
 }
 
 func testAccIKEProposalDataSourceByID(name string) string {
+
 	return fmt.Sprintf(`
+
+
+
 resource "netbox_ike_proposal" "test" {
+
+
+
   name                     = %[1]q
+
+
+
   authentication_method    = "preshared-keys"
+
+
+
   encryption_algorithm     = "aes-256-cbc"
+
+
+
   authentication_algorithm = "hmac-sha256"
+
+
+
   group                    = 14
+
+
+
 }
 
+
+
+
+
+
+
 data "netbox_ike_proposal" "test" {
+
+
+
   id = netbox_ike_proposal.test.id
+
+
+
 }
+
+
+
 `, name)
+
 }
 
 func testAccIKEProposalDataSourceByName(name string) string {
+
 	return fmt.Sprintf(`
+
+
+
 resource "netbox_ike_proposal" "test" {
+
+
+
   name                     = %[1]q
+
+
+
   authentication_method    = "preshared-keys"
+
+
+
   encryption_algorithm     = "aes-256-cbc"
+
+
+
   authentication_algorithm = "hmac-sha256"
+
+
+
   group                    = 14
+
+
+
 }
 
+
+
+
+
+
+
 data "netbox_ike_proposal" "test" {
+
+
+
   name = netbox_ike_proposal.test.name
+
+
+
 }
+
+
+
 `, name)
+
 }
