@@ -103,7 +103,7 @@ func TestInterfaceTemplateDataSourceConfigure(t *testing.T) {
 	}
 }
 
-// testAccInterfaceTemplateDataSourcePrereqs creates prerequisites for interface template data source tests
+// testAccInterfaceTemplateDataSourcePrereqs creates prerequisites for interface template data source tests.
 func testAccInterfaceTemplateDataSourcePrereqs(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, templateName, templateType string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
@@ -125,7 +125,7 @@ resource "netbox_interface_template" "test" {
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, templateName, templateType)
 }
 
-// testAccInterfaceTemplateDataSourceByID looks up an interface template by ID
+// testAccInterfaceTemplateDataSourceByID looks up an interface template by ID.
 func testAccInterfaceTemplateDataSourceByID(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, templateName, templateType string) string {
 	return testAccInterfaceTemplateDataSourcePrereqs(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, templateName, templateType) + `
 data "netbox_interface_template" "test" {
@@ -134,7 +134,7 @@ data "netbox_interface_template" "test" {
 `
 }
 
-// testAccInterfaceTemplateDataSourceByName looks up an interface template by name and device type
+// testAccInterfaceTemplateDataSourceByName looks up an interface template by name and device type.
 func testAccInterfaceTemplateDataSourceByName(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, templateName, templateType string) string {
 	return testAccInterfaceTemplateDataSourcePrereqs(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, templateName, templateType) + fmt.Sprintf(`
 data "netbox_interface_template" "test" {

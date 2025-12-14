@@ -449,7 +449,7 @@ func (r *ConfigContextResource) ImportState(ctx context.Context, req resource.Im
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// Helper function to convert types.Set of Int64 to []int32
+// Helper function to convert types.Set of Int64 to []int32.
 func setToInt32Slice(ctx context.Context, set types.Set) []int32 {
 	if set.IsNull() || set.IsUnknown() {
 		return []int32{}
@@ -470,7 +470,7 @@ func setToInt32Slice(ctx context.Context, set types.Set) []int32 {
 	return result
 }
 
-// Helper function to convert types.Set of String to []string
+// Helper function to convert types.Set of String to []string.
 func setToStringSlice(ctx context.Context, set types.Set) []string {
 	if set.IsNull() || set.IsUnknown() {
 		return []string{}
@@ -481,7 +481,7 @@ func setToStringSlice(ctx context.Context, set types.Set) []string {
 	return stringValues
 }
 
-// Helper function to map API response to model
+// Helper function to map API response to model.
 func mapConfigContextResponseToModel(ctx context.Context, result *netbox.ConfigContext, data *ConfigContextResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 	data.Name = types.StringValue(result.GetName())

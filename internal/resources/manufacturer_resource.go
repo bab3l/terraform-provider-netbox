@@ -48,7 +48,7 @@ func (r *ManufacturerResource) Schema(ctx context.Context, req resource.SchemaRe
 	}
 }
 
-// Implement Configure, Create, Read, Update, Delete, ImportState methods here
+// Implement Configure, Create, Read, Update, Delete, ImportState methods here.
 func (r *ManufacturerResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return

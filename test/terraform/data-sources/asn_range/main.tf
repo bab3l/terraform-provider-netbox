@@ -2,6 +2,7 @@
 # Tests retrieving ASN ranges from Netbox by various lookup methods
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

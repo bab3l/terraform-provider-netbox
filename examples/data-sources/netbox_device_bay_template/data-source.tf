@@ -22,3 +22,7 @@ output "device_bay_template_details" {
     description      = data.netbox_device_bay_template.by_name.description
   }
 }
+
+output "device_bay_template_by_id" {
+  value = data.netbox_device_bay_template.by_id
+}

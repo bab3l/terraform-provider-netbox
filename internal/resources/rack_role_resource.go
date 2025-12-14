@@ -9,15 +9,14 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
-	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -394,7 +393,7 @@ func (r *RackRoleResource) ImportState(ctx context.Context, req resource.ImportS
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// mapRackRoleToState maps a RackRole API response to the Terraform state model
+// mapRackRoleToState maps a RackRole API response to the Terraform state model.
 func (r *RackRoleResource) mapRackRoleToState(ctx context.Context, rackRole *netbox.RackRole, data *RackRoleResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", rackRole.GetId()))
 	data.Name = types.StringValue(rackRole.GetName())

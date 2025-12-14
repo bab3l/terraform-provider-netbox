@@ -69,7 +69,7 @@ func (h *CreateErrorHandler) HandleCreateError(
 	diags.AddError(fmt.Sprintf("Error creating %s", h.ResourceType), errMsg)
 }
 
-// handleDuplicateError formats a helpful error message for duplicate resources
+// handleDuplicateError formats a helpful error message for duplicate resources.
 func (h *CreateErrorHandler) handleDuplicateError(
 	ctx context.Context,
 	errorMap map[string][]string,
@@ -151,7 +151,7 @@ func parseDuplicateErrorFromBytes(httpResp *http.Response, bodyBytes []byte) map
 	return nil
 }
 
-// FormatAPIError formats an API error with response body details for better diagnostics
+// FormatAPIError formats an API error with response body details for better diagnostics.
 func FormatAPIError(operation string, err error, httpResp *http.Response) string {
 	errBody := ""
 	if httpResp != nil && httpResp.Body != nil {
@@ -166,7 +166,7 @@ func FormatAPIError(operation string, err error, httpResp *http.Response) string
 	return fmt.Sprintf("Could not %s, unexpected error: %s", operation, err)
 }
 
-// getAPIPath returns the API path segment for a resource type
+// getAPIPath returns the API path segment for a resource type.
 func getAPIPath(resourceType string) string {
 	switch resourceType {
 	case "netbox_tenant":
@@ -186,13 +186,13 @@ func getAPIPath(resourceType string) string {
 	}
 }
 
-// TagModel represents a tag in Terraform schema
+// TagModel represents a tag in Terraform schema.
 type TagModel struct {
 	Name types.String `tfsdk:"name"`
 	Slug types.String `tfsdk:"slug"`
 }
 
-// TagsToNestedTagRequests converts Terraform tag models to go-netbox NestedTagRequest slice
+// TagsToNestedTagRequests converts Terraform tag models to go-netbox NestedTagRequest slice.
 func TagsToNestedTagRequests(tags []TagModel) []netbox.NestedTagRequest {
 	if len(tags) == 0 {
 		return nil
@@ -208,7 +208,7 @@ func TagsToNestedTagRequests(tags []TagModel) []netbox.NestedTagRequest {
 	return result
 }
 
-// TagModelsToNestedTagRequests extracts TagModels from a types.Set and converts to NestedTagRequests
+// TagModelsToNestedTagRequests extracts TagModels from a types.Set and converts to NestedTagRequests.
 func TagModelsToNestedTagRequests(ctx context.Context, tagsSet types.Set) ([]netbox.NestedTagRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var tags []TagModel
@@ -221,12 +221,12 @@ func TagModelsToNestedTagRequests(ctx context.Context, tagsSet types.Set) ([]net
 	return TagsToNestedTagRequests(tags), diags
 }
 
-// CustomFieldModelsToMap extracts CustomFieldModels from slice and converts to map
+// CustomFieldModelsToMap extracts CustomFieldModels from slice and converts to map.
 func CustomFieldModelsToMap(models []CustomFieldModel) map[string]interface{} {
 	return CustomFieldsToMap(models)
 }
 
-// NestedTagsToTagModels converts go-netbox NestedTag slice to Terraform tag models
+// NestedTagsToTagModels converts go-netbox NestedTag slice to Terraform tag models.
 func NestedTagsToTagModels(tags []netbox.NestedTag) []TagModel {
 	if len(tags) == 0 {
 		return nil
@@ -242,14 +242,14 @@ func NestedTagsToTagModels(tags []netbox.NestedTag) []TagModel {
 	return result
 }
 
-// CustomFieldModel represents a custom field in Terraform schema
+// CustomFieldModel represents a custom field in Terraform schema.
 type CustomFieldModel struct {
 	Name  types.String `tfsdk:"name"`
 	Type  types.String `tfsdk:"type"`
 	Value types.String `tfsdk:"value"`
 }
 
-// CustomFieldsToMap converts Terraform custom field models to go-netbox map format
+// CustomFieldsToMap converts Terraform custom field models to go-netbox map format.
 func CustomFieldsToMap(customFields []CustomFieldModel) map[string]interface{} {
 	if len(customFields) == 0 {
 		return nil
@@ -298,7 +298,7 @@ func CustomFieldsToMap(customFields []CustomFieldModel) map[string]interface{} {
 	return result
 }
 
-// MapToCustomFieldModels converts go-netbox custom fields map to Terraform models
+// MapToCustomFieldModels converts go-netbox custom fields map to Terraform models.
 func MapToCustomFieldModels(customFields map[string]interface{}, stateCustomFields []CustomFieldModel) []CustomFieldModel {
 	if len(stateCustomFields) == 0 {
 		return nil
@@ -346,7 +346,7 @@ func MapToCustomFieldModels(customFields map[string]interface{}, stateCustomFiel
 	return result
 }
 
-// GetTagsAttributeType returns the attribute type for tags
+// GetTagsAttributeType returns the attribute type for tags.
 func GetTagsAttributeType() types.SetType {
 	return types.SetType{
 		ElemType: types.ObjectType{
@@ -358,7 +358,7 @@ func GetTagsAttributeType() types.SetType {
 	}
 }
 
-// GetCustomFieldsAttributeType returns the attribute type for custom fields
+// GetCustomFieldsAttributeType returns the attribute type for custom fields.
 func GetCustomFieldsAttributeType() types.SetType {
 	return types.SetType{
 		ElemType: types.ObjectType{

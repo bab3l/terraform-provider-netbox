@@ -286,7 +286,7 @@ func (r *ClusterGroupResource) ImportState(ctx context.Context, req resource.Imp
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// mapClusterGroupToState maps API response to Terraform state
+// mapClusterGroupToState maps API response to Terraform state.
 func (r *ClusterGroupResource) mapClusterGroupToState(ctx context.Context, clusterGroup *netbox.ClusterGroup, data *ClusterGroupResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", clusterGroup.GetId()))
 	data.Name = types.StringValue(clusterGroup.GetName())

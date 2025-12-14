@@ -3,6 +3,7 @@
 # This test file documents the data source but cannot be run without pre-existing scripts in NetBox.
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

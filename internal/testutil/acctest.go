@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	// sharedClient is a singleton API client used across tests
+	// sharedClient is a singleton API client used across tests.
 	sharedClient     *netbox.APIClient
 	sharedClientOnce sync.Once
 	sharedClientErr  error
@@ -136,6 +136,9 @@ type CleanupResource struct {
 // NewCleanupResource creates a new cleanup helper.
 func NewCleanupResource(t *testing.T) *CleanupResource {
 	t.Helper()
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC must be set for acceptance tests")
+	}
 	client, err := GetSharedClient()
 	if err != nil {
 		t.Fatalf("Failed to get shared client for cleanup: %v", err)

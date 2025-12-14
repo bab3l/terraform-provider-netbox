@@ -102,7 +102,7 @@ func TestConsolePortTemplateResourceConfigure(t *testing.T) {
 
 // Acceptance test configurations
 
-// testAccConsolePortTemplateResourceBasic creates a console port template with minimum required fields
+// testAccConsolePortTemplateResourceBasic creates a console port template with minimum required fields.
 func testAccConsolePortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
@@ -123,7 +123,7 @@ resource "netbox_console_port_template" "test" {
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
 }
 
-// testAccConsolePortTemplateResourceFull creates a console port template with all fields
+// testAccConsolePortTemplateResourceFull creates a console port template with all fields.
 func testAccConsolePortTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, portType, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {

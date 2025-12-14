@@ -41,7 +41,7 @@ type CustomFieldChoiceSetResourceModel struct {
 	OrderAlphabetically types.Bool   `tfsdk:"order_alphabetically"`
 }
 
-// ChoicePairModel represents a key-value pair for choices
+// ChoicePairModel represents a key-value pair for choices.
 type ChoicePairModel struct {
 	Value types.String `tfsdk:"value"`
 	Label types.String `tfsdk:"label"`
@@ -298,7 +298,7 @@ func (r *CustomFieldChoiceSetResource) ImportState(ctx context.Context, req reso
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// buildExtraChoices converts the Terraform list of choice pairs to the API format
+// buildExtraChoices converts the Terraform list of choice pairs to the API format.
 func (r *CustomFieldChoiceSetResource) buildExtraChoices(ctx context.Context, choicesList types.List) ([][]interface{}, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -321,7 +321,7 @@ func (r *CustomFieldChoiceSetResource) buildExtraChoices(ctx context.Context, ch
 	return result, diags
 }
 
-// mapToState maps API response to Terraform state
+// mapToState maps API response to Terraform state.
 func (r *CustomFieldChoiceSetResource) mapToState(ctx context.Context, result *netbox.CustomFieldChoiceSet, data *CustomFieldChoiceSetResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 	data.Name = types.StringValue(result.GetName())

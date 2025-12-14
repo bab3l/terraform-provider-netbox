@@ -23,6 +23,8 @@ linters:
     - copyloopvar    # Detect unnecessary loop variable copies (Go 1.22+)
     - gocritic       # Style and performance checks (ifElseChain, dupBranchBody, etc.)
     - goconst        # Find repeated strings that could be replaced by a constant
+    - godot          # Ensures comments end with a period
+    - tparallel      # Detects inappropriate usage of t.Parallel()
     # Note: whitespace linter disabled - conflicts with multi-line HCL strings in test files
     # Note: bodyclose is not enabled because it doesn't recognize helper functions
     # like utils.CloseResponseBody(). The code correctly closes HTTP response bodies
@@ -44,3 +46,10 @@ linters:
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
+
+formatters:
+  enable:
+    - gci
+  settings:
+    gci:
+      local-prefixes: github.com/bab3l/terraform-provider-netbox

@@ -21,3 +21,11 @@ output "cluster_group_name" {
 output "cluster_group_description" {
   value = data.netbox_cluster_group.by_name.description
 }
+
+output "cluster_group_by_id" {
+  value = data.netbox_cluster_group.by_id
+}
+
+output "cluster_group_by_slug" {
+  value = data.netbox_cluster_group.by_slug
+}

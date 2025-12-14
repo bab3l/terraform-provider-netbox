@@ -2,6 +2,7 @@
 # Tests retrieving device bay templates from Netbox
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

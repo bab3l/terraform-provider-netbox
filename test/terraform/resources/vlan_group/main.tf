@@ -2,6 +2,7 @@
 # Tests the netbox_vlan_group resource with basic and complete configurations
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

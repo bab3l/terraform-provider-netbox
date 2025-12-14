@@ -245,7 +245,7 @@ func TestAccLocationResource_withParent(t *testing.T) {
 	})
 }
 
-// testAccLocationResourceConfig_basic returns a basic test configuration
+// testAccLocationResourceConfig_basic returns a basic test configuration.
 func testAccLocationResourceConfig_basic(siteName, siteSlug, name, slug string) string {
 	return fmt.Sprintf(`
 terraform {
@@ -273,7 +273,7 @@ resource "netbox_location" "test" {
 `, siteName, siteSlug, name, slug)
 }
 
-// testAccLocationResourceConfig_full returns a test configuration with all fields
+// testAccLocationResourceConfig_full returns a test configuration with all fields.
 func testAccLocationResourceConfig_full(siteName, siteSlug, name, slug, description, facility string) string {
 	return fmt.Sprintf(`
 terraform {
@@ -304,7 +304,7 @@ resource "netbox_location" "test" {
 `, siteName, siteSlug, name, slug, description, facility)
 }
 
-// testAccLocationResourceConfig_withParent returns a test configuration with parent location
+// testAccLocationResourceConfig_withParent returns a test configuration with parent location.
 func testAccLocationResourceConfig_withParent(siteName, siteSlug, parentName, parentSlug, childName, childSlug string) string {
 	return fmt.Sprintf(`
 terraform {

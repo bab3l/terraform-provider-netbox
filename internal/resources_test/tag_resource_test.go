@@ -112,7 +112,7 @@ func TestTagResourceConfigure(t *testing.T) {
 	}
 }
 
-// testAccTagResourceBasic creates a basic tag with required fields only
+// testAccTagResourceBasic creates a basic tag with required fields only.
 func testAccTagResourceBasic(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "test" {
@@ -122,7 +122,7 @@ resource "netbox_tag" "test" {
 `, name, slug)
 }
 
-// testAccTagResourceFull creates a tag with all optional fields
+// testAccTagResourceFull creates a tag with all optional fields.
 func testAccTagResourceFull(name, slug, color, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "test" {
@@ -134,7 +134,7 @@ resource "netbox_tag" "test" {
 `, name, slug, color, description)
 }
 
-// testAccTagResourceWithObjectTypes creates a tag with object_types restriction
+// testAccTagResourceWithObjectTypes creates a tag with object_types restriction.
 func testAccTagResourceWithObjectTypes(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "test" {

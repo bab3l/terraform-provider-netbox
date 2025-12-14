@@ -23,3 +23,11 @@ output "interface_type" {
 output "interface_mac" {
   value = data.netbox_interface.by_name.mac_address
 }
+
+output "interface_by_id" {
+  value = data.netbox_interface.by_id
+}
+
+output "interface_by_device_id" {
+  value = data.netbox_interface.by_device_id
+}

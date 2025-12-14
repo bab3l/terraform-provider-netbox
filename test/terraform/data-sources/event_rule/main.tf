@@ -2,6 +2,7 @@
 # This file tests the netbox_event_rule data source
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

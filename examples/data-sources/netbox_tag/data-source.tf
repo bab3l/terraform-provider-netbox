@@ -21,3 +21,11 @@ output "tag_color" {
 output "tag_description" {
   value = data.netbox_tag.by_name.description
 }
+
+output "tag_by_id" {
+  value = data.netbox_tag.by_id
+}
+
+output "tag_by_slug" {
+  value = data.netbox_tag.by_slug
+}

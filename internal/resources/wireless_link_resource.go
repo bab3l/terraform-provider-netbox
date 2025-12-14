@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -17,9 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
-	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -162,7 +161,7 @@ func (r *WirelessLinkResource) Configure(ctx context.Context, req resource.Confi
 	r.client = client
 }
 
-// lookupInterfaceBrief looks up an interface by ID and returns a BriefInterfaceRequest
+// lookupInterfaceBrief looks up an interface by ID and returns a BriefInterfaceRequest.
 func (r *WirelessLinkResource) lookupInterfaceBrief(ctx context.Context, interfaceID string) (*netbox.BriefInterfaceRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 

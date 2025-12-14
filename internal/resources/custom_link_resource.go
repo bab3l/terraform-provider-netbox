@@ -344,7 +344,7 @@ func (r *CustomLinkResource) ImportState(ctx context.Context, req resource.Impor
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// mapToState maps API response to Terraform state
+// mapToState maps API response to Terraform state.
 func (r *CustomLinkResource) mapToState(ctx context.Context, result *netbox.CustomLink, data *CustomLinkResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 	data.Name = types.StringValue(result.GetName())

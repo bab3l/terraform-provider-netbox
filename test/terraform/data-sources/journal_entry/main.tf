@@ -2,6 +2,7 @@
 # Tests the netbox_journal_entry data source for looking up existing journal entries
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

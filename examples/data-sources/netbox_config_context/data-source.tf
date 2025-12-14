@@ -20,3 +20,7 @@ output "config_context_weight" {
 output "config_context_is_active" {
   value = data.netbox_config_context.by_name.is_active
 }
+
+output "config_context_by_id" {
+  value = data.netbox_config_context.by_id
+}

@@ -300,7 +300,7 @@ func (r *TenantGroupResource) ImportState(ctx context.Context, req resource.Impo
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// mapTenantGroupToState maps API response to Terraform state
+// mapTenantGroupToState maps API response to Terraform state.
 func (r *TenantGroupResource) mapTenantGroupToState(ctx context.Context, tenantGroup *netbox.TenantGroup, data *TenantGroupResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", tenantGroup.GetId()))
 	data.Name = types.StringValue(tenantGroup.GetName())

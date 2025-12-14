@@ -27,3 +27,11 @@ output "asn_range_details" {
     asn_count = data.netbox_asn_range.by_name.asn_count
   }
 }
+
+output "asn_range_by_id" {
+  value = data.netbox_asn_range.by_id
+}
+
+output "asn_range_by_slug" {
+  value = data.netbox_asn_range.by_slug
+}

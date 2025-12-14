@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
+	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -16,9 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
-	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -284,7 +283,7 @@ func (r *JournalEntryResource) ImportState(ctx context.Context, req resource.Imp
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
 }
 
-// setOptionalFields sets optional fields on the Journal Entry request
+// setOptionalFields sets optional fields on the Journal Entry request.
 func (r *JournalEntryResource) setOptionalFields(ctx context.Context, journalEntryRequest *netbox.WritableJournalEntryRequest, data *JournalEntryResourceModel, diags *diag.Diagnostics) {
 	// Kind
 	if utils.IsSet(data.Kind) {
@@ -317,7 +316,7 @@ func (r *JournalEntryResource) setOptionalFields(ctx context.Context, journalEnt
 	}
 }
 
-// mapJournalEntryToState maps a Journal Entry API response to the Terraform state model
+// mapJournalEntryToState maps a Journal Entry API response to the Terraform state model.
 func (r *JournalEntryResource) mapJournalEntryToState(ctx context.Context, journalEntry *netbox.JournalEntry, data *JournalEntryResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.Int32Value(journalEntry.GetId())
 	data.AssignedObjectType = types.StringValue(journalEntry.GetAssignedObjectType())

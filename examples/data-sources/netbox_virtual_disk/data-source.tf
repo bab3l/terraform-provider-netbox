@@ -19,3 +19,7 @@ output "disk_info" {
     description          = data.netbox_virtual_disk.by_name.description
   }
 }
+
+output "virtual_disk_by_id" {
+  value = data.netbox_virtual_disk.by_id
+}

@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
-// resourceInfo contains metadata about a resource for testing
+// resourceInfo contains metadata about a resource for testing.
 type resourceInfo struct {
 	name             string
 	factory          func() resource.Resource
@@ -26,7 +26,7 @@ type resourceInfo struct {
 	optionalComputed []string // fields that are both optional and computed
 }
 
-// allResources returns all resources to test with their expected schema
+// allResources returns all resources to test with their expected schema.
 func allResources() []resourceInfo {
 	return []resourceInfo{
 		{

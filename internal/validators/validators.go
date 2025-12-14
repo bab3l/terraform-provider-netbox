@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-// CustomFieldValueValidator validates that a custom field value is appropriate for its type
+// CustomFieldValueValidator validates that a custom field value is appropriate for its type.
 type CustomFieldValueValidator struct {
 	customFieldType string
 }
@@ -94,7 +94,7 @@ func ValidCustomFieldValue(customFieldType string) validator.String {
 	}
 }
 
-// SlugValidator validates that a string is a valid slug
+// SlugValidator validates that a string is a valid slug.
 type SlugValidator struct{}
 
 // Description returns a description of the validator.
@@ -145,17 +145,17 @@ func ValidSlug() validator.String {
 	return SlugValidator{}
 }
 
-// IntegerRegex returns a regex for validating integer values
+// IntegerRegex returns a regex for validating integer values.
 func IntegerRegex() *regexp.Regexp {
 	return regexp.MustCompile(`^[0-9]+$`)
 }
 
-// HexColorRegex returns a regex for validating 6-character hexadecimal color codes
+// HexColorRegex returns a regex for validating 6-character hexadecimal color codes.
 func HexColorRegex() *regexp.Regexp {
 	return regexp.MustCompile(`^[0-9a-fA-F]{6}$`)
 }
 
-// CustomFieldNameValidator validates custom field names
+// CustomFieldNameValidator validates custom field names.
 type CustomFieldNameValidator struct{}
 
 // Description returns a description of the validator.
@@ -192,7 +192,7 @@ func ValidCustomFieldName() validator.String {
 	return CustomFieldNameValidator{}
 }
 
-// CustomFieldTypeValidator validates custom field types
+// CustomFieldTypeValidator validates custom field types.
 type CustomFieldTypeValidator struct{}
 
 // Description returns a description of the validator.
@@ -236,7 +236,7 @@ func ValidCustomFieldType() validator.String {
 	return CustomFieldTypeValidator{}
 }
 
-// SimpleValidCustomFieldValue returns a basic validator for custom field values (without type checking)
+// SimpleValidCustomFieldValue returns a basic validator for custom field values (without type checking).
 func SimpleValidCustomFieldValue() validator.String {
 	return ValidCustomFieldValue("text") // Default to text validation
 }

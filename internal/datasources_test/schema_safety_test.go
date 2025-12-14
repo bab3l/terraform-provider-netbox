@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
-// dataSourceInfo contains metadata about a data source for testing
+// dataSourceInfo contains metadata about a data source for testing.
 type dataSourceInfo struct {
 	name           string
 	factory        func() datasource.DataSource
@@ -23,7 +23,7 @@ type dataSourceInfo struct {
 	returnedFields []string // fields returned by the data source (should be Computed)
 }
 
-// allDataSources returns all data sources to test
+// allDataSources returns all data sources to test.
 func allDataSources() []dataSourceInfo {
 	return []dataSourceInfo{
 		{
@@ -193,7 +193,7 @@ func TestDataSourceSearchFieldsAreOptionalAndComputed(t *testing.T) {
 	}
 }
 
-// Helper to check if a data source attribute is computed
+// Helper to check if a data source attribute is computed.
 func isDataSourceComputed(attr schema.Attribute) bool {
 	switch a := attr.(type) {
 	case schema.StringAttribute:

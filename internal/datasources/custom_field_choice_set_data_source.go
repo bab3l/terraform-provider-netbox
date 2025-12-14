@@ -168,7 +168,7 @@ func (d *CustomFieldChoiceSetDataSource) Read(ctx context.Context, req datasourc
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-// mapToState maps API response to Terraform state
+// mapToState maps API response to Terraform state.
 func (d *CustomFieldChoiceSetDataSource) mapToState(ctx context.Context, result *netbox.CustomFieldChoiceSet, data *CustomFieldChoiceSetDataSourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 	data.Name = types.StringValue(result.GetName())

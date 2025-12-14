@@ -102,7 +102,7 @@ func TestPowerOutletTemplateResourceConfigure(t *testing.T) {
 
 // Acceptance test configurations
 
-// testAccPowerOutletTemplateResourceBasic creates a power outlet template with minimum required fields
+// testAccPowerOutletTemplateResourceBasic creates a power outlet template with minimum required fields.
 func testAccPowerOutletTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
@@ -123,7 +123,7 @@ resource "netbox_power_outlet_template" "test" {
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
 }
 
-// testAccPowerOutletTemplateResourceFull creates a power outlet template with all fields
+// testAccPowerOutletTemplateResourceFull creates a power outlet template with all fields.
 func testAccPowerOutletTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, outletType, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {

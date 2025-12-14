@@ -3,6 +3,7 @@
 # Note: This is a circuit provider (ISP/carrier), not a Terraform provider
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     netbox = {
       source = "bab3l/netbox"

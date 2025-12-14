@@ -17,3 +17,7 @@ output "route_target_info" {
     description = data.netbox_route_target.by_name.description
   }
 }
+
+output "route_target_by_id" {
+  value = data.netbox_route_target.by_id
+}

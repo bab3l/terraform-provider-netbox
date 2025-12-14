@@ -102,7 +102,7 @@ func TestPowerPortTemplateResourceConfigure(t *testing.T) {
 
 // Acceptance test configurations
 
-// testAccPowerPortTemplateResourceBasic creates a power port template with minimum required fields
+// testAccPowerPortTemplateResourceBasic creates a power port template with minimum required fields.
 func testAccPowerPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
@@ -123,7 +123,7 @@ resource "netbox_power_port_template" "test" {
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
 }
 
-// testAccPowerPortTemplateResourceFull creates a power port template with all fields
+// testAccPowerPortTemplateResourceFull creates a power port template with all fields.
 func testAccPowerPortTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, portType, description string, maxDraw, allocDraw int) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {

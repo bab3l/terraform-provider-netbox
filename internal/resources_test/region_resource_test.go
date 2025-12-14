@@ -229,7 +229,7 @@ func TestAccRegionResource_withParent(t *testing.T) {
 	})
 }
 
-// testAccRegionResourceConfig_basic returns a basic test configuration
+// testAccRegionResourceConfig_basic returns a basic test configuration.
 func testAccRegionResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 terraform {
@@ -250,7 +250,7 @@ resource "netbox_region" "test" {
 `, name, slug)
 }
 
-// testAccRegionResourceConfig_full returns a test configuration with all fields
+// testAccRegionResourceConfig_full returns a test configuration with all fields.
 func testAccRegionResourceConfig_full(name, slug, description string) string {
 	return fmt.Sprintf(`
 terraform {
@@ -272,7 +272,7 @@ resource "netbox_region" "test" {
 `, name, slug, description)
 }
 
-// testAccRegionResourceConfig_withParent returns a test configuration with parent region
+// testAccRegionResourceConfig_withParent returns a test configuration with parent region.
 func testAccRegionResourceConfig_withParent(parentName, parentSlug, childName, childSlug string) string {
 	return fmt.Sprintf(`
 terraform {

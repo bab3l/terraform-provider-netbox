@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
+	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -12,9 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
-	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 )
 
 // Ensure NetboxProvider satisfies various provider interfaces.
