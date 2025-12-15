@@ -377,7 +377,15 @@ func testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, cl
 
 
 
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
+
+
 
 
 
@@ -385,11 +393,27 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -401,7 +425,15 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
   name = %q
+
+
+
+
 
 
 
@@ -409,7 +441,19 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -421,7 +465,15 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
   name    = %q
+
+
+
+
 
 
 
@@ -429,7 +481,19 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -441,7 +505,15 @@ resource "netbox_vm_interface" "test" {
 
 
 
+
+
+
+
   virtual_machine = netbox_virtual_machine.test.name
+
+
+
+
 
 
 
@@ -449,7 +521,15 @@ resource "netbox_vm_interface" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -463,7 +543,15 @@ func testAccVMInterfaceResourceConfig_full(clusterTypeName, clusterTypeSlug, clu
 
 
 
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
+
+
 
 
 
@@ -471,11 +559,27 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -487,7 +591,15 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
   name = %q
+
+
+
+
 
 
 
@@ -495,7 +607,19 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -507,7 +631,15 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
   name    = %q
+
+
+
+
 
 
 
@@ -515,7 +647,19 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -527,7 +671,15 @@ resource "netbox_vm_interface" "test" {
 
 
 
+
+
+
+
   virtual_machine = netbox_virtual_machine.test.name
+
+
+
+
 
 
 
@@ -535,7 +687,15 @@ resource "netbox_vm_interface" "test" {
 
 
 
+
+
+
+
   enabled         = true
+
+
+
+
 
 
 
@@ -543,11 +703,23 @@ resource "netbox_vm_interface" "test" {
 
 
 
+
+
+
+
   description     = %q
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

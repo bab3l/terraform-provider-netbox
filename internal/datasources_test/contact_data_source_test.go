@@ -248,7 +248,15 @@ func testAccContactDataSourceByID(name string) string {
 
 
 
+
+
+
+
 resource "netbox_contact" "test" {
+
+
+
+
 
 
 
@@ -256,7 +264,19 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -268,11 +288,23 @@ data "netbox_contact" "test" {
 
 
 
+
+
+
+
   id = netbox_contact.test.id
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -286,7 +318,15 @@ func testAccContactDataSourceByName(name string) string {
 
 
 
+
+
+
+
 resource "netbox_contact" "test" {
+
+
+
+
 
 
 
@@ -294,7 +334,19 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -306,11 +358,23 @@ data "netbox_contact" "test" {
 
 
 
+
+
+
+
   name = netbox_contact.test.name
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -324,7 +388,15 @@ func testAccContactDataSourceByEmail(name, email string) string {
 
 
 
+
+
+
+
 resource "netbox_contact" "test" {
+
+
+
+
 
 
 
@@ -332,11 +404,27 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
   email = %[2]q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -348,11 +436,23 @@ data "netbox_contact" "test" {
 
 
 
+
+
+
+
   email = netbox_contact.test.email
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

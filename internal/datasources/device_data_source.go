@@ -202,7 +202,7 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	}
 
-	var device *netbox.DeviceWithConfigContext
+	var device *netbox.Device
 
 	var httpResp *http.Response
 
@@ -384,9 +384,9 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 }
 
-// mapDeviceToDataSource maps a DeviceWithConfigContext from the API to the data source model.
+// mapDeviceToDataSource maps a Device from the API to the data source model.
 
-func (d *DeviceDataSource) mapDeviceToDataSource(ctx context.Context, device *netbox.DeviceWithConfigContext, data *DeviceDataSourceModel, resp *datasource.ReadResponse) {
+func (d *DeviceDataSource) mapDeviceToDataSource(ctx context.Context, device *netbox.Device, data *DeviceDataSourceModel, resp *datasource.ReadResponse) {
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", device.GetId()))
 

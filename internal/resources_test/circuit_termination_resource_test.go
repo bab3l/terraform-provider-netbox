@@ -306,7 +306,15 @@ func testAccCircuitTerminationResourceConfig_basic(providerName, providerSlug, c
 
 
 
+
+
+
+
 resource "netbox_provider" "test" {
+
+
+
+
 
 
 
@@ -314,11 +322,27 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -330,7 +354,15 @@ resource "netbox_circuit_type" "test" {
 
 
 
+
+
+
+
   name = %q
+
+
+
+
 
 
 
@@ -338,7 +370,19 @@ resource "netbox_circuit_type" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -350,7 +394,15 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
   cid              = %q
+
+
+
+
 
 
 
@@ -358,11 +410,27 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
   type             = netbox_circuit_type.test.id
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -374,7 +442,15 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
   name   = %q
+
+
+
+
 
 
 
@@ -382,11 +458,27 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
   status = "active"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -398,7 +490,15 @@ resource "netbox_circuit_termination" "test" {
 
 
 
+
+
+
+
   circuit   = netbox_circuit.test.id
+
+
+
+
 
 
 
@@ -406,11 +506,23 @@ resource "netbox_circuit_termination" "test" {
 
 
 
+
+
+
+
   site      = netbox_site.test.id
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -424,7 +536,15 @@ func testAccCircuitTerminationResourceConfig_full(providerName, providerSlug, ci
 
 
 
+
+
+
+
 resource "netbox_provider" "test" {
+
+
+
+
 
 
 
@@ -432,11 +552,27 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -448,7 +584,15 @@ resource "netbox_circuit_type" "test" {
 
 
 
+
+
+
+
   name = %q
+
+
+
+
 
 
 
@@ -456,7 +600,19 @@ resource "netbox_circuit_type" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -468,7 +624,15 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
   cid              = %q
+
+
+
+
 
 
 
@@ -476,11 +640,27 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
   type             = netbox_circuit_type.test.id
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -492,7 +672,15 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
   name   = %q
+
+
+
+
 
 
 
@@ -500,11 +688,27 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
   status = "active"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -516,7 +720,15 @@ resource "netbox_circuit_termination" "test" {
 
 
 
+
+
+
+
   circuit     = netbox_circuit.test.id
+
+
+
+
 
 
 
@@ -524,7 +736,15 @@ resource "netbox_circuit_termination" "test" {
 
 
 
+
+
+
+
   site        = netbox_site.test.id
+
+
+
+
 
 
 
@@ -532,11 +752,23 @@ resource "netbox_circuit_termination" "test" {
 
 
 
+
+
+
+
   description = %q
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

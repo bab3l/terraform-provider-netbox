@@ -361,7 +361,15 @@ func testAccRegionResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
 terraform {
+
+
+
+
 
 
 
@@ -369,7 +377,15 @@ terraform {
 
 
 
+
+
+
+
     netbox = {
+
+
+
+
 
 
 
@@ -377,7 +393,15 @@ terraform {
 
 
 
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
 
 
 
@@ -385,11 +409,27 @@ terraform {
 
 
 
+
+
+
+
   }
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -405,7 +445,19 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_region" "test" {
+
+
+
+
 
 
 
@@ -413,11 +465,23 @@ resource "netbox_region" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -433,7 +497,15 @@ func testAccRegionResourceConfig_full(name, slug, description string) string {
 
 
 
+
+
+
+
 terraform {
+
+
+
+
 
 
 
@@ -441,7 +513,15 @@ terraform {
 
 
 
+
+
+
+
     netbox = {
+
+
+
+
 
 
 
@@ -449,7 +529,15 @@ terraform {
 
 
 
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
 
 
 
@@ -457,11 +545,27 @@ terraform {
 
 
 
+
+
+
+
   }
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -477,7 +581,19 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_region" "test" {
+
+
+
+
 
 
 
@@ -485,7 +601,15 @@ resource "netbox_region" "test" {
 
 
 
+
+
+
+
   slug        = %q
+
+
+
+
 
 
 
@@ -493,7 +617,15 @@ resource "netbox_region" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -509,7 +641,15 @@ func testAccRegionResourceConfig_withParent(parentName, parentSlug, childName, c
 
 
 
+
+
+
+
 terraform {
+
+
+
+
 
 
 
@@ -517,7 +657,15 @@ terraform {
 
 
 
+
+
+
+
     netbox = {
+
+
+
+
 
 
 
@@ -525,7 +673,15 @@ terraform {
 
 
 
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
 
 
 
@@ -533,11 +689,27 @@ terraform {
 
 
 
+
+
+
+
   }
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -553,7 +725,19 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_region" "parent" {
+
+
+
+
 
 
 
@@ -561,11 +745,27 @@ resource "netbox_region" "parent" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -577,7 +777,15 @@ resource "netbox_region" "child" {
 
 
 
+
+
+
+
   name   = %q
+
+
+
+
 
 
 
@@ -585,11 +793,23 @@ resource "netbox_region" "child" {
 
 
 
+
+
+
+
   parent = netbox_region.parent.id
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

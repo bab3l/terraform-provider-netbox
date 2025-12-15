@@ -273,7 +273,15 @@ func testAccCustomFieldResourceConfig_basic(name string) string {
 
 
 
+
+
+
+
 resource "netbox_custom_field" "test" {
+
+
+
+
 
 
 
@@ -281,7 +289,15 @@ resource "netbox_custom_field" "test" {
 
 
 
+
+
+
+
   type         = "text"
+
+
+
+
 
 
 
@@ -289,7 +305,15 @@ resource "netbox_custom_field" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -303,7 +327,15 @@ func testAccCustomFieldResourceConfig_full(name, description string) string {
 
 
 
+
+
+
+
 resource "netbox_custom_field" "test" {
+
+
+
+
 
 
 
@@ -311,7 +343,15 @@ resource "netbox_custom_field" "test" {
 
 
 
+
+
+
+
   type               = "integer"
+
+
+
+
 
 
 
@@ -319,7 +359,15 @@ resource "netbox_custom_field" "test" {
 
 
 
+
+
+
+
   description        = %q
+
+
+
+
 
 
 
@@ -327,7 +375,15 @@ resource "netbox_custom_field" "test" {
 
 
 
+
+
+
+
   validation_minimum = 1
+
+
+
+
 
 
 
@@ -335,11 +391,23 @@ resource "netbox_custom_field" "test" {
 
 
 
+
+
+
+
   weight             = 50
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

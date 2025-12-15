@@ -288,7 +288,15 @@ func testAccRackTypeResourceConfig_basic(mfgName, mfgSlug, model, slug string) s
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -296,11 +304,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -312,7 +336,15 @@ resource "netbox_rack_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -320,7 +352,15 @@ resource "netbox_rack_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
+
+
+
+
 
 
 
@@ -328,7 +368,15 @@ resource "netbox_rack_type" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -342,7 +390,15 @@ func testAccRackTypeResourceConfig_full(mfgName, mfgSlug, model, slug, descripti
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -350,11 +406,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -366,7 +438,15 @@ resource "netbox_rack_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -374,7 +454,15 @@ resource "netbox_rack_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
+
+
+
+
 
 
 
@@ -382,7 +470,15 @@ resource "netbox_rack_type" "test" {
 
 
 
+
+
+
+
   u_height     = %d
+
+
+
+
 
 
 
@@ -390,11 +486,23 @@ resource "netbox_rack_type" "test" {
 
 
 
+
+
+
+
   form_factor  = "4-post-cabinet"
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

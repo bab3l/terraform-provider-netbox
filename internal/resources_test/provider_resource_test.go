@@ -310,7 +310,15 @@ func testAccProviderResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
 resource "netbox_provider" "test" {
+
+
+
+
 
 
 
@@ -318,11 +326,23 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -336,7 +356,15 @@ func testAccProviderResourceConfig_full(name, slug, description, comments string
 
 
 
+
+
+
+
 resource "netbox_provider" "test" {
+
+
+
+
 
 
 
@@ -344,7 +372,15 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
   slug        = %q
+
+
+
+
 
 
 
@@ -352,11 +388,23 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
   comments    = %q
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

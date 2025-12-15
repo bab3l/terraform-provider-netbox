@@ -1098,9 +1098,9 @@ func (r *DeviceResource) ImportState(ctx context.Context, req resource.ImportSta
 
 }
 
-// mapDeviceToState maps a DeviceWithConfigContext from the API to the Terraform state model.
+// mapDeviceToState maps a Device from the API to the Terraform state model.
 
-func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.DeviceWithConfigContext, data *DeviceResourceModel, diags *diag.Diagnostics) {
+func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.Device, data *DeviceResourceModel, diags *diag.Diagnostics) {
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", device.GetId()))
 
