@@ -213,7 +213,15 @@ func testAccWebhookDataSourceByID(name string) string {
 
 
 
+
+
+
+
 resource "netbox_webhook" "test" {
+
+
+
+
 
 
 
@@ -221,11 +229,27 @@ resource "netbox_webhook" "test" {
 
 
 
+
+
+
+
   payload_url = "https://example.com/webhook"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -237,11 +261,23 @@ data "netbox_webhook" "test" {
 
 
 
+
+
+
+
   id = netbox_webhook.test.id
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -255,7 +291,15 @@ func testAccWebhookDataSourceByName(name string) string {
 
 
 
+
+
+
+
 resource "netbox_webhook" "test" {
+
+
+
+
 
 
 
@@ -263,11 +307,27 @@ resource "netbox_webhook" "test" {
 
 
 
+
+
+
+
   payload_url = "https://example.com/webhook"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -279,11 +339,23 @@ data "netbox_webhook" "test" {
 
 
 
+
+
+
+
   name = netbox_webhook.test.name
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

@@ -330,7 +330,15 @@ func testAccDeviceRoleResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
 terraform {
+
+
+
+
 
 
 
@@ -338,7 +346,15 @@ terraform {
 
 
 
+
+
+
+
     netbox = {
+
+
+
+
 
 
 
@@ -346,7 +362,15 @@ terraform {
 
 
 
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
 
 
 
@@ -354,11 +378,27 @@ terraform {
 
 
 
+
+
+
+
   }
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -374,7 +414,19 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_device_role" "test" {
+
+
+
+
 
 
 
@@ -382,11 +434,23 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -402,7 +466,15 @@ func testAccDeviceRoleResourceConfig_full(name, slug, description, color string,
 
 
 
+
+
+
+
 terraform {
+
+
+
+
 
 
 
@@ -410,7 +482,15 @@ terraform {
 
 
 
+
+
+
+
     netbox = {
+
+
+
+
 
 
 
@@ -418,7 +498,15 @@ terraform {
 
 
 
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
 
 
 
@@ -426,11 +514,27 @@ terraform {
 
 
 
+
+
+
+
   }
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -446,7 +550,19 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_device_role" "test" {
+
+
+
+
 
 
 
@@ -454,7 +570,15 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
   slug        = %q
+
+
+
+
 
 
 
@@ -462,7 +586,15 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
   color       = %q
+
+
+
+
 
 
 
@@ -470,7 +602,15 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

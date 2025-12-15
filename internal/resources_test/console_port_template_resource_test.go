@@ -156,7 +156,15 @@ func testAccConsolePortTemplateResourceBasic(manufacturerName, manufacturerSlug,
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -164,11 +172,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -180,7 +204,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -188,11 +220,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -204,7 +252,15 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
 
 
 
@@ -212,7 +268,15 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -228,7 +292,15 @@ func testAccConsolePortTemplateResourceFull(manufacturerName, manufacturerSlug, 
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -236,11 +308,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -252,7 +340,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -260,11 +356,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -276,7 +388,15 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
 
 
 
@@ -284,7 +404,15 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
   label       = %q
+
+
+
+
 
 
 
@@ -292,11 +420,23 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
   description = %q
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

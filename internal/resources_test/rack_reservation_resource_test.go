@@ -282,7 +282,19 @@ func testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, de
 
 
 
+
+
+
+
 provider "netbox" {}
+
+
+
+
+
+
+
+
 
 
 
@@ -294,7 +306,15 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
   name   = %[1]q
+
+
+
+
 
 
 
@@ -302,11 +322,27 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
   status = "active"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -318,7 +354,15 @@ resource "netbox_rack" "test" {
 
 
 
+
+
+
+
   name     = %[3]q
+
+
+
+
 
 
 
@@ -326,7 +370,15 @@ resource "netbox_rack" "test" {
 
 
 
+
+
+
+
   status   = "active"
+
+
+
+
 
 
 
@@ -334,7 +386,19 @@ resource "netbox_rack" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -346,11 +410,27 @@ data "netbox_user" "admin" {
 
 
 
+
+
+
+
   username = "admin"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -362,7 +442,15 @@ resource "netbox_rack_reservation" "test" {
 
 
 
+
+
+
+
   rack        = netbox_rack.test.id
+
+
+
+
 
 
 
@@ -370,7 +458,15 @@ resource "netbox_rack_reservation" "test" {
 
 
 
+
+
+
+
   user        = data.netbox_user.admin.id
+
+
+
+
 
 
 
@@ -378,7 +474,15 @@ resource "netbox_rack_reservation" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

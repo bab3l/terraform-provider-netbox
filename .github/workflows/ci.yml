@@ -80,3 +80,5 @@ jobs:
 
       - name: Run pre-commit
         run: pre-commit run --all-files
+        env:
+          SKIP: terraform-docs

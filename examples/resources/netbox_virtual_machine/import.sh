@@ -1,0 +1,2 @@
+# Virtual Machines can be imported by ID
+terraform import netbox_virtual_machine.test 123

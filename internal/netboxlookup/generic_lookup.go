@@ -565,25 +565,25 @@ func LookupPowerPanel(ctx context.Context, client *netbox.APIClient, value strin
 }
 
 // DeviceLookupConfig returns the lookup configuration for Devices.
-func DeviceLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.DeviceWithConfigContext, netbox.BriefDeviceRequest] {
-	return LookupConfig[*netbox.DeviceWithConfigContext, netbox.BriefDeviceRequest]{
+func DeviceLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Device, netbox.BriefDeviceRequest] {
+	return LookupConfig[*netbox.Device, netbox.BriefDeviceRequest]{
 		ResourceName: "Device",
-		RetrieveByID: func(ctx context.Context, id int32) (*netbox.DeviceWithConfigContext, *http.Response, error) {
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.Device, *http.Response, error) {
 			return client.DcimAPI.DcimDevicesRetrieve(ctx, id).Execute()
 		},
-		ListBySlug: func(ctx context.Context, nameOrSlug string) ([]*netbox.DeviceWithConfigContext, *http.Response, error) {
+		ListBySlug: func(ctx context.Context, nameOrSlug string) ([]*netbox.Device, *http.Response, error) {
 			// Devices use name, not slug
 			list, resp, err := client.DcimAPI.DcimDevicesList(ctx).Name([]string{nameOrSlug}).Execute()
 			if err != nil {
 				return nil, resp, err
 			}
-			results := make([]*netbox.DeviceWithConfigContext, len(list.Results))
+			results := make([]*netbox.Device, len(list.Results))
 			for i := range list.Results {
 				results[i] = &list.Results[i]
 			}
 			return results, resp, nil
 		},
-		ToBriefRequest: func(d *netbox.DeviceWithConfigContext) netbox.BriefDeviceRequest {
+		ToBriefRequest: func(d *netbox.Device) netbox.BriefDeviceRequest {
 			req := netbox.NewBriefDeviceRequest()
 			name := d.GetName()
 			req.Name = *netbox.NewNullableString(&name)

@@ -272,7 +272,15 @@ func testAccRIRResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
 resource "netbox_rir" "test" {
+
+
+
+
 
 
 
@@ -280,11 +288,23 @@ resource "netbox_rir" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -298,7 +318,15 @@ func testAccRIRResourceConfig_full(name, slug, description string, isPrivate boo
 
 
 
+
+
+
+
 resource "netbox_rir" "test" {
+
+
+
+
 
 
 
@@ -306,7 +334,15 @@ resource "netbox_rir" "test" {
 
 
 
+
+
+
+
   slug        = %q
+
+
+
+
 
 
 
@@ -314,11 +350,23 @@ resource "netbox_rir" "test" {
 
 
 
+
+
+
+
   is_private  = %t
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

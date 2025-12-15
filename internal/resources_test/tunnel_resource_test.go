@@ -371,7 +371,15 @@ func testAccTunnelResourceConfig_basic(name string) string {
 
 
 
+
+
+
+
 resource "netbox_tunnel" "test" {
+
+
+
+
 
 
 
@@ -379,7 +387,15 @@ resource "netbox_tunnel" "test" {
 
 
 
+
+
+
+
   status        = "active"
+
+
+
+
 
 
 
@@ -387,7 +403,15 @@ resource "netbox_tunnel" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -401,7 +425,15 @@ func testAccTunnelResourceConfig_full(name, description string) string {
 
 
 
+
+
+
+
 resource "netbox_tunnel" "test" {
+
+
+
+
 
 
 
@@ -409,7 +441,15 @@ resource "netbox_tunnel" "test" {
 
 
 
+
+
+
+
   status        = "planned"
+
+
+
+
 
 
 
@@ -417,7 +457,15 @@ resource "netbox_tunnel" "test" {
 
 
 
+
+
+
+
   description   = %[2]q
+
+
+
+
 
 
 
@@ -425,7 +473,15 @@ resource "netbox_tunnel" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

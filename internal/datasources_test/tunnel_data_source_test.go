@@ -219,7 +219,15 @@ func testAccTunnelDataSourceByID(name string) string {
 
 
 
+
+
+
+
 resource "netbox_tunnel" "test" {
+
+
+
+
 
 
 
@@ -227,7 +235,15 @@ resource "netbox_tunnel" "test" {
 
 
 
+
+
+
+
   status        = "active"
+
+
+
+
 
 
 
@@ -235,7 +251,19 @@ resource "netbox_tunnel" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -247,11 +275,23 @@ data "netbox_tunnel" "test" {
 
 
 
+
+
+
+
   id = netbox_tunnel.test.id
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -265,7 +305,15 @@ func testAccTunnelDataSourceByName(name string) string {
 
 
 
+
+
+
+
 resource "netbox_tunnel" "test" {
+
+
+
+
 
 
 
@@ -273,7 +321,15 @@ resource "netbox_tunnel" "test" {
 
 
 
+
+
+
+
   status        = "active"
+
+
+
+
 
 
 
@@ -281,7 +337,19 @@ resource "netbox_tunnel" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -293,11 +361,23 @@ data "netbox_tunnel" "test" {
 
 
 
+
+
+
+
   name = netbox_tunnel.test.name
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
