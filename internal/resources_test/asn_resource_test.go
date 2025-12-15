@@ -275,7 +275,15 @@ func testAccASNResourceConfig_basic(rirName, rirSlug string, asn int64) string {
 
 
 
+
+
+
+
 resource "netbox_rir" "test" {
+
+
+
+
 
 
 
@@ -283,11 +291,27 @@ resource "netbox_rir" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -299,7 +323,15 @@ resource "netbox_asn" "test" {
 
 
 
+
+
+
+
   asn = %d
+
+
+
+
 
 
 
@@ -307,7 +339,15 @@ resource "netbox_asn" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -321,7 +361,15 @@ func testAccASNResourceConfig_full(rirName, rirSlug string, asn int64, descripti
 
 
 
+
+
+
+
 resource "netbox_rir" "test" {
+
+
+
+
 
 
 
@@ -329,11 +377,27 @@ resource "netbox_rir" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -345,7 +409,15 @@ resource "netbox_asn" "test" {
 
 
 
+
+
+
+
   asn         = %d
+
+
+
+
 
 
 
@@ -353,7 +425,15 @@ resource "netbox_asn" "test" {
 
 
 
+
+
+
+
   description = %q
+
+
+
+
 
 
 
@@ -361,7 +441,15 @@ resource "netbox_asn" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

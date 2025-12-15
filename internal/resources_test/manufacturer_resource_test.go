@@ -312,7 +312,15 @@ func testAccManufacturerResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
 terraform {
+
+
+
+
 
 
 
@@ -320,7 +328,15 @@ terraform {
 
 
 
+
+
+
+
     netbox = {
+
+
+
+
 
 
 
@@ -328,7 +344,15 @@ terraform {
 
 
 
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
 
 
 
@@ -336,11 +360,27 @@ terraform {
 
 
 
+
+
+
+
   }
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -356,7 +396,19 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -364,11 +416,23 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -384,7 +448,15 @@ func testAccManufacturerResourceConfig_full(name, slug, description string) stri
 
 
 
+
+
+
+
 terraform {
+
+
+
+
 
 
 
@@ -392,7 +464,15 @@ terraform {
 
 
 
+
+
+
+
     netbox = {
+
+
+
+
 
 
 
@@ -400,7 +480,15 @@ terraform {
 
 
 
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
 
 
 
@@ -408,11 +496,27 @@ terraform {
 
 
 
+
+
+
+
   }
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -428,7 +532,19 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -436,7 +552,15 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug        = %q
+
+
+
+
 
 
 
@@ -444,7 +568,15 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

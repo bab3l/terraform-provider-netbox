@@ -381,7 +381,15 @@ func testAccDeviceTypeResourceConfig_basic(model, slug, manufacturerName, manufa
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -389,11 +397,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -405,7 +429,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.slug
+
+
+
+
 
 
 
@@ -413,11 +445,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -431,7 +475,15 @@ func testAccDeviceTypeResourceConfig_full(model, slug, manufacturerName, manufac
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -439,11 +491,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -455,7 +523,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer             = netbox_manufacturer.test.slug
+
+
+
+
 
 
 
@@ -463,7 +539,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug                     = %q
+
+
+
+
 
 
 
@@ -471,7 +555,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   u_height                 = 2
+
+
+
+
 
 
 
@@ -479,7 +571,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   is_full_depth            = true
+
+
+
+
 
 
 
@@ -487,7 +587,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   description              = "Test device type with full options"
+
+
+
+
 
 
 
@@ -495,7 +603,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -509,7 +625,15 @@ func testAccDeviceTypeResourceConfig_updated(model, slug, manufacturerName, manu
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -517,11 +641,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -533,7 +673,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.slug
+
+
+
+
 
 
 
@@ -541,7 +689,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
+
+
+
+
 
 
 
@@ -549,11 +705,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   description  = "Updated description"
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

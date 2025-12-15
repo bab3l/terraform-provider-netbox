@@ -305,7 +305,15 @@ func testAccContactResource(name, email, phone string) string {
 
 
 
+
+
+
+
 resource "netbox_contact" "test" {
+
+
+
+
 
 
 
@@ -313,7 +321,15 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
   email = %[2]q
+
+
+
+
 
 
 
@@ -321,7 +337,15 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -335,7 +359,15 @@ func testAccContactResourceFull(name string) string {
 
 
 
+
+
+
+
 resource "netbox_contact" "test" {
+
+
+
+
 
 
 
@@ -343,7 +375,15 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
   title       = "Network Engineer"
+
+
+
+
 
 
 
@@ -351,7 +391,15 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
   email       = "engineer@example.com"
+
+
+
+
 
 
 
@@ -359,7 +407,15 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
   link        = "https://example.com/profile"
+
+
+
+
 
 
 
@@ -367,11 +423,23 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
   comments    = "Test contact comments"
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

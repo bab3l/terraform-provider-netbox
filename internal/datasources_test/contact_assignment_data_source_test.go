@@ -224,7 +224,15 @@ func testAccContactAssignmentDataSourceConfig(name, slug string) string {
 
 
 
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
 
 
 
@@ -232,7 +240,15 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
   slug   = "%s-site"
+
+
+
+
 
 
 
@@ -240,7 +256,19 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -252,7 +280,15 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
   name  = "%s-contact"
+
+
+
+
 
 
 
@@ -260,7 +296,19 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -272,7 +320,15 @@ resource "netbox_contact_role" "test" {
 
 
 
+
+
+
+
   name = "%s-role"
+
+
+
+
 
 
 
@@ -280,7 +336,19 @@ resource "netbox_contact_role" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -292,7 +360,15 @@ resource "netbox_contact_assignment" "test" {
 
 
 
+
+
+
+
   object_type = "dcim.site"
+
+
+
+
 
 
 
@@ -300,7 +376,15 @@ resource "netbox_contact_assignment" "test" {
 
 
 
+
+
+
+
   contact_id  = netbox_contact.test.id
+
+
+
+
 
 
 
@@ -308,7 +392,19 @@ resource "netbox_contact_assignment" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -320,11 +416,23 @@ data "netbox_contact_assignment" "test" {
 
 
 
+
+
+
+
   id = netbox_contact_assignment.test.id
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

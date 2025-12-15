@@ -171,7 +171,15 @@ func testAccConfigTemplateResourceBasic(name, templateCode string) string {
 
 
 
+
+
+
+
 resource "netbox_config_template" "test" {
+
+
+
+
 
 
 
@@ -179,11 +187,23 @@ resource "netbox_config_template" "test" {
 
 
 
+
+
+
+
   template_code = %q
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -199,7 +219,15 @@ func testAccConfigTemplateResourceFull(name, templateCode, description string) s
 
 
 
+
+
+
+
 resource "netbox_config_template" "test" {
+
+
+
+
 
 
 
@@ -207,7 +235,15 @@ resource "netbox_config_template" "test" {
 
 
 
+
+
+
+
   template_code = %q
+
+
+
+
 
 
 
@@ -215,7 +251,15 @@ resource "netbox_config_template" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

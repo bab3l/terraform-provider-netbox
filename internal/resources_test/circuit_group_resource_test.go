@@ -369,7 +369,15 @@ func testAccCircuitGroupResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
 resource "netbox_circuit_group" "test" {
+
+
+
+
 
 
 
@@ -377,11 +385,23 @@ resource "netbox_circuit_group" "test" {
 
 
 
+
+
+
+
   slug = %[2]q
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -395,7 +415,15 @@ func testAccCircuitGroupResourceConfig_full(name, slug, description string) stri
 
 
 
+
+
+
+
 resource "netbox_circuit_group" "test" {
+
+
+
+
 
 
 
@@ -403,7 +431,15 @@ resource "netbox_circuit_group" "test" {
 
 
 
+
+
+
+
   slug        = %[2]q
+
+
+
+
 
 
 
@@ -411,7 +447,15 @@ resource "netbox_circuit_group" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 

@@ -361,7 +361,15 @@ func testAccPlatformResourceConfig_basic(platformName, platformSlug, manufacture
 
 
 
+
+
+
+
 terraform {
+
+
+
+
 
 
 
@@ -369,7 +377,15 @@ terraform {
 
 
 
+
+
+
+
     netbox = {
+
+
+
+
 
 
 
@@ -377,7 +393,15 @@ terraform {
 
 
 
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
 
 
 
@@ -385,11 +409,27 @@ terraform {
 
 
 
+
+
+
+
   }
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -405,7 +445,19 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test_manufacturer" {
+
+
+
+
 
 
 
@@ -413,11 +465,27 @@ resource "netbox_manufacturer" "test_manufacturer" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -429,7 +497,15 @@ resource "netbox_platform" "test" {
 
 
 
+
+
+
+
   name         = %q
+
+
+
+
 
 
 
@@ -437,11 +513,23 @@ resource "netbox_platform" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test_manufacturer.slug
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -457,7 +545,15 @@ func testAccPlatformResourceConfig_full(platformName, platformSlug, manufacturer
 
 
 
+
+
+
+
 terraform {
+
+
+
+
 
 
 
@@ -465,7 +561,15 @@ terraform {
 
 
 
+
+
+
+
     netbox = {
+
+
+
+
 
 
 
@@ -473,7 +577,15 @@ terraform {
 
 
 
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
 
 
 
@@ -481,11 +593,27 @@ terraform {
 
 
 
+
+
+
+
   }
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -501,7 +629,19 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test_manufacturer" {
+
+
+
+
 
 
 
@@ -509,11 +649,27 @@ resource "netbox_manufacturer" "test_manufacturer" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -525,7 +681,15 @@ resource "netbox_platform" "test" {
 
 
 
+
+
+
+
   name         = %q
+
+
+
+
 
 
 
@@ -533,7 +697,15 @@ resource "netbox_platform" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test_manufacturer.slug
+
+
+
+
 
 
 
@@ -541,7 +713,15 @@ resource "netbox_platform" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
