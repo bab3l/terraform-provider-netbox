@@ -374,7 +374,23 @@ func testAccVLANResourceConfig_basic(name string, vid int32) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_vlan" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -390,6 +406,14 @@ resource "netbox_vlan" "test" {
 
 
 
+
+
+
+
+
+
+
+
   vid  = %d
 
 
@@ -398,7 +422,23 @@ resource "netbox_vlan" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -420,7 +460,23 @@ func testAccVLANResourceConfig_full(name string, vid int32, description string) 
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_vlan" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -436,7 +492,23 @@ resource "netbox_vlan" "test" {
 
 
 
+
+
+
+
+
+
+
+
   vid         = %d
+
+
+
+
+
+
+
+
 
 
 
@@ -452,6 +524,14 @@ resource "netbox_vlan" "test" {
 
 
 
+
+
+
+
+
+
+
+
   status      = "active"
 
 
@@ -460,7 +540,23 @@ resource "netbox_vlan" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -482,7 +578,23 @@ func testAccVLANResourceConfig_withGroup(name string, vid int32, groupName, grou
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_vlan_group" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -498,6 +610,14 @@ resource "netbox_vlan_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -506,7 +626,31 @@ resource "netbox_vlan_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -530,7 +674,23 @@ resource "netbox_vlan" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name  = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -546,6 +706,14 @@ resource "netbox_vlan" "test" {
 
 
 
+
+
+
+
+
+
+
+
   group = netbox_vlan_group.test.id
 
 
@@ -554,7 +722,23 @@ resource "netbox_vlan" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

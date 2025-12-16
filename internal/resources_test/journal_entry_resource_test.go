@@ -310,7 +310,23 @@ func testAccJournalEntryResourceConfig_basic(siteName string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -326,6 +342,14 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -334,7 +358,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -358,7 +406,23 @@ resource "netbox_journal_entry" "test" {
 
 
 
+
+
+
+
+
+
+
+
   assigned_object_type = "dcim.site"
+
+
+
+
+
+
+
+
 
 
 
@@ -374,6 +438,14 @@ resource "netbox_journal_entry" "test" {
 
 
 
+
+
+
+
+
+
+
+
   comments             = "Test journal entry"
 
 
@@ -382,7 +454,23 @@ resource "netbox_journal_entry" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -404,7 +492,23 @@ func testAccJournalEntryResourceConfig_full(siteName string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -420,6 +524,14 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -428,7 +540,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -452,7 +588,23 @@ resource "netbox_journal_entry" "test" {
 
 
 
+
+
+
+
+
+
+
+
   assigned_object_type = "dcim.site"
+
+
+
+
+
+
+
+
 
 
 
@@ -468,7 +620,23 @@ resource "netbox_journal_entry" "test" {
 
 
 
+
+
+
+
+
+
+
+
   comments             = "# Important Note\n\nThis is a detailed journal entry with markdown."
+
+
+
+
+
+
+
+
 
 
 
@@ -484,7 +652,23 @@ resource "netbox_journal_entry" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -506,7 +690,23 @@ func testAccJournalEntryResourceConfig_updated(siteName string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -522,6 +722,14 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -530,7 +738,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -554,7 +786,23 @@ resource "netbox_journal_entry" "test" {
 
 
 
+
+
+
+
+
+
+
+
   assigned_object_type = "dcim.site"
+
+
+
+
+
+
+
+
 
 
 
@@ -570,7 +818,23 @@ resource "netbox_journal_entry" "test" {
 
 
 
+
+
+
+
+
+
+
+
   comments             = "Updated journal entry content"
+
+
+
+
+
+
+
+
 
 
 
@@ -586,7 +850,23 @@ resource "netbox_journal_entry" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -9,7 +9,63 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+func TestMapToCustomFieldModels_Panic(t *testing.T) {
+	// Setup
+	customFields := map[string]interface{}{
+		"int_field":   123.0, // float64 as unmarshaled from JSON
+		"bool_field":  true,
+		"str_field":   "some string",
+		"multi_field": []interface{}{"a", 1, true},
+	}
+	stateCFs := []CustomFieldModel{
+		{
+			Name: types.StringValue("int_field"),
+			Type: types.StringValue("integer"),
+		},
+		{
+			Name: types.StringValue("bool_field"),
+			Type: types.StringValue("boolean"),
+		},
+		{
+			Name: types.StringValue("str_field"),
+			Type: types.StringValue("text"),
+		},
+		{
+			Name: types.StringValue("multi_field"),
+			Type: types.StringValue("multiselect"),
+		},
+	}
+
+	// Execute
+	// This should not panic
+	result := MapToCustomFieldModels(customFields, stateCFs)
+
+	// Assert
+	if len(result) != 4 {
+		t.Errorf("Expected 4 results, got %d", len(result))
+	}
+	for _, cf := range result {
+		if cf.Name.ValueString() == "int_field" {
+			if cf.Value.ValueString() != "123" {
+				t.Errorf("Expected int_field to be '123', got '%s'", cf.Value.ValueString())
+			}
+		}
+		if cf.Name.ValueString() == "bool_field" {
+			if cf.Value.ValueString() != "true" {
+				t.Errorf("Expected bool_field to be 'true', got '%s'", cf.Value.ValueString())
+			}
+		}
+		if cf.Name.ValueString() == "multi_field" {
+			// Expecting "a,1,true" or similar depending on formatting
+			if cf.Value.ValueString() != "a,1,true" {
+				t.Errorf("Expected multi_field to be 'a,1,true', got '%s'", cf.Value.ValueString())
+			}
+		}
+	}
+}
 
 func TestParseDuplicateErrorFromBytes(t *testing.T) {
 	tests := []struct {

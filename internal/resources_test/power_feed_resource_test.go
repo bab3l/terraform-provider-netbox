@@ -296,7 +296,23 @@ func testAccPowerFeedResourceConfig_basic(siteName, siteSlug, panelName, feedNam
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -312,7 +328,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -328,7 +360,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -352,7 +408,23 @@ resource "netbox_power_panel" "test" {
 
 
 
+
+
+
+
+
+
+
+
   site = netbox_site.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -368,7 +440,31 @@ resource "netbox_power_panel" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -392,7 +488,23 @@ resource "netbox_power_feed" "test" {
 
 
 
+
+
+
+
+
+
+
+
   power_panel = netbox_power_panel.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -408,7 +520,23 @@ resource "netbox_power_feed" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -430,7 +558,23 @@ func testAccPowerFeedResourceConfig_full(siteName, siteSlug, panelName, feedName
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -446,7 +590,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -462,7 +622,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -486,7 +670,23 @@ resource "netbox_power_panel" "test" {
 
 
 
+
+
+
+
+
+
+
+
   site = netbox_site.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -502,7 +702,31 @@ resource "netbox_power_panel" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -526,7 +750,23 @@ resource "netbox_power_feed" "test" {
 
 
 
+
+
+
+
+
+
+
+
   power_panel = netbox_power_panel.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -542,7 +782,23 @@ resource "netbox_power_feed" "test" {
 
 
 
+
+
+
+
+
+
+
+
   status      = "active"
+
+
+
+
+
+
+
+
 
 
 
@@ -558,7 +814,23 @@ resource "netbox_power_feed" "test" {
 
 
 
+
+
+
+
+
+
+
+
   supply      = "ac"
+
+
+
+
+
+
+
+
 
 
 
@@ -574,7 +846,23 @@ resource "netbox_power_feed" "test" {
 
 
 
+
+
+
+
+
+
+
+
   voltage     = 240
+
+
+
+
+
+
+
+
 
 
 
@@ -590,6 +878,14 @@ resource "netbox_power_feed" "test" {
 
 
 
+
+
+
+
+
+
+
+
   description = %q
 
 
@@ -598,7 +894,23 @@ resource "netbox_power_feed" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -282,7 +282,23 @@ func testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, netw
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_provider" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -298,6 +314,14 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -306,7 +330,31 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -330,7 +378,23 @@ resource "netbox_provider_network" "test" {
 
 
 
+
+
+
+
+
+
+
+
   circuit_provider = netbox_provider.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -346,7 +410,23 @@ resource "netbox_provider_network" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -368,7 +448,23 @@ func testAccProviderNetworkResourceConfig_full(providerName, providerSlug, netwo
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_provider" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -384,6 +480,14 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -392,7 +496,31 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -416,7 +544,23 @@ resource "netbox_provider_network" "test" {
 
 
 
+
+
+
+
+
+
+
+
   circuit_provider = netbox_provider.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -432,7 +576,23 @@ resource "netbox_provider_network" "test" {
 
 
 
+
+
+
+
+
+
+
+
   service_id       = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -448,7 +608,23 @@ resource "netbox_provider_network" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

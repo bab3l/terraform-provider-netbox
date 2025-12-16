@@ -464,7 +464,23 @@ func testAccDeviceResourceConfig_basic(deviceName, manufacturerName, manufacture
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -480,6 +496,14 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %[2]q
 
 
@@ -488,7 +512,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -512,7 +560,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.slug
+
+
+
+
+
+
+
+
 
 
 
@@ -528,6 +592,14 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug         = %[4]q
 
 
@@ -536,7 +608,31 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -560,7 +656,23 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %[5]q
+
+
+
+
+
+
+
+
 
 
 
@@ -576,7 +688,31 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -600,7 +736,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name   = %[7]q
+
+
+
+
+
+
+
+
 
 
 
@@ -616,6 +768,14 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   status = "active"
 
 
@@ -624,7 +784,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -648,7 +832,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %[9]q
+
+
+
+
+
+
+
+
 
 
 
@@ -664,7 +864,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   role        = netbox_device_role.test.slug
+
+
+
+
+
+
+
+
 
 
 
@@ -680,7 +896,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -702,7 +934,23 @@ func testAccDeviceResourceConfig_full(deviceName, manufacturerName, manufacturer
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -718,6 +966,14 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %[2]q
 
 
@@ -726,7 +982,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -750,7 +1030,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.slug
+
+
+
+
+
+
+
+
 
 
 
@@ -766,6 +1062,14 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug         = %[4]q
 
 
@@ -774,7 +1078,31 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -798,7 +1126,23 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %[5]q
+
+
+
+
+
+
+
+
 
 
 
@@ -814,7 +1158,31 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -838,7 +1206,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name   = %[7]q
+
+
+
+
+
+
+
+
 
 
 
@@ -854,6 +1238,14 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   status = "active"
 
 
@@ -862,7 +1254,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -886,7 +1302,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %[9]q
+
+
+
+
+
+
+
+
 
 
 
@@ -902,7 +1334,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   role        = netbox_device_role.test.slug
+
+
+
+
+
+
+
+
 
 
 
@@ -918,7 +1366,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   status      = "planned"
+
+
+
+
+
+
+
+
 
 
 
@@ -934,7 +1398,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   asset_tag   = %[11]q
+
+
+
+
+
+
+
+
 
 
 
@@ -950,6 +1430,14 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   comments    = "Test device comments"
 
 
@@ -958,7 +1446,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -980,7 +1484,23 @@ func testAccDeviceResourceConfig_updated(deviceName, manufacturerName, manufactu
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -996,6 +1516,14 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %[2]q
 
 
@@ -1004,7 +1532,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1028,7 +1580,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.slug
+
+
+
+
+
+
+
+
 
 
 
@@ -1044,6 +1612,14 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug         = %[4]q
 
 
@@ -1052,7 +1628,31 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1076,7 +1676,23 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %[5]q
+
+
+
+
+
+
+
+
 
 
 
@@ -1092,7 +1708,31 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1116,7 +1756,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name   = %[7]q
+
+
+
+
+
+
+
+
 
 
 
@@ -1132,6 +1788,14 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   status = "active"
 
 
@@ -1140,7 +1804,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1164,7 +1852,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %[9]q
+
+
+
+
+
+
+
+
 
 
 
@@ -1180,7 +1884,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   role        = netbox_device_role.test.slug
+
+
+
+
+
+
+
+
 
 
 
@@ -1196,7 +1916,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   status      = "staged"
+
+
+
+
+
+
+
+
 
 
 
@@ -1212,7 +1948,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

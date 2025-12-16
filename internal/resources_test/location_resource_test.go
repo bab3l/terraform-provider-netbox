@@ -397,7 +397,23 @@ func testAccLocationResourceConfig_basic(siteName, siteSlug, name, slug string) 
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -413,7 +429,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -429,7 +461,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -445,6 +493,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -453,7 +509,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -485,7 +565,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -501,7 +605,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -517,7 +637,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -541,7 +685,23 @@ resource "netbox_location" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -557,6 +717,14 @@ resource "netbox_location" "test" {
 
 
 
+
+
+
+
+
+
+
+
   site = netbox_site.test.id
 
 
@@ -565,7 +733,23 @@ resource "netbox_location" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -589,7 +773,23 @@ func testAccLocationResourceConfig_full(siteName, siteSlug, name, slug, descript
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -605,7 +805,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -621,7 +837,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -637,6 +869,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -645,7 +885,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -677,7 +941,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -693,7 +981,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -709,7 +1013,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -733,7 +1061,23 @@ resource "netbox_location" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -749,7 +1093,23 @@ resource "netbox_location" "test" {
 
 
 
+
+
+
+
+
+
+
+
   site        = netbox_site.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -765,7 +1125,23 @@ resource "netbox_location" "test" {
 
 
 
+
+
+
+
+
+
+
+
   description = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -781,7 +1157,23 @@ resource "netbox_location" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -805,7 +1197,23 @@ func testAccLocationResourceConfig_withParent(siteName, siteSlug, parentName, pa
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -821,7 +1229,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -837,7 +1261,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -853,6 +1293,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -861,7 +1309,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -893,7 +1365,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -909,7 +1405,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -925,7 +1437,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -949,7 +1485,23 @@ resource "netbox_location" "parent" {
 
 
 
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -965,6 +1517,14 @@ resource "netbox_location" "parent" {
 
 
 
+
+
+
+
+
+
+
+
   site = netbox_site.test.id
 
 
@@ -973,7 +1533,31 @@ resource "netbox_location" "parent" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -997,7 +1581,23 @@ resource "netbox_location" "child" {
 
 
 
+
+
+
+
+
+
+
+
   name   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -1013,7 +1613,23 @@ resource "netbox_location" "child" {
 
 
 
+
+
+
+
+
+
+
+
   site   = netbox_site.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -1029,7 +1645,23 @@ resource "netbox_location" "child" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
