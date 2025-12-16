@@ -694,7 +694,17 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 
 		if tenant.Id != 0 {
 
-			data.Tenant = utils.ReferenceIDFromAPI(true, func() int32 { return tenant.Id }, data.Tenant)
+			userTenant := data.Tenant.ValueString()
+
+			if userTenant == tenant.GetName() || userTenant == tenant.GetSlug() || userTenant == tenant.GetDisplay() || userTenant == fmt.Sprintf("%d", tenant.GetId()) {
+
+				// Keep user's original value
+
+			} else {
+
+				data.Tenant = types.StringValue(tenant.GetName())
+
+			}
 
 		} else {
 
@@ -716,7 +726,17 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 
 		if region.Id != 0 {
 
-			data.Region = utils.ReferenceIDFromAPI(true, func() int32 { return region.Id }, data.Region)
+			userRegion := data.Region.ValueString()
+
+			if userRegion == region.GetName() || userRegion == region.GetSlug() || userRegion == region.GetDisplay() || userRegion == fmt.Sprintf("%d", region.GetId()) {
+
+				// Keep user's original value
+
+			} else {
+
+				data.Region = types.StringValue(region.GetName())
+
+			}
 
 		} else {
 
@@ -738,7 +758,17 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 
 		if group.Id != 0 {
 
-			data.Group = utils.ReferenceIDFromAPI(true, func() int32 { return group.Id }, data.Group)
+			userGroup := data.Group.ValueString()
+
+			if userGroup == group.GetName() || userGroup == group.GetSlug() || userGroup == group.GetDisplay() || userGroup == fmt.Sprintf("%d", group.GetId()) {
+
+				// Keep user's original value
+
+			} else {
+
+				data.Group = types.StringValue(group.GetName())
+
+			}
 
 		} else {
 

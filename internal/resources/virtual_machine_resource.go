@@ -259,7 +259,19 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 	if vm.Site.IsSet() && vm.Site.Get() != nil {
 
-		data.Site = types.StringValue(vm.Site.Get().GetName())
+		siteObj := vm.Site.Get()
+
+		userSite := data.Site.ValueString()
+
+		if userSite == siteObj.GetName() || userSite == siteObj.GetSlug() || userSite == siteObj.GetDisplay() || userSite == fmt.Sprintf("%d", siteObj.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Site = types.StringValue(siteObj.GetName())
+
+		}
 
 	} else {
 
@@ -271,31 +283,17 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 	if vm.Cluster.IsSet() && vm.Cluster.Get() != nil {
 
-		cluster := vm.Cluster.Get()
+		clusterObj := vm.Cluster.Get()
 
-		clusterID := fmt.Sprintf("%d", cluster.GetId())
+		userCluster := data.Cluster.ValueString()
 
-		clusterName := cluster.GetName()
+		if userCluster == clusterObj.GetName() || userCluster == clusterObj.GetDisplay() || userCluster == fmt.Sprintf("%d", clusterObj.GetId()) {
 
-		// Preserve the user's input format (ID or name) to avoid state drift
-
-		if !data.Cluster.IsNull() && !data.Cluster.IsUnknown() {
-
-			configuredValue := data.Cluster.ValueString()
-
-			if configuredValue == clusterID {
-
-				data.Cluster = types.StringValue(clusterID)
-
-			} else {
-
-				data.Cluster = types.StringValue(clusterName)
-
-			}
+			// Keep user's original value
 
 		} else {
 
-			data.Cluster = types.StringValue(clusterName)
+			data.Cluster = types.StringValue(clusterObj.GetName())
 
 		}
 
@@ -309,7 +307,19 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 	if vm.Role.IsSet() && vm.Role.Get() != nil {
 
-		data.Role = types.StringValue(vm.Role.Get().GetName())
+		roleObj := vm.Role.Get()
+
+		userRole := data.Role.ValueString()
+
+		if userRole == roleObj.GetName() || userRole == roleObj.GetSlug() || userRole == roleObj.GetDisplay() || userRole == fmt.Sprintf("%d", roleObj.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Role = types.StringValue(roleObj.GetName())
+
+		}
 
 	} else {
 
@@ -321,7 +331,19 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 	if vm.Tenant.IsSet() && vm.Tenant.Get() != nil {
 
-		data.Tenant = types.StringValue(vm.Tenant.Get().GetName())
+		tenantObj := vm.Tenant.Get()
+
+		userTenant := data.Tenant.ValueString()
+
+		if userTenant == tenantObj.GetName() || userTenant == tenantObj.GetSlug() || userTenant == tenantObj.GetDisplay() || userTenant == fmt.Sprintf("%d", tenantObj.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Tenant = types.StringValue(tenantObj.GetName())
+
+		}
 
 	} else {
 
@@ -333,7 +355,19 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 	if vm.Platform.IsSet() && vm.Platform.Get() != nil {
 
-		data.Platform = types.StringValue(vm.Platform.Get().GetName())
+		platformObj := vm.Platform.Get()
+
+		userPlatform := data.Platform.ValueString()
+
+		if userPlatform == platformObj.GetName() || userPlatform == platformObj.GetSlug() || userPlatform == platformObj.GetDisplay() || userPlatform == fmt.Sprintf("%d", platformObj.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Platform = types.StringValue(platformObj.GetName())
+
+		}
 
 	} else {
 

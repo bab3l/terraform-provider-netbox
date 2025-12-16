@@ -10,8 +10,8 @@ resource "netbox_circuit_type" "test" {
 
 resource "netbox_circuit" "test" {
   cid              = "CID-12345"
-  circuit_provider = netbox_provider.test.id
-  type             = netbox_circuit_type.test.id
+  circuit_provider = netbox_provider.test.name
+  type             = netbox_circuit_type.test.name
   status           = "active"
   description      = "Main Internet Circuit"
 }

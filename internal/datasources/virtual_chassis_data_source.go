@@ -334,7 +334,7 @@ func (d *VirtualChassisDataSource) mapResponseToModel(ctx context.Context, vc *n
 
 	if vc.Master.IsSet() && vc.Master.Get() != nil {
 
-		data.Master = types.StringValue(fmt.Sprintf("%d", vc.Master.Get().GetId()))
+		data.Master = types.StringValue(vc.Master.Get().GetName())
 
 	} else {
 

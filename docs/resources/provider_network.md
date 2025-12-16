@@ -18,8 +18,8 @@ resource "netbox_provider" "test" {
 }
 
 resource "netbox_provider_network" "test" {
-  name     = "Test Provider Network"
-  provider = netbox_provider.test.id
+  name             = "Test Provider Network"
+  circuit_provider = netbox_provider.test.name
 }
 ```
 

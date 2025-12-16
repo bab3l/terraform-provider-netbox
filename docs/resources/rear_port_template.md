@@ -26,7 +26,7 @@ resource "netbox_device_type" "test" {
 
 resource "netbox_rear_port_template" "test" {
   name        = "Rear Port Template"
-  device_type = netbox_device_type.test.id
+  device_type = netbox_device_type.test.model
   type        = "8p8c"
   positions   = 1
 }

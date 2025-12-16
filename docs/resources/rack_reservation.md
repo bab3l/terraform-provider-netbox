@@ -30,9 +30,9 @@ data "netbox_user" "admin" {
 }
 
 resource "netbox_rack_reservation" "test" {
-  rack        = netbox_rack.test.id
+  rack        = netbox_rack.test.name
   units       = [1, 2, 3]
-  user        = data.netbox_user.admin.id
+  user        = data.netbox_user.admin.username
   description = "Reserved for testing"
 }
 ```

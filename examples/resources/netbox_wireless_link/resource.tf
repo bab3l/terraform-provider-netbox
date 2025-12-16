@@ -31,7 +31,7 @@ resource "netbox_wireless_link" "complete" {
   interface_b   = netbox_interface.device_b_wlan3.id
   ssid          = "LongRangeLink"
   status        = "connected"
-  tenant        = netbox_tenant.example.id
+  tenant        = netbox_tenant.example.name
   auth_type     = "wpa-enterprise"
   auth_cipher   = "aes"
   distance      = 5.2

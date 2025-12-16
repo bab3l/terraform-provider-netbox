@@ -36,7 +36,7 @@ resource "netbox_tenant_group" "example_group" {
 resource "netbox_tenant" "example_tenant" {
   name        = "Example Tenant"
   slug        = "example-tenant"
-  group       = netbox_tenant_group.example_group.id
+  group       = netbox_tenant_group.example_group.slug
   description = "An example tenant"
   comments    = "This tenant is used for demonstration purposes"
 

@@ -256,25 +256,18 @@ func (r *PlatformResource) Read(ctx context.Context, req resource.ReadRequest, r
 	data.Slug = types.StringValue(platform.GetSlug())
 
 	if platform.HasManufacturer() {
-
-		// Use slug if available, else ID
-
-		m := platform.GetManufacturer()
-
-		if m.Slug != "" {
-
-			data.Manufacturer = types.StringValue(m.Slug)
-
+		m, ok := platform.GetManufacturerOk()
+		if ok && m != nil {
+			if m.Slug != "" {
+				data.Manufacturer = types.StringValue(m.Slug)
+			} else {
+				data.Manufacturer = types.StringValue(fmt.Sprintf("%d", m.Id))
+			}
 		} else {
-
-			data.Manufacturer = types.StringValue(fmt.Sprintf("%d", m.Id))
-
+			data.Manufacturer = types.StringNull()
 		}
-
 	} else {
-
 		data.Manufacturer = types.StringNull()
-
 	}
 
 	if platform.HasDescription() {

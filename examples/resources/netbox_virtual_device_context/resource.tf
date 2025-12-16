@@ -30,7 +30,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_virtual_device_context" "test" {
-  name      = "Test VDC"
-  device_id = netbox_device.test.id
-  status    = "active"
+  name   = "Test VDC"
+  device = netbox_device.test.name
+  status = "active"
 }

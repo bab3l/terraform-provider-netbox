@@ -14,7 +14,7 @@ resource "netbox_vlan_group" "test" {
 resource "netbox_vlan" "test" {
   vid    = 100
   name   = "Test VLAN"
-  site   = netbox_site.test.id
-  group  = netbox_vlan_group.test.id
+  site   = netbox_site.test.slug
+  group  = netbox_vlan_group.test.slug
   status = "active"
 }

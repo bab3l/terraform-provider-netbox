@@ -4,7 +4,7 @@ resource "netbox_provider" "test" {
 }
 
 resource "netbox_provider_account" "test" {
-  name     = "Test Account"
-  account  = "1234567890"
-  provider = netbox_provider.test.id
+  name             = "Test Account"
+  account          = "1234567890"
+  circuit_provider = netbox_provider.test.name
 }

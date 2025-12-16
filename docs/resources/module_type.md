@@ -19,7 +19,7 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_module_type" "test" {
   model        = "Test Module Type"
-  manufacturer = netbox_manufacturer.test.id
+  manufacturer = netbox_manufacturer.test.name
 }
 ```
 

@@ -6,7 +6,7 @@ resource "netbox_manufacturer" "test" {
 resource "netbox_rack_type" "test" {
   model        = "Test Rack Type"
   slug         = "test-rack-type"
-  manufacturer = netbox_manufacturer.test.id
+  manufacturer = netbox_manufacturer.test.name
   width        = 19
   u_height     = 42
 }

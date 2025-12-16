@@ -236,7 +236,19 @@ func (r *ClusterResource) mapClusterToState(ctx context.Context, cluster *netbox
 
 	if cluster.Group.IsSet() && cluster.Group.Get() != nil {
 
-		data.Group = types.StringValue(cluster.Group.Get().GetName())
+		group := cluster.Group.Get()
+
+		userGroup := data.Group.ValueString()
+
+		if userGroup == group.GetName() || userGroup == group.GetSlug() || userGroup == group.GetDisplay() || userGroup == fmt.Sprintf("%d", group.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Group = types.StringValue(group.GetName())
+
+		}
 
 	} else {
 
@@ -260,7 +272,19 @@ func (r *ClusterResource) mapClusterToState(ctx context.Context, cluster *netbox
 
 	if cluster.Tenant.IsSet() && cluster.Tenant.Get() != nil {
 
-		data.Tenant = types.StringValue(cluster.Tenant.Get().GetName())
+		tenant := cluster.Tenant.Get()
+
+		userTenant := data.Tenant.ValueString()
+
+		if userTenant == tenant.GetName() || userTenant == tenant.GetSlug() || userTenant == tenant.GetDisplay() || userTenant == fmt.Sprintf("%d", tenant.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Tenant = types.StringValue(tenant.GetName())
+
+		}
 
 	} else {
 
@@ -272,7 +296,19 @@ func (r *ClusterResource) mapClusterToState(ctx context.Context, cluster *netbox
 
 	if cluster.Site.IsSet() && cluster.Site.Get() != nil {
 
-		data.Site = types.StringValue(cluster.Site.Get().GetName())
+		site := cluster.Site.Get()
+
+		userSite := data.Site.ValueString()
+
+		if userSite == site.GetName() || userSite == site.GetSlug() || userSite == site.GetDisplay() || userSite == fmt.Sprintf("%d", site.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Site = types.StringValue(site.GetName())
+
+		}
 
 	} else {
 

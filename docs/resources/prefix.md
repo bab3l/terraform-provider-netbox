@@ -27,8 +27,8 @@ resource "netbox_vlan" "test" {
 
 resource "netbox_prefix" "test" {
   prefix = "10.0.0.0/24"
-  site   = netbox_site.test.id
-  vlan   = netbox_vlan.test.id
+  site   = netbox_site.test.slug
+  vlan   = netbox_vlan.test.name
   status = "active"
 }
 ```

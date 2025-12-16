@@ -625,7 +625,19 @@ func (r *WirelessLANGroupResource) mapResponseToModel(ctx context.Context, group
 
 	if group.Parent.IsSet() && group.Parent.Get() != nil {
 
-		data.Parent = types.StringValue(fmt.Sprintf("%d", group.Parent.Get().GetId()))
+		parent := group.Parent.Get()
+
+		userParent := data.Parent.ValueString()
+
+		if userParent == parent.GetName() || userParent == parent.GetSlug() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Parent = types.StringValue(parent.GetName())
+
+		}
 
 	} else {
 

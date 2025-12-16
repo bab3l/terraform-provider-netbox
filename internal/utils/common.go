@@ -549,11 +549,17 @@ func MapToCustomFieldModels(customFields map[string]interface{}, stateCustomFiel
 					var stringValues []string
 
 					for _, v := range valueSlice {
+
 						if s, ok := v.(string); ok {
+
 							stringValues = append(stringValues, strings.TrimSpace(s))
+
 						} else {
+
 							stringValues = append(stringValues, fmt.Sprintf("%v", v))
+
 						}
+
 					}
 
 					cf.Value = types.StringValue(strings.Join(stringValues, ","))
@@ -565,11 +571,17 @@ func MapToCustomFieldModels(customFields map[string]interface{}, stateCustomFiel
 				}
 
 			default:
+
 				if s, ok := value.(string); ok {
+
 					cf.Value = types.StringValue(strings.TrimSpace(s))
+
 				} else {
+
 					cf.Value = types.StringValue(fmt.Sprintf("%v", value))
+
 				}
+
 			}
 
 		} else {

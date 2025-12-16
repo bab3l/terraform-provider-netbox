@@ -18,9 +18,9 @@ resource "netbox_manufacturer" "test" {
 }
 
 resource "netbox_platform" "test" {
-  name            = "Cisco IOS"
-  slug            = "cisco-ios"
-  manufacturer_id = netbox_manufacturer.test.id
+  name         = "Cisco IOS"
+  slug         = "cisco-ios"
+  manufacturer = netbox_manufacturer.test.name
 }
 ```
 

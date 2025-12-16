@@ -7,5 +7,5 @@ resource "netbox_site" "test" {
 resource "netbox_location" "test" {
   name = "Test Location"
   slug = "test-location"
-  site = netbox_site.test.id
+  site = netbox_site.test.slug
 }

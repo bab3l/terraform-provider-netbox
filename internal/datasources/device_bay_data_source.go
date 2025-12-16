@@ -323,7 +323,7 @@ func (d *DeviceBayDataSource) mapResponseToModel(ctx context.Context, db *netbox
 
 	// Map device
 
-	data.Device = types.StringValue(fmt.Sprintf("%d", db.Device.GetId()))
+	data.Device = types.StringValue(db.Device.GetName())
 
 	// Map label
 
@@ -353,7 +353,7 @@ func (d *DeviceBayDataSource) mapResponseToModel(ctx context.Context, db *netbox
 
 	if db.InstalledDevice.IsSet() && db.InstalledDevice.Get() != nil {
 
-		data.InstalledDevice = types.StringValue(fmt.Sprintf("%d", db.InstalledDevice.Get().GetId()))
+		data.InstalledDevice = types.StringValue(db.InstalledDevice.Get().GetName())
 
 	} else {
 

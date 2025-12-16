@@ -727,7 +727,17 @@ func (r *InventoryItemTemplateResource) mapToState(ctx context.Context, result *
 
 	deviceType := result.GetDeviceType()
 
-	data.DeviceType = types.StringValue(fmt.Sprintf("%d", deviceType.GetId()))
+	userDeviceType := data.DeviceType.ValueString()
+
+	if userDeviceType == deviceType.GetModel() || userDeviceType == deviceType.GetSlug() || userDeviceType == deviceType.GetDisplay() || userDeviceType == fmt.Sprintf("%d", deviceType.GetId()) {
+
+		// Keep user's original value
+
+	} else {
+
+		data.DeviceType = types.StringValue(deviceType.GetModel())
+
+	}
 
 	// Map parent (NullableInt32 - just the ID)
 
@@ -761,7 +771,17 @@ func (r *InventoryItemTemplateResource) mapToState(ctx context.Context, result *
 
 		role := result.GetRole()
 
-		data.Role = types.StringValue(fmt.Sprintf("%d", role.GetId()))
+		userRole := data.Role.ValueString()
+
+		if userRole == role.GetName() || userRole == role.GetSlug() || userRole == role.GetDisplay() || userRole == fmt.Sprintf("%d", role.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Role = types.StringValue(role.GetName())
+
+		}
 
 	} else {
 
@@ -775,7 +795,17 @@ func (r *InventoryItemTemplateResource) mapToState(ctx context.Context, result *
 
 		manufacturer := result.GetManufacturer()
 
-		data.Manufacturer = types.StringValue(fmt.Sprintf("%d", manufacturer.GetId()))
+		userManufacturer := data.Manufacturer.ValueString()
+
+		if userManufacturer == manufacturer.GetName() || userManufacturer == manufacturer.GetSlug() || userManufacturer == manufacturer.GetDisplay() || userManufacturer == fmt.Sprintf("%d", manufacturer.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Manufacturer = types.StringValue(manufacturer.GetName())
+
+		}
 
 	} else {
 

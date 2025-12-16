@@ -32,6 +32,6 @@ resource "netbox_device" "test" {
 
 resource "netbox_console_port" "test" {
   name   = "Console Port 1"
-  device = netbox_device.test.id
+  device = netbox_device.test.name
   type   = "rj-45"
 }

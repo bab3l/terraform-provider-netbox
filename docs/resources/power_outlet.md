@@ -32,21 +32,21 @@ resource "netbox_manufacturer" "test" {
 resource "netbox_device_type" "test" {
   model        = "PDU Model"
   slug         = "pdu-model"
-  manufacturer = netbox_manufacturer.test.id
+  manufacturer = netbox_manufacturer.test.name
   u_height     = 0
 }
 
 resource "netbox_device" "test" {
   name        = "test-pdu-1"
-  device_type = netbox_device_type.test.id
-  role        = netbox_device_role.test.id
-  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.model
+  role        = netbox_device_role.test.name
+  site        = netbox_site.test.slug
   status      = "active"
 }
 
 resource "netbox_power_outlet" "test" {
   name   = "Outlet 1"
-  device = netbox_device.test.id
+  device = netbox_device.test.name
   type   = "iec-60320-c13"
 }
 ```

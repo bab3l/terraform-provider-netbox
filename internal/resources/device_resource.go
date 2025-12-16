@@ -1120,7 +1120,7 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 	if data.DeviceType.IsNull() || data.DeviceType.IsUnknown() {
 
-		data.DeviceType = types.StringValue(fmt.Sprintf("%d", device.DeviceType.GetId()))
+		data.DeviceType = types.StringValue(device.DeviceType.GetModel())
 
 	}
 
@@ -1130,7 +1130,7 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 	if data.Role.IsNull() || data.Role.IsUnknown() {
 
-		data.Role = types.StringValue(fmt.Sprintf("%d", device.Role.GetId()))
+		data.Role = types.StringValue(device.Role.GetName())
 
 	}
 
@@ -1144,7 +1144,7 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 		if data.Tenant.IsNull() || data.Tenant.IsUnknown() {
 
-			data.Tenant = types.StringValue(fmt.Sprintf("%d", device.Tenant.Get().GetId()))
+			data.Tenant = types.StringValue(device.Tenant.Get().GetName())
 
 		}
 
@@ -1166,7 +1166,7 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 		if data.Platform.IsNull() || data.Platform.IsUnknown() {
 
-			data.Platform = types.StringValue(fmt.Sprintf("%d", device.Platform.Get().GetId()))
+			data.Platform = types.StringValue(device.Platform.Get().GetName())
 
 		}
 
@@ -1208,7 +1208,7 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 	if data.Site.IsNull() || data.Site.IsUnknown() {
 
-		data.Site = types.StringValue(fmt.Sprintf("%d", device.Site.GetId()))
+		data.Site = types.StringValue(device.Site.GetName())
 
 	}
 
@@ -1222,7 +1222,7 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 		if data.Location.IsNull() || data.Location.IsUnknown() {
 
-			data.Location = types.StringValue(fmt.Sprintf("%d", device.Location.Get().GetId()))
+			data.Location = types.StringValue(device.Location.Get().GetName())
 
 		}
 
@@ -1244,7 +1244,7 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 		if data.Rack.IsNull() || data.Rack.IsUnknown() {
 
-			data.Rack = types.StringValue(fmt.Sprintf("%d", device.Rack.Get().GetId()))
+			data.Rack = types.StringValue(device.Rack.Get().GetName())
 
 		}
 

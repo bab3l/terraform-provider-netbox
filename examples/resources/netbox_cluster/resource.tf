@@ -5,5 +5,5 @@ resource "netbox_cluster_type" "test" {
 
 resource "netbox_cluster" "test" {
   name = "Test Cluster"
-  type = netbox_cluster_type.test.id
+  type = netbox_cluster_type.test.name
 }

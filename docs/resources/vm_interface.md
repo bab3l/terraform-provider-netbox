@@ -18,18 +18,18 @@ resource "netbox_cluster_type" "test" {
 }
 
 resource "netbox_cluster" "test" {
-  name            = "Test Cluster"
-  cluster_type_id = netbox_cluster_type.test.id
+  name = "Test Cluster"
+  type = netbox_cluster_type.test.name
 }
 
 resource "netbox_virtual_machine" "test" {
-  name       = "Test VM"
-  cluster_id = netbox_cluster.test.id
+  name    = "Test VM"
+  cluster = netbox_cluster.test.name
 }
 
 resource "netbox_vm_interface" "test" {
-  name               = "eth0"
-  virtual_machine_id = netbox_virtual_machine.test.id
+  name            = "eth0"
+  virtual_machine = netbox_virtual_machine.test.name
 }
 ```
 

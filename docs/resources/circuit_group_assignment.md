@@ -23,10 +23,10 @@ resource "netbox_provider" "test" {
 }
 
 resource "netbox_circuit" "test" {
-  cid             = "123456789"
-  provider_id     = netbox_provider.test.id
-  circuit_type_id = netbox_circuit_type.test.id
-  status          = "active"
+  cid              = "123456789"
+  circuit_provider = netbox_provider.test.name
+  type             = netbox_circuit_type.test.name
+  status           = "active"
 }
 
 resource "netbox_circuit_group" "test" {
@@ -36,7 +36,7 @@ resource "netbox_circuit_group" "test" {
 
 resource "netbox_circuit_group_assignment" "test" {
   circuit_id = netbox_circuit.test.id
-  group_id   = netbox_circuit_group.test.id
+  group      = netbox_circuit_group.test.name
 }
 ```
 

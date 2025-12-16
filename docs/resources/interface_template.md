@@ -25,9 +25,9 @@ resource "netbox_device_type" "test" {
 }
 
 resource "netbox_interface_template" "test" {
-  name           = "GigabitEthernet1/0/1"
-  device_type_id = netbox_device_type.test.id
-  type           = "1000base-t"
+  name        = "GigabitEthernet1/0/1"
+  device_type = netbox_device_type.test.model
+  type        = "1000base-t"
 }
 ```
 

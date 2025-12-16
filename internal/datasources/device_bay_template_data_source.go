@@ -345,7 +345,7 @@ func (d *DeviceBayTemplateDataSource) mapTemplateToDataSourceModel(template *net
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", template.Id))
 
-	data.DeviceType = types.StringValue(fmt.Sprintf("%d", template.DeviceType.GetId()))
+	data.DeviceType = types.StringValue(template.DeviceType.GetModel())
 
 	data.DeviceTypeName = types.StringValue(template.DeviceType.GetModel())
 
