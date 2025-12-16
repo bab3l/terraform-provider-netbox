@@ -320,7 +320,23 @@ func testAccVLANGroupResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_vlan_group" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -336,6 +352,14 @@ resource "netbox_vlan_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -344,7 +368,23 @@ resource "netbox_vlan_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -366,7 +406,23 @@ func testAccVLANGroupResourceConfig_full(name, slug, description string) string 
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_vlan_group" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -382,7 +438,23 @@ resource "netbox_vlan_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug        = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -398,7 +470,23 @@ resource "netbox_vlan_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

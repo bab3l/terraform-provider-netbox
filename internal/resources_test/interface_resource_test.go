@@ -524,7 +524,23 @@ func testAccInterfaceResourceConfig_basic(
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -540,6 +556,14 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %[2]q
 
 
@@ -548,7 +572,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -572,7 +620,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -588,6 +652,14 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug         = %[4]q
 
 
@@ -596,7 +668,31 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -620,7 +716,23 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %[5]q
+
+
+
+
+
+
+
+
 
 
 
@@ -636,7 +748,31 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -660,7 +796,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %[7]q
+
+
+
+
+
+
+
+
 
 
 
@@ -676,7 +828,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -700,7 +876,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %[9]q
+
+
+
+
+
+
+
+
 
 
 
@@ -716,7 +908,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   role        = netbox_device_role.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -732,7 +940,31 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -756,7 +988,23 @@ resource "netbox_interface" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device = netbox_device.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -772,6 +1020,14 @@ resource "netbox_interface" "test" {
 
 
 
+
+
+
+
+
+
+
+
   type   = "1000base-t"
 
 
@@ -780,7 +1036,23 @@ resource "netbox_interface" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -816,7 +1088,23 @@ func testAccInterfaceResourceConfig_full(
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -832,6 +1120,14 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %[2]q
 
 
@@ -840,7 +1136,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -864,7 +1184,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -880,6 +1216,14 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug         = %[4]q
 
 
@@ -888,7 +1232,31 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -912,7 +1280,23 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %[5]q
+
+
+
+
+
+
+
+
 
 
 
@@ -928,7 +1312,31 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -952,7 +1360,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %[7]q
+
+
+
+
+
+
+
+
 
 
 
@@ -968,7 +1392,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -992,7 +1440,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %[9]q
+
+
+
+
+
+
+
+
 
 
 
@@ -1008,7 +1472,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   role        = netbox_device_role.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -1024,7 +1504,31 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1048,7 +1552,23 @@ resource "netbox_interface" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device       = netbox_device.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -1064,7 +1584,23 @@ resource "netbox_interface" "test" {
 
 
 
+
+
+
+
+
+
+
+
   type         = "1000base-t"
+
+
+
+
+
+
+
+
 
 
 
@@ -1080,7 +1616,23 @@ resource "netbox_interface" "test" {
 
 
 
+
+
+
+
+
+
+
+
   enabled      = true
+
+
+
+
+
+
+
+
 
 
 
@@ -1096,6 +1648,14 @@ resource "netbox_interface" "test" {
 
 
 
+
+
+
+
+
+
+
+
   mgmt_only    = false
 
 
@@ -1104,7 +1664,23 @@ resource "netbox_interface" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

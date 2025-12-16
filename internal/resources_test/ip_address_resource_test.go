@@ -399,7 +399,23 @@ func testAccIPAddressResourceConfig_basic(address string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_ip_address" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -415,7 +431,23 @@ resource "netbox_ip_address" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -437,7 +469,23 @@ func testAccIPAddressResourceConfig_full(address, description, dnsName string) s
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_ip_address" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -453,7 +501,23 @@ resource "netbox_ip_address" "test" {
 
 
 
+
+
+
+
+
+
+
+
   description = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -469,6 +533,14 @@ resource "netbox_ip_address" "test" {
 
 
 
+
+
+
+
+
+
+
+
   status      = "active"
 
 
@@ -477,7 +549,23 @@ resource "netbox_ip_address" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -499,7 +587,23 @@ func testAccIPAddressResourceConfig_withVRF(address, vrfName string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_vrf" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -515,7 +619,31 @@ resource "netbox_vrf" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -539,7 +667,23 @@ resource "netbox_ip_address" "test" {
 
 
 
+
+
+
+
+
+
+
+
   address = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -555,7 +699,23 @@ resource "netbox_ip_address" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

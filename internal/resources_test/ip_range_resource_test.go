@@ -293,7 +293,23 @@ func testAccIPRangeResourceConfig_basic(startAddr, endAddr string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_ip_range" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -309,6 +325,14 @@ resource "netbox_ip_range" "test" {
 
 
 
+
+
+
+
+
+
+
+
   end_address   = %q
 
 
@@ -317,7 +341,23 @@ resource "netbox_ip_range" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -339,7 +379,23 @@ func testAccIPRangeResourceConfig_full(startAddr, endAddr, status, description, 
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_ip_range" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -355,7 +411,23 @@ resource "netbox_ip_range" "test" {
 
 
 
+
+
+
+
+
+
+
+
   end_address   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -371,7 +443,23 @@ resource "netbox_ip_range" "test" {
 
 
 
+
+
+
+
+
+
+
+
   description   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -387,7 +475,23 @@ resource "netbox_ip_range" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

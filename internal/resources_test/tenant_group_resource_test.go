@@ -334,7 +334,23 @@ func testAccTenantGroupResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -350,7 +366,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -366,7 +398,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -382,6 +430,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -390,7 +446,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -422,7 +502,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_tenant_group" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -438,6 +542,14 @@ resource "netbox_tenant_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -446,7 +558,23 @@ resource "netbox_tenant_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -470,7 +598,23 @@ func testAccTenantGroupResourceConfig_full(name, slug, description string) strin
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -486,7 +630,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -502,7 +662,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -518,6 +694,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -526,7 +710,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -558,7 +766,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_tenant_group" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -574,7 +806,23 @@ resource "netbox_tenant_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug        = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -590,7 +838,23 @@ resource "netbox_tenant_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

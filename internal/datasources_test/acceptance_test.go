@@ -68,7 +68,23 @@ func testAccSiteDataSourceConfig(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -84,7 +100,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -100,7 +132,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -116,6 +164,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -124,7 +180,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -156,7 +236,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -172,7 +276,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -188,7 +308,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -212,6 +356,14 @@ data "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = netbox_site.test.slug
 
 
@@ -220,7 +372,23 @@ data "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -287,7 +455,23 @@ func testAccTenantDataSourceConfig(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -303,7 +487,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -319,7 +519,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -335,6 +551,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -343,7 +567,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -375,7 +623,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_tenant" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -391,6 +663,14 @@ resource "netbox_tenant" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -399,7 +679,31 @@ resource "netbox_tenant" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -423,6 +727,14 @@ data "netbox_tenant" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = netbox_tenant.test.slug
 
 
@@ -431,7 +743,23 @@ data "netbox_tenant" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -498,7 +826,23 @@ func testAccSiteGroupDataSourceConfig(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -514,7 +858,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -530,7 +890,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -546,6 +922,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -554,7 +938,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -586,7 +994,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_site_group" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -602,6 +1034,14 @@ resource "netbox_site_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -610,7 +1050,31 @@ resource "netbox_site_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -634,6 +1098,14 @@ data "netbox_site_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = netbox_site_group.test.slug
 
 
@@ -642,7 +1114,23 @@ data "netbox_site_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -709,7 +1197,23 @@ func testAccTenantGroupDataSourceConfig(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -725,7 +1229,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -741,7 +1261,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -757,6 +1293,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -765,7 +1309,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -797,7 +1365,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_tenant_group" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -813,6 +1405,14 @@ resource "netbox_tenant_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -821,7 +1421,31 @@ resource "netbox_tenant_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -845,6 +1469,14 @@ data "netbox_tenant_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = netbox_tenant_group.test.slug
 
 
@@ -853,7 +1485,23 @@ data "netbox_tenant_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -920,7 +1568,23 @@ func testAccManufacturerDataSourceConfig(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -936,7 +1600,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -952,7 +1632,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -968,6 +1664,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -976,7 +1680,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1008,7 +1736,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -1024,6 +1776,14 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -1032,7 +1792,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1056,6 +1840,14 @@ data "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = netbox_manufacturer.test.slug
 
 
@@ -1064,7 +1856,23 @@ data "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -1144,7 +1952,23 @@ func testAccPlatformDataSourceConfig(platName, platSlug, mfrName, mfrSlug string
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -1160,7 +1984,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -1176,7 +2016,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -1192,6 +2048,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -1200,7 +2064,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1232,7 +2120,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test_mfr" {
+
+
+
+
+
+
+
+
 
 
 
@@ -1248,6 +2160,14 @@ resource "netbox_manufacturer" "test_mfr" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -1256,7 +2176,31 @@ resource "netbox_manufacturer" "test_mfr" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1280,7 +2224,23 @@ resource "netbox_platform" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name         = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -1296,6 +2256,14 @@ resource "netbox_platform" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test_mfr.slug
 
 
@@ -1304,7 +2272,31 @@ resource "netbox_platform" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1328,6 +2320,14 @@ data "netbox_platform" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = netbox_platform.test.slug
 
 
@@ -1336,7 +2336,23 @@ data "netbox_platform" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -1403,7 +2419,23 @@ func testAccRegionDataSourceConfig(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -1419,7 +2451,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -1435,7 +2483,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -1451,6 +2515,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -1459,7 +2531,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1491,7 +2587,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_region" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -1507,6 +2627,14 @@ resource "netbox_region" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -1515,7 +2643,31 @@ resource "netbox_region" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1539,6 +2691,14 @@ data "netbox_region" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = netbox_region.test.slug
 
 
@@ -1547,7 +2707,23 @@ data "netbox_region" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -1620,7 +2796,23 @@ func testAccLocationDataSourceConfig(siteName, siteSlug, name, slug string) stri
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -1636,7 +2828,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -1652,7 +2860,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -1668,6 +2892,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -1676,7 +2908,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1708,7 +2964,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -1724,7 +3004,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -1740,7 +3036,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1764,7 +3084,23 @@ resource "netbox_location" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -1780,6 +3116,14 @@ resource "netbox_location" "test" {
 
 
 
+
+
+
+
+
+
+
+
   site = netbox_site.test.id
 
 
@@ -1788,7 +3132,31 @@ resource "netbox_location" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1812,6 +3180,14 @@ data "netbox_location" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = netbox_location.test.slug
 
 
@@ -1820,7 +3196,23 @@ data "netbox_location" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -1889,7 +3281,23 @@ func testAccRackDataSourceConfig(siteName, siteSlug, rackName string) string {
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -1905,7 +3313,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -1921,7 +3345,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -1937,6 +3377,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -1945,7 +3393,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1977,7 +3449,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -1993,7 +3489,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -2009,7 +3521,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2033,7 +3569,23 @@ resource "netbox_rack" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -2049,7 +3601,31 @@ resource "netbox_rack" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2073,6 +3649,14 @@ data "netbox_rack" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = netbox_rack.test.name
 
 
@@ -2081,7 +3665,23 @@ data "netbox_rack" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -2148,7 +3748,23 @@ func testAccRackRoleDataSourceConfig(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -2164,7 +3780,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -2180,7 +3812,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -2196,6 +3844,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -2204,7 +3860,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2236,7 +3916,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_rack_role" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -2252,6 +3956,14 @@ resource "netbox_rack_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -2260,7 +3972,31 @@ resource "netbox_rack_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2284,6 +4020,14 @@ data "netbox_rack_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = netbox_rack_role.test.slug
 
 
@@ -2292,7 +4036,23 @@ data "netbox_rack_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -2361,7 +4121,23 @@ func testAccDeviceRoleDataSourceConfig(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -2377,7 +4153,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -2393,7 +4185,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -2409,6 +4217,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -2417,7 +4233,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2449,7 +4289,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_device_role" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -2465,6 +4329,14 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -2473,7 +4345,31 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2497,6 +4393,14 @@ data "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = netbox_device_role.test.slug
 
 
@@ -2505,7 +4409,23 @@ data "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -2587,7 +4507,23 @@ func testAccDeviceTypeDataSourceConfig(model, slug, manufacturerName, manufactur
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -2603,7 +4539,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -2619,7 +4571,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -2635,6 +4603,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -2643,7 +4619,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2675,7 +4675,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -2691,6 +4715,14 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -2699,7 +4731,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2723,7 +4779,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.slug
+
+
+
+
+
+
+
+
 
 
 
@@ -2739,6 +4811,14 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug         = %q
 
 
@@ -2747,7 +4827,31 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2771,6 +4875,14 @@ data "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = netbox_device_type.test.slug
 
 
@@ -2779,7 +4891,23 @@ data "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -2844,7 +4972,23 @@ func testAccRouteTargetDataSourceConfig(name string) string {
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -2860,7 +5004,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -2876,7 +5036,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -2892,6 +5068,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -2900,7 +5084,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2932,7 +5140,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_route_target" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -2948,7 +5180,31 @@ resource "netbox_route_target" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2972,6 +5228,14 @@ data "netbox_route_target" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = netbox_route_target.test.name
 
 
@@ -2980,7 +5244,23 @@ data "netbox_route_target" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -3070,7 +5350,23 @@ func testAccVirtualDiskDataSourceConfig(name, clusterTypeName, clusterTypeSlug, 
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -3086,7 +5382,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -3102,7 +5414,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -3118,6 +5446,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -3126,7 +5462,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3158,7 +5518,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -3174,6 +5558,14 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -3182,7 +5574,31 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3206,7 +5622,23 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -3222,7 +5654,31 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3246,7 +5702,23 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name    = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -3270,7 +5742,31 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   # Ignore disk changes since Netbox auto-computes this from virtual_disks
+
+
+
+
+
+
+
+
 
 
 
@@ -3286,7 +5782,23 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
     ignore_changes = [disk]
+
+
+
+
+
+
+
+
 
 
 
@@ -3302,7 +5814,31 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3326,7 +5862,23 @@ resource "netbox_virtual_disk" "test" {
 
 
 
+
+
+
+
+
+
+
+
   virtual_machine = netbox_virtual_machine.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -3342,6 +5894,14 @@ resource "netbox_virtual_disk" "test" {
 
 
 
+
+
+
+
+
+
+
+
   size            = 100
 
 
@@ -3350,7 +5910,31 @@ resource "netbox_virtual_disk" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3374,6 +5958,14 @@ data "netbox_virtual_disk" "test" {
 
 
 
+
+
+
+
+
+
+
+
   id = netbox_virtual_disk.test.id
 
 
@@ -3382,7 +5974,23 @@ data "netbox_virtual_disk" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -3466,7 +6074,23 @@ func testAccASNRangeDataSourceConfig(name, slug, rirName, rirSlug string) string
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -3482,7 +6106,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -3498,7 +6138,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -3514,6 +6170,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -3522,7 +6186,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3554,7 +6242,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_rir" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -3570,6 +6282,14 @@ resource "netbox_rir" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -3578,7 +6298,31 @@ resource "netbox_rir" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3602,7 +6346,23 @@ resource "netbox_asn_range" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name  = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -3618,7 +6378,23 @@ resource "netbox_asn_range" "test" {
 
 
 
+
+
+
+
+
+
+
+
   rir   = netbox_rir.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -3634,6 +6410,14 @@ resource "netbox_asn_range" "test" {
 
 
 
+
+
+
+
+
+
+
+
   end   = 64520
 
 
@@ -3642,7 +6426,31 @@ resource "netbox_asn_range" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3666,6 +6474,14 @@ data "netbox_asn_range" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = netbox_asn_range.test.slug
 
 
@@ -3674,7 +6490,23 @@ data "netbox_asn_range" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -3760,7 +6592,23 @@ func testAccDeviceBayTemplateDataSourceConfig(name, manufacturerName, manufactur
 
 
 
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
 
 
 
@@ -3776,7 +6624,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
 
 
 
@@ -3792,7 +6656,23 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
 
 
 
@@ -3808,6 +6688,14 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
   }
 
 
@@ -3816,7 +6704,31 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3848,7 +6760,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -3864,6 +6800,14 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -3872,7 +6816,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3896,7 +6864,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   model          = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -3912,7 +6896,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer   = netbox_manufacturer.test.slug
+
+
+
+
+
+
+
+
 
 
 
@@ -3928,7 +6928,31 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3952,7 +6976,23 @@ resource "netbox_device_bay_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -3968,7 +7008,31 @@ resource "netbox_device_bay_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3992,6 +7056,14 @@ data "netbox_device_bay_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   id = netbox_device_bay_template.test.id
 
 
@@ -4000,7 +7072,23 @@ data "netbox_device_bay_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

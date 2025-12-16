@@ -387,7 +387,23 @@ func testAccRackRoleResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_rack_role" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -403,6 +419,14 @@ resource "netbox_rack_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %[2]q
 
 
@@ -411,7 +435,23 @@ resource "netbox_rack_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -433,7 +473,23 @@ func testAccRackRoleResourceConfig_full(name, slug, description, color string) s
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_rack_role" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -449,7 +505,23 @@ resource "netbox_rack_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug        = %[2]q
+
+
+
+
+
+
+
+
 
 
 
@@ -465,6 +537,14 @@ resource "netbox_rack_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   color       = %[4]q
 
 
@@ -473,7 +553,23 @@ resource "netbox_rack_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

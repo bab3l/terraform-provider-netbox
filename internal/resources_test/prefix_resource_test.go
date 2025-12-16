@@ -395,7 +395,23 @@ func testAccPrefixResourceConfig_basic(prefix string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_prefix" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -411,7 +427,23 @@ resource "netbox_prefix" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -433,7 +465,23 @@ func testAccPrefixResourceConfig_full(prefix, description string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_prefix" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -449,7 +497,23 @@ resource "netbox_prefix" "test" {
 
 
 
+
+
+
+
+
+
+
+
   description = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -465,6 +529,14 @@ resource "netbox_prefix" "test" {
 
 
 
+
+
+
+
+
+
+
+
   is_pool     = false
 
 
@@ -473,7 +545,23 @@ resource "netbox_prefix" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -495,7 +583,23 @@ func testAccPrefixResourceConfig_withVRF(prefix, vrfName string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_vrf" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -511,7 +615,31 @@ resource "netbox_vrf" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -535,7 +663,23 @@ resource "netbox_prefix" "test" {
 
 
 
+
+
+
+
+
+
+
+
   prefix = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -551,7 +695,23 @@ resource "netbox_prefix" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -330,7 +330,23 @@ func testAccPowerPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, 
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -346,7 +362,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -362,7 +394,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -386,7 +442,23 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -402,7 +474,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -426,7 +522,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -442,6 +554,14 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug         = %q
 
 
@@ -450,7 +570,31 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -474,7 +618,23 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name  = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -490,6 +650,14 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   color = "aa1409"
 
 
@@ -498,7 +666,31 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -522,7 +714,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -538,7 +746,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   role        = netbox_device_role.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -554,7 +778,31 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -578,7 +826,23 @@ resource "netbox_power_port" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device = netbox_device.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -594,7 +858,23 @@ resource "netbox_power_port" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -616,7 +896,23 @@ func testAccPowerPortResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, d
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -632,7 +928,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -648,7 +960,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -672,7 +1008,23 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -688,7 +1040,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -712,7 +1088,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -728,6 +1120,14 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug         = %q
 
 
@@ -736,7 +1136,31 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -760,7 +1184,23 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name  = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -776,6 +1216,14 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   color = "aa1409"
 
 
@@ -784,7 +1232,31 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -808,7 +1280,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -824,7 +1312,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   role        = netbox_device_role.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -840,7 +1344,31 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -864,7 +1392,23 @@ resource "netbox_power_port" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device         = netbox_device.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -880,7 +1424,23 @@ resource "netbox_power_port" "test" {
 
 
 
+
+
+
+
+
+
+
+
   type           = "iec-60320-c14"
+
+
+
+
+
+
+
+
 
 
 
@@ -896,7 +1456,23 @@ resource "netbox_power_port" "test" {
 
 
 
+
+
+
+
+
+
+
+
   allocated_draw = %d
+
+
+
+
+
+
+
+
 
 
 
@@ -912,7 +1488,23 @@ resource "netbox_power_port" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

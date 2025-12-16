@@ -354,7 +354,23 @@ func testAccCircuitResourceConfig_basic(cid, providerName, providerSlug, typeNam
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_provider" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -370,6 +386,14 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -378,7 +402,31 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -402,7 +450,23 @@ resource "netbox_circuit_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -418,7 +482,31 @@ resource "netbox_circuit_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -442,7 +530,23 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
+
+
+
+
   cid              = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -458,6 +562,14 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
+
+
+
+
   type             = netbox_circuit_type.test.slug
 
 
@@ -466,7 +578,23 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -488,7 +616,23 @@ func testAccCircuitResourceConfig_full(cid, providerName, providerSlug, typeName
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_provider" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -504,6 +648,14 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -512,7 +664,31 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -536,7 +712,23 @@ resource "netbox_circuit_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -552,7 +744,31 @@ resource "netbox_circuit_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -576,7 +792,23 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
+
+
+
+
   cid              = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -592,7 +824,23 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
+
+
+
+
   type             = netbox_circuit_type.test.slug
+
+
+
+
+
+
+
+
 
 
 
@@ -608,7 +856,23 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
+
+
+
+
   description      = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -624,6 +888,14 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
+
+
+
+
   commit_rate      = 10000
 
 
@@ -632,7 +904,23 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -654,7 +942,23 @@ func testAccCircuitResourceConfig_withDescription(cid, providerName, providerSlu
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_provider" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -670,6 +974,14 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -678,7 +990,31 @@ resource "netbox_provider" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -702,7 +1038,23 @@ resource "netbox_circuit_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -718,7 +1070,31 @@ resource "netbox_circuit_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -742,7 +1118,23 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
+
+
+
+
   cid              = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -758,7 +1150,23 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
+
+
+
+
   type             = netbox_circuit_type.test.slug
+
+
+
+
+
+
+
+
 
 
 
@@ -774,7 +1182,23 @@ resource "netbox_circuit" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
