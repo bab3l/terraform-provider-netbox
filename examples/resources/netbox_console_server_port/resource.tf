@@ -18,20 +18,20 @@ resource "netbox_manufacturer" "test" {
 resource "netbox_device_type" "test" {
   model        = "Console Server Model"
   slug         = "console-server-model"
-  manufacturer = netbox_manufacturer.test.id
+  manufacturer = netbox_manufacturer.test.name
   u_height     = 1
 }
 
 resource "netbox_device" "test" {
   name        = "test-console-server-1"
-  device_type = netbox_device_type.test.id
-  role        = netbox_device_role.test.id
-  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.model
+  role        = netbox_device_role.test.name
+  site        = netbox_site.test.name
   status      = "active"
 }
 
 resource "netbox_console_server_port" "test" {
   name   = "Port 1"
-  device = netbox_device.test.id
+  device = netbox_device.test.name
   type   = "rj-45"
 }

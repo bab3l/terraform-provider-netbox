@@ -21,7 +21,7 @@ resource "netbox_site" "test" {
 resource "netbox_vlan" "test" {
   vid    = 100
   name   = "Test VLAN"
-  site   = netbox_site.test.id
+  site   = netbox_site.test.name
   status = "active"
 }
 

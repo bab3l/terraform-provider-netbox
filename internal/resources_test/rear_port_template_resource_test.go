@@ -197,7 +197,39 @@ func testAccRearPortTemplateResourceBasic(manufacturerName, manufacturerSlug, de
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -229,6 +261,22 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -245,7 +293,55 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -293,7 +389,39 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -325,6 +453,22 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug         = %q
 
 
@@ -341,7 +485,55 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -389,7 +581,39 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -421,6 +645,22 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   type        = %q
 
 
@@ -437,7 +677,39 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -475,7 +747,39 @@ func testAccRearPortTemplateResourceFull(manufacturerName, manufacturerSlug, dev
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -507,6 +811,22 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -523,7 +843,55 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -571,7 +939,39 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -603,6 +1003,22 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug         = %q
 
 
@@ -619,7 +1035,55 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -667,7 +1131,39 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -699,7 +1195,39 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   type        = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -731,7 +1259,39 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   color       = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -763,6 +1323,22 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   description = %q
 
 
@@ -779,7 +1355,39 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

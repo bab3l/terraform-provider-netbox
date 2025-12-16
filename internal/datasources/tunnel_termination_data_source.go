@@ -371,7 +371,7 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 
 	if tunnelTermination.HasOutsideIp() && tunnelTermination.OutsideIp.IsSet() && tunnelTermination.OutsideIp.Get() != nil {
 
-		data.OutsideIP = types.StringValue(fmt.Sprintf("%d", tunnelTermination.OutsideIp.Get().GetId()))
+		data.OutsideIP = types.StringValue(tunnelTermination.OutsideIp.Get().GetDisplay())
 
 	} else {
 

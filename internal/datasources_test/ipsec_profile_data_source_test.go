@@ -237,7 +237,39 @@ func testAccIPSecProfileDataSourceByID(name, ikePolicyName, ipsecPolicyName stri
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_ike_policy" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -269,6 +301,22 @@ resource "netbox_ike_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   version = 2
 
 
@@ -285,7 +333,55 @@ resource "netbox_ike_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -333,6 +429,22 @@ resource "netbox_ipsec_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name = %[3]q
 
 
@@ -349,7 +461,55 @@ resource "netbox_ipsec_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -397,7 +557,39 @@ resource "netbox_ipsec_profile" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name         = %[1]q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -429,7 +621,39 @@ resource "netbox_ipsec_profile" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   ike_policy   = netbox_ike_policy.test.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -461,7 +685,55 @@ resource "netbox_ipsec_profile" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -509,6 +781,22 @@ data "netbox_ipsec_profile" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   id = netbox_ipsec_profile.test.id
 
 
@@ -525,7 +813,39 @@ data "netbox_ipsec_profile" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -563,7 +883,39 @@ func testAccIPSecProfileDataSourceByName(name, ikePolicyName, ipsecPolicyName st
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_ike_policy" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -595,6 +947,22 @@ resource "netbox_ike_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   version = 2
 
 
@@ -611,7 +979,55 @@ resource "netbox_ike_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -659,6 +1075,22 @@ resource "netbox_ipsec_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name = %[3]q
 
 
@@ -675,7 +1107,55 @@ resource "netbox_ipsec_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -723,7 +1203,39 @@ resource "netbox_ipsec_profile" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name         = %[1]q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -755,7 +1267,39 @@ resource "netbox_ipsec_profile" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   ike_policy   = netbox_ike_policy.test.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -787,7 +1331,55 @@ resource "netbox_ipsec_profile" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -835,6 +1427,22 @@ data "netbox_ipsec_profile" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name = netbox_ipsec_profile.test.name
 
 
@@ -851,7 +1459,39 @@ data "netbox_ipsec_profile" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -288,7 +288,39 @@ func testAccPowerPanelResourceConfig_basic(siteName, siteSlug, panelName string)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -320,7 +352,39 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug   = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -352,7 +416,55 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -400,7 +512,39 @@ resource "netbox_power_panel" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   site = netbox_site.test.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -432,7 +576,39 @@ resource "netbox_power_panel" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -470,7 +646,39 @@ func testAccPowerPanelResourceConfig_full(siteName, siteSlug, panelName, descrip
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -502,7 +710,39 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug   = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -534,7 +774,55 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -582,7 +870,39 @@ resource "netbox_power_panel" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   site        = netbox_site.test.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -614,7 +934,39 @@ resource "netbox_power_panel" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   description = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -646,7 +998,39 @@ resource "netbox_power_panel" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

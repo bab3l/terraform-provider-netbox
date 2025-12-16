@@ -55,8 +55,8 @@ resource "netbox_contact_role" "test" {
 resource "netbox_contact_assignment" "test" {
   content_type = "dcim.device"
   object_id    = netbox_device.test.id
-  contact_id   = netbox_contact.test.id
-  role_id      = netbox_contact_role.test.id
+  contact      = netbox_contact.test.name
+  role         = netbox_contact_role.test.slug
   priority     = "primary"
 }
 ```

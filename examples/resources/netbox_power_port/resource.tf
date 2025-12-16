@@ -26,12 +26,12 @@ resource "netbox_device" "test" {
   name        = "test-device-1"
   device_type = netbox_device_type.test.id
   role        = netbox_device_role.test.id
-  site        = netbox_site.test.id
+  site        = netbox_site.test.slug
   status      = "active"
 }
 
 resource "netbox_power_port" "test" {
   name   = "PSU1"
-  device = netbox_device.test.id
+  device = netbox_device.test.name
   type   = "iec-60320-c14"
 }

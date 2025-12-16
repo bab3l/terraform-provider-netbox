@@ -825,7 +825,19 @@ func (r *WirelessLANResource) mapResponseToModel(ctx context.Context, wlan *netb
 
 	if wlan.Group.IsSet() && wlan.Group.Get() != nil {
 
-		data.Group = types.StringValue(fmt.Sprintf("%d", wlan.Group.Get().GetId()))
+		group := wlan.Group.Get()
+
+		userGroup := data.Group.ValueString()
+
+		if userGroup == group.GetName() || userGroup == group.GetSlug() || userGroup == group.GetDisplay() || userGroup == fmt.Sprintf("%d", group.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Group = types.StringValue(group.GetName())
+
+		}
 
 	} else {
 

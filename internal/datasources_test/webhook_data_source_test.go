@@ -225,7 +225,39 @@ func testAccWebhookDataSourceByID(name string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_webhook" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -257,6 +289,22 @@ resource "netbox_webhook" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   payload_url = "https://example.com/webhook"
 
 
@@ -273,7 +321,55 @@ resource "netbox_webhook" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -321,6 +417,22 @@ data "netbox_webhook" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   id = netbox_webhook.test.id
 
 
@@ -337,7 +449,39 @@ data "netbox_webhook" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -375,7 +519,39 @@ func testAccWebhookDataSourceByName(name string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_webhook" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -407,6 +583,22 @@ resource "netbox_webhook" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   payload_url = "https://example.com/webhook"
 
 
@@ -423,7 +615,55 @@ resource "netbox_webhook" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -471,6 +711,22 @@ data "netbox_webhook" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name = netbox_webhook.test.name
 
 
@@ -487,7 +743,39 @@ data "netbox_webhook" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

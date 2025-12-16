@@ -25,10 +25,10 @@ resource "netbox_device_role" "test" {
 }
 
 resource "netbox_device_type" "test" {
-  model           = "Test Model"
-  slug            = "test-model"
-  manufacturer_id = netbox_manufacturer.test.id
-  u_height        = 1
+  model        = "Test Model"
+  slug         = "test-model"
+  manufacturer = netbox_manufacturer.test.slug
+  u_height     = 1
 }
 
 resource "netbox_manufacturer" "test" {
@@ -37,17 +37,17 @@ resource "netbox_manufacturer" "test" {
 }
 
 resource "netbox_device" "test" {
-  name           = "Test Device"
-  device_type_id = netbox_device_type.test.id
-  role_id        = netbox_device_role.test.id
-  site_id        = netbox_site.test.id
+  name        = "Test Device"
+  device_type = netbox_device_type.test.slug
+  role        = netbox_device_role.test.slug
+  site        = netbox_site.test.slug
 }
 
 resource "netbox_service" "test" {
-  name      = "SSH"
-  protocol  = "tcp"
-  ports     = [22]
-  device_id = netbox_device.test.id
+  name     = "SSH"
+  protocol = "tcp"
+  ports    = [22]
+  device   = netbox_device.test.name
 }
 ```
 

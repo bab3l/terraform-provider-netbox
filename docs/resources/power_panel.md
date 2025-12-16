@@ -20,7 +20,7 @@ resource "netbox_site" "test" {
 
 resource "netbox_power_panel" "test" {
   name = "Test Power Panel"
-  site = netbox_site.test.id
+  site = netbox_site.test.slug
 }
 ```
 

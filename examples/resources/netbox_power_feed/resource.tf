@@ -6,20 +6,20 @@ resource "netbox_site" "test" {
 
 resource "netbox_power_panel" "test" {
   name = "Test Power Panel"
-  site = netbox_site.test.id
+  site = netbox_site.test.slug
 }
 
 resource "netbox_rack" "test" {
   name   = "Test Rack"
-  site   = netbox_site.test.id
+  site   = netbox_site.test.slug
   status = "active"
   width  = 19
 }
 
 resource "netbox_power_feed" "test" {
   name        = "Test Power Feed"
-  power_panel = netbox_power_panel.test.id
-  rack        = netbox_rack.test.id
+  power_panel = netbox_power_panel.test.name
+  rack        = netbox_rack.test.name
   status      = "active"
   type        = "primary"
   supply      = "ac"

@@ -21,8 +21,8 @@ github.com/apparentlymart/go-textseg/v15 v15.0.0 h1:uYvfpb3DyLSCGWnctWKGj857c6ew
 github.com/apparentlymart/go-textseg/v15 v15.0.0/go.mod h1:K8XmNZdhEBkdlyDdvbmmsvpAG721bKi0joRfFdHIWJ4=
 github.com/armon/go-radix v1.0.0 h1:F4z6KzEeeQIMeLFa97iZU6vupzoecKdU5TX24SNppXI=
 github.com/armon/go-radix v1.0.0/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
-github.com/bab3l/go-netbox v0.1.1 h1:3dPGyzvov1G0DPtkzNeQeQ9koflGCdRuNpfDtvr2w8E=
-github.com/bab3l/go-netbox v0.1.1/go.mod h1:EywmgOv8MCfOawjs3oh5bxcIe44VB54Gup1RBXCoF8c=
+github.com/bab3l/go-netbox v0.1.2 h1:MMVYvre/u1c5JEfwg4E0nRM8PsYmmkVqU+MpO1Lwcds=
+github.com/bab3l/go-netbox v0.1.2/go.mod h1:EywmgOv8MCfOawjs3oh5bxcIe44VB54Gup1RBXCoF8c=
 github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQkY=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bmatcuk/doublestar/v4 v4.9.1 h1:X8jg9rRZmJd4yRy7ZeNDRnM+T3ZfHv15JiBJ/avrEXE=

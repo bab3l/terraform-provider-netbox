@@ -9,18 +9,24 @@ import (
 
 func TestAccPlatformDataSource_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { /* add provider precheck if needed */ },
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
+				resource "netbox_platform" "test" {
+				  name = "Test Platform DS"
+				  slug = "test-platform-ds"
+				}
+
 				data "netbox_platform" "test" {
-				  name = "Test Platform"
+				  name = netbox_platform.test.name
 				}
 				`,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.netbox_platform.test", "id"),
-					resource.TestCheckResourceAttr("data.netbox_platform.test", "name", "Test Platform"),
+					resource.TestCheckResourceAttr("data.netbox_platform.test", "name", "Test Platform DS"),
+					resource.TestCheckResourceAttr("data.netbox_platform.test", "slug", "test-platform-ds"),
 				),
 			},
 		},

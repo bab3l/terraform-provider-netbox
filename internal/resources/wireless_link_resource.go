@@ -890,11 +890,31 @@ func (r *WirelessLinkResource) mapToState(ctx context.Context, result *netbox.Wi
 
 	interfaceA := result.GetInterfaceA()
 
-	data.InterfaceA = types.StringValue(fmt.Sprintf("%d", interfaceA.GetId()))
+	userInterfaceA := data.InterfaceA.ValueString()
+
+	if userInterfaceA == interfaceA.GetName() || userInterfaceA == interfaceA.GetDisplay() || userInterfaceA == fmt.Sprintf("%d", interfaceA.GetId()) {
+
+		// Keep user's original value
+
+	} else {
+
+		data.InterfaceA = types.StringValue(interfaceA.GetName())
+
+	}
 
 	interfaceB := result.GetInterfaceB()
 
-	data.InterfaceB = types.StringValue(fmt.Sprintf("%d", interfaceB.GetId()))
+	userInterfaceB := data.InterfaceB.ValueString()
+
+	if userInterfaceB == interfaceB.GetName() || userInterfaceB == interfaceB.GetDisplay() || userInterfaceB == fmt.Sprintf("%d", interfaceB.GetId()) {
+
+		// Keep user's original value
+
+	} else {
+
+		data.InterfaceB = types.StringValue(interfaceB.GetName())
+
+	}
 
 	// Map optional fields
 
@@ -924,7 +944,17 @@ func (r *WirelessLinkResource) mapToState(ctx context.Context, result *netbox.Wi
 
 		tenant := result.GetTenant()
 
-		data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+		userTenant := data.Tenant.ValueString()
+
+		if userTenant == tenant.GetName() || userTenant == tenant.GetSlug() || userTenant == tenant.GetDisplay() || userTenant == fmt.Sprintf("%d", tenant.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Tenant = types.StringValue(tenant.GetName())
+
+		}
 
 	} else {
 

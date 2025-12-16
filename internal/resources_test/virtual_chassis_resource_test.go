@@ -274,7 +274,39 @@ func testAccVirtualChassisResourceConfig_basic(name string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_virtual_chassis" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -306,7 +338,39 @@ resource "netbox_virtual_chassis" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -344,7 +408,39 @@ func testAccVirtualChassisResourceConfig_full(name, description string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_virtual_chassis" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -376,7 +472,39 @@ resource "netbox_virtual_chassis" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   domain      = "test-domain"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -408,6 +536,22 @@ resource "netbox_virtual_chassis" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   comments    = "Test comments"
 
 
@@ -424,7 +568,39 @@ resource "netbox_virtual_chassis" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

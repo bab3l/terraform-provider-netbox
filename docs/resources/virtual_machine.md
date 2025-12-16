@@ -24,7 +24,7 @@ resource "netbox_cluster" "test" {
 
 resource "netbox_virtual_machine" "test" {
   name    = "test-vm-1"
-  cluster = netbox_cluster.test.id
+  cluster = netbox_cluster.test.name
   vcpus   = 2
   memory  = 4096
   disk    = 50

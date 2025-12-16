@@ -389,7 +389,7 @@ func (d *InterfaceDataSource) mapInterfaceToDataSource(ctx context.Context, ifac
 
 	device := iface.GetDevice()
 
-	data.Device = types.StringValue(fmt.Sprintf("%d", device.GetId()))
+	data.Device = types.StringValue(device.GetName())
 
 	// Type
 

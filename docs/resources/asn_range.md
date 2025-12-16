@@ -26,7 +26,7 @@ resource "netbox_rir" "private" {
 resource "netbox_asn_range" "basic" {
   name  = "Private ASN Pool"
   slug  = "private-asn-pool"
-  rir   = netbox_rir.private.id
+  rir   = netbox_rir.private.name
   start = 64512 # Start of private ASN range
   end   = 65534 # End of private ASN range
 }
@@ -35,10 +35,10 @@ resource "netbox_asn_range" "basic" {
 resource "netbox_asn_range" "full" {
   name        = "Production ASN Pool"
   slug        = "production-asn-pool"
-  rir         = netbox_rir.private.id
+  rir         = netbox_rir.private.name
   start       = 64512
   end         = 64612
-  tenant      = netbox_tenant.example.id
+  tenant      = netbox_tenant.example.slug
   description = "ASN range for production network devices"
 
   tags = {

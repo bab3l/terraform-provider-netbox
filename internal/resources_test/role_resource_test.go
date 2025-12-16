@@ -284,7 +284,39 @@ func testAccRoleResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_role" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -316,6 +348,22 @@ resource "netbox_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -332,7 +380,39 @@ resource "netbox_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -370,7 +450,39 @@ func testAccRoleResourceConfig_full(name, slug, description string, weight int) 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_role" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -402,7 +514,39 @@ resource "netbox_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug        = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -434,6 +578,22 @@ resource "netbox_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   weight      = %d
 
 
@@ -450,7 +610,39 @@ resource "netbox_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

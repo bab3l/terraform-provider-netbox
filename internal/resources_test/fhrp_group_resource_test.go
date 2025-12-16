@@ -404,7 +404,39 @@ func testAccFHRPGroupResourceConfig_basic(protocol string, groupID int32) string
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_fhrp_group" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -436,6 +468,22 @@ resource "netbox_fhrp_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   group_id = %d
 
 
@@ -452,7 +500,39 @@ resource "netbox_fhrp_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -490,7 +570,39 @@ func testAccFHRPGroupResourceConfig_full(protocol string, groupID int32, name, d
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_fhrp_group" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -522,7 +634,39 @@ resource "netbox_fhrp_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   group_id    = %d
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -554,7 +698,39 @@ resource "netbox_fhrp_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   description = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -586,6 +762,22 @@ resource "netbox_fhrp_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   auth_key    = %q
 
 
@@ -602,7 +794,39 @@ resource "netbox_fhrp_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

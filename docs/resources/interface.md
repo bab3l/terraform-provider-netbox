@@ -14,7 +14,7 @@ Manages an interface on a device in Netbox. Interfaces represent physical or vir
 ```terraform
 # Basic interface
 resource "netbox_interface" "example" {
-  device      = netbox_device.example.id
+  device      = netbox_device.example.name
   name        = "eth0"
   type        = "1000base-t"
   description = "Main network interface"
@@ -22,7 +22,7 @@ resource "netbox_interface" "example" {
 
 # Interface with full configuration
 resource "netbox_interface" "complete" {
-  device         = netbox_device.example.id
+  device         = netbox_device.example.name
   name           = "eth1"
   type           = "10gbase-x-sfpp"
   label          = "SFP+ Port 1"
@@ -38,7 +38,7 @@ resource "netbox_interface" "complete" {
 
 # Virtual interface
 resource "netbox_interface" "vlan100" {
-  device      = netbox_device.example.id
+  device      = netbox_device.example.name
   name        = "vlan100"
   type        = "virtual"
   description = "VLAN 100 virtual interface"
@@ -46,7 +46,7 @@ resource "netbox_interface" "vlan100" {
 
 # LAG interface
 resource "netbox_interface" "bond0" {
-  device      = netbox_device.example.id
+  device      = netbox_device.example.name
   name        = "bond0"
   type        = "lag"
   description = "Link aggregation group"
@@ -54,10 +54,10 @@ resource "netbox_interface" "bond0" {
 
 # LAG member interface
 resource "netbox_interface" "lag_member" {
-  device = netbox_device.example.id
+  device = netbox_device.example.name
   name   = "eth2"
   type   = "1000base-t"
-  lag    = netbox_interface.bond0.id
+  lag    = netbox_interface.bond0.name
 }
 
 # Management-only interface

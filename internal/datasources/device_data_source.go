@@ -402,19 +402,19 @@ func (d *DeviceDataSource) mapDeviceToDataSource(ctx context.Context, device *ne
 
 	}
 
-	// Handle device_type (return slug)
+	// Handle device_type (return model)
 
-	data.DeviceType = types.StringValue(device.DeviceType.GetSlug())
+	data.DeviceType = types.StringValue(device.DeviceType.GetModel())
 
-	// Handle role (return slug)
+	// Handle role (return name)
 
-	data.Role = types.StringValue(device.Role.GetSlug())
+	data.Role = types.StringValue(device.Role.GetName())
 
 	// Handle tenant
 
 	if device.HasTenant() && device.Tenant.Get() != nil {
 
-		data.Tenant = types.StringValue(device.Tenant.Get().GetSlug())
+		data.Tenant = types.StringValue(device.Tenant.Get().GetName())
 
 	} else {
 
@@ -426,7 +426,7 @@ func (d *DeviceDataSource) mapDeviceToDataSource(ctx context.Context, device *ne
 
 	if device.HasPlatform() && device.Platform.Get() != nil {
 
-		data.Platform = types.StringValue(device.Platform.Get().GetSlug())
+		data.Platform = types.StringValue(device.Platform.Get().GetName())
 
 	} else {
 
@@ -458,15 +458,15 @@ func (d *DeviceDataSource) mapDeviceToDataSource(ctx context.Context, device *ne
 
 	}
 
-	// Handle site (return slug)
+	// Handle site (return name)
 
-	data.Site = types.StringValue(device.Site.GetSlug())
+	data.Site = types.StringValue(device.Site.GetName())
 
 	// Handle location
 
 	if device.HasLocation() && device.Location.Get() != nil {
 
-		data.Location = types.StringValue(device.Location.Get().GetSlug())
+		data.Location = types.StringValue(device.Location.Get().GetName())
 
 	} else {
 

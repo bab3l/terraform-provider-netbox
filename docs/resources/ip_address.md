@@ -30,7 +30,7 @@ resource "netbox_vrf" "test" {
 
 resource "netbox_ip_address" "test_vrf" {
   address = "192.168.1.1/24"
-  vrf     = netbox_vrf.test.id
+  vrf     = netbox_vrf.test.name
   status  = "active"
 }
 ```

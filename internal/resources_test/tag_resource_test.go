@@ -183,7 +183,39 @@ func testAccTagResourceBasic(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_tag" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -215,6 +247,22 @@ resource "netbox_tag" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -231,7 +279,39 @@ resource "netbox_tag" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -271,7 +351,39 @@ func testAccTagResourceFull(name, slug, color, description string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_tag" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -303,7 +415,39 @@ resource "netbox_tag" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug        = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -335,6 +479,22 @@ resource "netbox_tag" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   description = %q
 
 
@@ -351,7 +511,39 @@ resource "netbox_tag" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -391,7 +583,39 @@ func testAccTagResourceWithObjectTypes(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_tag" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -423,7 +647,39 @@ resource "netbox_tag" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug         = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -455,7 +711,39 @@ resource "netbox_tag" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

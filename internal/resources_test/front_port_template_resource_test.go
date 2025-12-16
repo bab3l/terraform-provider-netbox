@@ -197,7 +197,39 @@ func testAccFrontPortTemplateResourceBasic(manufacturerName, manufacturerSlug, d
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -229,6 +261,22 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -245,7 +293,55 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -293,7 +389,39 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -325,6 +453,22 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug         = %q
 
 
@@ -341,7 +485,55 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -389,7 +581,39 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -421,7 +645,39 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   type        = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -453,7 +709,55 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -501,7 +805,39 @@ resource "netbox_front_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -533,7 +869,39 @@ resource "netbox_front_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   type        = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -565,7 +933,39 @@ resource "netbox_front_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -603,7 +1003,39 @@ func testAccFrontPortTemplateResourceFull(manufacturerName, manufacturerSlug, de
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -635,6 +1067,22 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -651,7 +1099,55 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -699,7 +1195,39 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -731,6 +1259,22 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug         = %q
 
 
@@ -747,7 +1291,55 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -795,7 +1387,39 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -827,7 +1451,39 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   type        = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -859,7 +1515,55 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -907,7 +1611,39 @@ resource "netbox_front_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   device_type        = netbox_device_type.test.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -939,7 +1675,39 @@ resource "netbox_front_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   type               = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -971,7 +1739,39 @@ resource "netbox_front_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   rear_port_position = %d
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1003,7 +1803,39 @@ resource "netbox_front_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   color              = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1035,7 +1867,39 @@ resource "netbox_front_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -163,7 +163,39 @@ func testAccConfigTemplateDataSourcePrereqs(name, templateCode string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_config_template" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -195,6 +227,22 @@ resource "netbox_config_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   template_code = %q
 
 
@@ -211,7 +259,39 @@ resource "netbox_config_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -251,7 +331,39 @@ func testAccConfigTemplateDataSourceByID(name, templateCode string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 data "netbox_config_template" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -283,7 +395,39 @@ data "netbox_config_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -323,7 +467,39 @@ func testAccConfigTemplateDataSourceByName(name, templateCode string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 data "netbox_config_template" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -371,6 +547,38 @@ data "netbox_config_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   depends_on = [netbox_config_template.test]
 
 
@@ -387,7 +595,39 @@ data "netbox_config_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

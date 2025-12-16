@@ -720,7 +720,7 @@ func (r *CircuitResource) mapCircuitToState(ctx context.Context, circuit *netbox
 
 	userProvider := data.CircuitProvider.ValueString()
 
-	if userProvider == providerObj.GetName() || userProvider == providerObj.GetSlug() || userProvider == fmt.Sprintf("%d", providerObj.GetId()) {
+	if userProvider == providerObj.GetName() || userProvider == providerObj.GetSlug() || userProvider == providerObj.GetDisplay() || userProvider == fmt.Sprintf("%d", providerObj.GetId()) {
 
 		// Keep user's original value
 
@@ -736,7 +736,7 @@ func (r *CircuitResource) mapCircuitToState(ctx context.Context, circuit *netbox
 
 	userType := data.Type.ValueString()
 
-	if userType == typeObj.GetName() || userType == typeObj.GetSlug() || userType == fmt.Sprintf("%d", typeObj.GetId()) {
+	if userType == typeObj.GetName() || userType == typeObj.GetSlug() || userType == typeObj.GetDisplay() || userType == fmt.Sprintf("%d", typeObj.GetId()) {
 
 		// Keep user's original value
 
@@ -766,7 +766,7 @@ func (r *CircuitResource) mapCircuitToState(ctx context.Context, circuit *netbox
 
 		userTenant := data.Tenant.ValueString()
 
-		if userTenant == tenantObj.GetName() || userTenant == tenantObj.GetSlug() || userTenant == fmt.Sprintf("%d", tenantObj.GetId()) {
+		if userTenant == tenantObj.GetName() || userTenant == tenantObj.GetSlug() || userTenant == tenantObj.GetDisplay() || userTenant == fmt.Sprintf("%d", tenantObj.GetId()) {
 
 			// Keep user's original value
 

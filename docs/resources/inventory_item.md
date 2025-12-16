@@ -24,6 +24,22 @@ Manages an inventory item in NetBox. Inventory items represent hardware componen
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ~> **Deprecation Warning:** Beginning in NetBox v4.3, inventory items are deprecated and planned for removal in a future release. Users are strongly encouraged to use [modules](https://netboxlabs.com/docs/netbox/models/dcim/module/) and [module types](https://netboxlabs.com/docs/netbox/models/dcim/moduletype/) instead.
 
 ## Example Usage
@@ -55,15 +71,15 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_device" "test" {
   name        = "test-device-1"
-  device_type = netbox_device_type.test.id
-  role        = netbox_device_role.test.id
-  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.model
+  role        = netbox_device_role.test.name
+  site        = netbox_site.test.name
   status      = "active"
 }
 
 resource "netbox_inventory_item" "test" {
   name   = "Inventory Item 1"
-  device = netbox_device.test.id
+  device = netbox_device.test.name
 }
 ```
 

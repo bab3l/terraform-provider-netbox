@@ -886,7 +886,17 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 
 	device := iface.GetDevice()
 
-	data.Device = types.StringValue(fmt.Sprintf("%d", device.GetId()))
+	userDevice := data.Device.ValueString()
+
+	if userDevice == device.GetName() || userDevice == device.GetDisplay() || userDevice == fmt.Sprintf("%d", device.GetId()) {
+
+		// Keep user's original value
+
+	} else {
+
+		data.Device = types.StringValue(device.GetName())
+
+	}
 
 	// Type
 
@@ -930,7 +940,17 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 
 		if parent.GetId() != 0 {
 
-			data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+			userParent := data.Parent.ValueString()
+
+			if userParent == parent.GetName() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
+
+				// Keep user's original value
+
+			} else {
+
+				data.Parent = types.StringValue(parent.GetName())
+
+			}
 
 		} else {
 
@@ -952,7 +972,17 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 
 		if bridge.GetId() != 0 {
 
-			data.Bridge = types.StringValue(fmt.Sprintf("%d", bridge.GetId()))
+			userBridge := data.Bridge.ValueString()
+
+			if userBridge == bridge.GetName() || userBridge == bridge.GetDisplay() || userBridge == fmt.Sprintf("%d", bridge.GetId()) {
+
+				// Keep user's original value
+
+			} else {
+
+				data.Bridge = types.StringValue(bridge.GetName())
+
+			}
 
 		} else {
 
@@ -974,7 +1004,17 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 
 		if lag.GetId() != 0 {
 
-			data.Lag = types.StringValue(fmt.Sprintf("%d", lag.GetId()))
+			userLag := data.Lag.ValueString()
+
+			if userLag == lag.GetName() || userLag == lag.GetDisplay() || userLag == fmt.Sprintf("%d", lag.GetId()) {
+
+				// Keep user's original value
+
+			} else {
+
+				data.Lag = types.StringValue(lag.GetName())
+
+			}
 
 		} else {
 

@@ -229,7 +229,39 @@ func testAccIKEPolicyDataSourceByID(name string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_ike_policy" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -261,6 +293,22 @@ resource "netbox_ike_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   version = 2
 
 
@@ -277,7 +325,55 @@ resource "netbox_ike_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -325,6 +421,22 @@ data "netbox_ike_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   id = netbox_ike_policy.test.id
 
 
@@ -341,7 +453,39 @@ data "netbox_ike_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -379,7 +523,39 @@ func testAccIKEPolicyDataSourceByName(name string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_ike_policy" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -411,6 +587,22 @@ resource "netbox_ike_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   version = 2
 
 
@@ -427,7 +619,55 @@ resource "netbox_ike_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -475,6 +715,22 @@ data "netbox_ike_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name = netbox_ike_policy.test.name
 
 
@@ -491,7 +747,39 @@ data "netbox_ike_policy" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

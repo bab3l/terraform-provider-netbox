@@ -38,7 +38,7 @@ resource "netbox_circuit" "test" {
 resource "netbox_circuit_termination" "test_a" {
   circuit    = netbox_circuit.test.id
   term_side  = "A"
-  site       = netbox_site.test.id
+  site       = netbox_site.test.name
   port_speed = 1000000 # 1 Gbps
 }
 ```

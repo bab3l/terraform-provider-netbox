@@ -711,7 +711,7 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 
 		userSite := data.Site.ValueString()
 
-		if userSite == siteObj.Name || userSite == siteObj.Slug || userSite == fmt.Sprintf("%d", siteObj.Id) {
+		if userSite == siteObj.Name || userSite == siteObj.Slug || userSite == siteObj.Display || userSite == fmt.Sprintf("%d", siteObj.Id) {
 
 			// Keep user's original value
 
@@ -735,7 +735,7 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 
 		userVrf := data.VRF.ValueString()
 
-		if userVrf == vrfObj.Name || userVrf == fmt.Sprintf("%d", vrfObj.Id) {
+		if userVrf == vrfObj.Name || userVrf == vrfObj.Display || userVrf == fmt.Sprintf("%d", vrfObj.Id) {
 
 			// Keep user's original value
 
@@ -759,7 +759,7 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 
 		userTenant := data.Tenant.ValueString()
 
-		if userTenant == tenantObj.Name || userTenant == tenantObj.Slug || userTenant == fmt.Sprintf("%d", tenantObj.Id) {
+		if userTenant == tenantObj.Name || userTenant == tenantObj.Slug || userTenant == tenantObj.Display || userTenant == fmt.Sprintf("%d", tenantObj.Id) {
 
 			// Keep user's original value
 

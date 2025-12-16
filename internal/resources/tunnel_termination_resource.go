@@ -687,7 +687,21 @@ func (r *TunnelTerminationResource) mapTunnelTerminationToState(ctx context.Cont
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", tunnelTermination.GetId()))
 
-	data.Tunnel = types.StringValue(fmt.Sprintf("%d", tunnelTermination.Tunnel.GetId()))
+	// Map tunnel
+
+	tunnel := tunnelTermination.Tunnel
+
+	userTunnel := data.Tunnel.ValueString()
+
+	if userTunnel == tunnel.GetName() || userTunnel == tunnel.GetDisplay() || userTunnel == fmt.Sprintf("%d", tunnel.GetId()) {
+
+		// Keep user's original value
+
+	} else {
+
+		data.Tunnel = types.StringValue(tunnel.GetName())
+
+	}
 
 	data.TerminationType = types.StringValue(tunnelTermination.GetTerminationType())
 
@@ -727,7 +741,19 @@ func (r *TunnelTerminationResource) mapTunnelTerminationToState(ctx context.Cont
 
 	if tunnelTermination.HasOutsideIp() && tunnelTermination.OutsideIp.IsSet() && tunnelTermination.OutsideIp.Get() != nil {
 
-		data.OutsideIP = types.StringValue(fmt.Sprintf("%d", tunnelTermination.OutsideIp.Get().GetId()))
+		outsideIP := tunnelTermination.OutsideIp.Get()
+
+		userOutsideIP := data.OutsideIP.ValueString()
+
+		if userOutsideIP == outsideIP.GetDisplay() || userOutsideIP == fmt.Sprintf("%d", outsideIP.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.OutsideIP = types.StringValue(outsideIP.GetDisplay())
+
+		}
 
 	} else {
 

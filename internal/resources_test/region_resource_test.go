@@ -373,7 +373,39 @@ func testAccRegionResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -405,7 +437,39 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -437,7 +501,39 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -469,6 +565,22 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   }
 
 
@@ -485,7 +597,55 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -549,7 +709,55 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_region" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -581,6 +789,22 @@ resource "netbox_region" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -597,7 +821,39 @@ resource "netbox_region" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -637,7 +893,39 @@ func testAccRegionResourceConfig_full(name, slug, description string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -669,7 +957,39 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -701,7 +1021,39 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -733,7 +1085,39 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -781,7 +1165,71 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 provider "netbox" {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -829,7 +1277,39 @@ resource "netbox_region" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name        = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -861,6 +1341,22 @@ resource "netbox_region" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   description = %q
 
 
@@ -877,7 +1373,39 @@ resource "netbox_region" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -917,7 +1445,39 @@ func testAccRegionResourceConfig_withParent(parentName, parentSlug, childName, c
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 terraform {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -949,7 +1509,39 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     netbox = {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -981,7 +1573,39 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       version = ">= 0.1.0"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1013,7 +1637,39 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1061,7 +1717,71 @@ terraform {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 provider "netbox" {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1109,7 +1829,39 @@ resource "netbox_region" "parent" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1141,7 +1893,55 @@ resource "netbox_region" "parent" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1189,7 +1989,39 @@ resource "netbox_region" "child" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name   = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1221,6 +2053,22 @@ resource "netbox_region" "child" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   parent = netbox_region.parent.id
 
 
@@ -1237,7 +2085,39 @@ resource "netbox_region" "child" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

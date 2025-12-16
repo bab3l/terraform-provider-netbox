@@ -46,7 +46,7 @@ resource "netbox_device" "test" {
 
 resource "netbox_rear_port" "test" {
   name      = "Rear Port 1"
-  device    = netbox_device.test.id
+  device    = netbox_device.test.name
   type      = "8p8c"
   positions = 1
 }

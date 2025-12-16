@@ -12,6 +12,6 @@ resource "netbox_device_type" "test" {
 
 resource "netbox_console_port_template" "test" {
   name        = "Console Port Template"
-  device_type = netbox_device_type.test.id
+  device_type = netbox_device_type.test.model
   type        = "rj-45"
 }
