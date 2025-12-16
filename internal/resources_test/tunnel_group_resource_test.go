@@ -373,7 +373,23 @@ func testAccTunnelGroupResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_tunnel_group" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -389,6 +405,14 @@ resource "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %[2]q
 
 
@@ -397,7 +421,23 @@ resource "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -419,7 +459,23 @@ func testAccTunnelGroupResourceConfig_full(name, slug, description string) strin
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_tunnel_group" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -435,7 +491,23 @@ resource "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug        = %[2]q
+
+
+
+
+
+
+
+
 
 
 
@@ -451,7 +523,23 @@ resource "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

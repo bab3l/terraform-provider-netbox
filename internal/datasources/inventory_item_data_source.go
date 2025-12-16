@@ -102,6 +102,22 @@ func (d *InventoryItemDataSource) Schema(ctx context.Context, req datasource.Sch
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ~> **Deprecation Warning:** Beginning in NetBox v4.3, inventory items are deprecated and planned for removal in a future release. Users are strongly encouraged to use modules and module types instead.`,
 
 		Attributes: map[string]schema.Attribute{

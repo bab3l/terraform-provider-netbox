@@ -312,7 +312,23 @@ func testAccClusterTypeResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -328,6 +344,14 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -336,7 +360,23 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -358,7 +398,23 @@ func testAccClusterTypeResourceConfig_full(name, slug, description string) strin
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -374,7 +430,23 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug        = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -390,7 +462,23 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

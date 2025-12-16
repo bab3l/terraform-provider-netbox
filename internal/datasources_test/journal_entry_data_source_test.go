@@ -204,7 +204,23 @@ func testAccJournalEntryDataSourceConfig_byID(siteName string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -220,6 +236,14 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -228,7 +252,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -252,7 +300,23 @@ resource "netbox_journal_entry" "test" {
 
 
 
+
+
+
+
+
+
+
+
   assigned_object_type = "dcim.site"
+
+
+
+
+
+
+
+
 
 
 
@@ -268,6 +332,14 @@ resource "netbox_journal_entry" "test" {
 
 
 
+
+
+
+
+
+
+
+
   comments             = "Test journal entry for data source"
 
 
@@ -276,7 +348,31 @@ resource "netbox_journal_entry" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -300,6 +396,14 @@ data "netbox_journal_entry" "test" {
 
 
 
+
+
+
+
+
+
+
+
   id = netbox_journal_entry.test.id
 
 
@@ -308,7 +412,23 @@ data "netbox_journal_entry" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

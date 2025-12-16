@@ -347,7 +347,23 @@ func testAccClusterResourceConfig_basic(clusterTypeName, clusterTypeSlug, cluste
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -363,6 +379,14 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -371,7 +395,31 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -395,7 +443,23 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -411,7 +475,23 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -433,7 +513,23 @@ func testAccClusterResourceConfig_full(clusterTypeName, clusterTypeSlug, cluster
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -449,6 +545,14 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -457,7 +561,31 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -481,7 +609,23 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -497,7 +641,23 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
   status      = "active"
+
+
+
+
+
+
+
+
 
 
 
@@ -513,6 +673,14 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
   comments    = %q
 
 
@@ -521,7 +689,23 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

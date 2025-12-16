@@ -260,7 +260,23 @@ func testAccTunnelGroupDataSourceByID(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_tunnel_group" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -276,6 +292,14 @@ resource "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %[2]q
 
 
@@ -284,7 +308,31 @@ resource "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -308,6 +356,14 @@ data "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   id = netbox_tunnel_group.test.id
 
 
@@ -316,7 +372,23 @@ data "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -338,7 +410,23 @@ func testAccTunnelGroupDataSourceByName(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_tunnel_group" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -354,6 +442,14 @@ resource "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %[2]q
 
 
@@ -362,7 +458,31 @@ resource "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -386,6 +506,14 @@ data "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = netbox_tunnel_group.test.name
 
 
@@ -394,7 +522,23 @@ data "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -416,7 +560,23 @@ func testAccTunnelGroupDataSourceBySlug(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_tunnel_group" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -432,6 +592,14 @@ resource "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %[2]q
 
 
@@ -440,7 +608,31 @@ resource "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -464,6 +656,14 @@ data "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = netbox_tunnel_group.test.slug
 
 
@@ -472,7 +672,23 @@ data "netbox_tunnel_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -278,7 +278,23 @@ func testAccInventoryItemRoleResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_inventory_item_role" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -294,6 +310,14 @@ resource "netbox_inventory_item_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -302,7 +326,23 @@ resource "netbox_inventory_item_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -324,7 +364,23 @@ func testAccInventoryItemRoleResourceConfig_full(name, slug, color, description 
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_inventory_item_role" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -340,7 +396,23 @@ resource "netbox_inventory_item_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug        = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -356,6 +428,14 @@ resource "netbox_inventory_item_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   description = %q
 
 
@@ -364,7 +444,23 @@ resource "netbox_inventory_item_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

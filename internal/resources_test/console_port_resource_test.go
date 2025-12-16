@@ -324,7 +324,23 @@ func testAccConsolePortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -340,7 +356,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -356,7 +388,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -380,7 +436,23 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -396,7 +468,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -420,7 +516,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -436,6 +548,14 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug         = %q
 
 
@@ -444,7 +564,31 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -468,7 +612,23 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name  = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -484,6 +644,14 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   color = "aa1409"
 
 
@@ -492,7 +660,31 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -516,7 +708,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -532,7 +740,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   role        = netbox_device_role.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -548,7 +772,31 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -572,7 +820,23 @@ resource "netbox_console_port" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device = netbox_device.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -588,7 +852,23 @@ resource "netbox_console_port" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -610,7 +890,23 @@ func testAccConsolePortResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug,
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -626,7 +922,23 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug   = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -642,7 +954,31 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -666,7 +1002,23 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -682,7 +1034,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -706,7 +1082,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -722,6 +1114,14 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug         = %q
 
 
@@ -730,7 +1130,31 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -754,7 +1178,23 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name  = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -770,6 +1210,14 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
   color = "aa1409"
 
 
@@ -778,7 +1226,31 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -802,7 +1274,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -818,7 +1306,23 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   role        = netbox_device_role.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -834,7 +1338,31 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -858,7 +1386,23 @@ resource "netbox_console_port" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device      = netbox_device.test.id
+
+
+
+
+
+
+
+
 
 
 
@@ -874,7 +1418,23 @@ resource "netbox_console_port" "test" {
 
 
 
+
+
+
+
+
+
+
+
   type        = "rj-45"
+
+
+
+
+
+
+
+
 
 
 
@@ -890,7 +1450,23 @@ resource "netbox_console_port" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

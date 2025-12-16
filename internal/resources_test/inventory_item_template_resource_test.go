@@ -408,7 +408,31 @@ func testAccInventoryItemTemplateResourceConfig_basic(mfgName, mfgSlug, dtModel,
 
 
 
+
+
+
+
+
+
+
+
 provider "netbox" {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -432,7 +456,23 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %[1]q
+
+
+
+
+
+
+
+
 
 
 
@@ -448,7 +488,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -472,7 +536,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   model        = %[3]q
+
+
+
+
+
+
+
+
 
 
 
@@ -488,6 +568,14 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
 
 
@@ -496,7 +584,31 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -520,7 +632,23 @@ resource "netbox_inventory_item_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %[5]q
+
+
+
+
+
+
+
+
 
 
 
@@ -536,7 +664,23 @@ resource "netbox_inventory_item_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -582,7 +726,31 @@ func testAccInventoryItemTemplateResourceConfig_full(mfgName, mfgSlug, dtModel, 
 
 
 
+
+
+
+
+
+
+
+
 provider "netbox" {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -606,7 +774,23 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = %[1]q
+
+
+
+
+
+
+
+
 
 
 
@@ -622,7 +806,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -646,7 +854,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   model        = %[3]q
+
+
+
+
+
+
+
+
 
 
 
@@ -662,6 +886,14 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
 
 
@@ -670,7 +902,31 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -694,7 +950,23 @@ resource "netbox_inventory_item_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %[5]q
+
+
+
+
+
+
+
+
 
 
 
@@ -710,7 +982,23 @@ resource "netbox_inventory_item_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   %[6]s
+
+
+
+
+
+
+
+
 
 
 
@@ -726,6 +1014,14 @@ resource "netbox_inventory_item_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   %[8]s
 
 
@@ -734,7 +1030,23 @@ resource "netbox_inventory_item_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -749,6 +1061,14 @@ resource "netbox_inventory_item_template" "test" {
 func testAccInventoryItemTemplateResourceConfig_withParent(mfgName, mfgSlug, dtModel, dtSlug, parentName, childName string) string {
 
 	return fmt.Sprintf(`
+
+
+
+
+
+
+
+
 
 
 
@@ -772,7 +1092,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -788,6 +1132,14 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
   slug = %[2]q
 
 
@@ -796,7 +1148,31 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -820,7 +1196,23 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   model        = %[3]q
+
+
+
+
+
+
+
+
 
 
 
@@ -836,6 +1228,14 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
 
 
@@ -844,7 +1244,31 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -868,7 +1292,23 @@ resource "netbox_inventory_item_template" "parent" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %[5]q
+
+
+
+
+
+
+
+
 
 
 
@@ -884,7 +1324,31 @@ resource "netbox_inventory_item_template" "parent" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -908,7 +1372,23 @@ resource "netbox_inventory_item_template" "child" {
 
 
 
+
+
+
+
+
+
+
+
   name        = %[6]q
+
+
+
+
+
+
+
+
 
 
 
@@ -924,6 +1404,14 @@ resource "netbox_inventory_item_template" "child" {
 
 
 
+
+
+
+
+
+
+
+
   parent      = netbox_inventory_item_template.parent.id
 
 
@@ -932,7 +1420,23 @@ resource "netbox_inventory_item_template" "child" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 

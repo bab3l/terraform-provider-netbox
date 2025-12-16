@@ -223,7 +223,23 @@ func testAccIPSecProposalDataSourceByID(name string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_ipsec_proposal" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -239,7 +255,23 @@ resource "netbox_ipsec_proposal" "test" {
 
 
 
+
+
+
+
+
+
+
+
   encryption_algorithm     = "aes-256-cbc"
+
+
+
+
+
+
+
+
 
 
 
@@ -255,7 +287,31 @@ resource "netbox_ipsec_proposal" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -279,6 +335,14 @@ data "netbox_ipsec_proposal" "test" {
 
 
 
+
+
+
+
+
+
+
+
   id = netbox_ipsec_proposal.test.id
 
 
@@ -287,7 +351,23 @@ data "netbox_ipsec_proposal" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -309,7 +389,23 @@ func testAccIPSecProposalDataSourceByName(name string) string {
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_ipsec_proposal" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -325,7 +421,23 @@ resource "netbox_ipsec_proposal" "test" {
 
 
 
+
+
+
+
+
+
+
+
   encryption_algorithm     = "aes-256-cbc"
+
+
+
+
+
+
+
+
 
 
 
@@ -341,7 +453,31 @@ resource "netbox_ipsec_proposal" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -365,6 +501,14 @@ data "netbox_ipsec_proposal" "test" {
 
 
 
+
+
+
+
+
+
+
+
   name = netbox_ipsec_proposal.test.name
 
 
@@ -373,7 +517,23 @@ data "netbox_ipsec_proposal" "test" {
 
 
 
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
