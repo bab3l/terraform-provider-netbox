@@ -1,71 +1,43 @@
 package datasources_test
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestContactRoleDataSource_Metadata(t *testing.T) {
-	d := datasources.NewContactRoleDataSource()
-	req := datasource.MetadataRequest{
-		ProviderTypeName: "netbox",
-	}
-	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, req, resp)
+func TestAccContactRoleDataSource_basic(t *testing.T) {
+	name := testutil.RandomName("test-contact-role")
+	slug := testutil.GenerateSlug(name)
 
-	if resp.TypeName != "netbox_contact_role" {
-		t.Errorf("expected TypeName 'netbox_contact_role', got '%s'", resp.TypeName)
-	}
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactRoleDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_contact_role.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_contact_role.test", "slug", slug),
+					resource.TestCheckResourceAttr("data.netbox_contact_role.test", "description", "Test Contact Role Description"),
+				),
+			},
+		},
+	})
 }
 
-func TestContactRoleDataSource_Schema(t *testing.T) {
-	d := datasources.NewContactRoleDataSource()
-	req := datasource.SchemaRequest{}
-	resp := &datasource.SchemaResponse{}
-	d.Schema(nil, req, resp)
-
-	if resp.Schema.Attributes == nil {
-		t.Fatal("expected schema attributes, got nil")
-	}
-
-	lookupAttrs := []string{"id", "name", "slug"}
-	computedAttrs := []string{"description"}
-
-	for _, attr := range lookupAttrs {
-		if _, ok := resp.Schema.Attributes[attr]; !ok {
-			t.Errorf("expected lookup attribute '%s' in schema", attr)
-		}
-	}
-
-	for _, attr := range computedAttrs {
-		if _, ok := resp.Schema.Attributes[attr]; !ok {
-			t.Errorf("expected computed attribute '%s' in schema", attr)
-		}
-	}
+func testAccContactRoleDataSourceConfig(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_contact_role" "test" {
+  name        = %q
+  slug        = %q
+  description = "Test Contact Role Description"
 }
 
-func TestContactRoleDataSource_SchemaDescription(t *testing.T) {
-	d := datasources.NewContactRoleDataSource()
-	req := datasource.SchemaRequest{}
-	resp := &datasource.SchemaResponse{}
-	d.Schema(nil, req, resp)
-
-	if resp.Schema.MarkdownDescription == "" {
-		t.Error("expected schema to have a description")
-	}
+data "netbox_contact_role" "test" {
+  id = netbox_contact_role.test.id
 }
-
-func TestContactRoleDataSource_Configure(t *testing.T) {
-	d := datasources.NewContactRoleDataSource().(*datasources.ContactRoleDataSource)
-	req := datasource.ConfigureRequest{
-		ProviderData: nil,
-	}
-	resp := &datasource.ConfigureResponse{}
-	d.Configure(nil, req, resp)
-
-	if resp.Diagnostics.HasError() {
-		t.Errorf("expected no errors with nil provider data, got: %v", resp.Diagnostics)
-	}
+`, name, slug)
 }

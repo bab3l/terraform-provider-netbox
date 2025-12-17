@@ -1,94 +1,46 @@
 package datasources_test
 
 import (
-	"context"
+	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestConfigContextDataSource_Metadata(t *testing.T) {
-	d := datasources.NewConfigContextDataSource()
+func TestAccConfigContextDataSource_basic(t *testing.T) {
+	name := testutil.RandomName("test-config-context")
 
-	req := datasource.MetadataRequest{
-		ProviderTypeName: "netbox",
-	}
-	resp := &datasource.MetadataResponse{}
-
-	d.Metadata(context.Background(), req, resp)
-
-	if resp.TypeName != "netbox_config_context" {
-		t.Errorf("Expected type name 'netbox_config_context', got '%s'", resp.TypeName)
-	}
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigContextDataSourceConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_config_context.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_config_context.test", "description", "Test Config Context Description"),
+					resource.TestCheckResourceAttr("data.netbox_config_context.test", "weight", "100"),
+					resource.TestCheckResourceAttr("data.netbox_config_context.test", "is_active", "true"),
+					resource.TestCheckResourceAttr("data.netbox_config_context.test", "data", "{\"foo\":\"bar\"}"),
+				),
+			},
+		},
+	})
 }
 
-func TestConfigContextDataSource_Schema(t *testing.T) {
-	d := datasources.NewConfigContextDataSource()
-
-	req := datasource.SchemaRequest{}
-	resp := &datasource.SchemaResponse{}
-
-	d.Schema(context.Background(), req, resp)
-
-	if resp.Diagnostics.HasError() {
-		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
-	}
-
-	// Verify lookup attributes exist
-	lookupAttrs := []string{"id", "name"}
-	for _, attr := range lookupAttrs {
-		if _, ok := resp.Schema.Attributes[attr]; !ok {
-			t.Errorf("Expected lookup attribute '%s' to exist in schema", attr)
-		}
-	}
-
-	// Verify computed attributes exist
-	computedAttrs := []string{
-		"description", "weight", "is_active", "data",
-		"regions", "site_groups", "sites", "locations",
-		"device_types", "roles", "platforms",
-		"cluster_types", "cluster_groups", "clusters",
-		"tenant_groups", "tenants", "tags",
-	}
-	for _, attr := range computedAttrs {
-		if _, ok := resp.Schema.Attributes[attr]; !ok {
-			t.Errorf("Expected computed attribute '%s' to exist in schema", attr)
-		}
-	}
+func testAccConfigContextDataSourceConfig(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_config_context" "test" {
+  name        = %q
+  description = "Test Config Context Description"
+  weight      = 100
+  is_active   = true
+  data        = "{\"foo\":\"bar\"}"
 }
 
-func TestConfigContextDataSource_SchemaDescription(t *testing.T) {
-	d := datasources.NewConfigContextDataSource()
-
-	req := datasource.SchemaRequest{}
-	resp := &datasource.SchemaResponse{}
-
-	d.Schema(context.Background(), req, resp)
-
-	if resp.Schema.MarkdownDescription == "" {
-		t.Error("Expected schema to have a markdown description")
-	}
+data "netbox_config_context" "test" {
+  id = netbox_config_context.test.id
 }
-
-func TestConfigContextDataSource_Configure(t *testing.T) {
-	d := datasources.NewConfigContextDataSource()
-
-	// Verify the data source implements the configurable interface
-	configurable, ok := d.(datasource.DataSourceWithConfigure)
-	if !ok {
-		t.Skip("Data source does not implement DataSourceWithConfigure")
-	}
-
-	// Test with nil provider data - should not error
-	req := datasource.ConfigureRequest{
-		ProviderData: nil,
-	}
-	resp := &datasource.ConfigureResponse{}
-
-	configurable.Configure(context.Background(), req, resp)
-
-	if resp.Diagnostics.HasError() {
-		t.Errorf("Configure with nil provider data should not error: %v", resp.Diagnostics)
-	}
+`, name)
 }

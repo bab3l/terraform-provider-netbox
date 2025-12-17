@@ -297,3 +297,45 @@ resource "netbox_asn_range" "test" {
 }
 `, rirName, rirSlug, name, slug)
 }
+
+func TestAccASNRangeResource_import(t *testing.T) {
+	// Generate unique names to avoid conflicts between test runs
+	name := testutil.RandomName("tf-test-asn-range")
+	slug := testutil.RandomSlug("tf-test-asn-range")
+	rirName := testutil.RandomName("tf-test-rir")
+	rirSlug := testutil.RandomSlug("tf-test-rir")
+
+	// Register cleanup to ensure resources are deleted even if test fails
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterASNRangeCleanup(name)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckASNRangeDestroy,
+			testutil.CheckRIRDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccASNRangeResourceConfig_basic(name, slug, rirName, rirSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "id"),
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "start", "64512"),
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "end", "64612"),
+					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "rir"),
+				),
+			},
+			{
+				ResourceName:      "netbox_asn_range.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

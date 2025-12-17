@@ -1437,3 +1437,33 @@ resource "netbox_journal_entry" "test" {
 `, siteName, testutil.GenerateSlug(siteName))
 
 }
+
+func TestAccJournalEntryResource_import(t *testing.T) {
+	siteName := testutil.RandomName("tf-test-site-journal")
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(testutil.GenerateSlug(siteName))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckJournalEntryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccJournalEntryResourceConfig_basic(siteName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_journal_entry.test", "id"),
+					resource.TestCheckResourceAttr("netbox_journal_entry.test", "assigned_object_type", "dcim.site"),
+					resource.TestCheckResourceAttr("netbox_journal_entry.test", "comments", "Test journal entry"),
+					resource.TestCheckResourceAttr("netbox_journal_entry.test", "kind", "info"),
+				),
+			},
+			{
+				ResourceName:      "netbox_journal_entry.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

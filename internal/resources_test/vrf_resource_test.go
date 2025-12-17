@@ -669,3 +669,22 @@ resource "netbox_vrf" "test" {
 `, name, rd, description)
 
 }
+
+func TestAccVRFResource_import(t *testing.T) {
+	name := "test-vrf-" + testutil.GenerateSlug("vrf")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVRFResourceConfig_basic(name),
+			},
+			{
+				ResourceName:      "netbox_vrf.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

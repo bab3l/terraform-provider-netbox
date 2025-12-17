@@ -710,7 +710,7 @@ func (r *LocationResource) mapLocationToState(ctx context.Context, location *net
 
 	// Only update if it was unknown (e.g., during import)
 
-	if data.Site.IsUnknown() {
+	if data.Site.IsUnknown() || data.Site.IsNull() {
 
 		site := location.GetSite()
 

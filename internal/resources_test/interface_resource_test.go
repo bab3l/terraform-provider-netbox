@@ -2845,3 +2845,111 @@ resource "netbox_interface" "test" {
 		deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, interfaceName, description)
 
 }
+
+func TestAccInterfaceResource_import(t *testing.T) {
+	// Generate unique names to avoid conflicts between test runs
+	const interfaceName = "eth0"
+	deviceName := testutil.RandomName("tf-test-iface-device")
+	manufacturerName := testutil.RandomName("tf-test-iface-mfr")
+	manufacturerSlug := testutil.RandomSlug("tf-test-iface-mfr")
+	deviceTypeModel := testutil.RandomName("tf-test-iface-dt")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-iface-dt")
+	deviceRoleName := testutil.RandomName("tf-test-iface-role")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-iface-role")
+	siteName := testutil.RandomName("tf-test-iface-site")
+	siteSlug := testutil.RandomSlug("tf-test-iface-site")
+
+	// Register cleanup to ensure resources are deleted even if test fails
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterInterfaceCleanup(interfaceName, deviceName)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckInterfaceDestroy,
+			testutil.CheckDeviceDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckSiteDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceResourceConfig_import(
+					manufacturerName, manufacturerSlug,
+					deviceTypeModel, deviceTypeSlug,
+					deviceRoleName, deviceRoleSlug,
+					siteName, siteSlug,
+					deviceName, interfaceName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_interface.test", "id"),
+					resource.TestCheckResourceAttr("netbox_interface.test", "name", interfaceName),
+					resource.TestCheckResourceAttr("netbox_interface.test", "type", "1000base-t"),
+					resource.TestCheckResourceAttrPair("netbox_interface.test", "device", "netbox_device.test", "name"),
+				),
+			},
+			{
+				ResourceName:      "netbox_interface.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccInterfaceResourceConfig_import(
+	manufacturerName, manufacturerSlug,
+	deviceTypeModel, deviceTypeSlug,
+	deviceRoleName, deviceRoleSlug,
+	siteName, siteSlug,
+	deviceName, interfaceName string,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[3]q
+  slug         = %[4]q
+}
+
+resource "netbox_device_role" "test" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_site" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_device" "test" {
+  name        = %[9]q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_interface" "test" {
+  device = netbox_device.test.name
+  name   = %[10]q
+  type   = "1000base-t"
+}
+`, manufacturerName, manufacturerSlug,
+		deviceTypeModel, deviceTypeSlug,
+		deviceRoleName, deviceRoleSlug,
+		siteName, siteSlug,
+		deviceName, interfaceName)
+}

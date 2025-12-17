@@ -1387,3 +1387,44 @@ resource "netbox_tenant" "test" {
 `, name, slug, description)
 
 }
+
+func TestAccTenantResource_import(t *testing.T) {
+	// Generate unique names to avoid conflicts between test runs
+	name := testutil.RandomName("tf-test-tenant-import")
+	slug := testutil.RandomSlug("tf-test-tenant-imp")
+
+	// Register cleanup
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTenantCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckTenantDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTenantResourceConfig_import(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tenant.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "slug", slug),
+				),
+			},
+			{
+				ResourceName:      "netbox_tenant.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccTenantResourceConfig_import(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+`, name, slug)
+}

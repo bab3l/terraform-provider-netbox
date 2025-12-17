@@ -1084,3 +1084,53 @@ resource "netbox_cluster" "test" {
 `, clusterTypeName, clusterTypeSlug, clusterName, description, comments)
 
 }
+
+func TestAccClusterResource_import(t *testing.T) {
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-import")
+	clusterTypeSlug := clusterTypeName
+	clusterName := testutil.RandomName("tf-test-cluster-import")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccClusterResourceConfig_import(clusterTypeName, clusterTypeSlug, clusterName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),
+					resource.TestCheckResourceAttr("netbox_cluster.test", "name", clusterName),
+					resource.TestCheckResourceAttr("netbox_cluster.test", "type", clusterTypeSlug),
+				),
+			},
+			{
+				ResourceName:      "netbox_cluster.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccClusterResourceConfig_import(clusterTypeName, clusterTypeSlug, clusterName string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.slug
+}
+`, clusterTypeName, clusterTypeSlug, clusterName)
+}

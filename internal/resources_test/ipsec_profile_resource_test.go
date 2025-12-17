@@ -294,3 +294,45 @@ resource "netbox_ipsec_profile" "test" {
 }
 `, ikePolicyName, ipsecPolicyName, name)
 }
+
+func TestAccIPSecProfileResource_import(t *testing.T) {
+	// Generate unique name to avoid conflicts between test runs
+	name := testutil.RandomName("tf-test-ipsec-profile")
+	ikePolicyName := testutil.RandomName("tf-test-ike-policy-for-profile")
+	ipsecPolicyName := testutil.RandomName("tf-test-ipsec-policy-for-profile")
+
+	// Register cleanup to ensure resources are deleted even if test fails
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProfileCleanup(name)
+	cleanup.RegisterIKEPolicyCleanup(ikePolicyName)
+	cleanup.RegisterIPSecPolicyCleanup(ipsecPolicyName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckIPSecProfileDestroy,
+			testutil.CheckIKEPolicyDestroy,
+			testutil.CheckIPSecPolicyDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSecProfileResourceConfig_basic(name, ikePolicyName, ipsecPolicyName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ipsec_profile.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "mode", "esp"),
+					resource.TestCheckResourceAttrSet("netbox_ipsec_profile.test", "ike_policy"),
+					resource.TestCheckResourceAttrSet("netbox_ipsec_profile.test", "ipsec_policy"),
+				),
+			},
+			{
+				ResourceName:      "netbox_ipsec_profile.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

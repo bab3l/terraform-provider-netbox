@@ -1,18 +1,22 @@
 package resources_test
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/resources"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestContactGroupResource_Metadata(t *testing.T) {
 	r := resources.NewContactGroupResource()
-	req := resource.MetadataRequest{
+	req := fwresource.MetadataRequest{
 		ProviderTypeName: "netbox",
 	}
-	resp := &resource.MetadataResponse{}
+	resp := &fwresource.MetadataResponse{}
 	r.Metadata(nil, req, resp)
 
 	if resp.TypeName != "netbox_contact_group" {
@@ -22,8 +26,8 @@ func TestContactGroupResource_Metadata(t *testing.T) {
 
 func TestContactGroupResource_Schema(t *testing.T) {
 	r := resources.NewContactGroupResource()
-	req := resource.SchemaRequest{}
-	resp := &resource.SchemaResponse{}
+	req := fwresource.SchemaRequest{}
+	resp := &fwresource.SchemaResponse{}
 	r.Schema(nil, req, resp)
 
 	if resp.Schema.Attributes == nil {
@@ -55,8 +59,8 @@ func TestContactGroupResource_Schema(t *testing.T) {
 
 func TestContactGroupResource_SchemaDescription(t *testing.T) {
 	r := resources.NewContactGroupResource()
-	req := resource.SchemaRequest{}
-	resp := &resource.SchemaResponse{}
+	req := fwresource.SchemaRequest{}
+	resp := &fwresource.SchemaResponse{}
 	r.Schema(nil, req, resp)
 
 	if resp.Schema.MarkdownDescription == "" {
@@ -66,13 +70,52 @@ func TestContactGroupResource_SchemaDescription(t *testing.T) {
 
 func TestContactGroupResource_Configure(t *testing.T) {
 	r := resources.NewContactGroupResource().(*resources.ContactGroupResource)
-	req := resource.ConfigureRequest{
+	req := fwresource.ConfigureRequest{
 		ProviderData: nil,
 	}
-	resp := &resource.ConfigureResponse{}
-	r.Configure(nil, req, resp)
+	resp := &fwresource.ConfigureResponse{}
+	r.Configure(context.Background(), req, resp)
 
 	if resp.Diagnostics.HasError() {
 		t.Errorf("expected no errors with nil provider data, got: %v", resp.Diagnostics)
 	}
+}
+
+func TestAccContactGroupResource_basic(t *testing.T) {
+	name := testutil.RandomName("test-contact-group")
+	slug := testutil.GenerateSlug(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactGroupResourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "slug", slug),
+				),
+			},
+			{
+				ResourceName:      "netbox_contact_group.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccContactGroupResourceConfig(name+"-updated", slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "name", name+"-updated"),
+				),
+			},
+		},
+	})
+}
+
+func testAccContactGroupResourceConfig(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_contact_group" "test" {
+  name = %q
+  slug = %q
+}
+`, name, slug)
 }

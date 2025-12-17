@@ -252,3 +252,32 @@ resource "netbox_ike_proposal" "test" {
 }
 `, name)
 }
+
+func TestAccIKEProposalResource_import(t *testing.T) {
+	name := testutil.RandomName("tf-test-ike-proposal")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEProposalCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckIKEProposalDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEProposalResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ike_proposal.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "name", name),
+				),
+			},
+			{
+				ResourceName:      "netbox_ike_proposal.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

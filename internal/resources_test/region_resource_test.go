@@ -2136,3 +2136,44 @@ resource "netbox_region" "child" {
 `, parentName, parentSlug, childName, childSlug)
 
 }
+
+func TestAccRegionResource_import(t *testing.T) {
+	// Generate unique names to avoid conflicts between test runs
+	name := testutil.RandomName("tf-test-region-import")
+	slug := testutil.RandomSlug("tf-test-region-imp")
+
+	// Register cleanup
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRegionCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckRegionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRegionResourceConfig_import(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_region.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_region.test", "slug", slug),
+				),
+			},
+			{
+				ResourceName:      "netbox_region.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccRegionResourceConfig_import(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_region" "test" {
+  name = %q
+  slug = %q
+}
+`, name, slug)
+}

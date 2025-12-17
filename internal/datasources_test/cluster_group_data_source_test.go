@@ -1,71 +1,43 @@
 package datasources_test
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestClusterGroupDataSource_Metadata(t *testing.T) {
-	d := datasources.NewClusterGroupDataSource()
-	req := datasource.MetadataRequest{
-		ProviderTypeName: "netbox",
-	}
-	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, req, resp)
+func TestAccClusterGroupDataSource_basic(t *testing.T) {
+	name := testutil.RandomName("test-cluster-group")
+	slug := testutil.GenerateSlug(name)
 
-	if resp.TypeName != "netbox_cluster_group" {
-		t.Errorf("expected TypeName 'netbox_cluster_group', got '%s'", resp.TypeName)
-	}
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccClusterGroupDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_cluster_group.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_cluster_group.test", "slug", slug),
+					resource.TestCheckResourceAttr("data.netbox_cluster_group.test", "description", "Test Cluster Group Description"),
+				),
+			},
+		},
+	})
 }
 
-func TestClusterGroupDataSource_Schema(t *testing.T) {
-	d := datasources.NewClusterGroupDataSource()
-	req := datasource.SchemaRequest{}
-	resp := &datasource.SchemaResponse{}
-	d.Schema(nil, req, resp)
-
-	if resp.Schema.Attributes == nil {
-		t.Fatal("expected schema attributes, got nil")
-	}
-
-	lookupAttrs := []string{"id", "name", "slug"}
-	computedAttrs := []string{"description"}
-
-	for _, attr := range lookupAttrs {
-		if _, ok := resp.Schema.Attributes[attr]; !ok {
-			t.Errorf("expected lookup attribute '%s' in schema", attr)
-		}
-	}
-
-	for _, attr := range computedAttrs {
-		if _, ok := resp.Schema.Attributes[attr]; !ok {
-			t.Errorf("expected computed attribute '%s' in schema", attr)
-		}
-	}
+func testAccClusterGroupDataSourceConfig(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_group" "test" {
+  name        = %q
+  slug        = %q
+  description = "Test Cluster Group Description"
 }
 
-func TestClusterGroupDataSource_SchemaDescription(t *testing.T) {
-	d := datasources.NewClusterGroupDataSource()
-	req := datasource.SchemaRequest{}
-	resp := &datasource.SchemaResponse{}
-	d.Schema(nil, req, resp)
-
-	if resp.Schema.MarkdownDescription == "" {
-		t.Error("expected schema to have a description")
-	}
+data "netbox_cluster_group" "test" {
+  id = netbox_cluster_group.test.id
 }
-
-func TestClusterGroupDataSource_Configure(t *testing.T) {
-	d := datasources.NewClusterGroupDataSource().(*datasources.ClusterGroupDataSource)
-	req := datasource.ConfigureRequest{
-		ProviderData: nil,
-	}
-	resp := &datasource.ConfigureResponse{}
-	d.Configure(nil, req, resp)
-
-	if resp.Diagnostics.HasError() {
-		t.Errorf("expected no errors with nil provider data, got: %v", resp.Diagnostics)
-	}
+`, name, slug)
 }

@@ -1121,7 +1121,7 @@ func TestAccInterfaceTemplateResource_full(t *testing.T) {
 
 	description := "Test interface template"
 
-	updatedName := "eth1"
+	updatedName := "eth3"
 
 	updatedLabel := "Ethernet 1"
 

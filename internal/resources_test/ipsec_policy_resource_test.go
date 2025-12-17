@@ -245,3 +245,34 @@ resource "netbox_ipsec_policy" "test" {
 }
 `, name)
 }
+
+func TestAccIPSecPolicyResource_import(t *testing.T) {
+	// Generate unique name to avoid conflicts between test runs
+	name := testutil.RandomName("tf-test-ipsec-policy")
+
+	// Register cleanup to ensure resources are deleted even if test fails
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckIPSecPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSecPolicyResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "name", name),
+				),
+			},
+			{
+				ResourceName:      "netbox_ipsec_policy.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

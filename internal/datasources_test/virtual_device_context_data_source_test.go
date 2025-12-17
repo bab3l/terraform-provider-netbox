@@ -1,97 +1,67 @@
 package datasources_test
 
 import (
-	"context"
+	"fmt"
 	"testing"
 
-	"github.com/bab3l/go-netbox"
-	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
-	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestVirtualDeviceContextDataSource(t *testing.T) {
-	t.Parallel()
-
-	d := datasources.NewVirtualDeviceContextDataSource()
-	if d == nil {
-		t.Fatal("Expected non-nil VirtualDeviceContext data source")
-	}
+func TestAccVirtualDeviceContextDataSource_basic(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualDeviceContextDataSourceConfig("test-vdc"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_virtual_device_context.test", "name", "test-vdc"),
+					resource.TestCheckResourceAttrSet("data.netbox_virtual_device_context.test", "device"),
+				),
+			},
+		},
+	})
 }
 
-func TestVirtualDeviceContextDataSourceSchema(t *testing.T) {
-	t.Parallel()
-
-	d := datasources.NewVirtualDeviceContextDataSource()
-	schemaRequest := fwdatasource.SchemaRequest{}
-	schemaResponse := &fwdatasource.SchemaResponse{}
-
-	d.Schema(context.Background(), schemaRequest, schemaResponse)
-
-	if schemaResponse.Diagnostics.HasError() {
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-		t.Fatal("Expected schema to have attributes")
-	}
-
-	// Lookup attributes
-	lookupAttrs := []string{"id", "name"}
-	for _, attr := range lookupAttrs {
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-			t.Errorf("Expected lookup attribute %s to exist in schema", attr)
-		}
-	}
-
-	// Output attributes
-	outputAttrs := []string{"device", "device_id", "status", "identifier", "tenant", "tenant_id", "primary_ip4", "primary_ip6", "description", "comments", "tags", "custom_fields"}
-	for _, attr := range outputAttrs {
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-			t.Errorf("Expected output attribute %s to exist in schema", attr)
-		}
-	}
+func testAccVirtualDeviceContextDataSourceConfig(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-manufacturer"
 }
 
-func TestVirtualDeviceContextDataSourceMetadata(t *testing.T) {
-	t.Parallel()
-
-	d := datasources.NewVirtualDeviceContextDataSource()
-	metadataRequest := fwdatasource.MetadataRequest{
-		ProviderTypeName: "netbox",
-	}
-	metadataResponse := &fwdatasource.MetadataResponse{}
-
-	d.Metadata(context.Background(), metadataRequest, metadataResponse)
-
-	expected := "netbox_virtual_device_context"
-	if metadataResponse.TypeName != expected {
-		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-	}
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = "Test Device Type"
+  slug         = "test-device-type"
 }
 
-func TestVirtualDeviceContextDataSourceConfigure(t *testing.T) {
-	t.Parallel()
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
 
-	d := datasources.NewVirtualDeviceContextDataSource().(*datasources.VirtualDeviceContextDataSource)
+resource "netbox_device_role" "test" {
+  name = "Test Device Role"
+  slug = "test-device-role"
+}
 
-	configureRequest := fwdatasource.ConfigureRequest{
-		ProviderData: nil,
-	}
-	configureResponse := &fwdatasource.ConfigureResponse{}
+resource "netbox_device" "test" {
+  name        = "test-device"
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
 
-	d.Configure(context.Background(), configureRequest, configureResponse)
+resource "netbox_virtual_device_context" "test" {
+  name   = "%s"
+  device = netbox_device.test.id
+  status = "active"
+}
 
-	if configureResponse.Diagnostics.HasError() {
-		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-	}
-
-	client := &netbox.APIClient{}
-	configureRequest.ProviderData = client
-	configureResponse = &fwdatasource.ConfigureResponse{}
-
-	d.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-	}
+data "netbox_virtual_device_context" "test" {
+  id = netbox_virtual_device_context.test.id
+}
+`, name)
 }
