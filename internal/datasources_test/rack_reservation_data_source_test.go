@@ -1,97 +1,60 @@
 package datasources_test
 
 import (
-	"context"
+	"fmt"
 	"testing"
 
-	"github.com/bab3l/go-netbox"
-	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
-	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestRackReservationDataSource(t *testing.T) {
-	t.Parallel()
+func TestAccRackReservationDataSource_basic(t *testing.T) {
+	siteName := testutil.RandomName("test-site-rr")
+	siteSlug := testutil.GenerateSlug(siteName)
+	rackName := testutil.RandomName("test-rack-rr")
+	description := "Test Rack Reservation Description"
 
-	d := datasources.NewRackReservationDataSource()
-	if d == nil {
-		t.Fatal("Expected non-nil RackReservation data source")
-	}
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackReservationDataSourceConfig(siteName, siteSlug, rackName, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_rack_reservation.test", "description", description),
+					resource.TestCheckResourceAttr("data.netbox_rack_reservation.test", "units.#", "1"),
+					resource.TestCheckResourceAttr("data.netbox_rack_reservation.test", "units.0", "1"),
+				),
+			},
+		},
+	})
 }
 
-func TestRackReservationDataSourceSchema(t *testing.T) {
-	t.Parallel()
-
-	d := datasources.NewRackReservationDataSource()
-	schemaRequest := fwdatasource.SchemaRequest{}
-	schemaResponse := &fwdatasource.SchemaResponse{}
-
-	d.Schema(context.Background(), schemaRequest, schemaResponse)
-
-	if schemaResponse.Diagnostics.HasError() {
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-		t.Fatal("Expected schema to have attributes")
-	}
-
-	// Lookup attributes
-	lookupAttrs := []string{"id"}
-	for _, attr := range lookupAttrs {
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-			t.Errorf("Expected lookup attribute %s to exist in schema", attr)
-		}
-	}
-
-	// Output attributes
-	outputAttrs := []string{"rack", "rack_id", "units", "user", "user_id", "tenant", "tenant_id", "description", "comments", "tags", "custom_fields"}
-	for _, attr := range outputAttrs {
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-			t.Errorf("Expected output attribute %s to exist in schema", attr)
-		}
-	}
+func testAccRackReservationDataSourceConfig(siteName, siteSlug, rackName, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+  status = "active"
 }
 
-func TestRackReservationDataSourceMetadata(t *testing.T) {
-	t.Parallel()
-
-	d := datasources.NewRackReservationDataSource()
-	metadataRequest := fwdatasource.MetadataRequest{
-		ProviderTypeName: "netbox",
-	}
-	metadataResponse := &fwdatasource.MetadataResponse{}
-
-	d.Metadata(context.Background(), metadataRequest, metadataResponse)
-
-	expected := "netbox_rack_reservation"
-	if metadataResponse.TypeName != expected {
-		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-	}
+resource "netbox_rack" "test" {
+  name = %q
+  site = netbox_site.test.id
+  status = "active"
+  width = 19
+  u_height = 42
 }
 
-func TestRackReservationDataSourceConfigure(t *testing.T) {
-	t.Parallel()
+resource "netbox_rack_reservation" "test" {
+  rack        = netbox_rack.test.id
+  units       = [1]
+  description = %q
+  user        = 1 # Assuming user ID 1 exists (admin)
+}
 
-	d := datasources.NewRackReservationDataSource().(*datasources.RackReservationDataSource)
-
-	configureRequest := fwdatasource.ConfigureRequest{
-		ProviderData: nil,
-	}
-	configureResponse := &fwdatasource.ConfigureResponse{}
-
-	d.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-	}
-
-	client := &netbox.APIClient{}
-	configureRequest.ProviderData = client
-	configureResponse = &fwdatasource.ConfigureResponse{}
-
-	d.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-	}
+data "netbox_rack_reservation" "test" {
+  id = netbox_rack_reservation.test.id
+}
+`, siteName, siteSlug, rackName, description)
 }

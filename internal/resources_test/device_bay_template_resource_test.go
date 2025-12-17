@@ -301,3 +301,42 @@ resource "netbox_device_bay_template" "test" {
 }
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
 }
+
+func TestAccDeviceBayTemplateResource_import(t *testing.T) {
+	name := testutil.RandomName("tf-test-dbt-import")
+	manufacturerName := testutil.RandomName("tf-test-mfr-import")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-import")
+	deviceTypeName := testutil.RandomName("tf-test-dt-import")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dt-import")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceBayTemplateCleanup(name)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceBayTemplateDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceBayTemplateResourceConfig_basic(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device_bay_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "name", name),
+				),
+			},
+			{
+				ResourceName:      "netbox_device_bay_template.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

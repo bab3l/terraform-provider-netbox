@@ -1118,7 +1118,7 @@ func TestAccInterfaceTemplateDataSource_byName(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("dt-ds")
 
-	templateName := "eth0"
+	templateName := "eth1"
 
 	templateType := "1000base-t"
 

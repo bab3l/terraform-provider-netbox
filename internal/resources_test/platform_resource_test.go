@@ -1808,3 +1808,56 @@ resource "netbox_platform" "test" {
 `, manufacturerName, manufacturerSlug, platformName, platformSlug, description)
 
 }
+
+func TestAccPlatformResource_import(t *testing.T) {
+	// Generate unique names to avoid conflicts between test runs
+	platformName := testutil.RandomName("tf-test-platform-import")
+	platformSlug := testutil.RandomSlug("tf-test-plat-imp")
+	manufacturerName := testutil.RandomName("tf-test-mfr-imp")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-imp")
+
+	// Register cleanup
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPlatformCleanup(platformSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckPlatformDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPlatformResourceConfig_import(platformName, platformSlug, manufacturerName, manufacturerSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_platform.test", "name", platformName),
+					resource.TestCheckResourceAttr("netbox_platform.test", "slug", platformSlug),
+				),
+			},
+			{
+				ResourceName:      "netbox_platform.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccPlatformResourceConfig_import(platformName, platformSlug, manufacturerName, manufacturerSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = "%[3]s"
+  slug = "%[4]s"
+}
+
+resource "netbox_platform" "test" {
+  name         = "%[1]s"
+  slug         = "%[2]s"
+  manufacturer = netbox_manufacturer.test.slug
+}
+`, platformName, platformSlug, manufacturerName, manufacturerSlug)
+}

@@ -673,3 +673,33 @@ resource "netbox_vlan_group" "test" {
 `, name, slug, description)
 
 }
+
+func TestAccVLANGroupResource_import(t *testing.T) {
+	name := testutil.RandomName("tf-test-vlangrp")
+	slug := testutil.GenerateSlug("tf-test-vlangrp")
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVLANGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckVLANGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVLANGroupResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vlan_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vlan_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_vlan_group.test", "slug", slug),
+				),
+			},
+			{
+				ResourceName:      "netbox_vlan_group.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

@@ -1455,16 +1455,20 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 
 	if site := rack.GetSite(); site.Id != 0 {
 
-		userSite := data.Site.ValueString()
-
-		if userSite == site.GetName() || userSite == site.GetSlug() || userSite == site.GetDisplay() || userSite == fmt.Sprintf("%d", site.GetId()) {
-
-			// Keep user's original value
-
+		if data.Site.IsUnknown() || data.Site.IsNull() {
+			data.Site = types.StringValue(fmt.Sprintf("%d", site.GetId()))
 		} else {
+			userSite := data.Site.ValueString()
 
-			data.Site = types.StringValue(site.GetName())
+			if userSite == site.GetName() || userSite == site.GetSlug() || userSite == site.GetDisplay() || userSite == fmt.Sprintf("%d", site.GetId()) {
 
+				// Keep user's original value
+
+			} else {
+
+				data.Site = types.StringValue(site.GetName())
+
+			}
 		}
 
 	}

@@ -1736,3 +1736,56 @@ resource "netbox_device_type" "test" {
 `, manufacturerName, manufacturerSlug, model, slug)
 
 }
+
+func TestAccDeviceTypeResource_import(t *testing.T) {
+	model := testutil.RandomName("tf-test-dt-import")
+	slug := testutil.RandomSlug("tf-test-dt-import")
+	manufacturerName := testutil.RandomName("tf-test-mfr-import")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-import")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(slug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceTypeResourceConfig_import(model, slug, manufacturerName, manufacturerSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device_type.test", "id"),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "model", model),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "slug", slug),
+				),
+			},
+			{
+				ResourceName:            "netbox_device_type.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"manufacturer"},
+			},
+		},
+	})
+}
+
+func testAccDeviceTypeResourceConfig_import(model, slug, manufacturerName, manufacturerSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %q
+  slug         = %q
+  manufacturer = netbox_manufacturer.test.slug
+}
+`, manufacturerName, manufacturerSlug, model, slug)
+}

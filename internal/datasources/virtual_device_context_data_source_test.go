@@ -1,27 +1,26 @@
-package datasources_test
+package datasources
 
 import (
 	"context"
 	"testing"
 
 	"github.com/bab3l/go-netbox"
-	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
 	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
-func TestDeviceBayTemplateDataSource(t *testing.T) {
+func TestVirtualDeviceContextDataSource(t *testing.T) {
 	t.Parallel()
 
-	d := datasources.NewDeviceBayTemplateDataSource()
+	d := NewVirtualDeviceContextDataSource()
 	if d == nil {
-		t.Fatal("Expected non-nil DeviceBayTemplate data source")
+		t.Fatal("Expected non-nil VirtualDeviceContext data source")
 	}
 }
 
-func TestDeviceBayTemplateDataSourceSchema(t *testing.T) {
+func TestVirtualDeviceContextDataSourceSchema(t *testing.T) {
 	t.Parallel()
 
-	d := datasources.NewDeviceBayTemplateDataSource()
+	d := NewVirtualDeviceContextDataSource()
 	schemaRequest := fwdatasource.SchemaRequest{}
 	schemaResponse := &fwdatasource.SchemaResponse{}
 
@@ -44,7 +43,7 @@ func TestDeviceBayTemplateDataSourceSchema(t *testing.T) {
 	}
 
 	// Output attributes
-	outputAttrs := []string{"device_type", "device_type_name", "label", "description"}
+	outputAttrs := []string{"device", "device_id", "status", "identifier", "tenant", "tenant_id", "primary_ip4", "primary_ip6", "description", "comments", "tags", "custom_fields"}
 	for _, attr := range outputAttrs {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 			t.Errorf("Expected output attribute %s to exist in schema", attr)
@@ -52,10 +51,10 @@ func TestDeviceBayTemplateDataSourceSchema(t *testing.T) {
 	}
 }
 
-func TestDeviceBayTemplateDataSourceMetadata(t *testing.T) {
+func TestVirtualDeviceContextDataSourceMetadata(t *testing.T) {
 	t.Parallel()
 
-	d := datasources.NewDeviceBayTemplateDataSource()
+	d := NewVirtualDeviceContextDataSource()
 	metadataRequest := fwdatasource.MetadataRequest{
 		ProviderTypeName: "netbox",
 	}
@@ -63,16 +62,16 @@ func TestDeviceBayTemplateDataSourceMetadata(t *testing.T) {
 
 	d.Metadata(context.Background(), metadataRequest, metadataResponse)
 
-	expected := "netbox_device_bay_template"
+	expected := "netbox_virtual_device_context"
 	if metadataResponse.TypeName != expected {
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
 	}
 }
 
-func TestDeviceBayTemplateDataSourceConfigure(t *testing.T) {
+func TestVirtualDeviceContextDataSourceConfigure(t *testing.T) {
 	t.Parallel()
 
-	d := datasources.NewDeviceBayTemplateDataSource().(*datasources.DeviceBayTemplateDataSource)
+	d := NewVirtualDeviceContextDataSource().(*VirtualDeviceContextDataSource)
 
 	configureRequest := fwdatasource.ConfigureRequest{
 		ProviderData: nil,

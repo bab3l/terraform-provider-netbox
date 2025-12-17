@@ -1046,3 +1046,31 @@ resource "netbox_ip_address" "test" {
 `, vrfName, address)
 
 }
+
+func TestAccIPAddressResource_import(t *testing.T) {
+	address := testutil.RandomIPv4Address()
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckIPAddressDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPAddressResourceConfig_basic(address),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
+				),
+			},
+			{
+				ResourceName:      "netbox_ip_address.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

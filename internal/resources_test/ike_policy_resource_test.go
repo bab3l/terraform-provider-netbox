@@ -252,3 +252,32 @@ resource "netbox_ike_policy" "test" {
 }
 `, name)
 }
+
+func TestAccIKEPolicyResource_import(t *testing.T) {
+	name := testutil.RandomName("tf-test-ike-policy")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEPolicyCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckIKEPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEPolicyResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ike_policy.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ike_policy.test", "name", name),
+				),
+			},
+			{
+				ResourceName:      "netbox_ike_policy.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

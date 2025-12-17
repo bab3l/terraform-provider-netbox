@@ -699,3 +699,34 @@ resource "netbox_circuit_type" "test" {
 `, name, slug, description, color)
 
 }
+
+func TestAccCircuitTypeResource_import(t *testing.T) {
+	name := testutil.RandomName("tf-test-circuit-type")
+	slug := testutil.RandomSlug("tf-test-circuit-type")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitTypeCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckCircuitTypeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitTypeResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit_type.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit_type.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_circuit_type.test", "slug", slug),
+				),
+			},
+			{
+				ResourceName:      "netbox_circuit_type.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

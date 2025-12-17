@@ -1758,3 +1758,26 @@ resource "netbox_vm_interface" "test" {
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, description)
 
 }
+
+func TestAccVMInterfaceResource_import(t *testing.T) {
+	clusterTypeName := "test-cluster-type-" + testutil.GenerateSlug("ct")
+	clusterTypeSlug := testutil.GenerateSlug("ct")
+	clusterName := "test-cluster-" + testutil.GenerateSlug("cluster")
+	vmName := "test-vm-" + testutil.GenerateSlug("vm")
+	ifaceName := "test-iface-" + testutil.GenerateSlug("iface")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
+			},
+			{
+				ResourceName:      "netbox_vm_interface.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

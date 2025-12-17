@@ -2864,3 +2864,52 @@ resource "netbox_rack" "test" {
 `, siteName, siteSlug, locationName, locationSlug, rackName)
 
 }
+
+func TestAccRackResource_import(t *testing.T) {
+	// Generate unique names to avoid conflicts between test runs
+	siteName := testutil.RandomName("tf-test-rack-site")
+	siteSlug := testutil.RandomSlug("tf-test-rack-site")
+	rackName := testutil.RandomName("tf-test-rack")
+
+	// Register cleanup to ensure resources are deleted even if test fails
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackCleanup(rackName)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckRackDestroy, testutil.CheckSiteDestroy),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackResourceConfig_import(siteName, siteSlug, rackName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
+					resource.TestCheckResourceAttrPair("netbox_rack.test", "site", "netbox_site.test", "id"),
+				),
+			},
+			{
+				ResourceName:      "netbox_rack.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccRackResourceConfig_import(siteName, siteSlug, rackName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_rack" "test" {
+  name = %[3]q
+  site = netbox_site.test.id
+}
+`, siteName, siteSlug, rackName)
+}

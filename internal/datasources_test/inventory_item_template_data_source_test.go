@@ -1,97 +1,58 @@
 package datasources_test
 
 import (
-	"context"
+	"fmt"
 	"testing"
 
-	"github.com/bab3l/go-netbox"
-	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
-	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestInventoryItemTemplateDataSource(t *testing.T) {
-	t.Parallel()
+func TestAccInventoryItemTemplateDataSource_basic(t *testing.T) {
+	name := testutil.RandomName("test-inventory-item-template")
+	manufacturerName := testutil.RandomName("test-manufacturer-iit")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+	deviceTypeName := testutil.RandomName("test-device-type-iit")
+	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
 
-	d := datasources.NewInventoryItemTemplateDataSource()
-	if d == nil {
-		t.Fatal("Expected non-nil InventoryItemTemplate data source")
-	}
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemTemplateDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_inventory_item_template.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_inventory_item_template.test", "label", "Test Label"),
+					resource.TestCheckResourceAttr("data.netbox_inventory_item_template.test", "description", "Test Description"),
+				),
+			},
+		},
+	})
 }
 
-func TestInventoryItemTemplateDataSourceSchema(t *testing.T) {
-	t.Parallel()
-
-	d := datasources.NewInventoryItemTemplateDataSource()
-	schemaRequest := fwdatasource.SchemaRequest{}
-	schemaResponse := &fwdatasource.SchemaResponse{}
-
-	d.Schema(context.Background(), schemaRequest, schemaResponse)
-
-	if schemaResponse.Diagnostics.HasError() {
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-		t.Fatal("Expected schema to have attributes")
-	}
-
-	// Lookup attributes
-	lookupAttrs := []string{"id", "name"}
-	for _, attr := range lookupAttrs {
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-			t.Errorf("Expected lookup attribute %s to exist in schema", attr)
-		}
-	}
-
-	// Output attributes
-	outputAttrs := []string{"device_type", "device_type_id", "parent", "parent_id", "label", "role", "role_id", "manufacturer", "manufacturer_id", "part_id", "description", "component_type", "component_id"}
-	for _, attr := range outputAttrs {
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-			t.Errorf("Expected output attribute %s to exist in schema", attr)
-		}
-	}
+func testAccInventoryItemTemplateDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
 }
 
-func TestInventoryItemTemplateDataSourceMetadata(t *testing.T) {
-	t.Parallel()
-
-	d := datasources.NewInventoryItemTemplateDataSource()
-	metadataRequest := fwdatasource.MetadataRequest{
-		ProviderTypeName: "netbox",
-	}
-	metadataResponse := &fwdatasource.MetadataResponse{}
-
-	d.Metadata(context.Background(), metadataRequest, metadataResponse)
-
-	expected := "netbox_inventory_item_template"
-	if metadataResponse.TypeName != expected {
-		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-	}
+resource "netbox_device_type" "test" {
+  model        = %q
+  slug         = %q
+  manufacturer = netbox_manufacturer.test.id
 }
 
-func TestInventoryItemTemplateDataSourceConfigure(t *testing.T) {
-	t.Parallel()
+resource "netbox_inventory_item_template" "test" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  label       = "Test Label"
+  description = "Test Description"
+}
 
-	d := datasources.NewInventoryItemTemplateDataSource().(*datasources.InventoryItemTemplateDataSource)
-
-	configureRequest := fwdatasource.ConfigureRequest{
-		ProviderData: nil,
-	}
-	configureResponse := &fwdatasource.ConfigureResponse{}
-
-	d.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-	}
-
-	client := &netbox.APIClient{}
-	configureRequest.ProviderData = client
-	configureResponse = &fwdatasource.ConfigureResponse{}
-
-	d.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-	}
+data "netbox_inventory_item_template" "test" {
+  id = netbox_inventory_item_template.test.id
+}
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
 }

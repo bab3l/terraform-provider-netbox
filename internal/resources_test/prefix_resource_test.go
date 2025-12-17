@@ -1042,3 +1042,31 @@ resource "netbox_prefix" "test" {
 `, vrfName, prefix)
 
 }
+
+func TestAccPrefixResource_import(t *testing.T) {
+	prefix := testutil.RandomIPv4Prefix()
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckPrefixDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPrefixResourceConfig_basic(prefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
+				),
+			},
+			{
+				ResourceName:      "netbox_prefix.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

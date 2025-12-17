@@ -1117,3 +1117,23 @@ resource "netbox_vlan" "test" {
 `, groupName, groupSlug, name, vid)
 
 }
+
+func TestAccVLANResource_import(t *testing.T) {
+	name := "test-vlan-" + testutil.GenerateSlug("vlan")
+	vid := int32(100)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVLANResourceConfig_basic(name, vid),
+			},
+			{
+				ResourceName:      "netbox_vlan.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

@@ -1,27 +1,26 @@
-package datasources_test
+package datasources
 
 import (
 	"context"
 	"testing"
 
 	"github.com/bab3l/go-netbox"
-	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
 	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
-func TestASNRangeDataSource(t *testing.T) {
+func TestCableTerminationDataSource(t *testing.T) {
 	t.Parallel()
 
-	d := datasources.NewASNRangeDataSource()
+	d := NewCableTerminationDataSource()
 	if d == nil {
-		t.Fatal("Expected non-nil ASNRange data source")
+		t.Fatal("Expected non-nil CableTermination data source")
 	}
 }
 
-func TestASNRangeDataSourceSchema(t *testing.T) {
+func TestCableTerminationDataSourceSchema(t *testing.T) {
 	t.Parallel()
 
-	d := datasources.NewASNRangeDataSource()
+	d := NewCableTerminationDataSource()
 	schemaRequest := fwdatasource.SchemaRequest{}
 	schemaResponse := &fwdatasource.SchemaResponse{}
 
@@ -35,16 +34,16 @@ func TestASNRangeDataSourceSchema(t *testing.T) {
 		t.Fatal("Expected schema to have attributes")
 	}
 
-	// Required lookup attributes (at least one must be provided, but all are Optional in schema)
-	lookupAttrs := []string{"id", "name", "slug"}
+	// Lookup attributes
+	lookupAttrs := []string{"id"}
 	for _, attr := range lookupAttrs {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 			t.Errorf("Expected lookup attribute %s to exist in schema", attr)
 		}
 	}
 
-	// Output-only attributes
-	outputAttrs := []string{"rir", "start", "end", "asn_count", "tenant", "description", "tags"}
+	// Output attributes
+	outputAttrs := []string{"cable", "cable_end", "termination_type", "termination_id"}
 	for _, attr := range outputAttrs {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 			t.Errorf("Expected output attribute %s to exist in schema", attr)
@@ -52,10 +51,10 @@ func TestASNRangeDataSourceSchema(t *testing.T) {
 	}
 }
 
-func TestASNRangeDataSourceMetadata(t *testing.T) {
+func TestCableTerminationDataSourceMetadata(t *testing.T) {
 	t.Parallel()
 
-	d := datasources.NewASNRangeDataSource()
+	d := NewCableTerminationDataSource()
 	metadataRequest := fwdatasource.MetadataRequest{
 		ProviderTypeName: "netbox",
 	}
@@ -63,16 +62,16 @@ func TestASNRangeDataSourceMetadata(t *testing.T) {
 
 	d.Metadata(context.Background(), metadataRequest, metadataResponse)
 
-	expected := "netbox_asn_range"
+	expected := "netbox_cable_termination"
 	if metadataResponse.TypeName != expected {
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
 	}
 }
 
-func TestASNRangeDataSourceConfigure(t *testing.T) {
+func TestCableTerminationDataSourceConfigure(t *testing.T) {
 	t.Parallel()
 
-	d := datasources.NewASNRangeDataSource().(*datasources.ASNRangeDataSource)
+	d := NewCableTerminationDataSource().(*CableTerminationDataSource)
 
 	configureRequest := fwdatasource.ConfigureRequest{
 		ProviderData: nil,

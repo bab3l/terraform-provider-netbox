@@ -2672,3 +2672,29 @@ func (c *CleanupResource) RegisterInventoryItemTemplateCleanup(id int32) {
 	})
 
 }
+
+func (c *CleanupResource) RegisterClusterGroupCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.VirtualizationAPI.VirtualizationClusterGroupsList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list cluster groups with slug %s: %v", slug, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: cluster group with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.VirtualizationAPI.VirtualizationClusterGroupsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete cluster group %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted cluster group %d (slug: %s)", id, slug)
+		}
+	})
+}

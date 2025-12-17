@@ -699,3 +699,33 @@ resource "netbox_provider" "test" {
 `, name, slug, description, comments)
 
 }
+
+func TestAccProviderResource_import(t *testing.T) {
+	name := testutil.RandomName("tf-test-provider")
+	slug := testutil.RandomSlug("tf-test-provider")
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckProviderDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_provider.test", "id"),
+					resource.TestCheckResourceAttr("netbox_provider.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_provider.test", "slug", slug),
+				),
+			},
+			{
+				ResourceName:      "netbox_provider.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

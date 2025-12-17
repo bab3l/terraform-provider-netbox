@@ -1520,3 +1520,41 @@ resource "netbox_virtual_machine" "test" {
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments)
 
 }
+
+func TestAccVirtualMachineResource_import(t *testing.T) {
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type")
+	clusterName := testutil.RandomName("tf-test-cluster")
+	vmName := testutil.RandomName("tf-test-vm")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualMachineResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
+				),
+			},
+			{
+				ResourceName:      "netbox_virtual_machine.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

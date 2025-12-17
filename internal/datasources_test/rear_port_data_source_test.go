@@ -1,97 +1,83 @@
 package datasources_test
 
 import (
-	"context"
+	"fmt"
 	"testing"
 
-	"github.com/bab3l/go-netbox"
-	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
-	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestRearPortDataSource(t *testing.T) {
-	t.Parallel()
+func TestAccRearPortDataSource_basic(t *testing.T) {
+	name := testutil.RandomName("test-rear-port")
+	manufacturerName := testutil.RandomName("test-manufacturer-rp")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+	deviceTypeName := testutil.RandomName("test-device-type-rp")
+	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
+	deviceName := testutil.RandomName("test-device-rp")
+	siteName := testutil.RandomName("test-site-rp")
+	siteSlug := testutil.GenerateSlug(siteName)
+	deviceRoleName := testutil.RandomName("test-device-role-rp")
+	deviceRoleSlug := testutil.GenerateSlug(deviceRoleName)
 
-	d := datasources.NewRearPortDataSource()
-	if d == nil {
-		t.Fatal("Expected non-nil RearPort data source")
-	}
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRearPortDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceName, siteName, siteSlug, deviceRoleName, deviceRoleSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_rear_port.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_rear_port.test", "type", "8p8c"),
+					resource.TestCheckResourceAttr("data.netbox_rear_port.test", "label", "Test Label"),
+					resource.TestCheckResourceAttr("data.netbox_rear_port.test", "description", "Test Description"),
+				),
+			},
+		},
+	})
 }
 
-func TestRearPortDataSourceSchema(t *testing.T) {
-	t.Parallel()
-
-	d := datasources.NewRearPortDataSource()
-	schemaRequest := fwdatasource.SchemaRequest{}
-	schemaResponse := &fwdatasource.SchemaResponse{}
-
-	d.Schema(context.Background(), schemaRequest, schemaResponse)
-
-	if schemaResponse.Diagnostics.HasError() {
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-		t.Fatal("Expected schema to have attributes")
-	}
-
-	// Lookup attributes
-	lookupAttrs := []string{"id", "name"}
-	for _, attr := range lookupAttrs {
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-			t.Errorf("Expected lookup attribute %s to exist in schema", attr)
-		}
-	}
-
-	// Output attributes
-	outputAttrs := []string{"device", "device_id", "type", "label", "color", "positions", "description", "mark_connected"}
-	for _, attr := range outputAttrs {
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-			t.Errorf("Expected output attribute %s to exist in schema", attr)
-		}
-	}
+func testAccRearPortDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceName, siteName, siteSlug, deviceRoleName, deviceRoleSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+  status = "active"
 }
 
-func TestRearPortDataSourceMetadata(t *testing.T) {
-	t.Parallel()
-
-	d := datasources.NewRearPortDataSource()
-	metadataRequest := fwdatasource.MetadataRequest{
-		ProviderTypeName: "netbox",
-	}
-	metadataResponse := &fwdatasource.MetadataResponse{}
-
-	d.Metadata(context.Background(), metadataRequest, metadataResponse)
-
-	expected := "netbox_rear_port"
-	if metadataResponse.TypeName != expected {
-		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-	}
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
 }
 
-func TestRearPortDataSourceConfigure(t *testing.T) {
-	t.Parallel()
+resource "netbox_device_type" "test" {
+  model        = %q
+  slug         = %q
+  manufacturer = netbox_manufacturer.test.id
+}
 
-	d := datasources.NewRearPortDataSource().(*datasources.RearPortDataSource)
+resource "netbox_device_role" "test" {
+  name = %q
+  slug = %q
+}
 
-	configureRequest := fwdatasource.ConfigureRequest{
-		ProviderData: nil,
-	}
-	configureResponse := &fwdatasource.ConfigureResponse{}
+resource "netbox_device" "test" {
+  name           = %q
+  device_type    = netbox_device_type.test.id
+  role           = netbox_device_role.test.id
+  site           = netbox_site.test.id
+}
 
-	d.Configure(context.Background(), configureRequest, configureResponse)
+resource "netbox_rear_port" "test" {
+  name        = %q
+  device      = netbox_device.test.id
+  type        = "8p8c"
+  label       = "Test Label"
+  description = "Test Description"
+}
 
-	if configureResponse.Diagnostics.HasError() {
-		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-	}
-
-	client := &netbox.APIClient{}
-	configureRequest.ProviderData = client
-	configureResponse = &fwdatasource.ConfigureResponse{}
-
-	d.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-	}
+data "netbox_rear_port" "test" {
+  id = netbox_rear_port.test.id
+}
+`, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, name)
 }

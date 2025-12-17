@@ -845,3 +845,34 @@ resource "netbox_fhrp_group" "test" {
 `, protocol, groupID, name, description, authType, authKey)
 
 }
+
+func TestAccFHRPGroupResource_import(t *testing.T) {
+	protocol := "vrrp2"
+	groupID := int32(acctest.RandIntRange(1, 254)) //nolint:gosec // G115
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckFHRPGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFHRPGroupResourceConfig_basic(protocol, groupID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_fhrp_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "protocol", protocol),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "group_id", fmt.Sprintf("%d", groupID)),
+				),
+			},
+			{
+				ResourceName:      "netbox_fhrp_group.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

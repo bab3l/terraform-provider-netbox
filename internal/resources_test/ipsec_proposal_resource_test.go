@@ -244,3 +244,36 @@ resource "netbox_ipsec_proposal" "test" {
 }
 `, name)
 }
+
+func TestAccIPSecProposalResource_import(t *testing.T) {
+	// Generate unique name to avoid conflicts between test runs
+	name := testutil.RandomName("tf-test-ipsec-proposal")
+
+	// Register cleanup to ensure resources are deleted even if test fails
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProposalCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckIPSecProposalDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSecProposalResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ipsec_proposal.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "encryption_algorithm", "aes-256-cbc"),
+					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "authentication_algorithm", "hmac-sha256"),
+				),
+			},
+			{
+				ResourceName:      "netbox_ipsec_proposal.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

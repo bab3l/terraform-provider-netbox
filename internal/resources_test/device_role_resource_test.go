@@ -1457,3 +1457,44 @@ resource "netbox_device_role" "test" {
 `, name, slug, description, color, vmRole)
 
 }
+
+func TestAccDeviceRoleResource_imp(t *testing.T) {
+	name := testutil.RandomName("tf-test-dr-import")
+	slug := testutil.RandomSlug("tf-test-dr-import")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckDeviceRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceRoleResourceConfig_import(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_device_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_device_role.test", "slug", slug),
+				),
+			},
+			{
+				ResourceName:      "netbox_device_role.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccDeviceRoleResourceConfig_import(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_device_role" "test" {
+  name    = %q
+  slug    = %q
+  vm_role = true
+}
+`, name, slug)
+}

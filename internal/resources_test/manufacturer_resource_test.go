@@ -1375,3 +1375,44 @@ resource "netbox_manufacturer" "test" {
 `, name, slug, description)
 
 }
+
+func TestAccManufacturerResource_import(t *testing.T) {
+	// Generate unique names to avoid conflicts between test runs
+	name := testutil.RandomName("tf-test-manufacturer-import")
+	slug := testutil.RandomSlug("tf-test-mfr-imp")
+
+	// Register cleanup
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckManufacturerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccManufacturerResourceConfig_import(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "slug", slug),
+				),
+			},
+			{
+				ResourceName:      "netbox_manufacturer.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccManufacturerResourceConfig_import(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+`, name, slug)
+}
