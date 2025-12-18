@@ -89,7 +89,9 @@ func (r *LocationResource) Schema(ctx context.Context, req resource.SchemaReques
 			"parent": nbschema.ReferenceAttribute("parent location", "ID or slug of the parent location. Leave empty for top-level locations within the site."),
 
 			"parent_id": schema.StringAttribute{
-				Computed:            true,
+
+				Computed: true,
+
 				MarkdownDescription: "The numeric ID of the parent location.",
 			},
 
@@ -695,19 +697,13 @@ func (r *LocationResource) mapLocationToState(ctx context.Context, location *net
 
 	data.Slug = types.StringValue(location.GetSlug())
 
-	// Site - preserve the user's configured value (ID or slug)
+	// Site - preserve the user's configured value (ID, slug, or name)
 
-	// Only update if it was unknown (e.g., during import)
+	site := location.GetSite()
 
-	if data.Site.IsUnknown() || data.Site.IsNull() {
+	data.Site = utils.UpdateReferenceAttribute(data.Site, site.GetName(), site.GetSlug(), site.Id)
 
-		site := location.GetSite()
-
-		data.Site = types.StringValue(fmt.Sprintf("%d", site.Id))
-
-	}
-
-	// Parent
+	// Parent - preserve user's input format
 
 	if location.HasParent() && location.GetParent().Id != 0 {
 
@@ -715,21 +711,12 @@ func (r *LocationResource) mapLocationToState(ctx context.Context, location *net
 
 		data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
 
-		userParent := data.Parent.ValueString()
-
-		if userParent == parent.GetName() || userParent == parent.GetSlug() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Parent = types.StringValue(parent.GetName())
-
-		}
+		data.Parent = utils.UpdateReferenceAttribute(data.Parent, parent.GetName(), parent.GetSlug(), parent.GetId())
 
 	} else {
 
 		data.Parent = types.StringNull()
+
 		data.ParentID = types.StringNull()
 
 	}
@@ -756,21 +743,13 @@ func (r *LocationResource) mapLocationToState(ctx context.Context, location *net
 
 	}
 
-	// Tenant - preserve the user's configured value (ID or slug)
-
-	// Only update if it was unknown or if we need to clear it
+	// Tenant - preserve the user's configured value (ID, slug, or name)
 
 	if location.HasTenant() && location.GetTenant().Id != 0 {
 
-		if data.Tenant.IsUnknown() {
+		tenant := location.GetTenant()
 
-			tenant := location.GetTenant()
-
-			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.Id))
-
-		}
-
-		// else preserve the configured value
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.Id)
 
 	} else {
 

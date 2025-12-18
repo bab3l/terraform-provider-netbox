@@ -702,11 +702,11 @@ func (r *ModuleResource) mapResponseToModel(ctx context.Context, module *netbox.
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", module.GetId()))
 
-	// Map device
+	// Map device - preserve user's input format
 
 	if device := module.GetDevice(); device.Id != 0 {
 
-		data.Device = types.StringValue(fmt.Sprintf("%d", device.GetId()))
+		data.Device = utils.UpdateReferenceAttribute(data.Device, device.GetName(), "", device.GetId())
 
 	}
 
@@ -716,11 +716,11 @@ func (r *ModuleResource) mapResponseToModel(ctx context.Context, module *netbox.
 
 	data.ModuleBay = types.Int32Value(moduleBay.Id)
 
-	// Map module_type
+	// Map module_type - preserve user's input format
 
 	if mt := module.GetModuleType(); mt.Id != 0 {
 
-		data.ModuleType = types.StringValue(fmt.Sprintf("%d", mt.GetId()))
+		data.ModuleType = utils.UpdateReferenceAttribute(data.ModuleType, mt.GetModel(), "", mt.GetId())
 
 	}
 

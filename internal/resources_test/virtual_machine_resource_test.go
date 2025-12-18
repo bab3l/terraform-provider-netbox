@@ -391,7 +391,71 @@ func testAccVirtualMachineResourceConfig_basic(clusterTypeName, clusterTypeSlug,
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -455,6 +519,38 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -487,7 +583,103 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -583,7 +775,71 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -647,7 +903,103 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -743,7 +1095,71 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name    = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -807,7 +1223,71 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -877,7 +1357,71 @@ func testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -941,6 +1485,38 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -973,7 +1549,103 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1069,7 +1741,71 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1133,7 +1869,103 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1229,7 +2061,71 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name        = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1293,7 +2189,71 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   status      = "active"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1357,7 +2317,71 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   memory      = 2048
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1421,7 +2445,71 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   description = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1485,7 +2573,71 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1522,39 +2674,233 @@ resource "netbox_virtual_machine" "test" {
 }
 
 func TestAccVirtualMachineResource_import(t *testing.T) {
+
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type")
+
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type")
+
 	clusterName := testutil.RandomName("tf-test-cluster")
+
 	vmName := testutil.RandomName("tf-test-vm")
 
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterVirtualMachineCleanup(vmName)
+
 	cleanup.RegisterClusterCleanup(clusterName)
+
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.ComposeCheckDestroy(
+
 			testutil.CheckVirtualMachineDestroy,
+
 			testutil.CheckClusterDestroy,
+
 			testutil.CheckClusterTypeDestroy,
 		),
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccVirtualMachineResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
 				),
 			},
+
 			{
-				ResourceName:      "netbox_virtual_machine.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_virtual_machine.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
 			},
 		},
 	})
+
+}
+
+func TestAccConsistency_VirtualMachine(t *testing.T) {
+
+	t.Parallel()
+
+	vmName := testutil.RandomName("vm")
+
+	clusterName := testutil.RandomName("cluster")
+
+	clusterTypeName := testutil.RandomName("cluster-type")
+
+	clusterTypeSlug := testutil.RandomSlug("cluster-type")
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	platformName := testutil.RandomName("platform")
+
+	platformSlug := testutil.RandomSlug("platform")
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	roleName := testutil.RandomName("role")
+
+	roleSlug := testutil.RandomSlug("role")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccVirtualMachineConsistencyConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, siteName, siteSlug, tenantName, tenantSlug, platformName, platformSlug, manufacturerName, manufacturerSlug, roleName, roleSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "cluster", clusterName),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "site", siteName),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "tenant", tenantName),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "platform", platformName),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "role", roleName),
+				),
+			},
+
+			{
+
+				// Verify no drift
+
+				PlanOnly: true,
+
+				Config: testAccVirtualMachineConsistencyConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, siteName, siteSlug, tenantName, tenantSlug, platformName, platformSlug, manufacturerName, manufacturerSlug, roleName, roleSlug),
+			},
+		},
+	})
+
+}
+
+func testAccVirtualMachineConsistencyConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, siteName, siteSlug, tenantName, tenantSlug, platformName, platformSlug, manufacturerName, manufacturerSlug, roleName, roleSlug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_cluster_type" "test" {
+
+  name = "%[3]s"
+
+  slug = "%[4]s"
+
+}
+
+
+
+resource "netbox_cluster" "test" {
+
+  name = "%[2]s"
+
+  type = netbox_cluster_type.test.id
+
+}
+
+
+
+resource "netbox_site" "test" {
+
+  name = "%[5]s"
+
+  slug = "%[6]s"
+
+}
+
+
+
+resource "netbox_tenant" "test" {
+
+  name = "%[7]s"
+
+  slug = "%[8]s"
+
+}
+
+
+
+resource "netbox_manufacturer" "test" {
+
+  name = "%[11]s"
+
+  slug = "%[12]s"
+
+}
+
+
+
+resource "netbox_platform" "test" {
+
+  name = "%[9]s"
+
+  slug = "%[10]s"
+
+  manufacturer = netbox_manufacturer.test.id
+
+}
+
+
+
+resource "netbox_device_role" "test" {
+
+  name = "%[13]s"
+
+  slug = "%[14]s"
+
+}
+
+
+
+resource "netbox_virtual_machine" "test" {
+
+  name = "%[1]s"
+
+  cluster = netbox_cluster.test.name
+
+  site = netbox_site.test.name
+
+  tenant = netbox_tenant.test.name
+
+  platform = netbox_platform.test.name
+
+  role = netbox_device_role.test.name
+
+}
+
+`, vmName, clusterName, clusterTypeName, clusterTypeSlug, siteName, siteSlug, tenantName, tenantSlug, platformName, platformSlug, manufacturerName, manufacturerSlug, roleName, roleSlug)
+
 }

@@ -423,7 +423,71 @@ func testAccIPAddressResourceConfig_basic(address string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_ip_address" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -487,7 +551,71 @@ resource "netbox_ip_address" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -557,7 +685,71 @@ func testAccIPAddressResourceConfig_full(address, description, dnsName string) s
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_ip_address" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -621,7 +813,71 @@ resource "netbox_ip_address" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   description = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -685,6 +941,38 @@ resource "netbox_ip_address" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   status      = "active"
 
 
@@ -717,7 +1005,71 @@ resource "netbox_ip_address" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -787,7 +1139,71 @@ func testAccIPAddressResourceConfig_withVRF(address, vrfName string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_vrf" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -851,7 +1267,103 @@ resource "netbox_vrf" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -947,7 +1459,71 @@ resource "netbox_ip_address" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   address = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1011,7 +1587,71 @@ resource "netbox_ip_address" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1048,29 +1688,116 @@ resource "netbox_ip_address" "test" {
 }
 
 func TestAccIPAddressResource_import(t *testing.T) {
+
 	address := testutil.RandomIPv4Address()
+
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterIPAddressCleanup(address)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.CheckIPAddressDestroy,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccIPAddressResourceConfig_basic(address),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
 				),
 			},
+
 			{
-				ResourceName:      "netbox_ip_address.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_ip_address.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
 			},
 		},
 	})
+
+}
+
+func TestAccConsistency_IPAddress(t *testing.T) {
+
+	t.Parallel()
+
+	ipAddress := "10.0.0.1/24"
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccIPAddressConsistencyConfig(ipAddress, tenantName, tenantSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", ipAddress),
+
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tenant", tenantName),
+				),
+			},
+
+			{
+
+				// Verify no drift
+
+				PlanOnly: true,
+
+				Config: testAccIPAddressConsistencyConfig(ipAddress, tenantName, tenantSlug),
+			},
+		},
+	})
+
+}
+
+func testAccIPAddressConsistencyConfig(ipAddress, tenantName, tenantSlug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_tenant" "test" {
+
+  name = "%[2]s"
+
+  slug = "%[3]s"
+
+}
+
+
+
+resource "netbox_ip_address" "test" {
+
+  address = "%[1]s"
+
+  tenant = netbox_tenant.test.name
+
+}
+
+`, ipAddress, tenantName, tenantSlug)
+
 }

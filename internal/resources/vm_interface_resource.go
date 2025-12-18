@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -212,7 +213,7 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 
 	// Virtual Machine (always present - required field)
 
-	data.VirtualMachine = types.StringValue(iface.VirtualMachine.GetName())
+	data.VirtualMachine = utils.UpdateReferenceAttribute(data.VirtualMachine, iface.VirtualMachine.GetName(), "", iface.VirtualMachine.GetId())
 
 	// Enabled
 
@@ -242,7 +243,21 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 
 	if iface.MacAddress.IsSet() && iface.MacAddress.Get() != nil && *iface.MacAddress.Get() != "" {
 
-		data.MACAddress = types.StringValue(*iface.MacAddress.Get())
+		apiMac := *iface.MacAddress.Get()
+
+		if !data.MACAddress.IsNull() && !data.MACAddress.IsUnknown() {
+
+			if strings.EqualFold(data.MACAddress.ValueString(), apiMac) {
+
+				// Keep user's casing
+
+				apiMac = data.MACAddress.ValueString()
+
+			}
+
+		}
+
+		data.MACAddress = types.StringValue(apiMac)
 
 	} else {
 
@@ -278,7 +293,9 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 
 	if iface.UntaggedVlan.IsSet() && iface.UntaggedVlan.Get() != nil {
 
-		data.UntaggedVLAN = types.StringValue(iface.UntaggedVlan.Get().GetName())
+		vlan := iface.UntaggedVlan.Get()
+
+		data.UntaggedVLAN = utils.UpdateReferenceAttribute(data.UntaggedVLAN, vlan.GetName(), "", vlan.GetId())
 
 	} else {
 
@@ -290,7 +307,9 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 
 	if iface.Vrf.IsSet() && iface.Vrf.Get() != nil {
 
-		data.VRF = types.StringValue(iface.Vrf.Get().GetName())
+		vrf := iface.Vrf.Get()
+
+		data.VRF = utils.UpdateReferenceAttribute(data.VRF, vrf.GetName(), "", vrf.GetId())
 
 	} else {
 

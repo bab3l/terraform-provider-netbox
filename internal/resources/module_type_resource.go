@@ -694,11 +694,11 @@ func (r *ModuleTypeResource) mapResponseToModel(ctx context.Context, moduleType 
 
 	data.Model = types.StringValue(moduleType.GetModel())
 
-	// Map manufacturer
+	// Map manufacturer - preserve user's input format
 
 	if mfr := moduleType.GetManufacturer(); mfr.Id != 0 {
 
-		data.Manufacturer = types.StringValue(fmt.Sprintf("%d", mfr.GetId()))
+		data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, mfr.GetName(), mfr.GetSlug(), mfr.GetId())
 
 	}
 

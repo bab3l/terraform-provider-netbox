@@ -558,7 +558,7 @@ func (r *DeviceBayTemplateResource) mapTemplateToModel(template *netbox.DeviceBa
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", template.Id))
 
-	data.DeviceType = types.StringValue(fmt.Sprintf("%d", template.DeviceType.GetId()))
+	data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, template.DeviceType.GetModel(), template.DeviceType.GetSlug(), template.DeviceType.GetId())
 
 	data.Name = types.StringValue(template.Name)
 

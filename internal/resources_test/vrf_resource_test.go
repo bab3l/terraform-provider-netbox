@@ -340,7 +340,71 @@ func testAccVRFResourceConfig_basic(name string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_vrf" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -404,7 +468,71 @@ resource "netbox_vrf" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -474,7 +602,71 @@ func testAccVRFResourceConfig_full(name, rd, description string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_vrf" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -538,7 +730,71 @@ resource "netbox_vrf" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   rd             = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -602,6 +858,38 @@ resource "netbox_vrf" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   enforce_unique = true
 
 
@@ -634,7 +922,71 @@ resource "netbox_vrf" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -671,20 +1023,98 @@ resource "netbox_vrf" "test" {
 }
 
 func TestAccVRFResource_import(t *testing.T) {
+
 	name := "test-vrf-" + testutil.GenerateSlug("vrf")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccVRFResourceConfig_basic(name),
 			},
+
 			{
-				ResourceName:      "netbox_vrf.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_vrf.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
 			},
 		},
 	})
+
+}
+
+func TestAccConsistency_VRF(t *testing.T) {
+
+	t.Parallel()
+
+	vrfName := testutil.RandomName("vrf")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccVRFConsistencyConfig(vrfName, tenantName, tenantSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_vrf.test", "name", vrfName),
+
+					resource.TestCheckResourceAttr("netbox_vrf.test", "tenant", tenantName),
+				),
+			},
+
+			{
+
+				PlanOnly: true,
+
+				Config: testAccVRFConsistencyConfig(vrfName, tenantName, tenantSlug),
+			},
+		},
+	})
+
+}
+
+func testAccVRFConsistencyConfig(vrfName, tenantName, tenantSlug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_tenant" "test" {
+
+  name = "%[2]s"
+
+  slug = "%[3]s"
+
+}
+
+
+
+resource "netbox_vrf" "test" {
+
+  name = "%[1]s"
+
+  tenant = netbox_tenant.test.name
+
+}
+
+`, vrfName, tenantName, tenantSlug)
+
 }

@@ -527,9 +527,9 @@ func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.D
 
 	data.Name = types.StringValue(db.GetName())
 
-	// Map device
+	// Map device - preserve user's input format
 
-	data.Device = types.StringValue(fmt.Sprintf("%d", db.Device.GetId()))
+	data.Device = utils.UpdateReferenceAttribute(data.Device, db.Device.GetName(), "", db.Device.GetId())
 
 	// Map label
 
@@ -555,11 +555,13 @@ func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.D
 
 	}
 
-	// Map installed_device
+	// Map installed_device - preserve user's input format
 
 	if db.InstalledDevice.IsSet() && db.InstalledDevice.Get() != nil {
 
-		data.InstalledDevice = types.StringValue(fmt.Sprintf("%d", db.InstalledDevice.Get().GetId()))
+		installedDevice := db.InstalledDevice.Get()
+
+		data.InstalledDevice = utils.UpdateReferenceAttribute(data.InstalledDevice, installedDevice.GetName(), "", installedDevice.GetId())
 
 	} else {
 

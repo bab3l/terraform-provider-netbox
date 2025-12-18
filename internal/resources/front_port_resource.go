@@ -734,11 +734,11 @@ func (r *FrontPortResource) mapResponseToModel(ctx context.Context, port *netbox
 
 	data.Name = types.StringValue(port.GetName())
 
-	// Map device - store the ID
+	// Map device - preserve user's input format
 
 	if device := port.GetDevice(); device.Id != 0 {
 
-		data.Device = types.StringValue(fmt.Sprintf("%d", device.GetId()))
+		data.Device = utils.UpdateReferenceAttribute(data.Device, device.GetName(), "", device.GetId())
 
 	}
 
@@ -770,11 +770,11 @@ func (r *FrontPortResource) mapResponseToModel(ctx context.Context, port *netbox
 
 	}
 
-	// Map rear port
+	// Map rear port - preserve user's input format
 
 	if rearPort := port.GetRearPort(); rearPort.Id != 0 {
 
-		data.RearPort = types.StringValue(fmt.Sprintf("%d", rearPort.GetId()))
+		data.RearPort = utils.UpdateReferenceAttribute(data.RearPort, rearPort.GetName(), "", rearPort.GetId())
 
 	}
 

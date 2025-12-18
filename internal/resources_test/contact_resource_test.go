@@ -333,7 +333,71 @@ func testAccContactResource(name, email, phone string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_contact" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -397,7 +461,71 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   email = %[2]q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -461,7 +589,71 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -531,7 +723,71 @@ func testAccContactResourceFull(name string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_contact" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -595,7 +851,71 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   title       = "Network Engineer"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -659,7 +979,71 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   email       = "engineer@example.com"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -723,7 +1107,71 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   link        = "https://example.com/profile"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -787,7 +1235,71 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   comments    = "Test contact comments"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -851,6 +1363,105 @@ resource "netbox_contact" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 `, name)
+
+}
+
+func TestAccConsistency_Contact(t *testing.T) {
+
+	t.Parallel()
+
+	contactName := testutil.RandomName("contact")
+
+	contactGroupName := testutil.RandomName("contactgroup")
+
+	contactGroupSlug := testutil.RandomSlug("contactgroup")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccContactConsistencyConfig(contactName, contactGroupName, contactGroupSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_contact.test", "name", contactName),
+
+					resource.TestCheckResourceAttr("netbox_contact.test", "group", contactGroupName),
+				),
+			},
+
+			{
+
+				PlanOnly: true,
+
+				Config: testAccContactConsistencyConfig(contactName, contactGroupName, contactGroupSlug),
+			},
+		},
+	})
+
+}
+
+func testAccContactConsistencyConfig(contactName, contactGroupName, contactGroupSlug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_contact_group" "test" {
+
+  name = "%[2]s"
+
+  slug = "%[3]s"
+
+}
+
+
+
+resource "netbox_contact" "test" {
+
+  name = "%[1]s"
+
+  group = netbox_contact_group.test.name
+
+}
+
+`, contactName, contactGroupName, contactGroupSlug)
 
 }

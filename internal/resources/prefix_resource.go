@@ -703,23 +703,13 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 
 	data.Prefix = types.StringValue(prefix.Prefix)
 
-	// Site - preserve user input if it matches
+	// Site
 
 	if prefix.Site.IsSet() && prefix.Site.Get() != nil {
 
 		siteObj := prefix.Site.Get()
 
-		userSite := data.Site.ValueString()
-
-		if userSite == siteObj.Name || userSite == siteObj.Slug || userSite == siteObj.Display || userSite == fmt.Sprintf("%d", siteObj.Id) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Site = types.StringValue(siteObj.Name)
-
-		}
+		data.Site = utils.UpdateReferenceAttribute(data.Site, siteObj.Name, siteObj.Slug, siteObj.Id)
 
 	} else {
 
@@ -727,23 +717,13 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 
 	}
 
-	// VRF - preserve user input if it matches
+	// VRF
 
 	if prefix.Vrf.IsSet() && prefix.Vrf.Get() != nil {
 
 		vrfObj := prefix.Vrf.Get()
 
-		userVrf := data.VRF.ValueString()
-
-		if userVrf == vrfObj.Name || userVrf == vrfObj.Display || userVrf == fmt.Sprintf("%d", vrfObj.Id) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.VRF = types.StringValue(vrfObj.Name)
-
-		}
+		data.VRF = utils.UpdateReferenceAttribute(data.VRF, vrfObj.Name, "", vrfObj.Id)
 
 	} else {
 
@@ -751,23 +731,13 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 
 	}
 
-	// Tenant - preserve user input if it matches
+	// Tenant
 
 	if prefix.Tenant.IsSet() && prefix.Tenant.Get() != nil {
 
 		tenantObj := prefix.Tenant.Get()
 
-		userTenant := data.Tenant.ValueString()
-
-		if userTenant == tenantObj.Name || userTenant == tenantObj.Slug || userTenant == tenantObj.Display || userTenant == fmt.Sprintf("%d", tenantObj.Id) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Tenant = types.StringValue(tenantObj.Name)
-
-		}
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenantObj.Name, tenantObj.Slug, tenantObj.Id)
 
 	} else {
 
@@ -775,23 +745,13 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 
 	}
 
-	// VLAN - preserve user input if it matches
+	// VLAN
 
 	if prefix.Vlan.IsSet() && prefix.Vlan.Get() != nil {
 
 		vlanObj := prefix.Vlan.Get()
 
-		userVlan := data.VLAN.ValueString()
-
-		if userVlan == vlanObj.Display || userVlan == vlanObj.Name || userVlan == fmt.Sprintf("%d", vlanObj.Id) || userVlan == fmt.Sprintf("%d", vlanObj.Vid) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.VLAN = types.StringValue(vlanObj.Display)
-
-		}
+		data.VLAN = utils.UpdateReferenceAttribute(data.VLAN, vlanObj.Name, "", vlanObj.Id)
 
 	} else {
 

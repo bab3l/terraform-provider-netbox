@@ -864,13 +864,13 @@ func (r *L2VPNResource) mapResponseToState(ctx context.Context, l2vpn *netbox.L2
 
 	}
 
-	// Tenant
+	// Tenant - preserve user's input format
 
 	if l2vpn.HasTenant() && l2vpn.GetTenant().Id != 0 {
 
 		tenant := l2vpn.GetTenant()
 
-		data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 
 	} else {
 

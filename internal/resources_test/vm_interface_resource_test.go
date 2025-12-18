@@ -237,7 +237,7 @@ func TestAccVMInterfaceResource_full(t *testing.T) {
 
 	vmName := testutil.RandomName("tf-test-vm-full")
 
-	ifaceName := "eth0"
+	const ifaceName = "eth0"
 
 	description := "Test VM interface with all fields"
 
@@ -307,7 +307,7 @@ func TestAccVMInterfaceResource_update(t *testing.T) {
 
 	vmName := testutil.RandomName("tf-test-vm-update")
 
-	ifaceName := "eth0"
+	const ifaceName = "eth0"
 
 	updatedIfaceName := "eth1"
 
@@ -405,7 +405,71 @@ func testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, cl
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -469,6 +533,38 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -501,7 +597,103 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -597,7 +789,71 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -661,7 +917,103 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -757,7 +1109,71 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name    = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -821,7 +1237,103 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -917,7 +1429,71 @@ resource "netbox_vm_interface" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   virtual_machine = netbox_virtual_machine.test.name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -981,7 +1557,71 @@ resource "netbox_vm_interface" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1051,7 +1691,71 @@ func testAccVMInterfaceResourceConfig_full(clusterTypeName, clusterTypeSlug, clu
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1115,6 +1819,38 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -1147,7 +1883,103 @@ resource "netbox_cluster_type" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1243,7 +2075,71 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1307,7 +2203,103 @@ resource "netbox_cluster" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1403,7 +2395,71 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   name    = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1467,7 +2523,103 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1563,7 +2715,71 @@ resource "netbox_vm_interface" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   virtual_machine = netbox_virtual_machine.test.name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1627,7 +2843,71 @@ resource "netbox_vm_interface" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   enabled         = true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1691,6 +2971,38 @@ resource "netbox_vm_interface" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   description     = %q
 
 
@@ -1723,7 +3035,71 @@ resource "netbox_vm_interface" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1760,24 +3136,176 @@ resource "netbox_vm_interface" "test" {
 }
 
 func TestAccVMInterfaceResource_import(t *testing.T) {
+
 	clusterTypeName := "test-cluster-type-" + testutil.GenerateSlug("ct")
+
 	clusterTypeSlug := testutil.GenerateSlug("ct")
+
 	clusterName := "test-cluster-" + testutil.GenerateSlug("cluster")
+
 	vmName := "test-vm-" + testutil.GenerateSlug("vm")
+
 	ifaceName := "test-iface-" + testutil.GenerateSlug("iface")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
 			},
+
 			{
-				ResourceName:      "netbox_vm_interface.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_vm_interface.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
 			},
 		},
 	})
+
+}
+
+func TestAccConsistency_VMInterface(t *testing.T) {
+
+	t.Parallel()
+
+	vmName := testutil.RandomName("vm")
+
+	clusterName := testutil.RandomName("cluster")
+
+	clusterTypeName := testutil.RandomName("cluster-type")
+
+	clusterTypeSlug := testutil.RandomSlug("cluster-type")
+
+	const interfaceName = "eth0"
+
+	macAddress := "AA:BB:CC:DD:EE:FF" // Uppercase to test case sensitivity
+
+	vlanName := testutil.RandomName("vlan")
+
+	vlanVid := 100
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccVMInterfaceConsistencyConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName, vlanVid, siteName, siteSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", interfaceName),
+
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mac_address", macAddress),
+
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "untagged_vlan", vlanName),
+				),
+			},
+
+			{
+
+				// Verify no drift
+
+				PlanOnly: true,
+
+				Config: testAccVMInterfaceConsistencyConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName, vlanVid, siteName, siteSlug),
+			},
+		},
+	})
+
+}
+
+func testAccVMInterfaceConsistencyConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName string, vlanVid int, siteName, siteSlug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_cluster_type" "test" {
+
+  name = "%[3]s"
+
+  slug = "%[4]s"
+
+}
+
+
+
+resource "netbox_site" "test" {
+
+  name = "%[9]s"
+
+  slug = "%[10]s"
+
+}
+
+
+
+resource "netbox_cluster" "test" {
+
+  name = "%[2]s"
+
+  type = netbox_cluster_type.test.id
+
+  site = netbox_site.test.id
+
+}
+
+
+
+resource "netbox_virtual_machine" "test" {
+
+  name = "%[1]s"
+
+  cluster = netbox_cluster.test.id
+
+  site = netbox_site.test.id
+
+}
+
+
+
+resource "netbox_vlan" "test" {
+
+  name = "%[7]s"
+
+  vid  = %[8]d
+
+  site = netbox_site.test.id
+
+}
+
+
+
+resource "netbox_vm_interface" "test" {
+
+  virtual_machine = netbox_virtual_machine.test.name
+
+  name = "%[5]s"
+
+  mac_address = "%[6]s"
+
+  mode = "access"
+
+  untagged_vlan = netbox_vlan.test.name
+
+}
+
+`, vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName, vlanVid, siteName, siteSlug)
+
 }

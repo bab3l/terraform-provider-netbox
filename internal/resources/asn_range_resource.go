@@ -679,17 +679,23 @@ func (r *ASNRangeResource) mapASNRangeToState(ctx context.Context, asnRange *net
 
 	data.Slug = types.StringValue(asnRange.Slug)
 
-	data.RIR = types.StringValue(fmt.Sprintf("%d", asnRange.Rir.GetId()))
+	// RIR - preserve user's input format
+
+	rir := asnRange.Rir
+
+	data.RIR = utils.UpdateReferenceAttribute(data.RIR, rir.GetName(), rir.GetSlug(), rir.GetId())
 
 	data.Start = types.StringValue(fmt.Sprintf("%d", asnRange.Start))
 
 	data.End = types.StringValue(fmt.Sprintf("%d", asnRange.End))
 
-	// Tenant
+	// Tenant - preserve user's input format
 
 	if asnRange.HasTenant() && asnRange.Tenant.Get() != nil {
 
-		data.Tenant = types.StringValue(fmt.Sprintf("%d", asnRange.Tenant.Get().GetId()))
+		tenant := asnRange.Tenant.Get()
+
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 
 	} else {
 

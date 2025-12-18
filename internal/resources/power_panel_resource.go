@@ -643,15 +643,19 @@ func (r *PowerPanelResource) mapResponseToModel(ctx context.Context, pp *netbox.
 
 	data.Name = types.StringValue(pp.GetName())
 
-	// Map site
+	// Map site - preserve user's input format
 
-	data.Site = types.StringValue(fmt.Sprintf("%d", pp.Site.GetId()))
+	site := pp.Site
 
-	// Map location
+	data.Site = utils.UpdateReferenceAttribute(data.Site, site.GetName(), site.GetSlug(), site.GetId())
+
+	// Map location - preserve user's input format
 
 	if pp.Location.IsSet() && pp.Location.Get() != nil {
 
-		data.Location = types.StringValue(fmt.Sprintf("%d", pp.Location.Get().GetId()))
+		loc := pp.Location.Get()
+
+		data.Location = utils.UpdateReferenceAttribute(data.Location, loc.GetName(), loc.GetSlug(), loc.GetId())
 
 	} else {
 

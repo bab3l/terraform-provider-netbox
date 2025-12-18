@@ -651,23 +651,13 @@ func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *
 
 	data.Address = types.StringValue(ipAddress.Address)
 
-	// VRF - preserve user input if it matches
+	// VRF
 
 	if ipAddress.Vrf.IsSet() && ipAddress.Vrf.Get() != nil {
 
 		vrfObj := ipAddress.Vrf.Get()
 
-		userVrf := data.VRF.ValueString()
-
-		if userVrf == vrfObj.Name || userVrf == vrfObj.Display || userVrf == fmt.Sprintf("%d", vrfObj.Id) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.VRF = types.StringValue(vrfObj.Name)
-
-		}
+		data.VRF = utils.UpdateReferenceAttribute(data.VRF, vrfObj.Name, "", vrfObj.Id)
 
 	} else {
 
@@ -675,23 +665,13 @@ func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *
 
 	}
 
-	// Tenant - preserve user input if it matches
+	// Tenant
 
 	if ipAddress.Tenant.IsSet() && ipAddress.Tenant.Get() != nil {
 
 		tenantObj := ipAddress.Tenant.Get()
 
-		userTenant := data.Tenant.ValueString()
-
-		if userTenant == tenantObj.Name || userTenant == tenantObj.Slug || userTenant == tenantObj.Display || userTenant == fmt.Sprintf("%d", tenantObj.Id) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Tenant = types.StringValue(tenantObj.Name)
-
-		}
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenantObj.Name, tenantObj.Slug, tenantObj.Id)
 
 	} else {
 

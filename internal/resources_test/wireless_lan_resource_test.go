@@ -296,7 +296,71 @@ func testAccWirelessLANResourceConfig_basic(ssid string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_wireless_lan" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -360,7 +424,71 @@ resource "netbox_wireless_lan" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -430,7 +558,71 @@ func testAccWirelessLANResourceConfig_full(ssid, groupName, groupSlug, descripti
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_wireless_lan_group" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -494,6 +686,38 @@ resource "netbox_wireless_lan_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   slug = %q
 
 
@@ -526,7 +750,103 @@ resource "netbox_wireless_lan_group" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -622,7 +942,71 @@ resource "netbox_wireless_lan" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   ssid        = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -686,7 +1070,71 @@ resource "netbox_wireless_lan" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   description = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -750,6 +1198,38 @@ resource "netbox_wireless_lan" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -782,6 +1262,125 @@ resource "netbox_wireless_lan" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 `, groupName, groupSlug, ssid, description, status)
+
+}
+
+func TestAccConsistency_WirelessLAN(t *testing.T) {
+
+	t.Parallel()
+
+	wlanName := testutil.RandomName("wlan")
+
+	ssid := testutil.RandomName("ssid")
+
+	groupName := testutil.RandomName("group")
+
+	groupSlug := testutil.RandomSlug("group")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccWirelessLANConsistencyConfig(wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "ssid", ssid),
+
+					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "group", groupSlug),
+
+					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "tenant", tenantName),
+				),
+			},
+
+			{
+
+				PlanOnly: true,
+
+				Config: testAccWirelessLANConsistencyConfig(wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug),
+			},
+		},
+	})
+
+}
+
+func testAccWirelessLANConsistencyConfig(wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_wireless_lan_group" "test" {
+
+  name = "%[3]s"
+
+  slug = "%[4]s"
+
+}
+
+
+
+resource "netbox_tenant" "test" {
+
+  name = "%[5]s"
+
+  slug = "%[6]s"
+
+}
+
+
+
+resource "netbox_wireless_lan" "test" {
+
+  ssid = "%[2]s"
+
+  group = netbox_wireless_lan_group.test.slug
+
+  tenant = netbox_tenant.test.name
+
+}
+
+`, wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug)
 
 }

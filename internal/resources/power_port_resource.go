@@ -695,11 +695,11 @@ func (r *PowerPortResource) mapResponseToModel(ctx context.Context, powerPort *n
 
 	data.Name = types.StringValue(powerPort.GetName())
 
-	// Map device
+	// Map device - preserve user's input format
 
 	if device := powerPort.GetDevice(); device.Id != 0 {
 
-		data.Device = types.StringValue(fmt.Sprintf("%d", device.GetId()))
+		data.Device = utils.UpdateReferenceAttribute(data.Device, device.GetName(), "", device.GetId())
 
 	}
 

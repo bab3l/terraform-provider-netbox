@@ -715,19 +715,19 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 
 	data.TermSide = types.StringValue(string(termination.GetTermSide()))
 
-	// Map Circuit
+	// Map Circuit - preserve user's input format
 
 	if circuit := termination.GetCircuit(); circuit.Id != 0 {
 
-		data.Circuit = types.StringValue(fmt.Sprintf("%d", circuit.Id))
+		data.Circuit = utils.UpdateReferenceAttribute(data.Circuit, circuit.GetCid(), "", circuit.Id)
 
 	}
 
-	// Map Site
+	// Map Site - preserve user's input format
 
 	if site, ok := termination.GetSiteOk(); ok && site != nil && site.Id != 0 {
 
-		data.Site = types.StringValue(fmt.Sprintf("%d", site.Id))
+		data.Site = utils.UpdateReferenceAttribute(data.Site, site.GetName(), site.GetSlug(), site.Id)
 
 	} else if data.Site.IsNull() {
 
@@ -739,11 +739,11 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 
 	}
 
-	// Map ProviderNetwork
+	// Map ProviderNetwork - preserve user's input format
 
 	if pn, ok := termination.GetProviderNetworkOk(); ok && pn != nil && pn.Id != 0 {
 
-		data.ProviderNetwork = types.StringValue(fmt.Sprintf("%d", pn.Id))
+		data.ProviderNetwork = utils.UpdateReferenceAttribute(data.ProviderNetwork, pn.GetName(), "", pn.Id)
 
 	} else if data.ProviderNetwork.IsNull() {
 

@@ -419,7 +419,71 @@ func testAccPrefixResourceConfig_basic(prefix string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_prefix" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -483,7 +547,71 @@ resource "netbox_prefix" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -553,7 +681,71 @@ func testAccPrefixResourceConfig_full(prefix, description string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_prefix" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -617,7 +809,71 @@ resource "netbox_prefix" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   description = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -681,6 +937,38 @@ resource "netbox_prefix" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   is_pool     = false
 
 
@@ -713,7 +1001,71 @@ resource "netbox_prefix" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -783,7 +1135,71 @@ func testAccPrefixResourceConfig_withVRF(prefix, vrfName string) string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 resource "netbox_vrf" "test" {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -847,7 +1263,103 @@ resource "netbox_vrf" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -943,7 +1455,71 @@ resource "netbox_prefix" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   prefix = %q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1007,7 +1583,71 @@ resource "netbox_prefix" "test" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1044,29 +1684,154 @@ resource "netbox_prefix" "test" {
 }
 
 func TestAccPrefixResource_import(t *testing.T) {
+
 	prefix := testutil.RandomIPv4Prefix()
+
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterPrefixCleanup(prefix)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.CheckPrefixDestroy,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccPrefixResourceConfig_basic(prefix),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
 				),
 			},
+
 			{
-				ResourceName:      "netbox_prefix.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_prefix.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
 			},
 		},
 	})
+
+}
+
+func TestAccConsistency_Prefix(t *testing.T) {
+
+	t.Parallel()
+
+	prefix := "10.0.0.0/24"
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	vlanName := testutil.RandomName("vlan")
+
+	vlanVid := 100
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccPrefixConsistencyConfig(prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName, vlanVid),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
+
+					resource.TestCheckResourceAttr("netbox_prefix.test", "site", siteName),
+
+					resource.TestCheckResourceAttr("netbox_prefix.test", "tenant", tenantName),
+
+					resource.TestCheckResourceAttr("netbox_prefix.test", "vlan", vlanName),
+				),
+			},
+
+			{
+
+				// Verify no drift
+
+				PlanOnly: true,
+
+				Config: testAccPrefixConsistencyConfig(prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName, vlanVid),
+			},
+		},
+	})
+
+}
+
+func testAccPrefixConsistencyConfig(prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName string, vlanVid int) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_site" "test" {
+
+  name = "%[2]s"
+
+  slug = "%[3]s"
+
+}
+
+
+
+resource "netbox_tenant" "test" {
+
+  name = "%[4]s"
+
+  slug = "%[5]s"
+
+}
+
+
+
+resource "netbox_vlan" "test" {
+
+  name = "%[6]s"
+
+  vid  = %[7]d
+
+  site = netbox_site.test.id
+
+}
+
+
+
+resource "netbox_prefix" "test" {
+
+  prefix = "%[1]s"
+
+  site = netbox_site.test.name
+
+  tenant = netbox_tenant.test.name
+
+  vlan = netbox_vlan.test.name
+
+}
+
+`, prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName, vlanVid)
+
 }
