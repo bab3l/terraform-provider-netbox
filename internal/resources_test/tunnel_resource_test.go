@@ -24,9 +24,7 @@ func TestTunnelResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil Tunnel resource")
-
 	}
-
 }
 
 func TestTunnelResourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestTunnelResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	// Required attributes
@@ -62,9 +58,7 @@ func TestTunnelResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	// Computed attributes
@@ -76,9 +70,7 @@ func TestTunnelResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	// Optional attributes
@@ -90,11 +82,8 @@ func TestTunnelResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestTunnelResourceMetadata(t *testing.T) {
@@ -117,9 +106,7 @@ func TestTunnelResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestTunnelResourceConfigure(t *testing.T) {
@@ -135,7 +122,6 @@ func TestTunnelResourceConfigure(t *testing.T) {
 	if !ok {
 
 		t.Fatal("Resource does not implement ResourceWithConfigure")
-
 	}
 
 	configureRequest := fwresource.ConfigureRequest{
@@ -150,7 +136,6 @@ func TestTunnelResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -162,9 +147,7 @@ func TestTunnelResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with valid client, got: %+v", configureResponse.Diagnostics)
-
 	}
-
 }
 
 // Acceptance Tests
@@ -211,7 +194,6 @@ func TestAccTunnelResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccTunnelResource_full(t *testing.T) {
@@ -262,7 +244,6 @@ func TestAccTunnelResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccTunnelResource_update(t *testing.T) {
@@ -319,7 +300,6 @@ func TestAccTunnelResource_update(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccTunnelResource_import(t *testing.T) {
@@ -362,465 +342,35 @@ func TestAccTunnelResource_import(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccTunnelResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_tunnel" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name          = %[1]q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   status        = "active"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   encapsulation = "gre"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name)
-
 }
 
 func testAccTunnelResourceConfig_full(name, description string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_tunnel" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name          = %[1]q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   status        = "planned"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   encapsulation = "wireguard"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description   = %[2]q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   tunnel_id     = 12345
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, description)
-
 }

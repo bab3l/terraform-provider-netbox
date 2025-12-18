@@ -24,9 +24,7 @@ func TestDeviceDataSource(t *testing.T) {
 	if d == nil {
 
 		t.Fatal("Expected non-nil device data source")
-
 	}
-
 }
 
 func TestDeviceDataSourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestDeviceDataSourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	// Check that key attributes exist
@@ -62,11 +58,8 @@ func TestDeviceDataSourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestDeviceDataSourceMetadata(t *testing.T) {
@@ -89,9 +82,7 @@ func TestDeviceDataSourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestDeviceDataSourceConfigure(t *testing.T) {
@@ -112,7 +103,6 @@ func TestDeviceDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -126,7 +116,6 @@ func TestDeviceDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -138,9 +127,7 @@ func TestDeviceDataSourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
-
 	}
-
 }
 
 func TestAccDeviceDataSource_byName(t *testing.T) {
@@ -224,7 +211,6 @@ func TestAccDeviceDataSource_byName(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccDeviceDataSource_bySerial(t *testing.T) {
@@ -304,7 +290,6 @@ func TestAccDeviceDataSource_bySerial(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 // Helper functions to generate test configurations
@@ -313,132 +298,81 @@ func testAccDeviceDataSourceConfig_byName(deviceName, manufacturerName, manufact
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_manufacturer" "test" {
-
   name = %[1]q
-
   slug = %[2]q
-
 }
 
 resource "netbox_device_type" "test" {
-
   manufacturer = netbox_manufacturer.test.slug
-
   model        = %[3]q
-
   slug         = %[4]q
-
 }
 
 resource "netbox_device_role" "test" {
-
   name = %[5]q
-
   slug = %[6]q
-
 }
 
 resource "netbox_site" "test" {
-
   name   = %[7]q
-
   slug   = %[8]q
-
   status = "active"
-
 }
 
 resource "netbox_device" "test" {
-
   name        = %[9]q
 
   device_type = netbox_device_type.test.slug
-
   role        = netbox_device_role.test.slug
-
   site        = netbox_site.test.slug
-
 }
 
 data "netbox_device" "test" {
-
   name = netbox_device.test.name
-
 }
 
-
-
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName)
-
 }
 
 func testAccDeviceDataSourceConfig_bySerial(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, serial string) string {
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_manufacturer" "test" {
-
   name = %[1]q
-
   slug = %[2]q
-
 }
 
 resource "netbox_device_type" "test" {
-
   manufacturer = netbox_manufacturer.test.slug
-
   model        = %[3]q
-
   slug         = %[4]q
-
 }
 
 resource "netbox_device_role" "test" {
-
   name = %[5]q
-
   slug = %[6]q
-
 }
 
 resource "netbox_site" "test" {
-
   name   = %[7]q
-
   slug   = %[8]q
-
   status = "active"
-
 }
 
 resource "netbox_device" "test" {
-
   name        = %[9]q
 
   device_type = netbox_device_type.test.slug
-
   role        = netbox_device_role.test.slug
-
   site        = netbox_site.test.slug
-
   serial      = %[10]q
-
 }
 
 data "netbox_device" "test" {
-
   serial = netbox_device.test.serial
-
 }
 
-
-
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, serial)
-
 }

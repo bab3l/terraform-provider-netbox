@@ -24,9 +24,7 @@ func TestTunnelGroupResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil TunnelGroup resource")
-
 	}
-
 }
 
 func TestTunnelGroupResourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestTunnelGroupResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	// Required attributes
@@ -62,9 +58,7 @@ func TestTunnelGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	// Computed attributes
@@ -76,9 +70,7 @@ func TestTunnelGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	// Optional attributes
@@ -90,11 +82,8 @@ func TestTunnelGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestTunnelGroupResourceMetadata(t *testing.T) {
@@ -117,9 +106,7 @@ func TestTunnelGroupResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestTunnelGroupResourceConfigure(t *testing.T) {
@@ -135,7 +122,6 @@ func TestTunnelGroupResourceConfigure(t *testing.T) {
 	if !ok {
 
 		t.Fatal("Resource does not implement ResourceWithConfigure")
-
 	}
 
 	configureRequest := fwresource.ConfigureRequest{
@@ -150,7 +136,6 @@ func TestTunnelGroupResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -162,9 +147,7 @@ func TestTunnelGroupResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with valid client, got: %+v", configureResponse.Diagnostics)
-
 	}
-
 }
 
 // Acceptance Tests
@@ -211,7 +194,6 @@ func TestAccTunnelGroupResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccTunnelGroupResource_full(t *testing.T) {
@@ -260,7 +242,6 @@ func TestAccTunnelGroupResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccTunnelGroupResource_update(t *testing.T) {
@@ -315,7 +296,6 @@ func TestAccTunnelGroupResource_update(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccTunnelGroupResource_import(t *testing.T) {
@@ -360,369 +340,29 @@ func TestAccTunnelGroupResource_import(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccTunnelGroupResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_tunnel_group" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %[1]q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %[2]q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, slug)
-
 }
 
 func testAccTunnelGroupResourceConfig_full(name, slug, description string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_tunnel_group" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name        = %[1]q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug        = %[2]q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description = %[3]q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, slug, description)
-
 }

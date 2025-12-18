@@ -24,9 +24,7 @@ func TestVirtualDiskResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil VirtualDisk resource")
-
 	}
-
 }
 
 func TestVirtualDiskResourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestVirtualDiskResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	requiredAttrs := []string{"virtual_machine", "name", "size"}
@@ -60,9 +56,7 @@ func TestVirtualDiskResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	computedAttrs := []string{"id"}
@@ -72,9 +66,7 @@ func TestVirtualDiskResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	optionalAttrs := []string{"description", "tags", "custom_fields"}
@@ -84,11 +76,8 @@ func TestVirtualDiskResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestVirtualDiskResourceMetadata(t *testing.T) {
@@ -111,9 +100,7 @@ func TestVirtualDiskResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestVirtualDiskResourceConfigure(t *testing.T) {
@@ -129,7 +116,6 @@ func TestVirtualDiskResourceConfigure(t *testing.T) {
 	if !ok {
 
 		t.Fatal("Resource does not implement ResourceWithConfigure")
-
 	}
 
 	configureRequest := fwresource.ConfigureRequest{
@@ -144,7 +130,6 @@ func TestVirtualDiskResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -156,9 +141,7 @@ func TestVirtualDiskResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with valid client, got: %+v", configureResponse.Diagnostics)
-
 	}
-
 }
 
 // Acceptance Tests
@@ -228,7 +211,6 @@ func TestAccVirtualDiskResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccVirtualDiskResource_full(t *testing.T) {
@@ -298,7 +280,6 @@ func TestAccVirtualDiskResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccVirtualDiskResource_update(t *testing.T) {
@@ -380,7 +361,6 @@ func TestAccVirtualDiskResource_update(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccVirtualDiskResourceConfig_basic(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug string) string {
@@ -388,57 +368,35 @@ func testAccVirtualDiskResourceConfig_basic(diskName, vmName, clusterName, clust
 	return fmt.Sprintf(`
 
 resource "netbox_cluster_type" "test" {
-
   name = %q
-
   slug = %q
-
 }
-
-
 
 resource "netbox_cluster" "test" {
-
   name = %q
-
   type = netbox_cluster_type.test.id
-
 }
 
-
-
 resource "netbox_virtual_machine" "test" {
-
   name    = %q
-
   cluster = netbox_cluster.test.id
-
-
 
   # Ignore disk changes since Netbox auto-computes this from virtual_disks
 
   lifecycle {
 
     ignore_changes = [disk]
-
   }
-
 }
 
-
-
 resource "netbox_virtual_disk" "test" {
-
   virtual_machine = netbox_virtual_machine.test.id
-
   name            = %q
 
   size            = 100
-
 }
 
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, diskName)
-
 }
 
 func testAccVirtualDiskResourceConfig_full(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug string) string {
@@ -446,59 +404,36 @@ func testAccVirtualDiskResourceConfig_full(diskName, vmName, clusterName, cluste
 	return fmt.Sprintf(`
 
 resource "netbox_cluster_type" "test" {
-
   name = %q
-
   slug = %q
-
 }
-
-
 
 resource "netbox_cluster" "test" {
-
   name = %q
-
   type = netbox_cluster_type.test.id
-
 }
 
-
-
 resource "netbox_virtual_machine" "test" {
-
   name    = %q
-
   cluster = netbox_cluster.test.id
-
-
 
   # Ignore disk changes since Netbox auto-computes this from virtual_disks
 
   lifecycle {
 
     ignore_changes = [disk]
-
   }
-
 }
 
-
-
 resource "netbox_virtual_disk" "test" {
-
   virtual_machine = netbox_virtual_machine.test.id
-
   name            = %q
 
   size            = 500
-
   description     = "Test virtual disk with full options"
-
 }
 
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, diskName)
-
 }
 
 func testAccVirtualDiskResourceConfig_updated(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug string) string {
@@ -506,59 +441,36 @@ func testAccVirtualDiskResourceConfig_updated(diskName, vmName, clusterName, clu
 	return fmt.Sprintf(`
 
 resource "netbox_cluster_type" "test" {
-
   name = %q
-
   slug = %q
-
 }
-
-
 
 resource "netbox_cluster" "test" {
-
   name = %q
-
   type = netbox_cluster_type.test.id
-
 }
 
-
-
 resource "netbox_virtual_machine" "test" {
-
   name    = %q
-
   cluster = netbox_cluster.test.id
-
-
 
   # Ignore disk changes since Netbox auto-computes this from virtual_disks
 
   lifecycle {
 
     ignore_changes = [disk]
-
   }
-
 }
 
-
-
 resource "netbox_virtual_disk" "test" {
-
   virtual_machine = netbox_virtual_machine.test.id
-
   name            = %q
 
   size            = 200
-
   description     = "Updated description"
-
 }
 
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, diskName)
-
 }
 
 func TestAccVirtualDiskResource_import(t *testing.T) {
@@ -635,7 +547,6 @@ func TestAccVirtualDiskResource_import(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccConsistency_VirtualDisk(t *testing.T) {
@@ -678,7 +589,6 @@ func TestAccConsistency_VirtualDisk(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccVirtualDiskConsistencyConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName, diskName string) string {
@@ -686,51 +596,31 @@ func testAccVirtualDiskConsistencyConfig(clusterTypeName, clusterTypeSlug, clust
 	return fmt.Sprintf(`
 
 resource "netbox_cluster_type" "test" {
-
   name = "%[1]s"
-
   slug = "%[2]s"
-
 }
-
-
 
 resource "netbox_cluster" "test" {
-
   name = "%[3]s"
-
   type = netbox_cluster_type.test.id
-
 }
 
-
-
 resource "netbox_virtual_machine" "test" {
-
   name = "%[4]s"
-
   cluster = netbox_cluster.test.id
 
   lifecycle {
 
     ignore_changes = [disk]
-
   }
-
 }
 
-
-
 resource "netbox_virtual_disk" "test" {
-
   virtual_machine = netbox_virtual_machine.test.name
-
   name = "%[5]s"
 
   size = 100
-
 }
 
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, diskName)
-
 }

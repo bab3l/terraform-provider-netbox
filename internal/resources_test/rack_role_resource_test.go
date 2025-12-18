@@ -24,9 +24,7 @@ func TestRackRoleResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil rack role resource")
-
 	}
-
 }
 
 func TestRackRoleResourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestRackRoleResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	// Required attributes
@@ -62,9 +58,7 @@ func TestRackRoleResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	// Computed attributes
@@ -76,9 +70,7 @@ func TestRackRoleResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	// Optional attributes
@@ -90,11 +82,8 @@ func TestRackRoleResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestRackRoleResourceMetadata(t *testing.T) {
@@ -117,9 +106,7 @@ func TestRackRoleResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestRackRoleResourceConfigure(t *testing.T) {
@@ -142,7 +129,6 @@ func TestRackRoleResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	// Test with correct provider data type
@@ -158,7 +144,6 @@ func TestRackRoleResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	// Test with incorrect provider data type
@@ -172,9 +157,7 @@ func TestRackRoleResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
-
 	}
-
 }
 
 func TestAccRackRoleResource_basic(t *testing.T) {
@@ -219,7 +202,6 @@ func TestAccRackRoleResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccRackRoleResource_full(t *testing.T) {
@@ -272,7 +254,6 @@ func TestAccRackRoleResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccRackRoleResource_update(t *testing.T) {
@@ -329,7 +310,6 @@ func TestAccRackRoleResource_update(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccRackRoleResource_import(t *testing.T) {
@@ -374,401 +354,30 @@ func TestAccRackRoleResource_import(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccRackRoleResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_rack_role" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %[1]q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %[2]q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, slug)
-
 }
 
 func testAccRackRoleResourceConfig_full(name, slug, description, color string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_rack_role" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name        = %[1]q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug        = %[2]q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description = %[3]q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   color       = %[4]q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, slug, description, color)
-
 }

@@ -24,9 +24,7 @@ func TestWebhookDataSource(t *testing.T) {
 	if d == nil {
 
 		t.Fatal("Expected non-nil webhook data source")
-
 	}
-
 }
 
 func TestWebhookDataSourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestWebhookDataSourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	// Check that key attributes exist
@@ -62,11 +58,8 @@ func TestWebhookDataSourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestWebhookDataSourceMetadata(t *testing.T) {
@@ -89,9 +82,7 @@ func TestWebhookDataSourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestWebhookDataSourceConfigure(t *testing.T) {
@@ -112,7 +103,6 @@ func TestWebhookDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -126,7 +116,6 @@ func TestWebhookDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -138,9 +127,7 @@ func TestWebhookDataSourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with invalid provider data")
-
 	}
-
 }
 
 // Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
@@ -173,7 +160,6 @@ func TestAccWebhookDataSource_byID(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccWebhookDataSource_byName(t *testing.T) {
@@ -204,57 +190,39 @@ func TestAccWebhookDataSource_byName(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccWebhookDataSourceByID(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_webhook" "test" {
-
   name        = %[1]q
 
   payload_url = "https://example.com/webhook"
-
 }
 
 data "netbox_webhook" "test" {
 
   id = netbox_webhook.test.id
-
 }
 
-
-
 `, name)
-
 }
 
 func testAccWebhookDataSourceByName(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_webhook" "test" {
-
   name        = %[1]q
 
   payload_url = "https://example.com/webhook"
-
 }
 
 data "netbox_webhook" "test" {
-
   name = netbox_webhook.test.name
-
 }
 
-
-
 `, name)
-
 }

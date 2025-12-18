@@ -37,7 +37,6 @@ type resourceInfo struct {
 	computedFields []string
 
 	optionalComputed []string // fields that are both optional and computed
-
 }
 
 // allResources returns all resources to test with their expected schema.
@@ -136,7 +135,6 @@ func allResources() []resourceInfo {
 			optionalComputed: []string{},
 		},
 	}
-
 }
 
 // TestAllResourcesHaveIDField verifies all resources have a computed "id" field.
@@ -162,7 +160,6 @@ func TestAllResourcesHaveIDField(t *testing.T) {
 			if schemaResp.Diagnostics.HasError() {
 
 				t.Fatalf("Schema error: %+v", schemaResp.Diagnostics)
-
 			}
 
 			idAttr, exists := schemaResp.Schema.Attributes["id"]
@@ -170,7 +167,6 @@ func TestAllResourcesHaveIDField(t *testing.T) {
 			if !exists {
 
 				t.Fatal("Resource must have an 'id' attribute")
-
 			}
 
 			// Verify id is computed (read-only, set by provider)
@@ -180,19 +176,13 @@ func TestAllResourcesHaveIDField(t *testing.T) {
 				if !stringAttr.Computed {
 
 					t.Error("id attribute must be Computed")
-
 				}
-
 			} else {
 
 				t.Error("id attribute must be a StringAttribute")
-
 			}
-
 		})
-
 	}
-
 }
 
 // TestOptionalFieldsAreNotRequired verifies optional fields are correctly marked.
@@ -218,7 +208,6 @@ func TestOptionalFieldsAreNotRequired(t *testing.T) {
 			if schemaResp.Diagnostics.HasError() {
 
 				t.Fatalf("Schema error: %+v", schemaResp.Diagnostics)
-
 			}
 
 			for _, fieldName := range ri.optionalFields {
@@ -230,7 +219,6 @@ func TestOptionalFieldsAreNotRequired(t *testing.T) {
 					t.Errorf("Expected optional field %s to exist", fieldName)
 
 					continue
-
 				}
 
 				// Check that the attribute is Optional (not Required)
@@ -238,15 +226,10 @@ func TestOptionalFieldsAreNotRequired(t *testing.T) {
 				if isRequired(attr) {
 
 					t.Errorf("Field %s should be Optional, not Required", fieldName)
-
 				}
-
 			}
-
 		})
-
 	}
-
 }
 
 // TestRequiredFieldsAreMarkedRequired verifies required fields are correctly marked.
@@ -272,7 +255,6 @@ func TestRequiredFieldsAreMarkedRequired(t *testing.T) {
 			if schemaResp.Diagnostics.HasError() {
 
 				t.Fatalf("Schema error: %+v", schemaResp.Diagnostics)
-
 			}
 
 			for _, fieldName := range ri.requiredFields {
@@ -284,21 +266,15 @@ func TestRequiredFieldsAreMarkedRequired(t *testing.T) {
 					t.Errorf("Expected required field %s to exist", fieldName)
 
 					continue
-
 				}
 
 				if !isRequired(attr) {
 
 					t.Errorf("Field %s should be Required", fieldName)
-
 				}
-
 			}
-
 		})
-
 	}
-
 }
 
 // TestComputedFieldsAreMarkedComputed verifies computed fields are correctly marked.
@@ -324,7 +300,6 @@ func TestComputedFieldsAreMarkedComputed(t *testing.T) {
 			if schemaResp.Diagnostics.HasError() {
 
 				t.Fatalf("Schema error: %+v", schemaResp.Diagnostics)
-
 			}
 
 			for _, fieldName := range ri.computedFields {
@@ -336,21 +311,15 @@ func TestComputedFieldsAreMarkedComputed(t *testing.T) {
 					t.Errorf("Expected computed field %s to exist", fieldName)
 
 					continue
-
 				}
 
 				if !isComputed(attr) {
 
 					t.Errorf("Field %s should be Computed", fieldName)
-
 				}
-
 			}
-
 		})
-
 	}
-
 }
 
 // TestOptionalStringFieldsAllowNull verifies optional string fields can be null.
@@ -376,7 +345,6 @@ func TestOptionalStringFieldsAllowNull(t *testing.T) {
 		"netbox_manufacturer": {"description"},
 
 		// netbox_platform has no optional string fields currently
-
 	}
 
 	for _, ri := range allResources() {
@@ -386,7 +354,6 @@ func TestOptionalStringFieldsAllowNull(t *testing.T) {
 		if !ok {
 
 			continue
-
 		}
 
 		t.Run(ri.name, func(t *testing.T) {
@@ -402,7 +369,6 @@ func TestOptionalStringFieldsAllowNull(t *testing.T) {
 			if schemaResp.Diagnostics.HasError() {
 
 				t.Fatalf("Schema error: %+v", schemaResp.Diagnostics)
-
 			}
 
 			for _, fieldName := range fieldsToCheck {
@@ -414,7 +380,6 @@ func TestOptionalStringFieldsAllowNull(t *testing.T) {
 					t.Errorf("Expected field %s to exist", fieldName)
 
 					continue
-
 				}
 
 				stringAttr, ok := attr.(schema.StringAttribute)
@@ -424,7 +389,6 @@ func TestOptionalStringFieldsAllowNull(t *testing.T) {
 					t.Errorf("Field %s should be a StringAttribute", fieldName)
 
 					continue
-
 				}
 
 				// Optional fields should be Optional=true, Required=false
@@ -432,21 +396,15 @@ func TestOptionalStringFieldsAllowNull(t *testing.T) {
 				if !stringAttr.Optional {
 
 					t.Errorf("Field %s should be Optional to allow null values", fieldName)
-
 				}
 
 				if stringAttr.Required {
 
 					t.Errorf("Field %s should not be Required (conflicts with Optional)", fieldName)
-
 				}
-
 			}
-
 		})
-
 	}
-
 }
 
 // TestResourceMetadataPrefix verifies all resources have the correct type name prefix.
@@ -470,13 +428,9 @@ func TestResourceMetadataPrefix(t *testing.T) {
 			if metaResp.TypeName != ri.name {
 
 				t.Errorf("Expected type name %s, got %s", ri.name, metaResp.TypeName)
-
 			}
-
 		})
-
 	}
-
 }
 
 // TestAllDeclaredFieldsExistInSchema verifies all fields we expect are present.
@@ -502,7 +456,6 @@ func TestAllDeclaredFieldsExistInSchema(t *testing.T) {
 			if schemaResp.Diagnostics.HasError() {
 
 				t.Fatalf("Schema error: %+v", schemaResp.Diagnostics)
-
 			}
 
 			allFields := append(append(append(
@@ -520,15 +473,10 @@ func TestAllDeclaredFieldsExistInSchema(t *testing.T) {
 				if _, exists := schemaResp.Schema.Attributes[fieldName]; !exists {
 
 					t.Errorf("Expected field %s to exist in schema", fieldName)
-
 				}
-
 			}
-
 		})
-
 	}
-
 }
 
 // TestNoUnexpectedFieldsInSchema warns about fields not in our expected list.
@@ -554,7 +502,6 @@ func TestNoUnexpectedFieldsInSchema(t *testing.T) {
 			if schemaResp.Diagnostics.HasError() {
 
 				t.Fatalf("Schema error: %+v", schemaResp.Diagnostics)
-
 			}
 
 			expectedFields := make(map[string]bool)
@@ -562,25 +509,21 @@ func TestNoUnexpectedFieldsInSchema(t *testing.T) {
 			for _, f := range ri.requiredFields {
 
 				expectedFields[f] = true
-
 			}
 
 			for _, f := range ri.optionalFields {
 
 				expectedFields[f] = true
-
 			}
 
 			for _, f := range ri.computedFields {
 
 				expectedFields[f] = true
-
 			}
 
 			for _, f := range ri.optionalComputed {
 
 				expectedFields[f] = true
-
 			}
 
 			for fieldName := range schemaResp.Schema.Attributes {
@@ -588,15 +531,10 @@ func TestNoUnexpectedFieldsInSchema(t *testing.T) {
 				if !expectedFields[fieldName] {
 
 					t.Logf("WARNING: Unexpected field %s in schema - add to test expectations", fieldName)
-
 				}
-
 			}
-
 		})
-
 	}
-
 }
 
 // Helper functions to check attribute properties
@@ -636,9 +574,7 @@ func isRequired(attr schema.Attribute) bool {
 	default:
 
 		return false
-
 	}
-
 }
 
 func isComputed(attr schema.Attribute) bool {
@@ -676,7 +612,5 @@ func isComputed(attr schema.Attribute) bool {
 	default:
 
 		return false
-
 	}
-
 }
