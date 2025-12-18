@@ -47,9 +47,13 @@ type VLANResourceModel struct {
 
 	Site types.String `tfsdk:"site"`
 
+	SiteID types.String `tfsdk:"site_id"`
+
 	Group types.String `tfsdk:"group"`
 
 	Tenant types.String `tfsdk:"tenant"`
+
+	TenantID types.String `tfsdk:"tenant_id"`
 
 	Status types.String `tfsdk:"status"`
 
@@ -91,6 +95,8 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 			"site": nbschema.ReferenceAttribute("site", "ID or slug of the site this VLAN belongs to."),
 
+			"site_id": nbschema.ComputedIDAttribute("site"),
+
 			"group": schema.StringAttribute{
 
 				MarkdownDescription: "ID or slug of the VLAN group this VLAN belongs to.",
@@ -99,6 +105,8 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			},
 
 			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant this VLAN belongs to."),
+
+			"tenant_id": nbschema.ComputedIDAttribute("tenant"),
 
 			"description": nbschema.DescriptionAttribute("VLAN"),
 
@@ -677,15 +685,13 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 
 	if vlan.HasSite() && vlan.Site.Get() != nil {
 
-		if data.Site.IsNull() || data.Site.IsUnknown() {
-
-			data.Site = types.StringValue(fmt.Sprintf("%d", vlan.Site.Get().GetId()))
-
-		}
+		data.Site = utils.UpdateReferenceAttribute(data.Site, vlan.Site.Get().Name, vlan.Site.Get().Slug, vlan.Site.Get().Id)
+		data.SiteID = types.StringValue(fmt.Sprintf("%d", vlan.Site.Get().Id))
 
 	} else {
 
 		data.Site = types.StringNull()
+		data.SiteID = types.StringNull()
 
 	}
 
@@ -709,15 +715,13 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 
 	if vlan.HasTenant() && vlan.Tenant.Get() != nil {
 
-		if data.Tenant.IsNull() || data.Tenant.IsUnknown() {
-
-			data.Tenant = types.StringValue(fmt.Sprintf("%d", vlan.Tenant.Get().GetId()))
-
-		}
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, vlan.Tenant.Get().Name, vlan.Tenant.Get().Slug, vlan.Tenant.Get().Id)
+		data.TenantID = types.StringValue(fmt.Sprintf("%d", vlan.Tenant.Get().Id))
 
 	} else {
 
 		data.Tenant = types.StringNull()
+		data.TenantID = types.StringNull()
 
 	}
 

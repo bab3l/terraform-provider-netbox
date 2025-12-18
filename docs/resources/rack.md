@@ -51,13 +51,13 @@ resource "netbox_rack" "test" {
 - `desc_units` (Boolean) If true, rack units are numbered in descending order (top to bottom).
 - `description` (String) Description of the rack.
 - `form_factor` (String) Physical form factor of the rack. Valid values: `2-post-frame`, `4-post-frame`, `4-post-cabinet`, `wall-frame`, `wall-frame-vertical`, `wall-cabinet`, `wall-cabinet-vertical`.
-- `location` (String) ID of the location within the site (e.g., building, floor, room).
+- `location` (String) ID or slug of the location within the site (e.g., building, floor, room).
 - `max_weight` (String) Maximum weight capacity of the rack.
 - `mounting_depth` (String) Maximum depth of equipment that can be installed (in mm).
 - `outer_depth` (String) Outer depth of the rack.
 - `outer_unit` (String) Unit of measurement for outer dimensions. Valid values: `mm`, `in`.
 - `outer_width` (String) Outer width of the rack.
-- `rack_type` (String) ID of the rack type (model/form factor definition).
+- `rack_type` (String) ID or model of the rack type (model/form factor definition).
 - `role` (String) ID or slug of the functional role of the rack.
 - `serial` (String) Serial number, assigned by the manufacturer.
 - `starting_unit` (String) Starting unit number for the rack (bottom). Defaults to 1.
@@ -72,6 +72,11 @@ resource "netbox_rack" "test" {
 ### Read-Only
 
 - `id` (String) Unique identifier for the rack (assigned by Netbox).
+- `location_id` (String) The numeric ID of the location.
+- `rack_type_id` (String) The numeric ID of the rack type.
+- `role_id` (String) The numeric ID of the rack role.
+- `site_id` (String) The numeric ID of the site.
+- `tenant_id` (String) The numeric ID of the tenant.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

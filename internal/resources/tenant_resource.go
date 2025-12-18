@@ -52,6 +52,8 @@ type TenantResourceModel struct {
 
 	Group types.String `tfsdk:"group"`
 
+	GroupID types.String `tfsdk:"group_id"`
+
 	Description types.String `tfsdk:"description"`
 
 	Comments types.String `tfsdk:"comments"`
@@ -81,7 +83,8 @@ func (r *TenantResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 			"slug": nbschema.SlugAttribute("tenant"),
 
-			"group": nbschema.IDOnlyReferenceAttribute("tenant group", "ID of the tenant group that this tenant belongs to."),
+			"group":    nbschema.ReferenceAttribute("tenant group", "Name, Slug, or ID of the tenant group that this tenant belongs to."),
+			"group_id": nbschema.ComputedIDAttribute("tenant group"),
 
 			"description": nbschema.DescriptionAttribute("tenant"),
 
@@ -545,17 +548,27 @@ func (r *TenantResource) mapTenantToState(ctx context.Context, tenant *netbox.Te
 
 		if group.Id != 0 {
 
-			data.Group = utils.ReferenceIDFromAPI(true, func() int32 { return group.Id }, data.Group)
+			data.GroupID = types.StringValue(fmt.Sprintf("%d", group.Id))
+
+			userGroup := data.Group.ValueString()
+			// Check if the current state value matches the API value (Name, Slug, or ID)
+			if userGroup == group.Name || userGroup == group.Slug || userGroup == fmt.Sprintf("%d", group.Id) {
+				// Keep user's original value
+			} else {
+				data.Group = types.StringValue(group.Name)
+			}
 
 		} else {
 
 			data.Group = types.StringNull()
+			data.GroupID = types.StringNull()
 
 		}
 
 	} else {
 
 		data.Group = types.StringNull()
+		data.GroupID = types.StringNull()
 
 	}
 

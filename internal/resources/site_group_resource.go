@@ -13,6 +13,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -51,6 +52,8 @@ type SiteGroupResourceModel struct {
 
 	Parent types.String `tfsdk:"parent"`
 
+	ParentID types.String `tfsdk:"parent_id"`
+
 	Description types.String `tfsdk:"description"`
 
 	Tags types.Set `tfsdk:"tags"`
@@ -78,7 +81,12 @@ func (r *SiteGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 
 			"slug": nbschema.SlugAttribute("site group"),
 
-			"parent": nbschema.IDOnlyReferenceAttribute("parent site group", "ID of the parent site group. Leave empty for top-level site groups."),
+			"parent": nbschema.ReferenceAttribute("parent site group", "ID or slug of the parent site group. Leave empty for top-level site groups."),
+
+			"parent_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the parent site group.",
+			},
 
 			"description": nbschema.DescriptionAttribute("site group"),
 
@@ -153,17 +161,17 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 
 	if utils.IsSet(data.Parent) {
 
-		parentIDInt, err := utils.ParseID(data.Parent.ValueString())
+		parentID, parentDiags := netboxlookup.LookupSiteGroupID(ctx, r.client, data.Parent.ValueString())
 
-		if err != nil {
+		resp.Diagnostics.Append(parentDiags...)
 
-			resp.Diagnostics.AddError("Invalid Parent ID", fmt.Sprintf("Parent ID must be a number, got: %s", data.Parent.ValueString()))
+		if resp.Diagnostics.HasError() {
 
 			return
 
 		}
 
-		siteGroupRequest.Parent = *netbox.NewNullableInt32(&parentIDInt)
+		siteGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
 
 	}
 
@@ -382,17 +390,17 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 
 	if utils.IsSet(data.Parent) {
 
-		parentIDInt, err := utils.ParseID(data.Parent.ValueString())
+		parentID, parentDiags := netboxlookup.LookupSiteGroupID(ctx, r.client, data.Parent.ValueString())
 
-		if err != nil {
+		resp.Diagnostics.Append(parentDiags...)
 
-			resp.Diagnostics.AddError("Invalid Parent ID", fmt.Sprintf("Parent ID must be a number, got: %s", data.Parent.ValueString()))
+		if resp.Diagnostics.HasError() {
 
 			return
 
 		}
 
-		siteGroupRequest.Parent = *netbox.NewNullableInt32(&parentIDInt)
+		siteGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
 
 	}
 
@@ -532,17 +540,31 @@ func (r *SiteGroupResource) mapSiteGroupToState(ctx context.Context, siteGroup *
 
 		if parent.GetId() != 0 {
 
-			data.Parent = utils.ReferenceIDFromAPI(true, parent.GetId, data.Parent)
+			data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+
+			userParent := data.Parent.ValueString()
+
+			if userParent == parent.GetName() || userParent == parent.GetSlug() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
+
+				// Keep user's original value
+
+			} else {
+
+				data.Parent = types.StringValue(parent.GetName())
+
+			}
 
 		} else {
 
 			data.Parent = types.StringNull()
+			data.ParentID = types.StringNull()
 
 		}
 
 	} else {
 
 		data.Parent = types.StringNull()
+		data.ParentID = types.StringNull()
 
 	}
 

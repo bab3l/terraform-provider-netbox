@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -46,6 +47,8 @@ type ContactGroupResourceModel struct {
 
 	Parent types.String `tfsdk:"parent"`
 
+	ParentID types.String `tfsdk:"parent_id"`
+
 	Description types.String `tfsdk:"description"`
 
 	Tags types.Set `tfsdk:"tags"`
@@ -73,7 +76,12 @@ func (r *ContactGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 
 			"slug": nbschema.SlugAttribute("contact group"),
 
-			"parent": nbschema.IDOnlyReferenceAttribute("contact group", "ID of the parent contact group. Leave empty for top-level groups."),
+			"parent": nbschema.ReferenceAttribute("contact group", "ID or slug of the parent contact group. Leave empty for top-level groups."),
+
+			"parent_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the parent contact group.",
+			},
 
 			"description": nbschema.DescriptionAttribute("contact group"),
 
@@ -146,7 +154,15 @@ func (r *ContactGroupResource) Create(ctx context.Context, req resource.CreateRe
 
 	if utils.IsSet(data.Parent) {
 
-		parentID := utils.ParseInt32(data.Parent)
+		parentID, parentDiags := netboxlookup.LookupContactGroupID(ctx, r.client, data.Parent.ValueString())
+
+		resp.Diagnostics.Append(parentDiags...)
+
+		if resp.Diagnostics.HasError() {
+
+			return
+
+		}
 
 		contactGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
 
@@ -363,7 +379,15 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 
 	if utils.IsSet(data.Parent) {
 
-		parentID := utils.ParseInt32(data.Parent)
+		parentID, parentDiags := netboxlookup.LookupContactGroupID(ctx, r.client, data.Parent.ValueString())
+
+		resp.Diagnostics.Append(parentDiags...)
+
+		if resp.Diagnostics.HasError() {
+
+			return
+
+		}
 
 		contactGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
 
@@ -515,17 +539,31 @@ func (r *ContactGroupResource) mapContactGroupToState(ctx context.Context, conta
 
 		if parent.GetId() != 0 {
 
-			data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+			data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+
+			userParent := data.Parent.ValueString()
+
+			if userParent == parent.GetName() || userParent == parent.GetSlug() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
+
+				// Keep user's original value
+
+			} else {
+
+				data.Parent = types.StringValue(parent.GetName())
+
+			}
 
 		} else {
 
 			data.Parent = types.StringNull()
+			data.ParentID = types.StringNull()
 
 		}
 
 	} else {
 
 		data.Parent = types.StringNull()
+		data.ParentID = types.StringNull()
 
 	}
 

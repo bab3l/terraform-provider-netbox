@@ -57,7 +57,12 @@ resource "netbox_virtual_machine" "test" {
 
 ### Read-Only
 
+- `cluster_id` (String) The ID of the cluster this virtual machine belongs to.
 - `id` (String) The unique numeric ID of the virtual machine.
+- `platform_id` (String) The ID of the platform (operating system) running on this virtual machine.
+- `role_id` (String) The ID of the device role for this virtual machine.
+- `site_id` (String) The ID of the site where this virtual machine is located.
+- `tenant_id` (String) The ID of the tenant this virtual machine is assigned to.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

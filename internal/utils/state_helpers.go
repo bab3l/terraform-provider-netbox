@@ -99,6 +99,39 @@ func Int64FromInt32API(hasValue bool, getValue func() int32, current types.Int64
 	return current
 }
 
+// UpdateReferenceAttribute updates a reference attribute in the state.
+// It preserves the user's input (Name or Slug) if it matches the API response.
+// If the user provided an ID, or if the reference changed, it updates to the new value (preferring Name/Slug if available, or ID).
+func UpdateReferenceAttribute(current types.String, apiName string, apiSlug string, apiID int32) types.String {
+	apiIDStr := fmt.Sprintf("%d", apiID)
+
+	// If current state is null/unknown, return the best available identifier (Slug > Name > ID)
+	// We check if the current value matches any of the API identifiers.
+	if !current.IsNull() && !current.IsUnknown() {
+		val := current.ValueString()
+		if val == apiName {
+			return current
+		}
+		if val == apiSlug {
+			return current
+		}
+		if val == apiIDStr {
+			return current
+		}
+	}
+
+	// If we are here, either current is null/unknown, or it doesn't match anything (drift).
+	// We should update to the "canonical" reference.
+	// We prefer Name if available, then Slug, then ID.
+	if apiName != "" {
+		return types.StringValue(apiName)
+	}
+	if apiSlug != "" {
+		return types.StringValue(apiSlug)
+	}
+	return types.StringValue(apiIDStr)
+}
+
 // NullableInt64FromAPI maps a nullable API int pointer to a Terraform types.Int64.
 // Use this for fields that use nullable wrappers in the API.
 func NullableInt64FromAPI(hasValue bool, getValue func() *int32, current types.Int64) types.Int64 {

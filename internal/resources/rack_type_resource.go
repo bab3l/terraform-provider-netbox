@@ -49,6 +49,8 @@ type RackTypeResourceModel struct {
 
 	Manufacturer types.String `tfsdk:"manufacturer"`
 
+	ManufacturerID types.String `tfsdk:"manufacturer_id"`
+
 	Model types.String `tfsdk:"model"`
 
 	Slug types.String `tfsdk:"slug"`
@@ -107,6 +109,8 @@ func (r *RackTypeResource) Schema(ctx context.Context, req resource.SchemaReques
 			"id": nbschema.IDAttribute("rack type"),
 
 			"manufacturer": nbschema.RequiredReferenceAttribute("manufacturer", "The manufacturer of this rack type."),
+
+			"manufacturer_id": nbschema.ComputedIDAttribute("manufacturer"),
 
 			"model": nbschema.ModelAttribute("rack type", 100),
 
@@ -784,7 +788,8 @@ func (r *RackTypeResource) mapResponseToModel(ctx context.Context, rackType *net
 
 	// Map manufacturer - return ID
 
-	data.Manufacturer = types.StringValue(fmt.Sprintf("%d", rackType.Manufacturer.GetId()))
+	data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, rackType.Manufacturer.Name, rackType.Manufacturer.Slug, rackType.Manufacturer.Id)
+	data.ManufacturerID = types.StringValue(fmt.Sprintf("%d", rackType.Manufacturer.GetId()))
 
 	// Map description
 

@@ -50,11 +50,19 @@ type DeviceResourceModel struct {
 
 	DeviceType types.String `tfsdk:"device_type"`
 
+	DeviceTypeID types.String `tfsdk:"device_type_id"`
+
 	Role types.String `tfsdk:"role"`
+
+	RoleID types.String `tfsdk:"role_id"`
 
 	Tenant types.String `tfsdk:"tenant"`
 
+	TenantID types.String `tfsdk:"tenant_id"`
+
 	Platform types.String `tfsdk:"platform"`
+
+	PlatformID types.String `tfsdk:"platform_id"`
 
 	Serial types.String `tfsdk:"serial"`
 
@@ -62,9 +70,15 @@ type DeviceResourceModel struct {
 
 	Site types.String `tfsdk:"site"`
 
+	SiteID types.String `tfsdk:"site_id"`
+
 	Location types.String `tfsdk:"location"`
 
+	LocationID types.String `tfsdk:"location_id"`
+
 	Rack types.String `tfsdk:"rack"`
+
+	RackID types.String `tfsdk:"rack_id"`
 
 	Position types.Float64 `tfsdk:"position"`
 
@@ -111,11 +125,31 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 			"device_type": nbschema.RequiredReferenceAttribute("device type", "ID or slug of the device type for this device. Required."),
 
+			"device_type_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the device type.",
+			},
+
 			"role": nbschema.RequiredReferenceAttribute("device role", "ID or slug of the device role. Required."),
+
+			"role_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the device role.",
+			},
 
 			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this device."),
 
+			"tenant_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the tenant.",
+			},
+
 			"platform": nbschema.ReferenceAttribute("platform", "ID or slug of the platform (operating system/software) running on this device."),
+
+			"platform_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the platform.",
+			},
 
 			"serial": nbschema.SerialAttribute(),
 
@@ -123,9 +157,24 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 			"site": nbschema.RequiredReferenceAttribute("site", "ID or slug of the site where this device is located. Required."),
 
+			"site_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the site.",
+			},
+
 			"location": nbschema.ReferenceAttribute("location", "ID or slug of the location within the site where this device is installed."),
 
+			"location_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the location.",
+			},
+
 			"rack": nbschema.ReferenceAttribute("rack", "ID or name of the rack where this device is mounted."),
+
+			"rack_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the rack.",
+			},
 
 			"position": schema.Float64Attribute{
 
@@ -1118,6 +1167,8 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 	// Handle device_type - preserve the original input value (slug or ID)
 
+	data.DeviceTypeID = types.StringValue(fmt.Sprintf("%d", device.DeviceType.GetId()))
+
 	if data.DeviceType.IsNull() || data.DeviceType.IsUnknown() {
 
 		data.DeviceType = types.StringValue(device.DeviceType.GetModel())
@@ -1127,6 +1178,8 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	// Otherwise keep the original value the user provided
 
 	// Handle role - preserve the original input value (slug or ID)
+
+	data.RoleID = types.StringValue(fmt.Sprintf("%d", device.Role.GetId()))
 
 	if data.Role.IsNull() || data.Role.IsUnknown() {
 
@@ -1142,6 +1195,8 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 	case device.HasTenant() && device.Tenant.Get() != nil:
 
+		data.TenantID = types.StringValue(fmt.Sprintf("%d", device.Tenant.Get().GetId()))
+
 		if data.Tenant.IsNull() || data.Tenant.IsUnknown() {
 
 			data.Tenant = types.StringValue(device.Tenant.Get().GetName())
@@ -1151,10 +1206,12 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	case !data.Tenant.IsNull() && !data.Tenant.IsUnknown():
 
 		// User had a value but API says null - shouldn't happen normally
+		data.TenantID = types.StringNull()
 
 	default:
 
 		data.Tenant = types.StringNull()
+		data.TenantID = types.StringNull()
 
 	}
 
@@ -1163,6 +1220,8 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	switch {
 
 	case device.HasPlatform() && device.Platform.Get() != nil:
+
+		data.PlatformID = types.StringValue(fmt.Sprintf("%d", device.Platform.Get().GetId()))
 
 		if data.Platform.IsNull() || data.Platform.IsUnknown() {
 
@@ -1173,10 +1232,12 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	case !data.Platform.IsNull() && !data.Platform.IsUnknown():
 
 		// User had a value but API says null
+		data.PlatformID = types.StringNull()
 
 	default:
 
 		data.Platform = types.StringNull()
+		data.PlatformID = types.StringNull()
 
 	}
 
@@ -1206,6 +1267,8 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 	// Handle site - preserve the original input value
 
+	data.SiteID = types.StringValue(fmt.Sprintf("%d", device.Site.GetId()))
+
 	if data.Site.IsNull() || data.Site.IsUnknown() {
 
 		data.Site = types.StringValue(device.Site.GetName())
@@ -1220,6 +1283,8 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 	case device.HasLocation() && device.Location.Get() != nil:
 
+		data.LocationID = types.StringValue(fmt.Sprintf("%d", device.Location.Get().GetId()))
+
 		if data.Location.IsNull() || data.Location.IsUnknown() {
 
 			data.Location = types.StringValue(device.Location.Get().GetName())
@@ -1229,10 +1294,12 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	case !data.Location.IsNull() && !data.Location.IsUnknown():
 
 		// User had a value but API says null
+		data.LocationID = types.StringNull()
 
 	default:
 
 		data.Location = types.StringNull()
+		data.LocationID = types.StringNull()
 
 	}
 
@@ -1241,6 +1308,8 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	switch {
 
 	case device.HasRack() && device.Rack.Get() != nil:
+
+		data.RackID = types.StringValue(fmt.Sprintf("%d", device.Rack.Get().GetId()))
 
 		if data.Rack.IsNull() || data.Rack.IsUnknown() {
 
@@ -1251,10 +1320,12 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	case !data.Rack.IsNull() && !data.Rack.IsUnknown():
 
 		// User had a value but API says null
+		data.RackID = types.StringNull()
 
 	default:
 
 		data.Rack = types.StringNull()
+		data.RackID = types.StringNull()
 
 	}
 

@@ -47,6 +47,8 @@ type VRFResourceModel struct {
 
 	Tenant types.String `tfsdk:"tenant"`
 
+	TenantID types.String `tfsdk:"tenant_id"`
+
 	EnforceUnique types.Bool `tfsdk:"enforce_unique"`
 
 	Description types.String `tfsdk:"description"`
@@ -83,7 +85,8 @@ func (r *VRFResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				Optional: true,
 			},
 
-			"tenant": nbschema.IDOnlyReferenceAttribute("tenant", "ID of the tenant this VRF belongs to."),
+			"tenant":    nbschema.ReferenceAttribute("tenant", "Name, Slug, or ID of the tenant this VRF belongs to."),
+			"tenant_id": nbschema.ComputedIDAttribute("tenant"),
 
 			"enforce_unique": schema.BoolAttribute{
 
@@ -578,19 +581,18 @@ func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *
 	// Tenant
 
 	if vrf.HasTenant() && vrf.Tenant.Get() != nil {
+		tenant := vrf.Tenant.Get()
+		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 
-		if data.Tenant.IsNull() || data.Tenant.IsUnknown() {
-
-			data.Tenant = types.StringValue(fmt.Sprintf("%d", vrf.Tenant.Get().GetId()))
-
+		userTenant := data.Tenant.ValueString()
+		if userTenant == tenant.GetName() || userTenant == tenant.GetSlug() || userTenant == fmt.Sprintf("%d", tenant.GetId()) {
+			// Keep user's original value
+		} else {
+			data.Tenant = types.StringValue(tenant.GetName())
 		}
-
-		// Otherwise keep the original value the user provided
-
 	} else {
-
 		data.Tenant = types.StringNull()
-
+		data.TenantID = types.StringNull()
 	}
 
 	// Enforce unique - default is true

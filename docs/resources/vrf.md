@@ -33,11 +33,12 @@ resource "netbox_vrf" "test" {
 - `enforce_unique` (Boolean) Prevent duplicate prefixes/IP addresses within this VRF. Defaults to `true`.
 - `rd` (String) Route distinguisher (RD) as defined in RFC 4364. Format: `ASN:nn` or `IP:nn`. Example: `65000:1` or `192.168.1.1:1`.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
-- `tenant` (String) ID of the tenant this VRF belongs to.
+- `tenant` (String) Name, Slug, or ID of the tenant this VRF belongs to.
 
 ### Read-Only
 
 - `id` (String) Unique identifier for the VRF (assigned by Netbox).
+- `tenant_id` (String) The numeric ID of the tenant.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

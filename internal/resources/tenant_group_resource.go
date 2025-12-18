@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -46,6 +47,8 @@ type TenantGroupResourceModel struct {
 
 	Parent types.String `tfsdk:"parent"`
 
+	ParentID types.String `tfsdk:"parent_id"`
+
 	Description types.String `tfsdk:"description"`
 
 	Tags types.Set `tfsdk:"tags"`
@@ -73,7 +76,12 @@ func (r *TenantGroupResource) Schema(ctx context.Context, req resource.SchemaReq
 
 			"slug": nbschema.SlugAttribute("tenant group"),
 
-			"parent": nbschema.IDOnlyReferenceAttribute("tenant group", "ID of the parent tenant group. Leave empty for top-level groups."),
+			"parent": nbschema.ReferenceAttribute("tenant group", "ID or slug of the parent tenant group. Leave empty for top-level groups."),
+
+			"parent_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the parent tenant group.",
+			},
 
 			"description": nbschema.DescriptionAttribute("tenant group"),
 
@@ -146,7 +154,15 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 
 	if utils.IsSet(data.Parent) {
 
-		parentID := utils.ParseInt32(data.Parent)
+		parentID, parentDiags := netboxlookup.LookupTenantGroupID(ctx, r.client, data.Parent.ValueString())
+
+		resp.Diagnostics.Append(parentDiags...)
+
+		if resp.Diagnostics.HasError() {
+
+			return
+
+		}
 
 		tenantGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
 
@@ -363,7 +379,15 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 
 	if utils.IsSet(data.Parent) {
 
-		parentID := utils.ParseInt32(data.Parent)
+		parentID, parentDiags := netboxlookup.LookupTenantGroupID(ctx, r.client, data.Parent.ValueString())
+
+		resp.Diagnostics.Append(parentDiags...)
+
+		if resp.Diagnostics.HasError() {
+
+			return
+
+		}
 
 		tenantGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
 
@@ -515,17 +539,31 @@ func (r *TenantGroupResource) mapTenantGroupToState(ctx context.Context, tenantG
 
 		if parent.GetId() != 0 {
 
-			data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+			data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+
+			userParent := data.Parent.ValueString()
+
+			if userParent == parent.GetName() || userParent == parent.GetSlug() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
+
+				// Keep user's original value
+
+			} else {
+
+				data.Parent = types.StringValue(parent.GetName())
+
+			}
 
 		} else {
 
 			data.Parent = types.StringNull()
+			data.ParentID = types.StringNull()
 
 		}
 
 	} else {
 
 		data.Parent = types.StringNull()
+		data.ParentID = types.StringNull()
 
 	}
 
