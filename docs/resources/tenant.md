@@ -86,11 +86,12 @@ resource "netbox_tenant" "standalone_tenant" {
 - `comments` (String) Additional comments or notes about the tenant. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the tenant.
-- `group` (String) ID of the tenant group that this tenant belongs to.
+- `group` (String) Name, Slug, or ID of the tenant group that this tenant belongs to.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 
 ### Read-Only
 
+- `group_id` (String) The numeric ID of the tenant group.
 - `id` (String) Unique identifier for the tenant (assigned by Netbox).
 
 <a id="nestedatt--custom_fields"></a>

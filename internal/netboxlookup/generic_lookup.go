@@ -18,6 +18,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
+const unknownErrorMsg = "unknown error"
+
 // =====================================================
 
 // GENERIC LOOKUP INFRASTRUCTURE
@@ -81,7 +83,7 @@ func GenericLookup[TFull any, TBrief any](
 
 		if err != nil || resp.StatusCode != 200 {
 
-			errMsg := "unknown error"
+			errMsg := unknownErrorMsg
 
 			if err != nil {
 
@@ -112,7 +114,7 @@ func GenericLookup[TFull any, TBrief any](
 
 	if err != nil || resp.StatusCode != 200 {
 
-		errMsg := "unknown error"
+		errMsg := unknownErrorMsg
 
 		if err != nil {
 
@@ -146,6 +148,51 @@ func GenericLookup[TFull any, TBrief any](
 
 }
 
+// GenericLookupID performs a lookup by ID or slug and returns the ID.
+func GenericLookupID[TFull any, TBrief any](
+	ctx context.Context,
+	value string,
+	config LookupConfig[TFull, TBrief],
+	getID func(TFull) int32,
+) (int32, diag.Diagnostics) {
+	var id int32
+	if _, err := fmt.Sscanf(value, "%d", &id); err == nil {
+		// Lookup by ID
+		_, resp, err := config.RetrieveByID(ctx, id)
+		defer utils.CloseResponseBody(resp)
+		if err != nil || resp.StatusCode != 200 {
+			errMsg := unknownErrorMsg
+			if err != nil {
+				errMsg = err.Error()
+			}
+			return 0, diag.Diagnostics{diag.NewErrorDiagnostic(
+				config.ResourceName+" lookup failed",
+				fmt.Sprintf("Could not find %s with ID %d: %s", config.ResourceName, id, errMsg),
+			)}
+		}
+		return id, nil
+	}
+
+	// Lookup by slug
+	resources, resp, err := config.ListBySlug(ctx, value)
+	defer utils.CloseResponseBody(resp)
+	if err != nil {
+		return 0, diag.Diagnostics{diag.NewErrorDiagnostic(
+			config.ResourceName+" lookup failed",
+			fmt.Sprintf("Error searching for %s with slug '%s': %s", config.ResourceName, value, err.Error()),
+		)}
+	}
+
+	if len(resources) == 0 {
+		return 0, diag.Diagnostics{diag.NewErrorDiagnostic(
+			config.ResourceName+" lookup failed",
+			fmt.Sprintf("No %s found with slug '%s'", config.ResourceName, value),
+		)}
+	}
+
+	return getID(resources[0]), nil
+}
+
 // =====================================================
 
 // LOOKUP CONFIGURATIONS
@@ -170,12 +217,24 @@ func ManufacturerLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Man
 
 		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.Manufacturer, *http.Response, error) {
 
+			// Try lookup by slug first
 			list, resp, err := client.DcimAPI.DcimManufacturersList(ctx).Slug([]string{slug}).Execute()
-
 			if err != nil {
-
 				return nil, resp, err
+			}
 
+			if len(list.Results) > 0 {
+				results := make([]*netbox.Manufacturer, len(list.Results))
+				for i := range list.Results {
+					results[i] = &list.Results[i]
+				}
+				return results, resp, nil
+			}
+
+			// If no results by slug, try lookup by name
+			list, resp, err = client.DcimAPI.DcimManufacturersList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
 			}
 
 			// Convert to pointer slice
@@ -222,12 +281,24 @@ func TenantLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Tenant, n
 
 		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.Tenant, *http.Response, error) {
 
+			// Try lookup by slug first
 			list, resp, err := client.TenancyAPI.TenancyTenantsList(ctx).Slug([]string{slug}).Execute()
-
 			if err != nil {
-
 				return nil, resp, err
+			}
 
+			if len(list.Results) > 0 {
+				results := make([]*netbox.Tenant, len(list.Results))
+				for i := range list.Results {
+					results[i] = &list.Results[i]
+				}
+				return results, resp, nil
+			}
+
+			// If no results by slug, try lookup by name
+			list, resp, err = client.TenancyAPI.TenancyTenantsList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
 			}
 
 			results := make([]*netbox.Tenant, len(list.Results))
@@ -272,12 +343,24 @@ func TenantGroupLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Tena
 
 		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.TenantGroup, *http.Response, error) {
 
+			// Try lookup by slug first
 			list, resp, err := client.TenancyAPI.TenancyTenantGroupsList(ctx).Slug([]string{slug}).Execute()
-
 			if err != nil {
-
 				return nil, resp, err
+			}
 
+			if len(list.Results) > 0 {
+				results := make([]*netbox.TenantGroup, len(list.Results))
+				for i := range list.Results {
+					results[i] = &list.Results[i]
+				}
+				return results, resp, nil
+			}
+
+			// If no results by slug, try lookup by name
+			list, resp, err = client.TenancyAPI.TenancyTenantGroupsList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
 			}
 
 			results := make([]*netbox.TenantGroup, len(list.Results))
@@ -322,12 +405,24 @@ func RegionLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Region, n
 
 		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.Region, *http.Response, error) {
 
+			// Try lookup by slug first
 			list, resp, err := client.DcimAPI.DcimRegionsList(ctx).Slug([]string{slug}).Execute()
-
 			if err != nil {
-
 				return nil, resp, err
+			}
 
+			if len(list.Results) > 0 {
+				results := make([]*netbox.Region, len(list.Results))
+				for i := range list.Results {
+					results[i] = &list.Results[i]
+				}
+				return results, resp, nil
+			}
+
+			// If no results by slug, try lookup by name
+			list, resp, err = client.DcimAPI.DcimRegionsList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
 			}
 
 			results := make([]*netbox.Region, len(list.Results))
@@ -372,12 +467,24 @@ func SiteGroupLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.SiteGr
 
 		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.SiteGroup, *http.Response, error) {
 
+			// Try lookup by slug first
 			list, resp, err := client.DcimAPI.DcimSiteGroupsList(ctx).Slug([]string{slug}).Execute()
-
 			if err != nil {
-
 				return nil, resp, err
+			}
 
+			if len(list.Results) > 0 {
+				results := make([]*netbox.SiteGroup, len(list.Results))
+				for i := range list.Results {
+					results[i] = &list.Results[i]
+				}
+				return results, resp, nil
+			}
+
+			// If no results by slug, try lookup by name
+			list, resp, err = client.DcimAPI.DcimSiteGroupsList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
 			}
 
 			results := make([]*netbox.SiteGroup, len(list.Results))
@@ -422,12 +529,24 @@ func SiteLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Site, netbo
 
 		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.Site, *http.Response, error) {
 
+			// Try lookup by slug first
 			list, resp, err := client.DcimAPI.DcimSitesList(ctx).Slug([]string{slug}).Execute()
-
 			if err != nil {
-
 				return nil, resp, err
+			}
 
+			if len(list.Results) > 0 {
+				results := make([]*netbox.Site, len(list.Results))
+				for i := range list.Results {
+					results[i] = &list.Results[i]
+				}
+				return results, resp, nil
+			}
+
+			// If no results by slug, try lookup by name
+			list, resp, err = client.DcimAPI.DcimSitesList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
 			}
 
 			results := make([]*netbox.Site, len(list.Results))
@@ -472,12 +591,24 @@ func LocationLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Locatio
 
 		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.Location, *http.Response, error) {
 
+			// Try lookup by slug first
 			list, resp, err := client.DcimAPI.DcimLocationsList(ctx).Slug([]string{slug}).Execute()
-
 			if err != nil {
-
 				return nil, resp, err
+			}
 
+			if len(list.Results) > 0 {
+				results := make([]*netbox.Location, len(list.Results))
+				for i := range list.Results {
+					results[i] = &list.Results[i]
+				}
+				return results, resp, nil
+			}
+
+			// If no results by slug, try lookup by name
+			list, resp, err = client.DcimAPI.DcimLocationsList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
 			}
 
 			results := make([]*netbox.Location, len(list.Results))
@@ -522,12 +653,24 @@ func RackRoleLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.RackRol
 
 		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.RackRole, *http.Response, error) {
 
+			// Try lookup by slug first
 			list, resp, err := client.DcimAPI.DcimRackRolesList(ctx).Slug([]string{slug}).Execute()
-
 			if err != nil {
-
 				return nil, resp, err
+			}
 
+			if len(list.Results) > 0 {
+				results := make([]*netbox.RackRole, len(list.Results))
+				for i := range list.Results {
+					results[i] = &list.Results[i]
+				}
+				return results, resp, nil
+			}
+
+			// If no results by slug, try lookup by name
+			list, resp, err = client.DcimAPI.DcimRackRolesList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
 			}
 
 			results := make([]*netbox.RackRole, len(list.Results))
@@ -572,12 +715,24 @@ func PlatformLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Platfor
 
 		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.Platform, *http.Response, error) {
 
+			// Try lookup by slug first
 			list, resp, err := client.DcimAPI.DcimPlatformsList(ctx).Slug([]string{slug}).Execute()
-
 			if err != nil {
-
 				return nil, resp, err
+			}
 
+			if len(list.Results) > 0 {
+				results := make([]*netbox.Platform, len(list.Results))
+				for i := range list.Results {
+					results[i] = &list.Results[i]
+				}
+				return results, resp, nil
+			}
+
+			// If no results by slug, try lookup by name
+			list, resp, err = client.DcimAPI.DcimPlatformsList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
 			}
 
 			results := make([]*netbox.Platform, len(list.Results))
@@ -622,12 +777,24 @@ func DeviceRoleLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Devic
 
 		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.DeviceRole, *http.Response, error) {
 
+			// Try lookup by slug first
 			list, resp, err := client.DcimAPI.DcimDeviceRolesList(ctx).Slug([]string{slug}).Execute()
-
 			if err != nil {
-
 				return nil, resp, err
+			}
 
+			if len(list.Results) > 0 {
+				results := make([]*netbox.DeviceRole, len(list.Results))
+				for i := range list.Results {
+					results[i] = &list.Results[i]
+				}
+				return results, resp, nil
+			}
+
+			// If no results by slug, try lookup by name
+			list, resp, err = client.DcimAPI.DcimDeviceRolesList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
 			}
 
 			results := make([]*netbox.DeviceRole, len(list.Results))
@@ -680,12 +847,24 @@ func DeviceTypeLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Devic
 
 		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.DeviceType, *http.Response, error) {
 
+			// Try lookup by slug first
 			list, resp, err := client.DcimAPI.DcimDeviceTypesList(ctx).Slug([]string{slug}).Execute()
-
 			if err != nil {
-
 				return nil, resp, err
+			}
 
+			if len(list.Results) > 0 {
+				results := make([]*netbox.DeviceType, len(list.Results))
+				for i := range list.Results {
+					results[i] = &list.Results[i]
+				}
+				return results, resp, nil
+			}
+
+			// If no results by slug, try lookup by model
+			list, resp, err = client.DcimAPI.DcimDeviceTypesList(ctx).Model([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
 			}
 
 			results := make([]*netbox.DeviceType, len(list.Results))
@@ -739,14 +918,24 @@ func RackTypeLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.RackTyp
 
 		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.RackType, *http.Response, error) {
 
-			// RackType uses model instead of slug for list filtering
-
-			list, resp, err := client.DcimAPI.DcimRackTypesList(ctx).Model([]string{slug}).Execute()
-
+			// Try lookup by slug first
+			list, resp, err := client.DcimAPI.DcimRackTypesList(ctx).Slug([]string{slug}).Execute()
 			if err != nil {
-
 				return nil, resp, err
+			}
 
+			if len(list.Results) > 0 {
+				results := make([]*netbox.RackType, len(list.Results))
+				for i := range list.Results {
+					results[i] = &list.Results[i]
+				}
+				return results, resp, nil
+			}
+
+			// If no results by slug, try lookup by model
+			list, resp, err = client.DcimAPI.DcimRackTypesList(ctx).Model([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
 			}
 
 			results := make([]*netbox.RackType, len(list.Results))
@@ -918,6 +1107,27 @@ func LookupTenantGroup(ctx context.Context, client *netbox.APIClient, value stri
 
 }
 
+// LookupTenantGroupID looks up a Tenant Group by ID or slug and returns the ID.
+func LookupTenantGroupID(ctx context.Context, client *netbox.APIClient, value string) (int32, diag.Diagnostics) {
+	return GenericLookupID(ctx, value, TenantGroupLookupConfig(client), func(tg *netbox.TenantGroup) int32 {
+		return tg.GetId()
+	})
+}
+
+// LookupRegionID looks up a Region by ID or slug and returns the ID.
+func LookupRegionID(ctx context.Context, client *netbox.APIClient, value string) (int32, diag.Diagnostics) {
+	return GenericLookupID(ctx, value, RegionLookupConfig(client), func(r *netbox.Region) int32 {
+		return r.GetId()
+	})
+}
+
+// LookupSiteGroupID looks up a Site Group by ID or slug and returns the ID.
+func LookupSiteGroupID(ctx context.Context, client *netbox.APIClient, value string) (int32, diag.Diagnostics) {
+	return GenericLookupID(ctx, value, SiteGroupLookupConfig(client), func(sg *netbox.SiteGroup) int32 {
+		return sg.GetId()
+	})
+}
+
 // LookupRegion looks up a Region by ID or slug.
 
 func LookupRegion(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefRegionRequest, diag.Diagnostics) {
@@ -948,6 +1158,13 @@ func LookupLocation(ctx context.Context, client *netbox.APIClient, value string)
 
 	return GenericLookup(ctx, value, LocationLookupConfig(client))
 
+}
+
+// LookupLocationID looks up a Location by ID or slug and returns the ID.
+func LookupLocationID(ctx context.Context, client *netbox.APIClient, value string) (int32, diag.Diagnostics) {
+	return GenericLookupID(ctx, value, LocationLookupConfig(client), func(l *netbox.Location) int32 {
+		return l.GetId()
+	})
 }
 
 // LookupRackRole looks up a Rack Role by ID or slug.
@@ -1695,12 +1912,24 @@ func ContactGroupLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Con
 
 		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.ContactGroup, *http.Response, error) {
 
+			// Try lookup by slug first
 			list, resp, err := client.TenancyAPI.TenancyContactGroupsList(ctx).Slug([]string{slug}).Execute()
-
 			if err != nil {
-
 				return nil, resp, err
+			}
 
+			if len(list.Results) > 0 {
+				results := make([]*netbox.ContactGroup, len(list.Results))
+				for i := range list.Results {
+					results[i] = &list.Results[i]
+				}
+				return results, resp, nil
+			}
+
+			// If no results by slug, try lookup by name
+			list, resp, err = client.TenancyAPI.TenancyContactGroupsList(ctx).Name([]string{slug}).Execute()
+			if err != nil {
+				return nil, resp, err
 			}
 
 			results := make([]*netbox.ContactGroup, len(list.Results))
@@ -1735,6 +1964,13 @@ func LookupContactGroup(ctx context.Context, client *netbox.APIClient, value str
 
 	return GenericLookup(ctx, value, ContactGroupLookupConfig(client))
 
+}
+
+// LookupContactGroupID looks up a Contact Group by ID or slug and returns the ID.
+func LookupContactGroupID(ctx context.Context, client *netbox.APIClient, value string) (int32, diag.Diagnostics) {
+	return GenericLookupID(ctx, value, ContactGroupLookupConfig(client), func(cg *netbox.ContactGroup) int32 {
+		return cg.GetId()
+	})
 }
 
 // =====================================================

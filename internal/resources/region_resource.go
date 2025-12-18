@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -46,6 +47,8 @@ type RegionResourceModel struct {
 
 	Parent types.String `tfsdk:"parent"`
 
+	ParentID types.String `tfsdk:"parent_id"`
+
 	Description types.String `tfsdk:"description"`
 
 	Tags types.Set `tfsdk:"tags"`
@@ -73,7 +76,12 @@ func (r *RegionResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 			"slug": nbschema.SlugAttribute("region"),
 
-			"parent": nbschema.IDOnlyReferenceAttribute("parent region", "ID of the parent region. Leave empty for top-level regions. This enables hierarchical organization of geographic areas."),
+			"parent": nbschema.ReferenceAttribute("parent region", "ID or slug of the parent region. Leave empty for top-level regions. This enables hierarchical organization of geographic areas."),
+
+			"parent_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the parent region.",
+			},
 
 			"description": nbschema.DescriptionAttribute("region"),
 
@@ -148,21 +156,17 @@ func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	if utils.IsSet(data.Parent) {
 
-		parentID := data.Parent.ValueString()
+		parentID, parentDiags := netboxlookup.LookupRegionID(ctx, r.client, data.Parent.ValueString())
 
-		var parentIDInt int32
+		resp.Diagnostics.Append(parentDiags...)
 
-		parentIDInt, err := utils.ParseID(parentID)
-
-		if err != nil {
-
-			resp.Diagnostics.AddError("Invalid Parent ID", fmt.Sprintf("Parent ID must be a number, got: %s", parentID))
+		if resp.Diagnostics.HasError() {
 
 			return
 
 		}
 
-		regionRequest.Parent = *netbox.NewNullableInt32(&parentIDInt)
+		regionRequest.Parent = *netbox.NewNullableInt32(&parentID)
 
 	}
 
@@ -349,21 +353,17 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	if utils.IsSet(data.Parent) {
 
-		parentID := data.Parent.ValueString()
+		parentID, parentDiags := netboxlookup.LookupRegionID(ctx, r.client, data.Parent.ValueString())
 
-		var parentIDInt int32
+		resp.Diagnostics.Append(parentDiags...)
 
-		parentIDInt, err := utils.ParseID(parentID)
-
-		if err != nil {
-
-			resp.Diagnostics.AddError("Invalid Parent ID", fmt.Sprintf("Parent ID must be a number, got: %s", parentID))
+		if resp.Diagnostics.HasError() {
 
 			return
 
 		}
 
-		regionRequest.Parent = *netbox.NewNullableInt32(&parentIDInt)
+		regionRequest.Parent = *netbox.NewNullableInt32(&parentID)
 
 	}
 
@@ -517,11 +517,24 @@ func (r *RegionResource) mapRegionToState(ctx context.Context, region *netbox.Re
 
 		parent := region.GetParent()
 
-		data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+
+		userParent := data.Parent.ValueString()
+
+		if userParent == parent.GetName() || userParent == parent.GetSlug() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Parent = types.StringValue(parent.GetName())
+
+		}
 
 	} else {
 
 		data.Parent = types.StringNull()
+		data.ParentID = types.StringNull()
 
 	}
 

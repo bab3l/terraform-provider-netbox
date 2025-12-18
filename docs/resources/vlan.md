@@ -57,6 +57,8 @@ resource "netbox_vlan" "test" {
 ### Read-Only
 
 - `id` (String) Unique identifier for the VLAN (assigned by Netbox).
+- `site_id` (String) The numeric ID of the site.
+- `tenant_id` (String) The numeric ID of the tenant.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -54,6 +55,8 @@ type CircuitGroupResourceModel struct {
 
 	Tenant types.String `tfsdk:"tenant"`
 
+	TenantID types.String `tfsdk:"tenant_id"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -85,7 +88,12 @@ func (r *CircuitGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 
 			"description": nbschema.DescriptionAttribute("circuit group"),
 
-			"tenant": nbschema.IDOnlyReferenceAttribute("tenant", ""),
+			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant."),
+
+			"tenant_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the tenant.",
+			},
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -159,29 +167,17 @@ func (r *CircuitGroupResource) Create(ctx context.Context, req resource.CreateRe
 
 	if !data.Tenant.IsNull() && data.Tenant.ValueString() != "" {
 
-		tenantID, err := utils.ParseID(data.Tenant.ValueString())
+		tenant, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 
-		if err != nil {
+		resp.Diagnostics.Append(tenantDiags...)
 
-			resp.Diagnostics.AddError(
-
-				"Invalid Tenant ID",
-
-				fmt.Sprintf("Unable to parse tenant ID: %s", err),
-			)
+		if resp.Diagnostics.HasError() {
 
 			return
 
 		}
 
-		tenantReq := netbox.NewBriefTenantRequest(fmt.Sprintf("tenant-%d", tenantID), fmt.Sprintf("tenant-%d", tenantID))
-
-		groupRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantReq)
-
-		groupRequest.AdditionalProperties = map[string]interface{}{
-
-			"tenant": int(tenantID),
-		}
+		groupRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
 
 	}
 
@@ -398,29 +394,17 @@ func (r *CircuitGroupResource) Update(ctx context.Context, req resource.UpdateRe
 
 	if !data.Tenant.IsNull() && data.Tenant.ValueString() != "" {
 
-		tenantID, err := utils.ParseID(data.Tenant.ValueString())
+		tenant, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 
-		if err != nil {
+		resp.Diagnostics.Append(tenantDiags...)
 
-			resp.Diagnostics.AddError(
-
-				"Invalid Tenant ID",
-
-				fmt.Sprintf("Unable to parse tenant ID: %s", err),
-			)
+		if resp.Diagnostics.HasError() {
 
 			return
 
 		}
 
-		tenantReq := netbox.NewBriefTenantRequest(fmt.Sprintf("tenant-%d", tenantID), fmt.Sprintf("tenant-%d", tenantID))
-
-		groupRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantReq)
-
-		groupRequest.AdditionalProperties = map[string]interface{}{
-
-			"tenant": int(tenantID),
-		}
+		groupRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
 
 	} else {
 
@@ -613,11 +597,24 @@ func (r *CircuitGroupResource) mapResponseToState(ctx context.Context, group *ne
 
 		tenant := group.Tenant.Get()
 
-		data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+
+		userTenant := data.Tenant.ValueString()
+
+		if userTenant == tenant.GetName() || userTenant == tenant.GetSlug() || userTenant == tenant.GetDisplay() || userTenant == fmt.Sprintf("%d", tenant.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Tenant = types.StringValue(tenant.GetName())
+
+		}
 
 	} else {
 
 		data.Tenant = types.StringNull()
+		data.TenantID = types.StringNull()
 
 	}
 

@@ -40,6 +40,7 @@ resource "netbox_platform" "test" {
 ### Read-Only
 
 - `id` (String) Unique identifier for the platform (assigned by Netbox).
+- `manufacturer_id` (String) The numeric ID of the manufacturer.
 
 ## Import
 

@@ -56,9 +56,15 @@ type SiteResourceModel struct {
 
 	Region types.String `tfsdk:"region"`
 
+	RegionID types.String `tfsdk:"region_id"`
+
 	Group types.String `tfsdk:"group"`
 
+	GroupID types.String `tfsdk:"group_id"`
+
 	Tenant types.String `tfsdk:"tenant"`
+
+	TenantID types.String `tfsdk:"tenant_id"`
 
 	Facility types.String `tfsdk:"facility"`
 
@@ -98,11 +104,26 @@ func (r *SiteResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				"Operational status of the site.",
 			),
 
-			"region": nbschema.IDOnlyReferenceAttribute("region", "ID of the region where this site is located."),
+			"region": nbschema.ReferenceAttribute("region", "ID or slug of the region where this site is located."),
 
-			"group": nbschema.IDOnlyReferenceAttribute("site group", "ID of the site group."),
+			"region_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the region.",
+			},
 
-			"tenant": nbschema.IDOnlyReferenceAttribute("tenant", "ID of the tenant that owns this site."),
+			"group": nbschema.ReferenceAttribute("site group", "ID or slug of the site group."),
+
+			"group_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the site group.",
+			},
+
+			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this site."),
+
+			"tenant_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the tenant.",
+			},
 
 			"facility": schema.StringAttribute{
 
@@ -694,6 +715,8 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 
 		if tenant.Id != 0 {
 
+			data.TenantID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+
 			userTenant := data.Tenant.ValueString()
 
 			if userTenant == tenant.GetName() || userTenant == tenant.GetSlug() || userTenant == tenant.GetDisplay() || userTenant == fmt.Sprintf("%d", tenant.GetId()) {
@@ -709,12 +732,14 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 		} else {
 
 			data.Tenant = types.StringNull()
+			data.TenantID = types.StringNull()
 
 		}
 
 	} else {
 
 		data.Tenant = types.StringNull()
+		data.TenantID = types.StringNull()
 
 	}
 
@@ -725,6 +750,8 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 		region := site.GetRegion()
 
 		if region.Id != 0 {
+
+			data.RegionID = types.StringValue(fmt.Sprintf("%d", region.GetId()))
 
 			userRegion := data.Region.ValueString()
 
@@ -741,12 +768,14 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 		} else {
 
 			data.Region = types.StringNull()
+			data.RegionID = types.StringNull()
 
 		}
 
 	} else {
 
 		data.Region = types.StringNull()
+		data.RegionID = types.StringNull()
 
 	}
 
@@ -757,6 +786,8 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 		group := site.GetGroup()
 
 		if group.Id != 0 {
+
+			data.GroupID = types.StringValue(fmt.Sprintf("%d", group.GetId()))
 
 			userGroup := data.Group.ValueString()
 
@@ -773,12 +804,14 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 		} else {
 
 			data.Group = types.StringNull()
+			data.GroupID = types.StringNull()
 
 		}
 
 	} else {
 
 		data.Group = types.StringNull()
+		data.GroupID = types.StringNull()
 
 	}
 

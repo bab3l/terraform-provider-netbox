@@ -104,12 +104,13 @@ output "subsidiaries_tenant_group" {
 
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the tenant group.
-- `parent` (String) ID of the parent tenant group. Leave empty for top-level groups.
+- `parent` (String) ID or slug of the parent tenant group. Leave empty for top-level groups.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 
 ### Read-Only
 
 - `id` (String) Unique identifier for the tenant group (assigned by Netbox).
+- `parent_id` (String) The numeric ID of the parent tenant group.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

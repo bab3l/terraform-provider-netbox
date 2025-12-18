@@ -36,15 +36,18 @@ resource "netbox_site" "example" {
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the site.
 - `facility` (String) Local facility identifier or description (e.g., building name, floor, room number).
-- `group` (String) ID of the site group.
-- `region` (String) ID of the region where this site is located.
+- `group` (String) ID or slug of the site group.
+- `region` (String) ID or slug of the region where this site is located.
 - `status` (String) Operational status of the site.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
-- `tenant` (String) ID of the tenant that owns this site.
+- `tenant` (String) ID or slug of the tenant that owns this site.
 
 ### Read-Only
 
+- `group_id` (String) The numeric ID of the site group.
 - `id` (String) Unique identifier for the site (assigned by Netbox).
+- `region_id` (String) The numeric ID of the region.
+- `tenant_id` (String) The numeric ID of the tenant.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

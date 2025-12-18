@@ -39,7 +39,7 @@ resource "netbox_location" "test" {
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the location.
 - `facility` (String) Local facility ID or description.
-- `parent` (String) ID of the parent location. Leave empty for top-level locations within the site.
+- `parent` (String) ID or slug of the parent location. Leave empty for top-level locations within the site.
 - `status` (String) Operational status of the location. Defaults to `active`.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 - `tenant` (String) ID or slug of the tenant that owns this location.
@@ -47,6 +47,7 @@ resource "netbox_location" "test" {
 ### Read-Only
 
 - `id` (String) Unique identifier for the location (assigned by Netbox).
+- `parent_id` (String) The numeric ID of the parent location.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

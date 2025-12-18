@@ -38,6 +38,8 @@ type PlatformResourceModel struct {
 
 	Manufacturer types.String `tfsdk:"manufacturer"`
 
+	ManufacturerID types.String `tfsdk:"manufacturer_id"`
+
 	Description types.String `tfsdk:"description"`
 }
 
@@ -62,6 +64,8 @@ func (r *PlatformResource) Schema(ctx context.Context, req resource.SchemaReques
 			"slug": nbschema.SlugAttribute("platform"),
 
 			"manufacturer": nbschema.ReferenceAttribute("manufacturer", "Reference to the manufacturer (ID or slug)."),
+
+			"manufacturer_id": nbschema.ComputedIDAttribute("manufacturer"),
 
 			"description": nbschema.DescriptionAttribute("platform"),
 		},
@@ -169,9 +173,13 @@ func (r *PlatformResource) Create(ctx context.Context, req resource.CreateReques
 
 	data.Slug = types.StringValue(platform.GetSlug())
 
-	// Keep the manufacturer value as the user provided it (don't overwrite with API response)
-
-	// The user may have provided a slug or ID, and we should preserve that
+	if platform.HasManufacturer() {
+		m, ok := platform.GetManufacturerOk()
+		if ok && m != nil {
+			data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, m.Name, m.Slug, m.Id)
+			data.ManufacturerID = types.StringValue(fmt.Sprintf("%d", m.Id))
+		}
+	}
 
 	if platform.HasDescription() {
 
@@ -258,16 +266,15 @@ func (r *PlatformResource) Read(ctx context.Context, req resource.ReadRequest, r
 	if platform.HasManufacturer() {
 		m, ok := platform.GetManufacturerOk()
 		if ok && m != nil {
-			if m.Slug != "" {
-				data.Manufacturer = types.StringValue(m.Slug)
-			} else {
-				data.Manufacturer = types.StringValue(fmt.Sprintf("%d", m.Id))
-			}
+			data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, m.Name, m.Slug, m.Id)
+			data.ManufacturerID = types.StringValue(fmt.Sprintf("%d", m.Id))
 		} else {
 			data.Manufacturer = types.StringNull()
+			data.ManufacturerID = types.StringNull()
 		}
 	} else {
 		data.Manufacturer = types.StringNull()
+		data.ManufacturerID = types.StringNull()
 	}
 
 	if platform.HasDescription() {
@@ -380,23 +387,17 @@ func (r *PlatformResource) Update(ctx context.Context, req resource.UpdateReques
 	data.Slug = types.StringValue(platform.GetSlug())
 
 	if platform.HasManufacturer() {
-
-		m := platform.GetManufacturer()
-
-		if m.Slug != "" {
-
-			data.Manufacturer = types.StringValue(m.Slug)
-
+		m, ok := platform.GetManufacturerOk()
+		if ok && m != nil {
+			data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, m.Name, m.Slug, m.Id)
+			data.ManufacturerID = types.StringValue(fmt.Sprintf("%d", m.Id))
 		} else {
-
-			data.Manufacturer = types.StringValue(fmt.Sprintf("%d", m.Id))
-
+			data.Manufacturer = types.StringNull()
+			data.ManufacturerID = types.StringNull()
 		}
-
 	} else {
-
 		data.Manufacturer = types.StringNull()
-
+		data.ManufacturerID = types.StringNull()
 	}
 
 	if platform.HasDescription() {

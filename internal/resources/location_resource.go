@@ -49,6 +49,8 @@ type LocationResourceModel struct {
 
 	Parent types.String `tfsdk:"parent"`
 
+	ParentID types.String `tfsdk:"parent_id"`
+
 	Status types.String `tfsdk:"status"`
 
 	Tenant types.String `tfsdk:"tenant"`
@@ -84,7 +86,12 @@ func (r *LocationResource) Schema(ctx context.Context, req resource.SchemaReques
 
 			"site": nbschema.RequiredReferenceAttribute("site", "ID or slug of the site this location belongs to. Required."),
 
-			"parent": nbschema.IDOnlyReferenceAttribute("parent location", "ID of the parent location. Leave empty for top-level locations within the site."),
+			"parent": nbschema.ReferenceAttribute("parent location", "ID or slug of the parent location. Leave empty for top-level locations within the site."),
+
+			"parent_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the parent location.",
+			},
 
 			"status": nbschema.StatusAttribute([]string{"planned", "staging", "active", "decommissioning", "retired"}, "Operational status of the location. Defaults to `active`."),
 
@@ -170,26 +177,17 @@ func (r *LocationResource) Create(ctx context.Context, req resource.CreateReques
 
 	if !data.Parent.IsNull() && !data.Parent.IsUnknown() {
 
-		parentID := data.Parent.ValueString()
+		parentID, parentDiags := netboxlookup.LookupLocationID(ctx, r.client, data.Parent.ValueString())
 
-		var parentIDInt int32
+		resp.Diagnostics.Append(parentDiags...)
 
-		parentIDInt, err := utils.ParseID(parentID)
-
-		if err != nil {
-
-			resp.Diagnostics.AddError(
-
-				"Invalid Parent ID",
-
-				fmt.Sprintf("Parent ID must be a number, got: %s", parentID),
-			)
+		if resp.Diagnostics.HasError() {
 
 			return
 
 		}
 
-		locationRequest.Parent = *netbox.NewNullableInt32(&parentIDInt)
+		locationRequest.Parent = *netbox.NewNullableInt32(&parentID)
 
 	}
 
@@ -463,26 +461,17 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 
 	if !data.Parent.IsNull() && !data.Parent.IsUnknown() {
 
-		parentID := data.Parent.ValueString()
+		parentID, parentDiags := netboxlookup.LookupLocationID(ctx, r.client, data.Parent.ValueString())
 
-		var parentIDInt int32
+		resp.Diagnostics.Append(parentDiags...)
 
-		parentIDInt, err := utils.ParseID(parentID)
-
-		if err != nil {
-
-			resp.Diagnostics.AddError(
-
-				"Invalid Parent ID",
-
-				fmt.Sprintf("Parent ID must be a number, got: %s", parentID),
-			)
+		if resp.Diagnostics.HasError() {
 
 			return
 
 		}
 
-		locationRequest.Parent = *netbox.NewNullableInt32(&parentIDInt)
+		locationRequest.Parent = *netbox.NewNullableInt32(&parentID)
 
 	}
 
@@ -724,11 +713,24 @@ func (r *LocationResource) mapLocationToState(ctx context.Context, location *net
 
 		parent := location.GetParent()
 
-		data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+
+		userParent := data.Parent.ValueString()
+
+		if userParent == parent.GetName() || userParent == parent.GetSlug() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
+
+			// Keep user's original value
+
+		} else {
+
+			data.Parent = types.StringValue(parent.GetName())
+
+		}
 
 	} else {
 
 		data.Parent = types.StringNull()
+		data.ParentID = types.StringNull()
 
 	}
 

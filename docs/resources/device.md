@@ -81,7 +81,14 @@ resource "netbox_device" "test" {
 
 ### Read-Only
 
+- `device_type_id` (String) The numeric ID of the device type.
 - `id` (String) Unique identifier for the device (assigned by Netbox).
+- `location_id` (String) The numeric ID of the location.
+- `platform_id` (String) The numeric ID of the platform.
+- `rack_id` (String) The numeric ID of the rack.
+- `role_id` (String) The numeric ID of the device role.
+- `site_id` (String) The numeric ID of the site.
+- `tenant_id` (String) The numeric ID of the tenant.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

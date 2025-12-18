@@ -47,19 +47,29 @@ type RackResourceModel struct {
 
 	Site types.String `tfsdk:"site"`
 
+	SiteID types.String `tfsdk:"site_id"`
+
 	Location types.String `tfsdk:"location"`
 
+	LocationID types.String `tfsdk:"location_id"`
+
 	Tenant types.String `tfsdk:"tenant"`
+
+	TenantID types.String `tfsdk:"tenant_id"`
 
 	Status types.String `tfsdk:"status"`
 
 	Role types.String `tfsdk:"role"`
+
+	RoleID types.String `tfsdk:"role_id"`
 
 	Serial types.String `tfsdk:"serial"`
 
 	AssetTag types.String `tfsdk:"asset_tag"`
 
 	RackType types.String `tfsdk:"rack_type"`
+
+	RackTypeID types.String `tfsdk:"rack_type_id"`
 
 	FormFactor types.String `tfsdk:"form_factor"`
 
@@ -116,25 +126,52 @@ func (r *RackResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 			"site": nbschema.RequiredReferenceAttribute("site", "ID or slug of the site where this rack is located. Required."),
 
-			"location": nbschema.IDOnlyReferenceAttribute("location", "ID of the location within the site (e.g., building, floor, room)."),
+			"site_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the site.",
+			},
+
+			"location": nbschema.ReferenceAttribute("location", "ID or slug of the location within the site (e.g., building, floor, room)."),
+
+			"location_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the location.",
+			},
 
 			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this rack."),
+
+			"tenant_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the tenant.",
+			},
 
 			"status": nbschema.StatusAttribute([]string{"reserved", "available", "planned", "active", "deprecated"}, "Operational status of the rack. Defaults to `active`."),
 
 			"role": nbschema.ReferenceAttribute("rack role", "ID or slug of the functional role of the rack."),
 
+			"role_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the rack role.",
+			},
+
 			"serial": nbschema.SerialAttribute(),
 
 			"asset_tag": nbschema.AssetTagAttribute(),
 
-			"rack_type": nbschema.IDOnlyReferenceAttribute("rack type", "ID of the rack type (model/form factor definition)."),
+			"rack_type": nbschema.ReferenceAttribute("rack type", "ID or model of the rack type (model/form factor definition)."),
+
+			"rack_type_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The numeric ID of the rack type.",
+			},
 
 			"form_factor": schema.StringAttribute{
 
 				MarkdownDescription: "Physical form factor of the rack. Valid values: `2-post-frame`, `4-post-frame`, `4-post-cabinet`, `wall-frame`, `wall-frame-vertical`, `wall-cabinet`, `wall-cabinet-vertical`.",
 
 				Optional: true,
+
+				Computed: true,
 
 				Validators: []validator.String{
 
@@ -1455,6 +1492,8 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 
 	if site := rack.GetSite(); site.Id != 0 {
 
+		data.SiteID = types.StringValue(fmt.Sprintf("%d", site.GetId()))
+
 		if data.Site.IsUnknown() || data.Site.IsNull() {
 			data.Site = types.StringValue(fmt.Sprintf("%d", site.GetId()))
 		} else {
@@ -1477,6 +1516,8 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 
 	if location, ok := rack.GetLocationOk(); ok && location != nil && location.Id != 0 {
 
+		data.LocationID = types.StringValue(fmt.Sprintf("%d", location.GetId()))
+
 		userLocation := data.Location.ValueString()
 
 		if userLocation == location.GetName() || userLocation == location.GetSlug() || userLocation == location.GetDisplay() || userLocation == fmt.Sprintf("%d", location.GetId()) {
@@ -1492,12 +1533,15 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 	} else {
 
 		data.Location = types.StringNull()
+		data.LocationID = types.StringNull()
 
 	}
 
 	// Map tenant
 
 	if tenant, ok := rack.GetTenantOk(); ok && tenant != nil && tenant.Id != 0 {
+
+		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 
 		userTenant := data.Tenant.ValueString()
 
@@ -1514,6 +1558,7 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 	} else {
 
 		data.Tenant = types.StringNull()
+		data.TenantID = types.StringNull()
 
 	}
 
@@ -1541,6 +1586,8 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 
 	if role, ok := rack.GetRoleOk(); ok && role != nil && role.Id != 0 {
 
+		data.RoleID = types.StringValue(fmt.Sprintf("%d", role.GetId()))
+
 		userRole := data.Role.ValueString()
 
 		if userRole == role.GetName() || userRole == role.GetSlug() || userRole == role.GetDisplay() || userRole == fmt.Sprintf("%d", role.GetId()) {
@@ -1556,6 +1603,7 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 	} else {
 
 		data.Role = types.StringNull()
+		data.RoleID = types.StringNull()
 
 	}
 
@@ -1587,6 +1635,8 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 
 	if rackType, ok := rack.GetRackTypeOk(); ok && rackType != nil && rackType.Id != 0 {
 
+		data.RackTypeID = types.StringValue(fmt.Sprintf("%d", rackType.GetId()))
+
 		userRackType := data.RackType.ValueString()
 
 		if userRackType == rackType.GetModel() || userRackType == rackType.GetSlug() || userRackType == rackType.GetDisplay() || userRackType == fmt.Sprintf("%d", rackType.GetId()) {
@@ -1602,6 +1652,7 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 	} else {
 
 		data.RackType = types.StringNull()
+		data.RackTypeID = types.StringNull()
 
 	}
 

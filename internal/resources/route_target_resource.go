@@ -53,6 +53,8 @@ type RouteTargetResourceModel struct {
 
 	Tenant types.String `tfsdk:"tenant"`
 
+	TenantID types.String `tfsdk:"tenant_id"`
+
 	Description types.String `tfsdk:"description"`
 
 	Comments types.String `tfsdk:"comments"`
@@ -100,6 +102,8 @@ func (r *RouteTargetResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 
 			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this route target."),
+
+			"tenant_id": nbschema.ComputedIDAttribute("tenant"),
 
 			"description": nbschema.DescriptionAttribute("route target"),
 
@@ -535,11 +539,13 @@ func (r *RouteTargetResource) mapRouteTargetToState(ctx context.Context, rt *net
 
 	if rt.HasTenant() && rt.Tenant.Get() != nil {
 
-		data.Tenant = types.StringValue(fmt.Sprintf("%d", rt.Tenant.Get().GetId()))
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, rt.Tenant.Get().Name, rt.Tenant.Get().Slug, rt.Tenant.Get().Id)
+		data.TenantID = types.StringValue(fmt.Sprintf("%d", rt.Tenant.Get().Id))
 
 	} else {
 
 		data.Tenant = types.StringNull()
+		data.TenantID = types.StringNull()
 
 	}
 

@@ -31,12 +31,13 @@ resource "netbox_site_group" "example" {
 
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the site group.
-- `parent` (String) ID of the parent site group. Leave empty for top-level site groups.
+- `parent` (String) ID or slug of the parent site group. Leave empty for top-level site groups.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 
 ### Read-Only
 
 - `id` (String) Unique identifier for the site group (assigned by Netbox).
+- `parent_id` (String) The numeric ID of the parent site group.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`
