@@ -339,3 +339,51 @@ resource "netbox_power_panel" "test" {
 `, siteName, siteSlug, panelName, description)
 
 }
+
+// TestAccConsistency_PowerPanel_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_PowerPanel_LiteralNames(t *testing.T) {
+	t.Parallel()
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	panelName := testutil.RandomName("power-panel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerPanelConsistencyLiteralNamesConfig(siteName, siteSlug, panelName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_panel.test", "name", panelName),
+					resource.TestCheckResourceAttr("netbox_power_panel.test", "site", siteName),
+				),
+			},
+			{
+				// Critical: Verify no drift when refreshing state
+				PlanOnly: true,
+				Config:   testAccPowerPanelConsistencyLiteralNamesConfig(siteName, siteSlug, panelName),
+			},
+		},
+	})
+}
+
+func testAccPowerPanelConsistencyLiteralNamesConfig(siteName, siteSlug, panelName string) string {
+	return fmt.Sprintf(`
+
+resource "netbox_site" "test" {
+  name   = "%[1]s"
+  slug   = "%[2]s"
+  status = "active"
+}
+
+resource "netbox_power_panel" "test" {
+  name = "%[3]s"
+  # Use literal string name to mimic existing user state
+  site = "%[1]s"
+
+  depends_on = [netbox_site.test]
+}
+
+`, siteName, siteSlug, panelName)
+}

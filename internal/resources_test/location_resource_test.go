@@ -793,3 +793,61 @@ resource "netbox_location" "test" {
 `, locationName, locationSlug, siteName, siteSlug, tenantName, tenantSlug)
 
 }
+
+// TestAccConsistency_Location_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_Location_LiteralNames(t *testing.T) {
+	t.Parallel()
+	locationName := testutil.RandomName("location")
+	locationSlug := testutil.RandomSlug("location")
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	tenantName := testutil.RandomName("tenant")
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccLocationConsistencyLiteralNamesConfig(locationName, locationSlug, siteName, siteSlug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_location.test", "name", locationName),
+					resource.TestCheckResourceAttr("netbox_location.test", "site", siteName),
+					resource.TestCheckResourceAttr("netbox_location.test", "tenant", tenantName),
+				),
+			},
+			{
+				// Critical: Verify no drift when refreshing state
+				PlanOnly: true,
+				Config:   testAccLocationConsistencyLiteralNamesConfig(locationName, locationSlug, siteName, siteSlug, tenantName, tenantSlug),
+			},
+		},
+	})
+}
+
+func testAccLocationConsistencyLiteralNamesConfig(locationName, locationSlug, siteName, siteSlug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+
+resource "netbox_site" "test" {
+  name = "%[3]s"
+  slug = "%[4]s"
+}
+
+resource "netbox_tenant" "test" {
+  name = "%[5]s"
+  slug = "%[6]s"
+}
+
+resource "netbox_location" "test" {
+  name = "%[1]s"
+  slug = "%[2]s"
+  # Use literal string names to mimic existing user state
+  site = "%[3]s"
+  tenant = "%[5]s"
+
+  depends_on = [netbox_site.test, netbox_tenant.test]
+}
+
+`, locationName, locationSlug, siteName, siteSlug, tenantName, tenantSlug)
+}

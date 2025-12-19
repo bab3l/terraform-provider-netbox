@@ -668,3 +668,63 @@ resource "netbox_asn_range" "test" {
 `, rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug)
 
 }
+
+// TestAccConsistency_ASNRange_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_ASNRange_LiteralNames(t *testing.T) {
+	t.Parallel()
+	rangeName := testutil.RandomName("asn-range")
+	rangeSlug := testutil.RandomSlug("asn-range")
+	rirName := testutil.RandomName("rir")
+	rirSlug := testutil.RandomSlug("rir")
+	tenantName := testutil.RandomName("tenant")
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccASNRangeConsistencyLiteralNamesConfig(rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "name", rangeName),
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "rir", rirSlug),
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "tenant", tenantName),
+				),
+			},
+			{
+				// Critical: Verify no drift when refreshing state
+				PlanOnly: true,
+				Config:   testAccASNRangeConsistencyLiteralNamesConfig(rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug),
+			},
+		},
+	})
+}
+
+func testAccASNRangeConsistencyLiteralNamesConfig(rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+
+resource "netbox_rir" "test" {
+  name = "%[3]s"
+  slug = "%[4]s"
+}
+
+resource "netbox_tenant" "test" {
+  name = "%[5]s"
+  slug = "%[6]s"
+}
+
+resource "netbox_asn_range" "test" {
+  name = "%[1]s"
+  slug = "%[2]s"
+  # Use literal string names to mimic existing user state
+  rir = "%[4]s"
+  tenant = "%[5]s"
+  start = 65000
+  end = 65100
+
+  depends_on = [netbox_rir.test, netbox_tenant.test]
+}
+
+`, rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug)
+}

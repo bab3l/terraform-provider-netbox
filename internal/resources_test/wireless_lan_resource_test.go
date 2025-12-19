@@ -404,3 +404,60 @@ resource "netbox_wireless_lan" "test" {
 `, wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug)
 
 }
+
+// TestAccConsistency_WirelessLAN_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_WirelessLAN_LiteralNames(t *testing.T) {
+	t.Parallel()
+	wlanName := testutil.RandomName("wlan")
+	ssid := testutil.RandomName("ssid")
+	groupName := testutil.RandomName("group")
+	groupSlug := testutil.RandomSlug("group")
+	tenantName := testutil.RandomName("tenant")
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLANConsistencyLiteralNamesConfig(wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "ssid", ssid),
+					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "group", groupSlug),
+					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "tenant", tenantName),
+				),
+			},
+			{
+				// Critical: Verify no drift when refreshing state
+				PlanOnly: true,
+				Config:   testAccWirelessLANConsistencyLiteralNamesConfig(wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug),
+			},
+		},
+	})
+}
+
+func testAccWirelessLANConsistencyLiteralNamesConfig(wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+
+resource "netbox_wireless_lan_group" "test" {
+  name = "%[3]s"
+  slug = "%[4]s"
+}
+
+resource "netbox_tenant" "test" {
+  name = "%[5]s"
+  slug = "%[6]s"
+}
+
+resource "netbox_wireless_lan" "test" {
+  ssid = "%[2]s"
+  # Use literal string names to mimic existing user state
+  group = "%[4]s"
+  tenant = "%[5]s"
+
+  depends_on = [netbox_wireless_lan_group.test, netbox_tenant.test]
+}
+
+`, wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug)
+}

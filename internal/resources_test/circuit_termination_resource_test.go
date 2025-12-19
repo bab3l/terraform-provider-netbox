@@ -634,3 +634,74 @@ resource "netbox_circuit_termination" "test" {
 `, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, siteName, siteSlug)
 
 }
+
+// TestAccConsistency_CircuitTermination_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_CircuitTermination_LiteralNames(t *testing.T) {
+	t.Parallel()
+	providerName := testutil.RandomName("provider")
+	providerSlug := testutil.RandomSlug("provider")
+	circuitTypeName := testutil.RandomName("circuit-type")
+	circuitTypeSlug := testutil.RandomSlug("circuit-type")
+	circuitCid := testutil.RandomName("CID")
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitTerminationConsistencyLiteralNamesConfig(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "circuit", circuitCid),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "site", siteName),
+				),
+			},
+			{
+				// Critical: Verify no drift when refreshing state
+				PlanOnly: true,
+				Config:   testAccCircuitTerminationConsistencyLiteralNamesConfig(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, siteName, siteSlug),
+			},
+		},
+	})
+}
+
+func testAccCircuitTerminationConsistencyLiteralNamesConfig(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, siteName, siteSlug string) string {
+	return fmt.Sprintf(`
+
+resource "netbox_provider" "test" {
+  name = "%[1]s"
+  slug = "%[2]s"
+}
+
+resource "netbox_circuit_type" "test" {
+  name = "%[3]s"
+  slug = "%[4]s"
+}
+
+resource "netbox_circuit" "test" {
+
+  cid = "%[5]s"
+
+  circuit_provider = netbox_provider.test.id
+  type = netbox_circuit_type.test.slug
+}
+
+resource "netbox_site" "test" {
+  name = "%[6]s"
+  slug = "%[7]s"
+}
+
+resource "netbox_circuit_termination" "test" {
+  # Use literal string names to mimic existing user state
+  circuit = "%[5]s"
+
+  term_side = "A"
+  site = "%[6]s"
+
+  depends_on = [netbox_circuit.test, netbox_site.test]
+}
+
+`, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, siteName, siteSlug)
+}
