@@ -24,9 +24,7 @@ func TestVirtualChassisResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil VirtualChassis resource")
-
 	}
-
 }
 
 func TestVirtualChassisResourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestVirtualChassisResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	requiredAttrs := []string{"name"}
@@ -60,9 +56,7 @@ func TestVirtualChassisResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	computedAttrs := []string{"id", "member_count"}
@@ -72,9 +66,7 @@ func TestVirtualChassisResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	optionalAttrs := []string{"domain", "master", "description", "comments", "tags", "custom_fields"}
@@ -84,11 +76,8 @@ func TestVirtualChassisResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestVirtualChassisResourceMetadata(t *testing.T) {
@@ -111,9 +100,7 @@ func TestVirtualChassisResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestVirtualChassisResourceConfigure(t *testing.T) {
@@ -134,7 +121,6 @@ func TestVirtualChassisResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -148,7 +134,6 @@ func TestVirtualChassisResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -160,9 +145,7 @@ func TestVirtualChassisResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
-
 	}
-
 }
 
 func TestAccVirtualChassisResource_basic(t *testing.T) {
@@ -202,7 +185,6 @@ func TestAccVirtualChassisResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccVirtualChassisResource_full(t *testing.T) {
@@ -253,369 +235,30 @@ func TestAccVirtualChassisResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccVirtualChassisResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_virtual_chassis" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name)
-
 }
 
 func testAccVirtualChassisResourceConfig_full(name, description string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_virtual_chassis" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name        = %q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   domain      = "test-domain"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   comments    = "Test comments"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, description)
-
 }

@@ -24,9 +24,7 @@ func TestInventoryItemRoleResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil InventoryItemRole resource")
-
 	}
-
 }
 
 func TestInventoryItemRoleResourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestInventoryItemRoleResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	requiredAttrs := []string{"name", "slug"}
@@ -60,9 +56,7 @@ func TestInventoryItemRoleResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	computedAttrs := []string{"id"}
@@ -72,9 +66,7 @@ func TestInventoryItemRoleResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	optionalAttrs := []string{"color", "description", "tags", "custom_fields"}
@@ -84,11 +76,8 @@ func TestInventoryItemRoleResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestInventoryItemRoleResourceMetadata(t *testing.T) {
@@ -111,9 +100,7 @@ func TestInventoryItemRoleResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestInventoryItemRoleResourceConfigure(t *testing.T) {
@@ -134,7 +121,6 @@ func TestInventoryItemRoleResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -148,7 +134,6 @@ func TestInventoryItemRoleResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -160,9 +145,7 @@ func TestInventoryItemRoleResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
-
 	}
-
 }
 
 func TestAccInventoryItemRoleResource_basic(t *testing.T) {
@@ -206,7 +189,6 @@ func TestAccInventoryItemRoleResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccInventoryItemRoleResource_full(t *testing.T) {
@@ -265,401 +247,30 @@ func TestAccInventoryItemRoleResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccInventoryItemRoleResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_inventory_item_role" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, slug)
-
 }
 
 func testAccInventoryItemRoleResourceConfig_full(name, slug, color, description string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_inventory_item_role" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name        = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug        = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   color       = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, slug, color, description)
-
 }

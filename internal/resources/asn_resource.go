@@ -612,13 +612,13 @@ func (r *ASNResource) mapResponseToModel(ctx context.Context, asn *netbox.ASN, d
 
 	data.ASN = types.Int64Value(asn.GetAsn())
 
-	// Map RIR - preserve the user's input format (ID or name)
+	// Map RIR - preserve the user's input format (ID or slug)
 
 	if asn.Rir.IsSet() && asn.Rir.Get() != nil {
 
-		// Always return the ID to match what Terraform sent
+		rir := asn.Rir.Get()
 
-		data.RIR = types.StringValue(fmt.Sprintf("%d", asn.Rir.Get().GetId()))
+		data.RIR = utils.UpdateReferenceAttribute(data.RIR, rir.GetName(), rir.GetSlug(), rir.GetId())
 
 	} else {
 
@@ -630,9 +630,9 @@ func (r *ASNResource) mapResponseToModel(ctx context.Context, asn *netbox.ASN, d
 
 	if asn.Tenant.IsSet() && asn.Tenant.Get() != nil {
 
-		// Always return the ID to match what Terraform sent
+		tenant := asn.Tenant.Get()
 
-		data.Tenant = types.StringValue(fmt.Sprintf("%d", asn.Tenant.Get().GetId()))
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 
 	} else {
 

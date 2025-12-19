@@ -93,66 +93,6 @@ func (r *InventoryItemResource) Schema(ctx context.Context, req resource.SchemaR
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ~> **Deprecation Warning:** Beginning in NetBox v4.3, inventory items are deprecated and planned for removal in a future release. Users are strongly encouraged to use [modules](https://netboxlabs.com/docs/netbox/models/dcim/module/) and [module types](https://netboxlabs.com/docs/netbox/models/dcim/moduletype/) instead.`,
 
 		Attributes: map[string]schema.Attribute{
@@ -885,11 +825,11 @@ func (r *InventoryItemResource) mapResponseToModel(ctx context.Context, item *ne
 
 	data.Name = types.StringValue(item.GetName())
 
-	// Map device
+	// Map device - preserve user's input format
 
 	if device := item.GetDevice(); device.Id != 0 {
 
-		data.Device = types.StringValue(fmt.Sprintf("%d", device.GetId()))
+		data.Device = utils.UpdateReferenceAttribute(data.Device, device.GetName(), "", device.GetId())
 
 	}
 
@@ -917,11 +857,13 @@ func (r *InventoryItemResource) mapResponseToModel(ctx context.Context, item *ne
 
 	}
 
-	// Map role
+	// Map role - preserve user's input format
 
 	if item.Role.IsSet() && item.Role.Get() != nil {
 
-		data.Role = types.StringValue(fmt.Sprintf("%d", item.Role.Get().GetId()))
+		role := item.Role.Get()
+
+		data.Role = utils.UpdateReferenceAttribute(data.Role, role.GetName(), role.GetSlug(), role.GetId())
 
 	} else {
 
@@ -929,11 +871,13 @@ func (r *InventoryItemResource) mapResponseToModel(ctx context.Context, item *ne
 
 	}
 
-	// Map manufacturer
+	// Map manufacturer - preserve user's input format
 
 	if item.Manufacturer.IsSet() && item.Manufacturer.Get() != nil {
 
-		data.Manufacturer = types.StringValue(fmt.Sprintf("%d", item.Manufacturer.Get().GetId()))
+		mfr := item.Manufacturer.Get()
+
+		data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, mfr.GetName(), mfr.GetSlug(), mfr.GetId())
 
 	} else {
 

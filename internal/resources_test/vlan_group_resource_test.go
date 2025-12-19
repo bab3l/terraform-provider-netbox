@@ -24,9 +24,7 @@ func TestVLANGroupResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil VLAN Group resource")
-
 	}
-
 }
 
 func TestVLANGroupResourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestVLANGroupResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	requiredAttrs := []string{"name", "slug"}
@@ -60,9 +56,7 @@ func TestVLANGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	computedAttrs := []string{"id"}
@@ -72,9 +66,7 @@ func TestVLANGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	optionalAttrs := []string{"scope_type", "scope_id", "description"}
@@ -84,11 +76,8 @@ func TestVLANGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestVLANGroupResourceMetadata(t *testing.T) {
@@ -111,9 +100,7 @@ func TestVLANGroupResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestVLANGroupResourceConfigure(t *testing.T) {
@@ -134,7 +121,6 @@ func TestVLANGroupResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -148,7 +134,6 @@ func TestVLANGroupResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -160,9 +145,7 @@ func TestVLANGroupResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
-
 	}
-
 }
 
 func TestAccVLANGroupResource_basic(t *testing.T) {
@@ -203,7 +186,6 @@ func TestAccVLANGroupResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccVLANGroupResource_full(t *testing.T) {
@@ -248,7 +230,6 @@ func TestAccVLANGroupResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccVLANGroupResource_update(t *testing.T) {
@@ -307,371 +288,31 @@ func TestAccVLANGroupResource_update(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccVLANGroupResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_vlan_group" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, slug)
-
 }
 
 func testAccVLANGroupResourceConfig_full(name, slug, description string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_vlan_group" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name        = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug        = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, slug, description)
-
 }
 
 func TestAccVLANGroupResource_import(t *testing.T) {

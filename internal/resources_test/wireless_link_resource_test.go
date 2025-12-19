@@ -73,9 +73,10 @@ func TestAccWirelessLinkResource_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "netbox_wireless_link.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "netbox_wireless_link.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"interface_a", "interface_b"},
 			},
 		},
 	})

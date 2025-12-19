@@ -24,9 +24,7 @@ func TestConfigTemplateDataSource(t *testing.T) {
 	if d == nil {
 
 		t.Fatal("Expected non-nil config template data source")
-
 	}
-
 }
 
 func TestConfigTemplateDataSourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestConfigTemplateDataSourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	// Check that key attributes exist
@@ -62,11 +58,8 @@ func TestConfigTemplateDataSourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestConfigTemplateDataSourceMetadata(t *testing.T) {
@@ -89,9 +82,7 @@ func TestConfigTemplateDataSourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestConfigTemplateDataSourceConfigure(t *testing.T) {
@@ -112,7 +103,6 @@ func TestConfigTemplateDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -126,7 +116,6 @@ func TestConfigTemplateDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -138,9 +127,7 @@ func TestConfigTemplateDataSourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with invalid provider data")
-
 	}
-
 }
 
 // testAccConfigTemplateDataSourcePrereqs creates prerequisites for config template data source tests.
@@ -149,166 +136,13 @@ func testAccConfigTemplateDataSourcePrereqs(name, templateCode string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_config_template" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name          = %q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   template_code = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, templateCode)
-
 }
 
 // testAccConfigTemplateDataSourceByID looks up a config template by ID.
@@ -317,134 +151,12 @@ func testAccConfigTemplateDataSourceByID(name, templateCode string) string {
 
 	return testAccConfigTemplateDataSourcePrereqs(name, templateCode) + `
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 data "netbox_config_template" "test" {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   id = netbox_config_template.test.id
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `
-
 }
 
 // testAccConfigTemplateDataSourceByName looks up a config template by name.
@@ -453,198 +165,13 @@ func testAccConfigTemplateDataSourceByName(name, templateCode string) string {
 
 	return testAccConfigTemplateDataSourcePrereqs(name, templateCode) + fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 data "netbox_config_template" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   depends_on = [netbox_config_template.test]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name)
-
 }
 
 func TestAccConfigTemplateDataSource_byID(t *testing.T) {
@@ -679,7 +206,6 @@ func TestAccConfigTemplateDataSource_byID(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccConfigTemplateDataSource_byName(t *testing.T) {
@@ -714,5 +240,4 @@ func TestAccConfigTemplateDataSource_byName(t *testing.T) {
 			},
 		},
 	})
-
 }

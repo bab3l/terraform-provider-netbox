@@ -270,9 +270,10 @@ func TestAccCircuitGroupAssignmentResource_import(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "netbox_circuit_group_assignment.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "netbox_circuit_group_assignment.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"group_id", "circuit_id"},
 			},
 		},
 	})

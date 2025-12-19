@@ -855,19 +855,11 @@ func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceTyp
 
 	data.Slug = types.StringValue(deviceType.GetSlug())
 
-	// Handle manufacturer - preserve the original input value (slug or ID)
+	// Handle manufacturer - preserve the original input value (slug, name, or ID)
 
-	// The user provides either an ID or slug, and we should keep what they provided
+	manufacturer := deviceType.Manufacturer
 
-	// Only update if the value was null/unknown (shouldn't happen for required field)
-
-	if data.Manufacturer.IsNull() || data.Manufacturer.IsUnknown() {
-
-		data.Manufacturer = types.StringValue(fmt.Sprintf("%d", deviceType.Manufacturer.GetId()))
-
-	}
-
-	// Otherwise keep the original value the user provided
+	data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, manufacturer.GetName(), manufacturer.GetSlug(), manufacturer.GetId())
 
 	// Handle default platform - preserve the original input value
 
@@ -875,13 +867,9 @@ func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceTyp
 
 	case deviceType.HasDefaultPlatform() && deviceType.DefaultPlatform.Get() != nil:
 
-		// Only update if the value was null/unknown
+		platform := deviceType.DefaultPlatform.Get()
 
-		if data.DefaultPlatform.IsNull() || data.DefaultPlatform.IsUnknown() {
-
-			data.DefaultPlatform = types.StringValue(fmt.Sprintf("%d", deviceType.DefaultPlatform.Get().GetId()))
-
-		}
+		data.DefaultPlatform = utils.UpdateReferenceAttribute(data.DefaultPlatform, platform.GetName(), platform.GetSlug(), platform.GetId())
 
 	case !data.DefaultPlatform.IsNull() && !data.DefaultPlatform.IsUnknown():
 

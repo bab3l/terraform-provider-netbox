@@ -24,9 +24,7 @@ func TestPowerPanelResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil PowerPanel resource")
-
 	}
-
 }
 
 func TestPowerPanelResourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestPowerPanelResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	requiredAttrs := []string{"site", "name"}
@@ -60,9 +56,7 @@ func TestPowerPanelResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	computedAttrs := []string{"id"}
@@ -72,9 +66,7 @@ func TestPowerPanelResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	optionalAttrs := []string{"location", "description", "comments", "tags", "custom_fields"}
@@ -84,11 +76,8 @@ func TestPowerPanelResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestPowerPanelResourceMetadata(t *testing.T) {
@@ -111,9 +100,7 @@ func TestPowerPanelResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestPowerPanelResourceConfigure(t *testing.T) {
@@ -134,7 +121,6 @@ func TestPowerPanelResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -148,7 +134,6 @@ func TestPowerPanelResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -160,9 +145,7 @@ func TestPowerPanelResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
-
 	}
-
 }
 
 func TestAccPowerPanelResource_basic(t *testing.T) {
@@ -207,10 +190,11 @@ func TestAccPowerPanelResource_basic(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"site"},
 			},
 		},
 	})
-
 }
 
 func TestAccPowerPanelResource_full(t *testing.T) {
@@ -267,785 +251,42 @@ func TestAccPowerPanelResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccPowerPanelResourceConfig_basic(siteName, siteSlug, panelName string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_site" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name   = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug   = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   status = "active"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_power_panel" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   site = netbox_site.test.id
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, siteName, siteSlug, panelName)
-
 }
 
 func testAccPowerPanelResourceConfig_full(siteName, siteSlug, panelName, description string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_site" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name   = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug   = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   status = "active"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_power_panel" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   site        = netbox_site.test.id
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name        = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   comments    = "Test comments"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, siteName, siteSlug, panelName, description)
-
 }

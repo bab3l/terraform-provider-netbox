@@ -962,11 +962,13 @@ func (r *PowerFeedResource) mapResponseToModel(ctx context.Context, pf *netbox.P
 
 	data.PowerPanel = types.StringValue(fmt.Sprintf("%d", pf.PowerPanel.GetId()))
 
-	// Map rack
+	// Map rack - preserve user's input format
 
 	if pf.Rack.IsSet() && pf.Rack.Get() != nil {
 
-		data.Rack = types.StringValue(fmt.Sprintf("%d", pf.Rack.Get().GetId()))
+		rack := pf.Rack.Get()
+
+		data.Rack = utils.UpdateReferenceAttribute(data.Rack, rack.GetName(), "", rack.GetId())
 
 	} else {
 
@@ -1082,11 +1084,13 @@ func (r *PowerFeedResource) mapResponseToModel(ctx context.Context, pf *netbox.P
 
 	}
 
-	// Map tenant
+	// Map tenant - preserve user's input format
 
 	if pf.Tenant.IsSet() && pf.Tenant.Get() != nil {
 
-		data.Tenant = types.StringValue(fmt.Sprintf("%d", pf.Tenant.Get().GetId()))
+		tenant := pf.Tenant.Get()
+
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 
 	} else {
 

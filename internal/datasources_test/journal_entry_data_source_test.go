@@ -24,9 +24,7 @@ func TestJournalEntryDataSource(t *testing.T) {
 	if d == nil {
 
 		t.Fatal("Expected non-nil Journal Entry data source")
-
 	}
-
 }
 
 func TestJournalEntryDataSourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestJournalEntryDataSourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	// Required attribute for lookup
@@ -58,7 +54,6 @@ func TestJournalEntryDataSourceSchema(t *testing.T) {
 	if _, exists := schemaResponse.Schema.Attributes["id"]; !exists {
 
 		t.Error("Expected lookup attribute 'id' to exist in schema")
-
 	}
 
 	// Computed attributes
@@ -70,11 +65,8 @@ func TestJournalEntryDataSourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestJournalEntryDataSourceMetadata(t *testing.T) {
@@ -97,9 +89,7 @@ func TestJournalEntryDataSourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestJournalEntryDataSourceConfigure(t *testing.T) {
@@ -122,7 +112,6 @@ func TestJournalEntryDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	// Test with correct client type
@@ -138,7 +127,6 @@ func TestJournalEntryDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	// Test with incorrect provider data type
@@ -152,9 +140,7 @@ func TestJournalEntryDataSourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
-
 	}
-
 }
 
 func TestAccJournalEntryDataSource_byID(t *testing.T) {
@@ -191,491 +177,27 @@ func TestAccJournalEntryDataSource_byID(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccJournalEntryDataSourceConfig_byID(siteName string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_site" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_journal_entry" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   assigned_object_type = "dcim.site"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   assigned_object_id   = netbox_site.test.id
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   comments             = "Test journal entry for data source"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 data "netbox_journal_entry" "test" {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   id = netbox_journal_entry.test.id
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, siteName, testutil.GenerateSlug(siteName))
-
 }

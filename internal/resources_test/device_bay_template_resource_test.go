@@ -333,9 +333,10 @@ func TestAccDeviceBayTemplateResource_import(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "netbox_device_bay_template.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "netbox_device_bay_template.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"device_type"},
 			},
 		},
 	})

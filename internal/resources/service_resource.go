@@ -818,9 +818,13 @@ func (r *ServiceResource) mapResponseToModel(ctx context.Context, svc *netbox.Se
 
 	// Map device
 
+	// Map device - preserve user's input format
+
 	if svc.Device.IsSet() && svc.Device.Get() != nil {
 
-		data.Device = types.StringValue(fmt.Sprintf("%d", svc.Device.Get().GetId()))
+		device := svc.Device.Get()
+
+		data.Device = utils.UpdateReferenceAttribute(data.Device, device.GetName(), "", device.GetId())
 
 	} else {
 
@@ -828,11 +832,13 @@ func (r *ServiceResource) mapResponseToModel(ctx context.Context, svc *netbox.Se
 
 	}
 
-	// Map virtual_machine
+	// Map virtual_machine - preserve user's input format
 
 	if svc.VirtualMachine.IsSet() && svc.VirtualMachine.Get() != nil {
 
-		data.VirtualMachine = types.StringValue(fmt.Sprintf("%d", svc.VirtualMachine.Get().GetId()))
+		vm := svc.VirtualMachine.Get()
+
+		data.VirtualMachine = utils.UpdateReferenceAttribute(data.VirtualMachine, vm.GetName(), "", vm.GetId())
 
 	} else {
 

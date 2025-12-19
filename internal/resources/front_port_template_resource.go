@@ -595,11 +595,13 @@ func (r *FrontPortTemplateResource) mapResponseToModel(template *netbox.FrontPor
 
 	data.Name = types.StringValue(template.GetName())
 
-	// Map device type - store the ID as string for lookup compatibility
+	// Map device type - preserve user's input format
 
 	if template.DeviceType.IsSet() && template.DeviceType.Get() != nil {
 
-		data.DeviceType = types.StringValue(fmt.Sprintf("%d", template.DeviceType.Get().Id))
+		dt := template.DeviceType.Get()
+
+		data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, dt.GetModel(), dt.GetSlug(), dt.Id)
 
 	} else {
 
@@ -607,11 +609,13 @@ func (r *FrontPortTemplateResource) mapResponseToModel(template *netbox.FrontPor
 
 	}
 
-	// Map module type - store the ID as string for lookup compatibility
+	// Map module type - preserve user's input format
 
 	if template.ModuleType.IsSet() && template.ModuleType.Get() != nil {
 
-		data.ModuleType = types.StringValue(fmt.Sprintf("%d", template.ModuleType.Get().Id))
+		mt := template.ModuleType.Get()
+
+		data.ModuleType = utils.UpdateReferenceAttribute(data.ModuleType, mt.GetModel(), "", mt.Id)
 
 	} else {
 

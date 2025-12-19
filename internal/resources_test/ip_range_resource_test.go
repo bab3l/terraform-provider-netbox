@@ -25,9 +25,7 @@ func TestIPRangeResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil IPRange resource")
-
 	}
-
 }
 
 func TestIPRangeResourceSchema(t *testing.T) {
@@ -45,13 +43,11 @@ func TestIPRangeResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	requiredAttrs := []string{"start_address", "end_address"}
@@ -61,9 +57,7 @@ func TestIPRangeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	computedAttrs := []string{"id", "size"}
@@ -73,9 +67,7 @@ func TestIPRangeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	optionalAttrs := []string{"vrf", "tenant", "status", "role", "description", "comments", "mark_utilized", "tags", "custom_fields"}
@@ -85,11 +77,8 @@ func TestIPRangeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestIPRangeResourceMetadata(t *testing.T) {
@@ -112,9 +101,7 @@ func TestIPRangeResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestIPRangeResourceConfigure(t *testing.T) {
@@ -135,7 +122,6 @@ func TestIPRangeResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -149,7 +135,6 @@ func TestIPRangeResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -161,9 +146,7 @@ func TestIPRangeResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
-
 	}
-
 }
 
 func TestAccIPRangeResource_basic(t *testing.T) {
@@ -215,7 +198,6 @@ func TestAccIPRangeResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccIPRangeResource_full(t *testing.T) {
@@ -280,433 +262,118 @@ func TestAccIPRangeResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccIPRangeResourceConfig_basic(startAddr, endAddr string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_ip_range" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   start_address = %q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   end_address   = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, startAddr, endAddr)
-
 }
 
 func testAccIPRangeResourceConfig_full(startAddr, endAddr, status, description, comments string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_ip_range" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   start_address = %q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   end_address   = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   status        = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description   = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   comments      = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, startAddr, endAddr, status, description, comments)
+}
 
+func TestAccConsistency_IPRange(t *testing.T) {
+
+	t.Parallel()
+
+	startAddress := "10.100.0.1/24"
+
+	endAddress := "10.100.0.100/24"
+
+	vrfName := testutil.RandomName("vrf")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	roleName := testutil.RandomName("role")
+
+	roleSlug := testutil.RandomSlug("role")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccIPRangeConsistencyConfig(startAddress, endAddress, vrfName, tenantName, tenantSlug, roleName, roleSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", startAddress),
+
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "vrf", vrfName),
+
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "tenant", tenantName),
+
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "role", roleSlug),
+				),
+			},
+
+			{
+
+				PlanOnly: true,
+
+				Config: testAccIPRangeConsistencyConfig(startAddress, endAddress, vrfName, tenantName, tenantSlug, roleName, roleSlug),
+			},
+		},
+	})
+}
+
+func testAccIPRangeConsistencyConfig(startAddress, endAddress, vrfName, tenantName, tenantSlug, roleName, roleSlug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_vrf" "test" {
+  name = "%[3]s"
+}
+
+resource "netbox_tenant" "test" {
+  name = "%[4]s"
+  slug = "%[5]s"
+}
+
+resource "netbox_role" "test" {
+  name = "%[6]s"
+  slug = "%[7]s"
+}
+
+resource "netbox_ip_range" "test" {
+
+  start_address = "%[1]s"
+
+  end_address = "%[2]s"
+  vrf = netbox_vrf.test.name
+  tenant = netbox_tenant.test.name
+  role = netbox_role.test.slug
+}
+
+`, startAddress, endAddress, vrfName, tenantName, tenantSlug, roleName, roleSlug)
 }

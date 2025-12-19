@@ -24,9 +24,7 @@ func TestClusterResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil Cluster resource")
-
 	}
-
 }
 
 func TestClusterResourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestClusterResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	requiredAttrs := []string{"name", "type"}
@@ -60,9 +56,7 @@ func TestClusterResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	computedAttrs := []string{"id"}
@@ -72,9 +66,7 @@ func TestClusterResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	optionalAttrs := []string{"status", "description", "comments"}
@@ -84,11 +76,8 @@ func TestClusterResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestClusterResourceMetadata(t *testing.T) {
@@ -111,9 +100,7 @@ func TestClusterResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestClusterResourceConfigure(t *testing.T) {
@@ -134,7 +121,6 @@ func TestClusterResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -148,7 +134,6 @@ func TestClusterResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -160,9 +145,7 @@ func TestClusterResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
-
 	}
-
 }
 
 func TestAccClusterResource_basic(t *testing.T) {
@@ -212,7 +195,6 @@ func TestAccClusterResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccClusterResource_full(t *testing.T) {
@@ -272,7 +254,6 @@ func TestAccClusterResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccClusterResource_update(t *testing.T) {
@@ -334,795 +315,109 @@ func TestAccClusterResource_update(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccClusterResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_cluster_type" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_cluster" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   type = netbox_cluster_type.test.slug
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, clusterTypeName, clusterTypeSlug, clusterName)
-
 }
 
 func testAccClusterResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, description, comments string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_cluster_type" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_cluster" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name        = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   type        = netbox_cluster_type.test.slug
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   status      = "active"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   comments    = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, clusterTypeName, clusterTypeSlug, clusterName, description, comments)
-
 }
 
 func TestAccClusterResource_import(t *testing.T) {
+
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type-import")
+
 	clusterTypeSlug := clusterTypeName
+
 	clusterName := testutil.RandomName("tf-test-cluster-import")
 
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterClusterCleanup(clusterName)
+
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.ComposeCheckDestroy(
+
 			testutil.CheckClusterDestroy,
+
 			testutil.CheckClusterTypeDestroy,
 		),
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccClusterResourceConfig_import(clusterTypeName, clusterTypeSlug, clusterName),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_cluster.test", "name", clusterName),
+
 					resource.TestCheckResourceAttr("netbox_cluster.test", "type", clusterTypeSlug),
 				),
 			},
+
 			{
-				ResourceName:      "netbox_cluster.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_cluster.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"type"},
 			},
 		},
 	})
 }
 
 func testAccClusterResourceConfig_import(clusterTypeName, clusterTypeSlug, clusterName string) string {
+
 	return fmt.Sprintf(`
+
 resource "netbox_cluster_type" "test" {
   name = %q
   slug = %q
@@ -1132,5 +427,99 @@ resource "netbox_cluster" "test" {
   name = %q
   type = netbox_cluster_type.test.slug
 }
+
 `, clusterTypeName, clusterTypeSlug, clusterName)
+}
+
+func TestAccConsistency_Cluster(t *testing.T) {
+
+	t.Parallel()
+
+	clusterName := testutil.RandomName("cluster")
+
+	clusterTypeName := testutil.RandomName("cluster-type")
+
+	clusterTypeSlug := testutil.RandomSlug("cluster-type")
+
+	groupName := testutil.RandomName("group")
+
+	groupSlug := testutil.RandomSlug("group")
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccClusterConsistencyConfig(clusterName, clusterTypeName, clusterTypeSlug, groupName, groupSlug, siteName, siteSlug, tenantName, tenantSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_cluster.test", "name", clusterName),
+
+					resource.TestCheckResourceAttr("netbox_cluster.test", "type", clusterTypeSlug),
+
+					resource.TestCheckResourceAttr("netbox_cluster.test", "group", groupSlug),
+
+					resource.TestCheckResourceAttr("netbox_cluster.test", "site", siteName),
+
+					resource.TestCheckResourceAttr("netbox_cluster.test", "tenant", tenantName),
+				),
+			},
+
+			{
+
+				PlanOnly: true,
+
+				Config: testAccClusterConsistencyConfig(clusterName, clusterTypeName, clusterTypeSlug, groupName, groupSlug, siteName, siteSlug, tenantName, tenantSlug),
+			},
+		},
+	})
+}
+
+func testAccClusterConsistencyConfig(clusterName, clusterTypeName, clusterTypeSlug, groupName, groupSlug, siteName, siteSlug, tenantName, tenantSlug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_cluster_type" "test" {
+  name = "%[2]s"
+  slug = "%[3]s"
+}
+
+resource "netbox_cluster_group" "test" {
+  name = "%[4]s"
+  slug = "%[5]s"
+}
+
+resource "netbox_site" "test" {
+  name = "%[6]s"
+  slug = "%[7]s"
+}
+
+resource "netbox_tenant" "test" {
+  name = "%[8]s"
+  slug = "%[9]s"
+}
+
+resource "netbox_cluster" "test" {
+  name = "%[1]s"
+  type = netbox_cluster_type.test.slug
+  group = netbox_cluster_group.test.slug
+  site = netbox_site.test.name
+  tenant = netbox_tenant.test.name
+}
+
+`, clusterName, clusterTypeName, clusterTypeSlug, groupName, groupSlug, siteName, siteSlug, tenantName, tenantSlug)
 }

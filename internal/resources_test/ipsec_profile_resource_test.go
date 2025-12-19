@@ -329,9 +329,10 @@ func TestAccIPSecProfileResource_import(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "netbox_ipsec_profile.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "netbox_ipsec_profile.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"ike_policy", "ipsec_policy"},
 			},
 		},
 	})

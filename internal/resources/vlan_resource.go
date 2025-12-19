@@ -686,24 +686,24 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 	if vlan.HasSite() && vlan.Site.Get() != nil {
 
 		data.Site = utils.UpdateReferenceAttribute(data.Site, vlan.Site.Get().Name, vlan.Site.Get().Slug, vlan.Site.Get().Id)
+
 		data.SiteID = types.StringValue(fmt.Sprintf("%d", vlan.Site.Get().Id))
 
 	} else {
 
 		data.Site = types.StringNull()
+
 		data.SiteID = types.StringNull()
 
 	}
 
-	// Group
+	// Group - preserve user's input format
 
 	if vlan.HasGroup() && vlan.Group.Get() != nil {
 
-		if data.Group.IsNull() || data.Group.IsUnknown() {
+		group := vlan.Group.Get()
 
-			data.Group = types.StringValue(fmt.Sprintf("%d", vlan.Group.Get().GetId()))
-
-		}
+		data.Group = utils.UpdateReferenceAttribute(data.Group, group.GetName(), group.GetSlug(), group.GetId())
 
 	} else {
 
@@ -716,11 +716,13 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 	if vlan.HasTenant() && vlan.Tenant.Get() != nil {
 
 		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, vlan.Tenant.Get().Name, vlan.Tenant.Get().Slug, vlan.Tenant.Get().Id)
+
 		data.TenantID = types.StringValue(fmt.Sprintf("%d", vlan.Tenant.Get().Id))
 
 	} else {
 
 		data.Tenant = types.StringNull()
+
 		data.TenantID = types.StringNull()
 
 	}
@@ -737,15 +739,13 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 
 	}
 
-	// Role
+	// Role - preserve user's input format
 
 	if vlan.HasRole() && vlan.Role.Get() != nil {
 
-		if data.Role.IsNull() || data.Role.IsUnknown() {
+		role := vlan.Role.Get()
 
-			data.Role = types.StringValue(fmt.Sprintf("%d", vlan.Role.Get().GetId()))
-
-		}
+		data.Role = utils.UpdateReferenceAttribute(data.Role, role.GetName(), role.GetSlug(), role.GetId())
 
 	} else {
 

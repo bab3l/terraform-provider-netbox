@@ -24,9 +24,7 @@ func TestVLANResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil VLAN resource")
-
 	}
-
 }
 
 func TestVLANResourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestVLANResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	requiredAttrs := []string{"name", "vid"}
@@ -60,9 +56,7 @@ func TestVLANResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	computedAttrs := []string{"id"}
@@ -72,9 +66,7 @@ func TestVLANResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	optionalAttrs := []string{"status", "site", "group", "tenant", "role", "description", "comments"}
@@ -84,11 +76,8 @@ func TestVLANResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestVLANResourceMetadata(t *testing.T) {
@@ -111,9 +100,7 @@ func TestVLANResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestVLANResourceConfigure(t *testing.T) {
@@ -134,7 +121,6 @@ func TestVLANResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -148,7 +134,6 @@ func TestVLANResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -160,9 +145,7 @@ func TestVLANResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
-
 	}
-
 }
 
 func TestAccVLANResource_basic(t *testing.T) {
@@ -203,7 +186,6 @@ func TestAccVLANResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccVLANResource_full(t *testing.T) {
@@ -250,7 +232,6 @@ func TestAccVLANResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccVLANResource_withGroup(t *testing.T) {
@@ -304,7 +285,6 @@ func TestAccVLANResource_withGroup(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccVLANResource_update(t *testing.T) {
@@ -361,779 +341,177 @@ func TestAccVLANResource_update(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccVLANResourceConfig_basic(name string, vid int32) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_vlan" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   vid  = %d
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, vid)
-
 }
 
 func testAccVLANResourceConfig_full(name string, vid int32, description string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_vlan" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name        = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   vid         = %d
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   status      = "active"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, vid, description)
-
 }
 
 func testAccVLANResourceConfig_withGroup(name string, vid int32, groupName, groupSlug string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_vlan_group" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_vlan" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name  = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   vid   = %d
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   group = netbox_vlan_group.test.id
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, groupName, groupSlug, name, vid)
-
 }
 
 func TestAccVLANResource_import(t *testing.T) {
+
 	name := "test-vlan-" + testutil.GenerateSlug("vlan")
+
 	vid := int32(100)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccVLANResourceConfig_basic(name, vid),
 			},
+
 			{
-				ResourceName:      "netbox_vlan.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_vlan.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
 			},
 		},
 	})
+}
+
+func TestAccConsistency_VLAN(t *testing.T) {
+
+	t.Parallel()
+
+	vlanName := testutil.RandomName("vlan")
+
+	vlanVid := 100
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	groupName := testutil.RandomName("group")
+
+	groupSlug := testutil.RandomSlug("group")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	roleName := testutil.RandomName("role")
+
+	roleSlug := testutil.RandomSlug("role")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccVLANConsistencyConfig(vlanName, vlanVid, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_vlan.test", "name", vlanName),
+
+					resource.TestCheckResourceAttr("netbox_vlan.test", "site", siteName),
+
+					resource.TestCheckResourceAttr("netbox_vlan.test", "group", groupSlug),
+
+					resource.TestCheckResourceAttr("netbox_vlan.test", "tenant", tenantName),
+
+					resource.TestCheckResourceAttr("netbox_vlan.test", "role", roleSlug),
+				),
+			},
+
+			{
+
+				PlanOnly: true,
+
+				Config: testAccVLANConsistencyConfig(vlanName, vlanVid, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug),
+			},
+		},
+	})
+}
+
+func testAccVLANConsistencyConfig(vlanName string, vlanVid int, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_site" "test" {
+  name = "%[3]s"
+  slug = "%[4]s"
+}
+
+resource "netbox_vlan_group" "test" {
+  name = "%[5]s"
+  slug = "%[6]s"
+  scope_type = "dcim.site"
+  scope_id = netbox_site.test.id
+}
+
+resource "netbox_tenant" "test" {
+  name = "%[7]s"
+  slug = "%[8]s"
+}
+
+resource "netbox_role" "test" {
+  name = "%[9]s"
+  slug = "%[10]s"
+}
+
+resource "netbox_vlan" "test" {
+  name = "%[1]s"
+  vid  = %[2]d
+  site = netbox_site.test.name
+  group = netbox_vlan_group.test.slug
+  tenant = netbox_tenant.test.name
+  role = netbox_role.test.slug
+}
+
+`, vlanName, vlanVid, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug)
 }

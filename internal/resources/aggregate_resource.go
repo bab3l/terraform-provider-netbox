@@ -601,7 +601,7 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 
 	if rir := aggregate.GetRir(); rir.Id != 0 {
 
-		data.RIR = types.StringValue(fmt.Sprintf("%d", rir.Id))
+		data.RIR = utils.UpdateReferenceAttribute(data.RIR, rir.Name, rir.Slug, rir.Id)
 
 	}
 
@@ -609,7 +609,7 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 
 	if tenant, ok := aggregate.GetTenantOk(); ok && tenant != nil && tenant.Id != 0 {
 
-		data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 
 	} else if data.Tenant.IsNull() {
 

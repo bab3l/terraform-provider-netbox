@@ -634,17 +634,17 @@ func (r *CircuitGroupAssignmentResource) mapResponseToState(ctx context.Context,
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", assignment.GetId()))
 
-	// Group (required field)
+	// Group (required field) - preserve user's input format
 
 	group := assignment.GetGroup()
 
-	data.Group = types.StringValue(fmt.Sprintf("%d", group.GetId()))
+	data.Group = utils.UpdateReferenceAttribute(data.Group, group.GetName(), "", group.GetId())
 
-	// Circuit (required field)
+	// Circuit (required field) - preserve user's input format
 
 	circuit := assignment.GetCircuit()
 
-	data.Circuit = types.StringValue(fmt.Sprintf("%d", circuit.GetId()))
+	data.Circuit = utils.UpdateReferenceAttribute(data.Circuit, circuit.GetCid(), "", circuit.GetId())
 
 	// Priority
 

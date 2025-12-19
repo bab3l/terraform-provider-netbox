@@ -506,11 +506,13 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	data.Encapsulation = types.StringValue(string(tunnel.Encapsulation.GetValue()))
 
-	// Handle group reference
+	// Handle group reference - preserve user's input format
 
 	if tunnel.HasGroup() && tunnel.Group.IsSet() && tunnel.Group.Get() != nil {
 
-		data.Group = types.StringValue(fmt.Sprintf("%d", tunnel.Group.Get().GetId()))
+		group := tunnel.Group.Get()
+
+		data.Group = utils.UpdateReferenceAttribute(data.Group, group.GetName(), group.GetSlug(), group.GetId())
 
 	} else {
 
@@ -518,11 +520,13 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	}
 
-	// Handle ipsec_profile reference
+	// Handle ipsec_profile reference - preserve user's input format
 
 	if tunnel.HasIpsecProfile() && tunnel.IpsecProfile.IsSet() && tunnel.IpsecProfile.Get() != nil {
 
-		data.IPSecProfile = types.StringValue(fmt.Sprintf("%d", tunnel.IpsecProfile.Get().GetId()))
+		ip := tunnel.IpsecProfile.Get()
+
+		data.IPSecProfile = utils.UpdateReferenceAttribute(data.IPSecProfile, ip.GetName(), "", ip.GetId())
 
 	} else {
 
@@ -530,11 +534,13 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	}
 
-	// Handle tenant reference
+	// Handle tenant reference - preserve user's input format
 
 	if tunnel.HasTenant() && tunnel.Tenant.IsSet() && tunnel.Tenant.Get() != nil {
 
-		data.Tenant = types.StringValue(fmt.Sprintf("%d", tunnel.Tenant.Get().GetId()))
+		tenant := tunnel.Tenant.Get()
+
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 
 	} else {
 
@@ -901,27 +907,33 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
 
-	// Handle group reference from response
+	// Handle group reference from response - preserve user's input format
 
 	if tunnel.HasGroup() && tunnel.Group.IsSet() && tunnel.Group.Get() != nil {
 
-		data.Group = types.StringValue(fmt.Sprintf("%d", tunnel.Group.Get().GetId()))
+		group := tunnel.Group.Get()
+
+		data.Group = utils.UpdateReferenceAttribute(data.Group, group.GetName(), group.GetSlug(), group.GetId())
 
 	}
 
-	// Handle ipsec_profile reference from response
+	// Handle ipsec_profile reference from response - preserve user's input format
 
 	if tunnel.HasIpsecProfile() && tunnel.IpsecProfile.IsSet() && tunnel.IpsecProfile.Get() != nil {
 
-		data.IPSecProfile = types.StringValue(fmt.Sprintf("%d", tunnel.IpsecProfile.Get().GetId()))
+		ip := tunnel.IpsecProfile.Get()
+
+		data.IPSecProfile = utils.UpdateReferenceAttribute(data.IPSecProfile, ip.GetName(), "", ip.GetId())
 
 	}
 
-	// Handle tenant reference from response
+	// Handle tenant reference from response - preserve user's input format
 
 	if tunnel.HasTenant() && tunnel.Tenant.IsSet() && tunnel.Tenant.Get() != nil {
 
-		data.Tenant = types.StringValue(fmt.Sprintf("%d", tunnel.Tenant.Get().GetId()))
+		tenant := tunnel.Tenant.Get()
+
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 
 	}
 

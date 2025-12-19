@@ -857,11 +857,13 @@ func (r *WirelessLANResource) mapResponseToModel(ctx context.Context, wlan *netb
 
 	}
 
-	// Map VLAN
+	// Map VLAN - preserve user's input format
 
 	if wlan.Vlan.IsSet() && wlan.Vlan.Get() != nil {
 
-		data.VLAN = types.StringValue(fmt.Sprintf("%d", wlan.Vlan.Get().GetId()))
+		vlan := wlan.Vlan.Get()
+
+		data.VLAN = utils.UpdateReferenceAttribute(data.VLAN, vlan.GetName(), "", vlan.GetId())
 
 	} else {
 
@@ -869,11 +871,13 @@ func (r *WirelessLANResource) mapResponseToModel(ctx context.Context, wlan *netb
 
 	}
 
-	// Map tenant
+	// Map tenant - preserve user's input format
 
 	if wlan.Tenant.IsSet() && wlan.Tenant.Get() != nil {
 
-		data.Tenant = types.StringValue(fmt.Sprintf("%d", wlan.Tenant.Get().GetId()))
+		tenant := wlan.Tenant.Get()
+
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 
 	} else {
 

@@ -24,9 +24,7 @@ func TestConfigTemplateResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil config template resource")
-
 	}
-
 }
 
 func TestConfigTemplateResourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestConfigTemplateResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	// Check required attributes
@@ -62,9 +58,7 @@ func TestConfigTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	// Check computed attributes
@@ -76,9 +70,7 @@ func TestConfigTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	// Check optional attributes
@@ -90,11 +82,8 @@ func TestConfigTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestConfigTemplateResourceMetadata(t *testing.T) {
@@ -117,9 +106,7 @@ func TestConfigTemplateResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestConfigTemplateResourceConfigure(t *testing.T) {
@@ -142,7 +129,6 @@ func TestConfigTemplateResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	// Test with correct provider data
@@ -158,9 +144,7 @@ func TestConfigTemplateResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
-
 }
 
 // testAccConfigTemplateResourceBasic creates a basic config template with required fields only.
@@ -169,166 +153,13 @@ func testAccConfigTemplateResourceBasic(name, templateCode string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_config_template" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name          = %q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   template_code = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, templateCode)
-
 }
 
 // testAccConfigTemplateResourceFull creates a config template with all optional fields.
@@ -337,198 +168,14 @@ func testAccConfigTemplateResourceFull(name, templateCode, description string) s
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_config_template" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name          = %q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   template_code = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description   = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, name, templateCode, description)
-
 }
 
 func TestAccConfigTemplateResource_basic(t *testing.T) {
@@ -572,7 +219,6 @@ func TestAccConfigTemplateResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccConfigTemplateResource_full(t *testing.T) {
@@ -631,5 +277,4 @@ func TestAccConfigTemplateResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }

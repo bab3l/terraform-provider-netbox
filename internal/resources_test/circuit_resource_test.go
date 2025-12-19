@@ -24,9 +24,7 @@ func TestCircuitResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil Circuit resource")
-
 	}
-
 }
 
 func TestCircuitResourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestCircuitResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	requiredAttrs := []string{"cid", "circuit_provider", "type"}
@@ -60,9 +56,7 @@ func TestCircuitResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	computedAttrs := []string{"id"}
@@ -72,9 +66,7 @@ func TestCircuitResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	optionalAttrs := []string{"status", "tenant", "install_date", "termination_date", "commit_rate", "description", "comments", "tags", "custom_fields"}
@@ -84,11 +76,8 @@ func TestCircuitResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestCircuitResourceMetadata(t *testing.T) {
@@ -111,9 +100,7 @@ func TestCircuitResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestCircuitResourceConfigure(t *testing.T) {
@@ -134,7 +121,6 @@ func TestCircuitResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -148,7 +134,6 @@ func TestCircuitResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -160,9 +145,7 @@ func TestCircuitResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
-
 	}
-
 }
 
 func TestAccCircuitResource_basic(t *testing.T) {
@@ -215,7 +198,6 @@ func TestAccCircuitResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccCircuitResource_full(t *testing.T) {
@@ -280,7 +262,6 @@ func TestAccCircuitResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccCircuitResource_update(t *testing.T) {
@@ -341,1754 +322,227 @@ func TestAccCircuitResource_update(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccCircuitResourceConfig_basic(cid, providerName, providerSlug, typeName, typeSlug string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_provider" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_circuit_type" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_circuit" "test" {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   cid              = %q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   circuit_provider = netbox_provider.test.slug
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   type             = netbox_circuit_type.test.slug
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, providerName, providerSlug, typeName, typeSlug, cid)
-
 }
 
 func testAccCircuitResourceConfig_full(cid, providerName, providerSlug, typeName, typeSlug, description, comments string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_provider" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_circuit_type" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_circuit" "test" {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   cid              = %q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   circuit_provider = netbox_provider.test.slug
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   type             = netbox_circuit_type.test.slug
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   status           = "active"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description      = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   comments         = %q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   commit_rate      = 10000
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, providerName, providerSlug, typeName, typeSlug, cid, description, comments)
-
 }
 
 func testAccCircuitResourceConfig_withDescription(cid, providerName, providerSlug, typeName, typeSlug, description string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_provider" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_circuit_type" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_circuit" "test" {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   cid              = %q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   circuit_provider = netbox_provider.test.slug
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   type             = netbox_circuit_type.test.slug
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description      = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, providerName, providerSlug, typeName, typeSlug, cid, description)
-
 }
 
 func TestAccCircuitResource_import(t *testing.T) {
+
 	cid := testutil.RandomName("tf-test-circuit")
+
 	providerSlug := testutil.RandomSlug("tf-test-provider")
+
 	providerName := providerSlug
+
 	typeSlug := testutil.RandomSlug("tf-test-circuit-type")
+
 	typeName := typeSlug
 
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterCircuitCleanup(cid)
+
 	cleanup.RegisterProviderCleanup(providerSlug)
+
 	cleanup.RegisterCircuitTypeCleanup(typeSlug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.CheckCircuitDestroy,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccCircuitResourceConfig_basic(cid, providerName, providerSlug, typeName, typeSlug),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
 				),
 			},
+
 			{
-				ResourceName:      "netbox_circuit.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_circuit.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"circuit_provider", "type"},
 			},
 		},
 	})
+}
+
+func TestAccConsistency_Circuit(t *testing.T) {
+
+	t.Parallel()
+
+	cid := testutil.RandomName("cid")
+
+	providerName := testutil.RandomName("provider")
+
+	providerSlug := testutil.RandomSlug("provider")
+
+	typeName := testutil.RandomName("type")
+
+	typeSlug := testutil.RandomSlug("type")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCircuitConsistencyConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+
+					resource.TestCheckResourceAttr("netbox_circuit.test", "circuit_provider", providerSlug),
+
+					resource.TestCheckResourceAttr("netbox_circuit.test", "type", typeSlug),
+
+					resource.TestCheckResourceAttr("netbox_circuit.test", "tenant", tenantName),
+				),
+			},
+
+			{
+
+				PlanOnly: true,
+
+				Config: testAccCircuitConsistencyConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
+			},
+		},
+	})
+}
+
+func testAccCircuitConsistencyConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_provider" "test" {
+  name = "%[2]s"
+  slug = "%[3]s"
+}
+
+resource "netbox_circuit_type" "test" {
+  name = "%[4]s"
+  slug = "%[5]s"
+}
+
+resource "netbox_tenant" "test" {
+  name = "%[6]s"
+  slug = "%[7]s"
+}
+
+resource "netbox_circuit" "test" {
+
+  cid = "%[1]s"
+
+  circuit_provider = netbox_provider.test.slug
+  type = netbox_circuit_type.test.slug
+  tenant = netbox_tenant.test.name
+}
+
+`, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
 }

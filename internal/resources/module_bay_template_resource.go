@@ -597,13 +597,13 @@ func (r *ModuleBayTemplateResource) mapToState(ctx context.Context, result *netb
 
 	data.Name = types.StringValue(result.GetName())
 
-	// Map device type
+	// Map device type - preserve user's input format
 
 	if result.HasDeviceType() && result.GetDeviceType().Id != 0 {
 
-		deviceType := result.GetDeviceType()
+		dt := result.GetDeviceType()
 
-		data.DeviceType = types.StringValue(fmt.Sprintf("%d", deviceType.GetId()))
+		data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, dt.GetModel(), dt.GetSlug(), dt.GetId())
 
 	} else {
 
@@ -611,13 +611,13 @@ func (r *ModuleBayTemplateResource) mapToState(ctx context.Context, result *netb
 
 	}
 
-	// Map module type
+	// Map module type - preserve user's input format
 
 	if result.HasModuleType() && result.GetModuleType().Id != 0 {
 
-		moduleType := result.GetModuleType()
+		mt := result.GetModuleType()
 
-		data.ModuleType = types.StringValue(fmt.Sprintf("%d", moduleType.GetId()))
+		data.ModuleType = utils.UpdateReferenceAttribute(data.ModuleType, mt.GetModel(), "", mt.GetId())
 
 	} else {
 

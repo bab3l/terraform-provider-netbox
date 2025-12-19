@@ -308,21 +308,12 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 		data.SiteID = types.StringValue(fmt.Sprintf("%d", siteObj.GetId()))
 
-		userSite := data.Site.ValueString()
-
-		if userSite == siteObj.GetName() || userSite == siteObj.GetSlug() || userSite == siteObj.GetDisplay() || userSite == fmt.Sprintf("%d", siteObj.GetId()) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Site = types.StringValue(siteObj.GetName())
-
-		}
+		data.Site = utils.UpdateReferenceAttribute(data.Site, siteObj.GetName(), siteObj.GetSlug(), siteObj.GetId())
 
 	} else {
 
 		data.Site = types.StringNull()
+
 		data.SiteID = types.StringNull()
 
 	}
@@ -335,21 +326,12 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 		data.ClusterID = types.StringValue(fmt.Sprintf("%d", clusterObj.GetId()))
 
-		userCluster := data.Cluster.ValueString()
-
-		if userCluster == clusterObj.GetName() || userCluster == clusterObj.GetDisplay() || userCluster == fmt.Sprintf("%d", clusterObj.GetId()) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Cluster = types.StringValue(clusterObj.GetName())
-
-		}
+		data.Cluster = utils.UpdateReferenceAttribute(data.Cluster, clusterObj.GetName(), "", clusterObj.GetId())
 
 	} else {
 
 		data.Cluster = types.StringNull()
+
 		data.ClusterID = types.StringNull()
 
 	}
@@ -362,21 +344,12 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 		data.RoleID = types.StringValue(fmt.Sprintf("%d", roleObj.GetId()))
 
-		userRole := data.Role.ValueString()
-
-		if userRole == roleObj.GetName() || userRole == roleObj.GetSlug() || userRole == roleObj.GetDisplay() || userRole == fmt.Sprintf("%d", roleObj.GetId()) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Role = types.StringValue(roleObj.GetName())
-
-		}
+		data.Role = utils.UpdateReferenceAttribute(data.Role, roleObj.GetName(), roleObj.GetSlug(), roleObj.GetId())
 
 	} else {
 
 		data.Role = types.StringNull()
+
 		data.RoleID = types.StringNull()
 
 	}
@@ -389,21 +362,12 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenantObj.GetId()))
 
-		userTenant := data.Tenant.ValueString()
-
-		if userTenant == tenantObj.GetName() || userTenant == tenantObj.GetSlug() || userTenant == tenantObj.GetDisplay() || userTenant == fmt.Sprintf("%d", tenantObj.GetId()) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Tenant = types.StringValue(tenantObj.GetName())
-
-		}
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenantObj.GetName(), tenantObj.GetSlug(), tenantObj.GetId())
 
 	} else {
 
 		data.Tenant = types.StringNull()
+
 		data.TenantID = types.StringNull()
 
 	}
@@ -416,21 +380,12 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 		data.PlatformID = types.StringValue(fmt.Sprintf("%d", platformObj.GetId()))
 
-		userPlatform := data.Platform.ValueString()
-
-		if userPlatform == platformObj.GetName() || userPlatform == platformObj.GetSlug() || userPlatform == platformObj.GetDisplay() || userPlatform == fmt.Sprintf("%d", platformObj.GetId()) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Platform = types.StringValue(platformObj.GetName())
-
-		}
+		data.Platform = utils.UpdateReferenceAttribute(data.Platform, platformObj.GetName(), platformObj.GetSlug(), platformObj.GetId())
 
 	} else {
 
 		data.Platform = types.StringNull()
+
 		data.PlatformID = types.StringNull()
 
 	}

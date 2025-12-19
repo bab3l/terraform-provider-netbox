@@ -25,9 +25,7 @@ func TestFHRPGroupResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil FHRP Group resource")
-
 	}
-
 }
 
 func TestFHRPGroupResourceSchema(t *testing.T) {
@@ -45,13 +43,11 @@ func TestFHRPGroupResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	// Required attributes
@@ -63,9 +59,7 @@ func TestFHRPGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	// Computed attributes
@@ -77,9 +71,7 @@ func TestFHRPGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	// Optional attributes
@@ -91,11 +83,8 @@ func TestFHRPGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestFHRPGroupResourceMetadata(t *testing.T) {
@@ -118,9 +107,7 @@ func TestFHRPGroupResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestFHRPGroupResourceConfigure(t *testing.T) {
@@ -143,7 +130,6 @@ func TestFHRPGroupResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	// Test with correct client type
@@ -159,7 +145,6 @@ func TestFHRPGroupResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	// Test with incorrect provider data type
@@ -173,9 +158,7 @@ func TestFHRPGroupResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
-
 	}
-
 }
 
 func TestAccFHRPGroupResource_basic(t *testing.T) {
@@ -216,7 +199,6 @@ func TestAccFHRPGroupResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccFHRPGroupResource_full(t *testing.T) {
@@ -273,7 +255,6 @@ func TestAccFHRPGroupResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccFHRPGroupResource_update(t *testing.T) {
@@ -334,7 +315,6 @@ func TestAccFHRPGroupResource_update(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccFHRPGroupResource_protocols(t *testing.T) {
@@ -379,471 +359,41 @@ func TestAccFHRPGroupResource_protocols(t *testing.T) {
 					},
 				},
 			})
-
 		})
-
 	}
-
 }
 
 func testAccFHRPGroupResourceConfig_basic(protocol string, groupID int32) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_fhrp_group" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   protocol = %q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   group_id = %d
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, protocol, groupID)
-
 }
 
 func testAccFHRPGroupResourceConfig_full(protocol string, groupID int32, name, description, authType, authKey string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_fhrp_group" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   protocol    = %q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   group_id    = %d
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name        = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   auth_type   = %q
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   auth_key    = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, protocol, groupID, name, description, authType, authKey)
-
 }
 
 func TestAccFHRPGroupResource_import(t *testing.T) {

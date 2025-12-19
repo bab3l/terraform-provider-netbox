@@ -24,9 +24,7 @@ func TestModuleTypeResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil ModuleType resource")
-
 	}
-
 }
 
 func TestModuleTypeResourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestModuleTypeResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	requiredAttrs := []string{"manufacturer", "model"}
@@ -60,9 +56,7 @@ func TestModuleTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	computedAttrs := []string{"id"}
@@ -72,9 +66,7 @@ func TestModuleTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	optionalAttrs := []string{"part_number", "airflow", "weight", "weight_unit", "description", "comments", "tags", "custom_fields"}
@@ -84,11 +76,8 @@ func TestModuleTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestModuleTypeResourceMetadata(t *testing.T) {
@@ -111,9 +100,7 @@ func TestModuleTypeResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestModuleTypeResourceConfigure(t *testing.T) {
@@ -134,7 +121,6 @@ func TestModuleTypeResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -148,7 +134,6 @@ func TestModuleTypeResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -160,9 +145,7 @@ func TestModuleTypeResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
-
 	}
-
 }
 
 func TestAccModuleTypeResource_basic(t *testing.T) {
@@ -207,10 +190,11 @@ func TestAccModuleTypeResource_basic(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"manufacturer"},
 			},
 		},
 	})
-
 }
 
 func TestAccModuleTypeResource_full(t *testing.T) {
@@ -267,721 +251,97 @@ func TestAccModuleTypeResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccModuleTypeResourceConfig_basic(mfgName, mfgSlug, model string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_manufacturer" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_module_type" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   manufacturer = netbox_manufacturer.test.id
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   model        = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, mfgName, mfgSlug, model)
-
 }
 
 func testAccModuleTypeResourceConfig_full(mfgName, mfgSlug, model, description string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_manufacturer" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   slug = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_module_type" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   manufacturer = netbox_manufacturer.test.id
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   model        = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   part_number  = "MT-001"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description  = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, mfgName, mfgSlug, model, description)
+}
 
+func TestAccConsistency_ModuleType(t *testing.T) {
+
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	moduleTypeName := testutil.RandomName("moduletype")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccModuleTypeConsistencyConfig(manufacturerName, manufacturerSlug, moduleTypeName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_module_type.test", "model", moduleTypeName),
+
+					resource.TestCheckResourceAttr("netbox_module_type.test", "manufacturer", manufacturerName),
+				),
+			},
+
+			{
+
+				PlanOnly: true,
+
+				Config: testAccModuleTypeConsistencyConfig(manufacturerName, manufacturerSlug, moduleTypeName),
+			},
+		},
+	})
+}
+
+func testAccModuleTypeConsistencyConfig(manufacturerName, manufacturerSlug, moduleTypeName string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_manufacturer" "test" {
+  name = "%[1]s"
+  slug = "%[2]s"
+}
+
+resource "netbox_module_type" "test" {
+  model = "%[3]s"
+  manufacturer = netbox_manufacturer.test.name
+}
+
+`, manufacturerName, manufacturerSlug, moduleTypeName)
 }

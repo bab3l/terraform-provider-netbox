@@ -709,11 +709,11 @@ func (r *PowerOutletResource) mapResponseToModel(ctx context.Context, powerOutle
 
 	data.Name = types.StringValue(powerOutlet.GetName())
 
-	// Map device
+	// Map device - preserve user's input format
 
 	if device := powerOutlet.GetDevice(); device.Id != 0 {
 
-		data.Device = types.StringValue(fmt.Sprintf("%d", device.GetId()))
+		data.Device = utils.UpdateReferenceAttribute(data.Device, device.GetName(), "", device.GetId())
 
 	}
 

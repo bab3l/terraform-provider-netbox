@@ -762,11 +762,11 @@ func (r *VirtualDeviceContextResource) mapToState(ctx context.Context, result *n
 
 	data.Name = types.StringValue(result.GetName())
 
-	// Map device (required field)
+	// Map device (required field) - preserve user's input format
 
 	device := result.GetDevice()
 
-	data.Device = types.StringValue(fmt.Sprintf("%d", device.GetId()))
+	data.Device = utils.UpdateReferenceAttribute(data.Device, device.GetName(), "", device.GetId())
 
 	// Map identifier
 
@@ -790,13 +790,13 @@ func (r *VirtualDeviceContextResource) mapToState(ctx context.Context, result *n
 
 	}
 
-	// Map tenant
+	// Map tenant - preserve user's input format
 
 	if result.HasTenant() && result.GetTenant().Id != 0 {
 
 		tenant := result.GetTenant()
 
-		data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 
 	} else {
 

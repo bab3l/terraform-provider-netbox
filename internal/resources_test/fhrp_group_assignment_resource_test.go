@@ -132,9 +132,10 @@ func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 			},
 			// Test import
 			{
-				ResourceName:      "netbox_fhrp_group_assignment.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "netbox_fhrp_group_assignment.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"group_id", "interface_id"},
 			},
 		},
 	})

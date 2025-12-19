@@ -24,9 +24,7 @@ func TestIPAddressResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil IP Address resource")
-
 	}
-
 }
 
 func TestIPAddressResourceSchema(t *testing.T) {
@@ -44,13 +42,11 @@ func TestIPAddressResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
-
 	}
 
 	requiredAttrs := []string{"address"}
@@ -60,9 +56,7 @@ func TestIPAddressResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	computedAttrs := []string{"id"}
@@ -72,9 +66,7 @@ func TestIPAddressResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
 		}
-
 	}
 
 	optionalAttrs := []string{"status", "vrf", "tenant", "role", "dns_name", "description", "comments"}
@@ -84,11 +76,8 @@ func TestIPAddressResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
 		}
-
 	}
-
 }
 
 func TestIPAddressResourceMetadata(t *testing.T) {
@@ -111,9 +100,7 @@ func TestIPAddressResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
 	}
-
 }
 
 func TestIPAddressResourceConfigure(t *testing.T) {
@@ -134,7 +121,6 @@ func TestIPAddressResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	client := &netbox.APIClient{}
@@ -148,7 +134,6 @@ func TestIPAddressResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -160,9 +145,7 @@ func TestIPAddressResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
-
 	}
-
 }
 
 func TestAccIPAddressResource_basic(t *testing.T) {
@@ -199,7 +182,6 @@ func TestAccIPAddressResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccIPAddressResource_full(t *testing.T) {
@@ -246,7 +228,6 @@ func TestAccIPAddressResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccIPAddressResource_withVRF(t *testing.T) {
@@ -294,7 +275,6 @@ func TestAccIPAddressResource_withVRF(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccIPAddressResource_ipv6(t *testing.T) {
@@ -331,7 +311,6 @@ func TestAccIPAddressResource_ipv6(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccIPAddressResource_update(t *testing.T) {
@@ -386,691 +365,149 @@ func TestAccIPAddressResource_update(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccIPAddressResourceConfig_basic(address string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_ip_address" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   address = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, address)
-
 }
 
 func testAccIPAddressResourceConfig_full(address, description, dnsName string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_ip_address" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   address     = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   description = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   dns_name    = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   status      = "active"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, address, description, dnsName)
-
 }
 
 func testAccIPAddressResourceConfig_withVRF(address, vrfName string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 resource "netbox_vrf" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   name = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 resource "netbox_ip_address" "test" {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   address = %q
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   vrf     = netbox_vrf.test.name
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 `, vrfName, address)
-
 }
 
 func TestAccIPAddressResource_import(t *testing.T) {
+
 	address := testutil.RandomIPv4Address()
+
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterIPAddressCleanup(address)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.CheckIPAddressDestroy,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccIPAddressResourceConfig_basic(address),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
 				),
 			},
+
 			{
-				ResourceName:      "netbox_ip_address.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_ip_address.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
 			},
 		},
 	})
+}
+
+func TestAccConsistency_IPAddress(t *testing.T) {
+
+	t.Parallel()
+
+	ipAddress := "10.0.0.1/24"
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccIPAddressConsistencyConfig(ipAddress, tenantName, tenantSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", ipAddress),
+
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tenant", tenantName),
+				),
+			},
+
+			{
+
+				// Verify no drift
+
+				PlanOnly: true,
+
+				Config: testAccIPAddressConsistencyConfig(ipAddress, tenantName, tenantSlug),
+			},
+		},
+	})
+}
+
+func testAccIPAddressConsistencyConfig(ipAddress, tenantName, tenantSlug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_tenant" "test" {
+  name = "%[2]s"
+  slug = "%[3]s"
+}
+
+resource "netbox_ip_address" "test" {
+  address = "%[1]s"
+  tenant = netbox_tenant.test.name
+}
+
+`, ipAddress, tenantName, tenantSlug)
 }
