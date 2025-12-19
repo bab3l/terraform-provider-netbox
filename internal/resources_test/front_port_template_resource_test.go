@@ -964,7 +964,7 @@ resource "netbox_front_port_template" "test" {
 
   type = "8p8c"
 
-  rear_port = "rear-port"
+  rear_port = netbox_rear_port_template.rear.name
 
   rear_port_position = 1
 

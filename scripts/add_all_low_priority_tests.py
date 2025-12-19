@@ -13,7 +13,7 @@ TEMPLATE_TESTS = {
         "resource": "netbox_front_port_template",
         "test_func": "TestAccConsistency_FrontPortTemplate_LiteralNames",
         "config_func": "testAccFrontPortTemplateConsistencyLiteralNamesConfig",
-        "extra_attrs": '\n  type = "8p8c"\n  rear_port = "rear-port"\n  rear_port_position = 1',
+        "extra_attrs": '\n  type = "8p8c"\n  rear_port = netbox_rear_port_template.rear.id\n  rear_port_position = 1',
         "needs_rear_port_template": True,
     },
     "interface": {
