@@ -371,37 +371,71 @@ func testAccDeviceBayTemplateResourceConfig_basic(name, manufacturerName, manufa
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   model          = %q
+
+
 
   slug           = %q
 
+
+
   manufacturer   = netbox_manufacturer.test.slug
+
+
 
   subdevice_role = "parent"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_bay_template" "test" {
 
+
+
   device_type = netbox_device_type.test.id
+
+
 
   name        = %q
 
+
+
 }
+
+
 
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
 
@@ -411,41 +445,79 @@ func testAccDeviceBayTemplateResourceConfig_full(name, manufacturerName, manufac
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   model          = %q
+
+
 
   slug           = %q
 
+
+
   manufacturer   = netbox_manufacturer.test.slug
+
+
 
   subdevice_role = "parent"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_bay_template" "test" {
 
+
+
   device_type = netbox_device_type.test.id
+
+
 
   name        = %q
 
+
+
   label       = "Test Label"
+
+
 
   description = "Test device bay template with full options"
 
+
+
 }
+
+
 
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
 
@@ -455,41 +527,79 @@ func testAccDeviceBayTemplateResourceConfig_updated(name, manufacturerName, manu
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   model          = %q
+
+
 
   slug           = %q
 
+
+
   manufacturer   = netbox_manufacturer.test.slug
+
+
 
   subdevice_role = "parent"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_bay_template" "test" {
 
+
+
   device_type = netbox_device_type.test.id
+
+
 
   name        = %q
 
+
+
   label       = "Updated Label"
+
+
 
   description = "Updated description"
 
+
+
 }
+
+
 
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
 

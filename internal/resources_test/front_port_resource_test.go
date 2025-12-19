@@ -333,91 +333,183 @@ func testAccFrontPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, 
 
 
 
+
+
+
+
 resource "netbox_site" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_manufacturer" "test" {
 
+
+
   name = %q
+
+
 
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_role" "test" {
 
+
+
   name = %q
+
+
 
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device" "test" {
 
+
+
   name        = %q
+
+
 
   site        = netbox_site.test.id
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
 
   role        = netbox_device_role.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_rear_port" "test" {
 
+
+
   device    = netbox_device.test.id
+
+
 
   name      = %q
 
+
+
   type      = "8p8c"
+
+
+
+
 
 
 
   positions = 2
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_front_port" "test" {
 
+
+
   device    = netbox_device.test.id
+
+
 
   name      = %q
 
+
+
   type      = "8p8c"
+
+
 
   rear_port = netbox_rear_port.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -431,103 +523,207 @@ func testAccFrontPortResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, d
 
 
 
+
+
+
+
 resource "netbox_site" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_manufacturer" "test" {
 
+
+
   name = %q
+
+
 
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_role" "test" {
 
+
+
   name = %q
+
+
 
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device" "test" {
 
+
+
   name        = %q
+
+
 
   site        = netbox_site.test.id
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
 
   role        = netbox_device_role.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_rear_port" "test" {
 
+
+
   device    = netbox_device.test.id
 
+
+
   name      = %q
+
+
 
   type      = "lc"
 
 
 
+
+
+
+
   positions = 4
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_front_port" "test" {
 
+
+
   device             = netbox_device.test.id
+
+
 
   name               = %q
 
+
+
   type               = "lc"
+
+
 
   rear_port          = netbox_rear_port.test.id
 
 
 
+
+
+
+
   rear_port_position = 1
+
+
 
   label              = "Front Port Test"
 
+
+
   color              = "aa1409"
+
+
 
   description        = "Test front port"
 
+
+
   mark_connected     = true
 
+
+
 }
+
+
+
+
 
 
 
@@ -596,95 +792,191 @@ func testAccFrontPortConsistencyConfig(siteName, siteSlug, manufacturerName, man
 
 
 
+
+
+
+
 resource "netbox_site" "test" {
+
+
 
   name = "%[1]s"
 
+
+
   slug = "%[2]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_manufacturer" "test" {
 
+
+
   name = "%[3]s"
+
+
 
   slug = "%[4]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   model = "%[5]s"
+
+
 
   slug = "%[6]s"
 
+
+
   manufacturer = netbox_manufacturer.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_role" "test" {
 
+
+
   name = "%[7]s"
+
+
 
   slug = "%[8]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device" "test" {
 
+
+
   name = "%[9]s"
+
+
+
+
 
 
 
   device_type = netbox_device_type.test.id
 
+
+
   role = netbox_device_role.test.id
+
+
 
   site = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_rear_port" "test" {
 
+
+
   device = netbox_device.test.id
+
+
 
   name = "%[11]s"
 
+
+
   type = "8p8c"
+
+
+
+
 
 
 
   positions = 1
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_front_port" "test" {
 
+
+
   device = netbox_device.test.name
+
+
 
   name = "%[10]s"
 
+
+
   type = "8p8c"
+
+
 
   rear_port = netbox_rear_port.test.id
 
 
 
+
+
+
+
   rear_port_position = 1
 
+
+
 }
+
+
+
+
 
 
 

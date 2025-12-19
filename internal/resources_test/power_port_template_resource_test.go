@@ -156,25 +156,51 @@ func testAccPowerPortTemplateResourceBasic(manufacturerName, manufacturerSlug, d
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -182,11 +208,23 @@ resource "netbox_power_port_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
 
   name        = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -202,25 +240,51 @@ func testAccPowerPortTemplateResourceFull(manufacturerName, manufacturerSlug, de
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -228,21 +292,43 @@ resource "netbox_power_port_template" "test" {
 
 
 
+
+
+
+
   device_type     = netbox_device_type.test.id
+
+
 
   name            = %q
 
+
+
   label           = %q
+
+
 
   type            = %q
 
+
+
   maximum_draw    = %d
+
+
 
   allocated_draw  = %d
 
+
+
   description     = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -440,25 +526,51 @@ func testAccPowerPortTemplateConsistencyConfig(manufacturerName, manufacturerSlu
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = "%[1]s"
 
+
+
   slug = "%[2]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   model = "%[3]s"
+
+
 
   slug = "%[4]s"
 
+
+
   manufacturer = netbox_manufacturer.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -466,13 +578,27 @@ resource "netbox_power_port_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.model
+
+
 
   name = "%[5]s"
 
+
+
   type = "iec-60320-c14"
 
+
+
 }
+
+
+
+
 
 
 

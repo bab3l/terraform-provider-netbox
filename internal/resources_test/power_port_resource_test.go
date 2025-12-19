@@ -328,75 +328,151 @@ func testAccPowerPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, 
 
 
 
+
+
+
+
 resource "netbox_site" "test" {
+
+
 
   name   = %q
 
+
+
   slug   = %q
+
+
 
   status = "active"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_manufacturer" "test" {
 
+
+
   name = %q
+
+
 
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_role" "test" {
 
+
+
   name  = %q
+
+
 
   slug  = %q
 
+
+
   color = "aa1409"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device" "test" {
 
+
+
   name        = %q
+
+
+
+
 
 
 
   device_type = netbox_device_type.test.id
 
+
+
   role        = netbox_device_role.test.id
+
+
 
   site        = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_power_port" "test" {
 
+
+
   device = netbox_device.test.id
+
+
 
   name   = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -410,83 +486,167 @@ func testAccPowerPortResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, d
 
 
 
+
+
+
+
 resource "netbox_site" "test" {
+
+
 
   name   = %q
 
+
+
   slug   = %q
+
+
 
   status = "active"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_manufacturer" "test" {
 
+
+
   name = %q
+
+
 
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_role" "test" {
 
+
+
   name  = %q
+
+
 
   slug  = %q
 
+
+
   color = "aa1409"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device" "test" {
 
+
+
   name        = %q
+
+
+
+
 
 
 
   device_type = netbox_device_type.test.id
 
+
+
   role        = netbox_device_role.test.id
+
+
 
   site        = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_power_port" "test" {
 
+
+
   device         = netbox_device.test.id
+
+
 
   name           = %q
 
+
+
   type           = "iec-60320-c14"
+
+
 
   maximum_draw   = %d
 
+
+
   allocated_draw = %d
+
+
 
   description    = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -553,73 +713,147 @@ func testAccPowerPortConsistencyConfig(siteName, siteSlug, manufacturerName, man
 
 
 
+
+
+
+
 resource "netbox_site" "test" {
+
+
 
   name = "%[1]s"
 
+
+
   slug = "%[2]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_manufacturer" "test" {
 
+
+
   name = "%[3]s"
+
+
 
   slug = "%[4]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   model = "%[5]s"
+
+
 
   slug = "%[6]s"
 
+
+
   manufacturer = netbox_manufacturer.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_role" "test" {
 
+
+
   name = "%[7]s"
+
+
 
   slug = "%[8]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device" "test" {
 
+
+
   name = "%[9]s"
+
+
+
+
 
 
 
   device_type = netbox_device_type.test.id
 
+
+
   role = netbox_device_role.test.id
+
+
 
   site = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_power_port" "test" {
 
+
+
   device = netbox_device.test.name
+
+
 
   name = "%[10]s"
 
+
+
   type = "iec-60320-c14"
 
+
+
 }
+
+
+
+
 
 
 

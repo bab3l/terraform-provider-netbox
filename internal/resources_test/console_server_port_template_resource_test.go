@@ -368,3 +368,59 @@ func TestAccConsoleServerPortTemplateResource_full(t *testing.T) {
 	})
 
 }
+
+// TestAccConsistency_ConsoleServerPortTemplate_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_ConsoleServerPortTemplate_LiteralNames(t *testing.T) {
+	t.Parallel()
+	manufacturerName := testutil.RandomName("manufacturer")
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+	deviceTypeName := testutil.RandomName("device-type")
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+	portName := testutil.RandomName("port")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConsoleServerPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_console_server_port_template.test", "name", portName),
+					resource.TestCheckResourceAttr("netbox_console_server_port_template.test", "device_type", deviceTypeSlug),
+				),
+			},
+			{
+				// Critical: Verify no drift when refreshing state
+				PlanOnly: true,
+				Config:   testAccConsoleServerPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName),
+			},
+		},
+	})
+}
+
+func testAccConsoleServerPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName string) string {
+	return fmt.Sprintf(`
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %q
+  slug         = %q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_console_server_port_template" "test" {
+  # Use literal string slug to mimic existing user state
+  device_type = %q
+  name = %q
+  type = "rj-45"
+
+  depends_on = [netbox_device_type.test]
+}
+
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceTypeSlug, portName)
+}

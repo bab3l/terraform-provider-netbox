@@ -156,25 +156,51 @@ func testAccPowerOutletTemplateResourceBasic(manufacturerName, manufacturerSlug,
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -182,11 +208,23 @@ resource "netbox_power_outlet_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
 
   name        = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -202,25 +240,51 @@ func testAccPowerOutletTemplateResourceFull(manufacturerName, manufacturerSlug, 
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -228,17 +292,35 @@ resource "netbox_power_outlet_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
 
   name        = %q
 
+
+
   label       = %q
+
+
 
   type        = %q
 
+
+
   description = %q
 
+
+
 }
+
+
+
+
 
 
 

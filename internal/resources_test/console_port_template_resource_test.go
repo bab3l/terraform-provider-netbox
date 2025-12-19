@@ -156,25 +156,51 @@ func testAccConsolePortTemplateResourceBasic(manufacturerName, manufacturerSlug,
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -182,11 +208,23 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
 
   name        = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -202,25 +240,51 @@ func testAccConsolePortTemplateResourceFull(manufacturerName, manufacturerSlug, 
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -228,17 +292,35 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
 
   name        = %q
 
+
+
   label       = %q
+
+
 
   type        = %q
 
+
+
   description = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -420,25 +502,51 @@ func testAccConsolePortTemplateConsistencyConfig(manufacturerName, manufacturerS
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = "%[1]s"
 
+
+
   slug = "%[2]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   model = "%[3]s"
+
+
 
   slug = "%[4]s"
 
+
+
   manufacturer = netbox_manufacturer.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -446,13 +554,27 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.model
+
+
 
   name = "%[5]s"
 
+
+
   type = "rj-45"
 
+
+
 }
+
+
+
+
 
 
 

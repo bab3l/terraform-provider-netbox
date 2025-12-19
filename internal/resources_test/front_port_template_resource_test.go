@@ -185,25 +185,51 @@ func testAccFrontPortTemplateResourceBasic(manufacturerName, manufacturerSlug, d
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -211,17 +237,35 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
 
+
+
   name        = %q
+
+
 
   type        = %q
 
 
 
+
+
+
+
   positions   = 2
 
+
+
 }
+
+
+
+
 
 
 
@@ -229,15 +273,31 @@ resource "netbox_front_port_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
 
   name        = %q
 
+
+
   type        = %q
+
+
 
   rear_port   = netbox_rear_port_template.test.name
 
+
+
 }
+
+
+
+
 
 
 
@@ -251,25 +311,51 @@ func testAccFrontPortTemplateResourceFull(manufacturerName, manufacturerSlug, de
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -277,17 +363,35 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
 
+
+
   name        = %q
+
+
 
   type        = %q
 
 
 
+
+
+
+
   positions   = 4
 
+
+
 }
+
+
+
+
 
 
 
@@ -295,25 +399,51 @@ resource "netbox_front_port_template" "test" {
 
 
 
+
+
+
+
   device_type        = netbox_device_type.test.id
+
+
 
   name               = %q
 
+
+
   type               = %q
+
+
 
   rear_port          = netbox_rear_port_template.test.name
 
 
 
+
+
+
+
   rear_port_position = %d
+
+
 
   label              = %q
 
+
+
   color              = %q
+
+
 
   description        = %q
 
+
+
 }
+
+
+
+
 
 
 

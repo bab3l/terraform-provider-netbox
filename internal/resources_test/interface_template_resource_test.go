@@ -171,25 +171,51 @@ func testAccInterfaceTemplateResourcePrereqs(manufacturerName, manufacturerSlug,
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -205,17 +231,35 @@ func testAccInterfaceTemplateResourceBasic(manufacturerName, manufacturerSlug, d
 
 
 
+
+
+
+
 resource "netbox_interface_template" "test" {
+
+
+
+
 
 
 
   device_type = netbox_device_type.test.id
 
+
+
   name        = %q
+
+
 
   type        = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -231,25 +275,51 @@ func testAccInterfaceTemplateResourceFull(manufacturerName, manufacturerSlug, de
 
 
 
+
+
+
+
 resource "netbox_interface_template" "test" {
+
+
+
+
 
 
 
   device_type = netbox_device_type.test.id
 
+
+
   name        = %q
+
+
 
   type        = %q
 
+
+
   label       = %q
+
+
 
   enabled     = true
 
+
+
   mgmt_only   = false
+
+
 
   description = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -437,25 +507,51 @@ func testAccInterfaceTemplateConsistencyConfig(manufacturerName, manufacturerSlu
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = "%[1]s"
 
+
+
   slug = "%[2]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   model = "%[3]s"
+
+
 
   slug = "%[4]s"
 
+
+
   manufacturer = netbox_manufacturer.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -463,13 +559,27 @@ resource "netbox_interface_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.model
+
+
 
   name = "%[5]s"
 
+
+
   type = "1000base-t"
 
+
+
 }
+
+
+
+
 
 
 
