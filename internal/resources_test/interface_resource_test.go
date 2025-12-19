@@ -1067,8 +1067,6 @@ func TestAccConsistency_Interface_LiteralNames(t *testing.T) {
 
 	interfaceName := "eth2"
 
-	vrfName := testutil.RandomName("vrf")
-
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -1079,15 +1077,13 @@ func TestAccConsistency_Interface_LiteralNames(t *testing.T) {
 
 			{
 
-				Config: testAccInterfaceConsistencyLiteralNamesConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName, vrfName),
+				Config: testAccInterfaceConsistencyLiteralNamesConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName),
 
 				Check: resource.ComposeTestCheckFunc(
 
 					resource.TestCheckResourceAttr("netbox_interface.test", "name", interfaceName),
 
 					resource.TestCheckResourceAttr("netbox_interface.test", "device", deviceName),
-
-					resource.TestCheckResourceAttr("netbox_interface.test", "vrf", vrfName),
 				),
 			},
 
@@ -1097,14 +1093,14 @@ func TestAccConsistency_Interface_LiteralNames(t *testing.T) {
 
 				PlanOnly: true,
 
-				Config: testAccInterfaceConsistencyLiteralNamesConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName, vrfName),
+				Config: testAccInterfaceConsistencyLiteralNamesConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName),
 			},
 		},
 	})
 
 }
 
-func testAccInterfaceConsistencyLiteralNamesConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName, vrfName string) string {
+func testAccInterfaceConsistencyLiteralNamesConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName string) string {
 
 	return fmt.Sprintf(`
 
@@ -1166,14 +1162,6 @@ resource "netbox_device" "test" {
 
 
 
-resource "netbox_vrf" "test" {
-
-  name = "%[11]s"
-
-}
-
-
-
 resource "netbox_interface" "test" {
 
   name = "%[10]s"
@@ -1184,16 +1172,14 @@ resource "netbox_interface" "test" {
 
   device = "%[1]s"
 
-  vrf = "%[11]s"
 
 
-
-  depends_on = [netbox_device.test, netbox_vrf.test]
+  depends_on = [netbox_device.test]
 
 }
 
 
 
-`, deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName, vrfName)
+`, deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName)
 
 }

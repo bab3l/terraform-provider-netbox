@@ -454,9 +454,9 @@ func TestAccConsistency_IPRange_LiteralNames(t *testing.T) {
 
 	t.Parallel()
 
-	startAddress := "10.10.0.1"
+	startAddress := "10.10.0.1/32"
 
-	endAddress := "10.10.0.254"
+	endAddress := "10.10.0.254/32"
 
 	vrfName := testutil.RandomName("vrf")
 
