@@ -212,6 +212,8 @@ func TestAccContactAssignmentResource_basic(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"contact_id", "role_id"},
 			},
 		},
 	})

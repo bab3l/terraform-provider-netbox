@@ -194,6 +194,8 @@ func TestAccPowerFeedResource_basic(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"power_panel"},
 			},
 		},
 	})

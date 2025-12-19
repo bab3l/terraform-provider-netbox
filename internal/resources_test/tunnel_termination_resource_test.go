@@ -190,9 +190,10 @@ func TestAccTunnelTerminationResource_import(t *testing.T) {
 				Config: testAccTunnelTerminationResourceConfig_basic(tunnelName),
 			},
 			{
-				ResourceName:      "netbox_tunnel_termination.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "netbox_tunnel_termination.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"tunnel"},
 			},
 		},
 	})

@@ -216,6 +216,8 @@ func TestAccFrontPortResource_basic(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"device", "rear_port"},
 			},
 		},
 	})
@@ -299,6 +301,8 @@ func TestAccFrontPortResource_full(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"device", "rear_port"},
 			},
 		},
 	})

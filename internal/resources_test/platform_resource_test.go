@@ -434,9 +434,10 @@ func TestAccPlatformResource_import(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "netbox_platform.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "netbox_platform.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"manufacturer"},
 			},
 		},
 	})

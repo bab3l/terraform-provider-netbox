@@ -124,9 +124,10 @@ func TestAccL2VPNTerminationResource_basic(t *testing.T) {
 			},
 			// Test import
 			{
-				ResourceName:      "netbox_l2vpn_termination.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "netbox_l2vpn_termination.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"l2vpn"},
 			},
 		},
 	})

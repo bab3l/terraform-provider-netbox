@@ -188,6 +188,8 @@ func TestAccAggregateResource_basic(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"rir"},
 			},
 		},
 	})

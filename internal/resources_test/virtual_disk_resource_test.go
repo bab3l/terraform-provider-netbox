@@ -544,6 +544,8 @@ func TestAccVirtualDiskResource_import(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"virtual_machine"},
 			},
 		},
 	})

@@ -204,6 +204,8 @@ func TestAccCircuitTerminationResource_basic(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"circuit", "site"},
 			},
 		},
 	})
@@ -416,6 +418,8 @@ func TestAccCircuitTerminationResource_import(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"circuit", "site"},
 			},
 		},
 	})

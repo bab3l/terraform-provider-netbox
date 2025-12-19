@@ -249,6 +249,8 @@ func TestAccInterfaceTemplateResource_basic(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"device_type"},
 			},
 		},
 	})

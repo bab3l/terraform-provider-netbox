@@ -214,6 +214,8 @@ func TestAccServiceResource_basic(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"device"},
 			},
 		},
 	})

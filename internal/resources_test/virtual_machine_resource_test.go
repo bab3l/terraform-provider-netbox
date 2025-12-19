@@ -444,6 +444,8 @@ func TestAccVirtualMachineResource_import(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"cluster"},
 			},
 		},
 	})

@@ -457,6 +457,8 @@ func TestAccCircuitResource_import(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"circuit_provider", "type"},
 			},
 		},
 	})

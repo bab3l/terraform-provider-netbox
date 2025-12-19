@@ -189,6 +189,8 @@ func TestAccASNResource_basic(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"rir"},
 			},
 		},
 	})

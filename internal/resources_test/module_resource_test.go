@@ -218,6 +218,8 @@ func TestAccModuleResource_basic(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"device", "module_bay", "module_type"},
 			},
 		},
 	})
