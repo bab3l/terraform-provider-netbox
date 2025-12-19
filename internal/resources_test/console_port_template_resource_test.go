@@ -160,7 +160,19 @@ func testAccConsolePortTemplateResourceBasic(manufacturerName, manufacturerSlug,
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -168,11 +180,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -184,7 +212,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -192,11 +228,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -212,7 +264,19 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
 
 
 
@@ -220,7 +284,19 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -244,7 +320,19 @@ func testAccConsolePortTemplateResourceFull(manufacturerName, manufacturerSlug, 
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -252,11 +340,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -268,7 +372,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -276,11 +388,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -296,7 +424,19 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
 
 
 
@@ -304,7 +444,15 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
   label       = %q
+
+
+
+
 
 
 
@@ -312,11 +460,27 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
   description = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -506,7 +670,19 @@ func testAccConsolePortTemplateConsistencyConfig(manufacturerName, manufacturerS
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -514,11 +690,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = "%[2]s"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -530,7 +722,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   model = "%[3]s"
+
+
+
+
 
 
 
@@ -538,11 +738,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -558,7 +774,19 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.model
+
+
+
+
 
 
 
@@ -566,7 +794,15 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
   type = "rj-45"
+
+
+
+
 
 
 
@@ -578,6 +814,115 @@ resource "netbox_console_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName)
+
+}
+
+// TestAccConsistency_ConsolePortTemplate_LiteralNames tests that reference attributes specified as literal string names
+
+// are preserved and do not cause drift when the API returns numeric IDs.
+
+func TestAccConsistency_ConsolePortTemplate_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	deviceTypeName := testutil.RandomName("device-type")
+
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	portName := testutil.RandomName("port")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccConsolePortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_console_port_template.test", "name", portName),
+
+					resource.TestCheckResourceAttr("netbox_console_port_template.test", "device_type", deviceTypeSlug),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccConsolePortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName),
+			},
+		},
+	})
+
+}
+
+func testAccConsolePortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName string) string {
+
+	return fmt.Sprintf(`
+
+
+
+resource "netbox_manufacturer" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+
+
+resource "netbox_device_type" "test" {
+
+  model        = %q
+
+  slug         = %q
+
+  manufacturer = netbox_manufacturer.test.id
+
+}
+
+
+
+resource "netbox_console_port_template" "test" {
+
+  # Use literal string slug to mimic existing user state
+
+  device_type = %q
+
+  name = %q
+
+  type = "rj-45"
+
+
+
+  depends_on = [netbox_device_type.test]
+
+}
+
+
+
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceTypeSlug, portName)
 
 }

@@ -175,7 +175,19 @@ func testAccInterfaceTemplateResourcePrereqs(manufacturerName, manufacturerSlug,
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -183,11 +195,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -199,7 +227,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -207,11 +243,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -235,7 +287,23 @@ func testAccInterfaceTemplateResourceBasic(manufacturerName, manufacturerSlug, d
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_interface_template" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -247,7 +315,15 @@ resource "netbox_interface_template" "test" {
 
 
 
+
+
+
+
   name        = %q
+
+
+
+
 
 
 
@@ -255,7 +331,19 @@ resource "netbox_interface_template" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -279,7 +367,23 @@ func testAccInterfaceTemplateResourceFull(manufacturerName, manufacturerSlug, de
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_interface_template" "test" {
+
+
+
+
+
+
+
+
 
 
 
@@ -291,7 +395,15 @@ resource "netbox_interface_template" "test" {
 
 
 
+
+
+
+
   name        = %q
+
+
+
+
 
 
 
@@ -299,7 +411,15 @@ resource "netbox_interface_template" "test" {
 
 
 
+
+
+
+
   label       = %q
+
+
+
+
 
 
 
@@ -307,7 +427,15 @@ resource "netbox_interface_template" "test" {
 
 
 
+
+
+
+
   mgmt_only   = false
+
+
+
+
 
 
 
@@ -315,7 +443,19 @@ resource "netbox_interface_template" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -511,7 +651,19 @@ func testAccInterfaceTemplateConsistencyConfig(manufacturerName, manufacturerSlu
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -519,11 +671,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = "%[2]s"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -535,7 +703,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   model = "%[3]s"
+
+
+
+
 
 
 
@@ -543,11 +719,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -563,7 +755,19 @@ resource "netbox_interface_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.model
+
+
+
+
 
 
 
@@ -571,7 +775,15 @@ resource "netbox_interface_template" "test" {
 
 
 
+
+
+
+
   type = "1000base-t"
+
+
+
+
 
 
 
@@ -583,6 +795,115 @@ resource "netbox_interface_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, interfaceName)
+
+}
+
+// TestAccConsistency_InterfaceTemplate_LiteralNames tests that reference attributes specified as literal string names
+
+// are preserved and do not cause drift when the API returns numeric IDs.
+
+func TestAccConsistency_InterfaceTemplate_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	deviceTypeName := testutil.RandomName("device-type")
+
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	resourceName := testutil.RandomName("interface")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccInterfaceTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "name", resourceName),
+
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "device_type", deviceTypeSlug),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccInterfaceTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName),
+			},
+		},
+	})
+
+}
+
+func testAccInterfaceTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName string) string {
+
+	return fmt.Sprintf(`
+
+
+
+resource "netbox_manufacturer" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+
+
+resource "netbox_device_type" "test" {
+
+  model        = %q
+
+  slug         = %q
+
+  manufacturer = netbox_manufacturer.test.id
+
+}
+
+
+
+resource "netbox_interface_template" "test" {
+
+  # Use literal string slug to mimic existing user state
+
+  device_type = %q
+
+  name = %q
+
+  type = "1000base-t"
+
+
+
+  depends_on = [netbox_device_type.test]
+
+}
+
+
+
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceTypeSlug, resourceName)
 
 }

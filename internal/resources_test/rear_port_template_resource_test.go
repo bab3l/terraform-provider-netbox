@@ -189,7 +189,19 @@ func testAccRearPortTemplateResourceBasic(manufacturerName, manufacturerSlug, de
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -197,11 +209,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -213,7 +241,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -221,11 +257,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -241,7 +293,19 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
 
 
 
@@ -249,11 +313,27 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
   type        = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -275,7 +355,19 @@ func testAccRearPortTemplateResourceFull(manufacturerName, manufacturerSlug, dev
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -283,11 +375,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -299,7 +407,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -307,11 +423,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -327,7 +459,19 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
 
 
 
@@ -335,11 +479,23 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
   type        = %q
 
 
 
+
+
+
+
   label       = %q
+
+
+
+
 
 
 
@@ -351,7 +507,19 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   positions   = %d
+
+
+
+
 
 
 
@@ -359,7 +527,19 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -574,7 +754,19 @@ func testAccRearPortTemplateConsistencyConfig(manufacturerName, manufacturerSlug
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -582,11 +774,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = "%[2]s"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -598,7 +806,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   model = "%[3]s"
+
+
+
+
 
 
 
@@ -606,11 +822,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -626,11 +858,27 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.model
 
 
 
+
+
+
+
   name = "%[5]s"
+
+
+
+
 
 
 
@@ -642,7 +890,19 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   positions = 1
+
+
+
+
 
 
 
@@ -654,6 +914,117 @@ resource "netbox_rear_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName)
+
+}
+
+// TestAccConsistency_RearPortTemplate_LiteralNames tests that reference attributes specified as literal string names
+
+// are preserved and do not cause drift when the API returns numeric IDs.
+
+func TestAccConsistency_RearPortTemplate_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	deviceTypeName := testutil.RandomName("device-type")
+
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	resourceName := testutil.RandomName("rear_port")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccRearPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "name", resourceName),
+
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "device_type", deviceTypeSlug),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccRearPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName),
+			},
+		},
+	})
+
+}
+
+func testAccRearPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName string) string {
+
+	return fmt.Sprintf(`
+
+
+
+resource "netbox_manufacturer" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+
+
+resource "netbox_device_type" "test" {
+
+  model        = %q
+
+  slug         = %q
+
+  manufacturer = netbox_manufacturer.test.id
+
+}
+
+
+
+resource "netbox_rear_port_template" "test" {
+
+  # Use literal string slug to mimic existing user state
+
+  device_type = %q
+
+  name = %q
+
+  type = "8p8c"
+
+  positions = 1
+
+
+
+  depends_on = [netbox_device_type.test]
+
+}
+
+
+
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceTypeSlug, resourceName)
 
 }

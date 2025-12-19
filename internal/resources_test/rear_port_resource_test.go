@@ -333,7 +333,19 @@ func testAccRearPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, d
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
 
 
 
@@ -341,11 +353,27 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -357,7 +385,15 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   name = %q
+
+
+
+
 
 
 
@@ -365,7 +401,19 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -377,7 +425,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -385,11 +441,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -401,7 +473,15 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
   name = %q
+
+
+
+
 
 
 
@@ -409,7 +489,19 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -421,7 +513,15 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
   name        = %q
+
+
+
+
 
 
 
@@ -433,7 +533,19 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
 
 
 
@@ -441,7 +553,19 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -453,7 +577,15 @@ resource "netbox_rear_port" "test" {
 
 
 
+
+
+
+
   device = netbox_device.test.id
+
+
+
+
 
 
 
@@ -461,11 +593,27 @@ resource "netbox_rear_port" "test" {
 
 
 
+
+
+
+
   type   = "8p8c"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -487,7 +635,19 @@ func testAccRearPortResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dt
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
 
 
 
@@ -495,11 +655,27 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -511,7 +687,15 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   name = %q
+
+
+
+
 
 
 
@@ -519,7 +703,19 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -531,7 +727,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -539,11 +743,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -555,7 +775,15 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
   name = %q
+
+
+
+
 
 
 
@@ -563,7 +791,19 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -575,7 +815,15 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
   name        = %q
+
+
+
+
 
 
 
@@ -587,7 +835,19 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
 
 
 
@@ -595,7 +855,19 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -607,7 +879,15 @@ resource "netbox_rear_port" "test" {
 
 
 
+
+
+
+
   device         = netbox_device.test.id
+
+
+
+
 
 
 
@@ -615,11 +895,23 @@ resource "netbox_rear_port" "test" {
 
 
 
+
+
+
+
   type           = "lc"
 
 
 
+
+
+
+
   label          = "Rear Port Test"
+
+
+
+
 
 
 
@@ -631,7 +923,19 @@ resource "netbox_rear_port" "test" {
 
 
 
+
+
+
+
+
+
+
+
   positions      = 4
+
+
+
+
 
 
 
@@ -639,11 +943,27 @@ resource "netbox_rear_port" "test" {
 
 
 
+
+
+
+
   mark_connected = true
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -718,7 +1038,19 @@ func testAccRearPortConsistencyConfig(siteName, siteSlug, manufacturerName, manu
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
 
 
 
@@ -726,11 +1058,27 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
   slug = "%[2]s"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -742,7 +1090,15 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   name = "%[3]s"
+
+
+
+
 
 
 
@@ -750,7 +1106,19 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -762,7 +1130,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   model = "%[5]s"
+
+
+
+
 
 
 
@@ -770,11 +1146,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -786,7 +1178,15 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
   name = "%[7]s"
+
+
+
+
 
 
 
@@ -794,7 +1194,19 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -806,7 +1218,19 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
   name = "%[9]s"
+
+
+
+
+
+
+
+
 
 
 
@@ -818,7 +1242,15 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
   role = netbox_device_role.test.id
+
+
+
+
 
 
 
@@ -826,7 +1258,19 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -838,11 +1282,23 @@ resource "netbox_rear_port" "test" {
 
 
 
+
+
+
+
   device = netbox_device.test.name
 
 
 
+
+
+
+
   name = "%[10]s"
+
+
+
+
 
 
 
@@ -854,7 +1310,19 @@ resource "netbox_rear_port" "test" {
 
 
 
+
+
+
+
+
+
+
+
   positions = 1
+
+
+
+
 
 
 
@@ -866,6 +1334,167 @@ resource "netbox_rear_port" "test" {
 
 
 
+
+
+
+
+
+
+
+
 `, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, rearPortName)
+
+}
+
+// TestAccConsistency_RearPort_LiteralNames tests that reference attributes specified as literal string names
+
+// are preserved and do not cause drift when the API returns numeric IDs.
+
+func TestAccConsistency_RearPort_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	deviceTypeName := testutil.RandomName("device-type")
+
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	roleName := testutil.RandomName("role")
+
+	roleSlug := testutil.RandomSlug("role")
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	deviceName := testutil.RandomName("device")
+
+	resourceName := testutil.RandomName("rear_port")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccRearPortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "name", resourceName),
+
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "device", deviceName),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccRearPortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
+			},
+		},
+	})
+
+}
+
+func testAccRearPortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName string) string {
+
+	return fmt.Sprintf(`
+
+
+
+resource "netbox_manufacturer" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+
+
+resource "netbox_device_type" "test" {
+
+  model          = %q
+
+  slug           = %q
+
+  manufacturer   = netbox_manufacturer.test.id
+
+  subdevice_role = "parent"  # Enable device bays
+
+}
+
+
+
+resource "netbox_site" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+
+
+resource "netbox_device_role" "test" {
+
+  name = %q
+
+  slug = %q
+
+  color = "ff0000"
+
+}
+
+
+
+resource "netbox_device" "test" {
+
+  name        = %q
+
+  device_type = netbox_device_type.test.id
+
+  site        = netbox_site.test.id
+
+  role        = netbox_device_role.test.id
+
+  status      = "active"
+
+}
+
+
+
+resource "netbox_rear_port" "test" {
+
+  # Use literal string name to mimic existing user state
+
+  device = %q
+
+  name = %q
+
+  type = "8p8c"
+
+  positions = 1
+
+
+
+  depends_on = [netbox_device.test]
+
+}
+
+
+
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, deviceName, resourceName)
 
 }

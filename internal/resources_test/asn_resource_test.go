@@ -277,23 +277,47 @@ func testAccASNResourceConfig_basic(rirName, rirSlug string, asn int64) string {
 
 
 
+
+
+
+
 resource "netbox_rir" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_asn" "test" {
 
+
+
   asn = %d
+
+
 
   rir = netbox_rir.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -307,27 +331,55 @@ func testAccASNResourceConfig_full(rirName, rirSlug string, asn int64, descripti
 
 
 
+
+
+
+
 resource "netbox_rir" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_asn" "test" {
 
+
+
   asn         = %d
+
+
 
   rir         = netbox_rir.test.id
 
+
+
   description = %q
+
+
 
   comments    = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -388,35 +440,71 @@ func testAccASNConsistencyConfig(asn int64, rirName, rirSlug, tenantName, tenant
 
 
 
+
+
+
+
 resource "netbox_rir" "test" {
+
+
 
   name = "%[2]s"
 
+
+
   slug = "%[3]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tenant" "test" {
 
+
+
   name = "%[4]s"
+
+
 
   slug = "%[5]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_asn" "test" {
 
+
+
   asn = %[1]d
+
+
 
   rir = netbox_rir.test.slug
 
+
+
   tenant = netbox_tenant.test.name
 
+
+
 }
+
+
+
+
 
 
 
@@ -425,7 +513,9 @@ resource "netbox_asn" "test" {
 }
 
 // TestAccConsistency_ASN_LiteralNames tests that reference attributes specified as literal string names
+
 // are preserved and do not cause drift when the API returns numeric IDs.
+
 func TestAccConsistency_ASN_LiteralNames(t *testing.T) {
 
 	t.Parallel()
@@ -481,41 +571,83 @@ func testAccASNConsistencyLiteralNamesConfig(asn int64, rirName, rirSlug, tenant
 
 
 
+
+
+
+
 resource "netbox_rir" "test" {
+
+
 
   name = "%[2]s"
 
+
+
   slug = "%[3]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tenant" "test" {
 
+
+
   name = "%[4]s"
+
+
 
   slug = "%[5]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_asn" "test" {
 
+
+
   asn = %[1]d
+
+
 
   # Use literal string names to mimic existing user state
 
+
+
   rir = "%[3]s"
+
+
 
   tenant = "%[4]s"
 
 
 
+
+
+
+
   depends_on = [netbox_rir.test, netbox_tenant.test]
 
+
+
 }
+
+
+
+
 
 
 

@@ -326,7 +326,19 @@ func testAccDeviceBayResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, 
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
 
 
 
@@ -334,7 +346,15 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
   slug   = %q
+
+
+
+
 
 
 
@@ -342,7 +362,19 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -354,7 +386,15 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   name = %q
+
+
+
+
 
 
 
@@ -362,7 +402,19 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -374,7 +426,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer    = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -382,7 +442,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug            = %q
+
+
+
+
 
 
 
@@ -390,7 +458,19 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -402,7 +482,15 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
   name  = %q
+
+
+
+
 
 
 
@@ -410,11 +498,27 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
   color = "aa1409"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -426,7 +530,19 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
   name        = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -438,7 +554,15 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
   role        = netbox_device_role.test.id
+
+
+
+
 
 
 
@@ -446,7 +570,19 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -458,7 +594,15 @@ resource "netbox_device_bay" "test" {
 
 
 
+
+
+
+
   device = netbox_device.test.id
+
+
+
+
 
 
 
@@ -466,7 +610,19 @@ resource "netbox_device_bay" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -488,7 +644,19 @@ func testAccDeviceBayResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, d
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
 
 
 
@@ -496,7 +664,15 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
   slug   = %q
+
+
+
+
 
 
 
@@ -504,7 +680,19 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -516,7 +704,15 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   name = %q
+
+
+
+
 
 
 
@@ -524,7 +720,19 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -536,7 +744,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer   = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -544,7 +760,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug           = %q
+
+
+
+
 
 
 
@@ -552,7 +776,19 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -564,7 +800,15 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
   name  = %q
+
+
+
+
 
 
 
@@ -572,11 +816,27 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
   color = "aa1409"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -588,7 +848,19 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
   name        = %q
+
+
+
+
+
+
+
+
 
 
 
@@ -600,7 +872,15 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
   role        = netbox_device_role.test.id
+
+
+
+
 
 
 
@@ -608,7 +888,19 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -620,7 +912,15 @@ resource "netbox_device_bay" "test" {
 
 
 
+
+
+
+
   device      = netbox_device.test.id
+
+
+
+
 
 
 
@@ -628,7 +928,15 @@ resource "netbox_device_bay" "test" {
 
 
 
+
+
+
+
   label       = "Bay Label"
+
+
+
+
 
 
 
@@ -636,7 +944,19 @@ resource "netbox_device_bay" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -711,7 +1031,19 @@ func testAccDeviceBayConsistencyConfig(siteName, siteSlug, manufacturerName, man
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
+
 
 
 
@@ -719,11 +1051,27 @@ resource "netbox_site" "test" {
 
 
 
+
+
+
+
   slug = "%[2]s"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -735,7 +1083,15 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   name = "%[3]s"
+
+
+
+
 
 
 
@@ -743,7 +1099,19 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -755,7 +1123,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   model = "%[5]s"
+
+
+
+
 
 
 
@@ -763,7 +1139,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -771,7 +1155,19 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -783,7 +1179,15 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
   name = "%[7]s"
+
+
+
+
 
 
 
@@ -791,7 +1195,19 @@ resource "netbox_device_role" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -803,7 +1219,19 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
   name = "%[9]s"
+
+
+
+
+
+
+
+
 
 
 
@@ -815,7 +1243,15 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
   role = netbox_device_role.test.id
+
+
+
+
 
 
 
@@ -823,7 +1259,19 @@ resource "netbox_device" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -835,11 +1283,23 @@ resource "netbox_device_bay" "test" {
 
 
 
+
+
+
+
   device = netbox_device.test.name
 
 
 
+
+
+
+
   name = "%[10]s"
+
+
+
+
 
 
 
@@ -851,6 +1311,163 @@ resource "netbox_device_bay" "test" {
 
 
 
+
+
+
+
+
+
+
+
 `, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, deviceBayName)
+
+}
+
+// TestAccConsistency_DeviceBay_LiteralNames tests that reference attributes specified as literal string names
+
+// are preserved and do not cause drift when the API returns numeric IDs.
+
+func TestAccConsistency_DeviceBay_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	deviceTypeName := testutil.RandomName("device-type")
+
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	roleName := testutil.RandomName("role")
+
+	roleSlug := testutil.RandomSlug("role")
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	deviceName := testutil.RandomName("device")
+
+	resourceName := testutil.RandomName("device_bay")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccDeviceBayConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_device_bay.test", "name", resourceName),
+
+					resource.TestCheckResourceAttr("netbox_device_bay.test", "device", deviceName),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccDeviceBayConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
+			},
+		},
+	})
+
+}
+
+func testAccDeviceBayConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName string) string {
+
+	return fmt.Sprintf(`
+
+
+
+resource "netbox_manufacturer" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+
+
+resource "netbox_device_type" "test" {
+
+  model          = %q
+
+  slug           = %q
+
+  manufacturer   = netbox_manufacturer.test.id
+
+  subdevice_role = "parent"  # Enable device bays
+
+}
+
+
+
+resource "netbox_site" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+
+
+resource "netbox_device_role" "test" {
+
+  name = %q
+
+  slug = %q
+
+  color = "ff0000"
+
+}
+
+
+
+resource "netbox_device" "test" {
+
+  name        = %q
+
+  device_type = netbox_device_type.test.id
+
+  site        = netbox_site.test.id
+
+  role        = netbox_device_role.test.id
+
+  status      = "active"
+
+}
+
+
+
+resource "netbox_device_bay" "test" {
+
+  # Use literal string name to mimic existing user state
+
+  device = %q
+
+  name = %q
+
+
+
+  depends_on = [netbox_device.test]
+
+}
+
+
+
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, deviceName, resourceName)
 
 }

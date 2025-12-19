@@ -272,23 +272,47 @@ func testAccAggregateResourceConfig_basic(rirName, rirSlug, prefix string) strin
 
 
 
+
+
+
+
 resource "netbox_rir" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_aggregate" "test" {
 
+
+
   prefix = %q
+
+
 
   rir    = netbox_rir.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -302,27 +326,55 @@ func testAccAggregateResourceConfig_full(rirName, rirSlug, prefix, description, 
 
 
 
+
+
+
+
 resource "netbox_rir" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_aggregate" "test" {
 
+
+
   prefix      = %q
+
+
 
   rir         = netbox_rir.test.id
 
+
+
   description = %q
+
+
 
   comments    = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -383,35 +435,71 @@ func testAccAggregateConsistencyConfig(prefix, rirName, rirSlug, tenantName, ten
 
 
 
+
+
+
+
 resource "netbox_rir" "test" {
+
+
 
   name = "%[2]s"
 
+
+
   slug = "%[3]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tenant" "test" {
 
+
+
   name = "%[4]s"
+
+
 
   slug = "%[5]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_aggregate" "test" {
 
+
+
   prefix = "%[1]s"
+
+
 
   rir = netbox_rir.test.slug
 
+
+
   tenant = netbox_tenant.test.name
 
+
+
 }
+
+
+
+
 
 
 
@@ -420,7 +508,9 @@ resource "netbox_aggregate" "test" {
 }
 
 // TestAccConsistency_Aggregate_LiteralNames tests that reference attributes specified as literal string names
+
 // are preserved and do not cause drift when the API returns numeric IDs.
+
 func TestAccConsistency_Aggregate_LiteralNames(t *testing.T) {
 
 	t.Parallel()
@@ -476,41 +566,83 @@ func testAccAggregateConsistencyLiteralNamesConfig(prefix, rirName, rirSlug, ten
 
 
 
+
+
+
+
 resource "netbox_rir" "test" {
+
+
 
   name = "%[2]s"
 
+
+
   slug = "%[3]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tenant" "test" {
 
+
+
   name = "%[4]s"
+
+
 
   slug = "%[5]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_aggregate" "test" {
 
+
+
   prefix = "%[1]s"
+
+
 
   # Use literal string names to mimic existing user state
 
+
+
   rir = "%[3]s"
+
+
 
   tenant = "%[4]s"
 
 
 
+
+
+
+
   depends_on = [netbox_rir.test, netbox_tenant.test]
 
+
+
 }
+
+
+
+
 
 
 

@@ -373,7 +373,15 @@ func testAccDeviceBayTemplateResourceConfig_basic(name, manufacturerName, manufa
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -381,11 +389,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -397,7 +421,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   model          = %q
+
+
+
+
 
 
 
@@ -405,7 +437,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer   = netbox_manufacturer.test.slug
+
+
+
+
 
 
 
@@ -413,7 +453,19 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -425,7 +477,15 @@ resource "netbox_device_bay_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
 
 
 
@@ -433,7 +493,15 @@ resource "netbox_device_bay_template" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -447,7 +515,15 @@ func testAccDeviceBayTemplateResourceConfig_full(name, manufacturerName, manufac
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -455,11 +531,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -471,7 +563,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   model          = %q
+
+
+
+
 
 
 
@@ -479,7 +579,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer   = netbox_manufacturer.test.slug
+
+
+
+
 
 
 
@@ -487,7 +595,19 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -499,7 +619,15 @@ resource "netbox_device_bay_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
 
 
 
@@ -507,7 +635,15 @@ resource "netbox_device_bay_template" "test" {
 
 
 
+
+
+
+
   label       = "Test Label"
+
+
+
+
 
 
 
@@ -515,7 +651,15 @@ resource "netbox_device_bay_template" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -529,7 +673,15 @@ func testAccDeviceBayTemplateResourceConfig_updated(name, manufacturerName, manu
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -537,11 +689,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -553,7 +721,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   model          = %q
+
+
+
+
 
 
 
@@ -561,7 +737,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer   = netbox_manufacturer.test.slug
+
+
+
+
 
 
 
@@ -569,7 +753,19 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -581,7 +777,15 @@ resource "netbox_device_bay_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
 
 
 
@@ -589,7 +793,15 @@ resource "netbox_device_bay_template" "test" {
 
 
 
+
+
+
+
   label       = "Updated Label"
+
+
+
+
 
 
 
@@ -597,7 +809,15 @@ resource "netbox_device_bay_template" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
@@ -669,5 +889,106 @@ func TestAccDeviceBayTemplateResource_import(t *testing.T) {
 			},
 		},
 	})
+
+}
+
+// TestAccConsistency_DeviceBayTemplate_LiteralNames tests that reference attributes specified as literal string names
+
+// are preserved and do not cause drift when the API returns numeric IDs.
+
+func TestAccConsistency_DeviceBayTemplate_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	deviceTypeName := testutil.RandomName("device-type")
+
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	bayName := testutil.RandomName("bay")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccDeviceBayTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, bayName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "name", bayName),
+
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "device_type", deviceTypeSlug),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccDeviceBayTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, bayName),
+			},
+		},
+	})
+
+}
+
+func testAccDeviceBayTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, bayName string) string {
+
+	return fmt.Sprintf(`
+
+
+
+resource "netbox_manufacturer" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+
+
+resource "netbox_device_type" "test" {
+
+  model          = %q
+
+  slug           = %q
+
+  manufacturer   = netbox_manufacturer.test.id
+
+  subdevice_role = "parent"
+
+}
+
+
+
+resource "netbox_device_bay_template" "test" {
+
+  # Use literal string slug to mimic existing user state
+
+  device_type = %q
+
+  name = %q
+
+
+
+  depends_on = [netbox_device_type.test]
+
+}
+
+
+
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceTypeSlug, bayName)
 
 }

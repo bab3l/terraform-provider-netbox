@@ -160,7 +160,19 @@ func testAccPowerPortTemplateResourceBasic(manufacturerName, manufacturerSlug, d
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -168,11 +180,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -184,7 +212,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -192,11 +228,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -212,7 +264,19 @@ resource "netbox_power_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
+
+
 
 
 
@@ -220,7 +284,19 @@ resource "netbox_power_port_template" "test" {
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -244,7 +320,19 @@ func testAccPowerPortTemplateResourceFull(manufacturerName, manufacturerSlug, de
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -252,11 +340,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -268,7 +372,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
+
+
 
 
 
@@ -276,11 +388,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   slug         = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -296,7 +424,19 @@ resource "netbox_power_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device_type     = netbox_device_type.test.id
+
+
+
+
 
 
 
@@ -304,7 +444,15 @@ resource "netbox_power_port_template" "test" {
 
 
 
+
+
+
+
   label           = %q
+
+
+
+
 
 
 
@@ -312,7 +460,15 @@ resource "netbox_power_port_template" "test" {
 
 
 
+
+
+
+
   maximum_draw    = %d
+
+
+
+
 
 
 
@@ -320,11 +476,27 @@ resource "netbox_power_port_template" "test" {
 
 
 
+
+
+
+
   description     = %q
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -530,7 +702,19 @@ func testAccPowerPortTemplateConsistencyConfig(manufacturerName, manufacturerSlu
 
 
 
+
+
+
+
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
+
+
 
 
 
@@ -538,11 +722,27 @@ resource "netbox_manufacturer" "test" {
 
 
 
+
+
+
+
   slug = "%[2]s"
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -554,7 +754,15 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   model = "%[3]s"
+
+
+
+
 
 
 
@@ -562,11 +770,27 @@ resource "netbox_device_type" "test" {
 
 
 
+
+
+
+
   manufacturer = netbox_manufacturer.test.id
 
 
 
+
+
+
+
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -582,7 +806,19 @@ resource "netbox_power_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
   device_type = netbox_device_type.test.model
+
+
+
+
 
 
 
@@ -590,7 +826,15 @@ resource "netbox_power_port_template" "test" {
 
 
 
+
+
+
+
   type = "iec-60320-c14"
+
+
+
+
 
 
 
@@ -602,6 +846,115 @@ resource "netbox_power_port_template" "test" {
 
 
 
+
+
+
+
+
+
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName)
+
+}
+
+// TestAccConsistency_PowerPortTemplate_LiteralNames tests that reference attributes specified as literal string names
+
+// are preserved and do not cause drift when the API returns numeric IDs.
+
+func TestAccConsistency_PowerPortTemplate_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	deviceTypeName := testutil.RandomName("device-type")
+
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	resourceName := testutil.RandomName("power_port")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccPowerPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "name", resourceName),
+
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "device_type", deviceTypeSlug),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccPowerPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName),
+			},
+		},
+	})
+
+}
+
+func testAccPowerPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName string) string {
+
+	return fmt.Sprintf(`
+
+
+
+resource "netbox_manufacturer" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+
+
+resource "netbox_device_type" "test" {
+
+  model        = %q
+
+  slug         = %q
+
+  manufacturer = netbox_manufacturer.test.id
+
+}
+
+
+
+resource "netbox_power_port_template" "test" {
+
+  # Use literal string slug to mimic existing user state
+
+  device_type = %q
+
+  name = %q
+
+  type = "iec-60320-c14"
+
+
+
+  depends_on = [netbox_device_type.test]
+
+}
+
+
+
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceTypeSlug, resourceName)
 
 }
