@@ -577,3 +577,98 @@ resource "netbox_ip_address" "test" {
 `, ipAddress, tenantName, tenantSlug)
 
 }
+
+// TestAccConsistency_IPAddress_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_IPAddress_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	ipAddress := "192.168.50.1/24"
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	vrfName := testutil.RandomName("vrf")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccIPAddressConsistencyLiteralNamesConfig(ipAddress, tenantName, tenantSlug, vrfName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", ipAddress),
+
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tenant", tenantName),
+
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "vrf", vrfName),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccIPAddressConsistencyLiteralNamesConfig(ipAddress, tenantName, tenantSlug, vrfName),
+			},
+		},
+	})
+
+}
+
+func testAccIPAddressConsistencyLiteralNamesConfig(ipAddress, tenantName, tenantSlug, vrfName string) string {
+
+	return fmt.Sprintf(`
+
+
+
+resource "netbox_tenant" "test" {
+
+  name = "%[2]s"
+
+  slug = "%[3]s"
+
+}
+
+
+
+resource "netbox_vrf" "test" {
+
+  name = "%[4]s"
+
+}
+
+
+
+resource "netbox_ip_address" "test" {
+
+  address = "%[1]s"
+
+  # Use literal string names to mimic existing user state
+
+  tenant = "%[2]s"
+
+  vrf = "%[4]s"
+
+
+
+  depends_on = [netbox_tenant.test, netbox_vrf.test]
+
+}
+
+
+
+`, ipAddress, tenantName, tenantSlug, vrfName)
+
+}

@@ -423,3 +423,102 @@ resource "netbox_asn" "test" {
 `, asn, rirName, rirSlug, tenantName, tenantSlug)
 
 }
+
+// TestAccConsistency_ASN_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_ASN_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	asn := int64(65100)
+
+	rirName := testutil.RandomName("rir")
+
+	rirSlug := testutil.RandomSlug("rir")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccASNConsistencyLiteralNamesConfig(asn, rirName, rirSlug, tenantName, tenantSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
+
+					resource.TestCheckResourceAttr("netbox_asn.test", "rir", rirSlug),
+
+					resource.TestCheckResourceAttr("netbox_asn.test", "tenant", tenantName),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccASNConsistencyLiteralNamesConfig(asn, rirName, rirSlug, tenantName, tenantSlug),
+			},
+		},
+	})
+
+}
+
+func testAccASNConsistencyLiteralNamesConfig(asn int64, rirName, rirSlug, tenantName, tenantSlug string) string {
+
+	return fmt.Sprintf(`
+
+
+
+resource "netbox_rir" "test" {
+
+  name = "%[2]s"
+
+  slug = "%[3]s"
+
+}
+
+
+
+resource "netbox_tenant" "test" {
+
+  name = "%[4]s"
+
+  slug = "%[5]s"
+
+}
+
+
+
+resource "netbox_asn" "test" {
+
+  asn = %[1]d
+
+  # Use literal string names to mimic existing user state
+
+  rir = "%[3]s"
+
+  tenant = "%[4]s"
+
+
+
+  depends_on = [netbox_rir.test, netbox_tenant.test]
+
+}
+
+
+
+`, asn, rirName, rirSlug, tenantName, tenantSlug)
+
+}

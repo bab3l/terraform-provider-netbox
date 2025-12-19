@@ -1040,3 +1040,160 @@ resource "netbox_interface" "test" {
 `, deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName)
 
 }
+
+// TestAccConsistency_Interface_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_Interface_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	deviceName := testutil.RandomName("device")
+
+	deviceTypeName := testutil.RandomName("device-type")
+
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	roleName := testutil.RandomName("role")
+
+	roleSlug := testutil.RandomSlug("role")
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	interfaceName := "eth2"
+
+	vrfName := testutil.RandomName("vrf")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccInterfaceConsistencyLiteralNamesConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName, vrfName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_interface.test", "name", interfaceName),
+
+					resource.TestCheckResourceAttr("netbox_interface.test", "device", deviceName),
+
+					resource.TestCheckResourceAttr("netbox_interface.test", "vrf", vrfName),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccInterfaceConsistencyLiteralNamesConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName, vrfName),
+			},
+		},
+	})
+
+}
+
+func testAccInterfaceConsistencyLiteralNamesConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName, vrfName string) string {
+
+	return fmt.Sprintf(`
+
+
+
+resource "netbox_manufacturer" "test" {
+
+  name = "%[4]s"
+
+  slug = "%[5]s"
+
+}
+
+
+
+resource "netbox_device_type" "test" {
+
+  model = "%[2]s"
+
+  slug = "%[3]s"
+
+  manufacturer = netbox_manufacturer.test.id
+
+}
+
+
+
+resource "netbox_device_role" "test" {
+
+  name = "%[6]s"
+
+  slug = "%[7]s"
+
+}
+
+
+
+resource "netbox_site" "test" {
+
+  name = "%[8]s"
+
+  slug = "%[9]s"
+
+}
+
+
+
+resource "netbox_device" "test" {
+
+  name = "%[1]s"
+
+  device_type = netbox_device_type.test.id
+
+  role = netbox_device_role.test.id
+
+  site = netbox_site.test.id
+
+}
+
+
+
+resource "netbox_vrf" "test" {
+
+  name = "%[11]s"
+
+}
+
+
+
+resource "netbox_interface" "test" {
+
+  name = "%[10]s"
+
+  type = "1000base-t"
+
+  # Use literal string names to mimic existing user state
+
+  device = "%[1]s"
+
+  vrf = "%[11]s"
+
+
+
+  depends_on = [netbox_device.test, netbox_vrf.test]
+
+}
+
+
+
+`, deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName, vrfName)
+
+}

@@ -664,3 +664,116 @@ resource "netbox_circuit" "test" {
 `, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
 
 }
+
+// TestAccConsistency_Circuit_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_Circuit_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	cid := testutil.RandomName("cid")
+
+	providerName := testutil.RandomName("provider")
+
+	providerSlug := testutil.RandomSlug("provider")
+
+	typeName := testutil.RandomName("type")
+
+	typeSlug := testutil.RandomSlug("type")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCircuitConsistencyLiteralNamesConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+
+					resource.TestCheckResourceAttr("netbox_circuit.test", "circuit_provider", providerSlug),
+
+					resource.TestCheckResourceAttr("netbox_circuit.test", "type", typeSlug),
+
+					resource.TestCheckResourceAttr("netbox_circuit.test", "tenant", tenantName),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccCircuitConsistencyLiteralNamesConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
+			},
+		},
+	})
+
+}
+
+func testAccCircuitConsistencyLiteralNamesConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug string) string {
+
+	return fmt.Sprintf(`
+
+
+resource "netbox_provider" "test" {
+
+  name = "%[2]s"
+
+  slug = "%[3]s"
+
+}
+
+
+resource "netbox_circuit_type" "test" {
+
+  name = "%[4]s"
+
+  slug = "%[5]s"
+
+}
+
+
+resource "netbox_tenant" "test" {
+
+  name = "%[6]s"
+
+  slug = "%[7]s"
+
+}
+
+
+resource "netbox_circuit" "test" {
+
+  cid = "%[1]s"
+
+  # Use literal string names to mimic existing user state
+
+  circuit_provider = "%[3]s"
+
+  type = "%[5]s"
+
+  tenant = "%[6]s"
+
+
+
+  depends_on = [netbox_provider.test, netbox_circuit_type.test, netbox_tenant.test]
+
+}
+
+
+
+`, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
+
+}

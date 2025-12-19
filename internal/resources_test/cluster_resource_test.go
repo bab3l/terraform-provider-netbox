@@ -618,3 +618,133 @@ resource "netbox_cluster" "test" {
 `, clusterName, clusterTypeName, clusterTypeSlug, groupName, groupSlug, siteName, siteSlug, tenantName, tenantSlug)
 
 }
+
+// TestAccConsistency_Cluster_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_Cluster_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	clusterName := testutil.RandomName("cluster")
+
+	clusterTypeName := testutil.RandomName("cluster-type")
+
+	clusterTypeSlug := testutil.RandomSlug("cluster-type")
+
+	groupName := testutil.RandomName("group")
+
+	groupSlug := testutil.RandomSlug("group")
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccClusterConsistencyLiteralNamesConfig(clusterName, clusterTypeName, clusterTypeSlug, groupName, groupSlug, siteName, siteSlug, tenantName, tenantSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_cluster.test", "name", clusterName),
+
+					resource.TestCheckResourceAttr("netbox_cluster.test", "type", clusterTypeSlug),
+
+					resource.TestCheckResourceAttr("netbox_cluster.test", "group", groupSlug),
+
+					resource.TestCheckResourceAttr("netbox_cluster.test", "site", siteName),
+
+					resource.TestCheckResourceAttr("netbox_cluster.test", "tenant", tenantName),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccClusterConsistencyLiteralNamesConfig(clusterName, clusterTypeName, clusterTypeSlug, groupName, groupSlug, siteName, siteSlug, tenantName, tenantSlug),
+			},
+		},
+	})
+
+}
+
+func testAccClusterConsistencyLiteralNamesConfig(clusterName, clusterTypeName, clusterTypeSlug, groupName, groupSlug, siteName, siteSlug, tenantName, tenantSlug string) string {
+
+	return fmt.Sprintf(`
+
+
+resource "netbox_cluster_type" "test" {
+
+  name = "%[2]s"
+
+  slug = "%[3]s"
+
+}
+
+
+resource "netbox_cluster_group" "test" {
+
+  name = "%[4]s"
+
+  slug = "%[5]s"
+
+}
+
+
+resource "netbox_site" "test" {
+
+  name = "%[6]s"
+
+  slug = "%[7]s"
+
+}
+
+
+resource "netbox_tenant" "test" {
+
+  name = "%[8]s"
+
+  slug = "%[9]s"
+
+}
+
+
+resource "netbox_cluster" "test" {
+
+  name = "%[1]s"
+
+  # Use literal string names to mimic existing user state
+
+  type = "%[3]s"
+
+  group = "%[5]s"
+
+  site = "%[6]s"
+
+  tenant = "%[8]s"
+
+
+
+  depends_on = [netbox_cluster_type.test, netbox_cluster_group.test, netbox_site.test, netbox_tenant.test]
+
+}
+
+
+
+`, clusterName, clusterTypeName, clusterTypeSlug, groupName, groupSlug, siteName, siteSlug, tenantName, tenantSlug)
+
+}

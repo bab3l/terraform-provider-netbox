@@ -686,3 +686,186 @@ resource "netbox_virtual_machine" "test" {
 `, vmName, clusterName, clusterTypeName, clusterTypeSlug, siteName, siteSlug, tenantName, tenantSlug, platformName, platformSlug, manufacturerName, manufacturerSlug, roleName, roleSlug)
 
 }
+
+// TestAccConsistency_VirtualMachine_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_VirtualMachine_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	vmName := testutil.RandomName("vm")
+
+	clusterName := testutil.RandomName("cluster")
+
+	clusterTypeName := testutil.RandomName("cluster-type")
+
+	clusterTypeSlug := testutil.RandomSlug("cluster-type")
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	platformName := testutil.RandomName("platform")
+
+	platformSlug := testutil.RandomSlug("platform")
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	roleName := testutil.RandomName("role")
+
+	roleSlug := testutil.RandomSlug("role")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccVirtualMachineConsistencyLiteralNamesConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, siteName, siteSlug, tenantName, tenantSlug, platformName, platformSlug, manufacturerName, manufacturerSlug, roleName, roleSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "cluster", clusterName),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "site", siteName),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "tenant", tenantName),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "platform", platformName),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "role", roleName),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccVirtualMachineConsistencyLiteralNamesConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, siteName, siteSlug, tenantName, tenantSlug, platformName, platformSlug, manufacturerName, manufacturerSlug, roleName, roleSlug),
+			},
+		},
+	})
+
+}
+
+func testAccVirtualMachineConsistencyLiteralNamesConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, siteName, siteSlug, tenantName, tenantSlug, platformName, platformSlug, manufacturerName, manufacturerSlug, roleName, roleSlug string) string {
+
+	return fmt.Sprintf(`
+
+
+
+resource "netbox_site" "test" {
+
+  name = "%[5]s"
+
+  slug = "%[6]s"
+
+}
+
+
+
+resource "netbox_cluster_type" "test" {
+
+  name = "%[3]s"
+
+  slug = "%[4]s"
+
+}
+
+
+
+resource "netbox_cluster" "test" {
+
+  name = "%[2]s"
+
+  type = netbox_cluster_type.test.id
+
+  site = netbox_site.test.id
+
+}
+
+
+
+resource "netbox_tenant" "test" {
+
+  name = "%[7]s"
+
+  slug = "%[8]s"
+
+}
+
+
+
+resource "netbox_manufacturer" "test" {
+
+  name = "%[11]s"
+
+  slug = "%[12]s"
+
+}
+
+
+
+resource "netbox_platform" "test" {
+
+  name = "%[9]s"
+
+  slug = "%[10]s"
+
+  manufacturer = netbox_manufacturer.test.id
+
+}
+
+
+
+resource "netbox_device_role" "test" {
+
+  name = "%[13]s"
+
+  slug = "%[14]s"
+
+}
+
+
+
+resource "netbox_virtual_machine" "test" {
+
+  name = "%[1]s"
+
+  # Use literal string names to mimic existing user state
+
+  cluster = "%[2]s"
+
+  site = "%[5]s"
+
+  tenant = "%[7]s"
+
+  platform = "%[9]s"
+
+  role = "%[13]s"
+
+
+
+  depends_on = [netbox_cluster.test, netbox_site.test, netbox_tenant.test, netbox_platform.test, netbox_device_role.test]
+
+}
+
+
+
+`, vmName, clusterName, clusterTypeName, clusterTypeSlug, siteName, siteSlug, tenantName, tenantSlug, platformName, platformSlug, manufacturerName, manufacturerSlug, roleName, roleSlug)
+
+}

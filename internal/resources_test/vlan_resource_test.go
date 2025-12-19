@@ -604,3 +604,146 @@ resource "netbox_vlan" "test" {
 `, vlanName, vlanVid, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug)
 
 }
+
+// TestAccConsistency_VLAN_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_VLAN_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	vlanName := testutil.RandomName("vlan")
+
+	vlanVid := 200
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	groupName := testutil.RandomName("group")
+
+	groupSlug := testutil.RandomSlug("group")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	roleName := testutil.RandomName("role")
+
+	roleSlug := testutil.RandomSlug("role")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccVLANConsistencyLiteralNamesConfig(vlanName, vlanVid, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_vlan.test", "name", vlanName),
+
+					resource.TestCheckResourceAttr("netbox_vlan.test", "site", siteName),
+
+					resource.TestCheckResourceAttr("netbox_vlan.test", "group", groupSlug),
+
+					resource.TestCheckResourceAttr("netbox_vlan.test", "tenant", tenantName),
+
+					resource.TestCheckResourceAttr("netbox_vlan.test", "role", roleSlug),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccVLANConsistencyLiteralNamesConfig(vlanName, vlanVid, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug),
+			},
+		},
+	})
+
+}
+
+func testAccVLANConsistencyLiteralNamesConfig(vlanName string, vlanVid int, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug string) string {
+
+	return fmt.Sprintf(`
+
+
+
+resource "netbox_site" "test" {
+
+  name = "%[3]s"
+
+  slug = "%[4]s"
+
+}
+
+
+
+resource "netbox_vlan_group" "test" {
+
+  name = "%[5]s"
+
+  slug = "%[6]s"
+
+  scope_type = "dcim.site"
+
+  scope_id = netbox_site.test.id
+
+}
+
+
+
+resource "netbox_tenant" "test" {
+
+  name = "%[7]s"
+
+  slug = "%[8]s"
+
+}
+
+
+
+resource "netbox_role" "test" {
+
+  name = "%[9]s"
+
+  slug = "%[10]s"
+
+}
+
+
+
+resource "netbox_vlan" "test" {
+
+  name = "%[1]s"
+
+  vid  = %[2]d
+
+  # Use literal string names to mimic existing user state
+
+  site = "%[3]s"
+
+  group = "%[6]s"
+
+  tenant = "%[7]s"
+
+  role = "%[10]s"
+
+
+
+  depends_on = [netbox_site.test, netbox_vlan_group.test, netbox_tenant.test, netbox_role.test]
+
+}
+
+
+
+`, vlanName, vlanVid, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug)
+
+}

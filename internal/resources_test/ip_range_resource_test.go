@@ -447,3 +447,118 @@ resource "netbox_ip_range" "test" {
 `, startAddress, endAddress, vrfName, tenantName, tenantSlug, roleName, roleSlug)
 
 }
+
+// TestAccConsistency_IPRange_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_IPRange_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	startAddress := "10.10.0.1"
+
+	endAddress := "10.10.0.254"
+
+	vrfName := testutil.RandomName("vrf")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	roleName := testutil.RandomName("role")
+
+	roleSlug := testutil.RandomSlug("role")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccIPRangeConsistencyLiteralNamesConfig(startAddress, endAddress, vrfName, tenantName, tenantSlug, roleName, roleSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", startAddress),
+
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "end_address", endAddress),
+
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "vrf", vrfName),
+
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "tenant", tenantName),
+
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "role", roleSlug),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccIPRangeConsistencyLiteralNamesConfig(startAddress, endAddress, vrfName, tenantName, tenantSlug, roleName, roleSlug),
+			},
+		},
+	})
+
+}
+
+func testAccIPRangeConsistencyLiteralNamesConfig(startAddress, endAddress, vrfName, tenantName, tenantSlug, roleName, roleSlug string) string {
+
+	return fmt.Sprintf(`
+
+
+resource "netbox_vrf" "test" {
+
+  name = "%[3]s"
+
+}
+
+
+resource "netbox_tenant" "test" {
+
+  name = "%[4]s"
+
+  slug = "%[5]s"
+
+}
+
+
+resource "netbox_role" "test" {
+
+  name = "%[6]s"
+
+  slug = "%[7]s"
+
+}
+
+
+resource "netbox_ip_range" "test" {
+
+  start_address = "%[1]s"
+
+  end_address = "%[2]s"
+
+  # Use literal string names to mimic existing user state
+
+  vrf = "%[3]s"
+
+  tenant = "%[4]s"
+
+  role = "%[7]s"
+
+
+
+  depends_on = [netbox_vrf.test, netbox_tenant.test, netbox_role.test]
+
+}
+
+
+
+`, startAddress, endAddress, vrfName, tenantName, tenantSlug, roleName, roleSlug)
+
+}

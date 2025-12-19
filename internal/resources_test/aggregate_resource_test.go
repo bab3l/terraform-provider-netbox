@@ -418,3 +418,102 @@ resource "netbox_aggregate" "test" {
 `, prefix, rirName, rirSlug, tenantName, tenantSlug)
 
 }
+
+// TestAccConsistency_Aggregate_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_Aggregate_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	prefix := "10.50.0.0/16"
+
+	rirName := testutil.RandomName("rir")
+
+	rirSlug := testutil.RandomSlug("rir")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccAggregateConsistencyLiteralNamesConfig(prefix, rirName, rirSlug, tenantName, tenantSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "prefix", prefix),
+
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "rir", rirSlug),
+
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "tenant", tenantName),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccAggregateConsistencyLiteralNamesConfig(prefix, rirName, rirSlug, tenantName, tenantSlug),
+			},
+		},
+	})
+
+}
+
+func testAccAggregateConsistencyLiteralNamesConfig(prefix, rirName, rirSlug, tenantName, tenantSlug string) string {
+
+	return fmt.Sprintf(`
+
+
+
+resource "netbox_rir" "test" {
+
+  name = "%[2]s"
+
+  slug = "%[3]s"
+
+}
+
+
+
+resource "netbox_tenant" "test" {
+
+  name = "%[4]s"
+
+  slug = "%[5]s"
+
+}
+
+
+
+resource "netbox_aggregate" "test" {
+
+  prefix = "%[1]s"
+
+  # Use literal string names to mimic existing user state
+
+  rir = "%[3]s"
+
+  tenant = "%[4]s"
+
+
+
+  depends_on = [netbox_rir.test, netbox_tenant.test]
+
+}
+
+
+
+`, prefix, rirName, rirSlug, tenantName, tenantSlug)
+
+}
