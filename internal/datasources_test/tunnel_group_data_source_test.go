@@ -24,7 +24,9 @@ func TestTunnelGroupDataSource(t *testing.T) {
 	if d == nil {
 
 		t.Fatal("Expected non-nil tunnel group data source")
+
 	}
+
 }
 
 func TestTunnelGroupDataSourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestTunnelGroupDataSourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Check that key attributes exist
@@ -58,8 +62,11 @@ func TestTunnelGroupDataSourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestTunnelGroupDataSourceMetadata(t *testing.T) {
@@ -82,7 +89,9 @@ func TestTunnelGroupDataSourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestTunnelGroupDataSourceConfigure(t *testing.T) {
@@ -103,6 +112,7 @@ func TestTunnelGroupDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -116,6 +126,7 @@ func TestTunnelGroupDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -127,7 +138,9 @@ func TestTunnelGroupDataSourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with invalid provider data")
+
 	}
+
 }
 
 // Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
@@ -164,6 +177,7 @@ func TestAccTunnelGroupDataSource_byID(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccTunnelGroupDataSource_byName(t *testing.T) {
@@ -198,6 +212,7 @@ func TestAccTunnelGroupDataSource_byName(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccTunnelGroupDataSource_bySlug(t *testing.T) {
@@ -232,53 +247,91 @@ func TestAccTunnelGroupDataSource_bySlug(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccTunnelGroupDataSourceByID(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_tunnel_group" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 data "netbox_tunnel_group" "test" {
 
+
+
   id = netbox_tunnel_group.test.id
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func testAccTunnelGroupDataSourceByName(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_tunnel_group" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 data "netbox_tunnel_group" "test" {
+
   name = netbox_tunnel_group.test.name
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func testAccTunnelGroupDataSourceBySlug(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_tunnel_group" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 data "netbox_tunnel_group" "test" {
+
   slug = netbox_tunnel_group.test.slug
+
 }
 
+
+
 `, name, slug)
+
 }

@@ -24,7 +24,9 @@ func TestWirelessLANResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil WirelessLAN resource")
+
 	}
+
 }
 
 func TestWirelessLANResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestWirelessLANResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"ssid"}
@@ -56,7 +60,9 @@ func TestWirelessLANResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestWirelessLANResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"description", "group", "status", "vlan", "tenant", "auth_type", "auth_cipher", "auth_psk", "comments", "tags", "custom_fields"}
@@ -76,8 +84,11 @@ func TestWirelessLANResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestWirelessLANResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestWirelessLANResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestWirelessLANResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestWirelessLANResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestWirelessLANResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestWirelessLANResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccWirelessLANResource_basic(t *testing.T) {
@@ -187,6 +204,7 @@ func TestAccWirelessLANResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccWirelessLANResource_full(t *testing.T) {
@@ -241,36 +259,59 @@ func TestAccWirelessLANResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccWirelessLANResourceConfig_basic(ssid string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_wireless_lan" "test" {
+
   ssid = %q
+
 }
 
+
+
 `, ssid)
+
 }
 
 func testAccWirelessLANResourceConfig_full(ssid, groupName, groupSlug, description, status string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_wireless_lan_group" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_wireless_lan" "test" {
+
   ssid        = %q
+
   group       = netbox_wireless_lan_group.test.id
+
   description = %q
+
   status      = %q
+
 }
 
+
+
 `, groupName, groupSlug, ssid, description, status)
+
 }
 
 func TestAccConsistency_WirelessLAN(t *testing.T) {
@@ -319,27 +360,47 @@ func TestAccConsistency_WirelessLAN(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccWirelessLANConsistencyConfig(wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_wireless_lan_group" "test" {
+
   name = "%[3]s"
+
   slug = "%[4]s"
+
 }
+
+
 
 resource "netbox_tenant" "test" {
+
   name = "%[5]s"
+
   slug = "%[6]s"
+
 }
+
+
 
 resource "netbox_wireless_lan" "test" {
+
   ssid = "%[2]s"
+
   group = netbox_wireless_lan_group.test.slug
+
   tenant = netbox_tenant.test.name
+
 }
 
+
+
 `, wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug)
+
 }

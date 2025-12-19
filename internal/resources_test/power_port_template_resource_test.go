@@ -23,7 +23,9 @@ func TestPowerPortTemplateResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil power port template resource")
+
 	}
+
 }
 
 func TestPowerPortTemplateResourceSchema(t *testing.T) {
@@ -41,11 +43,13 @@ func TestPowerPortTemplateResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Check required attributes
@@ -57,7 +61,9 @@ func TestPowerPortTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check computed attributes
@@ -69,7 +75,9 @@ func TestPowerPortTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check optional attributes
@@ -81,8 +89,11 @@ func TestPowerPortTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestPowerPortTemplateResourceMetadata(t *testing.T) {
@@ -105,7 +116,9 @@ func TestPowerPortTemplateResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestPowerPortTemplateResourceConfigure(t *testing.T) {
@@ -128,7 +141,9 @@ func TestPowerPortTemplateResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
+
 }
 
 // Acceptance test configurations
@@ -139,24 +154,44 @@ func testAccPowerPortTemplateResourceBasic(manufacturerName, manufacturerSlug, d
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
 }
+
+
 
 resource "netbox_power_port_template" "test" {
 
+
+
   device_type = netbox_device_type.test.id
+
   name        = %q
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
+
 }
 
 // testAccPowerPortTemplateResourceFull creates a power port template with all fields.
@@ -165,29 +200,54 @@ func testAccPowerPortTemplateResourceFull(manufacturerName, manufacturerSlug, de
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
 }
+
+
 
 resource "netbox_power_port_template" "test" {
 
+
+
   device_type     = netbox_device_type.test.id
+
   name            = %q
+
   label           = %q
+
   type            = %q
+
   maximum_draw    = %d
+
   allocated_draw  = %d
+
   description     = %q
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, portType, maxDraw, allocDraw, description)
+
 }
 
 func TestAccPowerPortTemplateResource_basic(t *testing.T) {
@@ -237,6 +297,7 @@ func TestAccPowerPortTemplateResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccPowerPortTemplateResource_full(t *testing.T) {
@@ -325,6 +386,7 @@ func TestAccPowerPortTemplateResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccConsistency_PowerPortTemplate(t *testing.T) {
@@ -369,29 +431,51 @@ func TestAccConsistency_PowerPortTemplate(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccPowerPortTemplateConsistencyConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = "%[1]s"
+
   slug = "%[2]s"
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   model = "%[3]s"
+
   slug = "%[4]s"
+
   manufacturer = netbox_manufacturer.test.id
+
 }
+
+
 
 resource "netbox_power_port_template" "test" {
 
+
+
   device_type = netbox_device_type.test.model
+
   name = "%[5]s"
+
   type = "iec-60320-c14"
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName)
+
 }

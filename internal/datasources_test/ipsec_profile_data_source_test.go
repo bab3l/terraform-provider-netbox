@@ -24,7 +24,9 @@ func TestIPSecProfileDataSource(t *testing.T) {
 	if d == nil {
 
 		t.Fatal("Expected non-nil IPSec profile data source")
+
 	}
+
 }
 
 func TestIPSecProfileDataSourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestIPSecProfileDataSourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Check that key attributes exist
@@ -58,8 +62,11 @@ func TestIPSecProfileDataSourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestIPSecProfileDataSourceMetadata(t *testing.T) {
@@ -82,7 +89,9 @@ func TestIPSecProfileDataSourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestIPSecProfileDataSourceConfigure(t *testing.T) {
@@ -103,6 +112,7 @@ func TestIPSecProfileDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -116,6 +126,7 @@ func TestIPSecProfileDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -127,7 +138,9 @@ func TestIPSecProfileDataSourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with invalid provider data")
+
 	}
+
 }
 
 // Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
@@ -166,6 +179,7 @@ func TestAccIPSecProfileDataSource_byID(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccIPSecProfileDataSource_byName(t *testing.T) {
@@ -202,65 +216,119 @@ func TestAccIPSecProfileDataSource_byName(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccIPSecProfileDataSourceByID(name, ikePolicyName, ipsecPolicyName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_ike_policy" "test" {
+
   name    = %[2]q
 
+
+
   version = 2
+
 }
+
+
 
 resource "netbox_ipsec_policy" "test" {
+
   name = %[3]q
+
 }
 
+
+
 resource "netbox_ipsec_profile" "test" {
+
   name         = %[1]q
+
   mode         = "esp"
+
+
 
   ike_policy   = netbox_ike_policy.test.id
 
+
+
   ipsec_policy = netbox_ipsec_policy.test.id
+
 }
+
+
 
 data "netbox_ipsec_profile" "test" {
 
+
+
   id = netbox_ipsec_profile.test.id
+
 }
 
+
+
 `, name, ikePolicyName, ipsecPolicyName)
+
 }
 
 func testAccIPSecProfileDataSourceByName(name, ikePolicyName, ipsecPolicyName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_ike_policy" "test" {
+
   name    = %[2]q
 
+
+
   version = 2
+
 }
+
+
 
 resource "netbox_ipsec_policy" "test" {
+
   name = %[3]q
+
 }
 
+
+
 resource "netbox_ipsec_profile" "test" {
+
   name         = %[1]q
+
   mode         = "esp"
+
+
 
   ike_policy   = netbox_ike_policy.test.id
 
+
+
   ipsec_policy = netbox_ipsec_policy.test.id
+
 }
+
+
 
 data "netbox_ipsec_profile" "test" {
+
   name = netbox_ipsec_profile.test.name
+
 }
 
+
+
 `, name, ikePolicyName, ipsecPolicyName)
+
 }

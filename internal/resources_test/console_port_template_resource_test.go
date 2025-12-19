@@ -23,7 +23,9 @@ func TestConsolePortTemplateResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil console port template resource")
+
 	}
+
 }
 
 func TestConsolePortTemplateResourceSchema(t *testing.T) {
@@ -41,11 +43,13 @@ func TestConsolePortTemplateResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Check required attributes
@@ -57,7 +61,9 @@ func TestConsolePortTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check computed attributes
@@ -69,7 +75,9 @@ func TestConsolePortTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check optional attributes
@@ -81,8 +89,11 @@ func TestConsolePortTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestConsolePortTemplateResourceMetadata(t *testing.T) {
@@ -105,7 +116,9 @@ func TestConsolePortTemplateResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestConsolePortTemplateResourceConfigure(t *testing.T) {
@@ -128,7 +141,9 @@ func TestConsolePortTemplateResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
+
 }
 
 // Acceptance test configurations
@@ -139,24 +154,44 @@ func testAccConsolePortTemplateResourceBasic(manufacturerName, manufacturerSlug,
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
 }
+
+
 
 resource "netbox_console_port_template" "test" {
 
+
+
   device_type = netbox_device_type.test.id
+
   name        = %q
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
+
 }
 
 // testAccConsolePortTemplateResourceFull creates a console port template with all fields.
@@ -165,27 +200,50 @@ func testAccConsolePortTemplateResourceFull(manufacturerName, manufacturerSlug, 
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
 }
+
+
 
 resource "netbox_console_port_template" "test" {
 
+
+
   device_type = netbox_device_type.test.id
+
   name        = %q
+
   label       = %q
+
   type        = %q
+
   description = %q
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, portType, description)
+
 }
 
 func TestAccConsolePortTemplateResource_basic(t *testing.T) {
@@ -235,6 +293,7 @@ func TestAccConsolePortTemplateResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccConsolePortTemplateResource_full(t *testing.T) {
@@ -307,6 +366,7 @@ func TestAccConsolePortTemplateResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccConsistency_ConsolePortTemplate(t *testing.T) {
@@ -351,29 +411,51 @@ func TestAccConsistency_ConsolePortTemplate(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccConsolePortTemplateConsistencyConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = "%[1]s"
+
   slug = "%[2]s"
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   model = "%[3]s"
+
   slug = "%[4]s"
+
   manufacturer = netbox_manufacturer.test.id
+
 }
+
+
 
 resource "netbox_console_port_template" "test" {
 
+
+
   device_type = netbox_device_type.test.model
+
   name = "%[5]s"
+
   type = "rj-45"
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName)
+
 }

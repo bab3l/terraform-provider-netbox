@@ -24,7 +24,9 @@ func TestJournalEntryResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil Journal Entry resource")
+
 	}
+
 }
 
 func TestJournalEntryResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestJournalEntryResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Required attributes
@@ -58,7 +62,9 @@ func TestJournalEntryResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Computed attributes
@@ -70,7 +76,9 @@ func TestJournalEntryResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Optional attributes
@@ -82,8 +90,11 @@ func TestJournalEntryResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestJournalEntryResourceMetadata(t *testing.T) {
@@ -106,7 +117,9 @@ func TestJournalEntryResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestJournalEntryResourceConfigure(t *testing.T) {
@@ -129,6 +142,7 @@ func TestJournalEntryResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with correct client type
@@ -144,6 +158,7 @@ func TestJournalEntryResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with incorrect provider data type
@@ -157,7 +172,9 @@ func TestJournalEntryResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccJournalEntryResource_basic(t *testing.T) {
@@ -194,6 +211,7 @@ func TestAccJournalEntryResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccJournalEntryResource_full(t *testing.T) {
@@ -230,6 +248,7 @@ func TestAccJournalEntryResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccJournalEntryResource_update(t *testing.T) {
@@ -278,90 +297,155 @@ func TestAccJournalEntryResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccJournalEntryResourceConfig_basic(siteName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_journal_entry" "test" {
+
   assigned_object_type = "dcim.site"
+
   assigned_object_id   = netbox_site.test.id
+
   comments             = "Test journal entry"
+
 }
 
+
+
 `, siteName, testutil.GenerateSlug(siteName))
+
 }
 
 func testAccJournalEntryResourceConfig_full(siteName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_journal_entry" "test" {
+
   assigned_object_type = "dcim.site"
+
   assigned_object_id   = netbox_site.test.id
+
   comments             = "# Important Note\n\nThis is a detailed journal entry with markdown."
+
   kind                 = "warning"
+
 }
 
+
+
 `, siteName, testutil.GenerateSlug(siteName))
+
 }
 
 func testAccJournalEntryResourceConfig_updated(siteName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_journal_entry" "test" {
+
   assigned_object_type = "dcim.site"
+
   assigned_object_id   = netbox_site.test.id
+
   comments             = "Updated journal entry content"
+
   kind                 = "success"
+
 }
 
+
+
 `, siteName, testutil.GenerateSlug(siteName))
+
 }
 
 func TestAccJournalEntryResource_import(t *testing.T) {
+
 	siteName := testutil.RandomName("tf-test-site-journal")
+
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterSiteCleanup(testutil.GenerateSlug(siteName))
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.CheckJournalEntryDestroy,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccJournalEntryResourceConfig_basic(siteName),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_journal_entry.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_journal_entry.test", "assigned_object_type", "dcim.site"),
+
 					resource.TestCheckResourceAttr("netbox_journal_entry.test", "comments", "Test journal entry"),
+
 					resource.TestCheckResourceAttr("netbox_journal_entry.test", "kind", "info"),
 				),
 			},
+
 			{
-				ResourceName:      "netbox_journal_entry.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_journal_entry.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
 			},
 		},
 	})
+
 }

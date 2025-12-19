@@ -23,7 +23,9 @@ func TestPowerOutletTemplateResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil power outlet template resource")
+
 	}
+
 }
 
 func TestPowerOutletTemplateResourceSchema(t *testing.T) {
@@ -41,11 +43,13 @@ func TestPowerOutletTemplateResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Check required attributes
@@ -57,7 +61,9 @@ func TestPowerOutletTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check computed attributes
@@ -69,7 +75,9 @@ func TestPowerOutletTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check optional attributes
@@ -81,8 +89,11 @@ func TestPowerOutletTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestPowerOutletTemplateResourceMetadata(t *testing.T) {
@@ -105,7 +116,9 @@ func TestPowerOutletTemplateResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestPowerOutletTemplateResourceConfigure(t *testing.T) {
@@ -128,7 +141,9 @@ func TestPowerOutletTemplateResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
+
 }
 
 // Acceptance test configurations
@@ -139,24 +154,44 @@ func testAccPowerOutletTemplateResourceBasic(manufacturerName, manufacturerSlug,
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
 }
+
+
 
 resource "netbox_power_outlet_template" "test" {
 
+
+
   device_type = netbox_device_type.test.id
+
   name        = %q
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
+
 }
 
 // testAccPowerOutletTemplateResourceFull creates a power outlet template with all fields.
@@ -165,27 +200,50 @@ func testAccPowerOutletTemplateResourceFull(manufacturerName, manufacturerSlug, 
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
 }
+
+
 
 resource "netbox_power_outlet_template" "test" {
 
+
+
   device_type = netbox_device_type.test.id
+
   name        = %q
+
   label       = %q
+
   type        = %q
+
   description = %q
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, outletType, description)
+
 }
 
 func TestAccPowerOutletTemplateResource_basic(t *testing.T) {
@@ -235,6 +293,7 @@ func TestAccPowerOutletTemplateResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccPowerOutletTemplateResource_full(t *testing.T) {
@@ -307,4 +366,5 @@ func TestAccPowerOutletTemplateResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }

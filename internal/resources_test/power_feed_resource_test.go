@@ -24,7 +24,9 @@ func TestPowerFeedResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil PowerFeed resource")
+
 	}
+
 }
 
 func TestPowerFeedResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestPowerFeedResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"power_panel", "name"}
@@ -56,7 +60,9 @@ func TestPowerFeedResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id", "status", "type", "supply", "phase", "voltage", "amperage", "max_utilization"}
@@ -66,7 +72,9 @@ func TestPowerFeedResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"rack", "mark_connected", "description", "tenant", "comments", "tags", "custom_fields"}
@@ -76,8 +84,11 @@ func TestPowerFeedResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestPowerFeedResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestPowerFeedResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestPowerFeedResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestPowerFeedResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestPowerFeedResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestPowerFeedResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccPowerFeedResource_basic(t *testing.T) {
@@ -199,6 +216,7 @@ func TestAccPowerFeedResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccPowerFeedResource_full(t *testing.T) {
@@ -267,59 +285,105 @@ func TestAccPowerFeedResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccPowerFeedResourceConfig_basic(siteName, siteSlug, panelName, feedName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_power_panel" "test" {
+
   site = netbox_site.test.id
+
   name = %q
+
 }
+
+
 
 resource "netbox_power_feed" "test" {
+
   power_panel = netbox_power_panel.test.id
+
   name        = %q
+
 }
 
+
+
 `, siteName, siteSlug, panelName, feedName)
+
 }
 
 func testAccPowerFeedResourceConfig_full(siteName, siteSlug, panelName, feedName, description string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_power_panel" "test" {
+
   site = netbox_site.test.id
+
   name = %q
+
 }
+
+
 
 resource "netbox_power_feed" "test" {
+
   power_panel = netbox_power_panel.test.id
+
   name        = %q
+
   status      = "active"
+
   type        = "primary"
+
   supply      = "ac"
+
   phase       = "single-phase"
+
   voltage     = 240
+
   amperage    = 30
+
   description = %q
+
 }
 
+
+
 `, siteName, siteSlug, panelName, feedName, description)
+
 }
 
 func TestAccConsistency_PowerFeed(t *testing.T) {
@@ -368,39 +432,71 @@ func TestAccConsistency_PowerFeed(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccPowerFeedConsistencyConfig(siteName, siteSlug, rackName, locationName, locationSlug, powerPanelName, feedName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name = "%[1]s"
+
   slug = "%[2]s"
+
 }
+
+
 
 resource "netbox_location" "test" {
+
   name = "%[4]s"
+
   slug = "%[5]s"
+
   site = netbox_site.test.id
+
 }
+
+
 
 resource "netbox_rack" "test" {
+
   name = "%[3]s"
+
   site = netbox_site.test.id
+
   location = netbox_location.test.id
+
 }
+
+
 
 resource "netbox_power_panel" "test" {
+
   name = "%[6]s"
+
   site = netbox_site.test.id
+
 }
+
+
 
 resource "netbox_power_feed" "test" {
+
   name = "%[7]s"
+
   power_panel = netbox_power_panel.test.id
+
   rack = netbox_rack.test.name
+
 }
 
+
+
 `, siteName, siteSlug, rackName, locationName, locationSlug, powerPanelName, feedName)
+
 }

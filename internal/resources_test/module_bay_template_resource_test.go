@@ -24,7 +24,9 @@ func TestModuleBayTemplateResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil ModuleBayTemplate resource")
+
 	}
+
 }
 
 func TestModuleBayTemplateResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestModuleBayTemplateResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"name"}
@@ -56,7 +60,9 @@ func TestModuleBayTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestModuleBayTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Either device_type or module_type is required
@@ -78,8 +86,11 @@ func TestModuleBayTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestModuleBayTemplateResourceMetadata(t *testing.T) {
@@ -102,7 +113,9 @@ func TestModuleBayTemplateResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestModuleBayTemplateResourceConfigure(t *testing.T) {
@@ -123,6 +136,7 @@ func TestModuleBayTemplateResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -136,6 +150,7 @@ func TestModuleBayTemplateResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -147,7 +162,9 @@ func TestModuleBayTemplateResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccModuleBayTemplateResource_basic(t *testing.T) {
@@ -207,6 +224,7 @@ func TestAccModuleBayTemplateResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccModuleBayTemplateResource_full(t *testing.T) {
@@ -265,6 +283,7 @@ func TestAccModuleBayTemplateResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccModuleBayTemplateResource_update(t *testing.T) {
@@ -321,32 +340,55 @@ func TestAccModuleBayTemplateResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccModuleBayTemplateResourceConfig_basic(mfgName, mfgSlug, dtModel, dtSlug, templateName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 provider "netbox" {}
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   model        = %[3]q
+
   slug         = %[4]q
+
   manufacturer = netbox_manufacturer.test.id
+
 }
+
+
 
 resource "netbox_module_bay_template" "test" {
+
   name        = %[5]q
 
+
+
   device_type = netbox_device_type.test.id
+
 }
 
+
+
 `, mfgName, mfgSlug, dtModel, dtSlug, templateName)
+
 }
 
 func testAccModuleBayTemplateResourceConfig_full(mfgName, mfgSlug, dtModel, dtSlug, templateName, label, position, description string) string {
@@ -356,6 +398,7 @@ func testAccModuleBayTemplateResourceConfig_full(mfgName, mfgSlug, dtModel, dtSl
 	if label != "" {
 
 		labelAttr = fmt.Sprintf(`label       = %q`, label)
+
 	}
 
 	positionAttr := ""
@@ -363,6 +406,7 @@ func testAccModuleBayTemplateResourceConfig_full(mfgName, mfgSlug, dtModel, dtSl
 	if position != "" {
 
 		positionAttr = fmt.Sprintf(`position    = %q`, position)
+
 	}
 
 	descAttr := ""
@@ -370,34 +414,63 @@ func testAccModuleBayTemplateResourceConfig_full(mfgName, mfgSlug, dtModel, dtSl
 	if description != "" {
 
 		descAttr = fmt.Sprintf(`description = %q`, description)
+
 	}
 
 	return fmt.Sprintf(`
 
+
+
 provider "netbox" {}
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   model        = %[3]q
+
   slug         = %[4]q
+
   manufacturer = netbox_manufacturer.test.id
+
 }
 
+
+
 resource "netbox_module_bay_template" "test" {
+
   name        = %[5]q
+
+
 
   device_type = netbox_device_type.test.id
 
+
+
   %[6]s
+
+
 
   %[7]s
 
+
+
   %[8]s
+
 }
 
+
+
 `, mfgName, mfgSlug, dtModel, dtSlug, templateName, labelAttr, positionAttr, descAttr)
+
 }

@@ -24,7 +24,9 @@ func TestManufacturerResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil manufacturer resource")
+
 	}
+
 }
 
 func TestManufacturerResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestManufacturerResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"name", "slug"}
@@ -56,7 +60,9 @@ func TestManufacturerResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,8 +72,11 @@ func TestManufacturerResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestManufacturerResourceMetadata(t *testing.T) {
@@ -90,7 +99,9 @@ func TestManufacturerResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestManufacturerResourceConfigure(t *testing.T) {
@@ -111,6 +122,7 @@ func TestManufacturerResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -124,6 +136,7 @@ func TestManufacturerResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -135,7 +148,9 @@ func TestManufacturerResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccManufacturerResource_basic(t *testing.T) {
@@ -180,6 +195,7 @@ func TestAccManufacturerResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccManufacturerResource_full(t *testing.T) {
@@ -228,6 +244,7 @@ func TestAccManufacturerResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccManufacturerResource_update(t *testing.T) {
@@ -284,6 +301,7 @@ func TestAccManufacturerResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 // testAccManufacturerResourceConfig_basic returns a basic test configuration.
@@ -292,27 +310,50 @@ func testAccManufacturerResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 `, name, slug)
+
 }
 
 // testAccManufacturerResourceConfig_full returns a test configuration with all fields.
@@ -321,67 +362,118 @@ func testAccManufacturerResourceConfig_full(name, slug, description string) stri
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name        = %q
+
   slug        = %q
+
   description = %q
+
 }
 
+
+
 `, name, slug, description)
+
 }
 
 func TestAccManufacturerResource_import(t *testing.T) {
+
 	// Generate unique names to avoid conflicts between test runs
+
 	name := testutil.RandomName("tf-test-manufacturer-import")
+
 	slug := testutil.RandomSlug("tf-test-mfr-imp")
 
 	// Register cleanup
+
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterManufacturerCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.CheckManufacturerDestroy,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccManufacturerResourceConfig_import(name, slug),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttr("netbox_manufacturer.test", "name", name),
+
 					resource.TestCheckResourceAttr("netbox_manufacturer.test", "slug", slug),
 				),
 			},
+
 			{
-				ResourceName:      "netbox_manufacturer.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_manufacturer.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
 			},
 		},
 	})
+
 }
 
 func testAccManufacturerResourceConfig_import(name, slug string) string {
+
 	return fmt.Sprintf(`
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
 `, name, slug)
+
 }

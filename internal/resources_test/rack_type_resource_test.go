@@ -24,7 +24,9 @@ func TestRackTypeResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil RackType resource")
+
 	}
+
 }
 
 func TestRackTypeResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestRackTypeResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"manufacturer", "model", "slug"}
@@ -56,7 +60,9 @@ func TestRackTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestRackTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"description", "form_factor", "width", "u_height", "starting_unit", "desc_units", "outer_width", "outer_depth", "outer_unit", "weight", "max_weight", "weight_unit", "mounting_depth", "comments", "tags", "custom_fields"}
@@ -76,8 +84,11 @@ func TestRackTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestRackTypeResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestRackTypeResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestRackTypeResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestRackTypeResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestRackTypeResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestRackTypeResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccRackTypeResource_basic(t *testing.T) {
@@ -199,6 +216,7 @@ func TestAccRackTypeResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccRackTypeResource_full(t *testing.T) {
@@ -263,48 +281,85 @@ func TestAccRackTypeResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccRackTypeResourceConfig_basic(mfgName, mfgSlug, model, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_rack_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
 
+
+
   form_factor  = "4-post-cabinet"
+
 }
 
+
+
 `, mfgName, mfgSlug, model, slug)
+
 }
 
 func testAccRackTypeResourceConfig_full(mfgName, mfgSlug, model, slug, description string, uHeight, width int) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_rack_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
   description  = %q
+
   u_height     = %d
+
+
 
   width        = %d
 
+
+
   form_factor  = "4-post-cabinet"
+
 }
 
+
+
 `, mfgName, mfgSlug, model, slug, description, uHeight, width)
+
 }

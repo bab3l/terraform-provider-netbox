@@ -22,7 +22,9 @@ func TestLocationResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Location resource should not be nil")
+
 	}
+
 }
 
 func TestLocationResourceSchema(t *testing.T) {
@@ -40,6 +42,7 @@ func TestLocationResourceSchema(t *testing.T) {
 	if schemaResp.Diagnostics.HasError() {
 
 		t.Fatalf("Location resource schema should not have errors: %v", schemaResp.Diagnostics.Errors())
+
 	}
 
 	attrs := schemaResp.Schema.Attributes
@@ -51,7 +54,9 @@ func TestLocationResourceSchema(t *testing.T) {
 		if _, ok := attrs[attr]; !ok {
 
 			t.Errorf("Location resource schema should include %s attribute", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"parent", "status", "tenant", "facility", "description", "tags", "custom_fields"}
@@ -61,8 +66,11 @@ func TestLocationResourceSchema(t *testing.T) {
 		if _, ok := attrs[attr]; !ok {
 
 			t.Errorf("Location resource schema should include %s attribute", attr)
+
 		}
+
 	}
+
 }
 
 func TestLocationResourceMetadata(t *testing.T) {
@@ -85,7 +93,9 @@ func TestLocationResourceMetadata(t *testing.T) {
 	if metadataResp.TypeName != expectedTypeName {
 
 		t.Errorf("Expected type name %s, got %s", expectedTypeName, metadataResp.TypeName)
+
 	}
+
 }
 
 func TestLocationResourceConfigure(t *testing.T) {
@@ -106,6 +116,7 @@ func TestLocationResourceConfigure(t *testing.T) {
 	if configureResp.Diagnostics.HasError() {
 
 		t.Error("Configure should not error with nil provider data")
+
 	}
 
 	client := &netbox.APIClient{}
@@ -119,6 +130,7 @@ func TestLocationResourceConfigure(t *testing.T) {
 	if configureResp.Diagnostics.HasError() {
 
 		t.Errorf("Configure should not error with correct provider data: %v", configureResp.Diagnostics.Errors())
+
 	}
 
 	configureReq.ProviderData = invalidProviderData
@@ -130,7 +142,9 @@ func TestLocationResourceConfigure(t *testing.T) {
 	if !configureResp.Diagnostics.HasError() {
 
 		t.Error("Configure should error with incorrect provider data type")
+
 	}
+
 }
 
 func TestAccLocationResource_basic(t *testing.T) {
@@ -183,6 +197,7 @@ func TestAccLocationResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccLocationResource_full(t *testing.T) {
@@ -243,6 +258,7 @@ func TestAccLocationResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccLocationResource_update(t *testing.T) {
@@ -305,6 +321,7 @@ func TestAccLocationResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccLocationResource_withParent(t *testing.T) {
@@ -365,6 +382,7 @@ func TestAccLocationResource_withParent(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 // testAccLocationResourceConfig_basic returns a basic test configuration.
@@ -373,34 +391,64 @@ func testAccLocationResourceConfig_basic(siteName, siteSlug, name, slug string) 
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_location" "test" {
+
   name = %q
+
   slug = %q
+
   site = netbox_site.test.id
+
 }
 
+
+
 `, siteName, siteSlug, name, slug)
+
 }
 
 // testAccLocationResourceConfig_full returns a test configuration with all fields.
@@ -409,38 +457,72 @@ func testAccLocationResourceConfig_full(siteName, siteSlug, name, slug, descript
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_location" "test" {
+
   name        = %q
+
   slug        = %q
+
   site        = netbox_site.test.id
+
   status      = "active"
+
   description = %q
 
+
+
   facility    = %q
+
 }
 
+
+
 `, siteName, siteSlug, name, slug, description, facility)
+
 }
 
 // testAccLocationResourceConfig_withParent returns a test configuration with parent location.
@@ -449,41 +531,78 @@ func testAccLocationResourceConfig_withParent(siteName, siteSlug, parentName, pa
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_location" "parent" {
+
   name = %q
+
   slug = %q
+
   site = netbox_site.test.id
+
 }
+
+
 
 resource "netbox_location" "child" {
+
   name   = %q
+
   slug   = %q
+
   site   = netbox_site.test.id
+
   parent = netbox_location.parent.id
+
 }
 
+
+
 `, siteName, siteSlug, parentName, parentSlug, childName, childSlug)
+
 }
 
 func TestAccLocationResource_import(t *testing.T) {
@@ -547,24 +666,39 @@ func TestAccLocationResource_import(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccLocationResourceConfig_import(siteName, siteSlug, name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 resource "netbox_location" "test" {
+
   name = %[3]q
+
   slug = %[4]q
+
   site = netbox_site.test.id
+
 }
 
+
+
 `, siteName, siteSlug, name, slug)
+
 }
 
 func TestAccConsistency_Location(t *testing.T) {
@@ -613,28 +747,49 @@ func TestAccConsistency_Location(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccLocationConsistencyConfig(locationName, locationSlug, siteName, siteSlug, tenantName, tenantSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name = "%[3]s"
+
   slug = "%[4]s"
+
 }
+
+
 
 resource "netbox_tenant" "test" {
+
   name = "%[5]s"
+
   slug = "%[6]s"
+
 }
+
+
 
 resource "netbox_location" "test" {
+
   name = "%[1]s"
+
   slug = "%[2]s"
+
   site = netbox_site.test.name
+
   tenant = netbox_tenant.test.name
+
 }
 
+
+
 `, locationName, locationSlug, siteName, siteSlug, tenantName, tenantSlug)
+
 }

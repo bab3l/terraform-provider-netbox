@@ -24,7 +24,9 @@ func TestInterfaceResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil interface resource")
+
 	}
+
 }
 
 func TestInterfaceResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestInterfaceResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Required attributes
@@ -58,7 +62,9 @@ func TestInterfaceResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Computed attributes
@@ -70,7 +76,9 @@ func TestInterfaceResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Optional attributes
@@ -89,8 +97,11 @@ func TestInterfaceResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestInterfaceResourceMetadata(t *testing.T) {
@@ -113,7 +124,9 @@ func TestInterfaceResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestInterfaceResourceConfigure(t *testing.T) {
@@ -136,6 +149,7 @@ func TestInterfaceResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with correct provider data type
@@ -151,6 +165,7 @@ func TestInterfaceResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with incorrect provider data type
@@ -164,7 +179,9 @@ func TestInterfaceResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccInterfaceResource_basic(t *testing.T) {
@@ -261,6 +278,7 @@ func TestAccInterfaceResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccInterfaceResource_full(t *testing.T) {
@@ -365,6 +383,7 @@ func TestAccInterfaceResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccInterfaceResource_update(t *testing.T) {
@@ -480,6 +499,7 @@ func TestAccInterfaceResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccInterfaceResourceConfig_basic(
@@ -498,44 +518,82 @@ func testAccInterfaceResourceConfig_basic(
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %[3]q
+
   slug         = %[4]q
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name = %[5]q
+
   slug = %[6]q
+
 }
+
+
 
 resource "netbox_site" "test" {
+
   name = %[7]q
+
   slug = %[8]q
+
 }
+
+
 
 resource "netbox_device" "test" {
+
   name        = %[9]q
 
+
+
   device_type = netbox_device_type.test.id
+
   role        = netbox_device_role.test.id
+
   site        = netbox_site.test.id
+
 }
 
+
+
 resource "netbox_interface" "test" {
+
   device = netbox_device.test.id
+
   name   = %[10]q
+
   type   = "1000base-t"
+
 }
+
+
 
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug,
 
 		deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, interfaceName)
+
 }
 
 func testAccInterfaceResourceConfig_full(
@@ -554,48 +612,90 @@ func testAccInterfaceResourceConfig_full(
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %[3]q
+
   slug         = %[4]q
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name = %[5]q
+
   slug = %[6]q
+
 }
+
+
 
 resource "netbox_site" "test" {
+
   name = %[7]q
+
   slug = %[8]q
+
 }
+
+
 
 resource "netbox_device" "test" {
+
   name        = %[9]q
 
+
+
   device_type = netbox_device_type.test.id
+
   role        = netbox_device_role.test.id
+
   site        = netbox_site.test.id
+
 }
 
+
+
 resource "netbox_interface" "test" {
+
   device       = netbox_device.test.id
+
   name         = %[10]q
+
   type         = "1000base-t"
+
   description  = %[11]q
+
   enabled      = true
+
   mtu          = 1500
+
   mgmt_only    = false
+
 }
+
+
 
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug,
 
 		deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, interfaceName, description)
+
 }
 
 func TestAccInterfaceResource_import(t *testing.T) {
@@ -703,6 +803,7 @@ func TestAccInterfaceResource_import(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccInterfaceResourceConfig_import(
@@ -721,40 +822,77 @@ func testAccInterfaceResourceConfig_import(
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %[3]q
+
   slug         = %[4]q
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name = %[5]q
+
   slug = %[6]q
+
 }
+
+
 
 resource "netbox_site" "test" {
+
   name = %[7]q
+
   slug = %[8]q
+
 }
+
+
 
 resource "netbox_device" "test" {
+
   name        = %[9]q
 
+
+
   device_type = netbox_device_type.test.id
+
   role        = netbox_device_role.test.id
+
   site        = netbox_site.test.id
+
 }
 
+
+
 resource "netbox_interface" "test" {
+
   device = netbox_device.test.name
+
   name   = %[10]q
+
   type   = "1000base-t"
+
 }
+
+
 
 `, manufacturerName, manufacturerSlug,
 
@@ -765,6 +903,7 @@ resource "netbox_interface" "test" {
 		siteName, siteSlug,
 
 		deviceName, interfaceName)
+
 }
 
 func TestAccConsistency_Interface(t *testing.T) {
@@ -819,46 +958,85 @@ func TestAccConsistency_Interface(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccInterfaceConsistencyConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = "%[4]s"
+
   slug = "%[5]s"
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   model = "%[2]s"
+
   slug = "%[3]s"
+
   manufacturer = netbox_manufacturer.test.id
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name = "%[6]s"
+
   slug = "%[7]s"
+
 }
+
+
 
 resource "netbox_site" "test" {
+
   name = "%[8]s"
+
   slug = "%[9]s"
+
 }
+
+
 
 resource "netbox_device" "test" {
+
   name = "%[1]s"
 
+
+
   device_type = netbox_device_type.test.id
+
   role = netbox_device_role.test.id
+
   site = netbox_site.test.id
+
 }
+
+
 
 resource "netbox_interface" "test" {
+
   device = netbox_device.test.name
+
   name = "%[10]s"
+
   type = "1000base-t"
+
 }
 
+
+
 `, deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName)
+
 }

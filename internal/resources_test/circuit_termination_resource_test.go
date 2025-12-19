@@ -24,7 +24,9 @@ func TestCircuitTerminationResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil CircuitTermination resource")
+
 	}
+
 }
 
 func TestCircuitTerminationResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestCircuitTerminationResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"circuit", "term_side"}
@@ -56,7 +60,9 @@ func TestCircuitTerminationResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestCircuitTerminationResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"site", "provider_network", "port_speed", "upstream_speed", "xconnect_id", "pp_info", "description", "mark_connected", "tags", "custom_fields"}
@@ -76,8 +84,11 @@ func TestCircuitTerminationResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestCircuitTerminationResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestCircuitTerminationResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestCircuitTerminationResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestCircuitTerminationResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestCircuitTerminationResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestCircuitTerminationResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccCircuitTerminationResource_basic(t *testing.T) {
@@ -209,6 +226,7 @@ func TestAccCircuitTerminationResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccCircuitTerminationResource_full(t *testing.T) {
@@ -281,85 +299,157 @@ func TestAccCircuitTerminationResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccCircuitTerminationResourceConfig_basic(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_provider" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_circuit_type" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_circuit" "test" {
 
+
+
   cid              = %q
 
+
+
   circuit_provider = netbox_provider.test.id
+
   type             = netbox_circuit_type.test.id
+
 }
+
+
 
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_circuit_termination" "test" {
+
   circuit   = netbox_circuit.test.id
 
+
+
   term_side = "A"
+
   site      = netbox_site.test.id
+
 }
 
+
+
 `, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug)
+
 }
 
 func testAccCircuitTerminationResourceConfig_full(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, description string, portSpeed int) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_provider" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_circuit_type" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_circuit" "test" {
 
+
+
   cid              = %q
 
+
+
   circuit_provider = netbox_provider.test.id
+
   type             = netbox_circuit_type.test.id
+
 }
+
+
 
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_circuit_termination" "test" {
+
   circuit     = netbox_circuit.test.id
 
+
+
   term_side   = "A"
+
   site        = netbox_site.test.id
 
+
+
   port_speed  = %d
+
   description = %q
+
 }
 
+
+
 `, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, portSpeed, description)
+
 }
 
 func TestAccCircuitTerminationResource_import(t *testing.T) {
@@ -423,6 +513,7 @@ func TestAccCircuitTerminationResource_import(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccConsistency_CircuitTermination(t *testing.T) {
@@ -471,41 +562,75 @@ func TestAccConsistency_CircuitTermination(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccCircuitTerminationConsistencyConfig(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, siteName, siteSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_provider" "test" {
+
   name = "%[1]s"
+
   slug = "%[2]s"
+
 }
 
+
+
 resource "netbox_circuit_type" "test" {
+
   name = "%[3]s"
+
   slug = "%[4]s"
+
 }
+
+
 
 resource "netbox_circuit" "test" {
 
+
+
   cid = "%[5]s"
 
+
+
   circuit_provider = netbox_provider.test.id
+
   type = netbox_circuit_type.test.slug
+
 }
+
+
 
 resource "netbox_site" "test" {
+
   name = "%[6]s"
+
   slug = "%[7]s"
+
 }
+
+
 
 resource "netbox_circuit_termination" "test" {
+
   circuit = netbox_circuit.test.cid
 
+
+
   term_side = "A"
+
   site = netbox_site.test.name
+
 }
 
+
+
 `, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, siteName, siteSlug)
+
 }

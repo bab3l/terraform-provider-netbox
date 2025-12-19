@@ -24,7 +24,9 @@ func TestDeviceResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil device resource")
+
 	}
+
 }
 
 func TestDeviceResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestDeviceResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"device_type", "role", "site"}
@@ -56,7 +60,9 @@ func TestDeviceResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestDeviceResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"name", "tenant", "platform", "serial", "asset_tag", "location", "rack", "position", "face", "latitude", "longitude", "status", "airflow", "vc_position", "vc_priority", "description", "comments"}
@@ -76,8 +84,11 @@ func TestDeviceResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestDeviceResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestDeviceResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestDeviceResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestDeviceResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestDeviceResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestDeviceResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccDeviceResource_basic(t *testing.T) {
@@ -242,6 +259,7 @@ func TestAccDeviceResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccDeviceResource_full(t *testing.T) {
@@ -337,6 +355,7 @@ func TestAccDeviceResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccDeviceResource_update(t *testing.T) {
@@ -430,6 +449,7 @@ func TestAccDeviceResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 // Helper functions to generate test configurations
@@ -438,118 +458,224 @@ func testAccDeviceResourceConfig_basic(deviceName, manufacturerName, manufacture
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.slug
+
   model        = %[3]q
+
   slug         = %[4]q
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name = %[5]q
+
   slug = %[6]q
+
 }
+
+
 
 resource "netbox_site" "test" {
+
   name   = %[7]q
+
   slug   = %[8]q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_device" "test" {
+
   name        = %[9]q
 
+
+
   device_type = netbox_device_type.test.slug
+
   role        = netbox_device_role.test.slug
+
   site        = netbox_site.test.slug
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName)
+
 }
 
 func testAccDeviceResourceConfig_full(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, serial, assetTag string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.slug
+
   model        = %[3]q
+
   slug         = %[4]q
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name = %[5]q
+
   slug = %[6]q
+
 }
+
+
 
 resource "netbox_site" "test" {
+
   name   = %[7]q
+
   slug   = %[8]q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_device" "test" {
+
   name        = %[9]q
 
+
+
   device_type = netbox_device_type.test.slug
+
   role        = netbox_device_role.test.slug
+
   site        = netbox_site.test.slug
+
   status      = "planned"
+
   serial      = %[10]q
+
   asset_tag   = %[11]q
+
   description = "Test device description"
+
   comments    = "Test device comments"
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, serial, assetTag)
+
 }
 
 func testAccDeviceResourceConfig_updated(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.slug
+
   model        = %[3]q
+
   slug         = %[4]q
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name = %[5]q
+
   slug = %[6]q
+
 }
+
+
 
 resource "netbox_site" "test" {
+
   name   = %[7]q
+
   slug   = %[8]q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_device" "test" {
+
   name        = %[9]q
 
+
+
   device_type = netbox_device_type.test.slug
+
   role        = netbox_device_role.test.slug
+
   site        = netbox_site.test.slug
+
   status      = "staged"
+
   description = "Updated description"
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName)
+
 }
 
 func TestAccConsistency_Device(t *testing.T) {
@@ -612,46 +738,85 @@ func TestAccConsistency_Device(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccDeviceConsistencyConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, tenantName, tenantSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = "%[4]s"
+
   slug = "%[5]s"
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   model = "%[2]s"
+
   slug = "%[3]s"
+
   manufacturer = netbox_manufacturer.test.id
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name = "%[6]s"
+
   slug = "%[7]s"
+
 }
+
+
 
 resource "netbox_site" "test" {
+
   name = "%[8]s"
+
   slug = "%[9]s"
+
 }
+
+
 
 resource "netbox_tenant" "test" {
+
   name = "%[10]s"
+
   slug = "%[11]s"
+
 }
+
+
 
 resource "netbox_device" "test" {
+
   name = "%[1]s"
 
+
+
   device_type = netbox_device_type.test.slug
+
   role = netbox_device_role.test.slug
+
   site = netbox_site.test.name
+
   tenant = netbox_tenant.test.name
+
 }
 
+
+
 `, deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, tenantName, tenantSlug)
+
 }

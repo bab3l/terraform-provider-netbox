@@ -24,7 +24,9 @@ func TestVirtualMachineResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil Virtual Machine resource")
+
 	}
+
 }
 
 func TestVirtualMachineResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestVirtualMachineResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"name"}
@@ -56,7 +60,9 @@ func TestVirtualMachineResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestVirtualMachineResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"status", "cluster", "vcpus", "memory", "disk", "description", "comments"}
@@ -76,8 +84,11 @@ func TestVirtualMachineResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestVirtualMachineResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestVirtualMachineResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestVirtualMachineResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestVirtualMachineResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestVirtualMachineResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestVirtualMachineResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccVirtualMachineResource_basic(t *testing.T) {
@@ -199,6 +216,7 @@ func TestAccVirtualMachineResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccVirtualMachineResource_full(t *testing.T) {
@@ -268,6 +286,7 @@ func TestAccVirtualMachineResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccVirtualMachineResource_update(t *testing.T) {
@@ -335,56 +354,99 @@ func TestAccVirtualMachineResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccVirtualMachineResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_cluster_type" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_cluster" "test" {
+
   name = %q
+
   type = netbox_cluster_type.test.slug
+
 }
+
+
 
 resource "netbox_virtual_machine" "test" {
+
   name    = %q
+
   cluster = netbox_cluster.test.name
+
 }
 
+
+
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName)
+
 }
 
 func testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_cluster_type" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_cluster" "test" {
+
   name = %q
+
   type = netbox_cluster_type.test.slug
+
 }
+
+
 
 resource "netbox_virtual_machine" "test" {
+
   name        = %q
+
   cluster     = netbox_cluster.test.name
+
   status      = "active"
+
   vcpus       = 2
+
   memory      = 2048
+
   disk        = 50
+
   description = %q
+
   comments    = %q
+
 }
 
+
+
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments)
+
 }
 
 func TestAccVirtualMachineResource_import(t *testing.T) {
@@ -449,6 +511,7 @@ func TestAccVirtualMachineResource_import(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccConsistency_VirtualMachine(t *testing.T) {
@@ -521,56 +584,105 @@ func TestAccConsistency_VirtualMachine(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccVirtualMachineConsistencyConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, siteName, siteSlug, tenantName, tenantSlug, platformName, platformSlug, manufacturerName, manufacturerSlug, roleName, roleSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_cluster_type" "test" {
+
   name = "%[3]s"
+
   slug = "%[4]s"
+
 }
+
+
 
 resource "netbox_cluster" "test" {
+
   name = "%[2]s"
+
   type = netbox_cluster_type.test.id
+
 }
+
+
 
 resource "netbox_site" "test" {
+
   name = "%[5]s"
+
   slug = "%[6]s"
+
 }
+
+
 
 resource "netbox_tenant" "test" {
+
   name = "%[7]s"
+
   slug = "%[8]s"
+
 }
+
+
 
 resource "netbox_manufacturer" "test" {
+
   name = "%[11]s"
+
   slug = "%[12]s"
+
 }
+
+
 
 resource "netbox_platform" "test" {
+
   name = "%[9]s"
+
   slug = "%[10]s"
+
   manufacturer = netbox_manufacturer.test.id
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name = "%[13]s"
+
   slug = "%[14]s"
+
 }
+
+
 
 resource "netbox_virtual_machine" "test" {
+
   name = "%[1]s"
+
   cluster = netbox_cluster.test.name
+
   site = netbox_site.test.name
+
   tenant = netbox_tenant.test.name
+
   platform = netbox_platform.test.name
+
   role = netbox_device_role.test.name
+
 }
 
+
+
 `, vmName, clusterName, clusterTypeName, clusterTypeSlug, siteName, siteSlug, tenantName, tenantSlug, platformName, platformSlug, manufacturerName, manufacturerSlug, roleName, roleSlug)
+
 }

@@ -24,7 +24,9 @@ func TestClusterTypeResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil Cluster Type resource")
+
 	}
+
 }
 
 func TestClusterTypeResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestClusterTypeResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"name", "slug"}
@@ -56,7 +60,9 @@ func TestClusterTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestClusterTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"description"}
@@ -76,8 +84,11 @@ func TestClusterTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestClusterTypeResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestClusterTypeResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestClusterTypeResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestClusterTypeResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestClusterTypeResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestClusterTypeResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccClusterTypeResource_basic(t *testing.T) {
@@ -186,6 +203,7 @@ func TestAccClusterTypeResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccClusterTypeResource_full(t *testing.T) {
@@ -230,6 +248,7 @@ func TestAccClusterTypeResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccClusterTypeResource_update(t *testing.T) {
@@ -280,60 +299,97 @@ func TestAccClusterTypeResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccClusterTypeResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_cluster_type" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func testAccClusterTypeResourceConfig_full(name, slug, description string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_cluster_type" "test" {
+
   name        = %q
+
   slug        = %q
+
   description = %q
+
 }
 
+
+
 `, name, slug, description)
+
 }
 
 func TestAccClusterTypeResource_import(t *testing.T) {
+
 	name := testutil.RandomName("tf-test-cluster-type-import")
+
 	slug := testutil.RandomSlug("tf-test-cluster-type-import")
 
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterClusterTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.CheckClusterTypeDestroy,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccClusterTypeResourceConfig_basic(name, slug),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_cluster_type.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_cluster_type.test", "name", name),
+
 					resource.TestCheckResourceAttr("netbox_cluster_type.test", "slug", slug),
 				),
 			},
+
 			{
-				ResourceName:      "netbox_cluster_type.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_cluster_type.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
 			},
 		},
 	})
+
 }

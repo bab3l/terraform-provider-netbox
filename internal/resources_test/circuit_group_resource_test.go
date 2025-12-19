@@ -24,7 +24,9 @@ func TestCircuitGroupResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil CircuitGroup resource")
+
 	}
+
 }
 
 func TestCircuitGroupResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestCircuitGroupResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Required attributes
@@ -58,7 +62,9 @@ func TestCircuitGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Computed attributes
@@ -70,7 +76,9 @@ func TestCircuitGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Optional attributes
@@ -82,8 +90,11 @@ func TestCircuitGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestCircuitGroupResourceMetadata(t *testing.T) {
@@ -106,7 +117,9 @@ func TestCircuitGroupResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestCircuitGroupResourceConfigure(t *testing.T) {
@@ -122,6 +135,7 @@ func TestCircuitGroupResourceConfigure(t *testing.T) {
 	if !ok {
 
 		t.Fatal("Resource does not implement ResourceWithConfigure")
+
 	}
 
 	configureRequest := fwresource.ConfigureRequest{
@@ -136,6 +150,7 @@ func TestCircuitGroupResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -147,7 +162,9 @@ func TestCircuitGroupResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with valid client, got: %+v", configureResponse.Diagnostics)
+
 	}
+
 }
 
 // Acceptance Tests
@@ -194,6 +211,7 @@ func TestAccCircuitGroupResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccCircuitGroupResource_full(t *testing.T) {
@@ -242,6 +260,7 @@ func TestAccCircuitGroupResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccCircuitGroupResource_update(t *testing.T) {
@@ -296,6 +315,7 @@ func TestAccCircuitGroupResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccCircuitGroupResource_import(t *testing.T) {
@@ -340,29 +360,47 @@ func TestAccCircuitGroupResource_import(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccCircuitGroupResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_circuit_group" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func testAccCircuitGroupResourceConfig_full(name, slug, description string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_circuit_group" "test" {
+
   name        = %[1]q
+
   slug        = %[2]q
+
   description = %[3]q
+
 }
 
+
+
 `, name, slug, description)
+
 }

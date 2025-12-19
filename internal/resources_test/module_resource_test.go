@@ -24,7 +24,9 @@ func TestModuleResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil Module resource")
+
 	}
+
 }
 
 func TestModuleResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestModuleResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"device", "module_bay", "module_type"}
@@ -56,7 +60,9 @@ func TestModuleResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id", "status"}
@@ -66,7 +72,9 @@ func TestModuleResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"serial", "asset_tag", "description", "comments", "tags", "custom_fields"}
@@ -76,8 +84,11 @@ func TestModuleResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestModuleResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestModuleResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestModuleResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestModuleResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestModuleResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestModuleResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccModuleResource_basic(t *testing.T) {
@@ -223,6 +240,7 @@ func TestAccModuleResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccModuleResource_full(t *testing.T) {
@@ -303,117 +321,223 @@ func TestAccModuleResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name  = %q
+
   slug  = %q
+
   color = "aa1409"
+
 }
+
+
 
 resource "netbox_device" "test" {
+
   name        = %q
 
+
+
   device_type = netbox_device_type.test.id
+
   role        = netbox_device_role.test.id
+
   site        = netbox_site.test.id
+
 }
+
+
 
 resource "netbox_module_bay" "test" {
+
   device = netbox_device.test.id
+
   name   = %q
+
 }
+
+
 
 resource "netbox_module_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
 }
+
+
 
 resource "netbox_module" "test" {
+
   device      = netbox_device.test.id
 
+
+
   module_bay  = netbox_module_bay.test.id
+
   module_type = netbox_module_type.test.id
+
 }
 
+
+
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel)
+
 }
 
 func testAccModuleResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name  = %q
+
   slug  = %q
+
   color = "aa1409"
+
 }
+
+
 
 resource "netbox_device" "test" {
+
   name        = %q
 
+
+
   device_type = netbox_device_type.test.id
+
   role        = netbox_device_role.test.id
+
   site        = netbox_site.test.id
+
 }
+
+
 
 resource "netbox_module_bay" "test" {
+
   device = netbox_device.test.id
+
   name   = %q
+
 }
+
+
 
 resource "netbox_module_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
 }
+
+
 
 resource "netbox_module" "test" {
+
   device      = netbox_device.test.id
 
+
+
   module_bay  = netbox_module_bay.test.id
+
   module_type = netbox_module_type.test.id
+
   status      = "active"
+
   serial      = "SN123456"
+
   description = %q
+
 }
 
+
+
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description)
+
 }

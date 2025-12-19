@@ -24,7 +24,9 @@ func TestPowerOutletResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil PowerOutlet resource")
+
 	}
+
 }
 
 func TestPowerOutletResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestPowerOutletResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"device", "name"}
@@ -56,7 +60,9 @@ func TestPowerOutletResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestPowerOutletResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"label", "type", "power_port", "feed_leg", "description", "mark_connected", "tags", "custom_fields"}
@@ -76,8 +84,11 @@ func TestPowerOutletResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestPowerOutletResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestPowerOutletResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestPowerOutletResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestPowerOutletResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestPowerOutletResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestPowerOutletResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccPowerOutletResource_basic(t *testing.T) {
@@ -217,6 +234,7 @@ func TestAccPowerOutletResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccPowerOutletResource_full(t *testing.T) {
@@ -295,94 +313,175 @@ func TestAccPowerOutletResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccPowerOutletResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name  = %q
+
   slug  = %q
+
   color = "aa1409"
+
 }
+
+
 
 resource "netbox_device" "test" {
+
   name        = %q
 
+
+
   device_type = netbox_device_type.test.id
+
   role        = netbox_device_role.test.id
+
   site        = netbox_site.test.id
+
 }
+
+
 
 resource "netbox_power_outlet" "test" {
+
   device = netbox_device.test.id
+
   name   = %q
+
 }
 
+
+
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName)
+
 }
 
 func testAccPowerOutletResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, description string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name  = %q
+
   slug  = %q
+
   color = "aa1409"
+
 }
+
+
 
 resource "netbox_device" "test" {
+
   name        = %q
+
+
 
   device_type = netbox_device_type.test.id
+
   role        = netbox_device_role.test.id
+
   site        = netbox_site.test.id
+
 }
+
+
 
 resource "netbox_power_outlet" "test" {
+
   device      = netbox_device.test.id
+
   name        = %q
+
   type        = "iec-60320-c13"
+
   description = %q
+
 }
 
+
+
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, description)
+
 }
 
 func TestAccConsistency_PowerOutlet(t *testing.T) {
@@ -435,46 +534,85 @@ func TestAccConsistency_PowerOutlet(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccPowerOutletConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, powerOutletName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name = "%[1]s"
+
   slug = "%[2]s"
+
 }
+
+
 
 resource "netbox_manufacturer" "test" {
+
   name = "%[3]s"
+
   slug = "%[4]s"
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   model = "%[5]s"
+
   slug = "%[6]s"
+
   manufacturer = netbox_manufacturer.test.id
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name = "%[7]s"
+
   slug = "%[8]s"
+
 }
+
+
 
 resource "netbox_device" "test" {
+
   name = "%[9]s"
 
+
+
   device_type = netbox_device_type.test.id
+
   role = netbox_device_role.test.id
+
   site = netbox_site.test.id
+
 }
+
+
 
 resource "netbox_power_outlet" "test" {
+
   device = netbox_device.test.name
+
   name = "%[10]s"
+
   type = "iec-60320-c13"
+
 }
 
+
+
 `, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, powerOutletName)
+
 }

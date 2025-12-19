@@ -24,7 +24,9 @@ func TestInventoryItemTemplateResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil InventoryItemTemplate resource")
+
 	}
+
 }
 
 func TestInventoryItemTemplateResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestInventoryItemTemplateResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"device_type", "name"}
@@ -56,7 +60,9 @@ func TestInventoryItemTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestInventoryItemTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"parent", "label", "role", "manufacturer", "part_id", "description", "component_type", "component_id"}
@@ -76,8 +84,11 @@ func TestInventoryItemTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestInventoryItemTemplateResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestInventoryItemTemplateResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestInventoryItemTemplateResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestInventoryItemTemplateResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestInventoryItemTemplateResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestInventoryItemTemplateResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccInventoryItemTemplateResource_basic(t *testing.T) {
@@ -205,6 +222,7 @@ func TestAccInventoryItemTemplateResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccInventoryItemTemplateResource_full(t *testing.T) {
@@ -263,6 +281,7 @@ func TestAccInventoryItemTemplateResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccInventoryItemTemplateResource_update(t *testing.T) {
@@ -323,6 +342,7 @@ func TestAccInventoryItemTemplateResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccInventoryItemTemplateResource_withParent(t *testing.T) {
@@ -377,32 +397,55 @@ func TestAccInventoryItemTemplateResource_withParent(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccInventoryItemTemplateResourceConfig_basic(mfgName, mfgSlug, dtModel, dtSlug, templateName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 provider "netbox" {}
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   model        = %[3]q
+
   slug         = %[4]q
+
   manufacturer = netbox_manufacturer.test.id
+
 }
+
+
 
 resource "netbox_inventory_item_template" "test" {
+
   name        = %[5]q
 
+
+
   device_type = netbox_device_type.test.id
+
 }
 
+
+
 `, mfgName, mfgSlug, dtModel, dtSlug, templateName)
+
 }
 
 func testAccInventoryItemTemplateResourceConfig_full(mfgName, mfgSlug, dtModel, dtSlug, templateName, label, partID, description string) string {
@@ -412,6 +455,7 @@ func testAccInventoryItemTemplateResourceConfig_full(mfgName, mfgSlug, dtModel, 
 	if label != "" {
 
 		labelAttr = fmt.Sprintf(`label       = %q`, label)
+
 	}
 
 	partIDAttr := ""
@@ -419,6 +463,7 @@ func testAccInventoryItemTemplateResourceConfig_full(mfgName, mfgSlug, dtModel, 
 	if partID != "" {
 
 		partIDAttr = fmt.Sprintf(`part_id     = %q`, partID)
+
 	}
 
 	descAttr := ""
@@ -426,67 +471,125 @@ func testAccInventoryItemTemplateResourceConfig_full(mfgName, mfgSlug, dtModel, 
 	if description != "" {
 
 		descAttr = fmt.Sprintf(`description = %q`, description)
+
 	}
 
 	return fmt.Sprintf(`
 
+
+
 provider "netbox" {}
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   model        = %[3]q
+
   slug         = %[4]q
+
   manufacturer = netbox_manufacturer.test.id
+
 }
 
+
+
 resource "netbox_inventory_item_template" "test" {
+
   name        = %[5]q
+
+
 
   device_type = netbox_device_type.test.id
 
+
+
   %[6]s
+
+
 
   %[7]s
 
+
+
   %[8]s
+
 }
 
+
+
 `, mfgName, mfgSlug, dtModel, dtSlug, templateName, labelAttr, partIDAttr, descAttr)
+
 }
 
 func testAccInventoryItemTemplateResourceConfig_withParent(mfgName, mfgSlug, dtModel, dtSlug, parentName, childName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 provider "netbox" {}
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   model        = %[3]q
+
   slug         = %[4]q
+
   manufacturer = netbox_manufacturer.test.id
+
 }
+
+
 
 resource "netbox_inventory_item_template" "parent" {
+
   name        = %[5]q
 
+
+
   device_type = netbox_device_type.test.id
+
 }
+
+
 
 resource "netbox_inventory_item_template" "child" {
+
   name        = %[6]q
 
+
+
   device_type = netbox_device_type.test.id
+
   parent      = netbox_inventory_item_template.parent.id
+
 }
 
+
+
 `, mfgName, mfgSlug, dtModel, dtSlug, parentName, childName)
+
 }

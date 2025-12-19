@@ -25,7 +25,9 @@ func TestASNResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil ASN resource")
+
 	}
+
 }
 
 func TestASNResourceSchema(t *testing.T) {
@@ -43,11 +45,13 @@ func TestASNResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"asn"}
@@ -57,7 +61,9 @@ func TestASNResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -67,7 +73,9 @@ func TestASNResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"rir", "tenant", "description", "comments", "tags", "custom_fields"}
@@ -77,8 +85,11 @@ func TestASNResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestASNResourceMetadata(t *testing.T) {
@@ -101,7 +112,9 @@ func TestASNResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestASNResourceConfigure(t *testing.T) {
@@ -122,6 +135,7 @@ func TestASNResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -135,6 +149,7 @@ func TestASNResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -146,7 +161,9 @@ func TestASNResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccASNResource_basic(t *testing.T) {
@@ -194,6 +211,7 @@ func TestAccASNResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccASNResource_full(t *testing.T) {
@@ -250,42 +268,71 @@ func TestAccASNResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccASNResourceConfig_basic(rirName, rirSlug string, asn int64) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rir" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_asn" "test" {
+
   asn = %d
+
   rir = netbox_rir.test.id
+
 }
 
+
+
 `, rirName, rirSlug, asn)
+
 }
 
 func testAccASNResourceConfig_full(rirName, rirSlug string, asn int64, description, comments string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rir" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_asn" "test" {
+
   asn         = %d
+
   rir         = netbox_rir.test.id
+
   description = %q
+
   comments    = %q
+
 }
 
+
+
 `, rirName, rirSlug, asn, description, comments)
+
 }
 
 func TestAccConsistency_ASN(t *testing.T) {
@@ -332,27 +379,47 @@ func TestAccConsistency_ASN(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccASNConsistencyConfig(asn int64, rirName, rirSlug, tenantName, tenantSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rir" "test" {
+
   name = "%[2]s"
+
   slug = "%[3]s"
+
 }
+
+
 
 resource "netbox_tenant" "test" {
+
   name = "%[4]s"
+
   slug = "%[5]s"
+
 }
+
+
 
 resource "netbox_asn" "test" {
+
   asn = %[1]d
+
   rir = netbox_rir.test.slug
+
   tenant = netbox_tenant.test.name
+
 }
 
+
+
 `, asn, rirName, rirSlug, tenantName, tenantSlug)
+
 }

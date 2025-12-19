@@ -24,7 +24,9 @@ func TestDeviceTypeResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil device type resource")
+
 	}
+
 }
 
 func TestDeviceTypeResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestDeviceTypeResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"manufacturer", "model", "slug"}
@@ -56,7 +60,9 @@ func TestDeviceTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestDeviceTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"default_platform", "part_number", "u_height", "exclude_from_utilization", "is_full_depth", "subdevice_role", "airflow", "weight", "weight_unit", "description", "comments"}
@@ -76,8 +84,11 @@ func TestDeviceTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestDeviceTypeResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestDeviceTypeResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestDeviceTypeResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestDeviceTypeResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestDeviceTypeResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestDeviceTypeResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccDeviceTypeResource_basic(t *testing.T) {
@@ -205,6 +222,7 @@ func TestAccDeviceTypeResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccDeviceTypeResource_full(t *testing.T) {
@@ -276,6 +294,7 @@ func TestAccDeviceTypeResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccDeviceTypeResource_update(t *testing.T) {
@@ -351,6 +370,7 @@ func TestAccDeviceTypeResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 // Test config helper functions
@@ -359,115 +379,205 @@ func testAccDeviceTypeResourceConfig_basic(model, slug, manufacturerName, manufa
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.slug
+
   model        = %q
+
   slug         = %q
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, model, slug)
+
 }
 
 func testAccDeviceTypeResourceConfig_full(model, slug, manufacturerName, manufacturerSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer             = netbox_manufacturer.test.slug
+
   model                    = %q
+
   slug                     = %q
+
   part_number              = "TEST-PART-001"
+
   u_height                 = 2
 
+
+
   exclude_from_utilization = false
+
   is_full_depth            = true
+
   airflow                  = "front-to-rear"
+
   description              = "Test device type with full options"
+
   comments                 = "Test comments for device type"
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, model, slug)
+
 }
 
 func testAccDeviceTypeResourceConfig_updated(model, slug, manufacturerName, manufacturerSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.slug
+
   model        = %q
+
   slug         = %q
+
   u_height     = 4
+
   description  = "Updated description"
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, model, slug)
+
 }
 
 func TestAccDeviceTypeResource_import(t *testing.T) {
+
 	model := testutil.RandomName("tf-test-dt-import")
+
 	slug := testutil.RandomSlug("tf-test-dt-import")
+
 	manufacturerName := testutil.RandomName("tf-test-mfr-import")
+
 	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-import")
 
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterDeviceTypeCleanup(slug)
+
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.ComposeCheckDestroy(
+
 			testutil.CheckDeviceTypeDestroy,
+
 			testutil.CheckManufacturerDestroy,
 		),
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccDeviceTypeResourceConfig_import(model, slug, manufacturerName, manufacturerSlug),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_device_type.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_device_type.test", "model", model),
+
 					resource.TestCheckResourceAttr("netbox_device_type.test", "slug", slug),
 				),
 			},
+
 			{
-				ResourceName:            "netbox_device_type.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
+
+				ResourceName: "netbox_device_type.test",
+
+				ImportState: true,
+
+				ImportStateVerify: true,
+
 				ImportStateVerifyIgnore: []string{"manufacturer"},
 			},
 		},
 	})
+
 }
 
 func testAccDeviceTypeResourceConfig_import(model, slug, manufacturerName, manufacturerSlug string) string {
+
 	return fmt.Sprintf(`
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   model        = %q
+
   slug         = %q
+
   manufacturer = netbox_manufacturer.test.slug
+
 }
+
 `, manufacturerName, manufacturerSlug, model, slug)
+
 }

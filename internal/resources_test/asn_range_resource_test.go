@@ -24,7 +24,9 @@ func TestASNRangeResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil ASNRange resource")
+
 	}
+
 }
 
 func TestASNRangeResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestASNRangeResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"name", "slug", "rir", "start", "end"}
@@ -56,7 +60,9 @@ func TestASNRangeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestASNRangeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"tenant", "description", "tags", "custom_fields"}
@@ -76,8 +84,11 @@ func TestASNRangeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestASNRangeResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestASNRangeResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestASNRangeResourceConfigure(t *testing.T) {
@@ -116,6 +129,7 @@ func TestASNRangeResourceConfigure(t *testing.T) {
 	if !ok {
 
 		t.Fatal("Resource does not implement ResourceWithConfigure")
+
 	}
 
 	configureRequest := fwresource.ConfigureRequest{
@@ -130,6 +144,7 @@ func TestASNRangeResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -141,7 +156,9 @@ func TestASNRangeResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with valid client, got: %+v", configureResponse.Diagnostics)
+
 	}
+
 }
 
 // Acceptance Tests
@@ -205,6 +222,7 @@ func TestAccASNRangeResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccASNRangeResource_full(t *testing.T) {
@@ -278,6 +296,7 @@ func TestAccASNRangeResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccASNRangeResource_update(t *testing.T) {
@@ -353,74 +372,131 @@ func TestAccASNRangeResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccASNRangeResourceConfig_basic(name, slug, rirName, rirSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rir" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_asn_range" "test" {
+
   name  = %q
+
   slug  = %q
+
   rir   = netbox_rir.test.id
+
   start = "64512"
+
   end   = "64612"
+
 }
 
+
+
 `, rirName, rirSlug, name, slug)
+
 }
 
 func testAccASNRangeResourceConfig_full(name, slug, rirName, rirSlug, tenantName, tenantSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rir" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_tenant" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_asn_range" "test" {
+
   name        = %q
+
   slug        = %q
+
   rir         = netbox_rir.test.id
+
   start       = "65000"
+
   end         = "65100"
+
   tenant      = netbox_tenant.test.id
+
   description = "Test ASN range with full options"
+
 }
 
+
+
 `, rirName, rirSlug, tenantName, tenantSlug, name, slug)
+
 }
 
 func testAccASNRangeResourceConfig_updated(name, slug, rirName, rirSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rir" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_asn_range" "test" {
+
   name        = %q
+
   slug        = %q
+
   rir         = netbox_rir.test.id
+
   start       = "64512"
+
   end         = "64700"
+
   description = "Updated description"
+
 }
 
+
+
 `, rirName, rirSlug, name, slug)
+
 }
 
 func TestAccASNRangeResource_import(t *testing.T) {
@@ -493,6 +569,7 @@ func TestAccASNRangeResource_import(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccConsistency_ASNRange(t *testing.T) {
@@ -541,30 +618,53 @@ func TestAccConsistency_ASNRange(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccASNRangeConsistencyConfig(rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rir" "test" {
+
   name = "%[3]s"
+
   slug = "%[4]s"
+
 }
+
+
 
 resource "netbox_tenant" "test" {
+
   name = "%[5]s"
+
   slug = "%[6]s"
+
 }
+
+
 
 resource "netbox_asn_range" "test" {
+
   name = "%[1]s"
+
   slug = "%[2]s"
+
   rir = netbox_rir.test.slug
+
   tenant = netbox_tenant.test.name
+
   start = 65000
+
   end = 65100
+
 }
 
+
+
 `, rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug)
+
 }

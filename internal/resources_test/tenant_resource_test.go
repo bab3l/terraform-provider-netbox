@@ -24,7 +24,9 @@ func TestTenantResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil tenant resource")
+
 	}
+
 }
 
 func TestTenantResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestTenantResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"name", "slug"}
@@ -56,7 +60,9 @@ func TestTenantResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"group", "description", "tags", "custom_fields"}
@@ -66,7 +72,9 @@ func TestTenantResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -76,8 +84,11 @@ func TestTenantResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestTenantResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestTenantResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestTenantResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestTenantResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestTenantResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestTenantResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccTenantResource_basic(t *testing.T) {
@@ -190,6 +207,7 @@ func TestAccTenantResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccTenantResource_full(t *testing.T) {
@@ -238,6 +256,7 @@ func TestAccTenantResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccTenantResource_update(t *testing.T) {
@@ -294,6 +313,7 @@ func TestAccTenantResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 // testAccTenantResourceConfig_basic returns a basic test configuration.
@@ -302,27 +322,50 @@ func testAccTenantResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_tenant" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 `, name, slug)
+
 }
 
 // testAccTenantResourceConfig_full returns a test configuration with all fields.
@@ -331,28 +374,52 @@ func testAccTenantResourceConfig_full(name, slug, description string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_tenant" "test" {
+
   name        = %q
+
   slug        = %q
+
   description = %q
+
 }
 
+
+
 `, name, slug, description)
+
 }
 
 func TestAccTenantResource_import(t *testing.T) {
@@ -404,18 +471,27 @@ func TestAccTenantResource_import(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccTenantResourceConfig_import(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_tenant" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func TestAccConsistency_Tenant(t *testing.T) {
@@ -458,22 +534,37 @@ func TestAccConsistency_Tenant(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccTenantConsistencyConfig(tenantName, tenantSlug, groupName, groupSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_tenant_group" "test" {
+
   name = "%[3]s"
+
   slug = "%[4]s"
+
 }
+
+
 
 resource "netbox_tenant" "test" {
+
   name = "%[1]s"
+
   slug = "%[2]s"
+
   group = netbox_tenant_group.test.name
+
 }
 
+
+
 `, tenantName, tenantSlug, groupName, groupSlug)
+
 }

@@ -24,7 +24,9 @@ func TestContactAssignmentDataSource(t *testing.T) {
 	if ds == nil {
 
 		t.Fatal("Expected non-nil contact assignment data source")
+
 	}
+
 }
 
 func TestContactAssignmentDataSourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestContactAssignmentDataSourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Check lookup attributes
@@ -58,7 +62,9 @@ func TestContactAssignmentDataSourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected lookup attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check computed attributes
@@ -70,8 +76,11 @@ func TestContactAssignmentDataSourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestContactAssignmentDataSourceMetadata(t *testing.T) {
@@ -94,7 +103,9 @@ func TestContactAssignmentDataSourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestContactAssignmentDataSourceConfigure(t *testing.T) {
@@ -117,6 +128,7 @@ func TestContactAssignmentDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with correct provider data type
@@ -135,6 +147,7 @@ func TestContactAssignmentDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with wrong provider data type
@@ -151,7 +164,9 @@ func TestContactAssignmentDataSourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with wrong provider data type")
+
 	}
+
 }
 
 // Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
@@ -200,42 +215,77 @@ func TestAccContactAssignmentDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccContactAssignmentDataSourceConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name   = "%s-site"
+
   slug   = "%s-site"
+
   status = "active"
+
 }
+
+
 
 resource "netbox_contact" "test" {
+
   name  = "%s-contact"
 
+
+
   email = "test@example.com"
+
 }
+
+
 
 resource "netbox_contact_role" "test" {
+
   name = "%s-role"
+
   slug = "%s-role"
+
 }
 
+
+
 resource "netbox_contact_assignment" "test" {
+
   object_type = "dcim.site"
+
   object_id   = netbox_site.test.id
+
+
 
   contact_id  = netbox_contact.test.id
 
+
+
   role_id     = netbox_contact_role.test.id
+
 }
+
+
 
 data "netbox_contact_assignment" "test" {
 
+
+
   id = netbox_contact_assignment.test.id
+
 }
 
+
+
 `, name, slug, name, name, slug)
+
 }

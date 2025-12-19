@@ -24,7 +24,9 @@ func TestDeviceRoleResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil device role resource")
+
 	}
+
 }
 
 func TestDeviceRoleResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestDeviceRoleResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"name", "slug"}
@@ -56,7 +60,9 @@ func TestDeviceRoleResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestDeviceRoleResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"color", "vm_role", "description"}
@@ -76,8 +84,11 @@ func TestDeviceRoleResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestDeviceRoleResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestDeviceRoleResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestDeviceRoleResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestDeviceRoleResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestDeviceRoleResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestDeviceRoleResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccDeviceRoleResource_basic(t *testing.T) {
@@ -192,6 +209,7 @@ func TestAccDeviceRoleResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccDeviceRoleResource_full(t *testing.T) {
@@ -244,6 +262,7 @@ func TestAccDeviceRoleResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccDeviceRoleResource_update(t *testing.T) {
@@ -300,6 +319,7 @@ func TestAccDeviceRoleResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 // testAccDeviceRoleResourceConfig_basic returns a basic test configuration.
@@ -308,27 +328,50 @@ func testAccDeviceRoleResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_device_role" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 `, name, slug)
+
 }
 
 // testAccDeviceRoleResourceConfig_full returns a test configuration with all fields.
@@ -337,70 +380,124 @@ func testAccDeviceRoleResourceConfig_full(name, slug, description, color string,
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_device_role" "test" {
+
   name        = %q
+
   slug        = %q
+
   description = %q
+
   color       = %q
 
+
+
   vm_role     = %t
+
 }
 
+
+
 `, name, slug, description, color, vmRole)
+
 }
 
 func TestAccDeviceRoleResource_imp(t *testing.T) {
+
 	name := testutil.RandomName("tf-test-dr-import")
+
 	slug := testutil.RandomSlug("tf-test-dr-import")
 
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterDeviceRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.CheckDeviceRoleDestroy,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccDeviceRoleResourceConfig_import(name, slug),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_device_role.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_device_role.test", "name", name),
+
 					resource.TestCheckResourceAttr("netbox_device_role.test", "slug", slug),
 				),
 			},
+
 			{
-				ResourceName:      "netbox_device_role.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_device_role.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
 			},
 		},
 	})
+
 }
 
 func testAccDeviceRoleResourceConfig_import(name, slug string) string {
+
 	return fmt.Sprintf(`
+
 resource "netbox_device_role" "test" {
+
   name    = %q
+
   slug    = %q
+
   vm_role = true
+
 }
+
 `, name, slug)
+
 }

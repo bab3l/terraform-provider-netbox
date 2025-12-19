@@ -24,7 +24,9 @@ func TestCircuitTypeResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil CircuitType resource")
+
 	}
+
 }
 
 func TestCircuitTypeResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestCircuitTypeResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"name", "slug"}
@@ -56,7 +60,9 @@ func TestCircuitTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestCircuitTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"description", "color", "tags", "custom_fields"}
@@ -76,8 +84,11 @@ func TestCircuitTypeResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestCircuitTypeResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestCircuitTypeResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestCircuitTypeResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestCircuitTypeResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestCircuitTypeResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestCircuitTypeResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccCircuitTypeResource_basic(t *testing.T) {
@@ -186,6 +203,7 @@ func TestAccCircuitTypeResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccCircuitTypeResource_full(t *testing.T) {
@@ -234,6 +252,7 @@ func TestAccCircuitTypeResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccCircuitTypeResource_update(t *testing.T) {
@@ -282,61 +301,99 @@ func TestAccCircuitTypeResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccCircuitTypeResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_circuit_type" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func testAccCircuitTypeResourceConfig_full(name, slug, description, color string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_circuit_type" "test" {
+
   name        = %q
+
   slug        = %q
+
   description = %q
+
   color       = %q
+
 }
 
+
+
 `, name, slug, description, color)
+
 }
 
 func TestAccCircuitTypeResource_import(t *testing.T) {
+
 	name := testutil.RandomName("tf-test-circuit-type")
+
 	slug := testutil.RandomSlug("tf-test-circuit-type")
 
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterCircuitTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.CheckCircuitTypeDestroy,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccCircuitTypeResourceConfig_basic(name, slug),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_circuit_type.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_circuit_type.test", "name", name),
+
 					resource.TestCheckResourceAttr("netbox_circuit_type.test", "slug", slug),
 				),
 			},
+
 			{
-				ResourceName:      "netbox_circuit_type.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_circuit_type.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
 			},
 		},
 	})
+
 }

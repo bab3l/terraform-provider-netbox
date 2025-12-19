@@ -24,7 +24,9 @@ func TestPrefixResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil Prefix resource")
+
 	}
+
 }
 
 func TestPrefixResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestPrefixResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"prefix"}
@@ -56,7 +60,9 @@ func TestPrefixResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestPrefixResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"status", "site", "vrf", "tenant", "vlan", "role", "is_pool", "mark_utilized", "description", "comments"}
@@ -76,8 +84,11 @@ func TestPrefixResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestPrefixResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestPrefixResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestPrefixResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestPrefixResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestPrefixResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestPrefixResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccPrefixResource_basic(t *testing.T) {
@@ -182,6 +199,7 @@ func TestAccPrefixResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccPrefixResource_full(t *testing.T) {
@@ -226,6 +244,7 @@ func TestAccPrefixResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccPrefixResource_withVRF(t *testing.T) {
@@ -273,6 +292,7 @@ func TestAccPrefixResource_withVRF(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccPrefixResource_ipv6(t *testing.T) {
@@ -309,6 +329,7 @@ func TestAccPrefixResource_ipv6(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccPrefixResource_update(t *testing.T) {
@@ -361,48 +382,133 @@ func TestAccPrefixResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccPrefixResourceConfig_basic(prefix string) string {
 
 	return fmt.Sprintf(`
 
+
+
+
+
+
+
 resource "netbox_prefix" "test" {
+
+
+
   prefix = %q
+
+
+
 }
 
+
+
+
+
+
+
 `, prefix)
+
 }
 
 func testAccPrefixResourceConfig_full(prefix, description string) string {
 
 	return fmt.Sprintf(`
 
+
+
+
+
+
+
 resource "netbox_prefix" "test" {
+
+
+
   prefix      = %q
+
+
+
   description = %q
+
+
+
   status      = "active"
 
+
+
+
+
+
+
   is_pool     = false
+
+
+
 }
 
+
+
+
+
+
+
 `, prefix, description)
+
 }
 
 func testAccPrefixResourceConfig_withVRF(prefix, vrfName string) string {
 
 	return fmt.Sprintf(`
 
+
+
+
+
+
+
 resource "netbox_vrf" "test" {
+
+
+
   name = %q
+
+
+
 }
+
+
+
+
+
+
 
 resource "netbox_prefix" "test" {
+
+
+
   prefix = %q
+
+
+
   vrf    = netbox_vrf.test.name
+
+
+
 }
 
+
+
+
+
+
+
 `, vrfName, prefix)
+
 }
 
 func TestAccPrefixResource_import(t *testing.T) {
@@ -448,6 +554,7 @@ func TestAccPrefixResource_import(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccConsistency_Prefix(t *testing.T) {
@@ -502,34 +609,304 @@ func TestAccConsistency_Prefix(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccPrefixConsistencyConfig(prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName string, vlanVid int) string {
 
 	return fmt.Sprintf(`
 
+
+
+
+
+
+
 resource "netbox_site" "test" {
+
+
+
   name = "%[2]s"
+
+
+
   slug = "%[3]s"
+
+
+
 }
+
+
+
+
+
+
 
 resource "netbox_tenant" "test" {
+
+
+
   name = "%[4]s"
+
+
+
   slug = "%[5]s"
+
+
+
 }
+
+
+
+
+
+
 
 resource "netbox_vlan" "test" {
+
+
+
   name = "%[6]s"
+
+
+
   vid  = %[7]d
+
+
+
   site = netbox_site.test.id
+
+
+
 }
+
+
+
+
+
+
 
 resource "netbox_prefix" "test" {
+
+
+
   prefix = "%[1]s"
+
+
+
   site = netbox_site.test.name
+
+
+
   tenant = netbox_tenant.test.name
+
+
+
   vlan = netbox_vlan.test.name
+
+
+
 }
 
+
+
+
+
+
+
 `, prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName, vlanVid)
+
+}
+
+// TestAccConsistency_Prefix_LiteralNames tests that reference attributes specified as literal string names
+
+// are preserved and do not cause drift when the API returns numeric IDs.
+
+// This test validates the fix for the issue where Terraform would show unnecessary changes like:
+
+// - vlan = "VSTR PROD" -> "71"
+
+// - site = "Trimble Stirling" -> "9".
+
+func TestAccConsistency_Prefix_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	prefix := "192.168.100.0/24"
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	tenantName := testutil.RandomName("tenant")
+
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	vlanName := testutil.RandomName("vlan")
+
+	vlanVid := 200
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				// Create prefix using literal string names (not resource references)
+
+				Config: testAccPrefixConsistencyLiteralNamesConfig(prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName, vlanVid),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
+
+					// Verify the state contains the names, not IDs
+
+					resource.TestCheckResourceAttr("netbox_prefix.test", "site", siteName),
+
+					resource.TestCheckResourceAttr("netbox_prefix.test", "tenant", tenantName),
+
+					resource.TestCheckResourceAttr("netbox_prefix.test", "vlan", vlanName),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				// This ensures names are preserved and not converted to IDs
+
+				PlanOnly: true,
+
+				Config: testAccPrefixConsistencyLiteralNamesConfig(prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName, vlanVid),
+			},
+		},
+	})
+
+}
+
+func testAccPrefixConsistencyLiteralNamesConfig(prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName string, vlanVid int) string {
+
+	return fmt.Sprintf(`
+
+
+
+
+
+
+
+resource "netbox_site" "test" {
+
+
+
+  name = "%[2]s"
+
+
+
+  slug = "%[3]s"
+
+
+
+}
+
+
+
+
+
+
+
+resource "netbox_tenant" "test" {
+
+
+
+  name = "%[4]s"
+
+
+
+  slug = "%[5]s"
+
+
+
+}
+
+
+
+
+
+
+
+resource "netbox_vlan" "test" {
+
+
+
+  name = "%[6]s"
+
+
+
+  vid  = %[7]d
+
+
+
+  site = netbox_site.test.id
+
+
+
+}
+
+
+
+
+
+
+
+resource "netbox_prefix" "test" {
+
+
+
+  prefix = "%[1]s"
+
+
+
+  # Use literal string names to mimic existing user state
+
+
+
+  site = "%[2]s"
+
+
+
+  tenant = "%[4]s"
+
+
+
+  vlan = "%[6]s"
+
+
+
+
+
+
+
+  # Explicit dependency to ensure proper cleanup order
+
+
+
+  depends_on = [netbox_site.test, netbox_tenant.test, netbox_vlan.test]
+
+
+
+}
+
+
+
+
+
+
+
+`, prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName, vlanVid)
+
 }

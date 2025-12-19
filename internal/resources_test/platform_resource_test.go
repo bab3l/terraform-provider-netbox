@@ -24,7 +24,9 @@ func TestPlatformResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil platform resource")
+
 	}
+
 }
 
 func TestPlatformResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestPlatformResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"name", "slug", "manufacturer"}
@@ -56,7 +60,9 @@ func TestPlatformResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"description"}
@@ -66,7 +72,9 @@ func TestPlatformResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -76,8 +84,11 @@ func TestPlatformResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestPlatformResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestPlatformResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestPlatformResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestPlatformResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestPlatformResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestPlatformResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccPlatformResource_basic(t *testing.T) {
@@ -203,6 +220,7 @@ func TestAccPlatformResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccPlatformResource_full(t *testing.T) {
@@ -264,6 +282,7 @@ func TestAccPlatformResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccPlatformResource_update(t *testing.T) {
@@ -331,6 +350,7 @@ func TestAccPlatformResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 // testAccPlatformResourceConfig_basic returns a basic test configuration with manufacturer.
@@ -339,33 +359,62 @@ func testAccPlatformResourceConfig_basic(platformName, platformSlug, manufacture
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_manufacturer" "test_manufacturer" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_platform" "test" {
+
   name         = %q
+
   slug         = %q
+
   manufacturer = netbox_manufacturer.test_manufacturer.slug
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, platformName, platformSlug)
+
 }
 
 // testAccPlatformResourceConfig_full returns a test configuration with all fields.
@@ -374,86 +423,155 @@ func testAccPlatformResourceConfig_full(platformName, platformSlug, manufacturer
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_manufacturer" "test_manufacturer" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_platform" "test" {
+
   name         = %q
+
   slug         = %q
+
   manufacturer = netbox_manufacturer.test_manufacturer.slug
+
   description  = %q
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, platformName, platformSlug, description)
+
 }
 
 func TestAccPlatformResource_import(t *testing.T) {
+
 	// Generate unique names to avoid conflicts between test runs
+
 	platformName := testutil.RandomName("tf-test-platform-import")
+
 	platformSlug := testutil.RandomSlug("tf-test-plat-imp")
+
 	manufacturerName := testutil.RandomName("tf-test-mfr-imp")
+
 	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-imp")
 
 	// Register cleanup
+
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterPlatformCleanup(platformSlug)
+
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.ComposeCheckDestroy(
+
 			testutil.CheckPlatformDestroy,
+
 			testutil.CheckManufacturerDestroy,
 		),
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccPlatformResourceConfig_import(platformName, platformSlug, manufacturerName, manufacturerSlug),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttr("netbox_platform.test", "name", platformName),
+
 					resource.TestCheckResourceAttr("netbox_platform.test", "slug", platformSlug),
 				),
 			},
+
 			{
-				ResourceName:            "netbox_platform.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
+
+				ResourceName: "netbox_platform.test",
+
+				ImportState: true,
+
+				ImportStateVerify: true,
+
 				ImportStateVerifyIgnore: []string{"manufacturer"},
 			},
 		},
 	})
+
 }
 
 func testAccPlatformResourceConfig_import(platformName, platformSlug, manufacturerName, manufacturerSlug string) string {
+
 	return fmt.Sprintf(`
+
 resource "netbox_manufacturer" "test" {
+
   name = "%[3]s"
+
   slug = "%[4]s"
+
 }
 
+
+
 resource "netbox_platform" "test" {
+
   name         = "%[1]s"
+
   slug         = "%[2]s"
+
   manufacturer = netbox_manufacturer.test.slug
+
 }
+
 `, platformName, platformSlug, manufacturerName, manufacturerSlug)
+
 }

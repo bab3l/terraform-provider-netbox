@@ -24,7 +24,9 @@ func TestInterfaceTemplateResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil interface template resource")
+
 	}
+
 }
 
 func TestInterfaceTemplateResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestInterfaceTemplateResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Check required attributes
@@ -58,7 +62,9 @@ func TestInterfaceTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check computed attributes
@@ -70,7 +76,9 @@ func TestInterfaceTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check optional attributes
@@ -82,8 +90,11 @@ func TestInterfaceTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestInterfaceTemplateResourceMetadata(t *testing.T) {
@@ -106,7 +117,9 @@ func TestInterfaceTemplateResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestInterfaceTemplateResourceConfigure(t *testing.T) {
@@ -129,6 +142,7 @@ func TestInterfaceTemplateResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with correct provider data
@@ -144,7 +158,9 @@ func TestInterfaceTemplateResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
+
 }
 
 // testAccInterfaceTemplateResourcePrereqs creates a manufacturer and device type for interface template tests.
@@ -153,18 +169,32 @@ func testAccInterfaceTemplateResourcePrereqs(manufacturerName, manufacturerSlug,
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug)
+
 }
 
 // testAccInterfaceTemplateResourceBasic creates a basic interface template with required fields only.
@@ -173,14 +203,24 @@ func testAccInterfaceTemplateResourceBasic(manufacturerName, manufacturerSlug, d
 
 	return testAccInterfaceTemplateResourcePrereqs(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug) + fmt.Sprintf(`
 
+
+
 resource "netbox_interface_template" "test" {
 
+
+
   device_type = netbox_device_type.test.id
+
   name        = %q
+
   type        = %q
+
 }
 
+
+
 `, name, interfaceType)
+
 }
 
 // testAccInterfaceTemplateResourceFull creates an interface template with all optional fields.
@@ -189,18 +229,32 @@ func testAccInterfaceTemplateResourceFull(manufacturerName, manufacturerSlug, de
 
 	return testAccInterfaceTemplateResourcePrereqs(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug) + fmt.Sprintf(`
 
+
+
 resource "netbox_interface_template" "test" {
 
+
+
   device_type = netbox_device_type.test.id
+
   name        = %q
+
   type        = %q
+
   label       = %q
+
   enabled     = true
+
   mgmt_only   = false
+
   description = %q
+
 }
 
+
+
 `, name, interfaceType, label, description)
+
 }
 
 func TestAccInterfaceTemplateResource_basic(t *testing.T) {
@@ -254,6 +308,7 @@ func TestAccInterfaceTemplateResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccInterfaceTemplateResource_full(t *testing.T) {
@@ -328,6 +383,7 @@ func TestAccInterfaceTemplateResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccConsistency_InterfaceTemplate(t *testing.T) {
@@ -372,29 +428,51 @@ func TestAccConsistency_InterfaceTemplate(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccInterfaceTemplateConsistencyConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, interfaceName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = "%[1]s"
+
   slug = "%[2]s"
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   model = "%[3]s"
+
   slug = "%[4]s"
+
   manufacturer = netbox_manufacturer.test.id
+
 }
+
+
 
 resource "netbox_interface_template" "test" {
 
+
+
   device_type = netbox_device_type.test.model
+
   name = "%[5]s"
+
   type = "1000base-t"
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, interfaceName)
+
 }

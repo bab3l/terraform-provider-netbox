@@ -22,7 +22,9 @@ func TestSiteResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Site resource should not be nil")
+
 	}
+
 }
 
 func TestSiteResourceSchema(t *testing.T) {
@@ -40,6 +42,7 @@ func TestSiteResourceSchema(t *testing.T) {
 	if schemaResp.Diagnostics.HasError() {
 
 		t.Fatalf("Site resource schema should not have errors: %v", schemaResp.Diagnostics.Errors())
+
 	}
 
 	attrs := schemaResp.Schema.Attributes
@@ -51,7 +54,9 @@ func TestSiteResourceSchema(t *testing.T) {
 		if _, ok := attrs[attr]; !ok {
 
 			t.Errorf("Site resource schema should include %s attribute", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"status", "description", "comments", "facility", "tags", "custom_fields"}
@@ -61,8 +66,11 @@ func TestSiteResourceSchema(t *testing.T) {
 		if _, ok := attrs[attr]; !ok {
 
 			t.Errorf("Site resource schema should include %s attribute", attr)
+
 		}
+
 	}
+
 }
 
 func TestSiteResourceMetadata(t *testing.T) {
@@ -85,7 +93,9 @@ func TestSiteResourceMetadata(t *testing.T) {
 	if metadataResp.TypeName != expectedTypeName {
 
 		t.Errorf("Expected type name %s, got %s", expectedTypeName, metadataResp.TypeName)
+
 	}
+
 }
 
 func TestSiteResourceConfigure(t *testing.T) {
@@ -106,6 +116,7 @@ func TestSiteResourceConfigure(t *testing.T) {
 	if configureResp.Diagnostics.HasError() {
 
 		t.Error("Configure should not error with nil provider data")
+
 	}
 
 	client := &netbox.APIClient{}
@@ -119,6 +130,7 @@ func TestSiteResourceConfigure(t *testing.T) {
 	if configureResp.Diagnostics.HasError() {
 
 		t.Errorf("Configure should not error with correct provider data: %v", configureResp.Diagnostics.Errors())
+
 	}
 
 	configureReq.ProviderData = "invalid"
@@ -130,7 +142,9 @@ func TestSiteResourceConfigure(t *testing.T) {
 	if !configureResp.Diagnostics.HasError() {
 
 		t.Error("Configure should error with incorrect provider data type")
+
 	}
+
 }
 
 func TestAccSiteResource_basic(t *testing.T) {
@@ -177,6 +191,7 @@ func TestAccSiteResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccSiteResource_full(t *testing.T) {
@@ -227,6 +242,7 @@ func TestAccSiteResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccSiteResource_update(t *testing.T) {
@@ -283,6 +299,7 @@ func TestAccSiteResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 // testAccSiteResourceConfig_basic returns a basic test configuration.
@@ -291,28 +308,52 @@ func testAccSiteResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
 
+
+
 `, name, slug)
+
 }
 
 // testAccSiteResourceConfig_full returns a test configuration with all fields.
@@ -321,29 +362,54 @@ func testAccSiteResourceConfig_full(name, slug, description string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_site" "test" {
+
   name        = %q
+
   slug        = %q
+
   status      = "active"
+
   description = %q
+
 }
 
+
+
 `, name, slug, description)
+
 }
 
 func TestAccSiteResource_import(t *testing.T) {
@@ -395,19 +461,29 @@ func TestAccSiteResource_import(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccSiteResourceConfig_import(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func TestAccConsistency_Site(t *testing.T) {
@@ -462,34 +538,61 @@ func TestAccConsistency_Site(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccSiteConsistencyConfig(siteName, siteSlug, regionName, regionSlug, groupName, groupSlug, tenantName, tenantSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_region" "test" {
+
   name = "%[3]s"
+
   slug = "%[4]s"
+
 }
+
+
 
 resource "netbox_site_group" "test" {
+
   name = "%[5]s"
+
   slug = "%[6]s"
+
 }
+
+
 
 resource "netbox_tenant" "test" {
+
   name = "%[7]s"
+
   slug = "%[8]s"
+
 }
+
+
 
 resource "netbox_site" "test" {
+
   name = "%[1]s"
+
   slug = "%[2]s"
+
   region = netbox_region.test.name
+
   group = netbox_site_group.test.name
+
   tenant = netbox_tenant.test.name
+
 }
 
+
+
 `, siteName, siteSlug, regionName, regionSlug, groupName, groupSlug, tenantName, tenantSlug)
+
 }

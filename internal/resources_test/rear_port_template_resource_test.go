@@ -24,7 +24,9 @@ func TestRearPortTemplateResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil rear port template resource")
+
 	}
+
 }
 
 func TestRearPortTemplateResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestRearPortTemplateResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Check required attributes
@@ -58,7 +62,9 @@ func TestRearPortTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check computed attributes
@@ -70,7 +76,9 @@ func TestRearPortTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check optional attributes
@@ -82,8 +90,11 @@ func TestRearPortTemplateResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestRearPortTemplateResourceMetadata(t *testing.T) {
@@ -106,7 +117,9 @@ func TestRearPortTemplateResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestRearPortTemplateResourceConfigure(t *testing.T) {
@@ -129,6 +142,7 @@ func TestRearPortTemplateResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with correct provider data
@@ -144,6 +158,7 @@ func TestRearPortTemplateResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with incorrect provider data
@@ -157,7 +172,9 @@ func TestRearPortTemplateResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 // Acceptance test configurations
@@ -166,55 +183,102 @@ func testAccRearPortTemplateResourceBasic(manufacturerName, manufacturerSlug, de
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
 }
+
+
 
 resource "netbox_rear_port_template" "test" {
 
+
+
   device_type = netbox_device_type.test.id
+
   name        = %q
+
   type        = %q
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, portType)
+
 }
 
 func testAccRearPortTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, portType, label, color, description string, positions int32) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
 }
+
+
 
 resource "netbox_rear_port_template" "test" {
 
+
+
   device_type = netbox_device_type.test.id
+
   name        = %q
+
   type        = %q
+
   label       = %q
+
   color       = %q
 
+
+
   positions   = %d
+
   description = %q
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, portType, label, color, positions, description)
+
 }
 
 func TestAccRearPortTemplateResource_basic(t *testing.T) {
@@ -268,6 +332,7 @@ func TestAccRearPortTemplateResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccRearPortTemplateResource_full(t *testing.T) {
@@ -361,6 +426,7 @@ func TestAccRearPortTemplateResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccConsistency_RearPortTemplate(t *testing.T) {
@@ -405,31 +471,55 @@ func TestAccConsistency_RearPortTemplate(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccRearPortTemplateConsistencyConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = "%[1]s"
+
   slug = "%[2]s"
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   model = "%[3]s"
+
   slug = "%[4]s"
+
   manufacturer = netbox_manufacturer.test.id
+
 }
+
+
 
 resource "netbox_rear_port_template" "test" {
 
+
+
   device_type = netbox_device_type.test.model
+
   name = "%[5]s"
+
   type = "8p8c"
 
+
+
   positions = 1
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName)
+
 }

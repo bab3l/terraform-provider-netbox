@@ -24,7 +24,9 @@ func TestContactResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil contact resource")
+
 	}
+
 }
 
 func TestContactResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestContactResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Check required attributes
@@ -58,7 +62,9 @@ func TestContactResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check computed attributes
@@ -70,7 +76,9 @@ func TestContactResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check optional attributes
@@ -82,8 +90,11 @@ func TestContactResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestContactResourceMetadata(t *testing.T) {
@@ -106,7 +117,9 @@ func TestContactResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestContactResourceConfigure(t *testing.T) {
@@ -129,6 +142,7 @@ func TestContactResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with correct provider data type
@@ -147,6 +161,7 @@ func TestContactResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with wrong provider data type
@@ -163,7 +178,9 @@ func TestContactResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with wrong provider data type")
+
 	}
+
 }
 
 // Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
@@ -229,8 +246,10 @@ func TestAccContactResource_basic(t *testing.T) {
 			},
 
 			// Delete testing automatically occurs in TestCase
+
 		},
 	})
+
 }
 
 func TestAccContactResource_full(t *testing.T) {
@@ -277,43 +296,73 @@ func TestAccContactResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccContactResource(name, email, phone string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_contact" "test" {
+
   name  = %[1]q
+
+
 
   email = %[2]q
 
+
+
   phone = %[3]q
+
 }
 
+
+
 `, name, email, phone)
+
 }
 
 func testAccContactResourceFull(name string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_contact" "test" {
+
   name        = %[1]q
+
+
 
   title       = "Network Engineer"
 
+
+
   phone       = "+1-555-0100"
 
+
+
   email       = "engineer@example.com"
+
   address     = "123 Main Street, City, Country"
 
+
+
   link        = "https://example.com/profile"
+
   description = "Test contact description"
+
   comments    = "Test contact comments"
+
 }
 
+
+
 `, name)
+
 }
 
 func TestAccConsistency_Contact(t *testing.T) {
@@ -354,21 +403,35 @@ func TestAccConsistency_Contact(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccContactConsistencyConfig(contactName, contactGroupName, contactGroupSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_contact_group" "test" {
+
   name = "%[2]s"
+
   slug = "%[3]s"
+
 }
+
+
 
 resource "netbox_contact" "test" {
+
   name = "%[1]s"
+
   group = netbox_contact_group.test.name
+
 }
 
+
+
 `, contactName, contactGroupName, contactGroupSlug)
+
 }

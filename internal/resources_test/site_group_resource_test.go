@@ -22,7 +22,9 @@ func TestSiteGroupResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Site group resource should not be nil")
+
 	}
+
 }
 
 func TestSiteGroupResourceSchema(t *testing.T) {
@@ -40,6 +42,7 @@ func TestSiteGroupResourceSchema(t *testing.T) {
 	if schemaResp.Diagnostics.HasError() {
 
 		t.Errorf("Schema should not have errors: %v", schemaResp.Diagnostics.Errors())
+
 	}
 
 	requiredAttributes := []string{"id", "name", "slug"}
@@ -49,7 +52,9 @@ func TestSiteGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResp.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Site group resource schema should include %s attribute", attr)
+
 		}
+
 	}
 
 	optionalAttributes := []string{"parent", "description", "tags", "custom_fields"}
@@ -59,8 +64,11 @@ func TestSiteGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResp.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Site group resource schema should include %s attribute", attr)
+
 		}
+
 	}
+
 }
 
 func TestSiteGroupResourceMetadata(t *testing.T) {
@@ -83,7 +91,9 @@ func TestSiteGroupResourceMetadata(t *testing.T) {
 	if metadataResp.TypeName != expectedTypeName {
 
 		t.Errorf("Expected type name %s, got %s", expectedTypeName, metadataResp.TypeName)
+
 	}
+
 }
 
 func TestSiteGroupResourceConfigure(t *testing.T) {
@@ -104,6 +114,7 @@ func TestSiteGroupResourceConfigure(t *testing.T) {
 	if configureResp.Diagnostics.HasError() {
 
 		t.Error("Configure should not error with nil provider data")
+
 	}
 
 	client := &netbox.APIClient{}
@@ -117,6 +128,7 @@ func TestSiteGroupResourceConfigure(t *testing.T) {
 	if configureResp.Diagnostics.HasError() {
 
 		t.Errorf("Configure should not error with correct provider data: %v", configureResp.Diagnostics.Errors())
+
 	}
 
 	configureReq.ProviderData = "invalid"
@@ -128,7 +140,9 @@ func TestSiteGroupResourceConfigure(t *testing.T) {
 	if !configureResp.Diagnostics.HasError() {
 
 		t.Error("Configure should error with incorrect provider data type")
+
 	}
+
 }
 
 func TestAccSiteGroupResource_basic(t *testing.T) {
@@ -173,6 +187,7 @@ func TestAccSiteGroupResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccSiteGroupResource_full(t *testing.T) {
@@ -221,6 +236,7 @@ func TestAccSiteGroupResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccSiteGroupResource_update(t *testing.T) {
@@ -277,6 +293,7 @@ func TestAccSiteGroupResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 // testAccSiteGroupResourceConfig_basic returns a basic test configuration.
@@ -285,27 +302,50 @@ func testAccSiteGroupResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_site_group" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 `, name, slug)
+
 }
 
 // testAccSiteGroupResourceConfig_full returns a test configuration with all fields.
@@ -314,65 +354,116 @@ func testAccSiteGroupResourceConfig_full(name, slug, description string) string 
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_site_group" "test" {
+
   name        = %q
+
   slug        = %q
+
   description = %q
+
 }
 
+
+
 `, name, slug, description)
+
 }
 
 func TestAccSiteGroupResource_import(t *testing.T) {
+
 	name := testutil.RandomName("tf-test-site-group")
+
 	slug := testutil.RandomSlug("tf-test-sg")
+
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterSiteGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.CheckSiteGroupDestroy,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccSiteGroupResourceConfig_import(name, slug),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_site_group.test", "name", name),
+
 					resource.TestCheckResourceAttr("netbox_site_group.test", "slug", slug),
 				),
 			},
+
 			{
-				ResourceName:      "netbox_site_group.test",
-				ImportState:       true,
+
+				ResourceName: "netbox_site_group.test",
+
+				ImportState: true,
+
 				ImportStateVerify: true,
 			},
 		},
 	})
+
 }
 
 func testAccSiteGroupResourceConfig_import(name, slug string) string {
+
 	return fmt.Sprintf(`
+
 resource "netbox_site_group" "test" {
+
   name = %[1]q
+
   slug = %[2]q
+
 }
+
 `, name, slug)
+
 }
