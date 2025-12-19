@@ -184,9 +184,18 @@ func UpdateReferenceAttribute(current types.String, apiName string, apiSlug stri
 
 	apiIDStr := fmt.Sprintf("%d", apiID)
 
-	// If current state is null/unknown, return the ID (most reliable)
+	// If current state is null, keep it null (user didn't configure this attribute)
+	// This prevents drift when the API returns values for optional attributes not in config
 
-	if current.IsNull() || current.IsUnknown() {
+	if current.IsNull() {
+
+		return current
+
+	}
+
+	// If current state is unknown, return the ID (during initial resource creation)
+
+	if current.IsUnknown() {
 
 		return types.StringValue(apiIDStr)
 

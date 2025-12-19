@@ -180,7 +180,7 @@ func TestAccCircuitResource_update(t *testing.T) {
 	providerSlug := testutil.RandomSlug("tf-test-provider-update")
 	typeName := testutil.RandomName("tf-test-circuit-type-update")
 	typeSlug := testutil.RandomSlug("tf-test-circuit-type-update")
-	updatedDescription := "Updated description"
+	const description2 = "Updated description"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterCircuitCleanup(cid)
@@ -201,10 +201,10 @@ func TestAccCircuitResource_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCircuitResourceConfig_withDescription(cid, providerName, providerSlug, typeName, typeSlug, updatedDescription),
+				Config: testAccCircuitResourceConfig_withDescription(cid, providerName, providerSlug, typeName, typeSlug, description2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
-					resource.TestCheckResourceAttr("netbox_circuit.test", "description", updatedDescription),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "description", description2),
 				),
 			},
 		},
