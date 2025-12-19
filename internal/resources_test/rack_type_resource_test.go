@@ -363,3 +363,55 @@ resource "netbox_rack_type" "test" {
 `, mfgName, mfgSlug, model, slug, description, uHeight, width)
 
 }
+
+// TestAccConsistency_RackType_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_RackType_LiteralNames(t *testing.T) {
+	t.Parallel()
+	mfgName := testutil.RandomName("manufacturer")
+	mfgSlug := testutil.RandomSlug("manufacturer")
+	model := testutil.RandomName("rack-type")
+	slug := testutil.RandomSlug("rack-type")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackTypeConsistencyLiteralNamesConfig(mfgName, mfgSlug, model, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "model", model),
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "manufacturer", mfgName),
+				),
+			},
+			{
+				// Critical: Verify no drift when refreshing state
+				PlanOnly: true,
+				Config:   testAccRackTypeConsistencyLiteralNamesConfig(mfgName, mfgSlug, model, slug),
+			},
+		},
+	})
+}
+
+func testAccRackTypeConsistencyLiteralNamesConfig(mfgName, mfgSlug, model, slug string) string {
+	return fmt.Sprintf(`
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_rack_type" "test" {
+  # Use literal string name to mimic existing user state
+  manufacturer = %q
+  model        = %q
+  slug         = %q
+  u_height     = 42
+  width        = 19
+  form_factor  = "4-post-cabinet"
+
+  depends_on = [netbox_manufacturer.test]
+}
+
+`, mfgName, mfgSlug, mfgName, model, slug)
+}

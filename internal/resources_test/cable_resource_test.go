@@ -196,3 +196,6 @@ resource "netbox_cable" "test" {
 }
 `, siteName, siteSlug, deviceName, deviceName, interfaceNameA, interfaceNameB)
 }
+
+// TestAccConsistency_Cable_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.

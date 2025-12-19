@@ -435,3 +435,50 @@ resource "netbox_contact" "test" {
 `, contactName, contactGroupName, contactGroupSlug)
 
 }
+
+// TestAccConsistency_Contact_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_Contact_LiteralNames(t *testing.T) {
+	t.Parallel()
+	contactName := testutil.RandomName("contact")
+	contactGroupName := testutil.RandomName("contactgroup")
+	contactGroupSlug := testutil.RandomSlug("contactgroup")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactConsistencyLiteralNamesConfig(contactName, contactGroupName, contactGroupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact.test", "name", contactName),
+					resource.TestCheckResourceAttr("netbox_contact.test", "group", contactGroupName),
+				),
+			},
+			{
+				// Critical: Verify no drift when refreshing state
+				PlanOnly: true,
+				Config:   testAccContactConsistencyLiteralNamesConfig(contactName, contactGroupName, contactGroupSlug),
+			},
+		},
+	})
+}
+
+func testAccContactConsistencyLiteralNamesConfig(contactName, contactGroupName, contactGroupSlug string) string {
+	return fmt.Sprintf(`
+
+resource "netbox_contact_group" "test" {
+  name = "%[2]s"
+  slug = "%[3]s"
+}
+
+resource "netbox_contact" "test" {
+  name = "%[1]s"
+  # Use literal string name to mimic existing user state
+  group = "%[2]s"
+
+  depends_on = [netbox_contact_group.test]
+}
+
+`, contactName, contactGroupName, contactGroupSlug)
+}

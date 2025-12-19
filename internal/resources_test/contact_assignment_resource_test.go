@@ -508,3 +508,6 @@ resource "netbox_contact_assignment" "test" {
 `, name, slug, name, name, slug, priority)
 
 }
+
+// TestAccConsistency_ContactAssignment_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.

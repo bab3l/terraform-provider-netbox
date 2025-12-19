@@ -406,3 +406,50 @@ resource "netbox_module_type" "test" {
 `, manufacturerName, manufacturerSlug, moduleTypeName)
 
 }
+
+// TestAccConsistency_ModuleType_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_ModuleType_LiteralNames(t *testing.T) {
+	t.Parallel()
+	manufacturerName := testutil.RandomName("manufacturer")
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+	moduleTypeName := testutil.RandomName("moduletype")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleTypeConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, moduleTypeName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module_type.test", "model", moduleTypeName),
+					resource.TestCheckResourceAttr("netbox_module_type.test", "manufacturer", manufacturerName),
+				),
+			},
+			{
+				// Critical: Verify no drift when refreshing state
+				PlanOnly: true,
+				Config:   testAccModuleTypeConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, moduleTypeName),
+			},
+		},
+	})
+}
+
+func testAccModuleTypeConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, moduleTypeName string) string {
+	return fmt.Sprintf(`
+
+resource "netbox_manufacturer" "test" {
+  name = "%[1]s"
+  slug = "%[2]s"
+}
+
+resource "netbox_module_type" "test" {
+  model = "%[3]s"
+  # Use literal string name to mimic existing user state
+  manufacturer = "%[1]s"
+
+  depends_on = [netbox_manufacturer.test]
+}
+
+`, manufacturerName, manufacturerSlug, moduleTypeName)
+}

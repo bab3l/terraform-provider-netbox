@@ -500,3 +500,72 @@ resource "netbox_power_feed" "test" {
 `, siteName, siteSlug, rackName, locationName, locationSlug, powerPanelName, feedName)
 
 }
+
+// TestAccConsistency_PowerFeed_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_PowerFeed_LiteralNames(t *testing.T) {
+	t.Parallel()
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	rackName := testutil.RandomName("rack")
+	locationName := testutil.RandomName("location")
+	locationSlug := testutil.RandomSlug("location")
+	powerPanelName := testutil.RandomName("power-panel")
+	feedName := testutil.RandomName("power-feed")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerFeedConsistencyLiteralNamesConfig(siteName, siteSlug, rackName, locationName, locationSlug, powerPanelName, feedName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "name", feedName),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "rack", rackName),
+				),
+			},
+			{
+				// Critical: Verify no drift when refreshing state
+				PlanOnly: true,
+				Config:   testAccPowerFeedConsistencyLiteralNamesConfig(siteName, siteSlug, rackName, locationName, locationSlug, powerPanelName, feedName),
+			},
+		},
+	})
+}
+
+func testAccPowerFeedConsistencyLiteralNamesConfig(siteName, siteSlug, rackName, locationName, locationSlug, powerPanelName, feedName string) string {
+	return fmt.Sprintf(`
+
+resource "netbox_site" "test" {
+  name = "%[1]s"
+  slug = "%[2]s"
+}
+
+resource "netbox_location" "test" {
+  name = "%[4]s"
+  slug = "%[5]s"
+  site = netbox_site.test.id
+}
+
+resource "netbox_rack" "test" {
+  name = "%[3]s"
+  site = netbox_site.test.id
+  location = netbox_location.test.id
+}
+
+resource "netbox_power_panel" "test" {
+  name = "%[6]s"
+  site = netbox_site.test.id
+}
+
+resource "netbox_power_feed" "test" {
+  name = "%[7]s"
+  power_panel = netbox_power_panel.test.id
+  # Use literal string name to mimic existing user state
+  rack = "%[3]s"
+
+  depends_on = [netbox_rack.test]
+}
+
+`, siteName, siteSlug, rackName, locationName, locationSlug, powerPanelName, feedName)
+}

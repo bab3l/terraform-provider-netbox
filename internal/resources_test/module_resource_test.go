@@ -541,3 +541,93 @@ resource "netbox_module" "test" {
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description)
 
 }
+
+// TestAccConsistency_Module_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_Module_LiteralNames(t *testing.T) {
+	t.Parallel()
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	mfgName := testutil.RandomName("manufacturer")
+	mfgSlug := testutil.RandomSlug("manufacturer")
+	dtModel := testutil.RandomName("device-type")
+	dtSlug := testutil.RandomSlug("device-type")
+	roleName := testutil.RandomName("role")
+	roleSlug := testutil.RandomSlug("role")
+	deviceName := testutil.RandomName("device")
+	bayName := testutil.RandomName("bay")
+	mtModel := testutil.RandomName("module-type")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleConsistencyLiteralNamesConfig(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module.test", "device", deviceName),
+				),
+			},
+			{
+				// Critical: Verify no drift when refreshing state
+				PlanOnly: true,
+				Config:   testAccModuleConsistencyLiteralNamesConfig(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
+			},
+		},
+	})
+}
+
+func testAccModuleConsistencyLiteralNamesConfig(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel string) string {
+	return fmt.Sprintf(`
+
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_device_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_module_bay" "test" {
+  device = netbox_device.test.id
+  name   = %q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+}
+
+resource "netbox_module" "test" {
+  # Use literal string name to mimic existing user state
+  device      = %q
+  module_bay  = netbox_module_bay.test.id
+  module_type = netbox_module_type.test.id
+  status      = "active"
+  serial      = "SN123456"
+
+  depends_on = [netbox_device.test]
+}
+
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, deviceName)
+}

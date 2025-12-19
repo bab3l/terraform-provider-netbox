@@ -559,3 +559,6 @@ resource "netbox_circuit_group_assignment" "test" {
 `, groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, priority)
 
 }
+
+// TestAccConsistency_CircuitGroupAssignment_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.

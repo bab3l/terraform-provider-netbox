@@ -622,3 +622,79 @@ resource "netbox_inventory_item" "test" {
 `, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, inventoryItemName)
 
 }
+
+// TestAccConsistency_InventoryItem_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_InventoryItem_LiteralNames(t *testing.T) {
+	t.Parallel()
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	manufacturerName := testutil.RandomName("manufacturer")
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+	deviceTypeName := testutil.RandomName("device-type")
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+	deviceRoleName := testutil.RandomName("device-role")
+	deviceRoleSlug := testutil.RandomSlug("device-role")
+	deviceName := testutil.RandomName("device")
+	inventoryItemName := testutil.RandomName("inventory-item")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemConsistencyLiteralNamesConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, inventoryItemName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_inventory_item.test", "device", deviceName),
+				),
+			},
+			{
+				// Critical: Verify no drift when refreshing state
+				PlanOnly: true,
+				Config:   testAccInventoryItemConsistencyLiteralNamesConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, inventoryItemName),
+			},
+		},
+	})
+}
+
+func testAccInventoryItemConsistencyLiteralNamesConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, inventoryItemName string) string {
+	return fmt.Sprintf(`
+
+resource "netbox_site" "test" {
+  name = "%[1]s"
+  slug = "%[2]s"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "%[3]s"
+  slug = "%[4]s"
+}
+
+resource "netbox_device_type" "test" {
+  model = "%[5]s"
+  slug = "%[6]s"
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name = "%[7]s"
+  slug = "%[8]s"
+}
+
+resource "netbox_device" "test" {
+  name = "%[9]s"
+  device_type = netbox_device_type.test.id
+  role = netbox_device_role.test.id
+  site = netbox_site.test.id
+}
+
+resource "netbox_inventory_item" "test" {
+  # Use literal string name to mimic existing user state
+  device = "%[9]s"
+  name = "%[10]s"
+
+  depends_on = [netbox_device.test]
+}
+
+`, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, inventoryItemName)
+}
