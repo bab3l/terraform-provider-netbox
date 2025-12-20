@@ -509,6 +509,11 @@ func TestAccConsistency_ASNRange(t *testing.T) {
 
 	tenantSlug := testutil.RandomSlug("tenant")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterASNRangeCleanup(rangeName)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -640,6 +645,11 @@ func TestAccConsistency_ASNRange_LiteralNames(t *testing.T) {
 	tenantName := testutil.RandomName("tenant")
 
 	tenantSlug := testutil.RandomSlug("tenant")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterASNRangeCleanup(rangeName)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
 

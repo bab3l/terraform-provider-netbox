@@ -259,6 +259,12 @@ func TestAccConsistency_Circuit(t *testing.T) {
 
 	tenantSlug := testutil.RandomSlug("tenant")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitCleanup(cid)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(typeSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -308,6 +314,12 @@ func TestAccConsistency_Circuit_LiteralNames(t *testing.T) {
 	tenantName := testutil.RandomName("tenant")
 
 	tenantSlug := testutil.RandomSlug("tenant")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitCleanup(cid)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(typeSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
 
