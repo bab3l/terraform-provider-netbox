@@ -25,7 +25,9 @@ func TestFHRPGroupDataSource(t *testing.T) {
 	if d == nil {
 
 		t.Fatal("Expected non-nil FHRP Group data source")
+
 	}
+
 }
 
 func TestFHRPGroupDataSourceSchema(t *testing.T) {
@@ -43,11 +45,13 @@ func TestFHRPGroupDataSourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Required/Optional for lookup
@@ -59,7 +63,9 @@ func TestFHRPGroupDataSourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected lookup attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Computed attributes
@@ -71,8 +77,11 @@ func TestFHRPGroupDataSourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestFHRPGroupDataSourceMetadata(t *testing.T) {
@@ -95,7 +104,9 @@ func TestFHRPGroupDataSourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestFHRPGroupDataSourceConfigure(t *testing.T) {
@@ -118,6 +129,7 @@ func TestFHRPGroupDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with correct client type
@@ -133,6 +145,7 @@ func TestFHRPGroupDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with incorrect provider data type
@@ -146,7 +159,9 @@ func TestFHRPGroupDataSourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccFHRPGroupDataSource_byID(t *testing.T) {
@@ -191,6 +206,7 @@ func TestAccFHRPGroupDataSource_byID(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccFHRPGroupDataSource_byProtocolAndGroupID(t *testing.T) {
@@ -235,46 +251,81 @@ func TestAccFHRPGroupDataSource_byProtocolAndGroupID(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccFHRPGroupDataSourceConfig_byID(protocol string, groupID int32, name string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_fhrp_group" "test" {
+
+
 
   protocol = %q
 
+
+
   group_id = %d
+
   name     = %q
+
 }
+
+
 
 data "netbox_fhrp_group" "test" {
 
+
+
   id = netbox_fhrp_group.test.id
+
 }
 
+
+
 `, protocol, groupID, name)
+
 }
 
 func testAccFHRPGroupDataSourceConfig_byProtocolAndGroupID(protocol string, groupID int32, name string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_fhrp_group" "test" {
+
+
 
   protocol = %q
 
+
+
   group_id = %d
+
   name     = %q
+
 }
+
+
 
 data "netbox_fhrp_group" "test" {
 
+
+
   protocol = netbox_fhrp_group.test.protocol
 
+
+
   group_id = netbox_fhrp_group.test.group_id
+
 }
 
+
+
 `, protocol, groupID, name)
+
 }

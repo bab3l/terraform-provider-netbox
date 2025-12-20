@@ -16,14 +16,11 @@ import (
 
 func TestConfigContextResource_Metadata(t *testing.T) {
 	r := resources.NewConfigContextResource()
-
 	req := fwresource.MetadataRequest{
 		ProviderTypeName: "netbox",
 	}
 	resp := &fwresource.MetadataResponse{}
-
 	r.Metadata(context.Background(), req, resp)
-
 	if resp.TypeName != "netbox_config_context" {
 		t.Errorf("Expected type name 'netbox_config_context', got '%s'", resp.TypeName)
 	}

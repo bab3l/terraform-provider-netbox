@@ -55,38 +55,67 @@ func TestAccSiteDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccSiteDataSourceConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
+
+
 
 data "netbox_site" "test" {
+
   slug = netbox_site.test.slug
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func TestAccTenantDataSource_basic(t *testing.T) {
@@ -131,37 +160,65 @@ func TestAccTenantDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccTenantDataSourceConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_tenant" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 data "netbox_tenant" "test" {
+
   slug = netbox_tenant.test.slug
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func TestAccSiteGroupDataSource_basic(t *testing.T) {
@@ -206,37 +263,65 @@ func TestAccSiteGroupDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccSiteGroupDataSourceConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_site_group" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 data "netbox_site_group" "test" {
+
   slug = netbox_site_group.test.slug
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func TestAccTenantGroupDataSource_basic(t *testing.T) {
@@ -281,37 +366,65 @@ func TestAccTenantGroupDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccTenantGroupDataSourceConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_tenant_group" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 data "netbox_tenant_group" "test" {
+
   slug = netbox_tenant_group.test.slug
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func TestAccManufacturerDataSource_basic(t *testing.T) {
@@ -356,37 +469,65 @@ func TestAccManufacturerDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccManufacturerDataSourceConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 data "netbox_manufacturer" "test" {
+
   slug = netbox_manufacturer.test.slug
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func TestAccPlatformDataSource_basic(t *testing.T) {
@@ -444,43 +585,77 @@ func TestAccPlatformDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccPlatformDataSourceConfig(platName, platSlug, mfrName, mfrSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_manufacturer" "test_mfr" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_platform" "test" {
+
   name         = %q
+
   slug         = %q
+
   manufacturer = netbox_manufacturer.test_mfr.slug
+
 }
+
+
 
 data "netbox_platform" "test" {
+
   slug = netbox_platform.test.slug
+
 }
 
+
+
 `, mfrName, mfrSlug, platName, platSlug)
+
 }
 
 func TestAccRegionDataSource_basic(t *testing.T) {
@@ -525,37 +700,65 @@ func TestAccRegionDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccRegionDataSourceConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_region" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 data "netbox_region" "test" {
+
   slug = netbox_region.test.slug
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func TestAccLocationDataSource_basic(t *testing.T) {
@@ -606,44 +809,79 @@ func TestAccLocationDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccLocationDataSourceConfig(siteName, siteSlug, name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_location" "test" {
+
   name = %q
+
   slug = %q
+
   site = netbox_site.test.id
+
 }
+
+
 
 data "netbox_location" "test" {
+
   slug = netbox_location.test.slug
+
 }
 
+
+
 `, siteName, siteSlug, name, slug)
+
 }
 
 func TestAccRackDataSource_basic(t *testing.T) {
@@ -690,43 +928,77 @@ func TestAccRackDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccRackDataSourceConfig(siteName, siteSlug, rackName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
+
+
 
 resource "netbox_rack" "test" {
+
   name = %q
+
   site = netbox_site.test.id
+
 }
+
+
 
 data "netbox_rack" "test" {
+
   name = netbox_rack.test.name
+
 }
 
+
+
 `, siteName, siteSlug, rackName)
+
 }
 
 func TestAccRackRoleDataSource_basic(t *testing.T) {
@@ -771,37 +1043,65 @@ func TestAccRackRoleDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccRackRoleDataSourceConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_rack_role" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 data "netbox_rack_role" "test" {
+
   slug = netbox_rack_role.test.slug
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func TestAccDeviceRoleDataSource_basic(t *testing.T) {
@@ -848,37 +1148,65 @@ func TestAccDeviceRoleDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccDeviceRoleDataSourceConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_device_role" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 data "netbox_device_role" "test" {
+
   slug = netbox_device_role.test.slug
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func TestAccDeviceTypeDataSource_basic(t *testing.T) {
@@ -938,43 +1266,77 @@ func TestAccDeviceTypeDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccDeviceTypeDataSourceConfig(model, slug, manufacturerName, manufacturerSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.slug
+
   model        = %q
+
   slug         = %q
+
 }
+
+
 
 data "netbox_device_type" "test" {
+
   slug = netbox_device_type.test.slug
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, model, slug)
+
 }
 
 // Route Target Data Source Tests
@@ -1017,36 +1379,63 @@ func TestAccRouteTargetDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccRouteTargetDataSourceConfig(name string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_route_target" "test" {
+
   name = %q
+
 }
+
+
 
 data "netbox_route_target" "test" {
+
   name = netbox_route_target.test.name
+
 }
 
+
+
 `, name)
+
 }
 
 // Virtual Disk Data Source Tests
@@ -1114,62 +1503,115 @@ func TestAccVirtualDiskDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccVirtualDiskDataSourceConfig(name, clusterTypeName, clusterTypeSlug, clusterName, vmName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_cluster_type" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_cluster" "test" {
+
   name = %q
+
   type = netbox_cluster_type.test.id
+
 }
 
+
+
 resource "netbox_virtual_machine" "test" {
+
   name    = %q
+
   cluster = netbox_cluster.test.id
+
+
 
   # Ignore disk changes since Netbox auto-computes this from virtual_disks
 
+
+
   lifecycle {
 
+
+
     ignore_changes = [disk]
+
   }
+
 }
+
+
 
 resource "netbox_virtual_disk" "test" {
+
   virtual_machine = netbox_virtual_machine.test.id
+
   name            = %q
 
+
+
   size            = 100
+
 }
+
+
 
 data "netbox_virtual_disk" "test" {
 
+
+
   id = netbox_virtual_disk.test.id
+
 }
 
+
+
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, name)
+
 }
 
 // ASN Range Data Source Tests
@@ -1231,45 +1673,81 @@ func TestAccASNRangeDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccASNRangeDataSourceConfig(name, slug, rirName, rirSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_rir" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_asn_range" "test" {
+
   name  = %q
+
   slug  = %q
+
   rir   = netbox_rir.test.id
+
   start = 64512
+
   end   = 64520
+
 }
+
+
 
 data "netbox_asn_range" "test" {
+
   slug = netbox_asn_range.test.slug
+
 }
 
+
+
 `, rirName, rirSlug, name, slug)
+
 }
 
 // Device Bay Template Data Source Tests
@@ -1333,49 +1811,91 @@ func TestAccDeviceBayTemplateDataSource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccDeviceBayTemplateDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 terraform {
+
+
 
   required_providers {
 
+
+
     netbox = {
+
+
 
       source = "bab3l/netbox"
 
+
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   model          = %q
+
   slug           = %q
+
   manufacturer   = netbox_manufacturer.test.slug
+
   subdevice_role = "parent"
+
 }
+
+
 
 resource "netbox_device_bay_template" "test" {
 
+
+
   device_type = netbox_device_type.test.id
+
   name        = %q
+
 }
+
+
 
 data "netbox_device_bay_template" "test" {
 
+
+
   id = netbox_device_bay_template.test.id
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
+
 }

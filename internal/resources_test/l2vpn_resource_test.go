@@ -204,3 +204,6 @@ resource "netbox_l2vpn" "test" {
 }
 `, name, name)
 }
+
+// TestAccConsistency_L2VPN_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.

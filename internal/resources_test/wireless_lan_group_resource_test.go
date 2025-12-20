@@ -24,7 +24,9 @@ func TestWirelessLANGroupResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil WirelessLANGroup resource")
+
 	}
+
 }
 
 func TestWirelessLANGroupResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestWirelessLANGroupResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"name", "slug"}
@@ -56,7 +60,9 @@ func TestWirelessLANGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestWirelessLANGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"description", "parent", "tags", "custom_fields"}
@@ -76,8 +84,11 @@ func TestWirelessLANGroupResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestWirelessLANGroupResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestWirelessLANGroupResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestWirelessLANGroupResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestWirelessLANGroupResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestWirelessLANGroupResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestWirelessLANGroupResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccWirelessLANGroupResource_basic(t *testing.T) {
@@ -189,6 +206,7 @@ func TestAccWirelessLANGroupResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccWirelessLANGroupResource_full(t *testing.T) {
@@ -239,29 +257,47 @@ func TestAccWirelessLANGroupResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccWirelessLANGroupResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_wireless_lan_group" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func testAccWirelessLANGroupResourceConfig_full(name, slug, description string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_wireless_lan_group" "test" {
+
   name        = %q
+
   slug        = %q
+
   description = %q
+
 }
 
+
+
 `, name, slug, description)
+
 }

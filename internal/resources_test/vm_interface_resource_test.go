@@ -24,7 +24,9 @@ func TestVMInterfaceResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil VM Interface resource")
+
 	}
+
 }
 
 func TestVMInterfaceResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestVMInterfaceResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	requiredAttrs := []string{"virtual_machine", "name"}
@@ -56,7 +60,9 @@ func TestVMInterfaceResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	computedAttrs := []string{"id"}
@@ -66,7 +72,9 @@ func TestVMInterfaceResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	optionalAttrs := []string{"enabled", "mtu", "mac_address", "description", "mode"}
@@ -76,8 +84,11 @@ func TestVMInterfaceResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestVMInterfaceResourceMetadata(t *testing.T) {
@@ -100,7 +111,9 @@ func TestVMInterfaceResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestVMInterfaceResourceConfigure(t *testing.T) {
@@ -121,6 +134,7 @@ func TestVMInterfaceResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -134,6 +148,7 @@ func TestVMInterfaceResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -145,7 +160,9 @@ func TestVMInterfaceResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with incorrect provider data")
+
 	}
+
 }
 
 func TestAccVMInterfaceResource_basic(t *testing.T) {
@@ -207,6 +224,7 @@ func TestAccVMInterfaceResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccVMInterfaceResource_full(t *testing.T) {
@@ -276,6 +294,7 @@ func TestAccVMInterfaceResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccVMInterfaceResource_update(t *testing.T) {
@@ -349,63 +368,113 @@ func TestAccVMInterfaceResource_update(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_cluster_type" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_cluster" "test" {
+
   name = %q
+
   type = netbox_cluster_type.test.slug
+
 }
+
+
 
 resource "netbox_virtual_machine" "test" {
+
   name    = %q
+
   cluster = netbox_cluster.test.name
+
 }
+
+
 
 resource "netbox_vm_interface" "test" {
+
   virtual_machine = netbox_virtual_machine.test.name
+
   name            = %q
+
 }
 
+
+
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName)
+
 }
 
 func testAccVMInterfaceResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, description string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_cluster_type" "test" {
+
   name = %q
+
   slug = %q
+
 }
+
+
 
 resource "netbox_cluster" "test" {
+
   name = %q
+
   type = netbox_cluster_type.test.slug
+
 }
+
+
 
 resource "netbox_virtual_machine" "test" {
+
   name    = %q
+
   cluster = netbox_cluster.test.name
+
 }
+
+
 
 resource "netbox_vm_interface" "test" {
+
   virtual_machine = netbox_virtual_machine.test.name
+
   name            = %q
+
   enabled         = true
+
   mtu             = 1500
+
   description     = %q
+
 }
 
+
+
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, description)
+
 }
 
 func TestAccVMInterfaceResource_import(t *testing.T) {
@@ -445,6 +514,7 @@ func TestAccVMInterfaceResource_import(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccConsistency_VMInterface(t *testing.T) {
@@ -503,48 +573,247 @@ func TestAccConsistency_VMInterface(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccVMInterfaceConsistencyConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName string, vlanVid int, siteName, siteSlug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_cluster_type" "test" {
+
   name = "%[3]s"
+
   slug = "%[4]s"
+
 }
+
+
 
 resource "netbox_site" "test" {
+
   name = "%[9]s"
+
   slug = "%[10]s"
+
 }
+
+
 
 resource "netbox_cluster" "test" {
+
   name = "%[2]s"
+
   type = netbox_cluster_type.test.id
+
   site = netbox_site.test.id
+
 }
+
+
 
 resource "netbox_virtual_machine" "test" {
+
   name = "%[1]s"
+
   cluster = netbox_cluster.test.id
+
   site = netbox_site.test.id
+
 }
+
+
 
 resource "netbox_vlan" "test" {
+
   name = "%[7]s"
+
   vid  = %[8]d
+
   site = netbox_site.test.id
+
 }
+
+
 
 resource "netbox_vm_interface" "test" {
+
   virtual_machine = netbox_virtual_machine.test.name
+
   name = "%[5]s"
+
   mac_address = "%[6]s"
+
   mode = "access"
 
+
+
   untagged_vlan = netbox_vlan.test.name
+
 }
 
+
+
 `, vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName, vlanVid, siteName, siteSlug)
+
+}
+
+// TestAccConsistency_VMInterface_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+// This test validates that MAC addresses maintain their case and VLAN names are preserved.
+func TestAccConsistency_VMInterface_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	vmName := testutil.RandomName("vm")
+
+	clusterName := testutil.RandomName("cluster")
+
+	clusterTypeName := testutil.RandomName("cluster-type")
+
+	clusterTypeSlug := testutil.RandomSlug("cluster-type")
+
+	const interfaceName = "eth1"
+
+	macAddress := "AA:BB:CC:DD:EE:11" // Uppercase to test case sensitivity
+
+	vlanName := testutil.RandomName("vlan")
+
+	vlanVid := 150
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				// Create interface using literal string names
+
+				Config: testAccVMInterfaceConsistencyLiteralNamesConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName, vlanVid, siteName, siteSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", interfaceName),
+
+					// Verify MAC address case is preserved
+
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mac_address", macAddress),
+
+					// Verify VLAN name is preserved (not converted to ID)
+
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "untagged_vlan", vlanName),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccVMInterfaceConsistencyLiteralNamesConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName, vlanVid, siteName, siteSlug),
+			},
+		},
+	})
+
+}
+
+func testAccVMInterfaceConsistencyLiteralNamesConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName string, vlanVid int, siteName, siteSlug string) string {
+
+	return fmt.Sprintf(`
+
+
+
+resource "netbox_cluster_type" "test" {
+
+  name = "%[3]s"
+
+  slug = "%[4]s"
+
+}
+
+
+
+resource "netbox_site" "test" {
+
+  name = "%[9]s"
+
+  slug = "%[10]s"
+
+}
+
+
+
+resource "netbox_cluster" "test" {
+
+  name = "%[2]s"
+
+  type = netbox_cluster_type.test.id
+
+  site = netbox_site.test.id
+
+}
+
+
+
+resource "netbox_virtual_machine" "test" {
+
+  name = "%[1]s"
+
+  cluster = netbox_cluster.test.id
+
+  site = netbox_site.test.id
+
+}
+
+
+
+resource "netbox_vlan" "test" {
+
+  name = "%[7]s"
+
+  vid  = %[8]d
+
+  site = netbox_site.test.id
+
+}
+
+
+
+resource "netbox_vm_interface" "test" {
+
+  virtual_machine = netbox_virtual_machine.test.name
+
+  name = "%[5]s"
+
+  mac_address = "%[6]s"
+
+  mode = "access"
+
+  # Use literal string name to mimic existing user state
+
+  untagged_vlan = "%[7]s"
+
+
+
+  # Explicit dependency to ensure proper cleanup order
+
+  depends_on = [netbox_vlan.test]
+
+}
+
+
+
+`, vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName, vlanVid, siteName, siteSlug)
+
 }

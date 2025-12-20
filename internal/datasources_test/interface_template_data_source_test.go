@@ -24,7 +24,9 @@ func TestInterfaceTemplateDataSource(t *testing.T) {
 	if d == nil {
 
 		t.Fatal("Expected non-nil interface template data source")
+
 	}
+
 }
 
 func TestInterfaceTemplateDataSourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestInterfaceTemplateDataSourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Check that key attributes exist
@@ -58,8 +62,11 @@ func TestInterfaceTemplateDataSourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestInterfaceTemplateDataSourceMetadata(t *testing.T) {
@@ -82,7 +89,9 @@ func TestInterfaceTemplateDataSourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestInterfaceTemplateDataSourceConfigure(t *testing.T) {
@@ -103,6 +112,7 @@ func TestInterfaceTemplateDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	client := &netbox.APIClient{}
@@ -116,6 +126,7 @@ func TestInterfaceTemplateDataSourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	configureRequest.ProviderData = invalidProviderData
@@ -127,7 +138,9 @@ func TestInterfaceTemplateDataSourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with invalid provider data")
+
 	}
+
 }
 
 // testAccInterfaceTemplateDataSourcePrereqs creates prerequisites for interface template data source tests.
@@ -136,25 +149,46 @@ func testAccInterfaceTemplateDataSourcePrereqs(manufacturerName, manufacturerSlu
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_device_type" "test" {
+
   manufacturer = netbox_manufacturer.test.id
+
   model        = %q
+
   slug         = %q
+
 }
+
+
 
 resource "netbox_interface_template" "test" {
 
+
+
   device_type = netbox_device_type.test.id
+
   name        = %q
+
   type        = %q
+
 }
 
+
+
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, templateName, templateType)
+
 }
 
 // testAccInterfaceTemplateDataSourceByID looks up an interface template by ID.
@@ -163,12 +197,20 @@ func testAccInterfaceTemplateDataSourceByID(manufacturerName, manufacturerSlug, 
 
 	return testAccInterfaceTemplateDataSourcePrereqs(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, templateName, templateType) + `
 
+
+
 data "netbox_interface_template" "test" {
 
+
+
   id = netbox_interface_template.test.id
+
 }
 
+
+
 `
+
 }
 
 // testAccInterfaceTemplateDataSourceByName looks up an interface template by name and device type.
@@ -177,15 +219,26 @@ func testAccInterfaceTemplateDataSourceByName(manufacturerName, manufacturerSlug
 
 	return testAccInterfaceTemplateDataSourcePrereqs(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, templateName, templateType) + fmt.Sprintf(`
 
+
+
 data "netbox_interface_template" "test" {
+
   name        = %q
+
+
 
   device_type = netbox_device_type.test.id
 
+
+
   depends_on = [netbox_interface_template.test]
+
 }
 
+
+
 `, templateName)
+
 }
 
 func TestAccInterfaceTemplateDataSource_byID(t *testing.T) {
@@ -228,6 +281,7 @@ func TestAccInterfaceTemplateDataSource_byID(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccInterfaceTemplateDataSource_byName(t *testing.T) {
@@ -270,4 +324,5 @@ func TestAccInterfaceTemplateDataSource_byName(t *testing.T) {
 			},
 		},
 	})
+
 }

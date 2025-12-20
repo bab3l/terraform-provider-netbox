@@ -17,7 +17,6 @@ import (
 
 func TestIPSecProfileResource(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewIPSecProfileResource()
 	if r == nil {
 		t.Fatal("Expected non-nil IPSecProfile resource")
@@ -26,17 +25,13 @@ func TestIPSecProfileResource(t *testing.T) {
 
 func TestIPSecProfileResourceSchema(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewIPSecProfileResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
-
 	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
 	if schemaResponse.Diagnostics.HasError() {
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
 	}
-
 	if schemaResponse.Schema.Attributes == nil {
 		t.Fatal("Expected schema to have attributes")
 	}
@@ -65,15 +60,12 @@ func TestIPSecProfileResourceSchema(t *testing.T) {
 
 func TestIPSecProfileResourceMetadata(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewIPSecProfileResource()
 	metadataRequest := fwresource.MetadataRequest{
 		ProviderTypeName: "netbox",
 	}
 	metadataResponse := &fwresource.MetadataResponse{}
-
 	r.Metadata(context.Background(), metadataRequest, metadataResponse)
-
 	expected := "netbox_ipsec_profile"
 	if metadataResponse.TypeName != expected {
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
@@ -82,7 +74,6 @@ func TestIPSecProfileResourceMetadata(t *testing.T) {
 
 func TestIPSecProfileResourceConfigure(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewIPSecProfileResource()
 
 	// Type assert to access Configure method
@@ -90,30 +81,24 @@ func TestIPSecProfileResourceConfigure(t *testing.T) {
 	if !ok {
 		t.Fatal("Resource does not implement ResourceWithConfigure")
 	}
-
 	configureRequest := fwresource.ConfigureRequest{
 		ProviderData: nil,
 	}
 	configureResponse := &fwresource.ConfigureResponse{}
-
 	configurable.Configure(context.Background(), configureRequest, configureResponse)
-
 	if configureResponse.Diagnostics.HasError() {
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
 	}
 
 	client := &netbox.APIClient{}
 	configureRequest.ProviderData = client
-
 	configurable.Configure(context.Background(), configureRequest, configureResponse)
-
 	if configureResponse.Diagnostics.HasError() {
 		t.Errorf("Expected no error with valid client, got: %+v", configureResponse.Diagnostics)
 	}
 }
 
-// Acceptance Tests
-
+// Acceptance Tests.
 func TestAccIPSecProfileResource_basic(t *testing.T) {
 	// Generate unique name to avoid conflicts between test runs
 	name := testutil.RandomName("tf-test-ipsec-profile")

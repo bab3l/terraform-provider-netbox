@@ -17,7 +17,6 @@ import (
 
 func TestL2VPNTerminationResource(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewL2VPNTerminationResource()
 	if r == nil {
 		t.Fatal("Expected non-nil L2VPN Termination resource")
@@ -26,17 +25,13 @@ func TestL2VPNTerminationResource(t *testing.T) {
 
 func TestL2VPNTerminationResourceSchema(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewL2VPNTerminationResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
-
 	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
 	if schemaResponse.Diagnostics.HasError() {
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
 	}
-
 	if schemaResponse.Schema.Attributes == nil {
 		t.Fatal("Expected schema to have attributes")
 	}
@@ -60,15 +55,12 @@ func TestL2VPNTerminationResourceSchema(t *testing.T) {
 
 func TestL2VPNTerminationResourceMetadata(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewL2VPNTerminationResource()
 	metadataRequest := fwresource.MetadataRequest{
 		ProviderTypeName: "netbox",
 	}
 	metadataResponse := &fwresource.MetadataResponse{}
-
 	r.Metadata(context.Background(), metadataRequest, metadataResponse)
-
 	expected := "netbox_l2vpn_termination"
 	if metadataResponse.TypeName != expected {
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
@@ -77,7 +69,6 @@ func TestL2VPNTerminationResourceMetadata(t *testing.T) {
 
 func TestL2VPNTerminationResourceConfigure(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewL2VPNTerminationResource().(*resources.L2VPNTerminationResource)
 
 	// Test with nil provider data
@@ -85,9 +76,7 @@ func TestL2VPNTerminationResourceConfigure(t *testing.T) {
 		ProviderData: nil,
 	}
 	configureResponse := &fwresource.ConfigureResponse{}
-
 	r.Configure(context.Background(), configureRequest, configureResponse)
-
 	if configureResponse.Diagnostics.HasError() {
 		t.Fatalf("Configure with nil provider data should not error: %+v", configureResponse.Diagnostics)
 	}
@@ -97,9 +86,7 @@ func TestL2VPNTerminationResourceConfigure(t *testing.T) {
 		ProviderData: netbox.NewAPIClient(netbox.NewConfiguration()),
 	}
 	configureResponse = &fwresource.ConfigureResponse{}
-
 	r.Configure(context.Background(), configureRequest, configureResponse)
-
 	if configureResponse.Diagnostics.HasError() {
 		t.Fatalf("Configure with valid provider data should not error: %+v", configureResponse.Diagnostics)
 	}

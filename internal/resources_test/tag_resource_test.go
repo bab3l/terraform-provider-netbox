@@ -24,7 +24,9 @@ func TestTagResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil tag resource")
+
 	}
+
 }
 
 func TestTagResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestTagResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Check required attributes
@@ -58,7 +62,9 @@ func TestTagResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check computed attributes
@@ -70,7 +76,9 @@ func TestTagResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check optional attributes
@@ -82,8 +90,11 @@ func TestTagResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestTagResourceMetadata(t *testing.T) {
@@ -106,7 +117,9 @@ func TestTagResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestTagResourceConfigure(t *testing.T) {
@@ -129,6 +142,7 @@ func TestTagResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with correct provider data
@@ -144,7 +158,9 @@ func TestTagResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
+
 }
 
 // testAccTagResourceBasic creates a basic tag with required fields only.
@@ -153,12 +169,20 @@ func testAccTagResourceBasic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_tag" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 `, name, slug)
+
 }
 
 // testAccTagResourceFull creates a tag with all optional fields.
@@ -167,14 +191,24 @@ func testAccTagResourceFull(name, slug, color, description string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_tag" "test" {
+
   name        = %q
+
   slug        = %q
+
   color       = %q
+
   description = %q
+
 }
 
+
+
 `, name, slug, color, description)
+
 }
 
 // testAccTagResourceWithObjectTypes creates a tag with object_types restriction.
@@ -183,14 +217,24 @@ func testAccTagResourceWithObjectTypes(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_tag" "test" {
+
   name         = %q
+
   slug         = %q
 
+
+
   object_types = ["dcim.device", "dcim.site"]
+
 }
 
+
+
 `, name, slug)
+
 }
 
 func TestAccTagResource_basic(t *testing.T) {
@@ -234,6 +278,7 @@ func TestAccTagResource_basic(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccTagResource_full(t *testing.T) {
@@ -300,6 +345,7 @@ func TestAccTagResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestAccTagResource_withObjectTypes(t *testing.T) {
@@ -336,4 +382,5 @@ func TestAccTagResource_withObjectTypes(t *testing.T) {
 			},
 		},
 	})
+
 }

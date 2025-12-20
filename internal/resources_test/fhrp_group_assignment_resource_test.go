@@ -17,7 +17,6 @@ import (
 
 func TestFHRPGroupAssignmentResource(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewFHRPGroupAssignmentResource()
 	if r == nil {
 		t.Fatal("Expected non-nil FHRP Group Assignment resource")
@@ -26,17 +25,13 @@ func TestFHRPGroupAssignmentResource(t *testing.T) {
 
 func TestFHRPGroupAssignmentResourceSchema(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewFHRPGroupAssignmentResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
-
 	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
 	if schemaResponse.Diagnostics.HasError() {
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
 	}
-
 	if schemaResponse.Schema.Attributes == nil {
 		t.Fatal("Expected schema to have attributes")
 	}
@@ -60,15 +55,12 @@ func TestFHRPGroupAssignmentResourceSchema(t *testing.T) {
 
 func TestFHRPGroupAssignmentResourceMetadata(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewFHRPGroupAssignmentResource()
 	metadataRequest := fwresource.MetadataRequest{
 		ProviderTypeName: "netbox",
 	}
 	metadataResponse := &fwresource.MetadataResponse{}
-
 	r.Metadata(context.Background(), metadataRequest, metadataResponse)
-
 	expected := "netbox_fhrp_group_assignment"
 	if metadataResponse.TypeName != expected {
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
@@ -77,7 +69,6 @@ func TestFHRPGroupAssignmentResourceMetadata(t *testing.T) {
 
 func TestFHRPGroupAssignmentResourceConfigure(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewFHRPGroupAssignmentResource().(*resources.FHRPGroupAssignmentResource)
 
 	// Test with nil provider data
@@ -85,9 +76,7 @@ func TestFHRPGroupAssignmentResourceConfigure(t *testing.T) {
 		ProviderData: nil,
 	}
 	configureResponse := &fwresource.ConfigureResponse{}
-
 	r.Configure(context.Background(), configureRequest, configureResponse)
-
 	if configureResponse.Diagnostics.HasError() {
 		t.Fatalf("Configure with nil provider data should not error: %+v", configureResponse.Diagnostics)
 	}
@@ -97,9 +86,7 @@ func TestFHRPGroupAssignmentResourceConfigure(t *testing.T) {
 		ProviderData: netbox.NewAPIClient(netbox.NewConfiguration()),
 	}
 	configureResponse = &fwresource.ConfigureResponse{}
-
 	r.Configure(context.Background(), configureRequest, configureResponse)
-
 	if configureResponse.Diagnostics.HasError() {
 		t.Fatalf("Configure with valid provider data should not error: %+v", configureResponse.Diagnostics)
 	}
@@ -107,7 +94,6 @@ func TestFHRPGroupAssignmentResourceConfigure(t *testing.T) {
 
 func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 	name := acctest.RandomWithPrefix("test-fhrp-assign")
-
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
@@ -123,6 +109,7 @@ func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "interface_id"),
 				),
 			},
+
 			// Test update
 			{
 				Config: testAccFHRPGroupAssignmentResourceConfig_updated(name),
@@ -130,6 +117,7 @@ func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "priority", "200"),
 				),
 			},
+
 			// Test import
 			{
 				ResourceName:            "netbox_fhrp_group_assignment.test",

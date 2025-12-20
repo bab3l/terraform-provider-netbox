@@ -545,9 +545,9 @@ func CustomFieldsAttribute() schema.SetNestedAttribute {
 
 						stringvalidator.RegexMatches(
 
-							regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]*$`),
+							regexp.MustCompile(`^[a-z0-9_]+$`),
 
-							"must start with a letter and contain only letters, numbers, and underscores",
+							"must contain only lowercase letters, numbers, and underscores",
 						),
 					},
 				},

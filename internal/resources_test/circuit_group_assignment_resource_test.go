@@ -17,7 +17,6 @@ import (
 
 func TestCircuitGroupAssignmentResource(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewCircuitGroupAssignmentResource()
 	if r == nil {
 		t.Fatal("Expected non-nil CircuitGroupAssignment resource")
@@ -26,11 +25,9 @@ func TestCircuitGroupAssignmentResource(t *testing.T) {
 
 func TestCircuitGroupAssignmentResourceSchema(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewCircuitGroupAssignmentResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
-
 	r.Schema(context.Background(), schemaRequest, schemaResponse)
 
 	if schemaResponse.Diagnostics.HasError() {
@@ -68,16 +65,15 @@ func TestCircuitGroupAssignmentResourceSchema(t *testing.T) {
 
 func TestCircuitGroupAssignmentResourceMetadata(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewCircuitGroupAssignmentResource()
 	metadataRequest := fwresource.MetadataRequest{
 		ProviderTypeName: "netbox",
 	}
+
 	metadataResponse := &fwresource.MetadataResponse{}
-
 	r.Metadata(context.Background(), metadataRequest, metadataResponse)
-
 	expected := "netbox_circuit_group_assignment"
+
 	if metadataResponse.TypeName != expected {
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
 	}
@@ -85,11 +81,10 @@ func TestCircuitGroupAssignmentResourceMetadata(t *testing.T) {
 
 func TestCircuitGroupAssignmentResourceConfigure(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewCircuitGroupAssignmentResource()
-
 	// Type assert to access Configure method
 	configurable, ok := r.(fwresource.ResourceWithConfigure)
+
 	if !ok {
 		t.Fatal("Resource does not implement ResourceWithConfigure")
 	}
@@ -97,26 +92,22 @@ func TestCircuitGroupAssignmentResourceConfigure(t *testing.T) {
 	configureRequest := fwresource.ConfigureRequest{
 		ProviderData: nil,
 	}
+
 	configureResponse := &fwresource.ConfigureResponse{}
-
 	configurable.Configure(context.Background(), configureRequest, configureResponse)
-
 	if configureResponse.Diagnostics.HasError() {
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
 	}
 
 	client := &netbox.APIClient{}
 	configureRequest.ProviderData = client
-
 	configurable.Configure(context.Background(), configureRequest, configureResponse)
-
 	if configureResponse.Diagnostics.HasError() {
 		t.Errorf("Expected no error with valid client, got: %+v", configureResponse.Diagnostics)
 	}
 }
 
-// Acceptance Tests
-
+// Acceptance Tests.
 func TestAccCircuitGroupAssignmentResource_basic(t *testing.T) {
 	// Generate unique names to avoid conflicts between test runs
 	groupName := testutil.RandomName("tf-test-cga-group")
@@ -144,8 +135,7 @@ func TestAccCircuitGroupAssignmentResource_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitGroupAssignmentResourceConfig_basic(
-					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid,
-				),
+					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "id"),
 					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "group_id"),
@@ -221,8 +211,7 @@ func TestAccCircuitGroupAssignmentResource_update(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitGroupAssignmentResourceConfig_basic(
-					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid,
-				),
+					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "id"),
 				),
@@ -266,8 +255,7 @@ func TestAccCircuitGroupAssignmentResource_import(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitGroupAssignmentResourceConfig_basic(
-					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid,
-				),
+					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid),
 			},
 			{
 				ResourceName:            "netbox_circuit_group_assignment.test",
@@ -307,6 +295,7 @@ resource "netbox_circuit_group_assignment" "test" {
   circuit_id = netbox_circuit.test.id
 }
 `, groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid)
+
 }
 
 func testAccCircuitGroupAssignmentResourceConfig_withPriority(groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, priority string) string {
@@ -339,3 +328,6 @@ resource "netbox_circuit_group_assignment" "test" {
 }
 `, groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, priority)
 }
+
+// TestAccConsistency_CircuitGroupAssignment_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.

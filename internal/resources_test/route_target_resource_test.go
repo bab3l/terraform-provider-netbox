@@ -272,3 +272,50 @@ func TestAccRouteTargetResource_import(t *testing.T) {
 		},
 	})
 }
+
+// TestAccConsistency_RouteTarget_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_RouteTarget_LiteralNames(t *testing.T) {
+	t.Parallel()
+	rtName := testutil.RandomName("65000:100")
+	tenantName := testutil.RandomName("tenant")
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRouteTargetConsistencyLiteralNamesConfig(rtName, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_route_target.test", "name", rtName),
+					resource.TestCheckResourceAttr("netbox_route_target.test", "tenant", tenantName),
+				),
+			},
+			{
+				// Critical: Verify no drift when refreshing state
+				PlanOnly: true,
+				Config:   testAccRouteTargetConsistencyLiteralNamesConfig(rtName, tenantName, tenantSlug),
+			},
+		},
+	})
+}
+
+func testAccRouteTargetConsistencyLiteralNamesConfig(rtName, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+
+resource "netbox_tenant" "test" {
+  name = "%[2]s"
+  slug = "%[3]s"
+}
+
+resource "netbox_route_target" "test" {
+  name = "%[1]s"
+  # Use literal string name to mimic existing user state
+  tenant = "%[2]s"
+
+  depends_on = [netbox_tenant.test]
+}
+
+`, rtName, tenantName, tenantSlug)
+}

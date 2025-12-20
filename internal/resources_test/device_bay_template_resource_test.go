@@ -17,7 +17,6 @@ import (
 
 func TestDeviceBayTemplateResource(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewDeviceBayTemplateResource()
 	if r == nil {
 		t.Fatal("Expected non-nil DeviceBayTemplate resource")
@@ -26,17 +25,13 @@ func TestDeviceBayTemplateResource(t *testing.T) {
 
 func TestDeviceBayTemplateResourceSchema(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewDeviceBayTemplateResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
-
 	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
 	if schemaResponse.Diagnostics.HasError() {
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
 	}
-
 	if schemaResponse.Schema.Attributes == nil {
 		t.Fatal("Expected schema to have attributes")
 	}
@@ -65,15 +60,12 @@ func TestDeviceBayTemplateResourceSchema(t *testing.T) {
 
 func TestDeviceBayTemplateResourceMetadata(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewDeviceBayTemplateResource()
 	metadataRequest := fwresource.MetadataRequest{
 		ProviderTypeName: "netbox",
 	}
 	metadataResponse := &fwresource.MetadataResponse{}
-
 	r.Metadata(context.Background(), metadataRequest, metadataResponse)
-
 	expected := "netbox_device_bay_template"
 	if metadataResponse.TypeName != expected {
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
@@ -82,38 +74,31 @@ func TestDeviceBayTemplateResourceMetadata(t *testing.T) {
 
 func TestDeviceBayTemplateResourceConfigure(t *testing.T) {
 	t.Parallel()
-
 	r := resources.NewDeviceBayTemplateResource()
-
 	// Type assert to access Configure method
 	configurable, ok := r.(fwresource.ResourceWithConfigure)
 	if !ok {
 		t.Fatal("Resource does not implement ResourceWithConfigure")
 	}
-
 	configureRequest := fwresource.ConfigureRequest{
 		ProviderData: nil,
 	}
+
 	configureResponse := &fwresource.ConfigureResponse{}
-
 	configurable.Configure(context.Background(), configureRequest, configureResponse)
-
 	if configureResponse.Diagnostics.HasError() {
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
 	}
 
 	client := &netbox.APIClient{}
 	configureRequest.ProviderData = client
-
 	configurable.Configure(context.Background(), configureRequest, configureResponse)
-
 	if configureResponse.Diagnostics.HasError() {
 		t.Errorf("Expected no error with valid client, got: %+v", configureResponse.Diagnostics)
 	}
 }
 
-// Acceptance Tests
-
+// Acceptance Tests.
 func TestAccDeviceBayTemplateResource_basic(t *testing.T) {
 	// Generate unique names to avoid conflicts between test runs
 	name := testutil.RandomName("tf-test-dbt")
@@ -340,4 +325,58 @@ func TestAccDeviceBayTemplateResource_import(t *testing.T) {
 			},
 		},
 	})
+}
+
+// TestAccConsistency_DeviceBayTemplate_LiteralNames tests that reference attributes specified as literal string names
+// are preserved and do not cause drift when the API returns numeric IDs.
+func TestAccConsistency_DeviceBayTemplate_LiteralNames(t *testing.T) {
+	t.Parallel()
+	manufacturerName := testutil.RandomName("manufacturer")
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+	deviceTypeName := testutil.RandomName("device-type")
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+	bayName := testutil.RandomName("bay")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceBayTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, bayName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "name", bayName),
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "device_type", deviceTypeSlug),
+				),
+			},
+			{
+				// Critical: Verify no drift when refreshing state
+				PlanOnly: true,
+				Config:   testAccDeviceBayTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, bayName),
+			},
+		},
+	})
+}
+
+func testAccDeviceBayTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, bayName string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  model          = %q
+  slug           = %q
+  manufacturer   = netbox_manufacturer.test.id
+  subdevice_role = "parent"
+}
+
+resource "netbox_device_bay_template" "test" {
+  # Use literal string slug to mimic existing user state
+  device_type = %q
+  name = %q
+
+  depends_on = [netbox_device_type.test]
+}
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceTypeSlug, bayName)
 }

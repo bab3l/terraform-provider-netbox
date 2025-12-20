@@ -24,7 +24,9 @@ func TestWebhookResource(t *testing.T) {
 	if r == nil {
 
 		t.Fatal("Expected non-nil webhook resource")
+
 	}
+
 }
 
 func TestWebhookResourceSchema(t *testing.T) {
@@ -42,11 +44,13 @@ func TestWebhookResourceSchema(t *testing.T) {
 	if schemaResponse.Diagnostics.HasError() {
 
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+
 	}
 
 	if schemaResponse.Schema.Attributes == nil {
 
 		t.Fatal("Expected schema to have attributes")
+
 	}
 
 	// Check required attributes
@@ -58,7 +62,9 @@ func TestWebhookResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected required attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check computed attributes
@@ -70,7 +76,9 @@ func TestWebhookResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+
 		}
+
 	}
 
 	// Check optional attributes
@@ -82,8 +90,11 @@ func TestWebhookResourceSchema(t *testing.T) {
 		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
 
 			t.Errorf("Expected optional attribute %s to exist in schema", attr)
+
 		}
+
 	}
+
 }
 
 func TestWebhookResourceMetadata(t *testing.T) {
@@ -106,7 +117,9 @@ func TestWebhookResourceMetadata(t *testing.T) {
 	if metadataResponse.TypeName != expected {
 
 		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
+
 	}
+
 }
 
 func TestWebhookResourceConfigure(t *testing.T) {
@@ -129,6 +142,7 @@ func TestWebhookResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with correct provider data type
@@ -147,6 +161,7 @@ func TestWebhookResourceConfigure(t *testing.T) {
 	if configureResponse.Diagnostics.HasError() {
 
 		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
+
 	}
 
 	// Test with wrong provider data type
@@ -163,7 +178,9 @@ func TestWebhookResourceConfigure(t *testing.T) {
 	if !configureResponse.Diagnostics.HasError() {
 
 		t.Error("Expected error with wrong provider data type")
+
 	}
+
 }
 
 // Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
@@ -231,8 +248,10 @@ func TestAccWebhookResource_basic(t *testing.T) {
 			},
 
 			// Delete testing automatically occurs in TestCase
+
 		},
 	})
+
 }
 
 func TestAccWebhookResource_full(t *testing.T) {
@@ -277,35 +296,59 @@ func TestAccWebhookResource_full(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func testAccWebhookResource(name, payloadURL string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_webhook" "test" {
+
   name        = %[1]q
 
+
+
   payload_url = %[2]q
+
 }
 
+
+
 `, name, payloadURL)
+
 }
 
 func testAccWebhookResourceFull(name string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_webhook" "test" {
+
   name               = %[1]q
 
+
+
   payload_url        = "https://example.com/webhook"
+
   http_method        = "PUT"
+
   http_content_type  = "application/xml"
+
   description        = "Test webhook description"
+
   additional_headers = "X-Custom-Header: test-value"
+
   ssl_verification   = false
+
 }
 
+
+
 `, name)
+
 }
