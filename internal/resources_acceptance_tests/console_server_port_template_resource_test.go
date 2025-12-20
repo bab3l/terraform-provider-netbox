@@ -1,238 +1,15 @@
-package resources_test
+package resources_acceptance_tests
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
-	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
-
-func TestConsoleServerPortTemplateResource(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewConsoleServerPortTemplateResource()
-
-	if r == nil {
-
-		t.Fatal("Expected non-nil console server port template resource")
-
-	}
-
-}
-
-func TestConsoleServerPortTemplateResourceSchema(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewConsoleServerPortTemplateResource()
-
-	schemaRequest := fwresource.SchemaRequest{}
-
-	schemaResponse := &fwresource.SchemaResponse{}
-
-	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
-	if schemaResponse.Diagnostics.HasError() {
-
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-
-		t.Fatal("Expected schema to have attributes")
-
-	}
-
-	// Check required attributes
-
-	requiredAttrs := []string{"name"}
-
-	for _, attr := range requiredAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-	// Check computed attributes
-
-	computedAttrs := []string{"id"}
-
-	for _, attr := range computedAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-	// Check optional attributes
-
-	optionalAttrs := []string{"device_type", "module_type", "label", "type", "description"}
-
-	for _, attr := range optionalAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-}
-
-func TestConsoleServerPortTemplateResourceMetadata(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewConsoleServerPortTemplateResource()
-
-	metadataRequest := fwresource.MetadataRequest{
-
-		ProviderTypeName: "netbox",
-	}
-
-	metadataResponse := &fwresource.MetadataResponse{}
-
-	r.Metadata(context.Background(), metadataRequest, metadataResponse)
-
-	expected := "netbox_console_server_port_template"
-
-	if metadataResponse.TypeName != expected {
-
-		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
-	}
-
-}
-
-func TestConsoleServerPortTemplateResourceConfigure(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewConsoleServerPortTemplateResource().(*resources.ConsoleServerPortTemplateResource)
-
-	// Test with nil provider data (should not error)
-
-	configureRequest := fwresource.ConfigureRequest{
-
-		ProviderData: nil,
-	}
-
-	configureResponse := &fwresource.ConfigureResponse{}
-
-	r.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-
-		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
-	}
-
-}
-
-// Acceptance test configurations
-
-// testAccConsoleServerPortTemplateResourceBasic creates a console server port template with minimum required fields.
-
-func testAccConsoleServerPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name string) string {
-
-	return fmt.Sprintf(`
-
-resource "netbox_manufacturer" "test" {
-
-  name = %q
-
-  slug = %q
-
-}
-
-
-
-resource "netbox_device_type" "test" {
-
-  manufacturer = netbox_manufacturer.test.id
-
-  model        = %q
-
-  slug         = %q
-
-}
-
-
-
-resource "netbox_console_server_port_template" "test" {
-
-  device_type = netbox_device_type.test.id
-
-  name        = %q
-
-}
-
-`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
-
-}
-
-// testAccConsoleServerPortTemplateResourceFull creates a console server port template with all fields.
-
-func testAccConsoleServerPortTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, portType, description string) string {
-
-	return fmt.Sprintf(`
-
-resource "netbox_manufacturer" "test" {
-
-  name = %q
-
-  slug = %q
-
-}
-
-
-
-resource "netbox_device_type" "test" {
-
-  manufacturer = netbox_manufacturer.test.id
-
-  model        = %q
-
-  slug         = %q
-
-}
-
-
-
-resource "netbox_console_server_port_template" "test" {
-
-  device_type = netbox_device_type.test.id
-
-  name        = %q
-
-  label       = %q
-
-  type        = %q
-
-  description = %q
-
-}
-
-`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, portType, description)
-
-}
 
 func TestAccConsoleServerPortTemplateResource_basic(t *testing.T) {
 
@@ -337,8 +114,6 @@ func TestAccConsoleServerPortTemplateResource_full(t *testing.T) {
 				),
 			},
 
-			// Update test
-
 			{
 
 				Config: testAccConsoleServerPortTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, updatedName, updatedLabel, portType, updatedDescription),
@@ -356,10 +131,6 @@ func TestAccConsoleServerPortTemplateResource_full(t *testing.T) {
 	})
 
 }
-
-// TestAccConsistency_ConsoleServerPortTemplate_LiteralNames tests that reference attributes specified as literal string names
-
-// are preserved and do not cause drift when the API returns numeric IDs.
 
 func TestAccConsistency_ConsoleServerPortTemplate_LiteralNames(t *testing.T) {
 
@@ -408,6 +179,88 @@ func TestAccConsistency_ConsoleServerPortTemplate_LiteralNames(t *testing.T) {
 
 }
 
+func testAccConsoleServerPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_manufacturer" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+
+
+resource "netbox_device_type" "test" {
+
+  manufacturer = netbox_manufacturer.test.id
+
+  model        = %q
+
+  slug         = %q
+
+}
+
+
+
+resource "netbox_console_server_port_template" "test" {
+
+  device_type = netbox_device_type.test.id
+
+  name        = %q
+
+}
+
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
+
+}
+
+func testAccConsoleServerPortTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, portType, description string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_manufacturer" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+
+
+resource "netbox_device_type" "test" {
+
+  manufacturer = netbox_manufacturer.test.id
+
+  model        = %q
+
+  slug         = %q
+
+}
+
+
+
+resource "netbox_console_server_port_template" "test" {
+
+  device_type = netbox_device_type.test.id
+
+  name        = %q
+
+  label       = %q
+
+  type        = %q
+
+  description = %q
+
+}
+
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, portType, description)
+
+}
+
 func testAccConsoleServerPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName string) string {
 
 	return fmt.Sprintf(`
@@ -449,8 +302,6 @@ resource "netbox_console_server_port_template" "test" {
   depends_on = [netbox_device_type.test]
 
 }
-
-
 
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceTypeSlug, portName)
 

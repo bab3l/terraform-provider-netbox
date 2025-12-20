@@ -142,6 +142,10 @@ func isRequired(attr schema.Attribute) bool {
 
 		return a.Required
 
+	case schema.Int32Attribute:
+
+		return a.Required
+
 	case schema.Int64Attribute:
 
 		return a.Required
@@ -189,6 +193,10 @@ func isComputed(attr schema.Attribute) bool {
 	switch a := attr.(type) {
 
 	case schema.StringAttribute:
+
+		return a.Computed
+
+	case schema.Int32Attribute:
 
 		return a.Computed
 

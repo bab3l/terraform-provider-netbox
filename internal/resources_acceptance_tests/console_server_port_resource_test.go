@@ -1,169 +1,15 @@
-package resources_test
+package resources_acceptance_tests
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
-	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
-
-func TestConsoleServerPortResource(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewConsoleServerPortResource()
-
-	if r == nil {
-
-		t.Fatal("Expected non-nil ConsoleServerPort resource")
-
-	}
-
-}
-
-func TestConsoleServerPortResourceSchema(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewConsoleServerPortResource()
-
-	schemaRequest := fwresource.SchemaRequest{}
-
-	schemaResponse := &fwresource.SchemaResponse{}
-
-	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
-	if schemaResponse.Diagnostics.HasError() {
-
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-
-		t.Fatal("Expected schema to have attributes")
-
-	}
-
-	requiredAttrs := []string{"device", "name"}
-
-	for _, attr := range requiredAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-	computedAttrs := []string{"id"}
-
-	for _, attr := range computedAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-	optionalAttrs := []string{"label", "type", "speed", "description", "mark_connected", "tags", "custom_fields"}
-
-	for _, attr := range optionalAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-}
-
-func TestConsoleServerPortResourceMetadata(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewConsoleServerPortResource()
-
-	metadataRequest := fwresource.MetadataRequest{
-
-		ProviderTypeName: "netbox",
-	}
-
-	metadataResponse := &fwresource.MetadataResponse{}
-
-	r.Metadata(context.Background(), metadataRequest, metadataResponse)
-
-	expected := "netbox_console_server_port"
-
-	if metadataResponse.TypeName != expected {
-
-		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
-	}
-
-}
-
-func TestConsoleServerPortResourceConfigure(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewConsoleServerPortResource().(*resources.ConsoleServerPortResource)
-
-	configureRequest := fwresource.ConfigureRequest{
-
-		ProviderData: nil,
-	}
-
-	configureResponse := &fwresource.ConfigureResponse{}
-
-	r.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-
-		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
-	}
-
-	client := &netbox.APIClient{}
-
-	configureRequest.ProviderData = client
-
-	configureResponse = &fwresource.ConfigureResponse{}
-
-	r.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-
-		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
-	}
-
-	configureRequest.ProviderData = testutil.InvalidProviderData
-
-	configureResponse = &fwresource.ConfigureResponse{}
-
-	r.Configure(context.Background(), configureRequest, configureResponse)
-
-	if !configureResponse.Diagnostics.HasError() {
-
-		t.Error("Expected error with incorrect provider data")
-
-	}
-
-}
 
 func TestAccConsoleServerPortResource_basic(t *testing.T) {
 
@@ -310,6 +156,116 @@ func TestAccConsoleServerPortResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_console_server_port.test", "description", updatedDescription),
 				),
+			},
+		},
+	})
+
+}
+
+func TestAccConsistency_ConsoleServerPort(t *testing.T) {
+
+	t.Parallel()
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	deviceTypeName := testutil.RandomName("device-type")
+
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	deviceRoleName := testutil.RandomName("device-role")
+
+	deviceRoleSlug := testutil.RandomSlug("device-role")
+
+	deviceName := testutil.RandomName("device")
+
+	portName := testutil.RandomName("console-server-port")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccConsoleServerPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, portName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_console_server_port.test", "device", deviceName),
+				),
+			},
+
+			{
+
+				PlanOnly: true,
+
+				Config: testAccConsoleServerPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, portName),
+			},
+		},
+	})
+
+}
+
+func TestAccConsistency_ConsoleServerPort_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	deviceTypeName := testutil.RandomName("device-type")
+
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	roleName := testutil.RandomName("role")
+
+	roleSlug := testutil.RandomSlug("role")
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	deviceName := testutil.RandomName("device")
+
+	resourceName := testutil.RandomName("console_server_port")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccConsoleServerPortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_console_server_port.test", "name", resourceName),
+
+					resource.TestCheckResourceAttr("netbox_console_server_port.test", "device", deviceName),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccConsoleServerPortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
 			},
 		},
 	})
@@ -472,59 +428,6 @@ resource "netbox_console_server_port" "test" {
 
 }
 
-func TestAccConsistency_ConsoleServerPort(t *testing.T) {
-
-	t.Parallel()
-
-	siteName := testutil.RandomName("site")
-
-	siteSlug := testutil.RandomSlug("site")
-
-	manufacturerName := testutil.RandomName("manufacturer")
-
-	manufacturerSlug := testutil.RandomSlug("manufacturer")
-
-	deviceTypeName := testutil.RandomName("device-type")
-
-	deviceTypeSlug := testutil.RandomSlug("device-type")
-
-	deviceRoleName := testutil.RandomName("device-role")
-
-	deviceRoleSlug := testutil.RandomSlug("device-role")
-
-	deviceName := testutil.RandomName("device")
-
-	portName := testutil.RandomName("console-server-port")
-
-	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
-		Steps: []resource.TestStep{
-
-			{
-
-				Config: testAccConsoleServerPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, portName),
-
-				Check: resource.ComposeTestCheckFunc(
-
-					resource.TestCheckResourceAttr("netbox_console_server_port.test", "device", deviceName),
-				),
-			},
-
-			{
-
-				PlanOnly: true,
-
-				Config: testAccConsoleServerPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, portName),
-			},
-		},
-	})
-
-}
-
 func testAccConsoleServerPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, portName string) string {
 
 	return fmt.Sprintf(`
@@ -596,67 +499,6 @@ resource "netbox_console_server_port" "test" {
 }
 
 `, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, portName)
-
-}
-
-// TestAccConsistency_ConsoleServerPort_LiteralNames tests that reference attributes specified as literal string names
-
-// are preserved and do not cause drift when the API returns numeric IDs.
-
-func TestAccConsistency_ConsoleServerPort_LiteralNames(t *testing.T) {
-
-	t.Parallel()
-
-	manufacturerName := testutil.RandomName("manufacturer")
-
-	manufacturerSlug := testutil.RandomSlug("manufacturer")
-
-	deviceTypeName := testutil.RandomName("device-type")
-
-	deviceTypeSlug := testutil.RandomSlug("device-type")
-
-	roleName := testutil.RandomName("role")
-
-	roleSlug := testutil.RandomSlug("role")
-
-	siteName := testutil.RandomName("site")
-
-	siteSlug := testutil.RandomSlug("site")
-
-	deviceName := testutil.RandomName("device")
-
-	resourceName := testutil.RandomName("console_server_port")
-
-	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
-		Steps: []resource.TestStep{
-
-			{
-
-				Config: testAccConsoleServerPortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
-
-				Check: resource.ComposeTestCheckFunc(
-
-					resource.TestCheckResourceAttr("netbox_console_server_port.test", "name", resourceName),
-
-					resource.TestCheckResourceAttr("netbox_console_server_port.test", "device", deviceName),
-				),
-			},
-
-			{
-
-				// Critical: Verify no drift when refreshing state
-
-				PlanOnly: true,
-
-				Config: testAccConsoleServerPortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
-			},
-		},
-	})
 
 }
 
