@@ -363,33 +363,67 @@ func testAccVirtualMachineResourceConfig_basic(clusterTypeName, clusterTypeSlug,
 
 
 
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_cluster" "test" {
 
+
+
   name = %q
+
+
 
   type = netbox_cluster_type.test.slug
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_machine" "test" {
 
+
+
   name    = %q
+
+
 
   cluster = netbox_cluster.test.name
 
+
+
 }
+
+
+
+
 
 
 
@@ -403,45 +437,91 @@ func testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, 
 
 
 
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_cluster" "test" {
 
+
+
   name = %q
+
+
 
   type = netbox_cluster_type.test.slug
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_machine" "test" {
 
+
+
   name        = %q
+
+
 
   cluster     = netbox_cluster.test.name
 
+
+
   status      = "active"
+
+
 
   vcpus       = 2
 
+
+
   memory      = 2048
+
+
 
   disk        = 50
 
+
+
   description = %q
+
+
 
   comments    = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -593,93 +673,187 @@ func testAccVirtualMachineConsistencyConfig(vmName, clusterName, clusterTypeName
 
 
 
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
 
   name = "%[3]s"
 
+
+
   slug = "%[4]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_cluster" "test" {
 
+
+
   name = "%[2]s"
+
+
 
   type = netbox_cluster_type.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_site" "test" {
 
+
+
   name = "%[5]s"
+
+
 
   slug = "%[6]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tenant" "test" {
 
+
+
   name = "%[7]s"
+
+
 
   slug = "%[8]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_manufacturer" "test" {
 
+
+
   name = "%[11]s"
+
+
 
   slug = "%[12]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_platform" "test" {
 
+
+
   name = "%[9]s"
+
+
 
   slug = "%[10]s"
 
+
+
   manufacturer = netbox_manufacturer.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_role" "test" {
 
+
+
   name = "%[13]s"
+
+
 
   slug = "%[14]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_machine" "test" {
 
+
+
   name = "%[1]s"
+
+
 
   cluster = netbox_cluster.test.name
 
+
+
   site = netbox_site.test.name
+
+
 
   tenant = netbox_tenant.test.name
 
+
+
   platform = netbox_platform.test.name
+
+
 
   role = netbox_device_role.test.name
 
+
+
 }
+
+
+
+
 
 
 
@@ -688,7 +862,9 @@ resource "netbox_virtual_machine" "test" {
 }
 
 // TestAccConsistency_VirtualMachine_LiteralNames tests that reference attributes specified as literal string names
+
 // are preserved and do not cause drift when the API returns numeric IDs.
+
 func TestAccConsistency_VirtualMachine_LiteralNames(t *testing.T) {
 
 	t.Parallel()
@@ -768,101 +944,203 @@ func testAccVirtualMachineConsistencyLiteralNamesConfig(vmName, clusterName, clu
 
 
 
+
+
+
+
 resource "netbox_site" "test" {
+
+
 
   name = "%[5]s"
 
+
+
   slug = "%[6]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_cluster_type" "test" {
 
+
+
   name = "%[3]s"
+
+
 
   slug = "%[4]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_cluster" "test" {
 
+
+
   name = "%[2]s"
+
+
 
   type = netbox_cluster_type.test.id
 
+
+
   site = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tenant" "test" {
 
+
+
   name = "%[7]s"
+
+
 
   slug = "%[8]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_manufacturer" "test" {
 
+
+
   name = "%[11]s"
+
+
 
   slug = "%[12]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_platform" "test" {
 
+
+
   name = "%[9]s"
+
+
 
   slug = "%[10]s"
 
+
+
   manufacturer = netbox_manufacturer.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_role" "test" {
 
+
+
   name = "%[13]s"
+
+
 
   slug = "%[14]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_machine" "test" {
 
+
+
   name = "%[1]s"
+
+
 
   # Use literal string names to mimic existing user state
 
+
+
   cluster = "%[2]s"
+
+
 
   site = "%[5]s"
 
+
+
   tenant = "%[7]s"
 
+
+
   platform = "%[9]s"
+
+
 
   role = "%[13]s"
 
 
 
+
+
+
+
   depends_on = [netbox_cluster.test, netbox_site.test, netbox_tenant.test, netbox_platform.test, netbox_device_role.test]
 
+
+
 }
+
+
+
+
 
 
 

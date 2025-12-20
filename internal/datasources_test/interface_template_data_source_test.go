@@ -151,25 +151,51 @@ func testAccInterfaceTemplateDataSourcePrereqs(manufacturerName, manufacturerSlu
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -177,13 +203,27 @@ resource "netbox_interface_template" "test" {
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
 
   name        = %q
 
+
+
   type        = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -199,13 +239,27 @@ func testAccInterfaceTemplateDataSourceByID(manufacturerName, manufacturerSlug, 
 
 
 
+
+
+
+
 data "netbox_interface_template" "test" {
+
+
+
+
 
 
 
   id = netbox_interface_template.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -221,9 +275,19 @@ func testAccInterfaceTemplateDataSourceByName(manufacturerName, manufacturerSlug
 
 
 
+
+
+
+
 data "netbox_interface_template" "test" {
 
+
+
   name        = %q
+
+
+
+
 
 
 
@@ -231,9 +295,19 @@ data "netbox_interface_template" "test" {
 
 
 
+
+
+
+
   depends_on = [netbox_interface_template.test]
 
+
+
 }
+
+
+
+
 
 
 

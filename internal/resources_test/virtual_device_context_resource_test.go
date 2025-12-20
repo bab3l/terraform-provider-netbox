@@ -326,81 +326,163 @@ func testAccVirtualDeviceContextResourceConfig_basic(siteName, siteSlug, mfgName
 
 
 
+
+
+
+
 provider "netbox" {}
+
+
+
+
 
 
 
 resource "netbox_site" "test" {
 
+
+
   name   = %[1]q
+
+
 
   slug   = %[2]q
 
+
+
   status = "active"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_manufacturer" "test" {
 
+
+
   name = %[3]q
+
+
 
   slug = %[4]q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   model        = %[5]q
+
+
 
   slug         = %[6]q
 
+
+
   manufacturer = netbox_manufacturer.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_role" "test" {
 
+
+
   name = %[7]q
+
+
 
   slug = %[8]q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device" "test" {
 
+
+
   name        = %[9]q
+
+
 
   site        = netbox_site.test.id
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
 
   role        = netbox_device_role.test.id
 
+
+
   status      = "active"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_device_context" "test" {
 
+
+
   name   = %[10]q
+
+
 
   device = netbox_device.test.id
 
+
+
   status = "active"
 
+
+
 }
+
+
+
+
 
 
 
@@ -414,83 +496,167 @@ func testAccVirtualDeviceContextResourceConfig_full(siteName, siteSlug, mfgName,
 
 
 
+
+
+
+
 provider "netbox" {}
+
+
+
+
 
 
 
 resource "netbox_site" "test" {
 
+
+
   name   = %[1]q
+
+
 
   slug   = %[2]q
 
+
+
   status = "active"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_manufacturer" "test" {
 
+
+
   name = %[3]q
+
+
 
   slug = %[4]q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   model        = %[5]q
+
+
 
   slug         = %[6]q
 
+
+
   manufacturer = netbox_manufacturer.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_role" "test" {
 
+
+
   name = %[7]q
+
+
 
   slug = %[8]q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device" "test" {
 
+
+
   name        = %[9]q
+
+
 
   site        = netbox_site.test.id
 
 
 
+
+
+
+
   device_type = netbox_device_type.test.id
+
+
 
   role        = netbox_device_role.test.id
 
+
+
   status      = "active"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_device_context" "test" {
 
+
+
   name        = %[10]q
+
+
 
   device      = netbox_device.test.id
 
+
+
   status      = "active"
+
+
 
   description = %[11]q
 
+
+
 }
+
+
+
+
 
 
 
@@ -563,85 +729,171 @@ func testAccVirtualDeviceContextConsistencyConfig(siteName, siteSlug, manufactur
 
 
 
+
+
+
+
 resource "netbox_site" "test" {
+
+
 
   name = "%[1]s"
 
+
+
   slug = "%[2]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_manufacturer" "test" {
 
+
+
   name = "%[3]s"
+
+
 
   slug = "%[4]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   model = "%[5]s"
+
+
 
   slug = "%[6]s"
 
+
+
   manufacturer = netbox_manufacturer.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_role" "test" {
 
+
+
   name = "%[7]s"
+
+
 
   slug = "%[8]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device" "test" {
 
+
+
   name = "%[9]s"
+
+
+
+
 
 
 
   device_type = netbox_device_type.test.id
 
+
+
   role = netbox_device_role.test.id
+
+
 
   site = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tenant" "test" {
 
+
+
   name = "%[11]s"
+
+
 
   slug = "%[12]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_device_context" "test" {
 
+
+
   name = "%[10]s"
+
+
 
   device = netbox_device.test.name
 
+
+
   tenant = netbox_tenant.test.name
+
+
 
   status = "active"
 
+
+
 }
+
+
+
+
 
 
 
@@ -650,88 +902,164 @@ resource "netbox_virtual_device_context" "test" {
 }
 
 // TestAccConsistency_VirtualDeviceContext_LiteralNames tests that reference attributes specified as literal string names
+
 // are preserved and do not cause drift when the API returns numeric IDs.
+
 func TestAccConsistency_VirtualDeviceContext_LiteralNames(t *testing.T) {
+
 	t.Parallel()
+
 	siteName := testutil.RandomName("site")
+
 	siteSlug := testutil.RandomSlug("site")
+
 	manufacturerName := testutil.RandomName("manufacturer")
+
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
 	deviceTypeName := testutil.RandomName("device-type")
+
 	deviceTypeSlug := testutil.RandomSlug("device-type")
+
 	deviceRoleName := testutil.RandomName("device-role")
+
 	deviceRoleSlug := testutil.RandomSlug("device-role")
+
 	deviceName := testutil.RandomName("device")
+
 	vdcName := testutil.RandomName("vdc")
+
 	tenantName := testutil.RandomName("tenant")
+
 	tenantSlug := testutil.RandomSlug("tenant")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccVirtualDeviceContextConsistencyLiteralNamesConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, vdcName, tenantName, tenantSlug),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "device", deviceName),
+
 					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "tenant", tenantName),
 				),
 			},
+
 			{
+
 				// Critical: Verify no drift when refreshing state
+
 				PlanOnly: true,
-				Config:   testAccVirtualDeviceContextConsistencyLiteralNamesConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, vdcName, tenantName, tenantSlug),
+
+				Config: testAccVirtualDeviceContextConsistencyLiteralNamesConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, vdcName, tenantName, tenantSlug),
 			},
 		},
 	})
+
 }
 
 func testAccVirtualDeviceContextConsistencyLiteralNamesConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, vdcName, tenantName, tenantSlug string) string {
+
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
   name = "%[1]s"
+
   slug = "%[2]s"
+
 }
+
+
 
 resource "netbox_manufacturer" "test" {
+
   name = "%[3]s"
+
   slug = "%[4]s"
+
 }
+
+
 
 resource "netbox_device_type" "test" {
+
   model = "%[5]s"
+
   slug = "%[6]s"
+
   manufacturer = netbox_manufacturer.test.id
+
 }
+
+
 
 resource "netbox_device_role" "test" {
+
   name = "%[7]s"
+
   slug = "%[8]s"
+
 }
+
+
 
 resource "netbox_device" "test" {
+
   name = "%[9]s"
+
   device_type = netbox_device_type.test.id
+
   role = netbox_device_role.test.id
+
   site = netbox_site.test.id
+
   status = "active"
+
 }
+
+
 
 resource "netbox_tenant" "test" {
+
   name = "%[11]s"
+
   slug = "%[12]s"
+
 }
+
+
 
 resource "netbox_virtual_device_context" "test" {
+
   name = "%[10]s"
+
   # Use literal string names to mimic existing user state
+
   device = "%[9]s"
+
   tenant = "%[11]s"
+
   status = "active"
 
+
+
   depends_on = [netbox_device.test, netbox_tenant.test]
+
 }
 
+
+
 `, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, vdcName, tenantName, tenantSlug)
+
 }

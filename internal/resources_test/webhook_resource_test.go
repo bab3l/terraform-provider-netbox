@@ -305,15 +305,31 @@ func testAccWebhookResource(name, payloadURL string) string {
 
 
 
+
+
+
+
 resource "netbox_webhook" "test" {
+
+
 
   name        = %[1]q
 
 
 
+
+
+
+
   payload_url = %[2]q
 
+
+
 }
+
+
+
+
 
 
 
@@ -327,25 +343,51 @@ func testAccWebhookResourceFull(name string) string {
 
 
 
+
+
+
+
 resource "netbox_webhook" "test" {
+
+
 
   name               = %[1]q
 
 
 
+
+
+
+
   payload_url        = "https://example.com/webhook"
+
+
 
   http_method        = "PUT"
 
+
+
   http_content_type  = "application/xml"
+
+
 
   description        = "Test webhook description"
 
+
+
   additional_headers = "X-Custom-Header: test-value"
+
+
 
   ssl_verification   = false
 
+
+
 }
+
+
+
+
 
 
 

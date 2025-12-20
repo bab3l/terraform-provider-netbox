@@ -330,7 +330,15 @@ func testAccTenantGroupResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
 terraform {
+
+
+
+
 
 
 
@@ -338,7 +346,15 @@ terraform {
 
 
 
+
+
+
+
     netbox = {
+
+
+
+
 
 
 
@@ -346,13 +362,27 @@ terraform {
 
 
 
+
+
+
+
       version = ">= 0.1.0"
+
+
 
     }
 
+
+
   }
 
+
+
 }
+
+
+
+
 
 
 
@@ -360,13 +390,27 @@ provider "netbox" {}
 
 
 
+
+
+
+
 resource "netbox_tenant_group" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -382,7 +426,15 @@ func testAccTenantGroupResourceConfig_full(name, slug, description string) strin
 
 
 
+
+
+
+
 terraform {
+
+
+
+
 
 
 
@@ -390,7 +442,15 @@ terraform {
 
 
 
+
+
+
+
     netbox = {
+
+
+
+
 
 
 
@@ -398,13 +458,27 @@ terraform {
 
 
 
+
+
+
+
       version = ">= 0.1.0"
+
+
 
     }
 
+
+
   }
 
+
+
 }
+
+
+
+
 
 
 
@@ -412,15 +486,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
 resource "netbox_tenant_group" "test" {
+
+
 
   name        = %q
 
+
+
   slug        = %q
+
+
 
   description = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -484,13 +574,23 @@ func testAccTenantGroupResourceConfig_import(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_tenant_group" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
 
 `, name, slug)
 

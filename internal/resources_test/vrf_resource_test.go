@@ -312,11 +312,23 @@ func testAccVRFResourceConfig_basic(name string) string {
 
 
 
+
+
+
+
 resource "netbox_vrf" "test" {
+
+
 
   name = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -330,19 +342,39 @@ func testAccVRFResourceConfig_full(name, rd, description string) string {
 
 
 
+
+
+
+
 resource "netbox_vrf" "test" {
+
+
 
   name           = %q
 
 
 
+
+
+
+
   rd             = %q
+
+
 
   description    = %q
 
+
+
   enforce_unique = true
 
+
+
 }
+
+
+
+
 
 
 
@@ -427,23 +459,47 @@ func testAccVRFConsistencyConfig(vrfName, tenantName, tenantSlug string) string 
 
 
 
+
+
+
+
 resource "netbox_tenant" "test" {
+
+
 
   name = "%[2]s"
 
+
+
   slug = "%[3]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_vrf" "test" {
 
+
+
   name = "%[1]s"
+
+
 
   tenant = netbox_tenant.test.name
 
+
+
 }
+
+
+
+
 
 
 

@@ -213,11 +213,23 @@ func testAccIPSecPolicyDataSourceByID(name string) string {
 
 
 
+
+
+
+
 resource "netbox_ipsec_policy" "test" {
+
+
 
   name = %[1]q
 
+
+
 }
+
+
+
+
 
 
 
@@ -225,9 +237,19 @@ data "netbox_ipsec_policy" "test" {
 
 
 
+
+
+
+
   id = netbox_ipsec_policy.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -241,19 +263,39 @@ func testAccIPSecPolicyDataSourceByName(name string) string {
 
 
 
+
+
+
+
 resource "netbox_ipsec_policy" "test" {
+
+
 
   name = %[1]q
 
+
+
 }
+
+
+
+
 
 
 
 data "netbox_ipsec_policy" "test" {
 
+
+
   name = netbox_ipsec_policy.test.name
 
+
+
 }
+
+
+
+
 
 
 

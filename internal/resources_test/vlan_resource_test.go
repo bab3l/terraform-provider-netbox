@@ -370,13 +370,27 @@ func testAccVLANResourceConfig_basic(name string, vid int32) string {
 
 
 
+
+
+
+
 resource "netbox_vlan" "test" {
+
+
 
   name = %q
 
+
+
   vid  = %d
 
+
+
 }
+
+
+
+
 
 
 
@@ -390,17 +404,35 @@ func testAccVLANResourceConfig_full(name string, vid int32, description string) 
 
 
 
+
+
+
+
 resource "netbox_vlan" "test" {
+
+
 
   name        = %q
 
+
+
   vid         = %d
+
+
 
   description = %q
 
+
+
   status      = "active"
 
+
+
 }
+
+
+
+
 
 
 
@@ -414,25 +446,51 @@ func testAccVLANResourceConfig_withGroup(name string, vid int32, groupName, grou
 
 
 
+
+
+
+
 resource "netbox_vlan_group" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_vlan" "test" {
 
+
+
   name  = %q
+
+
 
   vid   = %d
 
+
+
   group = netbox_vlan_group.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -539,65 +597,131 @@ func testAccVLANConsistencyConfig(vlanName string, vlanVid int, siteName, siteSl
 
 
 
+
+
+
+
 resource "netbox_site" "test" {
+
+
 
   name = "%[3]s"
 
+
+
   slug = "%[4]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_vlan_group" "test" {
 
+
+
   name = "%[5]s"
+
+
 
   slug = "%[6]s"
 
+
+
   scope_type = "dcim.site"
+
+
 
   scope_id = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tenant" "test" {
 
+
+
   name = "%[7]s"
+
+
 
   slug = "%[8]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_role" "test" {
 
+
+
   name = "%[9]s"
+
+
 
   slug = "%[10]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_vlan" "test" {
 
+
+
   name = "%[1]s"
+
+
 
   vid  = %[2]d
 
+
+
   site = netbox_site.test.name
+
+
 
   group = netbox_vlan_group.test.slug
 
+
+
   tenant = netbox_tenant.test.name
+
+
 
   role = netbox_role.test.slug
 
+
+
 }
+
+
+
+
 
 
 
@@ -606,7 +730,9 @@ resource "netbox_vlan" "test" {
 }
 
 // TestAccConsistency_VLAN_LiteralNames tests that reference attributes specified as literal string names
+
 // are preserved and do not cause drift when the API returns numeric IDs.
+
 func TestAccConsistency_VLAN_LiteralNames(t *testing.T) {
 
 	t.Parallel()
@@ -676,71 +802,143 @@ func testAccVLANConsistencyLiteralNamesConfig(vlanName string, vlanVid int, site
 
 
 
+
+
+
+
 resource "netbox_site" "test" {
+
+
 
   name = "%[3]s"
 
+
+
   slug = "%[4]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_vlan_group" "test" {
 
+
+
   name = "%[5]s"
+
+
 
   slug = "%[6]s"
 
+
+
   scope_type = "dcim.site"
+
+
 
   scope_id = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tenant" "test" {
 
+
+
   name = "%[7]s"
+
+
 
   slug = "%[8]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_role" "test" {
 
+
+
   name = "%[9]s"
+
+
 
   slug = "%[10]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_vlan" "test" {
 
+
+
   name = "%[1]s"
+
+
 
   vid  = %[2]d
 
+
+
   # Use literal string names to mimic existing user state
+
+
 
   site = "%[3]s"
 
+
+
   group = "%[6]s"
 
+
+
   tenant = "%[7]s"
+
+
 
   role = "%[10]s"
 
 
 
+
+
+
+
   depends_on = [netbox_site.test, netbox_vlan_group.test, netbox_tenant.test, netbox_role.test]
 
+
+
 }
+
+
+
+
 
 
 

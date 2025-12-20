@@ -324,7 +324,15 @@ func testAccTenantResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
 terraform {
+
+
+
+
 
 
 
@@ -332,7 +340,15 @@ terraform {
 
 
 
+
+
+
+
     netbox = {
+
+
+
+
 
 
 
@@ -340,13 +356,27 @@ terraform {
 
 
 
+
+
+
+
       version = ">= 0.1.0"
+
+
 
     }
 
+
+
   }
 
+
+
 }
+
+
+
+
 
 
 
@@ -354,13 +384,27 @@ provider "netbox" {}
 
 
 
+
+
+
+
 resource "netbox_tenant" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -376,7 +420,15 @@ func testAccTenantResourceConfig_full(name, slug, description string) string {
 
 
 
+
+
+
+
 terraform {
+
+
+
+
 
 
 
@@ -384,7 +436,15 @@ terraform {
 
 
 
+
+
+
+
     netbox = {
+
+
+
+
 
 
 
@@ -392,13 +452,27 @@ terraform {
 
 
 
+
+
+
+
       version = ">= 0.1.0"
+
+
 
     }
 
+
+
   }
 
+
+
 }
+
+
+
+
 
 
 
@@ -406,15 +480,31 @@ provider "netbox" {}
 
 
 
+
+
+
+
 resource "netbox_tenant" "test" {
+
+
 
   name        = %q
 
+
+
   slug        = %q
+
+
 
   description = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -480,13 +570,27 @@ func testAccTenantResourceConfig_import(name, slug string) string {
 
 
 
+
+
+
+
 resource "netbox_tenant" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -543,25 +647,51 @@ func testAccTenantConsistencyConfig(tenantName, tenantSlug, groupName, groupSlug
 
 
 
+
+
+
+
 resource "netbox_tenant_group" "test" {
+
+
 
   name = "%[3]s"
 
+
+
   slug = "%[4]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tenant" "test" {
 
+
+
   name = "%[1]s"
+
+
 
   slug = "%[2]s"
 
+
+
   group = netbox_tenant_group.test.name
 
+
+
 }
+
+
+
+
 
 
 

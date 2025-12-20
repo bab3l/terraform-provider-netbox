@@ -217,15 +217,31 @@ func testAccIKEPolicyDataSourceByID(name string) string {
 
 
 
+
+
+
+
 resource "netbox_ike_policy" "test" {
+
+
 
   name    = %[1]q
 
 
 
+
+
+
+
   version = 2
 
+
+
 }
+
+
+
+
 
 
 
@@ -233,9 +249,19 @@ data "netbox_ike_policy" "test" {
 
 
 
+
+
+
+
   id = netbox_ike_policy.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -249,23 +275,47 @@ func testAccIKEPolicyDataSourceByName(name string) string {
 
 
 
+
+
+
+
 resource "netbox_ike_policy" "test" {
+
+
 
   name    = %[1]q
 
 
 
+
+
+
+
   version = 2
 
+
+
 }
+
+
+
+
 
 
 
 data "netbox_ike_policy" "test" {
 
+
+
   name = netbox_ike_policy.test.name
 
+
+
 }
+
+
+
+
 
 
 

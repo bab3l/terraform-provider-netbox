@@ -389,31 +389,63 @@ func testAccVirtualDiskResourceConfig_basic(diskName, vmName, clusterName, clust
 
 
 
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_cluster" "test" {
 
+
+
   name = %q
 
+
+
   type = netbox_cluster_type.test.id
+
+
 
 }
 
 
 
+
+
+
+
 resource "netbox_virtual_machine" "test" {
+
+
 
   name    = %q
 
+
+
   cluster = netbox_cluster.test.id
+
+
+
+
 
 
 
@@ -421,29 +453,59 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
   lifecycle {
+
+
+
+
 
 
 
     ignore_changes = [disk]
 
+
+
   }
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_disk" "test" {
 
+
+
   virtual_machine = netbox_virtual_machine.test.id
+
+
 
   name            = %q
 
 
 
+
+
+
+
   size            = 100
 
+
+
 }
+
+
+
+
 
 
 
@@ -457,31 +519,63 @@ func testAccVirtualDiskResourceConfig_full(diskName, vmName, clusterName, cluste
 
 
 
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_cluster" "test" {
 
+
+
   name = %q
 
+
+
   type = netbox_cluster_type.test.id
+
+
 
 }
 
 
 
+
+
+
+
 resource "netbox_virtual_machine" "test" {
+
+
 
   name    = %q
 
+
+
   cluster = netbox_cluster.test.id
+
+
+
+
 
 
 
@@ -489,31 +583,63 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
   lifecycle {
+
+
+
+
 
 
 
     ignore_changes = [disk]
 
+
+
   }
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_disk" "test" {
 
+
+
   virtual_machine = netbox_virtual_machine.test.id
+
+
 
   name            = %q
 
 
 
+
+
+
+
   size            = 500
+
+
 
   description     = "Test virtual disk with full options"
 
+
+
 }
+
+
+
+
 
 
 
@@ -527,31 +653,63 @@ func testAccVirtualDiskResourceConfig_updated(diskName, vmName, clusterName, clu
 
 
 
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_cluster" "test" {
 
+
+
   name = %q
 
+
+
   type = netbox_cluster_type.test.id
+
+
 
 }
 
 
 
+
+
+
+
 resource "netbox_virtual_machine" "test" {
+
+
 
   name    = %q
 
+
+
   cluster = netbox_cluster.test.id
+
+
+
+
 
 
 
@@ -559,31 +717,63 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
   lifecycle {
+
+
+
+
 
 
 
     ignore_changes = [disk]
 
+
+
   }
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_disk" "test" {
 
+
+
   virtual_machine = netbox_virtual_machine.test.id
+
+
 
   name            = %q
 
 
 
+
+
+
+
   size            = 200
+
+
 
   description     = "Updated description"
 
+
+
 }
+
+
+
+
 
 
 
@@ -719,31 +909,63 @@ func testAccVirtualDiskConsistencyConfig(clusterTypeName, clusterTypeSlug, clust
 
 
 
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
 
   name = "%[1]s"
 
+
+
   slug = "%[2]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_cluster" "test" {
 
+
+
   name = "%[3]s"
 
+
+
   type = netbox_cluster_type.test.id
+
+
 
 }
 
 
 
+
+
+
+
 resource "netbox_virtual_machine" "test" {
+
+
 
   name = "%[4]s"
 
+
+
   cluster = netbox_cluster.test.id
+
+
+
+
 
 
 
@@ -751,25 +973,51 @@ resource "netbox_virtual_machine" "test" {
 
 
 
+
+
+
+
     ignore_changes = [disk]
+
+
 
   }
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_disk" "test" {
 
+
+
   virtual_machine = netbox_virtual_machine.test.name
+
+
 
   name = "%[5]s"
 
 
 
+
+
+
+
   size = 100
 
+
+
 }
+
+
+
+
 
 
 
@@ -778,64 +1026,116 @@ resource "netbox_virtual_disk" "test" {
 }
 
 // TestAccConsistency_VirtualDisk_LiteralNames tests that reference attributes specified as literal string names
+
 // are preserved and do not cause drift when the API returns numeric IDs.
+
 func TestAccConsistency_VirtualDisk_LiteralNames(t *testing.T) {
+
 	t.Parallel()
+
 	clusterTypeName := testutil.RandomName("cluster-type")
+
 	clusterTypeSlug := testutil.RandomSlug("cluster-type")
+
 	clusterName := testutil.RandomName("cluster")
+
 	vmName := testutil.RandomName("vm")
+
 	diskName := testutil.RandomName("disk")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccVirtualDiskConsistencyLiteralNamesConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName, diskName),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttr("netbox_virtual_disk.test", "virtual_machine", vmName),
 				),
 			},
+
 			{
+
 				// Critical: Verify no drift when refreshing state
+
 				PlanOnly: true,
-				Config:   testAccVirtualDiskConsistencyLiteralNamesConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName, diskName),
+
+				Config: testAccVirtualDiskConsistencyLiteralNamesConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName, diskName),
 			},
 		},
 	})
+
 }
 
 func testAccVirtualDiskConsistencyLiteralNamesConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName, diskName string) string {
+
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_cluster_type" "test" {
+
   name = "%[1]s"
+
   slug = "%[2]s"
+
 }
+
+
 
 resource "netbox_cluster" "test" {
+
   name = "%[3]s"
+
   type = netbox_cluster_type.test.id
+
 }
+
+
 
 resource "netbox_virtual_machine" "test" {
+
   name = "%[4]s"
+
   cluster = netbox_cluster.test.id
 
+
+
   lifecycle {
+
     ignore_changes = [disk]
+
   }
+
 }
+
+
 
 resource "netbox_virtual_disk" "test" {
+
   name = "%[5]s"
+
   # Use literal string name to mimic existing user state
+
   virtual_machine = "%[4]s"
+
   size = 100
 
+
+
   depends_on = [netbox_virtual_machine.test]
+
 }
 
+
+
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, diskName)
+
 }

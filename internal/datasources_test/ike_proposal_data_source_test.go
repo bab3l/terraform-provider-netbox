@@ -219,9 +219,19 @@ func testAccIKEProposalDataSourceByID(name string) string {
 
 
 
+
+
+
+
 resource "netbox_ike_proposal" "test" {
 
+
+
   name                     = %[1]q
+
+
+
+
 
 
 
@@ -229,15 +239,31 @@ resource "netbox_ike_proposal" "test" {
 
 
 
+
+
+
+
   encryption_algorithm     = "aes-256-cbc"
+
+
+
+
 
 
 
   authentication_algorithm = "hmac-sha256"
 
+
+
   group                    = 14
 
+
+
 }
+
+
+
+
 
 
 
@@ -245,9 +271,19 @@ data "netbox_ike_proposal" "test" {
 
 
 
+
+
+
+
   id = netbox_ike_proposal.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -261,9 +297,19 @@ func testAccIKEProposalDataSourceByName(name string) string {
 
 
 
+
+
+
+
 resource "netbox_ike_proposal" "test" {
 
+
+
   name                     = %[1]q
+
+
+
+
 
 
 
@@ -271,23 +317,47 @@ resource "netbox_ike_proposal" "test" {
 
 
 
+
+
+
+
   encryption_algorithm     = "aes-256-cbc"
+
+
+
+
 
 
 
   authentication_algorithm = "hmac-sha256"
 
+
+
   group                    = 14
 
+
+
 }
+
+
+
+
 
 
 
 data "netbox_ike_proposal" "test" {
 
+
+
   name = netbox_ike_proposal.test.name
 
+
+
 }
+
+
+
+
 
 
 

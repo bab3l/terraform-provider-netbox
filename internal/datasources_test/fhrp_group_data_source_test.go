@@ -260,7 +260,15 @@ func testAccFHRPGroupDataSourceConfig_byID(protocol string, groupID int32, name 
 
 
 
+
+
+
+
 resource "netbox_fhrp_group" "test" {
+
+
+
+
 
 
 
@@ -268,11 +276,23 @@ resource "netbox_fhrp_group" "test" {
 
 
 
+
+
+
+
   group_id = %d
+
+
 
   name     = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -280,9 +300,19 @@ data "netbox_fhrp_group" "test" {
 
 
 
+
+
+
+
   id = netbox_fhrp_group.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -296,7 +326,15 @@ func testAccFHRPGroupDataSourceConfig_byProtocolAndGroupID(protocol string, grou
 
 
 
+
+
+
+
 resource "netbox_fhrp_group" "test" {
+
+
+
+
 
 
 
@@ -304,11 +342,23 @@ resource "netbox_fhrp_group" "test" {
 
 
 
+
+
+
+
   group_id = %d
+
+
 
   name     = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -316,13 +366,27 @@ data "netbox_fhrp_group" "test" {
 
 
 
+
+
+
+
   protocol = netbox_fhrp_group.test.protocol
+
+
+
+
 
 
 
   group_id = netbox_fhrp_group.test.group_id
 
+
+
 }
+
+
+
+
 
 
 

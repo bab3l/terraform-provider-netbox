@@ -82,29 +82,55 @@ func testAccVLANOptionalRoleConfig(siteName, siteSlug, vlanName string, vlanVid 
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
+
 
   name = %[1]q
 
+
+
   slug = %[2]q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_vlan" "test" {
 
+
+
   name        = %[3]q
+
+
 
   vid         = %[4]d
 
+
+
   site        = netbox_site.test.id
+
+
 
   description = %[5]q
 
+
+
   # role intentionally omitted to test optional attribute handling
 
+
+
 }
+
+
 
 `, siteName, siteSlug, vlanName, vlanVid, description)
 

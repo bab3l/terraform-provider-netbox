@@ -371,17 +371,35 @@ func testAccTunnelResourceConfig_basic(name string) string {
 
 
 
+
+
+
+
 resource "netbox_tunnel" "test" {
 
+
+
   name          = %[1]q
+
+
 
   status        = "active"
 
 
 
+
+
+
+
   encapsulation = "gre"
 
+
+
 }
+
+
+
+
 
 
 
@@ -395,23 +413,47 @@ func testAccTunnelResourceConfig_full(name, description string) string {
 
 
 
+
+
+
+
 resource "netbox_tunnel" "test" {
 
+
+
   name          = %[1]q
+
+
 
   status        = "planned"
 
 
 
+
+
+
+
   encapsulation = "wireguard"
+
+
 
   description   = %[2]q
 
 
 
+
+
+
+
   tunnel_id     = 12345
 
+
+
 }
+
+
+
+
 
 
 

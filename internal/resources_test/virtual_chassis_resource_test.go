@@ -262,11 +262,23 @@ func testAccVirtualChassisResourceConfig_basic(name string) string {
 
 
 
+
+
+
+
 resource "netbox_virtual_chassis" "test" {
+
+
 
   name = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -280,19 +292,39 @@ func testAccVirtualChassisResourceConfig_full(name, description string) string {
 
 
 
+
+
+
+
 resource "netbox_virtual_chassis" "test" {
+
+
 
   name        = %q
 
 
 
+
+
+
+
   domain      = "test-domain"
+
+
 
   description = %q
 
+
+
   comments    = "Test comments"
 
+
+
 }
+
+
+
+
 
 
 

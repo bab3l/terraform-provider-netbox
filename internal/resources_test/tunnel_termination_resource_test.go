@@ -303,25 +303,47 @@ func testAccTunnelTerminationResourceConfig_basic(tunnelName string) string {
 
 	return `
 
+
+
 resource "netbox_tunnel" "test" {
+
+
 
   name          = "` + tunnelName + `"
 
+
+
   encapsulation = "ipsec-tunnel"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tunnel_termination" "test" {
 
+
+
   tunnel           = netbox_tunnel.test.id
+
+
 
   termination_type = "dcim.device"
 
+
+
   role             = "peer"
 
+
+
 }
+
+
 
 `
 
@@ -331,25 +353,47 @@ func testAccTunnelTerminationResourceConfig_withRole(tunnelName, role string) st
 
 	return `
 
+
+
 resource "netbox_tunnel" "test" {
+
+
 
   name          = "` + tunnelName + `"
 
+
+
   encapsulation = "ipsec-tunnel"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tunnel_termination" "test" {
 
+
+
   tunnel           = netbox_tunnel.test.id
+
+
 
   termination_type = "dcim.device"
 
+
+
   role             = "` + role + `"
 
+
+
 }
+
+
 
 `
 

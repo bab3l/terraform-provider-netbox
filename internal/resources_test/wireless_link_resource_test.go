@@ -135,113 +135,223 @@ func testAccWirelessLinkResourceConfig(siteName, siteSlug, deviceName, interface
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
+
+
 
   status = "active"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_manufacturer" "test" {
 
+
+
   name = "Test Manufacturer Wireless"
+
+
 
   slug = "test-manufacturer-wireless"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_role" "test" {
 
+
+
   name = "Test Device Role Wireless"
+
+
 
   slug = "test-device-role-wireless"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device_type" "test" {
 
+
+
   model = "Test Device Type Wireless"
+
+
 
   slug  = "test-device-type-wireless"
 
+
+
   manufacturer = netbox_manufacturer.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device" "test_a" {
 
+
+
   name           = "%s-a"
+
+
 
   device_type    = netbox_device_type.test.id
 
+
+
   role           = netbox_device_role.test.id
+
+
 
   site           = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_device" "test_b" {
 
+
+
   name           = "%s-b"
+
+
 
   device_type    = netbox_device_type.test.id
 
+
+
   role           = netbox_device_role.test.id
+
+
 
   site           = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_interface" "test_a" {
 
+
+
   name      = %q
+
+
 
   device    = netbox_device.test_a.id
 
+
+
   type      = "ieee802.11ac"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_interface" "test_b" {
 
+
+
   name      = %q
+
+
 
   device    = netbox_device.test_b.id
 
+
+
   type      = "ieee802.11ac"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_wireless_link" "test" {
 
+
+
   interface_a = netbox_interface.test_a.id
+
+
 
   interface_b = netbox_interface.test_b.id
 
+
+
   ssid        = "Test SSID"
+
+
 
   status      = "connected"
 
+
+
 }
+
+
 
 `, siteName, siteSlug, deviceName, deviceName, interfaceNameA, interfaceNameB)
 

@@ -171,13 +171,27 @@ func testAccTagResourceBasic(name, slug string) string {
 
 
 
+
+
+
+
 resource "netbox_tag" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -193,17 +207,35 @@ func testAccTagResourceFull(name, slug, color, description string) string {
 
 
 
+
+
+
+
 resource "netbox_tag" "test" {
+
+
 
   name        = %q
 
+
+
   slug        = %q
+
+
 
   color       = %q
 
+
+
   description = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -219,17 +251,35 @@ func testAccTagResourceWithObjectTypes(name, slug string) string {
 
 
 
+
+
+
+
 resource "netbox_tag" "test" {
 
+
+
   name         = %q
+
+
 
   slug         = %q
 
 
 
+
+
+
+
   object_types = ["dcim.device", "dcim.site"]
 
+
+
 }
+
+
+
+
 
 
 

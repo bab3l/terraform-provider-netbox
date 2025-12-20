@@ -56,73 +56,143 @@ func testAccVirtualMachineCustomFieldsWithDigitConfig(clusterTypeName, clusterTy
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_cluster_type" "test" {
+
+
 
   name = %[1]q
 
+
+
   slug = %[2]q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_cluster" "test" {
 
+
+
   name = %[3]q
+
+
 
   type = netbox_cluster_type.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_machine" "test" {
 
+
+
   name    = %[4]q
 
+
+
   cluster = netbox_cluster.test.id
+
+
 
   status  = "active"
 
 
 
+
+
+
+
   # Test custom field names that start with digits
+
+
 
   custom_fields = [
 
+
+
     {
+
+
 
       name  = "4me_name"
 
+
+
       type  = "text"
+
+
 
       value = "test-value-1"
 
+
+
     },
 
+
+
     {
+
+
 
       name  = "2factor_enabled"
 
+
+
       type  = "boolean"
+
+
 
       value = "true"
 
+
+
     },
+
+
 
     {
 
+
+
       name  = "normal_field"
+
+
 
       type  = "text"
 
+
+
       value = "test-value-2"
+
+
 
     }
 
+
+
   ]
 
+
+
 }
+
+
 
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName)
 

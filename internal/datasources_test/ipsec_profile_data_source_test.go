@@ -225,31 +225,63 @@ func testAccIPSecProfileDataSourceByID(name, ikePolicyName, ipsecPolicyName stri
 
 
 
+
+
+
+
 resource "netbox_ike_policy" "test" {
+
+
 
   name    = %[2]q
 
 
 
+
+
+
+
   version = 2
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_ipsec_policy" "test" {
 
+
+
   name = %[3]q
+
+
 
 }
 
 
 
+
+
+
+
 resource "netbox_ipsec_profile" "test" {
+
+
 
   name         = %[1]q
 
+
+
   mode         = "esp"
+
+
+
+
 
 
 
@@ -257,9 +289,19 @@ resource "netbox_ipsec_profile" "test" {
 
 
 
+
+
+
+
   ipsec_policy = netbox_ipsec_policy.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -267,9 +309,19 @@ data "netbox_ipsec_profile" "test" {
 
 
 
+
+
+
+
   id = netbox_ipsec_profile.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -283,31 +335,63 @@ func testAccIPSecProfileDataSourceByName(name, ikePolicyName, ipsecPolicyName st
 
 
 
+
+
+
+
 resource "netbox_ike_policy" "test" {
+
+
 
   name    = %[2]q
 
 
 
+
+
+
+
   version = 2
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_ipsec_policy" "test" {
 
+
+
   name = %[3]q
+
+
 
 }
 
 
 
+
+
+
+
 resource "netbox_ipsec_profile" "test" {
+
+
 
   name         = %[1]q
 
+
+
   mode         = "esp"
+
+
+
+
 
 
 
@@ -315,17 +399,35 @@ resource "netbox_ipsec_profile" "test" {
 
 
 
+
+
+
+
   ipsec_policy = netbox_ipsec_policy.test.id
 
+
+
 }
+
+
+
+
 
 
 
 data "netbox_ipsec_profile" "test" {
 
+
+
   name = netbox_ipsec_profile.test.name
 
+
+
 }
+
+
+
+
 
 
 

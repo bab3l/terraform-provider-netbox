@@ -224,45 +224,91 @@ func testAccContactAssignmentDataSourceConfig(name, slug string) string {
 
 
 
+
+
+
+
 resource "netbox_site" "test" {
+
+
 
   name   = "%s-site"
 
+
+
   slug   = "%s-site"
+
+
 
   status = "active"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_contact" "test" {
 
+
+
   name  = "%s-contact"
+
+
+
+
 
 
 
   email = "test@example.com"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_contact_role" "test" {
 
+
+
   name = "%s-role"
 
+
+
   slug = "%s-role"
+
+
 
 }
 
 
 
+
+
+
+
 resource "netbox_contact_assignment" "test" {
+
+
 
   object_type = "dcim.site"
 
+
+
   object_id   = netbox_site.test.id
+
+
+
+
 
 
 
@@ -270,9 +316,19 @@ resource "netbox_contact_assignment" "test" {
 
 
 
+
+
+
+
   role_id     = netbox_contact_role.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -280,9 +336,19 @@ data "netbox_contact_assignment" "test" {
 
 
 
+
+
+
+
   id = netbox_contact_assignment.test.id
 
+
+
 }
+
+
+
+
 
 
 

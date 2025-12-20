@@ -377,43 +377,87 @@ func testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, cl
 
 
 
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_cluster" "test" {
 
+
+
   name = %q
+
+
 
   type = netbox_cluster_type.test.slug
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_machine" "test" {
 
+
+
   name    = %q
+
+
 
   cluster = netbox_cluster.test.name
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_vm_interface" "test" {
 
+
+
   virtual_machine = netbox_virtual_machine.test.name
+
+
 
   name            = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -427,49 +471,99 @@ func testAccVMInterfaceResourceConfig_full(clusterTypeName, clusterTypeSlug, clu
 
 
 
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_cluster" "test" {
 
+
+
   name = %q
+
+
 
   type = netbox_cluster_type.test.slug
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_machine" "test" {
 
+
+
   name    = %q
+
+
 
   cluster = netbox_cluster.test.name
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_vm_interface" "test" {
 
+
+
   virtual_machine = netbox_virtual_machine.test.name
+
+
 
   name            = %q
 
+
+
   enabled         = true
+
+
 
   mtu             = 1500
 
+
+
   description     = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -582,77 +676,155 @@ func testAccVMInterfaceConsistencyConfig(vmName, clusterName, clusterTypeName, c
 
 
 
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
 
   name = "%[3]s"
 
+
+
   slug = "%[4]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_site" "test" {
 
+
+
   name = "%[9]s"
+
+
 
   slug = "%[10]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_cluster" "test" {
 
+
+
   name = "%[2]s"
+
+
 
   type = netbox_cluster_type.test.id
 
+
+
   site = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_machine" "test" {
 
+
+
   name = "%[1]s"
+
+
 
   cluster = netbox_cluster.test.id
 
+
+
   site = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_vlan" "test" {
 
+
+
   name = "%[7]s"
+
+
 
   vid  = %[8]d
 
+
+
   site = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_vm_interface" "test" {
 
+
+
   virtual_machine = netbox_virtual_machine.test.name
+
+
 
   name = "%[5]s"
 
+
+
   mac_address = "%[6]s"
+
+
 
   mode = "access"
 
 
 
+
+
+
+
   untagged_vlan = netbox_vlan.test.name
 
+
+
 }
+
+
+
+
 
 
 
@@ -661,8 +833,11 @@ resource "netbox_vm_interface" "test" {
 }
 
 // TestAccConsistency_VMInterface_LiteralNames tests that reference attributes specified as literal string names
+
 // are preserved and do not cause drift when the API returns numeric IDs.
+
 // This test validates that MAC addresses maintain their case and VLAN names are preserved.
+
 func TestAccConsistency_VMInterface_LiteralNames(t *testing.T) {
 
 	t.Parallel()
@@ -734,83 +909,167 @@ func testAccVMInterfaceConsistencyLiteralNamesConfig(vmName, clusterName, cluste
 
 
 
+
+
+
+
 resource "netbox_cluster_type" "test" {
+
+
 
   name = "%[3]s"
 
+
+
   slug = "%[4]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_site" "test" {
 
+
+
   name = "%[9]s"
+
+
 
   slug = "%[10]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_cluster" "test" {
 
+
+
   name = "%[2]s"
+
+
 
   type = netbox_cluster_type.test.id
 
+
+
   site = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_virtual_machine" "test" {
 
+
+
   name = "%[1]s"
+
+
 
   cluster = netbox_cluster.test.id
 
+
+
   site = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_vlan" "test" {
 
+
+
   name = "%[7]s"
+
+
 
   vid  = %[8]d
 
+
+
   site = netbox_site.test.id
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_vm_interface" "test" {
 
+
+
   virtual_machine = netbox_virtual_machine.test.name
+
+
 
   name = "%[5]s"
 
+
+
   mac_address = "%[6]s"
+
+
 
   mode = "access"
 
+
+
   # Use literal string name to mimic existing user state
+
+
 
   untagged_vlan = "%[7]s"
 
 
 
+
+
+
+
   # Explicit dependency to ensure proper cleanup order
+
+
 
   depends_on = [netbox_vlan.test]
 
+
+
 }
+
+
+
+
 
 
 

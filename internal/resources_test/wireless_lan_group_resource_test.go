@@ -266,13 +266,27 @@ func testAccWirelessLANGroupResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
 resource "netbox_wireless_lan_group" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
@@ -286,15 +300,31 @@ func testAccWirelessLANGroupResourceConfig_full(name, slug, description string) 
 
 
 
+
+
+
+
 resource "netbox_wireless_lan_group" "test" {
+
+
 
   name        = %q
 
+
+
   slug        = %q
+
+
 
   description = %q
 
+
+
 }
+
+
+
+
 
 
 

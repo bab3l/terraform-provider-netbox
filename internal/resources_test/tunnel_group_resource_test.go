@@ -369,13 +369,27 @@ func testAccTunnelGroupResourceConfig_basic(name, slug string) string {
 
 
 
+
+
+
+
 resource "netbox_tunnel_group" "test" {
+
+
 
   name = %[1]q
 
+
+
   slug = %[2]q
 
+
+
 }
+
+
+
+
 
 
 
@@ -389,15 +403,31 @@ func testAccTunnelGroupResourceConfig_full(name, slug, description string) strin
 
 
 
+
+
+
+
 resource "netbox_tunnel_group" "test" {
+
+
 
   name        = %[1]q
 
+
+
   slug        = %[2]q
+
+
 
   description = %[3]q
 
+
+
 }
+
+
+
+
 
 
 

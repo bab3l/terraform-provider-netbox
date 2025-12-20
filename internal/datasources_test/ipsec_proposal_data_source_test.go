@@ -219,9 +219,19 @@ func testAccIPSecProposalDataSourceByID(name string) string {
 
 
 
+
+
+
+
 resource "netbox_ipsec_proposal" "test" {
 
+
+
   name                     = %[1]q
+
+
+
+
 
 
 
@@ -229,9 +239,19 @@ resource "netbox_ipsec_proposal" "test" {
 
 
 
+
+
+
+
   authentication_algorithm = "hmac-sha256"
 
+
+
 }
+
+
+
+
 
 
 
@@ -239,9 +259,19 @@ data "netbox_ipsec_proposal" "test" {
 
 
 
+
+
+
+
   id = netbox_ipsec_proposal.test.id
 
+
+
 }
+
+
+
+
 
 
 
@@ -255,9 +285,19 @@ func testAccIPSecProposalDataSourceByName(name string) string {
 
 
 
+
+
+
+
 resource "netbox_ipsec_proposal" "test" {
 
+
+
   name                     = %[1]q
+
+
+
+
 
 
 
@@ -265,17 +305,35 @@ resource "netbox_ipsec_proposal" "test" {
 
 
 
+
+
+
+
   authentication_algorithm = "hmac-sha256"
 
+
+
 }
+
+
+
+
 
 
 
 data "netbox_ipsec_proposal" "test" {
 
+
+
   name = netbox_ipsec_proposal.test.name
 
+
+
 }
+
+
+
+
 
 
 
