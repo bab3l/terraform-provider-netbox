@@ -51,8 +51,46 @@ internal/testutil/
 
 ## Changes Applied
 
-### 0. Cleanup: Remove Incomplete or Irrelevant Comments
+### 0. Cleanup: Fix File Layout and Remove Incomplete Comments
 
+When refactoring test files, first clean up the file layout and remove incomplete comments:
+
+#### File Layout Cleanup
+- **Remove spurious blank lines**: Some test files have excessive blank lines between function definitions and within function bodies
+- **Standardize spacing**: Use single blank lines between functions and logical blocks within functions
+- **Fix formatting**: Ensure consistent indentation and line breaks (Go formatter may have added extra newlines during GitHub uploads)
+
+**Example:**
+Old file may have:
+```go
+func TestResource(t *testing.T) {
+
+	t.Parallel()
+
+	r := resources.NewResource()
+
+	if r == nil {
+
+		t.Fatal("Expected non-nil resource")
+
+	}
+
+}
+```
+
+Clean to:
+```go
+func TestResource(t *testing.T) {
+	t.Parallel()
+
+	r := resources.NewResource()
+	if r == nil {
+		t.Fatal("Expected non-nil resource")
+	}
+}
+```
+
+#### Comment Cleanup
 When refactoring test files, review and clean up any incomplete or irrelevant comments:
 
 - **Incomplete test function stubs**: If a test function is declared (e.g., `// TestAccConsistency_Cable_LiteralNames ...`) but not implemented (no test function body), remove the incomplete comment entirely
