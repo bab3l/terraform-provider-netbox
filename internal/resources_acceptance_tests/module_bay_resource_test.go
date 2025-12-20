@@ -12,89 +12,51 @@ import (
 )
 
 func TestAccModuleBayResource_basic(t *testing.T) {
-
-	t.Parallel()
-
 	siteName := testutil.RandomName("tf-test-site")
-
 	siteSlug := testutil.RandomSlug("tf-test-site")
-
 	mfgName := testutil.RandomName("tf-test-mfg")
-
 	mfgSlug := testutil.RandomSlug("tf-test-mfg")
-
 	dtModel := testutil.RandomName("tf-test-dt")
-
 	dtSlug := testutil.RandomSlug("tf-test-dt")
-
 	roleName := testutil.RandomName("tf-test-role")
-
 	roleSlug := testutil.RandomSlug("tf-test-role")
-
 	deviceName := testutil.RandomName("tf-test-device")
-
 	bayName := testutil.RandomName("tf-test-mbay")
 
 	cleanup := testutil.NewCleanupResource(t)
-
 	cleanup.RegisterSiteCleanup(siteSlug)
-
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
-
 	cleanup.RegisterDeviceTypeCleanup(dtSlug)
-
 	cleanup.RegisterDeviceRoleCleanup(roleSlug)
-
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccModuleBayResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_module_bay.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_module_bay.test", "name", bayName),
 				),
 			},
-
 			{
-
-				ResourceName: "netbox_module_bay.test",
-
-				ImportState: true,
-
-				ImportStateVerify: true,
-
+				ResourceName:            "netbox_module_bay.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device"},
 			},
 		},
 	})
-
 }
 
 func TestAccModuleBayResource_full(t *testing.T) {
-
-	t.Parallel()
-
 	siteName := testutil.RandomName("tf-test-site-full")
-
 	siteSlug := testutil.RandomSlug("tf-test-site-full")
-
 	mfgName := testutil.RandomName("tf-test-mfg-full")
-
 	mfgSlug := testutil.RandomSlug("tf-test-mfg-full")
 
 	dtModel := testutil.RandomName("tf-test-dt-full")

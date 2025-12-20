@@ -199,8 +199,6 @@ func TestAccCircuitTerminationResource_import(t *testing.T) {
 // TestAccConsistency_CircuitTermination_LiteralNames tests that reference attributes specified as literal string names
 // are preserved and do not cause drift when the API returns numeric IDs.
 func TestAccConsistency_CircuitTermination_LiteralNames(t *testing.T) {
-	t.Parallel()
-
 	providerName := testutil.RandomName("provider")
 	providerSlug := testutil.RandomSlug("provider")
 	circuitTypeName := testutil.RandomName("circuit-type")

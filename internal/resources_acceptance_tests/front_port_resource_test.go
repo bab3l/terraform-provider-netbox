@@ -84,8 +84,6 @@ func TestAccFrontPortResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_FrontPort(t *testing.T) {
-	t.Parallel()
-
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	manufacturerName := testutil.RandomName("manufacturer")
@@ -117,8 +115,6 @@ func TestAccConsistency_FrontPort(t *testing.T) {
 }
 
 func TestAccConsistency_FrontPort_LiteralNames(t *testing.T) {
-	t.Parallel()
-
 	manufacturerName := testutil.RandomName("manufacturer")
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
 	deviceTypeName := testutil.RandomName("device-type")

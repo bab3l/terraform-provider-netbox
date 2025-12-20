@@ -163,9 +163,6 @@ func TestAccConsolePortResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_ConsolePort(t *testing.T) {
-
-	t.Parallel()
-
 	siteName := testutil.RandomName("site")
 
 	siteSlug := testutil.RandomSlug("site")
@@ -220,9 +217,6 @@ func TestAccConsistency_ConsolePort(t *testing.T) {
 // are preserved and do not cause drift when the API returns numeric IDs.
 
 func TestAccConsistency_ConsolePort_LiteralNames(t *testing.T) {
-
-	t.Parallel()
-
 	manufacturerName := testutil.RandomName("manufacturer")
 
 	manufacturerSlug := testutil.RandomSlug("manufacturer")

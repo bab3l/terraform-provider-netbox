@@ -12,173 +12,305 @@ import (
 )
 
 func TestAccLocationResource_basic(t *testing.T) {
+
 	siteName := testutil.RandomName("tf-test-loc-site")
+
 	siteSlug := testutil.RandomSlug("tf-test-loc-site")
+
 	name := testutil.RandomName("tf-test-location")
+
 	slug := testutil.RandomSlug("tf-test-location")
 
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterLocationCleanup(slug)
+
 	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckLocationDestroy, testutil.CheckSiteDestroy),
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccLocationResourceConfig_basic(siteName, siteSlug, name, slug),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_location.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_location.test", "name", name),
+
 					resource.TestCheckResourceAttr("netbox_location.test", "slug", slug),
+
 					resource.TestCheckResourceAttrPair("netbox_location.test", "site", "netbox_site.test", "id"),
 				),
 			},
 		},
 	})
+
 }
 
 func TestAccLocationResource_full(t *testing.T) {
+
 	siteName := testutil.RandomName("tf-test-loc-site-full")
+
 	siteSlug := testutil.RandomSlug("tf-test-loc-s-full")
+
 	name := testutil.RandomName("tf-test-location-full")
+
 	slug := testutil.RandomSlug("tf-test-loc-full")
+
 	description := "Test location with all fields"
+
 	facility := "Building A"
 
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterLocationCleanup(slug)
+
 	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckLocationDestroy, testutil.CheckSiteDestroy),
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccLocationResourceConfig_full(siteName, siteSlug, name, slug, description, facility),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_location.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_location.test", "name", name),
+
 					resource.TestCheckResourceAttr("netbox_location.test", "slug", slug),
+
 					resource.TestCheckResourceAttr("netbox_location.test", "status", "active"),
+
 					resource.TestCheckResourceAttr("netbox_location.test", "description", description),
+
 					resource.TestCheckResourceAttr("netbox_location.test", "facility", facility),
 				),
 			},
 		},
 	})
+
 }
 
 func TestAccLocationResource_import(t *testing.T) {
+
 	siteName := testutil.RandomName("tf-test-loc-site")
+
 	siteSlug := testutil.RandomSlug("tf-test-loc-site")
+
 	name := testutil.RandomName("tf-test-location")
+
 	slug := testutil.RandomSlug("tf-test-location")
 
 	cleanup := testutil.NewCleanupResource(t)
+
 	cleanup.RegisterLocationCleanup(slug)
+
 	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
+
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
 		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckLocationDestroy, testutil.CheckSiteDestroy),
+
 		Steps: []resource.TestStep{
+
 			{
+
 				Config: testAccLocationResourceConfig_import(siteName, siteSlug, name, slug),
+
 				Check: resource.ComposeTestCheckFunc(
+
 					resource.TestCheckResourceAttrSet("netbox_location.test", "id"),
+
 					resource.TestCheckResourceAttr("netbox_location.test", "name", name),
+
 					resource.TestCheckResourceAttr("netbox_location.test", "slug", slug),
+
 					resource.TestCheckResourceAttrPair("netbox_location.test", "site", "netbox_site.test", "id"),
 				),
 			},
+
 			{
-				ResourceName:            "netbox_location.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
+
+				ResourceName: "netbox_location.test",
+
+				ImportState: true,
+
+				ImportStateVerify: true,
+
 				ImportStateVerifyIgnore: []string{"site"},
 			},
 		},
 	})
+
 }
 
 func testAccLocationResourceConfig_basic(siteName, siteSlug, name, slug string) string {
+
 	return fmt.Sprintf(`
+
 terraform {
+
   required_providers {
+
     netbox = {
+
       source  = "bab3l/netbox"
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
 
+
+
 resource "netbox_location" "test" {
+
   name = %q
+
   slug = %q
+
   site = netbox_site.test.id
+
 }
+
 `, siteName, siteSlug, name, slug)
+
 }
 
 func testAccLocationResourceConfig_full(siteName, siteSlug, name, slug, description, facility string) string {
+
 	return fmt.Sprintf(`
+
 terraform {
+
   required_providers {
+
     netbox = {
+
       source  = "bab3l/netbox"
+
       version = ">= 0.1.0"
+
     }
+
   }
+
 }
+
+
 
 provider "netbox" {}
 
+
+
 resource "netbox_site" "test" {
+
   name   = %q
+
   slug   = %q
+
   status = "active"
+
 }
 
+
+
 resource "netbox_location" "test" {
+
   name        = %q
+
   slug        = %q
+
   site        = netbox_site.test.id
+
   status      = "active"
+
   description = %q
+
   facility    = %q
+
 }
+
 `, siteName, siteSlug, name, slug, description, facility)
+
 }
 
 func testAccLocationResourceConfig_import(siteName, siteSlug, name, slug string) string {
+
 	return fmt.Sprintf(`
+
 resource "netbox_site" "test" {
+
   name = %q
+
   slug = %q
+
 }
 
+
+
 resource "netbox_location" "test" {
+
   name = %q
+
   slug = %q
+
   site = netbox_site.test.id
+
 }
+
 `, siteName, siteSlug, name, slug)
+
 }

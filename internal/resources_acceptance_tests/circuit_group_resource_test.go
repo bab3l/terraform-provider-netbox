@@ -191,13 +191,23 @@ func testAccCircuitGroupResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_circuit_group" "test" {
+
+
 
   name = %[1]q
 
+
+
   slug = %[2]q
 
+
+
 }
+
+
 
 `, name, slug)
 
@@ -207,15 +217,27 @@ func testAccCircuitGroupResourceConfig_full(name, slug, description string) stri
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_circuit_group" "test" {
+
+
 
   name        = %[1]q
 
+
+
   slug        = %[2]q
+
+
 
   description = %[3]q
 
+
+
 }
+
+
 
 `, name, slug, description)
 

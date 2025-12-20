@@ -245,9 +245,6 @@ func TestAccCircuitResource_import(t *testing.T) {
 }
 
 func TestAccConsistency_Circuit(t *testing.T) {
-
-	t.Parallel()
-
 	cid := testutil.RandomName("cid")
 
 	providerName := testutil.RandomName("provider")
@@ -298,9 +295,6 @@ func TestAccConsistency_Circuit(t *testing.T) {
 }
 
 func TestAccConsistency_Circuit_LiteralNames(t *testing.T) {
-
-	t.Parallel()
-
 	cid := testutil.RandomName("cid")
 
 	providerName := testutil.RandomName("provider")

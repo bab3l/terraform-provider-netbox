@@ -57,13 +57,23 @@ func testAccConfigContextResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_config_context" "test" {
+
+
 
   name = %q
 
+
+
   data = "{\"foo\":\"bar\"}"
 
+
+
 }
+
+
 
 `, name)
 

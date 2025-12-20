@@ -3,6 +3,7 @@ package resources_acceptance_tests
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -12,12 +13,13 @@ import (
 )
 
 func TestAccAggregateResource_basic(t *testing.T) {
-
 	rirName := testutil.RandomName("tf-test-rir")
-
 	rirSlug := testutil.RandomSlug("tf-test-rir")
+	// Use a timestamp-based prefix to ensure uniqueness across test runs
+	prefix := fmt.Sprintf("192.0.%d.0/24", (int(time.Now().Unix()) % 256))
 
-	prefix := "192.0.2.0/24"
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
 
 	resource.Test(t, resource.TestCase{
 
@@ -65,11 +67,15 @@ func TestAccAggregateResource_full(t *testing.T) {
 
 	rirSlug := testutil.RandomSlug("tf-test-rir-full")
 
-	prefix := "198.51.100.0/24"
+	// Use a timestamp-based prefix to ensure uniqueness across test runs
+	prefix := fmt.Sprintf("198.51.%d.0/24", (int(time.Now().Unix()) % 256))
 
 	description := "Test aggregate with all fields"
 
 	updatedDescription := "Updated aggregate description"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
 
 	resource.Test(t, resource.TestCase{
 
@@ -169,10 +175,8 @@ resource "netbox_aggregate" "test" {
 }
 
 func TestAccConsistency_Aggregate(t *testing.T) {
-
-	t.Parallel()
-
-	prefix := "192.168.0.0/16"
+	// Use a timestamp-based prefix to ensure uniqueness across test runs
+	prefix := fmt.Sprintf("10.%d.0.0/16", (int(time.Now().Unix()) % 256))
 
 	rirName := testutil.RandomName("rir")
 
@@ -181,6 +185,10 @@ func TestAccConsistency_Aggregate(t *testing.T) {
 	tenantName := testutil.RandomName("tenant")
 
 	tenantSlug := testutil.RandomSlug("tenant")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
 
@@ -258,10 +266,8 @@ resource "netbox_aggregate" "test" {
 // are preserved and do not cause drift when the API returns numeric IDs.
 
 func TestAccConsistency_Aggregate_LiteralNames(t *testing.T) {
-
-	t.Parallel()
-
-	prefix := "10.50.0.0/16"
+	// Use a timestamp-based prefix to ensure uniqueness across test runs
+	prefix := fmt.Sprintf("10.%d.0.0/16", (int(time.Now().Unix()) % 256))
 
 	rirName := testutil.RandomName("rir")
 
@@ -270,6 +276,10 @@ func TestAccConsistency_Aggregate_LiteralNames(t *testing.T) {
 	tenantName := testutil.RandomName("tenant")
 
 	tenantSlug := testutil.RandomSlug("tenant")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
 

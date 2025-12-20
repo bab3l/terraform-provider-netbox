@@ -11,7 +11,7 @@ import (
 func TestAccExportTemplateResource_basic(t *testing.T) {
 	name := acctest.RandomWithPrefix("test-export-template")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -44,7 +44,7 @@ func TestAccExportTemplateResource_basic(t *testing.T) {
 func TestAccExportTemplateResource_full(t *testing.T) {
 	name := acctest.RandomWithPrefix("test-export-template")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{

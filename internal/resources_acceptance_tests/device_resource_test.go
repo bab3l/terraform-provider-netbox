@@ -120,8 +120,6 @@ func TestAccDeviceResource_update(t *testing.T) {
 }
 
 func TestAccConsistency_Device(t *testing.T) {
-	t.Parallel()
-
 	deviceName := testutil.RandomName("device")
 	deviceTypeName := testutil.RandomName("device-type")
 	deviceTypeSlug := testutil.RandomSlug("device-type")
@@ -157,8 +155,6 @@ func TestAccConsistency_Device(t *testing.T) {
 }
 
 func TestAccConsistency_Device_LiteralNames(t *testing.T) {
-	t.Parallel()
-
 	deviceName := testutil.RandomName("device")
 	deviceTypeName := testutil.RandomName("device-type")
 	deviceTypeSlug := testutil.RandomSlug("device-type")

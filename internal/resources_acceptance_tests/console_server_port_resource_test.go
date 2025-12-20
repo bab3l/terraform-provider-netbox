@@ -163,9 +163,6 @@ func TestAccConsoleServerPortResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_ConsoleServerPort(t *testing.T) {
-
-	t.Parallel()
-
 	siteName := testutil.RandomName("site")
 
 	siteSlug := testutil.RandomSlug("site")
@@ -216,9 +213,6 @@ func TestAccConsistency_ConsoleServerPort(t *testing.T) {
 }
 
 func TestAccConsistency_ConsoleServerPort_LiteralNames(t *testing.T) {
-
-	t.Parallel()
-
 	manufacturerName := testutil.RandomName("manufacturer")
 
 	manufacturerSlug := testutil.RandomSlug("manufacturer")

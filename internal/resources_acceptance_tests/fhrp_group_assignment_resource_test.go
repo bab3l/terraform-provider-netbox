@@ -11,7 +11,7 @@ import (
 func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 	name := testutil.RandomName("test-fhrp-assign")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{

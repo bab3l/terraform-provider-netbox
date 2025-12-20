@@ -222,9 +222,6 @@ resource "netbox_asn" "test" {
 // are preserved and do not cause drift when the API returns numeric IDs.
 
 func TestAccConsistency_ASN_LiteralNames(t *testing.T) {
-
-	t.Parallel()
-
 	asn := int64(65100)
 
 	rirName := testutil.RandomName("rir")

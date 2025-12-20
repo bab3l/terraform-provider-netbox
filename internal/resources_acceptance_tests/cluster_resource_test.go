@@ -249,9 +249,6 @@ func TestAccClusterResource_import(t *testing.T) {
 // are preserved and do not cause drift when the API returns numeric IDs.
 
 func TestAccConsistency_Cluster_LiteralNames(t *testing.T) {
-
-	t.Parallel()
-
 	clusterName := testutil.RandomName("cluster")
 
 	clusterTypeName := testutil.RandomName("cluster-type")

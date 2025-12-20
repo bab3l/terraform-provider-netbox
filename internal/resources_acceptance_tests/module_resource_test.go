@@ -12,366 +12,196 @@ import (
 )
 
 func TestAccModuleResource_basic(t *testing.T) {
-
-	t.Parallel()
-
 	siteName := testutil.RandomName("tf-test-site")
-
 	siteSlug := testutil.RandomSlug("tf-test-site")
-
 	mfgName := testutil.RandomName("tf-test-mfg")
-
 	mfgSlug := testutil.RandomSlug("tf-test-mfg")
-
 	dtModel := testutil.RandomName("tf-test-dt")
-
 	dtSlug := testutil.RandomSlug("tf-test-dt")
-
 	roleName := testutil.RandomName("tf-test-role")
-
 	roleSlug := testutil.RandomSlug("tf-test-role")
-
 	deviceName := testutil.RandomName("tf-test-device")
-
 	bayName := testutil.RandomName("tf-test-mbay")
-
 	mtModel := testutil.RandomName("tf-test-mt")
 
 	cleanup := testutil.NewCleanupResource(t)
-
 	cleanup.RegisterSiteCleanup(siteSlug)
-
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
-
 	cleanup.RegisterDeviceTypeCleanup(dtSlug)
-
 	cleanup.RegisterDeviceRoleCleanup(roleSlug)
-
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_module.test", "id"),
-
 					resource.TestCheckResourceAttrSet("netbox_module.test", "device"),
-
 					resource.TestCheckResourceAttrSet("netbox_module.test", "module_bay"),
-
 					resource.TestCheckResourceAttrSet("netbox_module.test", "module_type"),
 				),
 			},
-
 			{
-
-				ResourceName: "netbox_module.test",
-
-				ImportState: true,
-
-				ImportStateVerify: true,
-
+				ResourceName:            "netbox_module.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device", "module_bay", "module_type"},
 			},
 		},
 	})
-
 }
 
 func TestAccModuleResource_full(t *testing.T) {
-
-	t.Parallel()
-
 	siteName := testutil.RandomName("tf-test-site-full")
-
 	siteSlug := testutil.RandomSlug("tf-test-site-full")
-
 	mfgName := testutil.RandomName("tf-test-mfg-full")
-
 	mfgSlug := testutil.RandomSlug("tf-test-mfg-full")
-
 	dtModel := testutil.RandomName("tf-test-dt-full")
-
 	dtSlug := testutil.RandomSlug("tf-test-dt-full")
-
 	roleName := testutil.RandomName("tf-test-role-full")
-
 	roleSlug := testutil.RandomSlug("tf-test-role-full")
-
 	deviceName := testutil.RandomName("tf-test-device-full")
-
 	bayName := testutil.RandomName("tf-test-mbay-full")
-
 	mtModel := testutil.RandomName("tf-test-mt-full")
-
 	description := "Test module with all fields"
-
 	updatedDescription := "Updated module description"
 
 	cleanup := testutil.NewCleanupResource(t)
-
 	cleanup.RegisterSiteCleanup(siteSlug)
-
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
-
 	cleanup.RegisterDeviceTypeCleanup(dtSlug)
-
 	cleanup.RegisterDeviceRoleCleanup(roleSlug)
-
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccModuleResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_module.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_module.test", "serial", "SN123456"),
-
 					resource.TestCheckResourceAttr("netbox_module.test", "description", description),
-
 					resource.TestCheckResourceAttr("netbox_module.test", "status", "active"),
 				),
 			},
-
 			{
-
 				Config: testAccModuleResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, updatedDescription),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_module.test", "description", updatedDescription),
 				),
 			},
 		},
 	})
-
 }
 
 func testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_site" "test" {
-
   name   = %q
-
   slug   = %q
-
   status = "active"
-
 }
-
-
 
 resource "netbox_manufacturer" "test" {
-
   name = %q
-
   slug = %q
-
 }
-
-
 
 resource "netbox_device_type" "test" {
-
   manufacturer = netbox_manufacturer.test.id
-
   model        = %q
-
   slug         = %q
-
 }
-
-
 
 resource "netbox_device_role" "test" {
-
   name  = %q
-
   slug  = %q
-
   color = "aa1409"
-
 }
-
-
 
 resource "netbox_device" "test" {
-
   name        = %q
-
   device_type = netbox_device_type.test.id
-
   role        = netbox_device_role.test.id
-
   site        = netbox_site.test.id
-
 }
-
-
 
 resource "netbox_module_bay" "test" {
-
   device = netbox_device.test.id
-
   name   = %q
-
 }
-
-
 
 resource "netbox_module_type" "test" {
-
   manufacturer = netbox_manufacturer.test.id
-
   model        = %q
-
 }
-
-
 
 resource "netbox_module" "test" {
-
   device      = netbox_device.test.id
-
   module_bay  = netbox_module_bay.test.id
-
   module_type = netbox_module_type.test.id
-
 }
-
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel)
-
 }
 
 func testAccModuleResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_site" "test" {
-
   name   = %q
-
   slug   = %q
-
   status = "active"
-
 }
-
-
 
 resource "netbox_manufacturer" "test" {
-
   name = %q
-
   slug = %q
-
 }
-
-
 
 resource "netbox_device_type" "test" {
-
   manufacturer = netbox_manufacturer.test.id
-
   model        = %q
-
   slug         = %q
-
 }
-
-
 
 resource "netbox_device_role" "test" {
-
   name  = %q
-
   slug  = %q
-
   color = "aa1409"
-
 }
-
-
 
 resource "netbox_device" "test" {
-
   name        = %q
-
   device_type = netbox_device_type.test.id
-
   role        = netbox_device_role.test.id
-
   site        = netbox_site.test.id
-
 }
-
-
 
 resource "netbox_module_bay" "test" {
-
   device = netbox_device.test.id
-
   name   = %q
-
 }
-
-
 
 resource "netbox_module_type" "test" {
-
   manufacturer = netbox_manufacturer.test.id
-
   model        = %q
-
 }
-
-
 
 resource "netbox_module" "test" {
-
   device      = netbox_device.test.id
-
   module_bay  = netbox_module_bay.test.id
-
   module_type = netbox_module_type.test.id
-
   status      = "active"
-
   serial      = "SN123456"
-
   description = %q
-
 }
-
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description)
-
 }

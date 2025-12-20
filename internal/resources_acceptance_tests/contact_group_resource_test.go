@@ -61,13 +61,23 @@ func testAccContactGroupResourceConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_contact_group" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
 
 `, name, slug)
 

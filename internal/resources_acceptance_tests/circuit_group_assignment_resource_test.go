@@ -267,55 +267,107 @@ func testAccCircuitGroupAssignmentResourceConfig_basic(groupName, groupSlug, pro
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_circuit_group" "test" {
+
+
 
   name = %[1]q
 
+
+
   slug = %[2]q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_provider" "test" {
 
+
+
   name = %[3]q
+
+
 
   slug = %[4]q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_circuit_type" "test" {
 
+
+
   name = %[5]q
+
+
 
   slug = %[6]q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_circuit" "test" {
 
+
+
   cid              = %[7]q
+
+
 
   circuit_provider = netbox_provider.test.slug
 
+
+
   type             = netbox_circuit_type.test.slug
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_circuit_group_assignment" "test" {
 
+
+
   group_id   = netbox_circuit_group.test.id
+
+
 
   circuit_id = netbox_circuit.test.id
 
+
+
 }
+
+
 
 `, groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid)
 
@@ -325,57 +377,111 @@ func testAccCircuitGroupAssignmentResourceConfig_withPriority(groupName, groupSl
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_circuit_group" "test" {
+
+
 
   name = %[1]q
 
+
+
   slug = %[2]q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_provider" "test" {
 
+
+
   name = %[3]q
+
+
 
   slug = %[4]q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_circuit_type" "test" {
 
+
+
   name = %[5]q
+
+
 
   slug = %[6]q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_circuit" "test" {
 
+
+
   cid              = %[7]q
+
+
 
   circuit_provider = netbox_provider.test.slug
 
+
+
   type             = netbox_circuit_type.test.slug
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_circuit_group_assignment" "test" {
 
+
+
   group_id   = netbox_circuit_group.test.id
+
+
 
   circuit_id = netbox_circuit.test.id
 
+
+
   priority   = %[8]q
 
+
+
 }
+
+
 
 `, groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, priority)
 

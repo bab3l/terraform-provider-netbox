@@ -497,9 +497,6 @@ func TestAccASNRangeResource_import(t *testing.T) {
 }
 
 func TestAccConsistency_ASNRange(t *testing.T) {
-
-	t.Parallel()
-
 	rangeName := testutil.RandomName("asn-range")
 
 	rangeSlug := testutil.RandomSlug("asn-range")
@@ -632,9 +629,6 @@ resource "netbox_asn_range" "test" {
 // are preserved and do not cause drift when the API returns numeric IDs.
 
 func TestAccConsistency_ASNRange_LiteralNames(t *testing.T) {
-
-	t.Parallel()
-
 	rangeName := testutil.RandomName("asn-range")
 
 	rangeSlug := testutil.RandomSlug("asn-range")

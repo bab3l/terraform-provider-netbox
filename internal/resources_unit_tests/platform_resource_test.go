@@ -10,48 +10,29 @@ import (
 )
 
 func TestPlatformResource(t *testing.T) {
-
 	t.Parallel()
-
 	r := resources.NewPlatformResource()
-
 	if r == nil {
-
 		t.Fatal("Expected non-nil platform resource")
-
 	}
-
 }
 
 func TestPlatformResourceSchema(t *testing.T) {
-
 	t.Parallel()
-
 	r := resources.NewPlatformResource()
-
 	schemaRequest := fwresource.SchemaRequest{}
-
 	schemaResponse := &fwresource.SchemaResponse{}
-
 	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
 	if schemaResponse.Diagnostics.HasError() {
-
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
 	}
 
 	testutil.ValidateResourceSchema(t, schemaResponse.Schema.Attributes, testutil.SchemaValidation{
-
-		Required: []string{"name", "slug"},
-
-		Optional: []string{"manufacturer", "description"},
-
-		Computed: []string{"id", "manufacturer_id"},
-
+		Required:         []string{"name", "slug"},
+		Optional:         []string{"manufacturer", "description"},
+		Computed:         []string{"id", "manufacturer_id"},
 		OptionalComputed: []string{},
 	})
-
 }
 
 func TestPlatformResourceMetadata(t *testing.T) {

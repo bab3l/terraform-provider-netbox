@@ -93,8 +93,6 @@ func TestAccFrontPortTemplateResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_FrontPortTemplate_LiteralNames(t *testing.T) {
-	t.Parallel()
-
 	manufacturerName := testutil.RandomName("manufacturer")
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
 	deviceTypeName := testutil.RandomName("device-type")

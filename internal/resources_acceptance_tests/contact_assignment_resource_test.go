@@ -133,49 +133,95 @@ func testAccContactAssignmentResourceBasic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
+
 
   name   = "%s-site"
 
+
+
   slug   = "%s-site"
+
+
 
   status = "active"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_contact" "test" {
 
+
+
   name  = "%s-contact"
+
+
 
   email = "test@example.com"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_contact_role" "test" {
 
+
+
   name = "%s-role"
+
+
 
   slug = "%s-role"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_contact_assignment" "test" {
 
+
+
   object_type = "dcim.site"
+
+
 
   object_id   = netbox_site.test.id
 
+
+
   contact_id  = netbox_contact.test.id
+
+
 
   role_id     = netbox_contact_role.test.id
 
+
+
 }
+
+
 
 `, name, slug, name, name, slug)
 
@@ -185,51 +231,99 @@ func testAccContactAssignmentResourceWithRole(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
+
 
   name   = "%s-site"
 
+
+
   slug   = "%s-site"
+
+
 
   status = "active"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_contact" "test" {
 
+
+
   name  = "%s-contact"
+
+
 
   email = "test@example.com"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_contact_role" "test" {
 
+
+
   name = "%s-role"
+
+
 
   slug = "%s-role"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_contact_assignment" "test" {
 
+
+
   object_type = "dcim.site"
+
+
 
   object_id   = netbox_site.test.id
 
+
+
   contact_id  = netbox_contact.test.id
+
+
 
   role_id     = netbox_contact_role.test.id
 
+
+
   priority    = "primary"
 
+
+
 }
+
+
 
 `, name, slug, name, name, slug)
 
@@ -239,51 +333,99 @@ func testAccContactAssignmentResourceWithPriority(name, slug, priority string) s
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_site" "test" {
+
+
 
   name   = "%s-site"
 
+
+
   slug   = "%s-site"
+
+
 
   status = "active"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_contact" "test" {
 
+
+
   name  = "%s-contact"
+
+
 
   email = "test@example.com"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_contact_role" "test" {
 
+
+
   name = "%s-role"
+
+
 
   slug = "%s-role"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_contact_assignment" "test" {
 
+
+
   object_type = "dcim.site"
+
+
 
   object_id   = netbox_site.test.id
 
+
+
   contact_id  = netbox_contact.test.id
+
+
 
   role_id     = netbox_contact_role.test.id
 
+
+
   priority    = "%s"
 
+
+
 }
+
+
 
 `, name, slug, name, name, slug, priority)
 

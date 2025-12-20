@@ -13,7 +13,7 @@ import (
 
 func TestAccL2VPNResource_basic(t *testing.T) {
 	name := acctest.RandomWithPrefix("test-l2vpn")
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
@@ -45,7 +45,7 @@ func TestAccL2VPNResource_basic(t *testing.T) {
 
 func TestAccL2VPNResource_full(t *testing.T) {
 	name := acctest.RandomWithPrefix("test-l2vpn")
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
