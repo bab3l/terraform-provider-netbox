@@ -26,6 +26,22 @@ When refactoring tests, match test coverage to the resource schema:
 - If the schema indicates missing test coverage is **appropriate** (complex optional fields, reference validation, state drift concerns), **add additional tests** to cover those scenarios
 - If the schema indicates the resource is **simpler** (only simple scalar optional fields, no complex references), **preserve the fewer number of tests** and add a file-level comment explaining why (see cable_resource_test.go example)
 
+## Important Note: Parallelism Strategy
+
+**Unit Tests (`resources_unit_tests/`)**: ✅ **USE `t.Parallel()`**
+- Unit tests run in parallel for speed
+- No external dependencies (no database, API, or shared resources)
+- Each test is completely isolated
+- Typical execution time for all unit tests: 3-5 seconds
+
+**Acceptance Tests (`resources_acceptance_tests/`)**: ❌ **NO `t.Parallel()`, use `resource.Test()` not `resource.ParallelTest()`**
+- Acceptance tests run sequentially
+- All tests connect to the same shared Netbox database instance
+- Parallel execution exhausts database connection pools and causes resource conflicts
+- Database has limited connections (typically 20-50 depending on configuration)
+- Cleanup functions depend on sequential execution to properly track resource state
+- Typical execution time for each resource: 10-60 seconds (depends on resource complexity)
+
 ## Directory Structure
 
 ### Before

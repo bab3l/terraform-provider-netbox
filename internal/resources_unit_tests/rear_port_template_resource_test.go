@@ -9,11 +9,11 @@ import (
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func TestProviderResource(t *testing.T) {
+func TestRearPortTemplateResource(t *testing.T) {
 
 	t.Parallel()
 
-	r := resources.NewProviderResource()
+	r := resources.NewRearPortTemplateResource()
 
 	if r == nil {
 
@@ -23,11 +23,11 @@ func TestProviderResource(t *testing.T) {
 
 }
 
-func TestProviderResourceSchema(t *testing.T) {
+func TestRearPortTemplateResourceSchema(t *testing.T) {
 
 	t.Parallel()
 
-	r := resources.NewProviderResource()
+	r := resources.NewRearPortTemplateResource()
 
 	schemaRequest := fwresource.SchemaRequest{}
 
@@ -37,42 +37,36 @@ func TestProviderResourceSchema(t *testing.T) {
 
 	if schemaResponse.Diagnostics.HasError() {
 
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-
-		t.Fatal("Expected schema to have attributes")
+		t.Fatalf("Schema returned errors: %v", schemaResponse.Diagnostics)
 
 	}
 
 	testutil.ValidateResourceSchema(t, schemaResponse.Schema.Attributes, testutil.SchemaValidation{
 
-		Required: []string{"name", "slug"},
+		Required: []string{"name", "type"},
 
-		Optional: []string{"description", "comments", "tags", "custom_fields"},
+		Optional: []string{"device_type", "module_type", "label", "color", "positions", "description"},
 
 		Computed: []string{"id"},
 	})
 
 }
 
-func TestProviderResourceMetadata(t *testing.T) {
+func TestRearPortTemplateResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
-	r := resources.NewProviderResource()
+	r := resources.NewRearPortTemplateResource()
 
-	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_provider")
+	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_rear_port_template")
 
 }
 
-func TestProviderResourceConfigure(t *testing.T) {
+func TestRearPortTemplateResourceConfigure(t *testing.T) {
 
 	t.Parallel()
 
-	r := resources.NewProviderResource()
+	r := resources.NewRearPortTemplateResource()
 
 	testutil.ValidateResourceConfigure(t, r)
 

@@ -9,11 +9,11 @@ import (
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func TestProviderResource(t *testing.T) {
+func TestRoleResource(t *testing.T) {
 
 	t.Parallel()
 
-	r := resources.NewProviderResource()
+	r := resources.NewRoleResource()
 
 	if r == nil {
 
@@ -23,11 +23,11 @@ func TestProviderResource(t *testing.T) {
 
 }
 
-func TestProviderResourceSchema(t *testing.T) {
+func TestRoleResourceSchema(t *testing.T) {
 
 	t.Parallel()
 
-	r := resources.NewProviderResource()
+	r := resources.NewRoleResource()
 
 	schemaRequest := fwresource.SchemaRequest{}
 
@@ -37,13 +37,7 @@ func TestProviderResourceSchema(t *testing.T) {
 
 	if schemaResponse.Diagnostics.HasError() {
 
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-
-		t.Fatal("Expected schema to have attributes")
+		t.Fatalf("Schema returned errors: %v", schemaResponse.Diagnostics)
 
 	}
 
@@ -51,28 +45,28 @@ func TestProviderResourceSchema(t *testing.T) {
 
 		Required: []string{"name", "slug"},
 
-		Optional: []string{"description", "comments", "tags", "custom_fields"},
+		Optional: []string{"weight", "description", "tags", "custom_fields"},
 
 		Computed: []string{"id"},
 	})
 
 }
 
-func TestProviderResourceMetadata(t *testing.T) {
+func TestRoleResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
-	r := resources.NewProviderResource()
+	r := resources.NewRoleResource()
 
-	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_provider")
+	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_role")
 
 }
 
-func TestProviderResourceConfigure(t *testing.T) {
+func TestRoleResourceConfigure(t *testing.T) {
 
 	t.Parallel()
 
-	r := resources.NewProviderResource()
+	r := resources.NewRoleResource()
 
 	testutil.ValidateResourceConfigure(t, r)
 

@@ -181,27 +181,51 @@ func testAccRackTypeResourceConfig_basic(mfgName, mfgSlug, model, slug string) s
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_rack_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
+
+
 
   form_factor  = "4-post-cabinet"
 
+
+
 }
+
+
 
 `, mfgName, mfgSlug, model, slug)
 
@@ -211,33 +235,63 @@ func testAccRackTypeResourceConfig_full(mfgName, mfgSlug, model, slug, descripti
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_rack_type" "test" {
 
+
+
   manufacturer = netbox_manufacturer.test.id
+
+
 
   model        = %q
 
+
+
   slug         = %q
+
+
 
   description  = %q
 
+
+
   u_height     = %d
+
+
 
   width        = %d
 
+
+
   form_factor  = "4-post-cabinet"
 
+
+
 }
+
+
 
 `, mfgName, mfgSlug, model, slug, description, uHeight, width)
 
@@ -249,37 +303,75 @@ func testAccRackTypeConsistencyLiteralNamesConfig(mfgName, mfgSlug, model, slug 
 
 
 
+
+
+
+
 resource "netbox_manufacturer" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_rack_type" "test" {
 
+
+
   # Use literal string name to mimic existing user state
+
+
 
   manufacturer = %q
 
+
+
   model        = %q
+
+
 
   slug         = %q
 
+
+
   u_height     = 42
 
+
+
   width        = 19
+
+
 
   form_factor  = "4-post-cabinet"
 
 
 
+
+
+
+
   depends_on = [netbox_manufacturer.test]
 
+
+
 }
+
+
+
+
 
 
 

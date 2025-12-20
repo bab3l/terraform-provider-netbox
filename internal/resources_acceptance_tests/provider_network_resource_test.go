@@ -122,23 +122,43 @@ func testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, netw
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_provider" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_provider_network" "test" {
 
+
+
   circuit_provider = netbox_provider.test.id
+
+
 
   name             = %q
 
+
+
 }
+
+
 
 `, providerName, providerSlug, networkName)
 
@@ -148,27 +168,51 @@ func testAccProviderNetworkResourceConfig_full(providerName, providerSlug, netwo
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_provider" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_provider_network" "test" {
 
+
+
   circuit_provider = netbox_provider.test.id
+
+
 
   name             = %q
 
+
+
   service_id       = %q
+
+
 
   description      = %q
 
+
+
 }
+
+
 
 `, providerName, providerSlug, networkName, serviceID, description)
 

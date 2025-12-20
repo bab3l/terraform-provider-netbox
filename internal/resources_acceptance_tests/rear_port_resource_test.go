@@ -1,169 +1,15 @@
-package resources_test
+package resources_acceptance_tests
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
-	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
-
-func TestRearPortResource(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewRearPortResource()
-
-	if r == nil {
-
-		t.Fatal("Expected non-nil RearPort resource")
-
-	}
-
-}
-
-func TestRearPortResourceSchema(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewRearPortResource()
-
-	schemaRequest := fwresource.SchemaRequest{}
-
-	schemaResponse := &fwresource.SchemaResponse{}
-
-	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
-	if schemaResponse.Diagnostics.HasError() {
-
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-
-		t.Fatal("Expected schema to have attributes")
-
-	}
-
-	requiredAttrs := []string{"device", "name", "type"}
-
-	for _, attr := range requiredAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-	computedAttrs := []string{"id"}
-
-	for _, attr := range computedAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-	optionalAttrs := []string{"label", "color", "positions", "description", "mark_connected", "tags", "custom_fields"}
-
-	for _, attr := range optionalAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-}
-
-func TestRearPortResourceMetadata(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewRearPortResource()
-
-	metadataRequest := fwresource.MetadataRequest{
-
-		ProviderTypeName: "netbox",
-	}
-
-	metadataResponse := &fwresource.MetadataResponse{}
-
-	r.Metadata(context.Background(), metadataRequest, metadataResponse)
-
-	expected := "netbox_rear_port"
-
-	if metadataResponse.TypeName != expected {
-
-		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
-	}
-
-}
-
-func TestRearPortResourceConfigure(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewRearPortResource().(*resources.RearPortResource)
-
-	configureRequest := fwresource.ConfigureRequest{
-
-		ProviderData: nil,
-	}
-
-	configureResponse := &fwresource.ConfigureResponse{}
-
-	r.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-
-		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
-	}
-
-	client := &netbox.APIClient{}
-
-	configureRequest.ProviderData = client
-
-	configureResponse = &fwresource.ConfigureResponse{}
-
-	r.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-
-		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
-	}
-
-	configureRequest.ProviderData = testutil.InvalidProviderData
-
-	configureResponse = &fwresource.ConfigureResponse{}
-
-	r.Configure(context.Background(), configureRequest, configureResponse)
-
-	if !configureResponse.Diagnostics.HasError() {
-
-		t.Error("Expected error with incorrect provider data")
-
-	}
-
-}
 
 func TestAccRearPortResource_basic(t *testing.T) {
 
@@ -317,6 +163,110 @@ func TestAccRearPortResource_full(t *testing.T) {
 				ImportStateVerify: true,
 
 				ImportStateVerifyIgnore: []string{"device"},
+			},
+		},
+	})
+
+}
+
+func TestAccConsistency_RearPort(t *testing.T) {
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	deviceTypeName := testutil.RandomName("device-type")
+
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	deviceRoleName := testutil.RandomName("device-role")
+
+	deviceRoleSlug := testutil.RandomSlug("device-role")
+
+	deviceName := testutil.RandomName("device")
+
+	rearPortName := testutil.RandomName("rear-port")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccRearPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, rearPortName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "device", deviceName),
+				),
+			},
+
+			{
+
+				PlanOnly: true,
+
+				Config: testAccRearPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, rearPortName),
+			},
+		},
+	})
+
+}
+
+func TestAccConsistency_RearPort_LiteralNames(t *testing.T) {
+
+	manufacturerName := testutil.RandomName("manufacturer")
+
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+
+	deviceTypeName := testutil.RandomName("device-type")
+
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	roleName := testutil.RandomName("role")
+
+	roleSlug := testutil.RandomSlug("role")
+
+	siteName := testutil.RandomName("site")
+
+	siteSlug := testutil.RandomSlug("site")
+
+	deviceName := testutil.RandomName("device")
+
+	resourceName := testutil.RandomName("rear_port")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccRearPortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "name", resourceName),
+
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "device", deviceName),
+				),
+			},
+
+			{
+
+				PlanOnly: true,
+
+				Config: testAccRearPortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
 			},
 		},
 	})
@@ -481,59 +431,6 @@ resource "netbox_rear_port" "test" {
 
 }
 
-func TestAccConsistency_RearPort(t *testing.T) {
-
-	t.Parallel()
-
-	siteName := testutil.RandomName("site")
-
-	siteSlug := testutil.RandomSlug("site")
-
-	manufacturerName := testutil.RandomName("manufacturer")
-
-	manufacturerSlug := testutil.RandomSlug("manufacturer")
-
-	deviceTypeName := testutil.RandomName("device-type")
-
-	deviceTypeSlug := testutil.RandomSlug("device-type")
-
-	deviceRoleName := testutil.RandomName("device-role")
-
-	deviceRoleSlug := testutil.RandomSlug("device-role")
-
-	deviceName := testutil.RandomName("device")
-
-	rearPortName := testutil.RandomName("rear-port")
-
-	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
-		Steps: []resource.TestStep{
-
-			{
-
-				Config: testAccRearPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, rearPortName),
-
-				Check: resource.ComposeTestCheckFunc(
-
-					resource.TestCheckResourceAttr("netbox_rear_port.test", "device", deviceName),
-				),
-			},
-
-			{
-
-				PlanOnly: true,
-
-				Config: testAccRearPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, rearPortName),
-			},
-		},
-	})
-
-}
-
 func testAccRearPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, rearPortName string) string {
 
 	return fmt.Sprintf(`
@@ -610,67 +507,6 @@ resource "netbox_rear_port" "test" {
 
 }
 
-// TestAccConsistency_RearPort_LiteralNames tests that reference attributes specified as literal string names
-
-// are preserved and do not cause drift when the API returns numeric IDs.
-
-func TestAccConsistency_RearPort_LiteralNames(t *testing.T) {
-
-	t.Parallel()
-
-	manufacturerName := testutil.RandomName("manufacturer")
-
-	manufacturerSlug := testutil.RandomSlug("manufacturer")
-
-	deviceTypeName := testutil.RandomName("device-type")
-
-	deviceTypeSlug := testutil.RandomSlug("device-type")
-
-	roleName := testutil.RandomName("role")
-
-	roleSlug := testutil.RandomSlug("role")
-
-	siteName := testutil.RandomName("site")
-
-	siteSlug := testutil.RandomSlug("site")
-
-	deviceName := testutil.RandomName("device")
-
-	resourceName := testutil.RandomName("rear_port")
-
-	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
-		Steps: []resource.TestStep{
-
-			{
-
-				Config: testAccRearPortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
-
-				Check: resource.ComposeTestCheckFunc(
-
-					resource.TestCheckResourceAttr("netbox_rear_port.test", "name", resourceName),
-
-					resource.TestCheckResourceAttr("netbox_rear_port.test", "device", deviceName),
-				),
-			},
-
-			{
-
-				// Critical: Verify no drift when refreshing state
-
-				PlanOnly: true,
-
-				Config: testAccRearPortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
-			},
-		},
-	})
-
-}
-
 func testAccRearPortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName string) string {
 
 	return fmt.Sprintf(`
@@ -693,7 +529,7 @@ resource "netbox_device_type" "test" {
 
   manufacturer   = netbox_manufacturer.test.id
 
-  subdevice_role = "parent"  # Enable device bays
+  subdevice_role = "parent"
 
 }
 
@@ -738,8 +574,6 @@ resource "netbox_device" "test" {
 
 
 resource "netbox_rear_port" "test" {
-
-  # Use literal string name to mimic existing user state
 
   device = %q
 

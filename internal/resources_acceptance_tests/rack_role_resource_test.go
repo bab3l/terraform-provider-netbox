@@ -254,13 +254,23 @@ func testAccRackRoleResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rack_role" "test" {
+
+
 
   name = %[1]q
 
+
+
   slug = %[2]q
 
+
+
 }
+
+
 
 `, name, slug)
 
@@ -270,17 +280,31 @@ func testAccRackRoleResourceConfig_full(name, slug, description, color string) s
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rack_role" "test" {
+
+
 
   name        = %[1]q
 
+
+
   slug        = %[2]q
+
+
 
   description = %[3]q
 
+
+
   color       = %[4]q
 
+
+
 }
+
+
 
 `, name, slug, description, color)
 
@@ -290,13 +314,23 @@ func testAccRackRoleConsistencyConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rack_role" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
 
 `, name, slug)
 
