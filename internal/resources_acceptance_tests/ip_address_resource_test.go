@@ -1,7 +1,6 @@
 package resources_acceptance_tests
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -88,20 +87,18 @@ func TestAccIPAddressResource_import(t *testing.T) {
 }
 
 func testAccIPAddressResourceConfig_basic() string {
-	return fmt.Sprintf(`
-resource "netbox_ip_address" "test" {
+	return `resource "netbox_ip_address" "test" {
   address = "192.0.2.100/24"
 }
-`)
+`
 }
 
 func testAccIPAddressResourceConfig_full() string {
-	return fmt.Sprintf(`
-resource "netbox_ip_address" "test" {
+	return `resource "netbox_ip_address" "test" {
   address     = "10.0.0.50/32"
   status      = "active"
   dns_name    = "test.example.com"
   description = "Test IP address"
 }
-`)
+`
 }

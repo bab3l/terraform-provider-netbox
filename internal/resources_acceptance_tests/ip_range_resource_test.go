@@ -1,7 +1,6 @@
 package resources_acceptance_tests
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
