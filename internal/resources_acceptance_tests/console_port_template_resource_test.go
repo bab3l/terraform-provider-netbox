@@ -143,6 +143,10 @@ func TestAccConsistency_ConsolePortTemplate(t *testing.T) {
 
 	const portName = "console0"
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -184,6 +188,10 @@ func TestAccConsistency_ConsolePortTemplate_LiteralNames(t *testing.T) {
 	deviceTypeSlug := testutil.RandomSlug("device-type")
 
 	portName := testutil.RandomName("port")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
 

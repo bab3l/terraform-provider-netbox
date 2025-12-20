@@ -183,6 +183,12 @@ func TestAccConsistency_ConsolePort(t *testing.T) {
 
 	portName := testutil.RandomName("console-port")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -236,6 +242,12 @@ func TestAccConsistency_ConsolePort_LiteralNames(t *testing.T) {
 	deviceName := testutil.RandomName("device")
 
 	resourceName := testutil.RandomName("console_port")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
 
 	resource.Test(t, resource.TestCase{
 

@@ -132,6 +132,12 @@ func TestAccConsistency_Device(t *testing.T) {
 	tenantName := testutil.RandomName("tenant")
 	tenantSlug := testutil.RandomSlug("tenant")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -166,6 +172,12 @@ func TestAccConsistency_Device_LiteralNames(t *testing.T) {
 	siteSlug := testutil.RandomSlug("site")
 	tenantName := testutil.RandomName("tenant")
 	tenantSlug := testutil.RandomSlug("tenant")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

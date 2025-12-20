@@ -207,6 +207,9 @@ func TestAccConsistency_CircuitTermination_LiteralNames(t *testing.T) {
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitCleanup(circuitCid)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,

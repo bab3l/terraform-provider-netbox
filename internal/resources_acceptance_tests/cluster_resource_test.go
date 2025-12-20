@@ -267,6 +267,12 @@ func TestAccConsistency_Cluster_LiteralNames(t *testing.T) {
 
 	tenantSlug := testutil.RandomSlug("tenant")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterClusterGroupCleanup(groupSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },

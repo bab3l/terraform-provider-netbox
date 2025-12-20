@@ -96,6 +96,13 @@ func TestAccConsistency_FrontPort(t *testing.T) {
 	frontPortName := testutil.RandomName("front-port")
 	rearPortName := testutil.RandomName("rear-port")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -125,6 +132,13 @@ func TestAccConsistency_FrontPort_LiteralNames(t *testing.T) {
 	siteSlug := testutil.RandomSlug("site")
 	deviceName := testutil.RandomName("device")
 	resourceName := testutil.RandomName("front_port")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

@@ -143,6 +143,10 @@ func TestAccConsistency_ConsoleServerPortTemplate_LiteralNames(t *testing.T) {
 
 	portName := testutil.RandomName("port")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
