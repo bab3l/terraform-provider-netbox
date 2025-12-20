@@ -1,181 +1,15 @@
-package resources_test
+package resources_acceptance_tests
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
-	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
-
-func TestRackRoleResource(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewRackRoleResource()
-
-	if r == nil {
-
-		t.Fatal("Expected non-nil rack role resource")
-
-	}
-
-}
-
-func TestRackRoleResourceSchema(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewRackRoleResource()
-
-	schemaRequest := fwresource.SchemaRequest{}
-
-	schemaResponse := &fwresource.SchemaResponse{}
-
-	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
-	if schemaResponse.Diagnostics.HasError() {
-
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-
-		t.Fatal("Expected schema to have attributes")
-
-	}
-
-	// Required attributes
-
-	requiredAttrs := []string{"name", "slug"}
-
-	for _, attr := range requiredAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-	// Computed attributes
-
-	computedAttrs := []string{"id"}
-
-	for _, attr := range computedAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-	// Optional attributes
-
-	optionalAttrs := []string{"color", "description", "tags", "custom_fields"}
-
-	for _, attr := range optionalAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-}
-
-func TestRackRoleResourceMetadata(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewRackRoleResource()
-
-	metadataRequest := fwresource.MetadataRequest{
-
-		ProviderTypeName: "netbox",
-	}
-
-	metadataResponse := &fwresource.MetadataResponse{}
-
-	r.Metadata(context.Background(), metadataRequest, metadataResponse)
-
-	expected := "netbox_rack_role"
-
-	if metadataResponse.TypeName != expected {
-
-		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
-	}
-
-}
-
-func TestRackRoleResourceConfigure(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewRackRoleResource().(*resources.RackRoleResource)
-
-	// Test with nil provider data (should not error)
-
-	configureRequest := fwresource.ConfigureRequest{
-
-		ProviderData: nil,
-	}
-
-	configureResponse := &fwresource.ConfigureResponse{}
-
-	r.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-
-		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
-	}
-
-	// Test with correct provider data type
-
-	client := &netbox.APIClient{}
-
-	configureRequest.ProviderData = client
-
-	configureResponse = &fwresource.ConfigureResponse{}
-
-	r.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-
-		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
-	}
-
-	// Test with incorrect provider data type
-
-	configureRequest.ProviderData = testutil.InvalidProviderData
-
-	configureResponse = &fwresource.ConfigureResponse{}
-
-	r.Configure(context.Background(), configureRequest, configureResponse)
-
-	if !configureResponse.Diagnostics.HasError() {
-
-		t.Error("Expected error with incorrect provider data")
-
-	}
-
-}
 
 func TestAccRackRoleResource_basic(t *testing.T) {
 
@@ -377,6 +211,45 @@ func TestAccRackRoleResource_import(t *testing.T) {
 
 }
 
+func TestAccConsistency_RackRole(t *testing.T) {
+
+	t.Parallel()
+
+	rackRoleName := testutil.RandomName("rack-role")
+
+	rackRoleSlug := testutil.RandomSlug("rack-role")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccRackRoleConsistencyConfig(rackRoleName, rackRoleSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "name", rackRoleName),
+
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "slug", rackRoleSlug),
+				),
+			},
+
+			{
+
+				PlanOnly: true,
+
+				Config: testAccRackRoleConsistencyConfig(rackRoleName, rackRoleSlug),
+			},
+		},
+	})
+
+}
+
 func testAccRackRoleResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
@@ -410,5 +283,21 @@ resource "netbox_rack_role" "test" {
 }
 
 `, name, slug, description, color)
+
+}
+
+func testAccRackRoleConsistencyConfig(name, slug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_rack_role" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+`, name, slug)
 
 }

@@ -1,167 +1,15 @@
-package resources_test
+package resources_acceptance_tests
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
-	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
-
-func TestRackTypeResource(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewRackTypeResource()
-
-	if r == nil {
-
-		t.Fatal("Expected non-nil RackType resource")
-
-	}
-
-}
-
-func TestRackTypeResourceSchema(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewRackTypeResource()
-
-	schemaRequest := fwresource.SchemaRequest{}
-
-	schemaResponse := &fwresource.SchemaResponse{}
-
-	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
-	if schemaResponse.Diagnostics.HasError() {
-
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-
-		t.Fatal("Expected schema to have attributes")
-
-	}
-
-	requiredAttrs := []string{"manufacturer", "model", "slug"}
-
-	for _, attr := range requiredAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected required attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-	computedAttrs := []string{"id"}
-
-	for _, attr := range computedAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-	optionalAttrs := []string{"description", "form_factor", "width", "u_height", "starting_unit", "desc_units", "outer_width", "outer_depth", "outer_unit", "weight", "max_weight", "weight_unit", "mounting_depth", "comments", "tags", "custom_fields"}
-
-	for _, attr := range optionalAttrs {
-
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-
-			t.Errorf("Expected optional attribute %s to exist in schema", attr)
-
-		}
-
-	}
-
-}
-
-func TestRackTypeResourceMetadata(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewRackTypeResource()
-
-	metadataRequest := fwresource.MetadataRequest{
-
-		ProviderTypeName: "netbox",
-	}
-
-	metadataResponse := &fwresource.MetadataResponse{}
-
-	r.Metadata(context.Background(), metadataRequest, metadataResponse)
-
-	expected := "netbox_rack_type"
-
-	if metadataResponse.TypeName != expected {
-
-		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-
-	}
-
-}
-
-func TestRackTypeResourceConfigure(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewRackTypeResource().(*resources.RackTypeResource)
-
-	configureRequest := fwresource.ConfigureRequest{
-
-		ProviderData: nil,
-	}
-
-	configureResponse := &fwresource.ConfigureResponse{}
-
-	r.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-
-		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-
-	}
-
-	client := &netbox.APIClient{}
-
-	configureRequest.ProviderData = client
-
-	configureResponse = &fwresource.ConfigureResponse{}
-
-	r.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-
-		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-
-	}
-
-	configureRequest.ProviderData = testutil.InvalidProviderData
-
-	r.Configure(context.Background(), configureRequest, configureResponse)
-
-	if !configureResponse.Diagnostics.HasError() {
-
-		t.Error("Expected error with incorrect provider data")
-
-	}
-
-}
 
 func TestAccRackTypeResource_basic(t *testing.T) {
 
@@ -199,6 +47,8 @@ func TestAccRackTypeResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_rack_type.test", "model", model),
 
 					resource.TestCheckResourceAttr("netbox_rack_type.test", "slug", slug),
+
+					resource.TestCheckResourceAttrSet("netbox_rack_type.test", "manufacturer"),
 				),
 			},
 
@@ -282,6 +132,51 @@ func TestAccRackTypeResource_full(t *testing.T) {
 
 }
 
+func TestAccConsistency_RackType_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	mfgName := testutil.RandomName("manufacturer")
+
+	mfgSlug := testutil.RandomSlug("manufacturer")
+
+	model := testutil.RandomName("rack-type")
+
+	slug := testutil.RandomSlug("rack-type")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccRackTypeConsistencyLiteralNamesConfig(mfgName, mfgSlug, model, slug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "model", model),
+
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "manufacturer", mfgName),
+				),
+			},
+
+			{
+
+				// Critical: Verify no drift when refreshing state
+
+				PlanOnly: true,
+
+				Config: testAccRackTypeConsistencyLiteralNamesConfig(mfgName, mfgSlug, model, slug),
+			},
+		},
+	})
+
+}
+
 func testAccRackTypeResourceConfig_basic(mfgName, mfgSlug, model, slug string) string {
 
 	return fmt.Sprintf(`
@@ -345,55 +240,6 @@ resource "netbox_rack_type" "test" {
 }
 
 `, mfgName, mfgSlug, model, slug, description, uHeight, width)
-
-}
-
-// TestAccConsistency_RackType_LiteralNames tests that reference attributes specified as literal string names
-
-// are preserved and do not cause drift when the API returns numeric IDs.
-
-func TestAccConsistency_RackType_LiteralNames(t *testing.T) {
-
-	t.Parallel()
-
-	mfgName := testutil.RandomName("manufacturer")
-
-	mfgSlug := testutil.RandomSlug("manufacturer")
-
-	model := testutil.RandomName("rack-type")
-
-	slug := testutil.RandomSlug("rack-type")
-
-	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
-		Steps: []resource.TestStep{
-
-			{
-
-				Config: testAccRackTypeConsistencyLiteralNamesConfig(mfgName, mfgSlug, model, slug),
-
-				Check: resource.ComposeTestCheckFunc(
-
-					resource.TestCheckResourceAttr("netbox_rack_type.test", "model", model),
-
-					resource.TestCheckResourceAttr("netbox_rack_type.test", "manufacturer", mfgName),
-				),
-			},
-
-			{
-
-				// Critical: Verify no drift when refreshing state
-
-				PlanOnly: true,
-
-				Config: testAccRackTypeConsistencyLiteralNamesConfig(mfgName, mfgSlug, model, slug),
-			},
-		},
-	})
 
 }
 
