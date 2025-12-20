@@ -223,7 +223,109 @@ Usage in tests:
 Config: testAccResourceConfig_full(name, slug, testutil.Comments),
 ```
 
-### 5. Deleted Files
+### 5. Cleanup Functions in Acceptance Tests
+
+**Purpose:**
+Cleanup functions ensure that resources created during acceptance tests are properly deleted from the Netbox instance, preventing state pollution and test conflicts, especially important in consistency tests.
+
+**Why Cleanup is Critical:**
+- **State Pollution**: Without cleanup, resources accumulate in the Netbox database across test runs
+- **Test Conflicts**: Hardcoded resource names can conflict when tests are re-run without cleanup
+- **Parallel Test Issues**: Multiple concurrent tests can exhaust connection pools and cause race conditions
+- **Consistency Tests**: Tests that verify reference attributes need proper cleanup to avoid cross-test dependencies
+
+**Using testutil.NewCleanupResource():**
+
+All acceptance tests should register cleanup for resources they create:
+
+```go
+func TestAccConsistency_ResourceName(t *testing.T) {
+    resourceName := testutil.RandomName("resource")
+    siteName := testutil.RandomName("site")
+    siteSlug := testutil.RandomSlug("site")
+
+    // Create cleanup object and register cleanup functions
+    cleanup := testutil.NewCleanupResource(t)
+    cleanup.RegisterResourceCleanup(resourceName)
+    cleanup.RegisterSiteCleanup(siteSlug)
+
+    resource.Test(t, resource.TestCase{
+        PreCheck: func() { testutil.TestAccPreCheck(t) },
+        ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+        Steps: []resource.TestStep{
+            {
+                Config: testAccConsistencyConfig(resourceName, siteName, siteSlug),
+                Check: resource.ComposeTestCheckFunc(...),
+            },
+        },
+    })
+}
+```
+
+**Available Cleanup Functions:**
+The `testutil.CleanupResource` helper provides cleanup methods for all major resource types:
+
+- Device/Type Related: `RegisterDeviceCleanup()`, `RegisterDeviceTypeCleanup()`, `RegisterDeviceRoleCleanup()`
+- Network/Site Related: `RegisterSiteCleanup()`, `RegisterClusterCleanup()`, `RegisterClusterTypeCleanup()`, `RegisterClusterGroupCleanup()`
+- Manufacturer/Vendor: `RegisterManufacturerCleanup()`
+- Provider/Circuit: `RegisterProviderCleanup()`, `RegisterCircuitCleanup()`, `RegisterCircuitTypeCleanup()`
+- Port Related: `RegisterConsolePortCleanup()`, `RegisterPowerPortCleanup()`
+- Administrative: `RegisterRIRCleanup()`, `RegisterTenantCleanup()`, `RegisterASNRangeCleanup()`
+
+**Cleanup Pattern for Consistency Tests:**
+
+Consistency tests verify that reference attributes don't drift when re-applied. They create temporary resources and check state preservation:
+
+```go
+func TestAccConsistency_CircuitTermination_LiteralNames(t *testing.T) {
+    providerName := testutil.RandomName("provider")
+    providerSlug := testutil.RandomSlug("provider")
+    circuitTypeName := testutil.RandomName("circuit-type")
+    circuitTypeSlug := testutil.RandomSlug("circuit-type")
+    circuitCid := testutil.RandomName("CID")
+    siteName := testutil.RandomName("site")
+    siteSlug := testutil.RandomSlug("site")
+
+    cleanup := testutil.NewCleanupResource(t)
+    cleanup.RegisterCircuitCleanup(circuitCid)  // The main resource
+
+    resource.Test(t, resource.TestCase{
+        PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+        ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+        Steps: []resource.TestStep{
+            {
+                Config: testAccCircuitTerminationConsistencyLiteralNamesConfig(
+                    providerName, providerSlug, circuitTypeName, circuitTypeSlug,
+                    circuitCid, siteName, siteSlug),
+                Check: resource.ComposeTestCheckFunc(
+                    resource.TestCheckResourceAttr("netbox_circuit_termination.test", "circuit", circuitCid),
+                ),
+            },
+            {
+                PlanOnly: true,
+                Config: testAccCircuitTerminationConsistencyLiteralNamesConfig(...),
+            },
+        },
+    })
+}
+```
+
+**Key Points:**
+- Register cleanup **before** the `resource.Test()` call
+- Register cleanup for the **main resource** being tested and any **complex dependencies**
+- Cleanup functions gracefully handle "already deleted" resources (expected behavior in Terraform tests)
+- For simple resources with no dependencies (e.g., Contact), cleanup may not be necessary
+- Cleanup is especially important for **consistency tests** which are run multiple times to check for drift
+
+**Cleanup Error Handling:**
+If you see logs like:
+```
+Cleanup: manufacturer with slug manufacturer-abc123 not found (already deleted)
+```
+
+This is **expected and correct**. Terraform's test framework automatically cleans up resources after each test step. The cleanup helper logs these gracefully rather than failing.
+
+### 6. Deleted Files
 
 - `internal/resources_test/resource_name_resource_test.go` (old combined file)
 - `internal/resources_test/acceptance_test.go` (constants moved to testutil)
@@ -265,10 +367,20 @@ When refactoring a new resource test file:
    - Copy all `TestAcc*` functions (do not artificially add tests)
    - Replace local constants with `testutil.*` constants
    - Keep all Terraform configuration helpers
+   - **Add cleanup registration** (see Cleanup Functions section):
+     ```go
+     cleanup := testutil.NewCleanupResource(t)
+     cleanup.Register<ResourceType>Cleanup(<resourceID>)
+     ```
 
-4. **Delete old file** from `internal/resources_test/`
+4. **Identify resource dependencies** and add appropriate cleanup
+   - For consistency tests, register cleanup for the main resource being tested
+   - For complex resources with multiple dependencies, register cleanup for each dependency
+   - See the Available Cleanup Functions list for which functions to use
 
-5. **Test locally**:
+5. **Delete old file** from `internal/resources_test/`
+
+6. **Test locally**:
    ```bash
    # Unit tests (fast)
    go test ./internal/resources_unit_tests -v -run TestResourceName
@@ -282,3 +394,5 @@ When refactoring a new resource test file:
 - Test coverage varies by resource complexity (e.g., cable: 1 test, aggregate: 5 tests)
 - All resources should have the 4 standard unit tests
 - Acceptance test count depends on resource's use cases and reference fields
+- All acceptance tests should include cleanup registration to prevent state pollution
+- Consistency tests are particularly important for resources with complex reference attributes
