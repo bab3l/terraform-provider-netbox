@@ -133,7 +133,7 @@ func TestLocationResourceConfigure(t *testing.T) {
 
 	}
 
-	configureReq.ProviderData = invalidProviderData
+	configureReq.ProviderData = testutil.InvalidProviderData
 
 	configureResp = &fwresource.ConfigureResponse{}
 

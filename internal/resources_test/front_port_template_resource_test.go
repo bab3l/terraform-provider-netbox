@@ -163,7 +163,7 @@ func TestFrontPortTemplateResourceConfigure(t *testing.T) {
 
 	// Test with incorrect provider data
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwresource.ConfigureResponse{}
 
@@ -311,6 +311,8 @@ func TestAccFrontPortTemplateResource_basic(t *testing.T) {
 
 	portType := "8p8c"
 
+	rearPortName := testutil.RearPortName
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -380,6 +382,10 @@ func TestAccFrontPortTemplateResource_full(t *testing.T) {
 	updatedDescription := "Updated front port template"
 
 	updatedRearPortPosition := int32(2)
+
+	rearPortName := testutil.RearPortName
+
+	color := testutil.Color
 
 	resource.Test(t, resource.TestCase{
 

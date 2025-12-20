@@ -251,6 +251,8 @@ func TestAccInterfaceTemplateResource_basic(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("dt")
 
+	interfaceName := testutil.InterfaceName
+
 	name := interfaceName
 
 	interfaceType := "1000base-t"
@@ -304,6 +306,8 @@ func TestAccInterfaceTemplateResource_full(t *testing.T) {
 	deviceTypeName := testutil.RandomName("dt")
 
 	deviceTypeSlug := testutil.RandomSlug("dt")
+
+	interfaceName := testutil.InterfaceName
 
 	name := interfaceName
 
@@ -382,7 +386,7 @@ func TestAccConsistency_InterfaceTemplate(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("devicetype")
 
-	const interfaceName = "eth0"
+	interfaceName := "eth0"
 
 	resource.Test(t, resource.TestCase{
 

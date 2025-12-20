@@ -151,9 +151,7 @@ func TestVMInterfaceResourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
-
-	configureResponse = &fwresource.ConfigureResponse{}
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
 
@@ -175,7 +173,7 @@ func TestAccVMInterfaceResource_basic(t *testing.T) {
 
 	vmName := testutil.RandomName("tf-test-vm")
 
-	ifaceName := interfaceName
+	ifaceName := testutil.InterfaceName
 
 	cleanup := testutil.NewCleanupResource(t)
 
@@ -623,7 +621,7 @@ func TestAccConsistency_VMInterface(t *testing.T) {
 
 	clusterTypeSlug := testutil.RandomSlug("cluster-type")
 
-	const interfaceName = "eth0"
+	interfaceName := "eth0"
 
 	macAddress := "AA:BB:CC:DD:EE:FF" // Uppercase to test case sensitivity
 

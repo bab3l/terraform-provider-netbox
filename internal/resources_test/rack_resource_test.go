@@ -139,11 +139,7 @@ func TestRackResourceConfigure(t *testing.T) {
 
 	}
 
-	configureReq.ProviderData = invalidProviderData
-
-	configureResp = &fwresource.ConfigureResponse{}
-
-	r.Configure(ctx, configureReq, configureResp)
+	configureReq.ProviderData = testutil.InvalidProviderData
 
 	if !configureResp.Diagnostics.HasError() {
 

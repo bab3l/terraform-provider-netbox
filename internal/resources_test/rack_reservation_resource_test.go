@@ -151,7 +151,7 @@ func TestRackReservationResourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwresource.ConfigureResponse{}
 
@@ -252,23 +252,23 @@ func TestAccRackReservationResource_update(t *testing.T) {
 
 			{
 
-				Config: testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, description1),
+				Config: testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, testutil.Description1),
 
 				Check: resource.ComposeTestCheckFunc(
 
 					resource.TestCheckResourceAttrSet("netbox_rack_reservation.test", "id"),
 
-					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "description", description1),
+					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "description", testutil.Description1),
 				),
 			},
 
 			{
 
-				Config: testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, description2),
+				Config: testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, testutil.Description2),
 
 				Check: resource.ComposeTestCheckFunc(
 
-					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "description", description2),
+					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "description", testutil.Description2),
 				),
 			},
 		},

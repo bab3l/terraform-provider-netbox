@@ -271,7 +271,7 @@ func TestAccTunnelGroupResource_update(t *testing.T) {
 
 	slug := testutil.RandomSlug("tf-test-tg-upd")
 
-	updatedDescription := description2
+	updatedDescription := testutil.Description2
 
 	// Register cleanup
 

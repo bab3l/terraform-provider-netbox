@@ -1,87 +1,15 @@
-package resources_test
+package resources_acceptance_tests
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
-	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
-
-func TestAggregateResource(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewAggregateResource()
-
-	if r == nil {
-
-		t.Fatal("Expected non-nil Aggregate resource")
-
-	}
-
-}
-
-func TestAggregateResourceSchema(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewAggregateResource()
-
-	schemaRequest := fwresource.SchemaRequest{}
-
-	schemaResponse := &fwresource.SchemaResponse{}
-
-	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
-	if schemaResponse.Diagnostics.HasError() {
-
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-
-		t.Fatal("Expected schema to have attributes")
-
-	}
-
-	testutil.ValidateResourceSchema(t, schemaResponse.Schema.Attributes, testutil.SchemaValidation{
-
-		Required: []string{"prefix", "rir"},
-
-		Optional: []string{"tenant", "date_added", "description", "comments", "tags", "custom_fields"},
-
-		Computed: []string{"id"},
-	})
-
-}
-
-func TestAggregateResourceMetadata(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewAggregateResource()
-
-	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_aggregate")
-
-}
-
-func TestAggregateResourceConfigure(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewAggregateResource()
-
-	testutil.ValidateResourceConfigure(t, r)
-
-}
 
 func TestAccAggregateResource_basic(t *testing.T) {
 
@@ -156,7 +84,7 @@ func TestAccAggregateResource_full(t *testing.T) {
 
 			{
 
-				Config: testAccAggregateResourceConfig_full(rirName, rirSlug, prefix, description, comments),
+				Config: testAccAggregateResourceConfig_full(rirName, rirSlug, prefix, description, testutil.Comments),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -166,13 +94,13 @@ func TestAccAggregateResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_aggregate.test", "description", description),
 
-					resource.TestCheckResourceAttr("netbox_aggregate.test", "comments", comments),
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "comments", testutil.Comments),
 				),
 			},
 
 			{
 
-				Config: testAccAggregateResourceConfig_full(rirName, rirSlug, prefix, updatedDescription, comments),
+				Config: testAccAggregateResourceConfig_full(rirName, rirSlug, prefix, updatedDescription, testutil.Comments),
 
 				Check: resource.ComposeTestCheckFunc(
 

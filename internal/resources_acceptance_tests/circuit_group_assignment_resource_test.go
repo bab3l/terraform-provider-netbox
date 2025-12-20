@@ -1,93 +1,17 @@
-package resources_test
+package resources_acceptance_tests
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
-	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestCircuitGroupAssignmentResource(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewCircuitGroupAssignmentResource()
-
-	if r == nil {
-
-		t.Fatal("Expected non-nil CircuitGroupAssignment resource")
-
-	}
-
-}
-
-func TestCircuitGroupAssignmentResourceSchema(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewCircuitGroupAssignmentResource()
-
-	schemaRequest := fwresource.SchemaRequest{}
-
-	schemaResponse := &fwresource.SchemaResponse{}
-
-	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
-	if schemaResponse.Diagnostics.HasError() {
-
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-
-		t.Fatal("Expected schema to have attributes")
-
-	}
-
-	testutil.ValidateResourceSchema(t, schemaResponse.Schema.Attributes, testutil.SchemaValidation{
-
-		Required: []string{"group_id", "circuit_id"},
-
-		Optional: []string{"priority", "tags", "custom_fields"},
-
-		Computed: []string{"id"},
-	})
-
-}
-
-func TestCircuitGroupAssignmentResourceMetadata(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewCircuitGroupAssignmentResource()
-
-	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_circuit_group_assignment")
-
-}
-
-func TestCircuitGroupAssignmentResourceConfigure(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewCircuitGroupAssignmentResource()
-
-	testutil.ValidateResourceConfigure(t, r)
-
-}
-
-// Acceptance Tests.
-
 func TestAccCircuitGroupAssignmentResource_basic(t *testing.T) {
-
-	// Generate unique names to avoid conflicts between test runs
 
 	groupName := testutil.RandomName("tf-test-cga-group")
 
@@ -102,8 +26,6 @@ func TestAccCircuitGroupAssignmentResource_basic(t *testing.T) {
 	circuitTypeSlug := testutil.RandomSlug("tf-test-cga-type")
 
 	circuitCid := testutil.RandomSlug("tf-test-cga-ckt")
-
-	// Register cleanup to ensure resources are deleted even if test fails
 
 	cleanup := testutil.NewCleanupResource(t)
 
@@ -152,8 +74,6 @@ func TestAccCircuitGroupAssignmentResource_basic(t *testing.T) {
 
 func TestAccCircuitGroupAssignmentResource_withPriority(t *testing.T) {
 
-	// Generate unique names
-
 	groupName := testutil.RandomName("tf-test-cga-grp-pri")
 
 	groupSlug := testutil.RandomSlug("tf-test-cga-grp-pri")
@@ -167,8 +87,6 @@ func TestAccCircuitGroupAssignmentResource_withPriority(t *testing.T) {
 	circuitTypeSlug := testutil.RandomSlug("tf-test-cga-type-pri")
 
 	circuitCid := testutil.RandomSlug("tf-test-cga-ckt-pri")
-
-	// Register cleanup
 
 	cleanup := testutil.NewCleanupResource(t)
 
@@ -199,8 +117,7 @@ func TestAccCircuitGroupAssignmentResource_withPriority(t *testing.T) {
 
 				Config: testAccCircuitGroupAssignmentResourceConfig_withPriority(
 
-					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, "primary",
-				),
+					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, "primary"),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -216,8 +133,6 @@ func TestAccCircuitGroupAssignmentResource_withPriority(t *testing.T) {
 
 func TestAccCircuitGroupAssignmentResource_update(t *testing.T) {
 
-	// Generate unique names
-
 	groupName := testutil.RandomName("tf-test-cga-grp-upd")
 
 	groupSlug := testutil.RandomSlug("tf-test-cga-grp-upd")
@@ -231,8 +146,6 @@ func TestAccCircuitGroupAssignmentResource_update(t *testing.T) {
 	circuitTypeSlug := testutil.RandomSlug("tf-test-cga-type-upd")
 
 	circuitCid := testutil.RandomSlug("tf-test-cga-ckt-upd")
-
-	// Register cleanup
 
 	cleanup := testutil.NewCleanupResource(t)
 
@@ -275,8 +188,7 @@ func TestAccCircuitGroupAssignmentResource_update(t *testing.T) {
 
 				Config: testAccCircuitGroupAssignmentResourceConfig_withPriority(
 
-					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, "secondary",
-				),
+					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, "secondary"),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -289,8 +201,6 @@ func TestAccCircuitGroupAssignmentResource_update(t *testing.T) {
 }
 
 func TestAccCircuitGroupAssignmentResource_import(t *testing.T) {
-
-	// Generate unique names
 
 	groupName := testutil.RandomName("tf-test-cga-grp-imp")
 
@@ -305,8 +215,6 @@ func TestAccCircuitGroupAssignmentResource_import(t *testing.T) {
 	circuitTypeSlug := testutil.RandomSlug("tf-test-cga-type-imp")
 
 	circuitCid := testutil.RandomSlug("tf-test-cga-ckt-imp")
-
-	// Register cleanup
 
 	cleanup := testutil.NewCleanupResource(t)
 
@@ -472,7 +380,3 @@ resource "netbox_circuit_group_assignment" "test" {
 `, groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, priority)
 
 }
-
-// TestAccConsistency_CircuitGroupAssignment_LiteralNames tests that reference attributes specified as literal string names
-
-// are preserved and do not cause drift when the API returns numeric IDs.

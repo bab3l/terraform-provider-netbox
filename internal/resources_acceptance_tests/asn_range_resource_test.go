@@ -1,87 +1,15 @@
-package resources_test
+package resources_acceptance_tests
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
-	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
-
-func TestASNRangeResource(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewASNRangeResource()
-
-	if r == nil {
-
-		t.Fatal("Expected non-nil ASNRange resource")
-
-	}
-
-}
-
-func TestASNRangeResourceSchema(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewASNRangeResource()
-
-	schemaRequest := fwresource.SchemaRequest{}
-
-	schemaResponse := &fwresource.SchemaResponse{}
-
-	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
-	if schemaResponse.Diagnostics.HasError() {
-
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-
-		t.Fatal("Expected schema to have attributes")
-
-	}
-
-	testutil.ValidateResourceSchema(t, schemaResponse.Schema.Attributes, testutil.SchemaValidation{
-
-		Required: []string{"name", "slug", "rir", "start", "end"},
-
-		Optional: []string{"tenant", "description", "tags", "custom_fields"},
-
-		Computed: []string{"id"},
-	})
-
-}
-
-func TestASNRangeResourceMetadata(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewASNRangeResource()
-
-	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_asn_range")
-
-}
-
-func TestASNRangeResourceConfigure(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewASNRangeResource()
-
-	testutil.ValidateResourceConfigure(t, r)
-
-}
 
 // Acceptance Tests.
 
@@ -301,27 +229,51 @@ func testAccASNRangeResourceConfig_basic(name, slug, rirName, rirSlug string) st
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rir" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
 
 resource "netbox_asn_range" "test" {
 
+
+
   name  = %q
+
+
 
   slug  = %q
 
+
+
   rir   = netbox_rir.test.id
+
+
 
   start = "64512"
 
+
+
   end   = "64612"
 
+
+
 }
+
+
 
 `, rirName, rirSlug, name, slug)
 
@@ -331,43 +283,83 @@ func testAccASNRangeResourceConfig_full(name, slug, rirName, rirSlug, tenantName
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rir" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tenant" "test" {
 
+
+
   name = %q
+
+
 
   slug = %q
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_asn_range" "test" {
 
+
+
   name        = %q
+
+
 
   slug        = %q
 
+
+
   rir         = netbox_rir.test.id
+
+
 
   start       = "65000"
 
+
+
   end         = "65100"
+
+
 
   tenant      = netbox_tenant.test.id
 
+
+
   description = "Test ASN range with full options"
 
+
+
 }
+
+
 
 `, rirName, rirSlug, tenantName, tenantSlug, name, slug)
 
@@ -377,29 +369,55 @@ func testAccASNRangeResourceConfig_updated(name, slug, rirName, rirSlug string) 
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rir" "test" {
+
+
 
   name = %q
 
+
+
   slug = %q
 
+
+
 }
+
+
 
 resource "netbox_asn_range" "test" {
 
+
+
   name        = %q
+
+
 
   slug        = %q
 
+
+
   rir         = netbox_rir.test.id
+
+
 
   start       = "64512"
 
+
+
   end         = "64700"
+
+
 
   description = "Updated description"
 
+
+
 }
+
+
 
 `, rirName, rirSlug, name, slug)
 
@@ -531,41 +549,79 @@ func testAccASNRangeConsistencyConfig(rangeName, rangeSlug, rirName, rirSlug, te
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rir" "test" {
+
+
 
   name = "%[3]s"
 
+
+
   slug = "%[4]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tenant" "test" {
 
+
+
   name = "%[5]s"
+
+
 
   slug = "%[6]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_asn_range" "test" {
 
+
+
   name = "%[1]s"
+
+
 
   slug = "%[2]s"
 
+
+
   rir = netbox_rir.test.slug
+
+
 
   tenant = netbox_tenant.test.name
 
+
+
   start = 65000
+
+
 
   end = 65100
 
+
+
 }
+
+
 
 `, rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug)
 
@@ -630,49 +686,95 @@ func testAccASNRangeConsistencyLiteralNamesConfig(rangeName, rangeSlug, rirName,
 
 	return fmt.Sprintf(`
 
+
+
 resource "netbox_rir" "test" {
+
+
 
   name = "%[3]s"
 
+
+
   slug = "%[4]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_tenant" "test" {
 
+
+
   name = "%[5]s"
+
+
 
   slug = "%[6]s"
 
+
+
 }
+
+
+
+
 
 
 
 resource "netbox_asn_range" "test" {
 
+
+
   name = "%[1]s"
+
+
 
   slug = "%[2]s"
 
 
 
+
+
+
+
   # Use literal string names to mimic existing user state
+
+
 
   rir = "%[4]s"
 
+
+
   tenant = "%[5]s"
 
+
+
   start = 65000
+
+
 
   end = 65100
 
 
 
+
+
+
+
   depends_on = [netbox_rir.test, netbox_tenant.test]
 
+
+
 }
+
+
 
 `, rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug)
 

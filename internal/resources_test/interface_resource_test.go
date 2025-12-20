@@ -170,7 +170,7 @@ func TestInterfaceResourceConfigure(t *testing.T) {
 
 	// Test with incorrect provider data type
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwresource.ConfigureResponse{}
 
@@ -187,8 +187,6 @@ func TestInterfaceResourceConfigure(t *testing.T) {
 func TestAccInterfaceResource_basic(t *testing.T) {
 
 	// Generate unique names to avoid conflicts between test runs
-
-	const interfaceName = "eth0"
 
 	deviceName := testutil.RandomName("tf-test-iface-device")
 
@@ -212,7 +210,7 @@ func TestAccInterfaceResource_basic(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 
-	cleanup.RegisterInterfaceCleanup(interfaceName, deviceName)
+	cleanup.RegisterInterfaceCleanup(testutil.InterfaceName, deviceName)
 
 	cleanup.RegisterDeviceCleanup(deviceName)
 
@@ -262,14 +260,14 @@ func TestAccInterfaceResource_basic(t *testing.T) {
 
 					siteName, siteSlug,
 
-					deviceName, interfaceName,
+					deviceName, testutil.InterfaceName,
 				),
 
 				Check: resource.ComposeTestCheckFunc(
 
 					resource.TestCheckResourceAttrSet("netbox_interface.test", "id"),
 
-					resource.TestCheckResourceAttr("netbox_interface.test", "name", interfaceName),
+					resource.TestCheckResourceAttr("netbox_interface.test", "name", testutil.InterfaceName),
 
 					resource.TestCheckResourceAttr("netbox_interface.test", "type", "1000base-t"),
 
@@ -390,9 +388,7 @@ func TestAccInterfaceResource_update(t *testing.T) {
 
 	// Generate unique names
 
-	const interfaceName = "eth0"
-
-	const updatedInterfaceName = "eth1"
+	updatedInterfaceName := "eth1"
 
 	deviceName := testutil.RandomName("tf-test-iface-dev-upd")
 
@@ -416,7 +412,7 @@ func TestAccInterfaceResource_update(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 
-	cleanup.RegisterInterfaceCleanup(interfaceName, deviceName)
+	cleanup.RegisterInterfaceCleanup(testutil.InterfaceName, deviceName)
 
 	cleanup.RegisterInterfaceCleanup(updatedInterfaceName, deviceName)
 
@@ -468,12 +464,12 @@ func TestAccInterfaceResource_update(t *testing.T) {
 
 					siteName, siteSlug,
 
-					deviceName, interfaceName,
+					deviceName, testutil.InterfaceName,
 				),
 
 				Check: resource.ComposeTestCheckFunc(
 
-					resource.TestCheckResourceAttr("netbox_interface.test", "name", interfaceName),
+					resource.TestCheckResourceAttr("netbox_interface.test", "name", testutil.InterfaceName),
 				),
 			},
 
@@ -586,7 +582,7 @@ resource "netbox_interface" "test" {
 
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug,
 
-		deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, interfaceName)
+		deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, testutil.InterfaceName)
 
 }
 
@@ -682,15 +678,13 @@ resource "netbox_interface" "test" {
 
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug,
 
-		deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, interfaceName, description)
+		deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, testutil.InterfaceName, description)
 
 }
 
 func TestAccInterfaceResource_import(t *testing.T) {
 
 	// Generate unique names to avoid conflicts between test runs
-
-	const interfaceName = "eth0"
 
 	deviceName := testutil.RandomName("tf-test-iface-device")
 
@@ -714,7 +708,7 @@ func TestAccInterfaceResource_import(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 
-	cleanup.RegisterInterfaceCleanup(interfaceName, deviceName)
+	cleanup.RegisterInterfaceCleanup(testutil.InterfaceName, deviceName)
 
 	cleanup.RegisterDeviceCleanup(deviceName)
 
@@ -764,14 +758,14 @@ func TestAccInterfaceResource_import(t *testing.T) {
 
 					siteName, siteSlug,
 
-					deviceName, interfaceName,
+					deviceName, testutil.InterfaceName,
 				),
 
 				Check: resource.ComposeTestCheckFunc(
 
 					resource.TestCheckResourceAttrSet("netbox_interface.test", "id"),
 
-					resource.TestCheckResourceAttr("netbox_interface.test", "name", interfaceName),
+					resource.TestCheckResourceAttr("netbox_interface.test", "name", testutil.InterfaceName),
 
 					resource.TestCheckResourceAttr("netbox_interface.test", "type", "1000base-t"),
 
@@ -884,7 +878,7 @@ resource "netbox_interface" "test" {
 
 		siteName, siteSlug,
 
-		deviceName, interfaceName)
+		deviceName, testutil.InterfaceName)
 
 }
 
@@ -910,8 +904,6 @@ func TestAccConsistency_Interface(t *testing.T) {
 
 	siteSlug := testutil.RandomSlug("site")
 
-	const interfaceName = "eth0"
-
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -922,11 +914,11 @@ func TestAccConsistency_Interface(t *testing.T) {
 
 			{
 
-				Config: testAccInterfaceConsistencyConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName),
+				Config: testAccInterfaceConsistencyConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, testutil.InterfaceName),
 
 				Check: resource.ComposeTestCheckFunc(
 
-					resource.TestCheckResourceAttr("netbox_interface.test", "name", interfaceName),
+					resource.TestCheckResourceAttr("netbox_interface.test", "name", testutil.InterfaceName),
 
 					resource.TestCheckResourceAttr("netbox_interface.test", "device", deviceName),
 				),
@@ -936,7 +928,7 @@ func TestAccConsistency_Interface(t *testing.T) {
 
 				PlanOnly: true,
 
-				Config: testAccInterfaceConsistencyConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName),
+				Config: testAccInterfaceConsistencyConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, testutil.InterfaceName),
 			},
 		},
 	})
@@ -1015,7 +1007,7 @@ resource "netbox_interface" "test" {
 
 `, deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug,
 
-		roleName, roleSlug, siteName, siteSlug, interfaceName)
+		roleName, roleSlug, siteName, siteSlug, testutil.InterfaceName)
 
 }
 
@@ -1158,6 +1150,6 @@ resource "netbox_interface" "test" {
 
 `, deviceName, deviceTypeName, deviceTypeSlug, manufacturerName,
 
-		manufacturerSlug, roleName, roleSlug, siteName, siteSlug, interfaceName)
+		manufacturerSlug, roleName, roleSlug, siteName, siteSlug, testutil.InterfaceName)
 
 }

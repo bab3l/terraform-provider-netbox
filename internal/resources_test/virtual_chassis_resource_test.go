@@ -151,9 +151,7 @@ func TestVirtualChassisResourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
-
-	configureResponse = &fwresource.ConfigureResponse{}
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
 

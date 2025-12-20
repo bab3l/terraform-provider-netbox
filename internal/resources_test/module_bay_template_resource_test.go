@@ -153,9 +153,7 @@ func TestModuleBayTemplateResourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
-
-	configureResponse = &fwresource.ConfigureResponse{}
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	r.Configure(context.Background(), configureRequest, configureResponse)
 
@@ -297,6 +295,10 @@ func TestAccModuleBayTemplateResource_update(t *testing.T) {
 	dtSlug := testutil.RandomSlug("tf-test-dt")
 
 	templateName := testutil.RandomName("tf-test-mbt")
+
+	description1 := testutil.Description1
+
+	description2 := testutil.Description2
 
 	cleanup := testutil.NewCleanupResource(t)
 

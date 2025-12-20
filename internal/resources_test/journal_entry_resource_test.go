@@ -163,7 +163,7 @@ func TestJournalEntryResourceConfigure(t *testing.T) {
 
 	// Test with incorrect provider data type
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwresource.ConfigureResponse{}
 

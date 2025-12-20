@@ -151,7 +151,7 @@ func TestDeviceBayResourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwresource.ConfigureResponse{}
 

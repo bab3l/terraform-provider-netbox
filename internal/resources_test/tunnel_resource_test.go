@@ -271,7 +271,7 @@ func TestAccTunnelResource_update(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-tunnel-upd")
 
-	updatedDescription := description2
+	updatedDescription := testutil.Description2
 
 	// Register cleanup
 

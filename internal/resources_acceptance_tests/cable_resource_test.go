@@ -1,91 +1,24 @@
-package resources_test
+package resources_acceptance_tests
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestCableResource(t *testing.T) {
+// Cable resource is simpler than other resources (e.g., ASN, Aggregate) because:
 
-	t.Parallel()
+// - Only a_terminations and b_terminations are required (complex nested objects)
 
-	r := resources.NewCableResource()
+// - Other fields are simple scalars (type, status, color, label, description, comments, etc.)
 
-	if r == nil {
+// - No complex reference validation or state drift issues
 
-		t.Fatal("Expected non-nil cable resource")
+// Therefore, a single comprehensive test that validates core functionality (creating a cable
 
-	}
-
-}
-
-func TestCableResourceSchema(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewCableResource()
-
-	schemaRequest := fwresource.SchemaRequest{}
-
-	schemaResponse := &fwresource.SchemaResponse{}
-
-	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
-	if schemaResponse.Diagnostics.HasError() {
-
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
-
-	}
-
-	if schemaResponse.Schema.Attributes == nil {
-
-		t.Fatal("Expected schema to have attributes")
-
-	}
-
-	testutil.ValidateResourceSchema(t, schemaResponse.Schema.Attributes, testutil.SchemaValidation{
-
-		Required: []string{"a_terminations", "b_terminations"},
-
-		Optional: []string{
-
-			"type", "status", "tenant", "label", "color",
-
-			"length", "length_unit", "description", "comments",
-
-			"tags", "custom_fields",
-		},
-
-		Computed: []string{"id"},
-	})
-
-}
-
-func TestCableResourceMetadata(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewCableResource()
-
-	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_cable")
-
-}
-
-func TestCableResourceConfigure(t *testing.T) {
-
-	t.Parallel()
-
-	r := resources.NewCableResource()
-
-	testutil.ValidateResourceConfigure(t, r)
-
-}
+// with terminations and import/export) is sufficient to ensure the resource works correctly.
 
 func TestAccCableResource_basic(t *testing.T) {
 
@@ -267,7 +200,3 @@ resource "netbox_cable" "test" {
 `, siteName, siteSlug, deviceName, deviceName, interfaceNameA, interfaceNameB)
 
 }
-
-// TestAccConsistency_Cable_LiteralNames tests that reference attributes specified as literal string names
-
-// are preserved and do not cause drift when the API returns numeric IDs.

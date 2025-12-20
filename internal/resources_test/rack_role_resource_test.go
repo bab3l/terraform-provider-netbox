@@ -163,7 +163,7 @@ func TestRackRoleResourceConfigure(t *testing.T) {
 
 	// Test with incorrect provider data type
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwresource.ConfigureResponse{}
 
@@ -283,7 +283,7 @@ func TestAccRackRoleResource_update(t *testing.T) {
 
 	rackRoleSlug := testutil.RandomSlug("tf-test-rack-role-u")
 
-	updatedDescription := description2
+	updatedDescription := testutil.Description2
 
 	// Register cleanup
 

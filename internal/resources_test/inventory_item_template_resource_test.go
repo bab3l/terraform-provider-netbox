@@ -151,7 +151,7 @@ func TestInventoryItemTemplateResourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwresource.ConfigureResponse{}
 
@@ -296,9 +296,9 @@ func TestAccInventoryItemTemplateResource_update(t *testing.T) {
 
 	templateName := testutil.RandomName("tf-test-iit")
 
-	const description1 = "Initial description"
+	description1 := testutil.Description1
 
-	const description2 = "Updated description"
+	description2 := testutil.Description2
 
 	cleanup := testutil.NewCleanupResource(t)
 
