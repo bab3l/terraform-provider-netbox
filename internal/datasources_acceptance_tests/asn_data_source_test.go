@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -14,7 +15,7 @@ func TestAccASNDataSource_basic(t *testing.T) {
 
 	rirName := testutil.RandomName("rir")
 	rirSlug := testutil.RandomSlug("rir")
-	asnValue := 65000
+	asnValue := acctest.RandIntRange(65000, 65999) // Generate ASN between 65000-65999
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)

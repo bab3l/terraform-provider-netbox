@@ -14,11 +14,12 @@ func TestAccPowerPanelDataSource_basic(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 
-	siteName := testutil.RandomName("test-power-panel-site-ds")
+	siteName := testutil.RandomName("tf-test-power-panel-site")
 	siteSlug := testutil.GenerateSlug(siteName)
+	powerPanelName := testutil.RandomName("tf-test-power-panel")
 
 	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterPowerPanelCleanup("Test Power Panel")
+	cleanup.RegisterPowerPanelCleanup(powerPanelName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -29,9 +30,9 @@ func TestAccPowerPanelDataSource_basic(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPowerPanelDataSourceConfig(siteName, siteSlug),
+				Config: testAccPowerPanelDataSourceConfig(siteName, siteSlug, powerPanelName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_power_panel.test", "name", "Test Power Panel"),
+					resource.TestCheckResourceAttr("data.netbox_power_panel.test", "name", powerPanelName),
 					resource.TestCheckResourceAttrSet("data.netbox_power_panel.test", "site"),
 				),
 			},
@@ -39,7 +40,7 @@ func TestAccPowerPanelDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccPowerPanelDataSourceConfig(siteName, siteSlug string) string {
+func testAccPowerPanelDataSourceConfig(siteName, siteSlug, powerPanelName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = %[1]q
@@ -48,11 +49,11 @@ resource "netbox_site" "test" {
 
 resource "netbox_power_panel" "test" {
   site = netbox_site.test.id
-  name = "Test Power Panel"
+  name = %[3]q
 }
 
 data "netbox_power_panel" "test" {
   id = netbox_power_panel.test.id
 }
-`, siteName, siteSlug)
+`, siteName, siteSlug, powerPanelName)
 }

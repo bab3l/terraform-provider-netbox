@@ -15,6 +15,8 @@ func TestAccDeviceBayDataSource_basic(t *testing.T) {
 	siteSlug := testutil.RandomSlug("site")
 	deviceRoleSlug := testutil.RandomSlug("device-role")
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
+	deviceTypeModel := testutil.RandomName("device-type")
+	deviceTypeSlug := testutil.RandomSlug("device-type")
 	deviceName := testutil.RandomName("device")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -34,7 +36,7 @@ func TestAccDeviceBayDataSource_basic(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDeviceBayDataSourceConfig("Bay 1", siteSlug, deviceRoleSlug, manufacturerSlug, deviceName),
+				Config: testAccDeviceBayDataSourceConfig("Bay 1", siteSlug, deviceRoleSlug, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_device_bay.test", "name", "Bay 1"),
 					resource.TestCheckResourceAttrSet("data.netbox_device_bay.test", "device"),
@@ -44,7 +46,7 @@ func TestAccDeviceBayDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccDeviceBayDataSourceConfig(name, siteSlug, deviceRoleSlug, manufacturerSlug, deviceName string) string {
+func testAccDeviceBayDataSourceConfig(name, siteSlug, deviceRoleSlug, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = "%s"
@@ -63,8 +65,8 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_device_type" "test" {
   manufacturer   = netbox_manufacturer.test.id
-  model          = "Test Device Type"
-  slug           = "test-device-type"
+  model          = "%s"
+  slug           = "%s"
   subdevice_role = "parent"
 }
 
@@ -83,5 +85,5 @@ resource "netbox_device_bay" "test" {
 data "netbox_device_bay" "test" {
   id = netbox_device_bay.test.id
 }
-`, siteSlug, siteSlug, deviceRoleSlug, deviceRoleSlug, manufacturerSlug, manufacturerSlug, deviceName, name)
+`, siteSlug, siteSlug, deviceRoleSlug, deviceRoleSlug, manufacturerSlug, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceName, name)
 }

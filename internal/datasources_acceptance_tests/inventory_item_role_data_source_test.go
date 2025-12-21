@@ -1,6 +1,7 @@
 package datasources_acceptance_tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -11,29 +12,34 @@ func TestAccInventoryItemRoleDataSource_basic(t *testing.T) {
 
 	t.Parallel()
 
+	name := testutil.RandomName("tf-test-inv-item-role")
+	slug := testutil.RandomSlug("tf-test-inv-item-role")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInventoryItemRoleDataSourceConfig,
+				Config: testAccInventoryItemRoleDataSourceConfig(name, slug),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_inventory_item_role.test", "name", "Test Inventory Item Role"),
-					resource.TestCheckResourceAttr("data.netbox_inventory_item_role.test", "slug", "test-inventory-item-role"),
+					resource.TestCheckResourceAttr("data.netbox_inventory_item_role.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_inventory_item_role.test", "slug", slug),
 				),
 			},
 		},
 	})
 }
 
-const testAccInventoryItemRoleDataSourceConfig = `
+func testAccInventoryItemRoleDataSourceConfig(name, slug string) string {
+	return fmt.Sprintf(`
 resource "netbox_inventory_item_role" "test" {
-  name = "Test Inventory Item Role"
-  slug = "test-inventory-item-role"
+  name = %[1]q
+  slug = %[2]q
   color = "ff0000"
 }
 
 data "netbox_inventory_item_role" "test" {
   id = netbox_inventory_item_role.test.id
 }
-`
+`, name, slug)
+}

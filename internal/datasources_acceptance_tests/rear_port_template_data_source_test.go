@@ -12,7 +12,9 @@ func TestAccRearPortTemplateDataSource_basic(t *testing.T) {
 
 	t.Parallel()
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
+	deviceTypeModel := testutil.RandomName("device-type")
 	deviceTypeSlug := testutil.RandomSlug("device-type")
+	portTemplateName := testutil.RandomName("rear-port-template")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
@@ -27,9 +29,9 @@ func TestAccRearPortTemplateDataSource_basic(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRearPortTemplateDataSourceConfig("test-rear-port-template", manufacturerSlug, deviceTypeSlug),
+				Config: testAccRearPortTemplateDataSourceConfig(portTemplateName, manufacturerSlug, deviceTypeModel, deviceTypeSlug),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_rear_port_template.test", "name", "test-rear-port-template"),
+					resource.TestCheckResourceAttr("data.netbox_rear_port_template.test", "name", portTemplateName),
 					resource.TestCheckResourceAttr("data.netbox_rear_port_template.test", "type", "8p8c"),
 					resource.TestCheckResourceAttrSet("data.netbox_rear_port_template.test", "device_type"),
 				),
@@ -38,7 +40,7 @@ func TestAccRearPortTemplateDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccRearPortTemplateDataSourceConfig(name, manufacturerSlug, deviceTypeSlug string) string {
+func testAccRearPortTemplateDataSourceConfig(name, manufacturerSlug, deviceTypeModel, deviceTypeSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
   name = "%s"
@@ -47,7 +49,7 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_device_type" "test" {
   manufacturer = netbox_manufacturer.test.id
-  model        = "Test Device Type"
+  model        = "%s"
   slug         = "%s"
 }
 
@@ -60,5 +62,5 @@ resource "netbox_rear_port_template" "test" {
 data "netbox_rear_port_template" "test" {
   id = netbox_rear_port_template.test.id
 }
-`, manufacturerSlug, manufacturerSlug, deviceTypeSlug, name)
+`, manufacturerSlug, manufacturerSlug, deviceTypeModel, deviceTypeSlug, name)
 }

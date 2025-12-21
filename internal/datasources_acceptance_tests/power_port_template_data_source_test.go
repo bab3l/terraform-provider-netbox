@@ -12,7 +12,9 @@ func TestAccPowerPortTemplateDataSource_basic(t *testing.T) {
 
 	t.Parallel()
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
+	deviceTypeModel := testutil.RandomName("device-type")
 	deviceTypeSlug := testutil.RandomSlug("device-type")
+	powerPortTemplateName := testutil.RandomName("power-port-template")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
@@ -27,9 +29,9 @@ func TestAccPowerPortTemplateDataSource_basic(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPowerPortTemplateDataSourceConfig(manufacturerSlug, deviceTypeSlug),
+				Config: testAccPowerPortTemplateDataSourceConfig(manufacturerSlug, deviceTypeModel, deviceTypeSlug, powerPortTemplateName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_power_port_template.test", "name", "Test Power Port Template"),
+					resource.TestCheckResourceAttr("data.netbox_power_port_template.test", "name", powerPortTemplateName),
 					resource.TestCheckResourceAttr("data.netbox_power_port_template.test", "type", "iec-60320-c14"),
 				),
 			},
@@ -37,7 +39,7 @@ func TestAccPowerPortTemplateDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccPowerPortTemplateDataSourceConfig(manufacturerSlug, deviceTypeSlug string) string {
+func testAccPowerPortTemplateDataSourceConfig(manufacturerSlug, deviceTypeModel, deviceTypeSlug, powerPortTemplateName string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
   name = "%s"
@@ -46,18 +48,18 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_device_type" "test" {
   manufacturer = netbox_manufacturer.test.id
-  model        = "Test Device Type"
+  model        = "%s"
   slug         = "%s"
 }
 
 resource "netbox_power_port_template" "test" {
   device_type = netbox_device_type.test.id
-  name        = "Test Power Port Template"
+  name        = "%s"
   type        = "iec-60320-c14"
 }
 
 data "netbox_power_port_template" "test" {
   id = netbox_power_port_template.test.id
 }
-`, manufacturerSlug, manufacturerSlug, deviceTypeSlug)
+`, manufacturerSlug, manufacturerSlug, deviceTypeModel, deviceTypeSlug, powerPortTemplateName)
 }

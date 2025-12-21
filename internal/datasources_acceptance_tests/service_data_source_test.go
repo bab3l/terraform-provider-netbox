@@ -20,14 +20,17 @@ func TestAccServiceDataSource_basic(t *testing.T) {
 	deviceRoleSlug := testutil.GenerateSlug(deviceRoleName)
 	mfgName := testutil.RandomName("tf-test-service-mfg-ds")
 	mfgSlug := testutil.GenerateSlug(mfgName)
+	deviceTypeModel := testutil.RandomName("tf-test-device-type")
+	deviceTypeSlug := testutil.RandomSlug("device-type")
 	deviceName := testutil.RandomName("tf-test-service-device-ds")
+	serviceName := testutil.RandomName("tf-test-service")
 
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
-	cleanup.RegisterDeviceTypeCleanup("test-device-type-ds")
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 	cleanup.RegisterDeviceCleanup(deviceName)
-	cleanup.RegisterServiceCleanup("Test Service")
+	cleanup.RegisterServiceCleanup(serviceName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -42,9 +45,9 @@ func TestAccServiceDataSource_basic(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccServiceDataSourceConfig(siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceName),
+				Config: testAccServiceDataSourceConfig(siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceTypeModel, deviceTypeSlug, deviceName, serviceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_service.test", "name", "Test Service"),
+					resource.TestCheckResourceAttr("data.netbox_service.test", "name", serviceName),
 					resource.TestCheckResourceAttr("data.netbox_service.test", "protocol", "tcp"),
 				),
 			},
@@ -52,7 +55,7 @@ func TestAccServiceDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccServiceDataSourceConfig(siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceName string) string {
+func testAccServiceDataSourceConfig(siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceTypeModel, deviceTypeSlug, deviceName, serviceName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = %[1]q
@@ -71,12 +74,12 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_device_type" "test" {
   manufacturer = netbox_manufacturer.test.id
-  model        = "Test Device Type"
-  slug         = "test-device-type-ds"
+  model        = %[7]q
+  slug         = %[8]q
 }
 
 resource "netbox_device" "test" {
-  name        = %[7]q
+  name        = %[9]q
   device_type = netbox_device_type.test.id
   role        = netbox_device_role.test.id
   site        = netbox_site.test.id
@@ -84,7 +87,7 @@ resource "netbox_device" "test" {
 
 resource "netbox_service" "test" {
   device   = netbox_device.test.id
-  name     = "Test Service"
+  name     = %[10]q
   protocol = "tcp"
   ports    = [80, 443]
 }
@@ -92,5 +95,5 @@ resource "netbox_service" "test" {
 data "netbox_service" "test" {
   id = netbox_service.test.id
 }
-`, siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceName)
+`, siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceTypeModel, deviceTypeSlug, deviceName, serviceName)
 }

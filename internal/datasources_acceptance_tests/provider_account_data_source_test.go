@@ -15,23 +15,24 @@ func TestAccProviderAccountDataSource_basic(t *testing.T) {
 	providerName := testutil.RandomName("tf-test-provider")
 	providerSlug := testutil.RandomSlug("tf-test-prov")
 	accountName := testutil.RandomName("tf-test-acct")
+	accountNumber := testutil.RandomName("account")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccProviderAccountDataSourceConfig(providerName, providerSlug, accountName),
+				Config: testAccProviderAccountDataSourceConfig(providerName, providerSlug, accountName, accountNumber),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_provider_account.test", "name", accountName),
-					resource.TestCheckResourceAttr("data.netbox_provider_account.test", "account", "1234567890"),
+					resource.TestCheckResourceAttr("data.netbox_provider_account.test", "account", accountNumber),
 				),
 			},
 		},
 	})
 }
 
-func testAccProviderAccountDataSourceConfig(providerName, providerSlug, accountName string) string {
+func testAccProviderAccountDataSourceConfig(providerName, providerSlug, accountName, accountNumber string) string {
 	return fmt.Sprintf(`
 resource "netbox_provider" "test" {
   name = %[1]q
@@ -40,12 +41,12 @@ resource "netbox_provider" "test" {
 
 resource "netbox_provider_account" "test" {
   circuit_provider = netbox_provider.test.id
-  account          = "1234567890"
+  account          = %[4]q
   name             = %[3]q
 }
 
 data "netbox_provider_account" "test" {
   id = netbox_provider_account.test.id
 }
-`, providerName, providerSlug, accountName)
+`, providerName, providerSlug, accountName, accountNumber)
 }

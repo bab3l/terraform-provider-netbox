@@ -12,14 +12,17 @@ func TestAccEventRuleDataSource_basic(t *testing.T) {
 
 	t.Parallel()
 
+	webhookName := testutil.RandomName("tf-test-webhook")
+	eventRuleName := testutil.RandomName("tf-test-event-rule")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccEventRuleDataSourceConfig("Test Event Rule"),
+				Config: testAccEventRuleDataSourceConfig(webhookName, eventRuleName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_event_rule.test", "name", "Test Event Rule"),
+					resource.TestCheckResourceAttr("data.netbox_event_rule.test", "name", eventRuleName),
 					resource.TestCheckResourceAttr("data.netbox_event_rule.test", "action_type", "webhook"),
 				),
 			},
@@ -27,10 +30,10 @@ func TestAccEventRuleDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccEventRuleDataSourceConfig(name string) string {
+func testAccEventRuleDataSourceConfig(webhookName, eventRuleName string) string {
 	return fmt.Sprintf(`
 resource "netbox_webhook" "test" {
-  name        = "Test Webhook"
+  name        = "%s"
   payload_url = "http://example.com/webhook"
 }
 
@@ -46,5 +49,5 @@ resource "netbox_event_rule" "test" {
 data "netbox_event_rule" "test" {
   id = netbox_event_rule.test.id
 }
-`, name)
+`, webhookName, eventRuleName)
 }

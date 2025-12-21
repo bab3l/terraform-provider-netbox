@@ -19,6 +19,8 @@ func TestAccFHRPGroupAssignmentDataSource_byID(t *testing.T) {
 	deviceRoleSlug := acctest.RandomWithPrefix("role")
 	manufacturerSlug := acctest.RandomWithPrefix("mfg")
 	deviceSlug := acctest.RandomWithPrefix("device")
+	interfaceName := acctest.RandomWithPrefix("eth")
+	groupID := acctest.RandIntRange(1, 4094)
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -38,7 +40,7 @@ func TestAccFHRPGroupAssignmentDataSource_byID(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccFHRPGroupAssignmentDataSourceConfig_byID(name),
+				Config: testAccFHRPGroupAssignmentDataSourceConfig_byID(name, interfaceName, groupID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_fhrp_group_assignment.test", "interface_type", "dcim.interface"),
 					resource.TestCheckResourceAttr("data.netbox_fhrp_group_assignment.test", "priority", "100"),
@@ -50,7 +52,7 @@ func TestAccFHRPGroupAssignmentDataSource_byID(t *testing.T) {
 	})
 }
 
-func testAccFHRPGroupAssignmentDataSourceConfig_byID(name string) string {
+func testAccFHRPGroupAssignmentDataSourceConfig_byID(name, interfaceName string, groupID int) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = "%s-site"
@@ -82,14 +84,14 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_interface" "test" {
-  name   = "eth0"
+  name   = "%s"
   device = netbox_device.test.id
   type   = "virtual"
 }
 
 resource "netbox_fhrp_group" "test" {
   protocol = "vrrp2"
-  group_id = 1
+  group_id = %d
 }
 
 resource "netbox_fhrp_group_assignment" "test" {
@@ -102,5 +104,5 @@ resource "netbox_fhrp_group_assignment" "test" {
 data "netbox_fhrp_group_assignment" "test" {
   id = netbox_fhrp_group_assignment.test.id
 }
-`, name, name, name, name, name, name, name, name, name)
+`, name, name, name, name, name, name, name, name, name, interfaceName, groupID)
 }

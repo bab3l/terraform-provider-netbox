@@ -12,7 +12,9 @@ func TestAccPowerOutletTemplateDataSource_basic(t *testing.T) {
 
 	t.Parallel()
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
+	deviceTypeModel := testutil.RandomName("device-type")
 	deviceTypeSlug := testutil.RandomSlug("device-type")
+	powerOutletTemplateName := testutil.RandomName("power-outlet-template")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
@@ -27,9 +29,9 @@ func TestAccPowerOutletTemplateDataSource_basic(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPowerOutletTemplateDataSourceConfig(manufacturerSlug, deviceTypeSlug),
+				Config: testAccPowerOutletTemplateDataSourceConfig(manufacturerSlug, deviceTypeModel, deviceTypeSlug, powerOutletTemplateName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_power_outlet_template.test", "name", "Test Power Outlet Template"),
+					resource.TestCheckResourceAttr("data.netbox_power_outlet_template.test", "name", powerOutletTemplateName),
 					resource.TestCheckResourceAttr("data.netbox_power_outlet_template.test", "type", "iec-60320-c13"),
 				),
 			},
@@ -37,7 +39,7 @@ func TestAccPowerOutletTemplateDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccPowerOutletTemplateDataSourceConfig(manufacturerSlug, deviceTypeSlug string) string {
+func testAccPowerOutletTemplateDataSourceConfig(manufacturerSlug, deviceTypeModel, deviceTypeSlug, powerOutletTemplateName string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
   name = "%s"
@@ -46,18 +48,18 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_device_type" "test" {
   manufacturer = netbox_manufacturer.test.id
-  model        = "Test Device Type"
+  model        = "%s"
   slug         = "%s"
 }
 
 resource "netbox_power_outlet_template" "test" {
   device_type = netbox_device_type.test.id
-  name        = "Test Power Outlet Template"
+  name        = "%s"
   type        = "iec-60320-c13"
 }
 
 data "netbox_power_outlet_template" "test" {
   id = netbox_power_outlet_template.test.id
 }
-`, manufacturerSlug, manufacturerSlug, deviceTypeSlug)
+`, manufacturerSlug, manufacturerSlug, deviceTypeModel, deviceTypeSlug, powerOutletTemplateName)
 }
