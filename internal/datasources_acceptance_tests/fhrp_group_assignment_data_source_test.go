@@ -106,7 +106,6 @@ func TestFHRPGroupAssignmentDataSourceConfigure(t *testing.T) {
 
 func TestAccFHRPGroupAssignmentDataSource_byID(t *testing.T) {
 
-	t.Parallel()
 	name := acctest.RandomWithPrefix("test-fhrp-assign-ds")
 
 	resource.ParallelTest(t, resource.TestCase{

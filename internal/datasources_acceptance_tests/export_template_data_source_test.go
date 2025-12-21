@@ -105,7 +105,6 @@ func TestExportTemplateDataSourceConfigure(t *testing.T) {
 
 func TestAccExportTemplateDataSource_byID(t *testing.T) {
 
-	t.Parallel()
 	name := acctest.RandomWithPrefix("test-export-tmpl-ds")
 
 	resource.ParallelTest(t, resource.TestCase{

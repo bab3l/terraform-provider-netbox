@@ -106,7 +106,6 @@ func TestL2VPNDataSourceConfigure(t *testing.T) {
 
 func TestAccL2VPNDataSource_byID(t *testing.T) {
 
-	t.Parallel()
 	name := acctest.RandomWithPrefix("test-l2vpn-ds")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -128,7 +127,6 @@ func TestAccL2VPNDataSource_byID(t *testing.T) {
 
 func TestAccL2VPNDataSource_byName(t *testing.T) {
 
-	t.Parallel()
 	name := acctest.RandomWithPrefix("test-l2vpn-ds")
 
 	resource.ParallelTest(t, resource.TestCase{
