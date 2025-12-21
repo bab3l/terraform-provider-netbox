@@ -77,7 +77,7 @@ func TestAccDeviceDataSource_byName(t *testing.T) {
 
 					resource.TestCheckResourceAttr("data.netbox_device.test", "name", deviceName),
 
-					resource.TestCheckResourceAttr("data.netbox_device.test", "device_type", deviceTypeSlug),
+					resource.TestCheckResourceAttr("data.netbox_device.test", "device_type", deviceTypeModel),
 
 					resource.TestCheckResourceAttr("data.netbox_device.test", "role", deviceRoleSlug),
 
