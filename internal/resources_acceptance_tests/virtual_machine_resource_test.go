@@ -1,0 +1,288 @@
+package resources_acceptance_tests
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/bab3l/terraform-provider-netbox/internal/provider"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+)
+
+func TestAccVirtualMachineResource_basic(t *testing.T) {
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type")
+
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type")
+
+	clusterName := testutil.RandomName("tf-test-cluster")
+
+	vmName := testutil.RandomName("tf-test-vm")
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+
+	cleanup.RegisterClusterCleanup(clusterName)
+
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+
+			testutil.CheckVirtualMachineDestroy,
+
+			testutil.CheckClusterDestroy,
+
+			testutil.CheckClusterTypeDestroy,
+		),
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccVirtualMachineResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
+				),
+			},
+		},
+	})
+
+}
+
+func TestAccVirtualMachineResource_full(t *testing.T) {
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-full")
+
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-full")
+
+	clusterName := testutil.RandomName("tf-test-cluster-full")
+
+	vmName := testutil.RandomName("tf-test-vm-full")
+
+	description := "Test VM with all fields"
+
+	comments := "Test comments"
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+
+	cleanup.RegisterClusterCleanup(clusterName)
+
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+
+			testutil.CheckVirtualMachineDestroy,
+
+			testutil.CheckClusterDestroy,
+
+			testutil.CheckClusterTypeDestroy,
+		),
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "status", "active"),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "vcpus", "2"),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "memory", "2048"),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "disk", "50"),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "description", description),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "comments", comments),
+				),
+			},
+		},
+	})
+
+}
+
+func TestAccVirtualMachineResource_update(t *testing.T) {
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-update")
+
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-update")
+
+	clusterName := testutil.RandomName("tf-test-cluster-update")
+
+	vmName := testutil.RandomName("tf-test-vm-update")
+
+	updatedName := testutil.RandomName("tf-test-vm-updated")
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+
+	cleanup.RegisterVirtualMachineCleanup(updatedName)
+
+	cleanup.RegisterClusterCleanup(clusterName)
+
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+
+			testutil.CheckVirtualMachineDestroy,
+
+			testutil.CheckClusterDestroy,
+
+			testutil.CheckClusterTypeDestroy,
+		),
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccVirtualMachineResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
+				),
+			},
+
+			{
+
+				Config: testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, updatedName, "Updated description", "Updated comments"),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", updatedName),
+
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "description", "Updated description"),
+				),
+			},
+		},
+	})
+
+}
+
+func testAccVirtualMachineResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_cluster_type" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+
+
+resource "netbox_cluster" "test" {
+
+  name = %q
+
+  type = netbox_cluster_type.test.slug
+
+}
+
+
+
+resource "netbox_virtual_machine" "test" {
+
+  name    = %q
+
+  cluster = netbox_cluster.test.name
+
+}
+
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName)
+
+}
+
+func testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_cluster_type" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+
+
+resource "netbox_cluster" "test" {
+
+  name = %q
+
+  type = netbox_cluster_type.test.slug
+
+}
+
+
+
+resource "netbox_virtual_machine" "test" {
+
+  name        = %q
+
+  cluster     = netbox_cluster.test.name
+
+  status      = "active"
+
+  vcpus       = 2
+
+  memory      = 2048
+
+  disk        = 50
+
+  description = %q
+
+  comments    = %q
+
+}
+
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments)
+
+}
