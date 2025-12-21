@@ -104,12 +104,7 @@ func (r *InventoryItemRoleResource) Schema(ctx context.Context, req resource.Sch
 				Required: true,
 			},
 
-			"color": schema.StringAttribute{
-
-				MarkdownDescription: "The color associated with this role (6-character hex code without #).",
-
-				Optional: true,
-			},
+			"color": nbschema.ComputedColorAttribute("inventory item role"),
 
 			"description": schema.StringAttribute{
 
