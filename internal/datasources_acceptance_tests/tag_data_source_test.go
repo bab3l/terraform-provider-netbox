@@ -1,6 +1,7 @@
 package datasources_acceptance_tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -10,28 +11,34 @@ import (
 func TestAccTagDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	tagName := testutil.RandomName("tag")
+	tagSlug := testutil.RandomSlug("tag")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTagDataSourceConfig,
+				Config: testAccTagDataSourceConfig(tagName, tagSlug),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_tag.test", "name", "Test Tag"),
-					resource.TestCheckResourceAttr("data.netbox_tag.test", "slug", "test-tag"),
+					resource.TestCheckResourceAttr("data.netbox_tag.test", "name", tagName),
+					resource.TestCheckResourceAttr("data.netbox_tag.test", "slug", tagSlug),
 				),
 			},
 		},
 	})
 }
 
-const testAccTagDataSourceConfig = `
+func testAccTagDataSourceConfig(name, slug string) string {
+	return fmt.Sprintf(`
 resource "netbox_tag" "test" {
-  name = "Test Tag"
-  slug = "test-tag"
+  name = "%s"
+  slug = "%s"
 }
 
 data "netbox_tag" "test" {
   id = netbox_tag.test.id
 }
-`
+`, name, slug)
+}

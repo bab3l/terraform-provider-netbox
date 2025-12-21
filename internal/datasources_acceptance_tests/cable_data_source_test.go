@@ -11,12 +11,34 @@ import (
 func TestAccCableDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	deviceRoleName := testutil.RandomName("role")
+	deviceRoleSlug := testutil.RandomSlug("role")
+	manufacturerName := testutil.RandomName("mfg")
+	manufacturerSlug := testutil.RandomSlug("mfg")
+	deviceTypeName := testutil.RandomName("dt")
+	deviceTypeSlug := testutil.RandomSlug("dt")
+	deviceAName := testutil.RandomName("device-a")
+	deviceBName := testutil.RandomName("device-b")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCableDataSourceConfig("cat6"),
+				Config: testAccCableDataSourceConfig(siteName, siteSlug, deviceRoleName, deviceRoleSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceAName, deviceBName, "cat6"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_cable.test", "type", "cat6"),
 					resource.TestCheckResourceAttr("data.netbox_cable.test", "status", "connected"),
@@ -26,38 +48,38 @@ func TestAccCableDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccCableDataSourceConfig(cableType string) string {
+func testAccCableDataSourceConfig(siteName, siteSlug, deviceRoleName, deviceRoleSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceAName, deviceBName, cableType string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
-  name = "Test Site"
-  slug = "test-site"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_device_role" "test" {
-  name = "Test Device Role"
-  slug = "test-device-role"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_manufacturer" "test" {
-  name = "Test Manufacturer"
-  slug = "test-manufacturer"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_device_type" "test" {
   manufacturer = netbox_manufacturer.test.id
-  model        = "Test Device Type"
-  slug         = "test-device-type"
+  model        = "%s"
+  slug         = "%s"
 }
 
 resource "netbox_device" "test_a" {
-  name        = "test-device-a"
+  name        = "%s"
   device_type = netbox_device_type.test.id
   role        = netbox_device_role.test.id
   site        = netbox_site.test.id
 }
 
 resource "netbox_device" "test_b" {
-  name        = "test-device-b"
+  name        = "%s"
   device_type = netbox_device_type.test.id
   role        = netbox_device_role.test.id
   site        = netbox_site.test.id
@@ -95,5 +117,5 @@ resource "netbox_cable" "test" {
 data "netbox_cable" "test" {
   id = netbox_cable.test.id
 }
-`, cableType)
+`, siteName, siteSlug, deviceRoleName, deviceRoleSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceAName, deviceBName, cableType)
 }

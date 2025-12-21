@@ -11,14 +11,23 @@ import (
 func TestAccASNDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	rirName := testutil.RandomName("rir")
+	rirSlug := testutil.RandomSlug("rir")
+	asnValue := 65000
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRIRDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccASNDataSourceConfig(65001),
+				Config: testAccASNDataSourceConfig(rirName, rirSlug, asnValue),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_asn.test", "asn", "65001"),
+					resource.TestCheckResourceAttr("data.netbox_asn.test", "asn", fmt.Sprintf("%d", asnValue)),
 					resource.TestCheckResourceAttrSet("data.netbox_asn.test", "rir"),
 				),
 			},
@@ -26,11 +35,11 @@ func TestAccASNDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccASNDataSourceConfig(asn int) string {
+func testAccASNDataSourceConfig(rirName, rirSlug string, asn int) string {
 	return fmt.Sprintf(`
 resource "netbox_rir" "test" {
-  name = "Test RIR"
-  slug = "test-rir"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_asn" "test" {
@@ -41,5 +50,5 @@ resource "netbox_asn" "test" {
 data "netbox_asn" "test" {
   id = netbox_asn.test.id
 }
-`, asn)
+`, rirName, rirSlug, asn)
 }
