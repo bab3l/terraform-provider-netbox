@@ -11,12 +11,23 @@ import (
 func TestAccRearPortTemplateDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceTypeDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRearPortTemplateDataSourceConfig("test-rear-port-template"),
+				Config: testAccRearPortTemplateDataSourceConfig("test-rear-port-template", manufacturerSlug, deviceTypeSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_rear_port_template.test", "name", "test-rear-port-template"),
 					resource.TestCheckResourceAttr("data.netbox_rear_port_template.test", "type", "8p8c"),
@@ -27,17 +38,17 @@ func TestAccRearPortTemplateDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccRearPortTemplateDataSourceConfig(name string) string {
+func testAccRearPortTemplateDataSourceConfig(name, manufacturerSlug, deviceTypeSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
-  name = "Test Manufacturer"
-  slug = "test-manufacturer"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_device_type" "test" {
   manufacturer = netbox_manufacturer.test.id
   model        = "Test Device Type"
-  slug         = "test-device-type"
+  slug         = "%s"
 }
 
 resource "netbox_rear_port_template" "test" {
@@ -49,5 +60,5 @@ resource "netbox_rear_port_template" "test" {
 data "netbox_rear_port_template" "test" {
   id = netbox_rear_port_template.test.id
 }
-`, name)
+`, manufacturerSlug, manufacturerSlug, deviceTypeSlug, name)
 }

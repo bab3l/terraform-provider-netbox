@@ -181,6 +181,11 @@ func TestAccContactAssignmentDataSource_basic(t *testing.T) {
 
 	randomSlug := testutil.RandomSlug("test-ca-ds")
 
+	siteSlug := testutil.RandomSlug("site")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
 	resource.Test(t, resource.TestCase{
 
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -188,13 +193,18 @@ func TestAccContactAssignmentDataSource_basic(t *testing.T) {
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
 
+		CheckDestroy: testutil.ComposeCheckDestroy(
+
+			testutil.CheckSiteDestroy,
+		),
+
 		Steps: []resource.TestStep{
 
 			// Create resource and read via data source
 
 			{
 
-				Config: testAccContactAssignmentDataSourceConfig(randomName, randomSlug),
+				Config: testAccContactAssignmentDataSourceConfig(randomName, randomSlug, siteSlug),
 
 				Check: resource.ComposeAggregateTestCheckFunc(
 
@@ -220,15 +230,15 @@ func TestAccContactAssignmentDataSource_basic(t *testing.T) {
 
 }
 
-func testAccContactAssignmentDataSourceConfig(name, slug string) string {
+func testAccContactAssignmentDataSourceConfig(name, slug, siteSlug string) string {
 
 	return fmt.Sprintf(`
 
 resource "netbox_site" "test" {
 
-  name   = "%s-site"
+  name   = "%s"
 
-  slug   = "%s-site"
+  slug   = "%s"
 
   status = "active"
 
@@ -268,6 +278,6 @@ data "netbox_contact_assignment" "test" {
 
 }
 
-`, name, slug, name, name, slug)
+`, siteSlug, siteSlug, name, name, slug)
 
 }

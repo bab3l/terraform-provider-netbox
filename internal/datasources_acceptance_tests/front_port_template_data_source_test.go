@@ -18,9 +18,17 @@ func TestAccFrontPortTemplateDataSource_basic(t *testing.T) {
 	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
 	rearPortName := testutil.RandomName("test-rear-port-fpt")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceTypeDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccFrontPortTemplateDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName),

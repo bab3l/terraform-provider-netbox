@@ -17,9 +17,17 @@ func TestAccInventoryItemTemplateDataSource_basic(t *testing.T) {
 	deviceTypeName := testutil.RandomName("test-device-type-iit")
 	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceTypeDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccInventoryItemTemplateDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
