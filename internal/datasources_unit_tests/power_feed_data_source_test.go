@@ -5,63 +5,34 @@ import (
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
-func TestPowerFeedDataSource(t *testing.T) {
-	d := datasources.NewPowerFeedDataSource()
-	if d == nil {
-		t.Fatal("PowerFeed data source should not be nil")
-	}
-}
-
 func TestPowerFeedDataSourceSchema(t *testing.T) {
-	ctx := context.Background()
 	d := datasources.NewPowerFeedDataSource()
 
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
 
-	d.Schema(ctx, req, resp)
+	d.Schema(context.Background(), req, resp)
 
 	if resp.Diagnostics.HasError() {
-		t.Fatalf("Schema() returned errors: %v", resp.Diagnostics.Errors())
+		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
 
-	schema := resp.Schema
-
-	// Check that required attributes exist
-	expectedAttrs := []string{"id", "power_panel", "rack", "name", "status", "type", "supply", "phase", "voltage", "amperage", "description", "tags", "custom_fields"}
-	for _, attr := range expectedAttrs {
-		if _, ok := schema.Attributes[attr]; !ok {
-			t.Errorf("Schema should have '%s' attribute", attr)
-		}
-	}
-
-	// Verify that lookup fields are optional
-	idAttr := schema.Attributes["id"]
-	if !idAttr.IsOptional() {
-		t.Error("'id' attribute should be optional for lookup")
-	}
-	nameAttr := schema.Attributes["name"]
-	if !nameAttr.IsOptional() {
-		t.Error("'name' attribute should be optional for lookup")
-	}
+	testutil.ValidateDataSourceSchema(t, resp.Schema.Attributes, testutil.DataSourceValidation{
+		LookupAttrs:   []string{},
+		ComputedAttrs: []string{},
+	})
 }
 
 func TestPowerFeedDataSourceMetadata(t *testing.T) {
-	ctx := context.Background()
 	d := datasources.NewPowerFeedDataSource()
+	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_power_feed")
+}
 
-	req := datasource.MetadataRequest{
-		ProviderTypeName: "netbox",
-	}
-	resp := &datasource.MetadataResponse{}
-
-	d.Metadata(ctx, req, resp)
-
-	expectedTypeName := "netbox_power_feed"
-	if resp.TypeName != expectedTypeName {
-		t.Errorf("Expected type name '%s', got '%s'", expectedTypeName, resp.TypeName)
-	}
+func TestPowerFeedDataSourceConfigure(t *testing.T) {
+	d := datasources.NewPowerFeedDataSource()
+	testutil.ValidateDataSourceConfigure(t, d)
 }

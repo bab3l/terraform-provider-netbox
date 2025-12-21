@@ -4,96 +4,35 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
-	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
-func TestTagDataSource(t *testing.T) {
-	t.Parallel()
-
-	ds := datasources.NewTagDataSource()
-	if ds == nil {
-		t.Fatal("Expected non-nil tag data source")
-	}
-}
-
 func TestTagDataSourceSchema(t *testing.T) {
-	t.Parallel()
+	d := datasources.NewTagDataSource()
 
-	ds := datasources.NewTagDataSource()
-	schemaRequest := fwdatasource.SchemaRequest{}
-	schemaResponse := &fwdatasource.SchemaResponse{}
+	req := datasource.SchemaRequest{}
+	resp := &datasource.SchemaResponse{}
 
-	ds.Schema(context.Background(), schemaRequest, schemaResponse)
+	d.Schema(context.Background(), req, resp)
 
-	if schemaResponse.Diagnostics.HasError() {
-		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
 
-	if schemaResponse.Schema.Attributes == nil {
-		t.Fatal("Expected schema to have attributes")
-	}
-
-	// Check lookup attributes
-	lookupAttrs := []string{"id", "name", "slug"}
-	for _, attr := range lookupAttrs {
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-			t.Errorf("Expected lookup attribute %s to exist in schema", attr)
-		}
-	}
-
-	// Check computed attributes
-	computedAttrs := []string{"color", "description", "object_types"}
-	for _, attr := range computedAttrs {
-		if _, exists := schemaResponse.Schema.Attributes[attr]; !exists {
-			t.Errorf("Expected computed attribute %s to exist in schema", attr)
-		}
-	}
+	testutil.ValidateDataSourceSchema(t, resp.Schema.Attributes, testutil.DataSourceValidation{
+		LookupAttrs:   []string{},
+		ComputedAttrs: []string{},
+	})
 }
 
 func TestTagDataSourceMetadata(t *testing.T) {
-	t.Parallel()
-
-	ds := datasources.NewTagDataSource()
-	metadataRequest := fwdatasource.MetadataRequest{
-		ProviderTypeName: "netbox",
-	}
-	metadataResponse := &fwdatasource.MetadataResponse{}
-
-	ds.Metadata(context.Background(), metadataRequest, metadataResponse)
-
-	expected := "netbox_tag"
-	if metadataResponse.TypeName != expected {
-		t.Errorf("Expected type name %s, got %s", expected, metadataResponse.TypeName)
-	}
+	d := datasources.NewTagDataSource()
+	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_tag")
 }
 
 func TestTagDataSourceConfigure(t *testing.T) {
-	t.Parallel()
-
-	ds := datasources.NewTagDataSource().(*datasources.TagDataSource)
-
-	// Test with nil provider data (should not error)
-	configureRequest := fwdatasource.ConfigureRequest{
-		ProviderData: nil,
-	}
-	configureResponse := &fwdatasource.ConfigureResponse{}
-
-	ds.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
-	}
-
-	// Test with correct provider data
-	client := &netbox.APIClient{}
-	configureRequest.ProviderData = client
-	configureResponse = &fwdatasource.ConfigureResponse{}
-
-	ds.Configure(context.Background(), configureRequest, configureResponse)
-
-	if configureResponse.Diagnostics.HasError() {
-		t.Errorf("Expected no error with correct provider data, got: %+v", configureResponse.Diagnostics)
-	}
+	d := datasources.NewTagDataSource()
+	testutil.ValidateDataSourceConfigure(t, d)
 }

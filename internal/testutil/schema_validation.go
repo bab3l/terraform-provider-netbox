@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	dsschemapkg "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
@@ -368,4 +370,168 @@ func ValidateResourceConfigure(t *testing.T, r resource.Resource) {
 
 	}
 
+}
+
+// DataSourceValidation defines the expected attributes for a datasource schema.
+type DataSourceValidation struct {
+	LookupAttrs   []string // Attributes that should be optional (used for lookups)
+	ComputedAttrs []string // Attributes that should be computed
+}
+
+// ValidateDataSourceSchema checks that a datasource schema matches the expected structure.
+// For datasources, all attributes are typically optional (for lookups) or computed.
+func ValidateDataSourceSchema(t *testing.T, schemaAttrs map[string]dsschemapkg.Attribute, validation DataSourceValidation) {
+	t.Helper()
+
+	// Check lookup attributes (should be optional)
+	for _, attr := range validation.LookupAttrs {
+		fieldAttr, exists := schemaAttrs[attr]
+		if !exists {
+			t.Errorf("Expected lookup attribute %s to exist in schema", attr)
+			continue
+		}
+
+		if !isDataSourceOptional(fieldAttr) {
+			t.Errorf("Expected attribute %s to be optional for lookup", attr)
+		}
+	}
+
+	// Check computed attributes
+	for _, attr := range validation.ComputedAttrs {
+		fieldAttr, exists := schemaAttrs[attr]
+		if !exists {
+			t.Errorf("Expected computed attribute %s to exist in schema", attr)
+			continue
+		}
+
+		if !isDataSourceComputed(fieldAttr) {
+			t.Errorf("Expected attribute %s to be computed", attr)
+		}
+	}
+}
+
+// isDataSourceOptional checks if a datasource schema attribute is marked as optional.
+func isDataSourceOptional(attr dsschemapkg.Attribute) bool {
+	switch a := attr.(type) {
+	case dsschemapkg.StringAttribute:
+		return a.Optional
+	case dsschemapkg.Int32Attribute:
+		return a.Optional
+	case dsschemapkg.Int64Attribute:
+		return a.Optional
+	case dsschemapkg.BoolAttribute:
+		return a.Optional
+	case dsschemapkg.SetAttribute:
+		return a.Optional
+	case dsschemapkg.ListAttribute:
+		return a.Optional
+	case dsschemapkg.MapAttribute:
+		return a.Optional
+	case dsschemapkg.SetNestedAttribute:
+		return a.Optional
+	case dsschemapkg.ListNestedAttribute:
+		return a.Optional
+	case dsschemapkg.SingleNestedAttribute:
+		return a.Optional
+	default:
+		return false
+	}
+}
+
+// isDataSourceComputed checks if a datasource schema attribute is marked as computed.
+func isDataSourceComputed(attr dsschemapkg.Attribute) bool {
+	switch a := attr.(type) {
+	case dsschemapkg.StringAttribute:
+		return a.Computed
+	case dsschemapkg.Int32Attribute:
+		return a.Computed
+	case dsschemapkg.Int64Attribute:
+		return a.Computed
+	case dsschemapkg.BoolAttribute:
+		return a.Computed
+	case dsschemapkg.SetAttribute:
+		return a.Computed
+	case dsschemapkg.ListAttribute:
+		return a.Computed
+	case dsschemapkg.MapAttribute:
+		return a.Computed
+	case dsschemapkg.SetNestedAttribute:
+		return a.Computed
+	case dsschemapkg.ListNestedAttribute:
+		return a.Computed
+	case dsschemapkg.SingleNestedAttribute:
+		return a.Computed
+	default:
+		return false
+	}
+}
+
+// ValidateDataSourceMetadata checks that a datasource's metadata is correctly configured.
+// It verifies that the datasource type name matches the expected name.
+func ValidateDataSourceMetadata(t *testing.T, d datasource.DataSource, providerTypeName, expectedTypeName string) {
+	t.Helper()
+
+	metadataRequest := datasource.MetadataRequest{
+		ProviderTypeName: providerTypeName,
+	}
+
+	metadataResponse := &datasource.MetadataResponse{}
+
+	d.Metadata(context.Background(), metadataRequest, metadataResponse)
+
+	if metadataResponse.TypeName != expectedTypeName {
+		t.Errorf("Expected type name %s, got %s", expectedTypeName, metadataResponse.TypeName)
+	}
+}
+
+// ValidateDataSourceConfigure checks that a datasource's Configure method handles provider data correctly.
+// It verifies that:
+// 1. Configure succeeds with nil provider data (backwards compatibility)
+// 2. Configure succeeds with a valid APIClient
+// 3. Configure fails with invalid provider data (type assertion check).
+func ValidateDataSourceConfigure(t *testing.T, d datasource.DataSource) {
+	t.Helper()
+
+	// Type assert to access Configure method
+	configurable, ok := d.(datasource.DataSourceWithConfigure)
+	if !ok {
+		t.Fatal("DataSource does not implement DataSourceWithConfigure")
+	}
+
+	// Test 1: Configure with nil provider data (should succeed)
+	configureRequest := datasource.ConfigureRequest{
+		ProviderData: nil,
+	}
+
+	configureResponse := &datasource.ConfigureResponse{}
+
+	configurable.Configure(context.Background(), configureRequest, configureResponse)
+
+	if configureResponse.Diagnostics.HasError() {
+		t.Errorf("Expected no error with nil provider data, got: %+v", configureResponse.Diagnostics)
+	}
+
+	// Test 2: Configure with valid APIClient (should succeed)
+	client := &netbox.APIClient{}
+
+	configureRequest.ProviderData = client
+
+	configureResponse = &datasource.ConfigureResponse{}
+
+	configurable.Configure(context.Background(), configureRequest, configureResponse)
+
+	if configureResponse.Diagnostics.HasError() {
+		t.Errorf("Expected no error with valid client, got: %+v", configureResponse.Diagnostics)
+	}
+
+	// Test 3: Configure with invalid provider data (should fail)
+	configureRequest.ProviderData = InvalidProviderData
+
+	configureResponse = &datasource.ConfigureResponse{}
+
+	configurable.Configure(context.Background(), configureRequest, configureResponse)
+
+	if !configureResponse.Diagnostics.HasError() {
+		t.Error("Expected error with incorrect provider data")
+	}
 }
