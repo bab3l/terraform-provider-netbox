@@ -278,3 +278,66 @@ resource "netbox_vlan" "test" {
 }
 `, vlanName, vlanVid, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug)
 }
+
+func TestAccVLANResource_optionalRoleNoUpdate(t *testing.T) {
+	siteName := testutil.RandomName("tf-test-site-vlan-role")
+	siteSlug := testutil.RandomSlug("tf-test-site-vlan-role")
+	vlanName := testutil.RandomName("tf-test-vlan-role")
+	vlanVid := testutil.RandomVID()
+	description1 := "Initial description"
+	description2 := "Updated description"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVLANCleanup(vlanVid)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVLANDestroy,
+			testutil.CheckSiteDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				// Create VLAN without role
+				Config: testAccVLANOptionalRoleConfig(siteName, siteSlug, vlanName, vlanVid, description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vlan.test", "name", vlanName),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "vid", fmt.Sprintf("%d", vlanVid)),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "description", description1),
+					resource.TestCheckNoResourceAttr("netbox_vlan.test", "role"),
+				),
+			},
+			{
+				// Update description (not role) - role should remain empty/null
+				Config: testAccVLANOptionalRoleConfig(siteName, siteSlug, vlanName, vlanVid, description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vlan.test", "name", vlanName),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "vid", fmt.Sprintf("%d", vlanVid)),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "description", description2),
+					resource.TestCheckNoResourceAttr("netbox_vlan.test", "role"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVLANOptionalRoleConfig(siteName, siteSlug, vlanName string, vlanVid int32, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_vlan" "test" {
+  name        = %q
+  vid         = %d
+  site        = netbox_site.test.id
+  description = %q
+  # role intentionally omitted to test optional attribute handling
+}
+`, siteName, siteSlug, vlanName, vlanVid, description)
+}

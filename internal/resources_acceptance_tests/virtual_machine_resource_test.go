@@ -358,3 +358,70 @@ resource "netbox_virtual_machine" "test" {
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName)
 }
+
+func TestAccConsistency_VirtualMachine_PlatformNamePersistence(t *testing.T) {
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-platform")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-platform")
+	clusterName := testutil.RandomName("tf-test-cluster-platform")
+	platformName := testutil.RandomName("tf-test-platform")
+	platformSlug := testutil.RandomSlug("tf-test-platform")
+	vmName := testutil.RandomName("tf-test-vm-platform")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterPlatformCleanup(platformSlug)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckPlatformDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualMachineResourceConfig_platformNamePersistence(clusterTypeName, clusterTypeSlug, clusterName, platformName, platformSlug, vmName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "platform", platformName),
+				),
+			},
+			{
+				// Verify no drift when re-applied
+				PlanOnly: true,
+				Config:   testAccVirtualMachineResourceConfig_platformNamePersistence(clusterTypeName, clusterTypeSlug, clusterName, platformName, platformSlug, vmName),
+			},
+		},
+	})
+}
+
+func testAccVirtualMachineResourceConfig_platformNamePersistence(clusterTypeName, clusterTypeSlug, clusterName, platformName, platformSlug, vmName string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_platform" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_virtual_machine" "test" {
+  name     = %q
+  cluster  = netbox_cluster.test.id
+  platform = netbox_platform.test.name
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, platformName, platformSlug, vmName)
+}
