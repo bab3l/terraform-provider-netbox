@@ -7,11 +7,8 @@ import (
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -231,16 +228,22 @@ func TestAccInterfaceTemplateDataSource_byID(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("dt-ds")
 
-	templateName := "eth0"
+	templateName := testutil.RandomName("eth")
 
 	templateType := "1000base-t"
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
 	resource.Test(t, resource.TestCase{
 
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceTypeDestroy,
+		),
 
 		Steps: []resource.TestStep{
 
@@ -276,16 +279,22 @@ func TestAccInterfaceTemplateDataSource_byName(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("dt-ds")
 
-	templateName := "eth1"
+	templateName := testutil.RandomName("eth")
 
 	templateType := "1000base-t"
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
 	resource.Test(t, resource.TestCase{
 
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceTypeDestroy,
+		),
 
 		Steps: []resource.TestStep{
 
