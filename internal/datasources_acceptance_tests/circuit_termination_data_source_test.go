@@ -11,12 +11,33 @@ import (
 func TestAccCircuitTerminationDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	providerName := testutil.RandomName("provider")
+	providerSlug := testutil.RandomSlug("provider")
+	circuitTypeName := testutil.RandomName("circuit-type")
+	circuitTypeSlug := testutil.RandomSlug("circuit-type")
+	cid := testutil.RandomName("circuit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
+	cleanup.RegisterCircuitCleanup(cid)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckProviderDestroy,
+			testutil.CheckCircuitTypeDestroy,
+			testutil.CheckCircuitDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCircuitTerminationDataSourceConfig("TEST-CIRCUIT-TERM"),
+				Config: testAccCircuitTerminationDataSourceConfig(siteName, siteSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, cid),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_circuit_termination.test", "term_side", "A"),
 					resource.TestCheckResourceAttr("data.netbox_circuit_termination.test", "port_speed", "1000"),
@@ -28,21 +49,21 @@ func TestAccCircuitTerminationDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccCircuitTerminationDataSourceConfig(cid string) string {
+func testAccCircuitTerminationDataSourceConfig(siteName, siteSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, cid string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
-  name = "Test Site"
-  slug = "test-site"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_provider" "test" {
-  name = "Test Provider"
-  slug = "test-provider"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_circuit_type" "test" {
-  name = "Test Circuit Type"
-  slug = "test-circuit-type"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_circuit" "test" {
@@ -62,5 +83,5 @@ resource "netbox_circuit_termination" "test" {
 data "netbox_circuit_termination" "test" {
   id = netbox_circuit_termination.test.id
 }
-`, cid)
+`, siteName, siteSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, cid)
 }

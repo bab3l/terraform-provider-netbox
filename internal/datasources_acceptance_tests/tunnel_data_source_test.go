@@ -153,12 +153,17 @@ func TestAccTunnelDataSource_byID(t *testing.T) {
 
 	randomName := testutil.RandomName("tf-test-tunnel-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelCleanup(randomName)
+
 	resource.Test(t, resource.TestCase{
 
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
+		CheckDestroy: testutil.CheckTunnelDestroy,
 
 		Steps: []resource.TestStep{
 
@@ -190,12 +195,17 @@ func TestAccTunnelDataSource_byName(t *testing.T) {
 
 	randomName := testutil.RandomName("tf-test-tunnel-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelCleanup(randomName)
+
 	resource.Test(t, resource.TestCase{
 
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
+		CheckDestroy: testutil.CheckTunnelDestroy,
 
 		Steps: []resource.TestStep{
 

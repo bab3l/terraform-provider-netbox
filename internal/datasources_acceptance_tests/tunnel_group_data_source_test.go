@@ -155,12 +155,17 @@ func TestAccTunnelGroupDataSource_byID(t *testing.T) {
 
 	randomSlug := testutil.RandomSlug("tf-test-tg-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelGroupCleanup(randomName)
+
 	resource.Test(t, resource.TestCase{
 
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
+		CheckDestroy: testutil.CheckTunnelGroupDestroy,
 
 		Steps: []resource.TestStep{
 
@@ -192,12 +197,17 @@ func TestAccTunnelGroupDataSource_byName(t *testing.T) {
 
 	randomSlug := testutil.RandomSlug("tf-test-tg-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelGroupCleanup(randomName)
+
 	resource.Test(t, resource.TestCase{
 
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
+		CheckDestroy: testutil.CheckTunnelGroupDestroy,
 
 		Steps: []resource.TestStep{
 
@@ -229,12 +239,17 @@ func TestAccTunnelGroupDataSource_bySlug(t *testing.T) {
 
 	randomSlug := testutil.RandomSlug("tf-test-tg-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelGroupCleanup(randomName)
+
 	resource.Test(t, resource.TestCase{
 
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
+		CheckDestroy: testutil.CheckTunnelGroupDestroy,
 
 		Steps: []resource.TestStep{
 
