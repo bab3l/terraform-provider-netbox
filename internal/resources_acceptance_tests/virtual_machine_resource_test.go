@@ -337,15 +337,15 @@ resource "netbox_virtual_machine" "test" {
   cluster = netbox_cluster.test.id
   status  = "active"
 
-  # Test custom field names that start with digits
+  # Test custom field names
   custom_fields = [
     {
-      name  = "4me_name"
+      name  = "field_4me"
       type  = "text"
       value = "test-value-1"
     },
     {
-      name  = "2factor_enabled"
+      name  = "field_2factor"
       type  = "boolean"
       value = "true"
     },

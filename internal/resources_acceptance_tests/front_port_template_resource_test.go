@@ -17,7 +17,7 @@ func TestAccFrontPortTemplateResource_basic(t *testing.T) {
 	deviceTypeSlug := testutil.RandomSlug("dt")
 	frontPortName := "front0"
 	portType := "8p8c"
-	rearPortName := testutil.RearPortName
+	rearPortName := testutil.RandomName("rear-port")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -58,7 +58,7 @@ func TestAccFrontPortTemplateResource_full(t *testing.T) {
 	updatedLabel := "Front Port 1"
 	updatedDescription := "Updated front port template"
 	updatedRearPortPosition := int32(2)
-	rearPortName := testutil.RearPortName
+	rearPortName := testutil.RandomName("rear-port")
 	color := testutil.Color
 
 	resource.Test(t, resource.TestCase{
