@@ -27,6 +27,7 @@ func TestAccServiceDataSource_basic(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
 	cleanup.RegisterDeviceTypeCleanup("test-device-type-ds")
 	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterServiceCleanup("Test Service")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -37,6 +38,7 @@ func TestAccServiceDataSource_basic(t *testing.T) {
 			testutil.CheckManufacturerDestroy,
 			testutil.CheckDeviceTypeDestroy,
 			testutil.CheckDeviceDestroy,
+			testutil.CheckServiceDestroy,
 		),
 		Steps: []resource.TestStep{
 			{

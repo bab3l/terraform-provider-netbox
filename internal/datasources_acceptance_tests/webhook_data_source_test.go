@@ -151,7 +151,11 @@ func TestAccWebhookDataSource_byID(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	randomName := testutil.RandomName("test-webhook-ds")
+
+	cleanup.RegisterWebhookCleanup(randomName)
 
 	resource.Test(t, resource.TestCase{
 
@@ -159,6 +163,10 @@ func TestAccWebhookDataSource_byID(t *testing.T) {
 
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckWebhookDestroy,
+		),
 
 		Steps: []resource.TestStep{
 
@@ -184,7 +192,11 @@ func TestAccWebhookDataSource_byName(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	randomName := testutil.RandomName("test-webhook-ds")
+
+	cleanup.RegisterWebhookCleanup(randomName)
 
 	resource.Test(t, resource.TestCase{
 
@@ -192,6 +204,10 @@ func TestAccWebhookDataSource_byName(t *testing.T) {
 
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckWebhookDestroy,
+		),
 
 		Steps: []resource.TestStep{
 

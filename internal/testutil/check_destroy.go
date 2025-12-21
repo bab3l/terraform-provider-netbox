@@ -1888,3 +1888,234 @@ func CheckClusterGroupDestroy(s *terraform.State) error {
 
 	return nil
 }
+
+// CheckRoleDestroy verifies that a role has been destroyed.
+func CheckRoleDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_role" {
+			continue
+		}
+
+		slug := rs.Primary.Attributes["slug"]
+		if slug == "" {
+			continue
+		}
+
+		list, resp, err := client.IpamAPI.IpamRolesList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("role with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckTagDestroy verifies that a tag has been destroyed.
+func CheckTagDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_tag" {
+			continue
+		}
+
+		slug := rs.Primary.Attributes["slug"]
+		if slug == "" {
+			continue
+		}
+
+		list, resp, err := client.ExtrasAPI.ExtrasTagsList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("tag with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckWebhookDestroy verifies that a webhook has been destroyed.
+func CheckWebhookDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_webhook" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.ExtrasAPI.ExtrasWebhooksList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("webhook with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckPowerPanelDestroy verifies that a power panel has been destroyed.
+func CheckPowerPanelDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_power_panel" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.DcimAPI.DcimPowerPanelsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("power panel with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckPowerFeedDestroy verifies that a power feed has been destroyed.
+func CheckPowerFeedDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_power_feed" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.DcimAPI.DcimPowerFeedsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("power feed with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckModuleBayDestroy verifies that a module bay has been destroyed.
+func CheckModuleBayDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_module_bay" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.DcimAPI.DcimModuleBaysList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("module bay with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckServiceDestroy verifies that a service has been destroyed.
+func CheckServiceDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_service" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.IpamAPI.IpamServicesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("service with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}

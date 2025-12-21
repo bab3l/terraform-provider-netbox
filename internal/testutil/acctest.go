@@ -2726,3 +2726,199 @@ func (c *CleanupResource) RegisterClusterGroupCleanup(slug string) {
 		}
 	})
 }
+
+// RegisterTagCleanup registers a cleanup function that will delete
+// a tag by slug after the test completes.
+func (c *CleanupResource) RegisterTagCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.ExtrasAPI.ExtrasTagsList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list tags with slug %s: %v", slug, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: tag with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.ExtrasAPI.ExtrasTagsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete tag %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted tag %d (slug: %s)", id, slug)
+		}
+	})
+}
+
+// RegisterRoleCleanup registers a cleanup function that will delete
+// a role by slug after the test completes.
+func (c *CleanupResource) RegisterRoleCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamRolesList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list roles with slug %s: %v", slug, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: role with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.IpamAPI.IpamRolesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete role %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted role %d (slug: %s)", id, slug)
+		}
+	})
+}
+
+// RegisterWebhookCleanup registers a cleanup function that will delete
+// a webhook by name after the test completes.
+func (c *CleanupResource) RegisterWebhookCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.ExtrasAPI.ExtrasWebhooksList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list webhooks with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: webhook with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.ExtrasAPI.ExtrasWebhooksDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete webhook %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted webhook %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterPowerPanelCleanup registers a cleanup function that will delete
+// a power panel by name after the test completes.
+func (c *CleanupResource) RegisterPowerPanelCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimPowerPanelsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list power panels with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: power panel with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimPowerPanelsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete power panel %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted power panel %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterPowerFeedCleanup registers a cleanup function that will delete
+// a power feed by name after the test completes.
+func (c *CleanupResource) RegisterPowerFeedCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimPowerFeedsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list power feeds with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: power feed with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimPowerFeedsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete power feed %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted power feed %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterModuleBayCleanup registers a cleanup function that will delete
+// a module bay by name and device ID after the test completes.
+func (c *CleanupResource) RegisterModuleBayCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimModuleBaysList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list module bays with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: module bay with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimModuleBaysDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete module bay %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted module bay %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterServiceCleanup registers a cleanup function that will delete
+// a service by name and device ID after the test completes.
+func (c *CleanupResource) RegisterServiceCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamServicesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list services with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: service with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.IpamAPI.IpamServicesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete service %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted service %d (name: %s)", id, name)
+		}
+	})
+}

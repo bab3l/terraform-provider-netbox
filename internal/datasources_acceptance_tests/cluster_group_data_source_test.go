@@ -11,12 +11,20 @@ import (
 func TestAccClusterGroupDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
 	name := testutil.RandomName("test-cluster-group")
 	slug := testutil.GenerateSlug(name)
+
+	cleanup.RegisterClusterGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckClusterGroupDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccClusterGroupDataSourceConfig(name, slug),

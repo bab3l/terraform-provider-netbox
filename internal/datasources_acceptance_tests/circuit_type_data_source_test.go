@@ -12,12 +12,19 @@ func TestAccCircuitTypeDataSource_basic(t *testing.T) {
 
 	t.Parallel()
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	name := testutil.RandomName("circuit-type")
 	slug := testutil.RandomSlug("circuit-type")
+
+	cleanup.RegisterCircuitTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckCircuitTypeDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitTypeDataSourceConfig(name, slug),
