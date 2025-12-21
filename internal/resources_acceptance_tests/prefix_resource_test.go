@@ -226,7 +226,7 @@ func TestAccPrefixResource_import(t *testing.T) {
 func TestAccConsistency_Prefix(t *testing.T) {
 
 	t.Parallel()
-	prefix := "10.0.0.0/24"
+	prefix := testutil.RandomIPv4Prefix()
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	tenantName := testutil.RandomName("tenant")
@@ -285,7 +285,7 @@ resource "netbox_prefix" "test" {
 func TestAccConsistency_Prefix_LiteralNames(t *testing.T) {
 
 	t.Parallel()
-	prefix := "192.168.100.0/24"
+	prefix := testutil.RandomIPv4Prefix()
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	tenantName := testutil.RandomName("tenant")
