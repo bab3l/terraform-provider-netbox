@@ -12,7 +12,7 @@ import (
 func TestIPSecPolicyResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPSecPolicyResource()
 	if r == nil {
 		t.Fatal("Expected non-nil resource")
@@ -22,7 +22,7 @@ func TestIPSecPolicyResource(t *testing.T) {
 func TestIPSecPolicyResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPSecPolicyResource()
 	schemaRequest := &resource.SchemaRequest{}
 	schemaResponse := &resource.SchemaResponse{}
@@ -42,7 +42,7 @@ func TestIPSecPolicyResourceSchema(t *testing.T) {
 func TestIPSecPolicyResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPSecPolicyResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_ipsec_policy")
 }
@@ -50,7 +50,7 @@ func TestIPSecPolicyResourceMetadata(t *testing.T) {
 func TestIPSecPolicyResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPSecPolicyResource()
 	testutil.ValidateResourceConfigure(t, r)
 }

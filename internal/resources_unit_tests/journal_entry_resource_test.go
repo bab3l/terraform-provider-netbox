@@ -12,7 +12,7 @@ import (
 func TestJournalEntryResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewJournalEntryResource()
 	if r == nil {
 		t.Fatal("Expected non-nil resource")
@@ -22,7 +22,7 @@ func TestJournalEntryResource(t *testing.T) {
 func TestJournalEntryResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewJournalEntryResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
@@ -36,7 +36,7 @@ func TestJournalEntryResourceSchema(t *testing.T) {
 func TestJournalEntryResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewJournalEntryResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_journal_entry")
 }
@@ -44,7 +44,7 @@ func TestJournalEntryResourceMetadata(t *testing.T) {
 func TestJournalEntryResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewJournalEntryResource()
 	testutil.ValidateResourceConfigure(t, r)
 }

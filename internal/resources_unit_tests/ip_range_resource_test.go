@@ -12,7 +12,7 @@ import (
 func TestIPRangeResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPRangeResource()
 	if r == nil {
 		t.Fatal("Expected non-nil resource")
@@ -22,7 +22,7 @@ func TestIPRangeResource(t *testing.T) {
 func TestIPRangeResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPRangeResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
@@ -36,7 +36,7 @@ func TestIPRangeResourceSchema(t *testing.T) {
 func TestIPRangeResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPRangeResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_ip_range")
 }
@@ -44,7 +44,7 @@ func TestIPRangeResourceMetadata(t *testing.T) {
 func TestIPRangeResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPRangeResource()
 	testutil.ValidateResourceConfigure(t, r)
 }

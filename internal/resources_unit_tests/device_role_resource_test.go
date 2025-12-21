@@ -12,7 +12,7 @@ import (
 func TestDeviceRoleResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewDeviceRoleResource()
 	if r == nil {
 		t.Fatal("Expected non-nil resource")
@@ -22,7 +22,7 @@ func TestDeviceRoleResource(t *testing.T) {
 func TestDeviceRoleResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewDeviceRoleResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
@@ -42,7 +42,7 @@ func TestDeviceRoleResourceSchema(t *testing.T) {
 func TestDeviceRoleResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewDeviceRoleResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_device_role")
 }
@@ -50,7 +50,7 @@ func TestDeviceRoleResourceMetadata(t *testing.T) {
 func TestDeviceRoleResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewDeviceRoleResource()
 	testutil.ValidateResourceConfigure(t, r)
 }

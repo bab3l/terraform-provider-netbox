@@ -12,7 +12,6 @@ import (
 func TestPrefixResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewPrefixResource()
 	if r == nil {
@@ -22,7 +21,6 @@ func TestPrefixResource(t *testing.T) {
 
 func TestPrefixResourceSchema(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPrefixResource()
@@ -48,7 +46,6 @@ func TestPrefixResourceSchema(t *testing.T) {
 func TestPrefixResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewPrefixResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_prefix")
@@ -56,7 +53,6 @@ func TestPrefixResourceMetadata(t *testing.T) {
 
 func TestPrefixResourceConfigure(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPrefixResource().(*resources.PrefixResource)

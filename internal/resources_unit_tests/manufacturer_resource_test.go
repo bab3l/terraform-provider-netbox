@@ -12,7 +12,7 @@ import (
 func TestManufacturerResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewManufacturerResource()
 	if r == nil {
 		t.Fatal("Expected non-nil manufacturer resource")
@@ -22,7 +22,7 @@ func TestManufacturerResource(t *testing.T) {
 func TestManufacturerResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewManufacturerResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
@@ -45,7 +45,7 @@ func TestManufacturerResourceSchema(t *testing.T) {
 func TestManufacturerResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewManufacturerResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_manufacturer")
 }
@@ -53,7 +53,7 @@ func TestManufacturerResourceMetadata(t *testing.T) {
 func TestManufacturerResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewManufacturerResource()
 	testutil.ValidateResourceConfigure(t, r)
 }

@@ -13,8 +13,6 @@ func TestModuleBayResource(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewModuleBayResource()
 
 	if r == nil {
@@ -26,8 +24,6 @@ func TestModuleBayResource(t *testing.T) {
 }
 
 func TestModuleBayResourceSchema(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 
@@ -62,8 +58,6 @@ func TestModuleBayResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewModuleBayResource()
 
 	metadataRequest := fwresource.MetadataRequest{
@@ -80,8 +74,6 @@ func TestModuleBayResourceMetadata(t *testing.T) {
 }
 
 func TestModuleBayResourceConfigure(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 

@@ -12,7 +12,6 @@ import (
 func TestTagResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewTagResource()
 	if r == nil {
@@ -22,7 +21,6 @@ func TestTagResource(t *testing.T) {
 
 func TestTagResourceSchema(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTagResource()
@@ -48,7 +46,6 @@ func TestTagResourceSchema(t *testing.T) {
 func TestTagResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewTagResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_tag")
@@ -56,7 +53,6 @@ func TestTagResourceMetadata(t *testing.T) {
 
 func TestTagResourceConfigure(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTagResource()

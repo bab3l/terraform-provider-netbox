@@ -13,8 +13,6 @@ func TestPowerFeedResource(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewPowerFeedResource()
 
 	if r == nil {
@@ -26,8 +24,6 @@ func TestPowerFeedResource(t *testing.T) {
 }
 
 func TestPowerFeedResourceSchema(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 
@@ -66,8 +62,6 @@ func TestPowerFeedResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewPowerFeedResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_power_feed")
@@ -75,8 +69,6 @@ func TestPowerFeedResourceMetadata(t *testing.T) {
 }
 
 func TestPowerFeedResourceConfigure(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 

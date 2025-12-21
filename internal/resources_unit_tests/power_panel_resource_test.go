@@ -12,7 +12,6 @@ import (
 func TestPowerPanelResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewPowerPanelResource()
 	if r == nil {
@@ -22,7 +21,6 @@ func TestPowerPanelResource(t *testing.T) {
 
 func TestPowerPanelResourceSchema(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPowerPanelResource()
@@ -48,7 +46,6 @@ func TestPowerPanelResourceSchema(t *testing.T) {
 func TestPowerPanelResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewPowerPanelResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_power_panel")
@@ -56,7 +53,6 @@ func TestPowerPanelResourceMetadata(t *testing.T) {
 
 func TestPowerPanelResourceConfigure(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPowerPanelResource().(*resources.PowerPanelResource)

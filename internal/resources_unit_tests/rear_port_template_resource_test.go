@@ -13,8 +13,6 @@ func TestRearPortTemplateResource(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewRearPortTemplateResource()
 
 	if r == nil {
@@ -26,8 +24,6 @@ func TestRearPortTemplateResource(t *testing.T) {
 }
 
 func TestRearPortTemplateResourceSchema(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 
@@ -60,8 +56,6 @@ func TestRearPortTemplateResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewRearPortTemplateResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_rear_port_template")
@@ -69,8 +63,6 @@ func TestRearPortTemplateResourceMetadata(t *testing.T) {
 }
 
 func TestRearPortTemplateResourceConfigure(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 

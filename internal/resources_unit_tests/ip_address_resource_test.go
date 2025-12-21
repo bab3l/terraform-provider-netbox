@@ -12,7 +12,7 @@ import (
 func TestIPAddressResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPAddressResource()
 	if r == nil {
 		t.Fatal("Expected non-nil resource")
@@ -22,7 +22,7 @@ func TestIPAddressResource(t *testing.T) {
 func TestIPAddressResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPAddressResource()
 	schemaRequest := &resource.SchemaRequest{}
 	schemaResponse := &resource.SchemaResponse{}
@@ -42,7 +42,7 @@ func TestIPAddressResourceSchema(t *testing.T) {
 func TestIPAddressResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPAddressResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_ip_address")
 }
@@ -50,7 +50,7 @@ func TestIPAddressResourceMetadata(t *testing.T) {
 func TestIPAddressResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPAddressResource()
 	testutil.ValidateResourceConfigure(t, r)
 }

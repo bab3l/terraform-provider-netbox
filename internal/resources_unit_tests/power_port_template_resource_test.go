@@ -12,7 +12,6 @@ import (
 func TestPowerPortTemplateResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewPowerPortTemplateResource()
 	if r == nil {
@@ -22,7 +21,6 @@ func TestPowerPortTemplateResource(t *testing.T) {
 
 func TestPowerPortTemplateResourceSchema(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPowerPortTemplateResource()
@@ -48,7 +46,6 @@ func TestPowerPortTemplateResourceSchema(t *testing.T) {
 func TestPowerPortTemplateResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewPowerPortTemplateResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_power_port_template")
@@ -56,7 +53,6 @@ func TestPowerPortTemplateResourceMetadata(t *testing.T) {
 
 func TestPowerPortTemplateResourceConfigure(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPowerPortTemplateResource().(*resources.PowerPortTemplateResource)

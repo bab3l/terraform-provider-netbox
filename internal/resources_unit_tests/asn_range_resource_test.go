@@ -13,8 +13,6 @@ func TestASNRangeResource(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewASNRangeResource()
 
 	if r == nil {
@@ -26,8 +24,6 @@ func TestASNRangeResource(t *testing.T) {
 }
 
 func TestASNRangeResourceSchema(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 
@@ -66,8 +62,6 @@ func TestASNRangeResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewASNRangeResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_asn_range")
@@ -75,8 +69,6 @@ func TestASNRangeResourceMetadata(t *testing.T) {
 }
 
 func TestASNRangeResourceConfigure(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 

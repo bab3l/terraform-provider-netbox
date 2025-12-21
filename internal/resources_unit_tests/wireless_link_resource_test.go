@@ -14,8 +14,6 @@ func TestWirelessLinkResource(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewWirelessLinkResource()
 
 	if r == nil {
@@ -27,8 +25,6 @@ func TestWirelessLinkResource(t *testing.T) {
 }
 
 func TestWirelessLinkResourceSchema(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 
@@ -100,8 +96,6 @@ func TestWirelessLinkResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewWirelessLinkResource()
 
 	metadataRequest := fwresource.MetadataRequest{
@@ -124,8 +118,6 @@ func TestWirelessLinkResourceMetadata(t *testing.T) {
 }
 
 func TestWirelessLinkResourceConfigure(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 

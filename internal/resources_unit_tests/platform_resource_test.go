@@ -12,7 +12,7 @@ import (
 func TestPlatformResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewPlatformResource()
 	if r == nil {
 		t.Fatal("Expected non-nil platform resource")
@@ -22,7 +22,7 @@ func TestPlatformResource(t *testing.T) {
 func TestPlatformResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewPlatformResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
@@ -43,8 +43,6 @@ func TestPlatformResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewPlatformResource()
 
 	metadataRequest := fwresource.MetadataRequest{
@@ -61,8 +59,6 @@ func TestPlatformResourceMetadata(t *testing.T) {
 }
 
 func TestPlatformResourceConfigure(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 

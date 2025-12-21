@@ -12,7 +12,7 @@ import (
 func TestInventoryItemTemplateResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewInventoryItemTemplateResource()
 	if r == nil {
 		t.Fatal("Expected non-nil resource")
@@ -22,7 +22,7 @@ func TestInventoryItemTemplateResource(t *testing.T) {
 func TestInventoryItemTemplateResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewInventoryItemTemplateResource()
 	schemaRequest := &resource.SchemaRequest{}
 	schemaResponse := &resource.SchemaResponse{}
@@ -42,7 +42,7 @@ func TestInventoryItemTemplateResourceSchema(t *testing.T) {
 func TestInventoryItemTemplateResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewInventoryItemTemplateResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_inventory_item_template")
 }
@@ -50,7 +50,7 @@ func TestInventoryItemTemplateResourceMetadata(t *testing.T) {
 func TestInventoryItemTemplateResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewInventoryItemTemplateResource()
 	testutil.ValidateResourceConfigure(t, r)
 }

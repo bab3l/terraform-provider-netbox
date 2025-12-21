@@ -12,7 +12,7 @@ import (
 func TestExportTemplateResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewExportTemplateResource()
 	if r == nil {
 		t.Fatal("Expected non-nil resource")
@@ -22,7 +22,7 @@ func TestExportTemplateResource(t *testing.T) {
 func TestExportTemplateResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewExportTemplateResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
@@ -42,7 +42,7 @@ func TestExportTemplateResourceSchema(t *testing.T) {
 func TestExportTemplateResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewExportTemplateResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_export_template")
 }
@@ -50,7 +50,7 @@ func TestExportTemplateResourceMetadata(t *testing.T) {
 func TestExportTemplateResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewExportTemplateResource()
 	testutil.ValidateResourceConfigure(t, r)
 }

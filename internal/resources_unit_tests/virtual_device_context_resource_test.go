@@ -13,8 +13,6 @@ func TestVirtualDeviceContextResource(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewVirtualDeviceContextResource()
 
 	if r == nil {
@@ -26,8 +24,6 @@ func TestVirtualDeviceContextResource(t *testing.T) {
 }
 
 func TestVirtualDeviceContextResourceSchema(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 
@@ -66,8 +62,6 @@ func TestVirtualDeviceContextResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewVirtualDeviceContextResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_virtual_device_context")
@@ -75,8 +69,6 @@ func TestVirtualDeviceContextResourceMetadata(t *testing.T) {
 }
 
 func TestVirtualDeviceContextResourceConfigure(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 

@@ -12,7 +12,6 @@ import (
 func TestTenantResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewTenantResource()
 	if r == nil {
@@ -22,7 +21,6 @@ func TestTenantResource(t *testing.T) {
 
 func TestTenantResourceSchema(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTenantResource()
@@ -49,7 +47,6 @@ func TestTenantResourceSchema(t *testing.T) {
 func TestTenantResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewTenantResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_tenant")
@@ -57,7 +54,6 @@ func TestTenantResourceMetadata(t *testing.T) {
 
 func TestTenantResourceConfigure(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTenantResource()

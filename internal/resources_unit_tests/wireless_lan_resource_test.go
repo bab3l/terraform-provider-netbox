@@ -14,8 +14,6 @@ func TestWirelessLANResource(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewWirelessLANResource()
 
 	if r == nil {
@@ -27,8 +25,6 @@ func TestWirelessLANResource(t *testing.T) {
 }
 
 func TestWirelessLANResourceSchema(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 
@@ -94,8 +90,6 @@ func TestWirelessLANResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewWirelessLANResource()
 
 	metadataRequest := fwresource.MetadataRequest{
@@ -118,8 +112,6 @@ func TestWirelessLANResourceMetadata(t *testing.T) {
 }
 
 func TestWirelessLANResourceConfigure(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 

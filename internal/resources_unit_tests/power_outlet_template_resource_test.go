@@ -12,7 +12,6 @@ import (
 func TestPowerOutletTemplateResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewPowerOutletTemplateResource()
 	if r == nil {
@@ -22,7 +21,6 @@ func TestPowerOutletTemplateResource(t *testing.T) {
 
 func TestPowerOutletTemplateResourceSchema(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPowerOutletTemplateResource()
@@ -48,7 +46,6 @@ func TestPowerOutletTemplateResourceSchema(t *testing.T) {
 func TestPowerOutletTemplateResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewPowerOutletTemplateResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_power_outlet_template")
@@ -56,7 +53,6 @@ func TestPowerOutletTemplateResourceMetadata(t *testing.T) {
 
 func TestPowerOutletTemplateResourceConfigure(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPowerOutletTemplateResource().(*resources.PowerOutletTemplateResource)

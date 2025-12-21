@@ -12,7 +12,7 @@ import (
 func TestDeviceTypeResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewDeviceTypeResource()
 	if r == nil {
 		t.Fatal("Expected non-nil resource")
@@ -22,7 +22,7 @@ func TestDeviceTypeResource(t *testing.T) {
 func TestDeviceTypeResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewDeviceTypeResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
@@ -42,7 +42,7 @@ func TestDeviceTypeResourceSchema(t *testing.T) {
 func TestDeviceTypeResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewDeviceTypeResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_device_type")
 }
@@ -50,7 +50,7 @@ func TestDeviceTypeResourceMetadata(t *testing.T) {
 func TestDeviceTypeResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewDeviceTypeResource()
 	testutil.ValidateResourceConfigure(t, r)
 }

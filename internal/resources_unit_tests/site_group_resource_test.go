@@ -12,7 +12,6 @@ import (
 func TestSiteGroupResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewSiteGroupResource()
 	if r == nil {
@@ -22,7 +21,6 @@ func TestSiteGroupResource(t *testing.T) {
 
 func TestSiteGroupResourceSchema(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewSiteGroupResource()
@@ -48,7 +46,6 @@ func TestSiteGroupResourceSchema(t *testing.T) {
 func TestSiteGroupResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewSiteGroupResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_site_group")
@@ -56,7 +53,6 @@ func TestSiteGroupResourceMetadata(t *testing.T) {
 
 func TestSiteGroupResourceConfigure(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewSiteGroupResource()

@@ -12,7 +12,7 @@ import (
 func TestInterfaceResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewInterfaceResource()
 	if r == nil {
 		t.Fatal("Expected non-nil resource")
@@ -22,7 +22,7 @@ func TestInterfaceResource(t *testing.T) {
 func TestInterfaceResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewInterfaceResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
@@ -42,7 +42,7 @@ func TestInterfaceResourceSchema(t *testing.T) {
 func TestInterfaceResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewInterfaceResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_interface")
 }
@@ -50,7 +50,7 @@ func TestInterfaceResourceMetadata(t *testing.T) {
 func TestInterfaceResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewInterfaceResource()
 	testutil.ValidateResourceConfigure(t, r)
 }

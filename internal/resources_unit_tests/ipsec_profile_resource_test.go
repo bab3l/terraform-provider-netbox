@@ -12,7 +12,7 @@ import (
 func TestIPSecProfileResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPSecProfileResource()
 	if r == nil {
 		t.Fatal("Expected non-nil resource")
@@ -22,7 +22,7 @@ func TestIPSecProfileResource(t *testing.T) {
 func TestIPSecProfileResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPSecProfileResource()
 	schemaRequest := &resource.SchemaRequest{}
 	schemaResponse := &resource.SchemaResponse{}
@@ -42,7 +42,7 @@ func TestIPSecProfileResourceSchema(t *testing.T) {
 func TestIPSecProfileResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPSecProfileResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_ipsec_profile")
 }
@@ -50,7 +50,7 @@ func TestIPSecProfileResourceMetadata(t *testing.T) {
 func TestIPSecProfileResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIPSecProfileResource()
 	testutil.ValidateResourceConfigure(t, r)
 }

@@ -12,7 +12,6 @@ import (
 func TestServiceTemplateResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewServiceTemplateResource()
 	if r == nil {
@@ -22,7 +21,6 @@ func TestServiceTemplateResource(t *testing.T) {
 
 func TestServiceTemplateResourceSchema(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewServiceTemplateResource()
@@ -48,7 +46,6 @@ func TestServiceTemplateResourceSchema(t *testing.T) {
 func TestServiceTemplateResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewServiceTemplateResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_service_template")
@@ -56,7 +53,6 @@ func TestServiceTemplateResourceMetadata(t *testing.T) {
 
 func TestServiceTemplateResourceConfigure(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewServiceTemplateResource()

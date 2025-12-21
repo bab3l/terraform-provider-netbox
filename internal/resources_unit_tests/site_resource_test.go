@@ -12,7 +12,6 @@ import (
 func TestSiteResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewSiteResource()
 	if r == nil {
@@ -22,7 +21,6 @@ func TestSiteResource(t *testing.T) {
 
 func TestSiteResourceSchema(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewSiteResource()
@@ -48,7 +46,6 @@ func TestSiteResourceSchema(t *testing.T) {
 func TestSiteResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewSiteResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_site")
@@ -56,7 +53,6 @@ func TestSiteResourceMetadata(t *testing.T) {
 
 func TestSiteResourceConfigure(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewSiteResource()

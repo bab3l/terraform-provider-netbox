@@ -12,7 +12,6 @@ import (
 func TestCircuitTerminationResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewCircuitTerminationResource()
 
@@ -23,7 +22,6 @@ func TestCircuitTerminationResource(t *testing.T) {
 
 func TestCircuitTerminationResourceSchema(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewCircuitTerminationResource()
@@ -49,13 +47,13 @@ func TestCircuitTerminationResourceSchema(t *testing.T) {
 func TestCircuitTerminationResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	testutil.ValidateResourceMetadata(t, resources.NewCircuitTerminationResource(), "netbox", "netbox_circuit_termination")
 }
 
 func TestCircuitTerminationResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	testutil.ValidateResourceConfigure(t, resources.NewCircuitTerminationResource())
 }

@@ -13,8 +13,6 @@ func TestRegionResource(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewRegionResource()
 
 	if r == nil {
@@ -26,8 +24,6 @@ func TestRegionResource(t *testing.T) {
 }
 
 func TestRegionResourceSchema(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 
@@ -60,8 +56,6 @@ func TestRegionResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewRegionResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_region")
@@ -69,8 +63,6 @@ func TestRegionResourceMetadata(t *testing.T) {
 }
 
 func TestRegionResourceConfigure(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 

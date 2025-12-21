@@ -12,7 +12,7 @@ import (
 func TestFrontPortResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewFrontPortResource()
 	if r == nil {
 		t.Fatal("Expected non-nil resource")
@@ -22,7 +22,7 @@ func TestFrontPortResource(t *testing.T) {
 func TestFrontPortResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewFrontPortResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
@@ -42,7 +42,7 @@ func TestFrontPortResourceSchema(t *testing.T) {
 func TestFrontPortResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewFrontPortResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_front_port")
 }
@@ -50,7 +50,7 @@ func TestFrontPortResourceMetadata(t *testing.T) {
 func TestFrontPortResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewFrontPortResource()
 	testutil.ValidateResourceConfigure(t, r)
 }

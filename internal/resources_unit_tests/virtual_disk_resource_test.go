@@ -13,8 +13,6 @@ func TestVirtualDiskResource(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewVirtualDiskResource()
 
 	if r == nil {
@@ -26,8 +24,6 @@ func TestVirtualDiskResource(t *testing.T) {
 }
 
 func TestVirtualDiskResourceSchema(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 
@@ -66,8 +62,6 @@ func TestVirtualDiskResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewVirtualDiskResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_virtual_disk")
@@ -75,8 +69,6 @@ func TestVirtualDiskResourceMetadata(t *testing.T) {
 }
 
 func TestVirtualDiskResourceConfigure(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 

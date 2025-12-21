@@ -12,7 +12,6 @@ import (
 func TestRouteTargetResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewRouteTargetResource()
 	if r == nil {
@@ -22,7 +21,6 @@ func TestRouteTargetResource(t *testing.T) {
 
 func TestRouteTargetResourceSchema(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewRouteTargetResource()
@@ -48,7 +46,6 @@ func TestRouteTargetResourceSchema(t *testing.T) {
 func TestRouteTargetResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewRouteTargetResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_route_target")
@@ -56,7 +53,6 @@ func TestRouteTargetResourceMetadata(t *testing.T) {
 
 func TestRouteTargetResourceConfigure(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewRouteTargetResource()

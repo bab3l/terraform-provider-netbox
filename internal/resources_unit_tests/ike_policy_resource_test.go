@@ -12,7 +12,7 @@ import (
 func TestIKEPolicyResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIKEPolicyResource()
 	if r == nil {
 		t.Fatal("Expected non-nil resource")
@@ -22,7 +22,7 @@ func TestIKEPolicyResource(t *testing.T) {
 func TestIKEPolicyResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIKEPolicyResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
@@ -42,7 +42,7 @@ func TestIKEPolicyResourceSchema(t *testing.T) {
 func TestIKEPolicyResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIKEPolicyResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_ike_policy")
 }
@@ -50,7 +50,7 @@ func TestIKEPolicyResourceMetadata(t *testing.T) {
 func TestIKEPolicyResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewIKEPolicyResource()
 	testutil.ValidateResourceConfigure(t, r)
 }

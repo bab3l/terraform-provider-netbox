@@ -12,7 +12,6 @@ import (
 func TestTunnelGroupResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewTunnelGroupResource()
 	if r == nil {
@@ -22,7 +21,6 @@ func TestTunnelGroupResource(t *testing.T) {
 
 func TestTunnelGroupResourceSchema(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTunnelGroupResource()
@@ -49,7 +47,6 @@ func TestTunnelGroupResourceSchema(t *testing.T) {
 func TestTunnelGroupResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	r := resources.NewTunnelGroupResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_tunnel_group")
@@ -57,7 +54,6 @@ func TestTunnelGroupResourceMetadata(t *testing.T) {
 
 func TestTunnelGroupResourceConfigure(t *testing.T) {
 
-	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTunnelGroupResource()

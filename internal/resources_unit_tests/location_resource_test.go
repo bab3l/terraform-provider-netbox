@@ -12,7 +12,7 @@ import (
 func TestLocationResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewLocationResource()
 	if r == nil {
 		t.Fatal("Expected non-nil Location resource")
@@ -22,7 +22,7 @@ func TestLocationResource(t *testing.T) {
 func TestLocationResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewLocationResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
@@ -46,7 +46,7 @@ func TestLocationResourceSchema(t *testing.T) {
 func TestLocationResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewLocationResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_location")
 }
@@ -54,7 +54,7 @@ func TestLocationResourceMetadata(t *testing.T) {
 func TestLocationResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewLocationResource()
 	testutil.ValidateResourceConfigure(t, r)
 }

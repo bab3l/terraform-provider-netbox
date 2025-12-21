@@ -13,8 +13,6 @@ func TestRoleResource(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewRoleResource()
 
 	if r == nil {
@@ -26,8 +24,6 @@ func TestRoleResource(t *testing.T) {
 }
 
 func TestRoleResourceSchema(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 
@@ -60,8 +56,6 @@ func TestRoleResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	r := resources.NewRoleResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_role")
@@ -69,8 +63,6 @@ func TestRoleResourceMetadata(t *testing.T) {
 }
 
 func TestRoleResourceConfigure(t *testing.T) {
-
-	t.Parallel()
 
 	t.Parallel()
 

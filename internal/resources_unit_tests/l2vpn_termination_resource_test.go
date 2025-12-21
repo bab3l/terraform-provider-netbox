@@ -12,7 +12,7 @@ import (
 func TestL2VPNTerminationResource(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewL2VPNTerminationResource()
 	if r == nil {
 		t.Fatal("Expected non-nil L2VPN Termination resource")
@@ -22,7 +22,7 @@ func TestL2VPNTerminationResource(t *testing.T) {
 func TestL2VPNTerminationResourceSchema(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewL2VPNTerminationResource()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
@@ -45,7 +45,7 @@ func TestL2VPNTerminationResourceSchema(t *testing.T) {
 func TestL2VPNTerminationResourceMetadata(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewL2VPNTerminationResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_l2vpn_termination")
 }
@@ -53,7 +53,7 @@ func TestL2VPNTerminationResourceMetadata(t *testing.T) {
 func TestL2VPNTerminationResourceConfigure(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
+
 	r := resources.NewL2VPNTerminationResource()
 	testutil.ValidateResourceConfigure(t, r)
 }
