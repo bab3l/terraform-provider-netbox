@@ -324,8 +324,6 @@ resource "netbox_cluster_type" "test" {
 
 }
 
-
-
 resource "netbox_cluster" "test" {
 
   name = %q
@@ -349,8 +347,6 @@ resource "netbox_cluster_type" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_cluster" "test" {
 
@@ -382,8 +378,6 @@ resource "netbox_cluster_type" "test" {
 
 }
 
-
-
 resource "netbox_cluster" "test" {
 
   name = %q
@@ -408,8 +402,6 @@ resource "netbox_cluster_type" "test" {
 
 }
 
-
-
 resource "netbox_cluster_group" "test" {
 
   name = "%[4]s"
@@ -417,8 +409,6 @@ resource "netbox_cluster_group" "test" {
   slug = "%[5]s"
 
 }
-
-
 
 resource "netbox_site" "test" {
 
@@ -428,8 +418,6 @@ resource "netbox_site" "test" {
 
 }
 
-
-
 resource "netbox_tenant" "test" {
 
   name = "%[8]s"
@@ -437,8 +425,6 @@ resource "netbox_tenant" "test" {
   slug = "%[9]s"
 
 }
-
-
 
 resource "netbox_cluster" "test" {
 
@@ -453,8 +439,6 @@ resource "netbox_cluster" "test" {
   site = "%[6]s"
 
   tenant = "%[8]s"
-
-
 
   depends_on = [netbox_cluster_type.test, netbox_cluster_group.test, netbox_site.test, netbox_tenant.test]
 

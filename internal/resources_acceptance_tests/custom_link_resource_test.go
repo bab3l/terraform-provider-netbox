@@ -133,31 +133,17 @@ func testAccCustomLinkResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_custom_link" "test" {
-
-
 
   name         = "%s"
 
-
-
   object_types = ["dcim.device"]
-
-
 
   link_text    = "View in External System"
 
-
-
   link_url     = "https://example.com/device/{{ object.name }}"
 
-
-
 }
-
-
 
 `, name)
 
@@ -167,51 +153,27 @@ func testAccCustomLinkResourceConfig_full(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_custom_link" "test" {
-
-
 
   name         = "%s"
 
-
-
   object_types = ["dcim.device", "dcim.site"]
-
-
 
   enabled      = true
 
-
-
   link_text    = "View Details"
-
-
 
   link_url     = "https://example.com/{{ object.name }}"
 
-
-
   weight       = 50
-
-
 
   group_name   = "External Links"
 
-
-
   button_class = "blue"
-
-
 
   new_window   = true
 
-
-
 }
-
-
 
 `, name)
 

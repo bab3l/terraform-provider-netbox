@@ -108,27 +108,15 @@ func testAccCustomFieldResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_custom_field" "test" {
-
-
 
   name         = %q
 
-
-
   type         = "text"
-
-
 
   object_types = ["dcim.site"]
 
-
-
 }
-
-
 
 `, name)
 
@@ -138,47 +126,25 @@ func testAccCustomFieldResourceConfig_full(name, description string) string {
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_custom_field" "test" {
-
-
 
   name               = %q
 
-
-
   type               = "integer"
-
-
 
   object_types       = ["dcim.site", "dcim.device"]
 
-
-
   description        = %q
-
-
 
   required           = true
 
-
-
   validation_minimum = 1
-
-
 
   validation_maximum = 100
 
-
-
   weight             = 50
 
-
-
 }
-
-
 
 `, name, description)
 

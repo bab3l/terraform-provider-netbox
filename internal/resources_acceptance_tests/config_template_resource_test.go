@@ -118,23 +118,13 @@ func testAccConfigTemplateResourceConfig_basic(name, templateCode string) string
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_config_template" "test" {
-
-
 
   name          = %q
 
-
-
   template_code = %q
 
-
-
 }
-
-
 
 `, name, templateCode)
 
@@ -144,27 +134,15 @@ func testAccConfigTemplateResourceConfig_full(name, templateCode, description st
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_config_template" "test" {
-
-
 
   name          = %q
 
-
-
   template_code = %q
-
-
 
   description   = %q
 
-
-
 }
-
-
 
 `, name, templateCode, description)
 

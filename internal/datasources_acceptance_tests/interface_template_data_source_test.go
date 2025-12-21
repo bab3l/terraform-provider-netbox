@@ -129,7 +129,7 @@ func TestInterfaceTemplateDataSourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
@@ -149,83 +149,33 @@ func testAccInterfaceTemplateDataSourcePrereqs(manufacturerName, manufacturerSlu
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_manufacturer" "test" {
-
-
 
   name = %q
 
-
-
   slug = %q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_device_type" "test" {
 
-
-
   manufacturer = netbox_manufacturer.test.id
-
-
 
   model        = %q
 
-
-
   slug         = %q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_interface_template" "test" {
 
-
-
-
-
-
-
   device_type = netbox_device_type.test.id
-
-
 
   name        = %q
 
-
-
   type        = %q
 
-
-
 }
-
-
-
-
-
-
 
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, templateName, templateType)
 
@@ -237,31 +187,11 @@ func testAccInterfaceTemplateDataSourceByID(manufacturerName, manufacturerSlug, 
 
 	return testAccInterfaceTemplateDataSourcePrereqs(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, templateName, templateType) + `
 
-
-
-
-
-
-
 data "netbox_interface_template" "test" {
-
-
-
-
-
-
 
   id = netbox_interface_template.test.id
 
-
-
 }
-
-
-
-
-
-
 
 `
 
@@ -273,43 +203,15 @@ func testAccInterfaceTemplateDataSourceByName(manufacturerName, manufacturerSlug
 
 	return testAccInterfaceTemplateDataSourcePrereqs(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, templateName, templateType) + fmt.Sprintf(`
 
-
-
-
-
-
-
 data "netbox_interface_template" "test" {
-
-
 
   name        = %q
 
-
-
-
-
-
-
   device_type = netbox_device_type.test.id
-
-
-
-
-
-
 
   depends_on = [netbox_interface_template.test]
 
-
-
 }
-
-
-
-
-
-
 
 `, templateName)
 

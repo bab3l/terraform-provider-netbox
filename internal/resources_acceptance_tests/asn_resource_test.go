@@ -121,43 +121,21 @@ func testAccASNResourceConfig_basic(rirName, rirSlug string, asn int64) string {
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_rir" "test" {
-
-
 
   name = %q
 
-
-
   slug = %q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_asn" "test" {
 
-
-
   asn = %d
-
-
 
   rir = netbox_rir.test.id
 
-
-
 }
-
-
 
 `, rirName, rirSlug, asn)
 
@@ -167,51 +145,25 @@ func testAccASNResourceConfig_full(rirName, rirSlug string, asn int64, descripti
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_rir" "test" {
-
-
 
   name = %q
 
-
-
   slug = %q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_asn" "test" {
 
-
-
   asn         = %d
-
-
 
   rir         = netbox_rir.test.id
 
-
-
   description = %q
-
-
 
   comments    = %q
 
-
-
 }
-
-
 
 `, rirName, rirSlug, asn, description, comments)
 
@@ -271,79 +223,35 @@ func testAccASNConsistencyLiteralNamesConfig(asn int64, rirName, rirSlug, tenant
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_rir" "test" {
-
-
 
   name = "%[2]s"
 
-
-
   slug = "%[3]s"
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_tenant" "test" {
 
-
-
   name = "%[4]s"
-
-
 
   slug = "%[5]s"
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_asn" "test" {
 
-
-
   asn = %[1]d
-
-
 
   # Use literal string names to mimic existing user state
 
-
-
   rir = "%[3]s"
-
-
 
   tenant = "%[4]s"
 
-
-
-
-
-
-
   depends_on = [netbox_rir.test, netbox_tenant.test]
 
-
-
 }
-
-
 
 `, asn, rirName, rirSlug, tenantName, tenantSlug)
 

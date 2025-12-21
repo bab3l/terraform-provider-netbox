@@ -129,7 +129,7 @@ func TestTunnelGroupDataSourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
@@ -254,51 +254,19 @@ func testAccTunnelGroupDataSourceByID(name, slug string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_tunnel_group" "test" {
-
-
 
   name = %[1]q
 
-
-
   slug = %[2]q
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_tunnel_group" "test" {
 
-
-
-
-
-
-
   id = netbox_tunnel_group.test.id
 
-
-
 }
-
-
-
-
-
-
 
 `, name, slug)
 
@@ -308,47 +276,19 @@ func testAccTunnelGroupDataSourceByName(name, slug string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_tunnel_group" "test" {
-
-
 
   name = %[1]q
 
-
-
   slug = %[2]q
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_tunnel_group" "test" {
 
-
-
   name = netbox_tunnel_group.test.name
 
-
-
 }
-
-
-
-
-
-
 
 `, name, slug)
 
@@ -358,47 +298,19 @@ func testAccTunnelGroupDataSourceBySlug(name, slug string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_tunnel_group" "test" {
-
-
 
   name = %[1]q
 
-
-
   slug = %[2]q
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_tunnel_group" "test" {
 
-
-
   slug = netbox_tunnel_group.test.slug
 
-
-
 }
-
-
-
-
-
-
 
 `, name, slug)
 

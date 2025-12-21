@@ -25,9 +25,9 @@ func TestAccIPRangeResource_basic(t *testing.T) {
 
 					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
 
-					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", "192.0.2.10"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", "192.0.2.10/32"),
 
-					resource.TestCheckResourceAttr("netbox_ip_range.test", "end_address", "192.0.2.20"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "end_address", "192.0.2.20/32"),
 				),
 			},
 		},
@@ -53,9 +53,9 @@ func TestAccIPRangeResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
 
-					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", "10.0.0.1"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", "10.0.0.1/32"),
 
-					resource.TestCheckResourceAttr("netbox_ip_range.test", "end_address", "10.0.0.254"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "end_address", "10.0.0.254/32"),
 
 					resource.TestCheckResourceAttr("netbox_ip_range.test", "status", "active"),
 
@@ -85,7 +85,7 @@ func TestAccIPRangeResource_update(t *testing.T) {
 
 					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
 
-					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", "192.0.2.10"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", "192.0.2.10/32"),
 				),
 			},
 

@@ -132,7 +132,7 @@ func (h *CreateErrorHandler) handleDuplicateError(
 
 		for _, msg := range messages {
 
-			sb.WriteString(fmt.Sprintf("  • %s: %s\n", field, msg))
+			sb.WriteString(fmt.Sprintf("  â€¢ %s: %s\n", field, msg))
 
 		}
 

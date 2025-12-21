@@ -129,7 +129,7 @@ func TestWebhookDataSourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
@@ -211,55 +211,19 @@ func testAccWebhookDataSourceByID(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_webhook" "test" {
-
-
 
   name        = %[1]q
 
-
-
-
-
-
-
   payload_url = "https://example.com/webhook"
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_webhook" "test" {
 
-
-
-
-
-
-
   id = netbox_webhook.test.id
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 
@@ -269,51 +233,19 @@ func testAccWebhookDataSourceByName(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_webhook" "test" {
-
-
 
   name        = %[1]q
 
-
-
-
-
-
-
   payload_url = "https://example.com/webhook"
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_webhook" "test" {
 
-
-
   name = netbox_webhook.test.name
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 

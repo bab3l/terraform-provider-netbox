@@ -129,7 +129,7 @@ func TestIPSecPolicyDataSourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
@@ -211,47 +211,17 @@ func testAccIPSecPolicyDataSourceByID(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_ipsec_policy" "test" {
-
-
 
   name = %[1]q
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_ipsec_policy" "test" {
 
-
-
-
-
-
-
   id = netbox_ipsec_policy.test.id
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 
@@ -261,43 +231,17 @@ func testAccIPSecPolicyDataSourceByName(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_ipsec_policy" "test" {
-
-
 
   name = %[1]q
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_ipsec_policy" "test" {
 
-
-
   name = netbox_ipsec_policy.test.name
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 

@@ -129,7 +129,7 @@ func TestDeviceDataSourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
@@ -313,147 +313,59 @@ func testAccDeviceDataSourceConfig_byName(deviceName, manufacturerName, manufact
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_manufacturer" "test" {
-
-
 
   name = %[1]q
 
-
-
   slug = %[2]q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_device_type" "test" {
 
-
-
   manufacturer = netbox_manufacturer.test.slug
-
-
 
   model        = %[3]q
 
-
-
   slug         = %[4]q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_device_role" "test" {
 
-
-
   name = %[5]q
-
-
 
   slug = %[6]q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_site" "test" {
 
-
-
   name   = %[7]q
-
-
 
   slug   = %[8]q
 
-
-
   status = "active"
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_device" "test" {
 
-
-
   name        = %[9]q
-
-
-
-
-
-
 
   device_type = netbox_device_type.test.slug
 
-
-
   role        = netbox_device_role.test.slug
-
-
 
   site        = netbox_site.test.slug
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_device" "test" {
 
-
-
   name = netbox_device.test.name
 
-
-
 }
-
-
-
-
-
-
 
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName)
 
@@ -463,151 +375,61 @@ func testAccDeviceDataSourceConfig_bySerial(deviceName, manufacturerName, manufa
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_manufacturer" "test" {
-
-
 
   name = %[1]q
 
-
-
   slug = %[2]q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_device_type" "test" {
 
-
-
   manufacturer = netbox_manufacturer.test.slug
-
-
 
   model        = %[3]q
 
-
-
   slug         = %[4]q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_device_role" "test" {
 
-
-
   name = %[5]q
-
-
 
   slug = %[6]q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_site" "test" {
 
-
-
   name   = %[7]q
-
-
 
   slug   = %[8]q
 
-
-
   status = "active"
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_device" "test" {
 
-
-
   name        = %[9]q
-
-
-
-
-
-
 
   device_type = netbox_device_type.test.slug
 
-
-
   role        = netbox_device_role.test.slug
-
-
 
   site        = netbox_site.test.slug
 
-
-
   serial      = %[10]q
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_device" "test" {
 
-
-
   serial = netbox_device.test.serial
 
-
-
 }
-
-
-
-
-
-
 
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, serial)
 

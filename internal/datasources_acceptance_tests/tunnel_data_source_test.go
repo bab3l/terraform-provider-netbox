@@ -129,7 +129,7 @@ func TestTunnelDataSourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
@@ -217,59 +217,21 @@ func testAccTunnelDataSourceByID(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_tunnel" "test" {
-
-
 
   name          = %[1]q
 
-
-
   status        = "active"
-
-
-
-
-
-
 
   encapsulation = "gre"
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_tunnel" "test" {
 
-
-
-
-
-
-
   id = netbox_tunnel.test.id
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 
@@ -279,55 +241,21 @@ func testAccTunnelDataSourceByName(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_tunnel" "test" {
-
-
 
   name          = %[1]q
 
-
-
   status        = "active"
-
-
-
-
-
-
 
   encapsulation = "gre"
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_tunnel" "test" {
 
-
-
   name = netbox_tunnel.test.name
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 

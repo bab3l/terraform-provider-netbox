@@ -54,9 +54,9 @@ resource "netbox_manufacturer" "test" {
 }
 
 resource "netbox_device_type" "test" {
-  model           = "%s-dt"
-  slug            = "%s-dt"
-  manufacturer_id = netbox_manufacturer.test.id
+  model        = "%s-dt"
+  slug         = "%s-dt"
+  manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_device_role" "test" {
@@ -66,16 +66,16 @@ resource "netbox_device_role" "test" {
 }
 
 resource "netbox_device" "test" {
-  name           = "%s-device"
-  site_id        = netbox_site.test.id
-  device_type_id = netbox_device_type.test.id
-  role_id        = netbox_device_role.test.id
+  name        = "%s-device"
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
 }
 
 resource "netbox_interface" "test" {
-  name      = "eth0"
-  device_id = netbox_device.test.id
-  type      = "virtual"
+  name   = "eth0"
+  device = netbox_device.test.id
+  type   = "virtual"
 }
 
 resource "netbox_fhrp_group" "test" {
@@ -105,9 +105,9 @@ resource "netbox_manufacturer" "test" {
 }
 
 resource "netbox_device_type" "test" {
-  model           = "%s-dt"
-  slug            = "%s-dt"
-  manufacturer_id = netbox_manufacturer.test.id
+  model        = "%s-dt"
+  slug         = "%s-dt"
+  manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_device_role" "test" {
@@ -117,16 +117,16 @@ resource "netbox_device_role" "test" {
 }
 
 resource "netbox_device" "test" {
-  name           = "%s-device"
-  site_id        = netbox_site.test.id
-  device_type_id = netbox_device_type.test.id
-  role_id        = netbox_device_role.test.id
+  name        = "%s-device"
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
 }
 
 resource "netbox_interface" "test" {
-  name      = "eth0"
-  device_id = netbox_device.test.id
-  type      = "virtual"
+  name   = "eth0"
+  device = netbox_device.test.id
+  type   = "virtual"
 }
 
 resource "netbox_fhrp_group" "test" {

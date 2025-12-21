@@ -143,7 +143,7 @@ func TestJournalEntryDataSourceConfigure(t *testing.T) {
 
 	// Test with incorrect provider data type
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
@@ -198,75 +198,29 @@ func testAccJournalEntryDataSourceConfig_byID(siteName string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_site" "test" {
-
-
 
   name = %q
 
-
-
   slug = %q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_journal_entry" "test" {
 
-
-
   assigned_object_type = "dcim.site"
-
-
 
   assigned_object_id   = netbox_site.test.id
 
-
-
   comments             = "Test journal entry for data source"
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_journal_entry" "test" {
 
-
-
-
-
-
-
   id = netbox_journal_entry.test.id
 
-
-
 }
-
-
-
-
-
-
 
 `, siteName, testutil.GenerateSlug(siteName))
 

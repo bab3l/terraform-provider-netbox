@@ -61,23 +61,13 @@ func testAccContactRoleResourceConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_contact_role" "test" {
-
-
 
   name = %q
 
-
-
   slug = %q
 
-
-
 }
-
-
 
 `, name, slug)
 

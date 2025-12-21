@@ -125,39 +125,21 @@ func testAccCustomFieldChoiceSetResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_custom_field_choice_set" "test" {
-
-
 
   name = "%s"
 
-
-
   extra_choices = [
-
-
 
     { value = "opt1", label = "Option 1" },
 
-
-
     { value = "opt2", label = "Option 2" },
-
-
 
     { value = "opt3", label = "Option 3" },
 
-
-
   ]
 
-
-
 }
-
-
 
 `, name)
 
@@ -167,47 +149,25 @@ func testAccCustomFieldChoiceSetResourceConfig_full(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_custom_field_choice_set" "test" {
-
-
 
   name                 = "%s"
 
-
-
   description          = "Test choice set"
-
-
 
   order_alphabetically = true
 
-
-
   extra_choices = [
-
-
 
     { value = "critical", label = "Critical" },
 
-
-
     { value = "high",     label = "High" },
-
-
 
     { value = "low",      label = "Low" },
 
-
-
   ]
 
-
-
 }
-
-
 
 `, name)
 

@@ -152,8 +152,6 @@ resource "netbox_manufacturer" "test" {
 
 }
 
-
-
 resource "netbox_device_type" "test" {
 
   model          = %q
@@ -165,8 +163,6 @@ resource "netbox_device_type" "test" {
   subdevice_role = "parent"
 
 }
-
-
 
 resource "netbox_device_bay_template" "test" {
 
@@ -192,8 +188,6 @@ resource "netbox_manufacturer" "test" {
 
 }
 
-
-
 resource "netbox_device_type" "test" {
 
   model          = %q
@@ -205,8 +199,6 @@ resource "netbox_device_type" "test" {
   subdevice_role = "parent"
 
 }
-
-
 
 resource "netbox_device_bay_template" "test" {
 
@@ -236,8 +228,6 @@ resource "netbox_manufacturer" "test" {
 
 }
 
-
-
 resource "netbox_device_type" "test" {
 
   model          = %q
@@ -249,8 +239,6 @@ resource "netbox_device_type" "test" {
   subdevice_role = "parent"
 
 }
-
-
 
 resource "netbox_device_bay_template" "test" {
 

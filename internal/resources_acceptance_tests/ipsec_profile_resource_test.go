@@ -30,7 +30,7 @@ func TestAccIPSECProfileResource_basic(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "name", name),
 
-					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "mode", "tunnel"),
+					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "mode", "esp"),
 				),
 			},
 		},
@@ -60,7 +60,7 @@ func TestAccIPSECProfileResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "name", name),
 
-					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "mode", "transport"),
+					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "mode", "ah"),
 
 					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "description", "Test IPsec profile"),
 				),
@@ -151,13 +151,11 @@ func testAccIPSECProfileResourceConfig_basic(name string) string {
 
 %s
 
-
-
 resource "netbox_ipsec_profile" "test" {
 
   name           = %q
 
-  mode           = "tunnel"
+  mode           = "esp"
 
   ike_policy     = netbox_ike_policy.test.id
 
@@ -175,13 +173,11 @@ func testAccIPSECProfileResourceConfig_full(name string) string {
 
 %s
 
-
-
 resource "netbox_ipsec_profile" "test" {
 
   name           = %q
 
-  mode           = "transport"
+  mode           = "ah"
 
   ike_policy     = netbox_ike_policy.test.id
 
@@ -204,8 +200,6 @@ resource "netbox_ike_policy" "test" {
   name = %q
 
 }
-
-
 
 resource "netbox_ipsec_policy" "test" {
 

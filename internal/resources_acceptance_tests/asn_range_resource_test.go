@@ -229,51 +229,27 @@ func testAccASNRangeResourceConfig_basic(name, slug, rirName, rirSlug string) st
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_rir" "test" {
-
-
 
   name = %q
 
-
-
   slug = %q
 
-
-
 }
-
-
 
 resource "netbox_asn_range" "test" {
 
-
-
   name  = %q
-
-
 
   slug  = %q
 
-
-
   rir   = netbox_rir.test.id
-
-
 
   start = "64512"
 
-
-
   end   = "64612"
 
-
-
 }
-
-
 
 `, rirName, rirSlug, name, slug)
 
@@ -283,83 +259,39 @@ func testAccASNRangeResourceConfig_full(name, slug, rirName, rirSlug, tenantName
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_rir" "test" {
-
-
 
   name = %q
 
-
-
   slug = %q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_tenant" "test" {
 
-
-
   name = %q
-
-
 
   slug = %q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_asn_range" "test" {
 
-
-
   name        = %q
-
-
 
   slug        = %q
 
-
-
   rir         = netbox_rir.test.id
-
-
 
   start       = "65000"
 
-
-
   end         = "65100"
-
-
 
   tenant      = netbox_tenant.test.id
 
-
-
   description = "Test ASN range with full options"
 
-
-
 }
-
-
 
 `, rirName, rirSlug, tenantName, tenantSlug, name, slug)
 
@@ -369,55 +301,29 @@ func testAccASNRangeResourceConfig_updated(name, slug, rirName, rirSlug string) 
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_rir" "test" {
-
-
 
   name = %q
 
-
-
   slug = %q
 
-
-
 }
-
-
 
 resource "netbox_asn_range" "test" {
 
-
-
   name        = %q
-
-
 
   slug        = %q
 
-
-
   rir         = netbox_rir.test.id
-
-
 
   start       = "64512"
 
-
-
   end         = "64700"
-
-
 
   description = "Updated description"
 
-
-
 }
-
-
 
 `, rirName, rirSlug, name, slug)
 
@@ -551,79 +457,37 @@ func testAccASNRangeConsistencyConfig(rangeName, rangeSlug, rirName, rirSlug, te
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_rir" "test" {
-
-
 
   name = "%[3]s"
 
-
-
   slug = "%[4]s"
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_tenant" "test" {
 
-
-
   name = "%[5]s"
-
-
 
   slug = "%[6]s"
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_asn_range" "test" {
 
-
-
   name = "%[1]s"
-
-
 
   slug = "%[2]s"
 
-
-
   rir = netbox_rir.test.slug
-
-
 
   tenant = netbox_tenant.test.name
 
-
-
   start = 65000
-
-
 
   end = 65100
 
-
-
 }
-
-
 
 `, rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug)
 
@@ -690,95 +554,41 @@ func testAccASNRangeConsistencyLiteralNamesConfig(rangeName, rangeSlug, rirName,
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_rir" "test" {
-
-
 
   name = "%[3]s"
 
-
-
   slug = "%[4]s"
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_tenant" "test" {
 
-
-
   name = "%[5]s"
-
-
 
   slug = "%[6]s"
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_asn_range" "test" {
 
-
-
   name = "%[1]s"
-
-
 
   slug = "%[2]s"
 
-
-
-
-
-
-
   # Use literal string names to mimic existing user state
-
-
 
   rir = "%[4]s"
 
-
-
   tenant = "%[5]s"
-
-
 
   start = 65000
 
-
-
   end = 65100
-
-
-
-
-
-
 
   depends_on = [netbox_rir.test, netbox_tenant.test]
 
-
-
 }
-
-
 
 `, rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug)
 

@@ -166,8 +166,6 @@ resource "netbox_manufacturer" "test" {
 
 }
 
-
-
 resource "netbox_device_type" "test" {
 
   manufacturer = netbox_manufacturer.test.slug
@@ -193,8 +191,6 @@ resource "netbox_manufacturer" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_device_type" "test" {
 
@@ -233,8 +229,6 @@ resource "netbox_manufacturer" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_device_type" "test" {
 

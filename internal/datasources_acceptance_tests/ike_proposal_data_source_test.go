@@ -129,7 +129,7 @@ func TestIKEProposalDataSourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
@@ -217,75 +217,25 @@ func testAccIKEProposalDataSourceByID(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_ike_proposal" "test" {
-
-
 
   name                     = %[1]q
 
-
-
-
-
-
-
   authentication_method    = "preshared-keys"
-
-
-
-
-
-
 
   encryption_algorithm     = "aes-256-cbc"
 
-
-
-
-
-
-
   authentication_algorithm = "hmac-sha256"
-
-
 
   group                    = 14
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_ike_proposal" "test" {
 
-
-
-
-
-
-
   id = netbox_ike_proposal.test.id
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 
@@ -295,71 +245,25 @@ func testAccIKEProposalDataSourceByName(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_ike_proposal" "test" {
-
-
 
   name                     = %[1]q
 
-
-
-
-
-
-
   authentication_method    = "preshared-keys"
-
-
-
-
-
-
 
   encryption_algorithm     = "aes-256-cbc"
 
-
-
-
-
-
-
   authentication_algorithm = "hmac-sha256"
-
-
 
   group                    = 14
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_ike_proposal" "test" {
 
-
-
   name = netbox_ike_proposal.test.name
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 

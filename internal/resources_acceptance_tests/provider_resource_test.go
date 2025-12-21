@@ -204,23 +204,13 @@ func testAccProviderResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_provider" "test" {
-
-
 
   name = %q
 
-
-
   slug = %q
 
-
-
 }
-
-
 
 `, name, slug)
 
@@ -230,31 +220,17 @@ func testAccProviderResourceConfig_full(name, slug, description, comments string
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_provider" "test" {
-
-
 
   name        = %q
 
-
-
   slug        = %q
-
-
 
   description = %q
 
-
-
   comments    = %q
 
-
-
 }
-
-
 
 `, name, slug, description, comments)
 

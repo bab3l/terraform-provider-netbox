@@ -370,8 +370,6 @@ resource "netbox_provider" "test" {
 
 }
 
-
-
 resource "netbox_circuit_type" "test" {
 
   name = %q
@@ -379,8 +377,6 @@ resource "netbox_circuit_type" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_circuit" "test" {
 
@@ -408,8 +404,6 @@ resource "netbox_provider" "test" {
 
 }
 
-
-
 resource "netbox_circuit_type" "test" {
 
   name = %q
@@ -417,8 +411,6 @@ resource "netbox_circuit_type" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_circuit" "test" {
 
@@ -454,8 +446,6 @@ resource "netbox_provider" "test" {
 
 }
 
-
-
 resource "netbox_circuit_type" "test" {
 
   name = %q
@@ -463,8 +453,6 @@ resource "netbox_circuit_type" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_circuit" "test" {
 
@@ -494,8 +482,6 @@ resource "netbox_provider" "test" {
 
 }
 
-
-
 resource "netbox_circuit_type" "test" {
 
   name = "%[4]s"
@@ -504,8 +490,6 @@ resource "netbox_circuit_type" "test" {
 
 }
 
-
-
 resource "netbox_tenant" "test" {
 
   name = "%[6]s"
@@ -513,8 +497,6 @@ resource "netbox_tenant" "test" {
   slug = "%[7]s"
 
 }
-
-
 
 resource "netbox_circuit" "test" {
 
@@ -544,8 +526,6 @@ resource "netbox_provider" "test" {
 
 }
 
-
-
 resource "netbox_circuit_type" "test" {
 
   name = "%[4]s"
@@ -554,8 +534,6 @@ resource "netbox_circuit_type" "test" {
 
 }
 
-
-
 resource "netbox_tenant" "test" {
 
   name = "%[6]s"
@@ -563,8 +541,6 @@ resource "netbox_tenant" "test" {
   slug = "%[7]s"
 
 }
-
-
 
 resource "netbox_circuit" "test" {
 
@@ -577,8 +553,6 @@ resource "netbox_circuit" "test" {
   type = "%[5]s"
 
   tenant = "%[6]s"
-
-
 
   depends_on = [netbox_provider.test, netbox_circuit_type.test, netbox_tenant.test]
 

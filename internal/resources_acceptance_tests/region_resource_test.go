@@ -269,11 +269,7 @@ terraform {
 
 }
 
-
-
 provider "netbox" {}
-
-
 
 resource "netbox_region" "test" {
 
@@ -307,11 +303,7 @@ terraform {
 
 }
 
-
-
 provider "netbox" {}
-
-
 
 resource "netbox_region" "test" {
 
@@ -347,11 +339,7 @@ terraform {
 
 }
 
-
-
 provider "netbox" {}
-
-
 
 resource "netbox_region" "parent" {
 
@@ -360,8 +348,6 @@ resource "netbox_region" "parent" {
   slug = %q
 
 }
-
-
 
 resource "netbox_region" "child" {
 

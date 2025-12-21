@@ -58,9 +58,9 @@ func TestAccIPSECProposalResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "name", name),
 
-					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "encryption_algorithm", "aes-128"),
+					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "encryption_algorithm", "aes-128-cbc"),
 
-					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "authentication_algorithm", "sha256"),
+					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "authentication_algorithm", "hmac-sha256"),
 
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "description", "Test IPsec proposal"),
 				),
@@ -102,7 +102,7 @@ func TestAccIPSECProposalResource_update(t *testing.T) {
 
 					resource.TestCheckResourceAttrSet("netbox_ipsec_proposal.test", "id"),
 
-					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "encryption_algorithm", "aes-128"),
+					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "encryption_algorithm", "aes-128-cbc"),
 
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "description", "Test IPsec proposal"),
 				),
@@ -169,9 +169,9 @@ resource "netbox_ipsec_proposal" "test" {
 
   name                     = %q
 
-  encryption_algorithm     = "aes-128"
+  encryption_algorithm     = "aes-128-cbc"
 
-  authentication_algorithm = "sha256"
+  authentication_algorithm = "hmac-sha256"
 
   description              = "Test IPsec proposal"
 

@@ -150,7 +150,7 @@ func TestFHRPGroupDataSourceConfigure(t *testing.T) {
 
 	// Test with incorrect provider data type
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
@@ -258,63 +258,21 @@ func testAccFHRPGroupDataSourceConfig_byID(protocol string, groupID int32, name 
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_fhrp_group" "test" {
-
-
-
-
-
-
 
   protocol = %q
 
-
-
-
-
-
-
   group_id = %d
-
-
 
   name     = %q
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_fhrp_group" "test" {
 
-
-
-
-
-
-
   id = netbox_fhrp_group.test.id
 
-
-
 }
-
-
-
-
-
-
 
 `, protocol, groupID, name)
 
@@ -324,71 +282,23 @@ func testAccFHRPGroupDataSourceConfig_byProtocolAndGroupID(protocol string, grou
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_fhrp_group" "test" {
-
-
-
-
-
-
 
   protocol = %q
 
-
-
-
-
-
-
   group_id = %d
-
-
 
   name     = %q
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_fhrp_group" "test" {
 
-
-
-
-
-
-
   protocol = netbox_fhrp_group.test.protocol
-
-
-
-
-
-
 
   group_id = netbox_fhrp_group.test.group_id
 
-
-
 }
-
-
-
-
-
-
 
 `, protocol, groupID, name)
 

@@ -215,8 +215,6 @@ resource "netbox_cluster_type" "test" {
 
 }
 
-
-
 resource "netbox_cluster" "test" {
 
   name = %q
@@ -224,8 +222,6 @@ resource "netbox_cluster" "test" {
   type = netbox_cluster_type.test.slug
 
 }
-
-
 
 resource "netbox_virtual_machine" "test" {
 
@@ -284,8 +280,6 @@ resource "netbox_cluster_type" "test" {
 
 }
 
-
-
 resource "netbox_cluster" "test" {
 
   name = %q
@@ -293,8 +287,6 @@ resource "netbox_cluster" "test" {
   type = netbox_cluster_type.test.slug
 
 }
-
-
 
 resource "netbox_virtual_machine" "test" {
 

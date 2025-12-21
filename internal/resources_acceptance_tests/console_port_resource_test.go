@@ -296,8 +296,6 @@ resource "netbox_site" "test" {
 
 }
 
-
-
 resource "netbox_manufacturer" "test" {
 
   name = %q
@@ -305,8 +303,6 @@ resource "netbox_manufacturer" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_device_type" "test" {
 
@@ -318,8 +314,6 @@ resource "netbox_device_type" "test" {
 
 }
 
-
-
 resource "netbox_device_role" "test" {
 
   name  = %q
@@ -329,8 +323,6 @@ resource "netbox_device_role" "test" {
   color = "aa1409"
 
 }
-
-
 
 resource "netbox_device" "test" {
 
@@ -343,8 +335,6 @@ resource "netbox_device" "test" {
   site        = netbox_site.test.id
 
 }
-
-
 
 resource "netbox_console_port" "test" {
 
@@ -372,8 +362,6 @@ resource "netbox_site" "test" {
 
 }
 
-
-
 resource "netbox_manufacturer" "test" {
 
   name = %q
@@ -381,8 +369,6 @@ resource "netbox_manufacturer" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_device_type" "test" {
 
@@ -394,8 +380,6 @@ resource "netbox_device_type" "test" {
 
 }
 
-
-
 resource "netbox_device_role" "test" {
 
   name  = %q
@@ -405,8 +389,6 @@ resource "netbox_device_role" "test" {
   color = "aa1409"
 
 }
-
-
 
 resource "netbox_device" "test" {
 
@@ -419,8 +401,6 @@ resource "netbox_device" "test" {
   site        = netbox_site.test.id
 
 }
-
-
 
 resource "netbox_console_port" "test" {
 
@@ -450,8 +430,6 @@ resource "netbox_site" "test" {
 
 }
 
-
-
 resource "netbox_manufacturer" "test" {
 
   name = "%[3]s"
@@ -459,8 +437,6 @@ resource "netbox_manufacturer" "test" {
   slug = "%[4]s"
 
 }
-
-
 
 resource "netbox_device_type" "test" {
 
@@ -472,8 +448,6 @@ resource "netbox_device_type" "test" {
 
 }
 
-
-
 resource "netbox_device_role" "test" {
 
   name = "%[7]s"
@@ -481,8 +455,6 @@ resource "netbox_device_role" "test" {
   slug = "%[8]s"
 
 }
-
-
 
 resource "netbox_device" "test" {
 
@@ -495,8 +467,6 @@ resource "netbox_device" "test" {
   site = netbox_site.test.id
 
 }
-
-
 
 resource "netbox_console_port" "test" {
 
@@ -524,8 +494,6 @@ resource "netbox_manufacturer" "test" {
 
 }
 
-
-
 resource "netbox_device_type" "test" {
 
   model          = %q
@@ -538,8 +506,6 @@ resource "netbox_device_type" "test" {
 
 }
 
-
-
 resource "netbox_site" "test" {
 
   name = %q
@@ -547,8 +513,6 @@ resource "netbox_site" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_device_role" "test" {
 
@@ -559,8 +523,6 @@ resource "netbox_device_role" "test" {
   color = "ff0000"
 
 }
-
-
 
 resource "netbox_device" "test" {
 
@@ -576,8 +538,6 @@ resource "netbox_device" "test" {
 
 }
 
-
-
 resource "netbox_console_port" "test" {
 
   # Use literal string name to mimic existing user state
@@ -587,8 +547,6 @@ resource "netbox_console_port" "test" {
   name = %q
 
   type = "rj-45"
-
-
 
   depends_on = [netbox_device.test]
 

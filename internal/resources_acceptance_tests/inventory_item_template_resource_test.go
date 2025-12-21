@@ -155,8 +155,6 @@ func testAccInventoryItemTemplateResourceConfig_basic(name string) string {
 
 %s
 
-
-
 resource "netbox_inventory_item_template" "test" {
 
   device_type = netbox_device_type.test.id
@@ -174,8 +172,6 @@ func testAccInventoryItemTemplateResourceConfig_full(name string) string {
 	return fmt.Sprintf(`
 
 %s
-
-
 
 resource "netbox_inventory_item_template" "test" {
 
@@ -203,9 +199,9 @@ resource "netbox_manufacturer" "test" {
 
   name = %q
 
+  slug = %q
+
 }
-
-
 
 resource "netbox_device_type" "test" {
 
@@ -213,8 +209,10 @@ resource "netbox_device_type" "test" {
 
   model        = %q
 
+  slug         = %q
+
 }
 
-`, name+"-mfr", name+"-model")
+`, name+"-mfr", testutil.RandomSlug("mfr"), name+"-model", testutil.RandomSlug("device"))
 
 }

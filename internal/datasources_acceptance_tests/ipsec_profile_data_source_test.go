@@ -129,7 +129,7 @@ func TestIPSecProfileDataSourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
@@ -223,107 +223,37 @@ func testAccIPSecProfileDataSourceByID(name, ikePolicyName, ipsecPolicyName stri
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_ike_policy" "test" {
-
-
 
   name    = %[2]q
 
-
-
-
-
-
-
   version = 2
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_ipsec_policy" "test" {
 
-
-
   name = %[3]q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_ipsec_profile" "test" {
 
-
-
   name         = %[1]q
-
-
 
   mode         = "esp"
 
-
-
-
-
-
-
   ike_policy   = netbox_ike_policy.test.id
-
-
-
-
-
-
 
   ipsec_policy = netbox_ipsec_policy.test.id
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_ipsec_profile" "test" {
 
-
-
-
-
-
-
   id = netbox_ipsec_profile.test.id
 
-
-
 }
-
-
-
-
-
-
 
 `, name, ikePolicyName, ipsecPolicyName)
 
@@ -333,103 +263,37 @@ func testAccIPSecProfileDataSourceByName(name, ikePolicyName, ipsecPolicyName st
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_ike_policy" "test" {
-
-
 
   name    = %[2]q
 
-
-
-
-
-
-
   version = 2
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_ipsec_policy" "test" {
 
-
-
   name = %[3]q
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_ipsec_profile" "test" {
 
-
-
   name         = %[1]q
-
-
 
   mode         = "esp"
 
-
-
-
-
-
-
   ike_policy   = netbox_ike_policy.test.id
-
-
-
-
-
-
 
   ipsec_policy = netbox_ipsec_policy.test.id
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_ipsec_profile" "test" {
 
-
-
   name = netbox_ipsec_profile.test.name
 
-
-
 }
-
-
-
-
-
-
 
 `, name, ikePolicyName, ipsecPolicyName)
 

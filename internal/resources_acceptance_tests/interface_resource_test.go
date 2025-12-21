@@ -227,8 +227,6 @@ func testAccInterfaceResourceConfig_basic(name string) string {
 
 %s
 
-
-
 resource "netbox_interface" "test" {
 
   device = netbox_device.test.id
@@ -248,8 +246,6 @@ func testAccInterfaceResourceConfig_full(name string) string {
 	return fmt.Sprintf(`
 
 %s
-
-
 
 resource "netbox_interface" "test" {
 
@@ -279,8 +275,6 @@ func testAccInterfaceResourceConfig_updated(name string) string {
 
 %s
 
-
-
 resource "netbox_interface" "test" {
 
   device      = netbox_device.test.id
@@ -305,8 +299,6 @@ func testAccInterfaceResourceConfig_consistency_device_name(name string) string 
 
 %s
 
-
-
 resource "netbox_interface" "test" {
 
   device = netbox_device.test.name
@@ -326,8 +318,6 @@ func testAccInterfaceResourceConfig_consistency_device_id(name string) string {
 	return fmt.Sprintf(`
 
 %s
-
-
 
 resource "netbox_interface" "test" {
 
@@ -351,17 +341,17 @@ resource "netbox_site" "test" {
 
   name = %q
 
+  slug = %q
+
 }
-
-
 
 resource "netbox_manufacturer" "test" {
 
   name = %q
 
+  slug = %q
+
 }
-
-
 
 resource "netbox_device_type" "test" {
 
@@ -369,32 +359,32 @@ resource "netbox_device_type" "test" {
 
   model        = %q
 
+  slug         = %q
+
 }
-
-
 
 resource "netbox_device_role" "test" {
 
   name = %q
 
+  slug = %q
+
 }
-
-
 
 resource "netbox_device" "test" {
 
-  site            = netbox_site.test.id
+  site        = netbox_site.test.id
 
-  name            = %q
+  name        = %q
 
-  device_type     = netbox_device_type.test.id
+  device_type = netbox_device_type.test.id
 
-  device_role     = netbox_device_role.test.id
+  role        = netbox_device_role.test.id
 
-  status          = "offline"
+  status      = "offline"
 
 }
 
-`, name+"-site", name+"-mfr", name+"-model", name+"-role", name+"-device")
+`, name+"-site", testutil.RandomSlug("site"), name+"-mfr", testutil.RandomSlug("mfr"), name+"-model", testutil.RandomSlug("device"), name+"-role", testutil.RandomSlug("role"), name+"-device")
 
 }

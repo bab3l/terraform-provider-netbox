@@ -290,8 +290,6 @@ resource "netbox_site" "test" {
 
 }
 
-
-
 resource "netbox_manufacturer" "test" {
 
   name = %q
@@ -299,8 +297,6 @@ resource "netbox_manufacturer" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_device_type" "test" {
 
@@ -312,8 +308,6 @@ resource "netbox_device_type" "test" {
 
 }
 
-
-
 resource "netbox_device_role" "test" {
 
   name = %q
@@ -321,8 +315,6 @@ resource "netbox_device_role" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_device" "test" {
 
@@ -335,8 +327,6 @@ resource "netbox_device" "test" {
   site = netbox_site.test.id
 
 }
-
-
 
 resource "netbox_virtual_device_context" "test" {
 
@@ -364,8 +354,6 @@ resource "netbox_site" "test" {
 
 }
 
-
-
 resource "netbox_manufacturer" "test" {
 
   name = %q
@@ -373,8 +361,6 @@ resource "netbox_manufacturer" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_device_type" "test" {
 
@@ -386,8 +372,6 @@ resource "netbox_device_type" "test" {
 
 }
 
-
-
 resource "netbox_device_role" "test" {
 
   name = %q
@@ -395,8 +379,6 @@ resource "netbox_device_role" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_device" "test" {
 
@@ -409,8 +391,6 @@ resource "netbox_device" "test" {
   site = netbox_site.test.id
 
 }
-
-
 
 resource "netbox_virtual_device_context" "test" {
 
@@ -440,8 +420,6 @@ resource "netbox_site" "test" {
 
 }
 
-
-
 resource "netbox_manufacturer" "test" {
 
   name = "%[3]s"
@@ -449,8 +427,6 @@ resource "netbox_manufacturer" "test" {
   slug = "%[4]s"
 
 }
-
-
 
 resource "netbox_device_type" "test" {
 
@@ -462,8 +438,6 @@ resource "netbox_device_type" "test" {
 
 }
 
-
-
 resource "netbox_device_role" "test" {
 
   name = "%[7]s"
@@ -471,8 +445,6 @@ resource "netbox_device_role" "test" {
   slug = "%[8]s"
 
 }
-
-
 
 resource "netbox_device" "test" {
 
@@ -486,8 +458,6 @@ resource "netbox_device" "test" {
 
 }
 
-
-
 resource "netbox_tenant" "test" {
 
   name = "%[11]s"
@@ -495,8 +465,6 @@ resource "netbox_tenant" "test" {
   slug = "%[12]s"
 
 }
-
-
 
 resource "netbox_virtual_device_context" "test" {
 
@@ -526,8 +494,6 @@ resource "netbox_site" "test" {
 
 }
 
-
-
 resource "netbox_manufacturer" "test" {
 
   name = "%[3]s"
@@ -535,8 +501,6 @@ resource "netbox_manufacturer" "test" {
   slug = "%[4]s"
 
 }
-
-
 
 resource "netbox_device_type" "test" {
 
@@ -548,8 +512,6 @@ resource "netbox_device_type" "test" {
 
 }
 
-
-
 resource "netbox_device_role" "test" {
 
   name = "%[7]s"
@@ -557,8 +519,6 @@ resource "netbox_device_role" "test" {
   slug = "%[8]s"
 
 }
-
-
 
 resource "netbox_device" "test" {
 
@@ -574,8 +534,6 @@ resource "netbox_device" "test" {
 
 }
 
-
-
 resource "netbox_tenant" "test" {
 
   name = "%[11]s"
@@ -583,8 +541,6 @@ resource "netbox_tenant" "test" {
   slug = "%[12]s"
 
 }
-
-
 
 resource "netbox_virtual_device_context" "test" {
 
@@ -595,8 +551,6 @@ resource "netbox_virtual_device_context" "test" {
   tenant = "%[11]s"
 
   status = "active"
-
-
 
   depends_on = [netbox_device.test, netbox_tenant.test]
 

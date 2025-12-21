@@ -129,7 +129,7 @@ func TestIPSecProposalDataSourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
@@ -217,63 +217,21 @@ func testAccIPSecProposalDataSourceByID(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_ipsec_proposal" "test" {
-
-
 
   name                     = %[1]q
 
-
-
-
-
-
-
   encryption_algorithm     = "aes-256-cbc"
-
-
-
-
-
-
 
   authentication_algorithm = "hmac-sha256"
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_ipsec_proposal" "test" {
 
-
-
-
-
-
-
   id = netbox_ipsec_proposal.test.id
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 
@@ -283,59 +241,21 @@ func testAccIPSecProposalDataSourceByName(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_ipsec_proposal" "test" {
-
-
 
   name                     = %[1]q
 
-
-
-
-
-
-
   encryption_algorithm     = "aes-256-cbc"
-
-
-
-
-
-
 
   authentication_algorithm = "hmac-sha256"
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_ipsec_proposal" "test" {
 
-
-
   name = netbox_ipsec_proposal.test.name
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 

@@ -143,9 +143,9 @@ resource "netbox_site" "test" {
 
   name = "test-site"
 
+  slug = "test-site"
+
 }
-
-
 
 resource "netbox_journal_entry" "test" {
 
@@ -169,9 +169,9 @@ resource "netbox_site" "test" {
 
   name = %q
 
+  slug = %q
+
 }
-
-
 
 resource "netbox_journal_entry" "test" {
 
@@ -185,7 +185,7 @@ resource "netbox_journal_entry" "test" {
 
 }
 
-`, name)
+`, name, testutil.RandomSlug("site"))
 
 }
 
@@ -197,9 +197,9 @@ resource "netbox_site" "test" {
 
   name = "test-site"
 
+  slug = "test-site"
+
 }
-
-
 
 resource "netbox_journal_entry" "test" {
 

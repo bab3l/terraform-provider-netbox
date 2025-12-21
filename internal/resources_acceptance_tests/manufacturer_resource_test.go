@@ -218,11 +218,7 @@ terraform {
 
 }
 
-
-
 provider "netbox" {}
-
-
 
 resource "netbox_manufacturer" "test" {
 
@@ -256,11 +252,7 @@ terraform {
 
 }
 
-
-
 provider "netbox" {}
-
-
 
 resource "netbox_manufacturer" "test" {
 

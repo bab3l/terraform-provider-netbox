@@ -65,23 +65,13 @@ func testAccClusterGroupResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
-
-
 resource "netbox_cluster_group" "test" {
-
-
 
   name = %q
 
-
-
   slug = %q
 
-
-
 }
-
-
 
 `, name, slug)
 

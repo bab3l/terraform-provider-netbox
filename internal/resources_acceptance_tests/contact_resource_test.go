@@ -243,8 +243,6 @@ resource "netbox_contact_group" "test" {
 
 }
 
-
-
 resource "netbox_contact" "test" {
 
   name = "%[1]s"
@@ -268,8 +266,6 @@ resource "netbox_contact_group" "test" {
   slug = "%[3]s"
 
 }
-
-
 
 resource "netbox_contact" "test" {
 

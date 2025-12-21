@@ -83,8 +83,6 @@ resource "netbox_site" "test" {
 
 }
 
-
-
 resource "netbox_location" "test" {
 
   name = "%[3]s"
@@ -95,8 +93,6 @@ resource "netbox_location" "test" {
 
 }
 
-
-
 resource "netbox_manufacturer" "test" {
 
   name = "%[5]s"
@@ -104,8 +100,6 @@ resource "netbox_manufacturer" "test" {
   slug = "%[6]s"
 
 }
-
-
 
 resource "netbox_device_type" "test" {
 
@@ -119,8 +113,6 @@ resource "netbox_device_type" "test" {
 
 }
 
-
-
 resource "netbox_device_role" "test" {
 
   name = "%[9]s"
@@ -128,8 +120,6 @@ resource "netbox_device_role" "test" {
   slug = "%[10]s"
 
 }
-
-
 
 resource "netbox_device" "test" {
 
@@ -218,8 +208,6 @@ resource "netbox_site" "test" {
 
 }
 
-
-
 resource "netbox_manufacturer" "test" {
 
   name = "%[3]s"
@@ -227,8 +215,6 @@ resource "netbox_manufacturer" "test" {
   slug = "%[4]s"
 
 }
-
-
 
 resource "netbox_rack_type" "test" {
 
@@ -242,8 +228,6 @@ resource "netbox_rack_type" "test" {
 
 }
 
-
-
 resource "netbox_rack_role" "test" {
 
   name = "%[7]s"
@@ -251,8 +235,6 @@ resource "netbox_rack_role" "test" {
   slug = "%[8]s"
 
 }
-
-
 
 resource "netbox_rack" "test" {
 
@@ -343,8 +325,6 @@ resource "netbox_region" "test" {
 
 }
 
-
-
 resource "netbox_site_group" "test" {
 
   name = "%[3]s"
@@ -353,8 +333,6 @@ resource "netbox_site_group" "test" {
 
 }
 
-
-
 resource "netbox_tenant" "test" {
 
   name = "%[5]s"
@@ -362,8 +340,6 @@ resource "netbox_tenant" "test" {
   slug = "%[6]s"
 
 }
-
-
 
 resource "netbox_site" "test" {
 
@@ -444,8 +420,6 @@ resource "netbox_tenant_group" "test" {
 
 }
 
-
-
 resource "netbox_tenant" "test" {
 
   name = "%[3]s"
@@ -455,8 +429,6 @@ resource "netbox_tenant" "test" {
   group = netbox_tenant_group.test.name
 
 }
-
-
 
 resource "netbox_circuit_group" "test" {
 
@@ -527,8 +499,6 @@ resource "netbox_contact_group" "parent" {
 
 }
 
-
-
 resource "netbox_contact_group" "child" {
 
   name = "%[3]s"
@@ -597,8 +567,6 @@ resource "netbox_region" "parent" {
   slug = "%[2]s"
 
 }
-
-
 
 resource "netbox_region" "child" {
 
@@ -669,8 +637,6 @@ resource "netbox_site_group" "parent" {
 
 }
 
-
-
 resource "netbox_site_group" "child" {
 
   name = "%[3]s"
@@ -739,8 +705,6 @@ resource "netbox_tenant_group" "parent" {
   slug = "%[2]s"
 
 }
-
-
 
 resource "netbox_tenant_group" "child" {
 
@@ -815,8 +779,6 @@ resource "netbox_site" "test" {
 
 }
 
-
-
 resource "netbox_location" "parent" {
 
   name = "%[3]s"
@@ -826,8 +788,6 @@ resource "netbox_location" "parent" {
   site = netbox_site.test.id
 
 }
-
-
 
 resource "netbox_location" "child" {
 
@@ -898,8 +858,6 @@ resource "netbox_tenant" "test" {
 
 }
 
-
-
 resource "netbox_vrf" "test" {
 
   name = "%[3]s"
@@ -966,8 +924,6 @@ resource "netbox_manufacturer" "test" {
   slug = "%[2]s"
 
 }
-
-
 
 resource "netbox_rack_type" "test" {
 
@@ -1037,8 +993,6 @@ resource "netbox_tenant" "test" {
   slug = "%[2]s"
 
 }
-
-
 
 resource "netbox_route_target" "test" {
 
@@ -1113,8 +1067,6 @@ resource "netbox_site" "test" {
 
 }
 
-
-
 resource "netbox_tenant" "test" {
 
   name = "%[3]s"
@@ -1122,8 +1074,6 @@ resource "netbox_tenant" "test" {
   slug = "%[4]s"
 
 }
-
-
 
 resource "netbox_vlan" "test" {
 
@@ -1195,8 +1145,6 @@ resource "netbox_manufacturer" "test" {
   slug = "%[2]s"
 
 }
-
-
 
 resource "netbox_platform" "test" {
 

@@ -195,8 +195,6 @@ resource "netbox_ike_proposal" "test" {
 
 }
 
-
-
 resource "netbox_ike_policy" "test" {
 
   name        = %q

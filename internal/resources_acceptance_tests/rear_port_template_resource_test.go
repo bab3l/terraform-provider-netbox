@@ -257,8 +257,6 @@ resource "netbox_manufacturer" "test" {
 
 }
 
-
-
 resource "netbox_device_type" "test" {
 
   manufacturer = netbox_manufacturer.test.id
@@ -268,8 +266,6 @@ resource "netbox_device_type" "test" {
   slug         = %q
 
 }
-
-
 
 resource "netbox_rear_port_template" "test" {
 
@@ -297,8 +293,6 @@ resource "netbox_manufacturer" "test" {
 
 }
 
-
-
 resource "netbox_device_type" "test" {
 
   manufacturer = netbox_manufacturer.test.id
@@ -308,8 +302,6 @@ resource "netbox_device_type" "test" {
   slug         = %q
 
 }
-
-
 
 resource "netbox_rear_port_template" "test" {
 
@@ -345,8 +337,6 @@ resource "netbox_manufacturer" "test" {
 
 }
 
-
-
 resource "netbox_device_type" "test" {
 
   model = "%[3]s"
@@ -356,8 +346,6 @@ resource "netbox_device_type" "test" {
   manufacturer = netbox_manufacturer.test.id
 
 }
-
-
 
 resource "netbox_rear_port_template" "test" {
 
@@ -387,8 +375,6 @@ resource "netbox_manufacturer" "test" {
 
 }
 
-
-
 resource "netbox_device_type" "test" {
 
   model        = %q
@@ -399,8 +385,6 @@ resource "netbox_device_type" "test" {
 
 }
 
-
-
 resource "netbox_rear_port_template" "test" {
 
   device_type = %q
@@ -410,8 +394,6 @@ resource "netbox_rear_port_template" "test" {
   type = "8p8c"
 
   positions = 1
-
-
 
   depends_on = [netbox_device_type.test]
 

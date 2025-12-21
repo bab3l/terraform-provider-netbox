@@ -388,8 +388,6 @@ resource "netbox_cluster_type" "test" {
 
 }
 
-
-
 resource "netbox_cluster" "test" {
 
   name = %q
@@ -398,15 +396,11 @@ resource "netbox_cluster" "test" {
 
 }
 
-
-
 resource "netbox_virtual_machine" "test" {
 
   name    = %q
 
   cluster = netbox_cluster.test.id
-
-
 
   lifecycle {
 
@@ -415,8 +409,6 @@ resource "netbox_virtual_machine" "test" {
   }
 
 }
-
-
 
 resource "netbox_virtual_disk" "test" {
 
@@ -444,8 +436,6 @@ resource "netbox_cluster_type" "test" {
 
 }
 
-
-
 resource "netbox_cluster" "test" {
 
   name = %q
@@ -454,15 +444,11 @@ resource "netbox_cluster" "test" {
 
 }
 
-
-
 resource "netbox_virtual_machine" "test" {
 
   name    = %q
 
   cluster = netbox_cluster.test.id
-
-
 
   lifecycle {
 
@@ -471,8 +457,6 @@ resource "netbox_virtual_machine" "test" {
   }
 
 }
-
-
 
 resource "netbox_virtual_disk" "test" {
 
@@ -502,8 +486,6 @@ resource "netbox_cluster_type" "test" {
 
 }
 
-
-
 resource "netbox_cluster" "test" {
 
   name = %q
@@ -512,15 +494,11 @@ resource "netbox_cluster" "test" {
 
 }
 
-
-
 resource "netbox_virtual_machine" "test" {
 
   name    = %q
 
   cluster = netbox_cluster.test.id
-
-
 
   lifecycle {
 
@@ -529,8 +507,6 @@ resource "netbox_virtual_machine" "test" {
   }
 
 }
-
-
 
 resource "netbox_virtual_disk" "test" {
 
@@ -560,8 +536,6 @@ resource "netbox_cluster_type" "test" {
 
 }
 
-
-
 resource "netbox_cluster" "test" {
 
   name = "%[3]s"
@@ -570,15 +544,11 @@ resource "netbox_cluster" "test" {
 
 }
 
-
-
 resource "netbox_virtual_machine" "test" {
 
   name = "%[4]s"
 
   cluster = netbox_cluster.test.id
-
-
 
   lifecycle {
 
@@ -587,8 +557,6 @@ resource "netbox_virtual_machine" "test" {
   }
 
 }
-
-
 
 resource "netbox_virtual_disk" "test" {
 
@@ -616,8 +584,6 @@ resource "netbox_cluster_type" "test" {
 
 }
 
-
-
 resource "netbox_cluster" "test" {
 
   name = "%[3]s"
@@ -626,15 +592,11 @@ resource "netbox_cluster" "test" {
 
 }
 
-
-
 resource "netbox_virtual_machine" "test" {
 
   name = "%[4]s"
 
   cluster = netbox_cluster.test.id
-
-
 
   lifecycle {
 
@@ -644,8 +606,6 @@ resource "netbox_virtual_machine" "test" {
 
 }
 
-
-
 resource "netbox_virtual_disk" "test" {
 
   name = "%[5]s"
@@ -653,8 +613,6 @@ resource "netbox_virtual_disk" "test" {
   virtual_machine = "%[4]s"
 
   size = 100
-
-
 
   depends_on = [netbox_virtual_machine.test]
 

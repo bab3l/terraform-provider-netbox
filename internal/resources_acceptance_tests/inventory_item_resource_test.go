@@ -157,8 +157,6 @@ func testAccInventoryItemResourceConfig_basic(name string) string {
 
 %s
 
-
-
 resource "netbox_inventory_item" "test" {
 
   device = netbox_device.test.id
@@ -176,8 +174,6 @@ func testAccInventoryItemResourceConfig_full(name string) string {
 	return fmt.Sprintf(`
 
 %s
-
-
 
 resource "netbox_inventory_item" "test" {
 
@@ -207,17 +203,17 @@ resource "netbox_site" "test" {
 
   name = %q
 
+  slug = %q
+
 }
-
-
 
 resource "netbox_manufacturer" "test" {
 
   name = %q
 
+  slug = %q
+
 }
-
-
 
 resource "netbox_device_type" "test" {
 
@@ -225,17 +221,17 @@ resource "netbox_device_type" "test" {
 
   model        = %q
 
+  slug         = %q
+
 }
-
-
 
 resource "netbox_device_role" "test" {
 
   name = %q
 
+  slug = %q
+
 }
-
-
 
 resource "netbox_device" "test" {
 
@@ -245,12 +241,12 @@ resource "netbox_device" "test" {
 
   device_type = netbox_device_type.test.id
 
-  device_role = netbox_device_role.test.id
+  role        = netbox_device_role.test.id
 
   status      = "offline"
 
 }
 
-`, name+"-site", name+"-mfr", name+"-model", name+"-role", name+"-device")
+`, name+"-site", testutil.RandomSlug("site"), name+"-mfr", testutil.RandomSlug("mfr"), name+"-model", testutil.RandomSlug("device"), name+"-role", testutil.RandomSlug("role"), name+"-device")
 
 }

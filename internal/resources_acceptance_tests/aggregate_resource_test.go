@@ -130,8 +130,6 @@ resource "netbox_rir" "test" {
 
 }
 
-
-
 resource "netbox_aggregate" "test" {
 
   prefix = %q
@@ -155,8 +153,6 @@ resource "netbox_rir" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_aggregate" "test" {
 
@@ -235,8 +231,6 @@ resource "netbox_rir" "test" {
 
 }
 
-
-
 resource "netbox_tenant" "test" {
 
   name = "%[4]s"
@@ -244,8 +238,6 @@ resource "netbox_tenant" "test" {
   slug = "%[5]s"
 
 }
-
-
 
 resource "netbox_aggregate" "test" {
 
@@ -328,8 +320,6 @@ resource "netbox_rir" "test" {
 
 }
 
-
-
 resource "netbox_tenant" "test" {
 
   name = "%[4]s"
@@ -337,8 +327,6 @@ resource "netbox_tenant" "test" {
   slug = "%[5]s"
 
 }
-
-
 
 resource "netbox_aggregate" "test" {
 

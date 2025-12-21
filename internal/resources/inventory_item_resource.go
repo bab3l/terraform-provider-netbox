@@ -91,20 +91,6 @@ func (r *InventoryItemResource) Schema(ctx context.Context, req resource.SchemaR
 
 		MarkdownDescription: `Manages an inventory item in NetBox. Inventory items represent hardware components installed within a device, such as power supplies, CPUs, or line cards.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ~> **Deprecation Warning:** Beginning in NetBox v4.3, inventory items are deprecated and planned for removal in a future release. Users are strongly encouraged to use [modules](https://netboxlabs.com/docs/netbox/models/dcim/module/) and [module types](https://netboxlabs.com/docs/netbox/models/dcim/moduletype/) instead.`,
 
 		Attributes: map[string]schema.Attribute{

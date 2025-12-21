@@ -155,9 +155,11 @@ resource "netbox_inventory_item_role" "test" {
 
   name = %q
 
+  slug = %q
+
 }
 
-`, name)
+`, name, testutil.RandomSlug("role"))
 
 }
 
@@ -169,12 +171,14 @@ resource "netbox_inventory_item_role" "test" {
 
   name        = %q
 
+  slug        = %q
+
   color       = "e41e22"
 
   description = "Test role description"
 
 }
 
-`, name)
+`, name, testutil.RandomSlug("role"))
 
 }

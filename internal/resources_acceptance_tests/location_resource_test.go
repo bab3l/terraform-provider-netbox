@@ -197,11 +197,7 @@ terraform {
 
 }
 
-
-
 provider "netbox" {}
-
-
 
 resource "netbox_site" "test" {
 
@@ -212,8 +208,6 @@ resource "netbox_site" "test" {
   status = "active"
 
 }
-
-
 
 resource "netbox_location" "test" {
 
@@ -249,11 +243,7 @@ terraform {
 
 }
 
-
-
 provider "netbox" {}
-
-
 
 resource "netbox_site" "test" {
 
@@ -264,8 +254,6 @@ resource "netbox_site" "test" {
   status = "active"
 
 }
-
-
 
 resource "netbox_location" "test" {
 
@@ -298,8 +286,6 @@ resource "netbox_site" "test" {
   slug = %q
 
 }
-
-
 
 resource "netbox_location" "test" {
 

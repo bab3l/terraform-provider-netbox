@@ -126,107 +126,47 @@ func testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, de
 
 	return fmt.Sprintf(`
 
-
-
 provider "netbox" {}
-
-
-
-
-
-
 
 resource "netbox_site" "test" {
 
-
-
   name   = %[1]q
-
-
 
   slug   = %[2]q
 
-
-
   status = "active"
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_rack" "test" {
 
-
-
   name     = %[3]q
-
-
 
   site     = netbox_site.test.id
 
-
-
   status   = "active"
-
-
 
   u_height = 42
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_user" "admin" {
 
-
-
   username = "admin"
 
-
-
 }
-
-
-
-
-
-
 
 resource "netbox_rack_reservation" "test" {
 
-
-
   rack        = netbox_rack.test.id
-
-
 
   units       = [1, 2]
 
-
-
   user        = data.netbox_user.admin.id
-
-
 
   description = %[4]q
 
-
-
 }
-
-
 
 `, siteName, siteSlug, rackName, description)
 

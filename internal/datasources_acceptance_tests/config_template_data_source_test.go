@@ -129,7 +129,7 @@ func TestConfigTemplateDataSourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
@@ -149,35 +149,13 @@ func testAccConfigTemplateDataSourcePrereqs(name, templateCode string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_config_template" "test" {
-
-
 
   name          = %q
 
-
-
-
-
-
-
   template_code = %q
 
-
-
 }
-
-
-
-
-
-
 
 `, name, templateCode)
 
@@ -189,31 +167,11 @@ func testAccConfigTemplateDataSourceByID(name, templateCode string) string {
 
 	return testAccConfigTemplateDataSourcePrereqs(name, templateCode) + `
 
-
-
-
-
-
-
 data "netbox_config_template" "test" {
-
-
-
-
-
-
 
   id = netbox_config_template.test.id
 
-
-
 }
-
-
-
-
-
-
 
 `
 
@@ -225,35 +183,13 @@ func testAccConfigTemplateDataSourceByName(name, templateCode string) string {
 
 	return testAccConfigTemplateDataSourcePrereqs(name, templateCode) + fmt.Sprintf(`
 
-
-
-
-
-
-
 data "netbox_config_template" "test" {
-
-
 
   name = %q
 
-
-
-
-
-
-
   depends_on = [netbox_config_template.test]
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 

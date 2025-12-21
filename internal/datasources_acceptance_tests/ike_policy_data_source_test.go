@@ -129,7 +129,7 @@ func TestIKEPolicyDataSourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
@@ -215,55 +215,19 @@ func testAccIKEPolicyDataSourceByID(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_ike_policy" "test" {
-
-
 
   name    = %[1]q
 
-
-
-
-
-
-
   version = 2
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_ike_policy" "test" {
 
-
-
-
-
-
-
   id = netbox_ike_policy.test.id
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 
@@ -273,51 +237,19 @@ func testAccIKEPolicyDataSourceByName(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_ike_policy" "test" {
-
-
 
   name    = %[1]q
 
-
-
-
-
-
-
   version = 2
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_ike_policy" "test" {
 
-
-
   name = netbox_ike_policy.test.name
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 

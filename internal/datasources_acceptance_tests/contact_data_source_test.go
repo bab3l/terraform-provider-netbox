@@ -129,7 +129,7 @@ func TestContactDataSourceConfigure(t *testing.T) {
 
 	}
 
-	configureRequest.ProviderData = invalidProviderData
+	configureRequest.ProviderData = testutil.InvalidProviderData
 
 	configureResponse = &fwdatasource.ConfigureResponse{}
 
@@ -246,47 +246,17 @@ func testAccContactDataSourceByID(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_contact" "test" {
-
-
 
   name = %[1]q
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_contact" "test" {
 
-
-
-
-
-
-
   id = netbox_contact.test.id
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 
@@ -296,43 +266,17 @@ func testAccContactDataSourceByName(name string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_contact" "test" {
-
-
 
   name = %[1]q
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_contact" "test" {
 
-
-
   name = netbox_contact.test.name
 
-
-
 }
-
-
-
-
-
-
 
 `, name)
 
@@ -342,55 +286,19 @@ func testAccContactDataSourceByEmail(name, email string) string {
 
 	return fmt.Sprintf(`
 
-
-
-
-
-
-
 resource "netbox_contact" "test" {
-
-
 
   name  = %[1]q
 
-
-
-
-
-
-
   email = %[2]q
 
-
-
 }
-
-
-
-
-
-
 
 data "netbox_contact" "test" {
 
-
-
-
-
-
-
   email = netbox_contact.test.email
 
-
-
 }
-
-
-
-
-
-
 
 `, name, email)
 
