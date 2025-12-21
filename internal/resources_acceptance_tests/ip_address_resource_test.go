@@ -1,15 +1,19 @@
 package resources_acceptance_tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccIPAddressResource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	ip := fmt.Sprintf("192.0.%d.%d/24", 100+acctest.RandIntRange(0, 50), acctest.RandIntRange(1, 254))
 
 	resource.Test(t, resource.TestCase{
 
@@ -21,13 +25,13 @@ func TestAccIPAddressResource_basic(t *testing.T) {
 
 			{
 
-				Config: testAccIPAddressResourceConfig_basic(),
+				Config: testAccIPAddressResourceConfig_basic(ip),
 
 				Check: resource.ComposeTestCheckFunc(
 
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
 
-					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", "192.0.2.100/24"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", ip),
 				),
 			},
 		},
@@ -39,6 +43,8 @@ func TestAccIPAddressResource_full(t *testing.T) {
 
 	t.Parallel()
 
+	ip := fmt.Sprintf("10.0.%d.%d/32", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -49,13 +55,13 @@ func TestAccIPAddressResource_full(t *testing.T) {
 
 			{
 
-				Config: testAccIPAddressResourceConfig_full(),
+				Config: testAccIPAddressResourceConfig_full(ip),
 
 				Check: resource.ComposeTestCheckFunc(
 
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
 
-					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", "10.0.0.50/32"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", ip),
 
 					resource.TestCheckResourceAttr("netbox_ip_address.test", "status", "active"),
 
@@ -73,6 +79,10 @@ func TestAccIPAddressResource_update(t *testing.T) {
 
 	t.Parallel()
 
+	ip1 := fmt.Sprintf("172.16.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+
+	ip2 := fmt.Sprintf("172.16.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -83,19 +93,19 @@ func TestAccIPAddressResource_update(t *testing.T) {
 
 			{
 
-				Config: testAccIPAddressResourceConfig_basic(),
+				Config: testAccIPAddressResourceConfig_basic(ip1),
 
 				Check: resource.ComposeTestCheckFunc(
 
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
 
-					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", "192.0.2.100/24"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", ip1),
 				),
 			},
 
 			{
 
-				Config: testAccIPAddressResourceConfig_full(),
+				Config: testAccIPAddressResourceConfig_full(ip2),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -115,6 +125,8 @@ func TestAccIPAddressResource_import(t *testing.T) {
 
 	t.Parallel()
 
+	ip := fmt.Sprintf("203.0.113.%d/32", acctest.RandIntRange(1, 254))
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -125,7 +137,7 @@ func TestAccIPAddressResource_import(t *testing.T) {
 
 			{
 
-				Config: testAccIPAddressResourceConfig_basic(),
+				Config: testAccIPAddressResourceConfig_basic(ip),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -146,23 +158,23 @@ func TestAccIPAddressResource_import(t *testing.T) {
 
 }
 
-func testAccIPAddressResourceConfig_basic() string {
+func testAccIPAddressResourceConfig_basic(address string) string {
 
-	return `resource "netbox_ip_address" "test" {
+	return fmt.Sprintf(`resource "netbox_ip_address" "test" {
 
-  address = "192.0.2.100/24"
-
-}
-
-`
+  address = %q
 
 }
 
-func testAccIPAddressResourceConfig_full() string {
+`, address)
 
-	return `resource "netbox_ip_address" "test" {
+}
 
-  address     = "10.0.0.50/32"
+func testAccIPAddressResourceConfig_full(address string) string {
+
+	return fmt.Sprintf(`resource "netbox_ip_address" "test" {
+
+  address     = %q
 
   status      = "active"
 
@@ -172,6 +184,6 @@ func testAccIPAddressResourceConfig_full() string {
 
 }
 
-`
+`, address)
 
 }

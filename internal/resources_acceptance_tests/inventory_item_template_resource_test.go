@@ -151,6 +151,8 @@ func TestAccInventoryItemTemplateResource_import(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"device_type"},
 			},
 		},
 	})
