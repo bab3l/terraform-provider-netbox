@@ -1,6 +1,7 @@
 package datasources_acceptance_tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -10,31 +11,42 @@ import (
 func TestAccRackTypeDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	mfrName := testutil.RandomName("mfr")
+	mfrSlug := testutil.RandomSlug("mfr")
+	model := testutil.RandomName("rack-type")
+	slug := testutil.RandomSlug("rack-type")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfrSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckManufacturerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRackTypeDataSourceConfig,
+				Config: testAccRackTypeDataSourceConfig(mfrName, mfrSlug, model, slug),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_rack_type.test", "model", "Test Rack Type"),
-					resource.TestCheckResourceAttr("data.netbox_rack_type.test", "slug", "test-rack-type"),
+					resource.TestCheckResourceAttr("data.netbox_rack_type.test", "model", model),
+					resource.TestCheckResourceAttr("data.netbox_rack_type.test", "slug", slug),
 				),
 			},
 		},
 	})
 }
 
-const testAccRackTypeDataSourceConfig = `
+func testAccRackTypeDataSourceConfig(mfrName, mfrSlug, model, slug string) string {
+	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
-  name = "Test Manufacturer"
-  slug = "test-manufacturer"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_rack_type" "test" {
   manufacturer = netbox_manufacturer.test.id
-  model        = "Test Rack Type"
-  slug         = "test-rack-type"
+  model        = "%s"
+  slug         = "%s"
   width        = 19
   u_height     = 42
   form_factor  = "2-post-frame"
@@ -43,4 +55,5 @@ resource "netbox_rack_type" "test" {
 data "netbox_rack_type" "test" {
   id = netbox_rack_type.test.id
 }
-`
+`, mfrName, mfrSlug, model, slug)
+}

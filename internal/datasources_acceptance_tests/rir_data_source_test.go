@@ -1,6 +1,7 @@
 package datasources_acceptance_tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -10,28 +11,38 @@ import (
 func TestAccRIRDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	rirName := testutil.RandomName("rir")
+	rirSlug := testutil.RandomSlug("rir")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRIRDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRIRDataSourceConfig,
+				Config: testAccRIRDataSourceConfig(rirName, rirSlug),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_rir.test", "name", "Test RIR"),
-					resource.TestCheckResourceAttr("data.netbox_rir.test", "slug", "test-rir"),
+					resource.TestCheckResourceAttr("data.netbox_rir.test", "name", rirName),
+					resource.TestCheckResourceAttr("data.netbox_rir.test", "slug", rirSlug),
 				),
 			},
 		},
 	})
 }
 
-const testAccRIRDataSourceConfig = `
+func testAccRIRDataSourceConfig(rirName, rirSlug string) string {
+	return fmt.Sprintf(`
 resource "netbox_rir" "test" {
-  name = "Test RIR"
-  slug = "test-rir"
+  name = "%s"
+  slug = "%s"
 }
 
 data "netbox_rir" "test" {
   id = netbox_rir.test.id
 }
-`
+`, rirName, rirSlug)
+}
