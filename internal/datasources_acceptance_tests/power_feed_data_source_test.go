@@ -14,11 +14,13 @@ func TestAccPowerFeedDataSource_basic(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 
-	siteName := testutil.RandomName("test-power-feed-site-ds")
+	siteName := testutil.RandomName("tf-test-power-feed-site")
 	siteSlug := testutil.GenerateSlug(siteName)
+	powerPanelName := testutil.RandomName("tf-test-power-panel")
+	powerFeedName := testutil.RandomName("tf-test-power-feed")
 
 	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterPowerFeedCleanup("Test Power Feed")
+	cleanup.RegisterPowerFeedCleanup(powerFeedName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -29,9 +31,9 @@ func TestAccPowerFeedDataSource_basic(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPowerFeedDataSourceConfig(siteName, siteSlug),
+				Config: testAccPowerFeedDataSourceConfig(siteName, siteSlug, powerPanelName, powerFeedName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_power_feed.test", "name", "Test Power Feed"),
+					resource.TestCheckResourceAttr("data.netbox_power_feed.test", "name", powerFeedName),
 					resource.TestCheckResourceAttr("data.netbox_power_feed.test", "status", "active"),
 				),
 			},
@@ -39,7 +41,7 @@ func TestAccPowerFeedDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccPowerFeedDataSourceConfig(siteName, siteSlug string) string {
+func testAccPowerFeedDataSourceConfig(siteName, siteSlug, powerPanelName, powerFeedName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = %[1]q
@@ -48,12 +50,12 @@ resource "netbox_site" "test" {
 
 resource "netbox_power_panel" "test" {
   site = netbox_site.test.id
-  name = "Test Power Panel"
+  name = %[3]q
 }
 
 resource "netbox_power_feed" "test" {
   power_panel = netbox_power_panel.test.id
-  name        = "Test Power Feed"
+  name        = %[4]q
   status      = "active"
   type        = "primary"
   supply      = "ac"
@@ -65,5 +67,5 @@ resource "netbox_power_feed" "test" {
 data "netbox_power_feed" "test" {
   id = netbox_power_feed.test.id
 }
-`, siteName, siteSlug)
+`, siteName, siteSlug, powerPanelName, powerFeedName)
 }
