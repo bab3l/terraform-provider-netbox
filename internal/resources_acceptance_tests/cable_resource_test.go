@@ -22,6 +22,8 @@ import (
 
 func TestAccCableResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	siteName := testutil.RandomName("test-site-cable")
 
 	siteSlug := testutil.GenerateSlug(siteName)

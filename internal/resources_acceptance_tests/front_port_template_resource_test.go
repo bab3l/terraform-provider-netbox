@@ -9,6 +9,8 @@ import (
 )
 
 func TestAccFrontPortTemplateResource_basic(t *testing.T) {
+
+	t.Parallel()
 	manufacturerName := testutil.RandomName("mfr")
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
@@ -41,6 +43,8 @@ func TestAccFrontPortTemplateResource_basic(t *testing.T) {
 }
 
 func TestAccFrontPortTemplateResource_full(t *testing.T) {
+
+	t.Parallel()
 	manufacturerName := testutil.RandomName("mfr")
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
@@ -93,6 +97,8 @@ func TestAccFrontPortTemplateResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_FrontPortTemplate_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	manufacturerName := testutil.RandomName("manufacturer")
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
 	deviceTypeName := testutil.RandomName("device-type")

@@ -13,6 +13,8 @@ import (
 
 func TestAccRoleResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-role")
 
 	slug := testutil.RandomSlug("tf-test-role")
@@ -58,6 +60,8 @@ func TestAccRoleResource_basic(t *testing.T) {
 }
 
 func TestAccRoleResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-role-full")
 

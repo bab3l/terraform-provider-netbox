@@ -10,6 +10,8 @@ import (
 
 func TestAccInterfaceResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-interface")
 
 	resource.Test(t, resource.TestCase{
@@ -41,6 +43,8 @@ func TestAccInterfaceResource_basic(t *testing.T) {
 }
 
 func TestAccInterfaceResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-interface-full")
 
@@ -79,6 +83,8 @@ func TestAccInterfaceResource_full(t *testing.T) {
 }
 
 func TestAccInterfaceResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-interface-update")
 
@@ -126,6 +132,8 @@ func TestAccInterfaceResource_update(t *testing.T) {
 
 func TestAccInterfaceResource_import(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-interface")
 
 	resource.Test(t, resource.TestCase{
@@ -163,6 +171,8 @@ func TestAccInterfaceResource_import(t *testing.T) {
 
 func TestAccConsistency_Interface(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-interface-consistency")
 
 	resource.Test(t, resource.TestCase{
@@ -192,6 +202,8 @@ func TestAccConsistency_Interface(t *testing.T) {
 }
 
 func TestAccConsistency_Interface_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-interface-literal")
 

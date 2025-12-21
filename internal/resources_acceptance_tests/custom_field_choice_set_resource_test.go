@@ -10,6 +10,8 @@ import (
 
 func TestAccCustomFieldChoiceSetResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("cfcs")
 
 	resource.Test(t, resource.TestCase{
@@ -49,6 +51,8 @@ func TestAccCustomFieldChoiceSetResource_basic(t *testing.T) {
 
 func TestAccCustomFieldChoiceSetResource_full(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("cfcs")
 
 	resource.Test(t, resource.TestCase{
@@ -82,6 +86,8 @@ func TestAccCustomFieldChoiceSetResource_full(t *testing.T) {
 }
 
 func TestAccCustomFieldChoiceSetResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("cfcs")
 

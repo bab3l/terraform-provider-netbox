@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccL2VPNTerminationResource_basic(t *testing.T) {
+
+	t.Parallel()
 	l2vpnName := testutil.RandomName("tf-test-l2vpn-term")
 	vlanVID := testutil.RandomVID()
 

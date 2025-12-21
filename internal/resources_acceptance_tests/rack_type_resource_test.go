@@ -13,6 +13,8 @@ import (
 
 func TestAccRackTypeResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	mfgName := testutil.RandomName("tf-test-mfg")
 
 	mfgSlug := testutil.RandomSlug("tf-test-mfg")
@@ -68,6 +70,8 @@ func TestAccRackTypeResource_basic(t *testing.T) {
 }
 
 func TestAccRackTypeResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	mfgName := testutil.RandomName("tf-test-mfg-full")
 
@@ -133,6 +137,8 @@ func TestAccRackTypeResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_RackType_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

@@ -9,6 +9,8 @@ import (
 
 func TestAccIPRangeResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -36,6 +38,8 @@ func TestAccIPRangeResource_basic(t *testing.T) {
 }
 
 func TestAccIPRangeResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
 
@@ -68,6 +72,8 @@ func TestAccIPRangeResource_full(t *testing.T) {
 }
 
 func TestAccIPRangeResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
 
@@ -106,6 +112,8 @@ func TestAccIPRangeResource_update(t *testing.T) {
 }
 
 func TestAccIPRangeResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
 

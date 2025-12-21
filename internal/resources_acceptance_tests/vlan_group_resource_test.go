@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccVLANGroupResource_basic(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-vlangrp")
 	slug := testutil.GenerateSlug("tf-test-vlangrp")
 	cleanup := testutil.NewCleanupResource(t)
@@ -41,6 +43,8 @@ func TestAccVLANGroupResource_basic(t *testing.T) {
 }
 
 func TestAccVLANGroupResource_full(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-vlangrp-full")
 	slug := testutil.GenerateSlug("tf-test-vlangrp-full")
 	description := "Test VLAN Group with all fields"
@@ -72,6 +76,8 @@ func TestAccVLANGroupResource_full(t *testing.T) {
 }
 
 func TestAccVLANGroupResource_update(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-vlangrp-upd")
 	slug := testutil.GenerateSlug("tf-test-vlangrp-upd")
 	updatedName := testutil.RandomName("tf-test-vlangrp-updated")
@@ -112,6 +118,8 @@ func TestAccVLANGroupResource_update(t *testing.T) {
 }
 
 func TestAccVLANGroupResource_import(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-vlangrp")
 	slug := testutil.GenerateSlug("tf-test-vlangrp")
 	cleanup := testutil.NewCleanupResource(t)

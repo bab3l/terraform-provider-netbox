@@ -13,6 +13,8 @@ import (
 
 func TestAccProviderResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-provider")
 
 	slug := testutil.RandomSlug("tf-test-provider")
@@ -53,6 +55,8 @@ func TestAccProviderResource_basic(t *testing.T) {
 }
 
 func TestAccProviderResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-provider-full")
 
@@ -103,6 +107,8 @@ func TestAccProviderResource_full(t *testing.T) {
 
 func TestAccProviderResource_update(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-provider-update")
 
 	slug := testutil.RandomSlug("tf-test-provider-update")
@@ -151,6 +157,8 @@ func TestAccProviderResource_update(t *testing.T) {
 }
 
 func TestAccProviderResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-provider")
 

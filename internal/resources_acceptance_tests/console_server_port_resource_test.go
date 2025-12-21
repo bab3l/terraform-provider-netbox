@@ -13,6 +13,8 @@ import (
 
 func TestAccConsoleServerPortResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site")
 
 	siteSlug := testutil.RandomSlug("tf-test-site")
@@ -84,6 +86,8 @@ func TestAccConsoleServerPortResource_basic(t *testing.T) {
 }
 
 func TestAccConsoleServerPortResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	siteName := testutil.RandomName("tf-test-site-full")
 
@@ -163,6 +167,8 @@ func TestAccConsoleServerPortResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_ConsoleServerPort(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("site")
 
 	siteSlug := testutil.RandomSlug("site")
@@ -220,6 +226,8 @@ func TestAccConsistency_ConsoleServerPort(t *testing.T) {
 }
 
 func TestAccConsistency_ConsoleServerPort_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	manufacturerName := testutil.RandomName("manufacturer")
 
 	manufacturerSlug := testutil.RandomSlug("manufacturer")

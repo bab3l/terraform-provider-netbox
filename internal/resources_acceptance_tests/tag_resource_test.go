@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccTagResource_basic(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tag")
 	slug := testutil.RandomSlug("tag")
 
@@ -39,6 +41,8 @@ func TestAccTagResource_basic(t *testing.T) {
 }
 
 func TestAccTagResource_full(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tag")
 	slug := testutil.RandomSlug("tag")
 	color := "ff5722"
@@ -78,6 +82,8 @@ func TestAccTagResource_full(t *testing.T) {
 }
 
 func TestAccTagResource_withObjectTypes(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tag")
 	slug := testutil.RandomSlug("tag")
 

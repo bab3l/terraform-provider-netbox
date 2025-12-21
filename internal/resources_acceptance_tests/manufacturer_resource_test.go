@@ -13,6 +13,8 @@ import (
 
 func TestAccManufacturerResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-manufacturer")
 
 	slug := testutil.RandomSlug("tf-test-mfr")
@@ -53,6 +55,8 @@ func TestAccManufacturerResource_basic(t *testing.T) {
 }
 
 func TestAccManufacturerResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-manufacturer-full")
 
@@ -98,6 +102,8 @@ func TestAccManufacturerResource_full(t *testing.T) {
 }
 
 func TestAccManufacturerResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-manufacturer-update")
 
@@ -151,6 +157,8 @@ func TestAccManufacturerResource_update(t *testing.T) {
 }
 
 func TestAccManufacturerResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-manufacturer-import")
 

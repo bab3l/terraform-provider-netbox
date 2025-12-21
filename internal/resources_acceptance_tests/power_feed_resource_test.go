@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccPowerFeedResource_basic(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	panelName := testutil.RandomName("power-panel")
@@ -45,6 +47,8 @@ func TestAccPowerFeedResource_basic(t *testing.T) {
 }
 
 func TestAccPowerFeedResource_full(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	panelName := testutil.RandomName("power-panel")
@@ -133,6 +137,8 @@ resource "netbox_power_feed" "test" {
 }
 
 func TestAccConsistency_PowerFeed(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	rackName := testutil.RandomName("rack")
@@ -196,6 +202,8 @@ resource "netbox_power_feed" "test" {
 }
 
 func TestAccConsistency_PowerFeed_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	rackName := testutil.RandomName("rack")

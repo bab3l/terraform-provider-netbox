@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccTunnelGroupResource_basic(t *testing.T) {
+
+	t.Parallel()
 	// Generate unique names to avoid conflicts between test runs
 	name := testutil.RandomName("tf-test-tunnel-group")
 	slug := testutil.RandomSlug("tf-test-tunnel-grp")
@@ -40,6 +42,8 @@ func TestAccTunnelGroupResource_basic(t *testing.T) {
 }
 
 func TestAccTunnelGroupResource_full(t *testing.T) {
+
+	t.Parallel()
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tunnel-group-full")
 	slug := testutil.RandomSlug("tf-test-tg-full")
@@ -70,6 +74,8 @@ func TestAccTunnelGroupResource_full(t *testing.T) {
 }
 
 func TestAccTunnelGroupResource_update(t *testing.T) {
+
+	t.Parallel()
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tunnel-group-upd")
 	slug := testutil.RandomSlug("tf-test-tg-upd")
@@ -104,6 +110,8 @@ func TestAccTunnelGroupResource_update(t *testing.T) {
 }
 
 func TestAccTunnelGroupResource_import(t *testing.T) {
+
+	t.Parallel()
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tunnel-group-imp")
 	slug := testutil.RandomSlug("tf-test-tg-imp")

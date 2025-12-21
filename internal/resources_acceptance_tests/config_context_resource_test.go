@@ -13,6 +13,8 @@ import (
 
 func TestAccConfigContextResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-config-context")
 
 	resource.Test(t, resource.TestCase{

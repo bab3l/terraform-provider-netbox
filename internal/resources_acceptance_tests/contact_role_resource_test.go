@@ -10,6 +10,8 @@ import (
 
 func TestAccContactRoleResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("test-contact-role")
 
 	slug := testutil.GenerateSlug(name)

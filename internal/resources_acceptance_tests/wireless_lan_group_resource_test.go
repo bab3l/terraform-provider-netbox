@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccWirelessLANGroupResource_basic(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-wlan-group")
 	slug := testutil.RandomSlug("tf-test-wlan-group")
 
@@ -42,6 +44,8 @@ func TestAccWirelessLANGroupResource_basic(t *testing.T) {
 }
 
 func TestAccWirelessLANGroupResource_full(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-wlan-group-full")
 	slug := testutil.RandomSlug("tf-test-wlan-group-full")
 	description := "Test wireless LAN group with all fields"

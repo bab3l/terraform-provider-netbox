@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccVMInterfaceResource_basic(t *testing.T) {
+
+	t.Parallel()
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type")
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type")
 	clusterName := testutil.RandomName("tf-test-cluster")
@@ -52,6 +54,8 @@ func TestAccVMInterfaceResource_basic(t *testing.T) {
 }
 
 func TestAccVMInterfaceResource_full(t *testing.T) {
+
+	t.Parallel()
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type-full")
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-full")
 	clusterName := testutil.RandomName("tf-test-cluster-full")
@@ -96,6 +100,8 @@ func TestAccVMInterfaceResource_full(t *testing.T) {
 }
 
 func TestAccVMInterfaceResource_update(t *testing.T) {
+
+	t.Parallel()
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type-update")
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-update")
 	clusterName := testutil.RandomName("tf-test-cluster-update")
@@ -144,6 +150,8 @@ func TestAccVMInterfaceResource_update(t *testing.T) {
 }
 
 func TestAccVMInterfaceResource_import(t *testing.T) {
+
+	t.Parallel()
 	clusterTypeName := "test-cluster-type-" + testutil.GenerateSlug("ct")
 	clusterTypeSlug := testutil.GenerateSlug("ct")
 	clusterName := "test-cluster-" + testutil.GenerateSlug("cluster")
@@ -221,6 +229,8 @@ resource "netbox_vm_interface" "test" {
 }
 
 func TestAccConsistency_VMInterface(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	vmName := testutil.RandomName("vm")

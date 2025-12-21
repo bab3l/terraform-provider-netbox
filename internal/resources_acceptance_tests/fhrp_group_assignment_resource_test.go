@@ -9,6 +9,8 @@ import (
 )
 
 func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("test-fhrp-assign")
 
 	resource.Test(t, resource.TestCase{

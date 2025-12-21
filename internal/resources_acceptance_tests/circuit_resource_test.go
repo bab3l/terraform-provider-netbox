@@ -13,6 +13,8 @@ import (
 
 func TestAccCircuitResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	cid := testutil.RandomName("tf-test-circuit")
 
 	providerName := testutil.RandomName("tf-test-provider")
@@ -65,6 +67,8 @@ func TestAccCircuitResource_basic(t *testing.T) {
 }
 
 func TestAccCircuitResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	cid := testutil.RandomName("tf-test-circuit-full")
 
@@ -127,6 +131,8 @@ func TestAccCircuitResource_full(t *testing.T) {
 
 func TestAccCircuitResource_update(t *testing.T) {
 
+	t.Parallel()
+
 	cid := testutil.RandomName("tf-test-circuit-update")
 
 	providerName := testutil.RandomName("tf-test-provider-update")
@@ -185,6 +191,8 @@ func TestAccCircuitResource_update(t *testing.T) {
 }
 
 func TestAccCircuitResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	cid := testutil.RandomName("tf-test-circuit")
 
@@ -245,6 +253,8 @@ func TestAccCircuitResource_import(t *testing.T) {
 }
 
 func TestAccConsistency_Circuit(t *testing.T) {
+
+	t.Parallel()
 	cid := testutil.RandomName("cid")
 
 	providerName := testutil.RandomName("provider")
@@ -301,6 +311,8 @@ func TestAccConsistency_Circuit(t *testing.T) {
 }
 
 func TestAccConsistency_Circuit_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	cid := testutil.RandomName("cid")
 
 	providerName := testutil.RandomName("provider")

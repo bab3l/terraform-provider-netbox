@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccVLANResource_basic(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-vlan")
 	vid := testutil.RandomVID()
 	cleanup := testutil.NewCleanupResource(t)
@@ -41,6 +43,8 @@ func TestAccVLANResource_basic(t *testing.T) {
 }
 
 func TestAccVLANResource_full(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-vlan-full")
 	vid := testutil.RandomVID()
 	description := "Test VLAN with all fields"
@@ -73,6 +77,8 @@ func TestAccVLANResource_full(t *testing.T) {
 }
 
 func TestAccVLANResource_withGroup(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-vlan-grp")
 	vid := testutil.RandomVID()
 	groupName := testutil.RandomName("tf-test-vlangrp")
@@ -109,6 +115,8 @@ func TestAccVLANResource_withGroup(t *testing.T) {
 }
 
 func TestAccVLANResource_update(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-vlan-upd")
 	updatedName := testutil.RandomName("tf-test-vlan-updated")
 	vid := testutil.RandomVID()
@@ -148,6 +156,8 @@ func TestAccVLANResource_update(t *testing.T) {
 }
 
 func TestAccVLANResource_import(t *testing.T) {
+
+	t.Parallel()
 	name := "test-vlan-" + testutil.GenerateSlug("vlan")
 	vid := int32(100)
 
@@ -205,6 +215,8 @@ resource "netbox_vlan" "test" {
 }
 
 func TestAccConsistency_VLAN(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	vlanName := testutil.RandomName("vlan")
@@ -280,6 +292,8 @@ resource "netbox_vlan" "test" {
 }
 
 func TestAccVLANResource_optionalRoleNoUpdate(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("tf-test-site-vlan-role")
 	siteSlug := testutil.RandomSlug("tf-test-site-vlan-role")
 	vlanName := testutil.RandomName("tf-test-vlan-role")

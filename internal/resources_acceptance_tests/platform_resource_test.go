@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccPlatformResource_basic(t *testing.T) {
+
+	t.Parallel()
 	platformName := testutil.RandomName("tf-test-platform")
 	platformSlug := testutil.RandomSlug("tf-test-plat")
 	manufacturerName := testutil.RandomName("tf-test-mfr-for-platform")
@@ -45,6 +47,8 @@ func TestAccPlatformResource_basic(t *testing.T) {
 }
 
 func TestAccPlatformResource_full(t *testing.T) {
+
+	t.Parallel()
 	platformName := testutil.RandomName("tf-test-platform-full")
 	platformSlug := testutil.RandomSlug("tf-test-plat-full")
 	manufacturerName := testutil.RandomName("tf-test-mfr-for-plat-full")
@@ -80,6 +84,8 @@ func TestAccPlatformResource_full(t *testing.T) {
 }
 
 func TestAccPlatformResource_update(t *testing.T) {
+
+	t.Parallel()
 	platformName := testutil.RandomName("tf-test-platform-update")
 	platformSlug := testutil.RandomSlug("tf-test-plat-upd")
 	manufacturerName := testutil.RandomName("tf-test-mfr-for-plat-upd")
@@ -119,6 +125,8 @@ func TestAccPlatformResource_update(t *testing.T) {
 }
 
 func TestAccPlatformResource_import(t *testing.T) {
+
+	t.Parallel()
 	platformName := testutil.RandomName("tf-test-platform-import")
 	platformSlug := testutil.RandomSlug("tf-test-plat-imp")
 	manufacturerName := testutil.RandomName("tf-test-mfr-imp")

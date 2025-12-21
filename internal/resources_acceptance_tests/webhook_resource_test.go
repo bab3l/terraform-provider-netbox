@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccWebhookResource_basic(t *testing.T) {
+
+	t.Parallel()
 	testutil.TestAccPreCheck(t)
 	randomName := testutil.RandomName("test-webhook")
 
@@ -55,6 +57,8 @@ func TestAccWebhookResource_basic(t *testing.T) {
 }
 
 func TestAccWebhookResource_full(t *testing.T) {
+
+	t.Parallel()
 	testutil.TestAccPreCheck(t)
 	randomName := testutil.RandomName("test-webhook-full")
 

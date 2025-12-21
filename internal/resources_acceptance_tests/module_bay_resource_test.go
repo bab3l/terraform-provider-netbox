@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccModuleBayResource_basic(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.RandomSlug("tf-test-site")
 	mfgName := testutil.RandomName("tf-test-mfg")
@@ -54,6 +56,8 @@ func TestAccModuleBayResource_basic(t *testing.T) {
 }
 
 func TestAccModuleBayResource_full(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("tf-test-site-full")
 	siteSlug := testutil.RandomSlug("tf-test-site-full")
 	mfgName := testutil.RandomName("tf-test-mfg-full")

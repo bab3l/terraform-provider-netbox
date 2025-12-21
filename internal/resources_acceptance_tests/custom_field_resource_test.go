@@ -11,6 +11,8 @@ import (
 
 func TestAccCustomFieldResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	// Custom field names can only contain alphanumeric characters and underscores
 
 	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
@@ -51,6 +53,8 @@ func TestAccCustomFieldResource_basic(t *testing.T) {
 }
 
 func TestAccCustomFieldResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	// Custom field names can only contain alphanumeric characters and underscores
 

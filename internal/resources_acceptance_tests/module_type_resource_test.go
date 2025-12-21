@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccModuleTypeResource_basic(t *testing.T) {
+
+	t.Parallel()
 	mfgName := testutil.RandomName("tf-test-mfg")
 	mfgSlug := testutil.RandomSlug("tf-test-mfg")
 	model := testutil.RandomName("tf-test-module-type")
@@ -43,6 +45,8 @@ func TestAccModuleTypeResource_basic(t *testing.T) {
 }
 
 func TestAccModuleTypeResource_full(t *testing.T) {
+
+	t.Parallel()
 	mfgName := testutil.RandomName("tf-test-mfg-full")
 	mfgSlug := testutil.RandomSlug("tf-test-mfg-full")
 	model := testutil.RandomName("tf-test-module-type-full")

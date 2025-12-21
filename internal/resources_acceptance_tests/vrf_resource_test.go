@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccVRFResource_basic(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-vrf")
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVRFCleanup(name)
@@ -39,6 +41,8 @@ func TestAccVRFResource_basic(t *testing.T) {
 }
 
 func TestAccVRFResource_full(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-vrf-full")
 	rd := "65000:100"
 	description := "Test VRF with all fields"
@@ -71,6 +75,8 @@ func TestAccVRFResource_full(t *testing.T) {
 }
 
 func TestAccVRFResource_update(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-vrf-update")
 	updatedName := testutil.RandomName("tf-test-vrf-updated")
 	cleanup := testutil.NewCleanupResource(t)
@@ -110,6 +116,8 @@ func TestAccVRFResource_update(t *testing.T) {
 }
 
 func TestAccVRFResource_import(t *testing.T) {
+
+	t.Parallel()
 	name := "test-vrf-" + testutil.GenerateSlug("vrf")
 
 	resource.Test(t, resource.TestCase{
@@ -150,6 +158,8 @@ resource "netbox_vrf" "test" {
 }
 
 func TestAccConsistency_VRF(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	vrfName := testutil.RandomName("vrf")

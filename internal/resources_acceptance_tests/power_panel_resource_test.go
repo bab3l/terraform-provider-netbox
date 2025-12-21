@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccPowerPanelResource_basic(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.RandomSlug("tf-test-site")
 	panelName := testutil.RandomName("tf-test-panel")
@@ -43,6 +45,8 @@ func TestAccPowerPanelResource_basic(t *testing.T) {
 }
 
 func TestAccPowerPanelResource_full(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("tf-test-site-full")
 	siteSlug := testutil.RandomSlug("tf-test-site-full")
 	panelName := testutil.RandomName("tf-test-panel-full")
@@ -110,6 +114,8 @@ resource "netbox_power_panel" "test" {
 }
 
 func TestAccConsistency_PowerPanel_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	panelName := testutil.RandomName("power-panel")

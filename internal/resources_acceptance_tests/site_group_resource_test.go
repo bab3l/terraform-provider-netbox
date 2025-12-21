@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccSiteGroupResource_basic(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-site-group")
 	slug := testutil.RandomSlug("tf-test-sg")
 
@@ -38,6 +40,8 @@ func TestAccSiteGroupResource_basic(t *testing.T) {
 }
 
 func TestAccSiteGroupResource_full(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-site-group-full")
 	slug := testutil.RandomSlug("tf-test-sg-full")
 	description := "Test site group with all fields"
@@ -66,6 +70,8 @@ func TestAccSiteGroupResource_full(t *testing.T) {
 }
 
 func TestAccSiteGroupResource_update(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-site-group-update")
 	slug := testutil.RandomSlug("tf-test-sg-upd")
 	updatedName := testutil.RandomName("tf-test-site-group-updated")
@@ -99,6 +105,8 @@ func TestAccSiteGroupResource_update(t *testing.T) {
 }
 
 func TestAccSiteGroupResource_import(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("tf-test-site-group")
 	slug := testutil.RandomSlug("tf-test-sg")
 

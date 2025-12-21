@@ -13,6 +13,8 @@ import (
 
 func TestAccCircuitGroupAssignmentResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	groupName := testutil.RandomName("tf-test-cga-group")
 
 	groupSlug := testutil.RandomSlug("tf-test-cga-grp")
@@ -74,6 +76,8 @@ func TestAccCircuitGroupAssignmentResource_basic(t *testing.T) {
 
 func TestAccCircuitGroupAssignmentResource_withPriority(t *testing.T) {
 
+	t.Parallel()
+
 	groupName := testutil.RandomName("tf-test-cga-grp-pri")
 
 	groupSlug := testutil.RandomSlug("tf-test-cga-grp-pri")
@@ -132,6 +136,8 @@ func TestAccCircuitGroupAssignmentResource_withPriority(t *testing.T) {
 }
 
 func TestAccCircuitGroupAssignmentResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	groupName := testutil.RandomName("tf-test-cga-grp-upd")
 
@@ -201,6 +207,8 @@ func TestAccCircuitGroupAssignmentResource_update(t *testing.T) {
 }
 
 func TestAccCircuitGroupAssignmentResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	groupName := testutil.RandomName("tf-test-cga-grp-imp")
 

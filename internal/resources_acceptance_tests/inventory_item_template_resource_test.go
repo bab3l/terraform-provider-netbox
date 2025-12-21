@@ -10,6 +10,8 @@ import (
 
 func TestAccInventoryItemTemplateResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-inv-template")
 
 	resource.Test(t, resource.TestCase{
@@ -39,6 +41,8 @@ func TestAccInventoryItemTemplateResource_basic(t *testing.T) {
 }
 
 func TestAccInventoryItemTemplateResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-template-full")
 
@@ -73,6 +77,8 @@ func TestAccInventoryItemTemplateResource_full(t *testing.T) {
 }
 
 func TestAccInventoryItemTemplateResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-template-update")
 
@@ -115,6 +121,8 @@ func TestAccInventoryItemTemplateResource_update(t *testing.T) {
 }
 
 func TestAccInventoryItemTemplateResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-template")
 

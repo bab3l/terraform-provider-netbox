@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccWirelessLANResource_basic(t *testing.T) {
+
+	t.Parallel()
 	ssid := testutil.RandomName("tf-test-ssid")
 
 	resource.Test(t, resource.TestCase{
@@ -41,6 +43,8 @@ func TestAccWirelessLANResource_basic(t *testing.T) {
 }
 
 func TestAccWirelessLANResource_full(t *testing.T) {
+
+	t.Parallel()
 	ssid := testutil.RandomName("tf-test-ssid-full")
 	groupName := testutil.RandomName("tf-test-wlan-group")
 	groupSlug := testutil.RandomSlug("tf-test-wlan-group")
@@ -102,6 +106,8 @@ resource "netbox_wireless_lan" "test" {
 }
 
 func TestAccConsistency_WirelessLAN(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	wlanName := testutil.RandomName("wlan")

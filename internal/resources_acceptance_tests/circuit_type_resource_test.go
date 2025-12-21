@@ -13,6 +13,8 @@ import (
 
 func TestAccCircuitTypeResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-circuit-type")
 
 	slug := testutil.RandomSlug("tf-test-circuit-type")
@@ -53,6 +55,8 @@ func TestAccCircuitTypeResource_basic(t *testing.T) {
 }
 
 func TestAccCircuitTypeResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-circuit-type-full")
 
@@ -100,6 +104,8 @@ func TestAccCircuitTypeResource_full(t *testing.T) {
 }
 
 func TestAccCircuitTypeResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-circuit-type-update")
 
@@ -149,6 +155,8 @@ func TestAccCircuitTypeResource_update(t *testing.T) {
 }
 
 func TestAccCircuitTypeResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-circuit-type")
 

@@ -10,6 +10,8 @@ import (
 
 func TestAccIKEProposalResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-ike-proposal")
 
 	resource.Test(t, resource.TestCase{
@@ -45,6 +47,8 @@ func TestAccIKEProposalResource_basic(t *testing.T) {
 }
 
 func TestAccIKEProposalResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-proposal-full")
 
@@ -87,6 +91,8 @@ func TestAccIKEProposalResource_full(t *testing.T) {
 }
 
 func TestAccIKEProposalResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-proposal-update")
 
@@ -133,6 +139,8 @@ func TestAccIKEProposalResource_update(t *testing.T) {
 }
 
 func TestAccIKEProposalResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-proposal")
 

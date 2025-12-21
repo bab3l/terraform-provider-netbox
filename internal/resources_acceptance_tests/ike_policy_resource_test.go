@@ -10,6 +10,8 @@ import (
 
 func TestAccIKEPolicyResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-ike-policy")
 
 	resource.Test(t, resource.TestCase{
@@ -39,6 +41,8 @@ func TestAccIKEPolicyResource_basic(t *testing.T) {
 }
 
 func TestAccIKEPolicyResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-policy-full")
 
@@ -79,6 +83,8 @@ func TestAccIKEPolicyResource_full(t *testing.T) {
 }
 
 func TestAccIKEPolicyResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-policy-update")
 
@@ -125,6 +131,8 @@ func TestAccIKEPolicyResource_update(t *testing.T) {
 }
 
 func TestAccIKEPolicyResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-policy")
 

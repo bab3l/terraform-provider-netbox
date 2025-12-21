@@ -10,6 +10,8 @@ import (
 
 func TestAccInventoryItemRoleResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-inv-role")
 
 	resource.Test(t, resource.TestCase{
@@ -39,6 +41,8 @@ func TestAccInventoryItemRoleResource_basic(t *testing.T) {
 }
 
 func TestAccInventoryItemRoleResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-role-full")
 
@@ -71,6 +75,8 @@ func TestAccInventoryItemRoleResource_full(t *testing.T) {
 }
 
 func TestAccInventoryItemRoleResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-role-update")
 
@@ -113,6 +119,8 @@ func TestAccInventoryItemRoleResource_update(t *testing.T) {
 }
 
 func TestAccInventoryItemRoleResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-role")
 

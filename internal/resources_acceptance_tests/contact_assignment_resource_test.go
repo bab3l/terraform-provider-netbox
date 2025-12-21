@@ -10,6 +10,8 @@ import (
 
 func TestAccContactAssignmentResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("test-contact-assign")
@@ -57,6 +59,8 @@ func TestAccContactAssignmentResource_basic(t *testing.T) {
 
 func TestAccContactAssignmentResource_withRole(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("test-contact-assign")
@@ -90,6 +94,8 @@ func TestAccContactAssignmentResource_withRole(t *testing.T) {
 }
 
 func TestAccContactAssignmentResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	testutil.TestAccPreCheck(t)
 

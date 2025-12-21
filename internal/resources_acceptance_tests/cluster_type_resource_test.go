@@ -13,6 +13,8 @@ import (
 
 func TestAccClusterTypeResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-cluster-type")
 
 	slug := testutil.RandomSlug("tf-test-cluster-type")
@@ -53,6 +55,8 @@ func TestAccClusterTypeResource_basic(t *testing.T) {
 }
 
 func TestAccClusterTypeResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-cluster-type-full")
 
@@ -98,6 +102,8 @@ func TestAccClusterTypeResource_full(t *testing.T) {
 }
 
 func TestAccClusterTypeResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-cluster-type-update")
 
@@ -149,6 +155,8 @@ func TestAccClusterTypeResource_update(t *testing.T) {
 }
 
 func TestAccClusterTypeResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-cluster-type-import")
 

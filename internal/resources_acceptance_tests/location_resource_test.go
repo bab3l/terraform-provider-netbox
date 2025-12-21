@@ -13,6 +13,8 @@ import (
 
 func TestAccLocationResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-loc-site")
 
 	siteSlug := testutil.RandomSlug("tf-test-loc-site")
@@ -61,6 +63,8 @@ func TestAccLocationResource_basic(t *testing.T) {
 }
 
 func TestAccLocationResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	siteName := testutil.RandomName("tf-test-loc-site-full")
 
@@ -118,6 +122,8 @@ func TestAccLocationResource_full(t *testing.T) {
 }
 
 func TestAccLocationResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	siteName := testutil.RandomName("tf-test-loc-site")
 

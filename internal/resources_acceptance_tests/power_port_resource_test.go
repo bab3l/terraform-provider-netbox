@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccPowerPortResource_basic(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.RandomSlug("tf-test-site")
 	mfgName := testutil.RandomName("tf-test-mfg")
@@ -54,6 +56,8 @@ func TestAccPowerPortResource_basic(t *testing.T) {
 }
 
 func TestAccPowerPortResource_full(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("tf-test-site-full")
 	siteSlug := testutil.RandomSlug("tf-test-site-full")
 	mfgName := testutil.RandomName("tf-test-mfg-full")
@@ -185,6 +189,8 @@ resource "netbox_power_port" "test" {
 }
 
 func TestAccConsistency_PowerPort(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	manufacturerName := testutil.RandomName("manufacturer")
@@ -253,6 +259,8 @@ resource "netbox_power_port" "test" {
 }
 
 func TestAccConsistency_PowerPort_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	manufacturerName := testutil.RandomName("manufacturer")
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
 	deviceTypeName := testutil.RandomName("device-type")

@@ -15,6 +15,8 @@ import (
 
 func TestAccASNRangeResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 
 	name := testutil.RandomName("tf-test-asn-range")
@@ -76,6 +78,8 @@ func TestAccASNRangeResource_basic(t *testing.T) {
 }
 
 func TestAccASNRangeResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	// Generate unique names
 
@@ -150,6 +154,8 @@ func TestAccASNRangeResource_full(t *testing.T) {
 }
 
 func TestAccASNRangeResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	// Generate unique names
 
@@ -331,6 +337,8 @@ resource "netbox_asn_range" "test" {
 
 func TestAccASNRangeResource_import(t *testing.T) {
 
+	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 
 	name := testutil.RandomName("tf-test-asn-range")
@@ -403,6 +411,8 @@ func TestAccASNRangeResource_import(t *testing.T) {
 }
 
 func TestAccConsistency_ASNRange(t *testing.T) {
+
+	t.Parallel()
 	rangeName := testutil.RandomName("asn-range")
 
 	rangeSlug := testutil.RandomSlug("asn-range")
@@ -498,6 +508,8 @@ resource "netbox_asn_range" "test" {
 // are preserved and do not cause drift when the API returns numeric IDs.
 
 func TestAccConsistency_ASNRange_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	rangeName := testutil.RandomName("asn-range")
 
 	rangeSlug := testutil.RandomSlug("asn-range")

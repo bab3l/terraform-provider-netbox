@@ -10,6 +10,8 @@ import (
 
 func TestAccDeviceTypeResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	model := testutil.RandomName("tf-test-device-type")
 
 	slug := testutil.RandomSlug("tf-test-dt")
@@ -49,6 +51,8 @@ func TestAccDeviceTypeResource_basic(t *testing.T) {
 }
 
 func TestAccDeviceTypeResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	model := testutil.RandomName("tf-test-device-type-full")
 
@@ -99,6 +103,8 @@ func TestAccDeviceTypeResource_full(t *testing.T) {
 }
 
 func TestAccDeviceTypeResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	model := testutil.RandomName("tf-test-device-type-update")
 

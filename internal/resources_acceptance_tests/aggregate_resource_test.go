@@ -13,6 +13,8 @@ import (
 )
 
 func TestAccAggregateResource_basic(t *testing.T) {
+
+	t.Parallel()
 	rirName := testutil.RandomName("tf-test-rir")
 	rirSlug := testutil.RandomSlug("tf-test-rir")
 	// Use a timestamp-based prefix to ensure uniqueness across test runs
@@ -62,6 +64,8 @@ func TestAccAggregateResource_basic(t *testing.T) {
 }
 
 func TestAccAggregateResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	rirName := testutil.RandomName("tf-test-rir-full")
 
@@ -171,6 +175,8 @@ resource "netbox_aggregate" "test" {
 }
 
 func TestAccConsistency_Aggregate(t *testing.T) {
+
+	t.Parallel()
 	// Use a timestamp-based prefix to ensure uniqueness across test runs
 	prefix := fmt.Sprintf("10.%d.0.0/16", (int(time.Now().Unix()) % 256))
 
@@ -258,6 +264,8 @@ resource "netbox_aggregate" "test" {
 // are preserved and do not cause drift when the API returns numeric IDs.
 
 func TestAccConsistency_Aggregate_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	// Use a timestamp-based prefix to ensure uniqueness across test runs
 	prefix := fmt.Sprintf("10.%d.0.0/16", (int(time.Now().Unix()) % 256))
 

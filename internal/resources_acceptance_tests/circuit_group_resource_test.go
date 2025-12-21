@@ -13,6 +13,8 @@ import (
 
 func TestAccCircuitGroupResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-circuit-group")
 
 	slug := testutil.RandomSlug("tf-test-cg")
@@ -53,6 +55,8 @@ func TestAccCircuitGroupResource_basic(t *testing.T) {
 }
 
 func TestAccCircuitGroupResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-circuit-group-full")
 
@@ -98,6 +102,8 @@ func TestAccCircuitGroupResource_full(t *testing.T) {
 }
 
 func TestAccCircuitGroupResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-circuit-group-upd")
 
@@ -147,6 +153,8 @@ func TestAccCircuitGroupResource_update(t *testing.T) {
 }
 
 func TestAccCircuitGroupResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-circuit-group-imp")
 

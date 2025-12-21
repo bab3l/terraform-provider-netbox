@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccPrefixResource_basic(t *testing.T) {
+
+	t.Parallel()
 	prefix := testutil.RandomIPv4Prefix()
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -36,6 +38,8 @@ func TestAccPrefixResource_basic(t *testing.T) {
 }
 
 func TestAccPrefixResource_full(t *testing.T) {
+
+	t.Parallel()
 	prefix := testutil.RandomIPv4Prefix()
 	description := "Test prefix with all fields"
 
@@ -64,6 +68,8 @@ func TestAccPrefixResource_full(t *testing.T) {
 }
 
 func TestAccPrefixResource_withVRF(t *testing.T) {
+
+	t.Parallel()
 	prefix := testutil.RandomIPv4Prefix()
 	vrfName := testutil.RandomName("tf-test-vrf")
 
@@ -94,6 +100,8 @@ func TestAccPrefixResource_withVRF(t *testing.T) {
 }
 
 func TestAccPrefixResource_ipv6(t *testing.T) {
+
+	t.Parallel()
 	prefix := testutil.RandomIPv6Prefix()
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -118,6 +126,8 @@ func TestAccPrefixResource_ipv6(t *testing.T) {
 }
 
 func TestAccPrefixResource_update(t *testing.T) {
+
+	t.Parallel()
 	prefix := testutil.RandomIPv4Prefix()
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -183,6 +193,8 @@ resource "netbox_prefix" "test" {
 }
 
 func TestAccPrefixResource_import(t *testing.T) {
+
+	t.Parallel()
 	prefix := testutil.RandomIPv4Prefix()
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -212,6 +224,8 @@ func TestAccPrefixResource_import(t *testing.T) {
 }
 
 func TestAccConsistency_Prefix(t *testing.T) {
+
+	t.Parallel()
 	prefix := "10.0.0.0/24"
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
@@ -269,6 +283,8 @@ resource "netbox_prefix" "test" {
 }
 
 func TestAccConsistency_Prefix_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	prefix := "192.168.100.0/24"
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")

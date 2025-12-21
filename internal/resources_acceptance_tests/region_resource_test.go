@@ -13,6 +13,8 @@ import (
 
 func TestAccRegionResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-region")
 
 	slug := testutil.RandomSlug("tf-test-region")
@@ -53,6 +55,8 @@ func TestAccRegionResource_basic(t *testing.T) {
 }
 
 func TestAccRegionResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-region-full")
 
@@ -98,6 +102,8 @@ func TestAccRegionResource_full(t *testing.T) {
 }
 
 func TestAccRegionResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-region-update")
 
@@ -152,6 +158,8 @@ func TestAccRegionResource_update(t *testing.T) {
 
 func TestAccRegionResource_withParent(t *testing.T) {
 
+	t.Parallel()
+
 	parentName := testutil.RandomName("tf-test-region-parent")
 
 	parentSlug := testutil.RandomSlug("tf-test-region-prnt")
@@ -202,6 +210,8 @@ func TestAccRegionResource_withParent(t *testing.T) {
 }
 
 func TestAccRegionResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-region-import")
 

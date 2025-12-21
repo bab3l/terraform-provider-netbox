@@ -10,6 +10,8 @@ import (
 
 func TestAccIPSECProfileResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-ipsec-prof")
 
 	resource.Test(t, resource.TestCase{
@@ -39,6 +41,8 @@ func TestAccIPSECProfileResource_basic(t *testing.T) {
 }
 
 func TestAccIPSECProfileResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-prof-full")
 
@@ -71,6 +75,8 @@ func TestAccIPSECProfileResource_full(t *testing.T) {
 }
 
 func TestAccIPSECProfileResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-prof-update")
 
@@ -111,6 +117,8 @@ func TestAccIPSECProfileResource_update(t *testing.T) {
 }
 
 func TestAccIPSECProfileResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-prof")
 

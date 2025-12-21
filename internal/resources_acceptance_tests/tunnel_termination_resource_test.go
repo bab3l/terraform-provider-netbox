@@ -11,6 +11,8 @@ import (
 )
 
 func TestAccTunnelTerminationResource_basic(t *testing.T) {
+
+	t.Parallel()
 	tunnelName := testutil.RandomName("tf-test-tunnel-for-term")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -38,6 +40,8 @@ func TestAccTunnelTerminationResource_basic(t *testing.T) {
 }
 
 func TestAccTunnelTerminationResource_update(t *testing.T) {
+
+	t.Parallel()
 	tunnelName := testutil.RandomName("tf-test-tunnel-for-term-upd")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -68,6 +72,8 @@ func TestAccTunnelTerminationResource_update(t *testing.T) {
 }
 
 func TestAccTunnelTerminationResource_import(t *testing.T) {
+
+	t.Parallel()
 	tunnelName := testutil.RandomName("tf-test-tunnel-for-term-imp")
 
 	cleanup := testutil.NewCleanupResource(t)

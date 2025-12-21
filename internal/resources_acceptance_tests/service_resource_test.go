@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccServiceResource_basic(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.RandomSlug("tf-test-site")
 	mfgName := testutil.RandomName("tf-test-mfg")
@@ -55,6 +57,8 @@ func TestAccServiceResource_basic(t *testing.T) {
 }
 
 func TestAccServiceResource_full(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("tf-test-site-full")
 	siteSlug := testutil.RandomSlug("tf-test-site-full")
 	mfgName := testutil.RandomName("tf-test-mfg-full")
@@ -101,6 +105,8 @@ func TestAccServiceResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_Service(t *testing.T) {
+
+	t.Parallel()
 	serviceName := testutil.RandomName("service")
 	vmName := testutil.RandomName("vm")
 	clusterName := testutil.RandomName("cluster")
@@ -127,6 +133,8 @@ func TestAccConsistency_Service(t *testing.T) {
 }
 
 func TestAccConsistency_Service_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	serviceName := testutil.RandomName("service")
 	vmName := testutil.RandomName("vm")
 	clusterName := testutil.RandomName("cluster")

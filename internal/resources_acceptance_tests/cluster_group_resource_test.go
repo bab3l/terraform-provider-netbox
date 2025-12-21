@@ -13,6 +13,8 @@ import (
 
 func TestAccClusterGroupResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-cluster-group")
 
 	slug := testutil.RandomSlug("tf-test-cluster-group")

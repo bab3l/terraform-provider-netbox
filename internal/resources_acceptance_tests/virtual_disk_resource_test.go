@@ -13,6 +13,8 @@ import (
 
 func TestAccVirtualDiskResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	diskName := testutil.RandomName("tf-test-disk")
 
 	vmName := testutil.RandomName("tf-test-vm")
@@ -76,6 +78,8 @@ func TestAccVirtualDiskResource_basic(t *testing.T) {
 }
 
 func TestAccVirtualDiskResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	diskName := testutil.RandomName("tf-test-disk-full")
 
@@ -142,6 +146,8 @@ func TestAccVirtualDiskResource_full(t *testing.T) {
 }
 
 func TestAccVirtualDiskResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	diskName := testutil.RandomName("tf-test-disk-upd")
 
@@ -221,6 +227,8 @@ func TestAccVirtualDiskResource_update(t *testing.T) {
 
 func TestAccVirtualDiskResource_import(t *testing.T) {
 
+	t.Parallel()
+
 	diskName := testutil.RandomName("tf-test-disk")
 
 	vmName := testutil.RandomName("tf-test-vm")
@@ -296,6 +304,8 @@ func TestAccVirtualDiskResource_import(t *testing.T) {
 
 func TestAccConsistency_VirtualDisk(t *testing.T) {
 
+	t.Parallel()
+
 	clusterTypeName := testutil.RandomName("cluster-type")
 
 	clusterTypeSlug := testutil.RandomSlug("cluster-type")
@@ -336,6 +346,8 @@ func TestAccConsistency_VirtualDisk(t *testing.T) {
 }
 
 func TestAccConsistency_VirtualDisk_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 
 	clusterTypeName := testutil.RandomName("cluster-type")
 

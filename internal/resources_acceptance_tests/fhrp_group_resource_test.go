@@ -11,6 +11,8 @@ import (
 
 func TestAccFHRPGroupResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	protocol := "vrrp2"
 
 	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
@@ -42,6 +44,8 @@ func TestAccFHRPGroupResource_basic(t *testing.T) {
 }
 
 func TestAccFHRPGroupResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	protocol := "hsrp"
 
@@ -90,6 +94,8 @@ func TestAccFHRPGroupResource_full(t *testing.T) {
 }
 
 func TestAccFHRPGroupResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	protocol := "vrrp3"
 
@@ -142,6 +148,8 @@ func TestAccFHRPGroupResource_update(t *testing.T) {
 }
 
 func TestAccFHRPGroupResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	protocol := "vrrp2"
 

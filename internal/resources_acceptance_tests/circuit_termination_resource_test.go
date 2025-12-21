@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccCircuitTerminationResource_basic(t *testing.T) {
+
+	t.Parallel()
 	providerName := testutil.RandomName("tf-test-provider")
 	providerSlug := testutil.RandomSlug("tf-test-provider")
 	circuitTypeName := testutil.RandomName("tf-test-ct")
@@ -50,6 +52,8 @@ func TestAccCircuitTerminationResource_basic(t *testing.T) {
 }
 
 func TestAccCircuitTerminationResource_full(t *testing.T) {
+
+	t.Parallel()
 	providerName := testutil.RandomName("tf-test-provider-full")
 	providerSlug := testutil.RandomSlug("tf-test-provider-full")
 	circuitTypeName := testutil.RandomName("tf-test-ct-full")
@@ -159,6 +163,8 @@ resource "netbox_circuit_termination" "test" {
 }
 
 func TestAccCircuitTerminationResource_import(t *testing.T) {
+
+	t.Parallel()
 	providerName := testutil.RandomName("tf-test-provider")
 	providerSlug := testutil.RandomSlug("tf-test-provider")
 	circuitTypeName := testutil.RandomName("tf-test-ct")
@@ -199,6 +205,8 @@ func TestAccCircuitTerminationResource_import(t *testing.T) {
 // TestAccConsistency_CircuitTermination_LiteralNames tests that reference attributes specified as literal string names
 // are preserved and do not cause drift when the API returns numeric IDs.
 func TestAccConsistency_CircuitTermination_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	providerName := testutil.RandomName("provider")
 	providerSlug := testutil.RandomSlug("provider")
 	circuitTypeName := testutil.RandomName("circuit-type")

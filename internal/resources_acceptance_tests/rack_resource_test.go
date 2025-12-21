@@ -13,6 +13,8 @@ import (
 
 func TestAccRackResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 
 	siteName := testutil.RandomName("tf-test-rack-site")
@@ -61,6 +63,8 @@ func TestAccRackResource_basic(t *testing.T) {
 }
 
 func TestAccRackResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	// Generate unique names
 
@@ -118,6 +122,8 @@ func TestAccRackResource_full(t *testing.T) {
 }
 
 func TestAccRackResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	// Generate unique names
 
@@ -182,6 +188,8 @@ func TestAccRackResource_update(t *testing.T) {
 
 func TestAccRackResource_withLocation(t *testing.T) {
 
+	t.Parallel()
+
 	// Generate unique names
 
 	siteName := testutil.RandomName("tf-test-rack-site-loc")
@@ -236,6 +244,8 @@ func TestAccRackResource_withLocation(t *testing.T) {
 }
 
 func TestAccRackResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	// Generate unique names to avoid conflicts between test runs
 
@@ -296,6 +306,8 @@ func TestAccRackResource_import(t *testing.T) {
 }
 
 func TestAccConsistency_Rack(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

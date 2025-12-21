@@ -10,6 +10,8 @@ import (
 
 func TestAccDeviceRoleResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-device-role")
 
 	slug := testutil.RandomSlug("tf-test-dr")
@@ -41,6 +43,8 @@ func TestAccDeviceRoleResource_basic(t *testing.T) {
 }
 
 func TestAccDeviceRoleResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-device-role-full")
 
@@ -79,6 +83,8 @@ func TestAccDeviceRoleResource_full(t *testing.T) {
 }
 
 func TestAccDeviceRoleResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-device-role-update")
 

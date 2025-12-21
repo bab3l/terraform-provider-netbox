@@ -9,6 +9,8 @@ import (
 )
 
 func TestAccDeviceResource_basic(t *testing.T) {
+
+	t.Parallel()
 	// Generate unique names to avoid conflicts between test runs
 	deviceName := testutil.RandomName("tf-test-device")
 	manufacturerName := testutil.RandomName("tf-test-manufacturer")
@@ -47,6 +49,8 @@ func TestAccDeviceResource_basic(t *testing.T) {
 }
 
 func TestAccDeviceResource_full(t *testing.T) {
+
+	t.Parallel()
 	// Generate unique names
 	deviceName := testutil.RandomName("tf-test-device")
 	manufacturerName := testutil.RandomName("tf-test-manufacturer")
@@ -84,6 +88,8 @@ func TestAccDeviceResource_full(t *testing.T) {
 }
 
 func TestAccDeviceResource_update(t *testing.T) {
+
+	t.Parallel()
 	// Generate unique names
 	deviceName := testutil.RandomName("tf-test-device")
 	deviceNameUpdated := testutil.RandomName("tf-test-device-updated")
@@ -120,6 +126,8 @@ func TestAccDeviceResource_update(t *testing.T) {
 }
 
 func TestAccConsistency_Device(t *testing.T) {
+
+	t.Parallel()
 	deviceName := testutil.RandomName("device")
 	deviceTypeName := testutil.RandomName("device-type")
 	deviceTypeSlug := testutil.RandomSlug("device-type")
@@ -161,6 +169,8 @@ func TestAccConsistency_Device(t *testing.T) {
 }
 
 func TestAccConsistency_Device_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	deviceName := testutil.RandomName("device")
 	deviceTypeName := testutil.RandomName("device-type")
 	deviceTypeSlug := testutil.RandomSlug("device-type")

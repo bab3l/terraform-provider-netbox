@@ -10,6 +10,8 @@ import (
 
 func TestAccCustomLinkResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("cl")
 
 	resource.Test(t, resource.TestCase{
@@ -53,6 +55,8 @@ func TestAccCustomLinkResource_basic(t *testing.T) {
 
 func TestAccCustomLinkResource_full(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("cl")
 
 	resource.Test(t, resource.TestCase{
@@ -90,6 +94,8 @@ func TestAccCustomLinkResource_full(t *testing.T) {
 }
 
 func TestAccCustomLinkResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("cl")
 

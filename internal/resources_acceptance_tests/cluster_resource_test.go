@@ -13,6 +13,8 @@ import (
 
 func TestAccClusterResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type")
 
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type")
@@ -62,6 +64,8 @@ func TestAccClusterResource_basic(t *testing.T) {
 }
 
 func TestAccClusterResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type-full")
 
@@ -122,6 +126,8 @@ func TestAccClusterResource_full(t *testing.T) {
 }
 
 func TestAccClusterResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type-update")
 
@@ -184,6 +190,8 @@ func TestAccClusterResource_update(t *testing.T) {
 }
 
 func TestAccClusterResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type-import")
 
@@ -249,6 +257,8 @@ func TestAccClusterResource_import(t *testing.T) {
 // are preserved and do not cause drift when the API returns numeric IDs.
 
 func TestAccConsistency_Cluster_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	clusterName := testutil.RandomName("cluster")
 
 	clusterTypeName := testutil.RandomName("cluster-type")

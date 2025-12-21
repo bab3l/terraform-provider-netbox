@@ -55,6 +55,8 @@ resource "netbox_power_outlet_template" "test" {
 }
 
 func TestAccPowerOutletTemplateResource_basic(t *testing.T) {
+
+	t.Parallel()
 	manufacturerName := testutil.RandomName("mfr")
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
@@ -89,6 +91,8 @@ func TestAccPowerOutletTemplateResource_basic(t *testing.T) {
 }
 
 func TestAccPowerOutletTemplateResource_full(t *testing.T) {
+
+	t.Parallel()
 	manufacturerName := testutil.RandomName("mfr")
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
@@ -134,6 +138,8 @@ func TestAccPowerOutletTemplateResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_PowerOutletTemplate_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	manufacturerName := testutil.RandomName("manufacturer")
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
 	deviceTypeName := testutil.RandomName("device-type")

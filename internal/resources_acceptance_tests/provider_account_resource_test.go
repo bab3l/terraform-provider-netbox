@@ -13,6 +13,8 @@ import (
 
 func TestAccProviderAccountResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	providerName := testutil.RandomName("tf-test-provider")
 
 	providerSlug := testutil.RandomSlug("tf-test-provider")
@@ -60,6 +62,8 @@ func TestAccProviderAccountResource_basic(t *testing.T) {
 }
 
 func TestAccProviderAccountResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	providerName := testutil.RandomName("tf-test-provider-full")
 

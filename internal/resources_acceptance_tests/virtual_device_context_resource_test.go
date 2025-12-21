@@ -13,6 +13,8 @@ import (
 
 func TestAccVirtualDeviceContextResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site")
 
 	siteSlug := testutil.RandomSlug("tf-test-site")
@@ -88,6 +90,8 @@ func TestAccVirtualDeviceContextResource_basic(t *testing.T) {
 }
 
 func TestAccVirtualDeviceContextResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	siteName := testutil.RandomName("tf-test-site")
 
@@ -166,6 +170,8 @@ func TestAccVirtualDeviceContextResource_update(t *testing.T) {
 
 func TestAccConsistency_VirtualDeviceContext(t *testing.T) {
 
+	t.Parallel()
+
 	siteName := testutil.RandomName("site")
 
 	siteSlug := testutil.RandomSlug("site")
@@ -222,6 +228,8 @@ func TestAccConsistency_VirtualDeviceContext(t *testing.T) {
 }
 
 func TestAccConsistency_VirtualDeviceContext_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 
 	siteName := testutil.RandomName("site")
 

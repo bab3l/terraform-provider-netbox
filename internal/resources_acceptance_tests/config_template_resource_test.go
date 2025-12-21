@@ -13,6 +13,8 @@ import (
 
 func TestAccConfigTemplateResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("config-tmpl")
 
 	templateCode := "hostname {{ device.name }}"
@@ -56,6 +58,8 @@ func TestAccConfigTemplateResource_basic(t *testing.T) {
 }
 
 func TestAccConfigTemplateResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("config-tmpl")
 

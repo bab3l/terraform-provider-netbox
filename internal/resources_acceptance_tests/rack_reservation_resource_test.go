@@ -13,6 +13,8 @@ import (
 
 func TestAccRackReservationResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site")
 
 	siteSlug := testutil.RandomSlug("tf-test-site")
@@ -70,6 +72,8 @@ func TestAccRackReservationResource_basic(t *testing.T) {
 }
 
 func TestAccRackReservationResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	siteName := testutil.RandomName("tf-test-site")
 

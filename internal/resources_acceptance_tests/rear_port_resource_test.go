@@ -13,6 +13,8 @@ import (
 
 func TestAccRearPortResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site")
 
 	siteSlug := testutil.RandomSlug("tf-test-site")
@@ -86,6 +88,8 @@ func TestAccRearPortResource_basic(t *testing.T) {
 }
 
 func TestAccRearPortResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	siteName := testutil.RandomName("tf-test-site")
 
@@ -171,6 +175,8 @@ func TestAccRearPortResource_full(t *testing.T) {
 
 func TestAccConsistency_RearPort(t *testing.T) {
 
+	t.Parallel()
+
 	siteName := testutil.RandomName("site")
 
 	siteSlug := testutil.RandomSlug("site")
@@ -221,6 +227,8 @@ func TestAccConsistency_RearPort(t *testing.T) {
 }
 
 func TestAccConsistency_RearPort_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 
 	manufacturerName := testutil.RandomName("manufacturer")
 

@@ -13,6 +13,8 @@ import (
 
 func TestAccRIRResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-rir")
 
 	slug := testutil.RandomSlug("tf-test-rir")
@@ -58,6 +60,8 @@ func TestAccRIRResource_basic(t *testing.T) {
 }
 
 func TestAccRIRResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-rir-full")
 

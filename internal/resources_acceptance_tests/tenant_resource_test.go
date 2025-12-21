@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccTenantResource_basic(t *testing.T) {
+
+	t.Parallel()
 	// Generate unique names to avoid conflicts between test runs
 	name := testutil.RandomName("tf-test-tenant")
 	slug := testutil.RandomSlug("tf-test-tenant")
@@ -40,6 +42,8 @@ func TestAccTenantResource_basic(t *testing.T) {
 }
 
 func TestAccTenantResource_full(t *testing.T) {
+
+	t.Parallel()
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tenant-full")
 	slug := testutil.RandomSlug("tf-test-tenant-full")
@@ -70,6 +74,8 @@ func TestAccTenantResource_full(t *testing.T) {
 }
 
 func TestAccTenantResource_update(t *testing.T) {
+
+	t.Parallel()
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tenant-update")
 	slug := testutil.RandomSlug("tf-test-tenant-upd")
@@ -126,6 +132,8 @@ resource "netbox_tenant" "test" {
 }
 
 func TestAccTenantResource_import(t *testing.T) {
+
+	t.Parallel()
 	// Generate unique names to avoid conflicts between test runs
 	name := testutil.RandomName("tf-test-tenant-import")
 	slug := testutil.RandomSlug("tf-test-tenant-imp")
@@ -167,6 +175,8 @@ resource "netbox_tenant" "test" {
 }
 
 func TestAccConsistency_Tenant(t *testing.T) {
+
+	t.Parallel()
 	tenantName := testutil.RandomName("tenant")
 	tenantSlug := testutil.RandomSlug("tenant")
 	groupName := testutil.RandomName("group")

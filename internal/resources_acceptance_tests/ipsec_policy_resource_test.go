@@ -10,6 +10,8 @@ import (
 
 func TestAccIPSECPolicyResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-ipsec-policy")
 
 	resource.Test(t, resource.TestCase{
@@ -37,6 +39,8 @@ func TestAccIPSECPolicyResource_basic(t *testing.T) {
 }
 
 func TestAccIPSECPolicyResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-policy-full")
 
@@ -69,6 +73,8 @@ func TestAccIPSECPolicyResource_full(t *testing.T) {
 }
 
 func TestAccIPSECPolicyResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-policy-update")
 
@@ -111,6 +117,8 @@ func TestAccIPSECPolicyResource_update(t *testing.T) {
 }
 
 func TestAccIPSECPolicyResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-policy")
 

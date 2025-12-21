@@ -10,6 +10,8 @@ import (
 
 func TestAccDeviceBayTemplateResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-dbt")
 
 	manufacturerName := testutil.RandomName("tf-test-mfr")
@@ -47,6 +49,8 @@ func TestAccDeviceBayTemplateResource_basic(t *testing.T) {
 }
 
 func TestAccDeviceBayTemplateResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-dbt-full")
 
@@ -89,6 +93,8 @@ func TestAccDeviceBayTemplateResource_full(t *testing.T) {
 }
 
 func TestAccDeviceBayTemplateResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-dbt-upd")
 

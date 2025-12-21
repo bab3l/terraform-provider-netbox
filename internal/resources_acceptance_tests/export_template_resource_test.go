@@ -9,6 +9,8 @@ import (
 )
 
 func TestAccExportTemplateResource_basic(t *testing.T) {
+
+	t.Parallel()
 	name := acctest.RandomWithPrefix("test-export-template")
 
 	resource.Test(t, resource.TestCase{
@@ -42,6 +44,8 @@ func TestAccExportTemplateResource_basic(t *testing.T) {
 }
 
 func TestAccExportTemplateResource_full(t *testing.T) {
+
+	t.Parallel()
 	name := acctest.RandomWithPrefix("test-export-template")
 
 	resource.Test(t, resource.TestCase{

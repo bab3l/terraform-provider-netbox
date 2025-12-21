@@ -13,6 +13,8 @@ import (
 
 func TestAccRackRoleResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 
 	rackRoleName := testutil.RandomName("tf-test-rack-role")
@@ -57,6 +59,8 @@ func TestAccRackRoleResource_basic(t *testing.T) {
 }
 
 func TestAccRackRoleResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	// Generate unique names
 
@@ -110,6 +114,8 @@ func TestAccRackRoleResource_full(t *testing.T) {
 }
 
 func TestAccRackRoleResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	// Generate unique names
 
@@ -168,6 +174,8 @@ func TestAccRackRoleResource_update(t *testing.T) {
 
 func TestAccRackRoleResource_import(t *testing.T) {
 
+	t.Parallel()
+
 	// Generate unique names
 
 	rackRoleName := testutil.RandomName("tf-test-rack-role-imp")
@@ -212,6 +220,8 @@ func TestAccRackRoleResource_import(t *testing.T) {
 }
 
 func TestAccConsistency_RackRole(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

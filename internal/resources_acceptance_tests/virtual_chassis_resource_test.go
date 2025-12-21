@@ -13,6 +13,8 @@ import (
 
 func TestAccVirtualChassisResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	name := testutil.RandomName("tf-test-vc")
 
 	resource.Test(t, resource.TestCase{
@@ -52,6 +54,8 @@ func TestAccVirtualChassisResource_basic(t *testing.T) {
 }
 
 func TestAccVirtualChassisResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	name := testutil.RandomName("tf-test-vc-full")
 

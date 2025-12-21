@@ -10,6 +10,8 @@ import (
 
 func TestAccContactResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("test-contact")
@@ -67,6 +69,8 @@ func TestAccContactResource_basic(t *testing.T) {
 
 func TestAccContactResource_full(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("test-contact-full")
@@ -110,6 +114,8 @@ func TestAccContactResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_Contact(t *testing.T) {
+
+	t.Parallel()
 	contactName := testutil.RandomName("contact")
 
 	contactGroupName := testutil.RandomName("contactgroup")
@@ -148,6 +154,8 @@ func TestAccConsistency_Contact(t *testing.T) {
 }
 
 func TestAccConsistency_Contact_LiteralNames(t *testing.T) {
+
+	t.Parallel()
 	contactName := testutil.RandomName("contact")
 
 	contactGroupName := testutil.RandomName("contactgroup")

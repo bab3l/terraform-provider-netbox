@@ -9,6 +9,8 @@ import (
 
 func TestAccIPAddressResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -34,6 +36,8 @@ func TestAccIPAddressResource_basic(t *testing.T) {
 }
 
 func TestAccIPAddressResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
 
@@ -66,6 +70,8 @@ func TestAccIPAddressResource_full(t *testing.T) {
 }
 
 func TestAccIPAddressResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
 
@@ -106,6 +112,8 @@ func TestAccIPAddressResource_update(t *testing.T) {
 }
 
 func TestAccIPAddressResource_import(t *testing.T) {
+
+	t.Parallel()
 
 	resource.Test(t, resource.TestCase{
 

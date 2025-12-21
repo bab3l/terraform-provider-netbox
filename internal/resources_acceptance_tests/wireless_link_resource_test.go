@@ -9,6 +9,8 @@ import (
 )
 
 func TestAccWirelessLinkResource_basic(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("test-site-wireless")
 	siteSlug := testutil.GenerateSlug(siteName)
 	deviceName := testutil.RandomName("test-device-wireless")

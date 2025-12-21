@@ -13,6 +13,8 @@ import (
 
 func TestAccVirtualMachineResource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type")
 
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type")
@@ -66,6 +68,8 @@ func TestAccVirtualMachineResource_basic(t *testing.T) {
 }
 
 func TestAccVirtualMachineResource_full(t *testing.T) {
+
+	t.Parallel()
 
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type-full")
 
@@ -136,6 +140,8 @@ func TestAccVirtualMachineResource_full(t *testing.T) {
 }
 
 func TestAccVirtualMachineResource_update(t *testing.T) {
+
+	t.Parallel()
 
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type-update")
 
@@ -236,6 +242,8 @@ resource "netbox_virtual_machine" "test" {
 }
 
 func TestAccVirtualMachineResource_customFieldsWithDigit(t *testing.T) {
+
+	t.Parallel()
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type-custom")
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-custom")
 	clusterName := testutil.RandomName("tf-test-cluster-custom")
@@ -352,6 +360,8 @@ resource "netbox_virtual_machine" "test" {
 }
 
 func TestAccConsistency_VirtualMachine_PlatformNamePersistence(t *testing.T) {
+
+	t.Parallel()
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type-platform")
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-platform")
 	clusterName := testutil.RandomName("tf-test-cluster-platform")
