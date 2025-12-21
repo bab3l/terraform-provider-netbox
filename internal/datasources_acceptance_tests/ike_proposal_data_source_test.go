@@ -151,7 +151,11 @@ func TestAccIKEProposalDataSource_byID(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	randomName := testutil.RandomName("tf-test-ike-proposal-ds")
+
+	cleanup.RegisterIKEProposalCleanup(randomName)
 
 	resource.Test(t, resource.TestCase{
 
@@ -178,6 +182,9 @@ func TestAccIKEProposalDataSource_byID(t *testing.T) {
 				),
 			},
 		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckIKEProposalDestroy,
+		),
 	})
 
 }
@@ -188,7 +195,11 @@ func TestAccIKEProposalDataSource_byName(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	randomName := testutil.RandomName("tf-test-ike-proposal-ds")
+
+	cleanup.RegisterIKEProposalCleanup(randomName)
 
 	resource.Test(t, resource.TestCase{
 
@@ -213,6 +224,9 @@ func TestAccIKEProposalDataSource_byName(t *testing.T) {
 				),
 			},
 		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckIKEProposalDestroy,
+		),
 	})
 
 }

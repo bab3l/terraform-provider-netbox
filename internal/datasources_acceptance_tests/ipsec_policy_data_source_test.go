@@ -151,7 +151,11 @@ func TestAccIPSecPolicyDataSource_byID(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	randomName := testutil.RandomName("tf-test-ipsec-policy-ds")
+
+	cleanup.RegisterIPSecPolicyCleanup(randomName)
 
 	resource.Test(t, resource.TestCase{
 
@@ -174,6 +178,9 @@ func TestAccIPSecPolicyDataSource_byID(t *testing.T) {
 				),
 			},
 		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckIPSecPolicyDestroy,
+		),
 	})
 
 }
@@ -184,7 +191,11 @@ func TestAccIPSecPolicyDataSource_byName(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	randomName := testutil.RandomName("tf-test-ipsec-policy-ds")
+
+	cleanup.RegisterIPSecPolicyCleanup(randomName)
 
 	resource.Test(t, resource.TestCase{
 
@@ -207,6 +218,9 @@ func TestAccIPSecPolicyDataSource_byName(t *testing.T) {
 				),
 			},
 		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckIPSecPolicyDestroy,
+		),
 	})
 
 }

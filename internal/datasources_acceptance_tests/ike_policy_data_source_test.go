@@ -151,7 +151,11 @@ func TestAccIKEPolicyDataSource_byID(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	randomName := testutil.RandomName("tf-test-ike-policy-ds")
+
+	cleanup.RegisterIKEPolicyCleanup(randomName)
 
 	resource.Test(t, resource.TestCase{
 
@@ -176,6 +180,9 @@ func TestAccIKEPolicyDataSource_byID(t *testing.T) {
 				),
 			},
 		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckIKEPolicyDestroy,
+		),
 	})
 
 }
@@ -186,7 +193,11 @@ func TestAccIKEPolicyDataSource_byName(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	randomName := testutil.RandomName("tf-test-ike-policy-ds")
+
+	cleanup.RegisterIKEPolicyCleanup(randomName)
 
 	resource.Test(t, resource.TestCase{
 
@@ -211,6 +222,9 @@ func TestAccIKEPolicyDataSource_byName(t *testing.T) {
 				),
 			},
 		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckIKEPolicyDestroy,
+		),
 	})
 
 }

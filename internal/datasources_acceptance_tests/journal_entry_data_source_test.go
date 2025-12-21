@@ -161,7 +161,11 @@ func TestAccJournalEntryDataSource_byID(t *testing.T) {
 
 	t.Parallel()
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	siteName := testutil.RandomName("tf-test-site-journal-ds")
+
+	cleanup.RegisterSiteCleanup(testutil.GenerateSlug(siteName))
 
 	resource.Test(t, resource.TestCase{
 
@@ -172,7 +176,10 @@ func TestAccJournalEntryDataSource_byID(t *testing.T) {
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
 
-		CheckDestroy: testutil.CheckJournalEntryDestroy,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckJournalEntryDestroy,
+		),
 
 		Steps: []resource.TestStep{
 
