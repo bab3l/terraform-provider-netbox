@@ -11,11 +11,19 @@ import (
 func TestAccConfigContextDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
 	name := testutil.RandomName("test-config-context")
+
+	cleanup.RegisterConfigContextCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckConfigContextDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigContextDataSourceConfig(name),

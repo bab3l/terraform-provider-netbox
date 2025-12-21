@@ -201,9 +201,13 @@ func TestAccConfigTemplateDataSource_byID(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	name := testutil.RandomName("config-tmpl-ds")
 
 	templateCode := "hostname {{ device.name }}"
+
+	cleanup.RegisterConfigTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 
@@ -211,6 +215,10 @@ func TestAccConfigTemplateDataSource_byID(t *testing.T) {
 
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckConfigTemplateDestroy,
+		),
 
 		Steps: []resource.TestStep{
 
@@ -238,9 +246,13 @@ func TestAccConfigTemplateDataSource_byName(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	name := testutil.RandomName("config-tmpl-ds")
 
 	templateCode := "hostname {{ device.name }}"
+
+	cleanup.RegisterConfigTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 
@@ -248,6 +260,10 @@ func TestAccConfigTemplateDataSource_byName(t *testing.T) {
 
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckConfigTemplateDestroy,
+		),
 
 		Steps: []resource.TestStep{
 

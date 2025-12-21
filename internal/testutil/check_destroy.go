@@ -2119,3 +2119,135 @@ func CheckServiceDestroy(s *terraform.State) error {
 
 	return nil
 }
+
+// CheckServiceTemplateDestroy verifies that a service template has been destroyed.
+func CheckServiceTemplateDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_service_template" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.IpamAPI.IpamServiceTemplatesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("service template with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckExportTemplateDestroy verifies that an export template has been destroyed.
+func CheckExportTemplateDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_export_template" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.ExtrasAPI.ExtrasExportTemplatesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("export template with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckConfigTemplateDestroy verifies that a config template has been destroyed.
+func CheckConfigTemplateDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_config_template" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.ExtrasAPI.ExtrasConfigTemplatesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("config template with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckConfigContextDestroy verifies that a config context has been destroyed.
+func CheckConfigContextDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_config_context" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.ExtrasAPI.ExtrasConfigContextsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("config context with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}

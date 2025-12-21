@@ -2922,3 +2922,115 @@ func (c *CleanupResource) RegisterServiceCleanup(name string) {
 		}
 	})
 }
+
+// RegisterServiceTemplateCleanup registers a cleanup function that will delete
+// a service template by name after the test completes.
+func (c *CleanupResource) RegisterServiceTemplateCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamServiceTemplatesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list service templates with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: service template with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.IpamAPI.IpamServiceTemplatesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete service template %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted service template %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterExportTemplateCleanup registers a cleanup function that will delete
+// an export template by name after the test completes.
+func (c *CleanupResource) RegisterExportTemplateCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.ExtrasAPI.ExtrasExportTemplatesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list export templates with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: export template with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.ExtrasAPI.ExtrasExportTemplatesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete export template %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted export template %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterConfigTemplateCleanup registers a cleanup function that will delete
+// a config template by name after the test completes.
+func (c *CleanupResource) RegisterConfigTemplateCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.ExtrasAPI.ExtrasConfigTemplatesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list config templates with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: config template with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.ExtrasAPI.ExtrasConfigTemplatesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete config template %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted config template %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterConfigContextCleanup registers a cleanup function that will delete
+// a config context by name after the test completes.
+func (c *CleanupResource) RegisterConfigContextCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.ExtrasAPI.ExtrasConfigContextsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list config contexts with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: config context with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.ExtrasAPI.ExtrasConfigContextsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete config context %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted config context %d (name: %s)", id, name)
+		}
+	})
+}
