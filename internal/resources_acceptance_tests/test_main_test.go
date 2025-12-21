@@ -1,4 +1,4 @@
-package resources_test
+package resources_acceptance_tests
 
 import (
 	"testing"
