@@ -2673,6 +2673,34 @@ func (c *CleanupResource) RegisterInventoryItemTemplateCleanup(id int32) {
 
 }
 
+// RegisterContactGroupCleanup registers a cleanup function that will delete
+// a contact group by slug after the test completes.
+func (c *CleanupResource) RegisterContactGroupCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.TenancyAPI.TenancyContactGroupsList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list contact groups with slug %s: %v", slug, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+			c.t.Logf("Cleanup: contact group with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.TenancyAPI.TenancyContactGroupsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete contact group %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted contact group %d (slug: %s)", id, slug)
+		}
+	})
+}
+
 func (c *CleanupResource) RegisterClusterGroupCleanup(slug string) {
 	c.t.Cleanup(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

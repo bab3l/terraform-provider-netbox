@@ -14,9 +14,13 @@ func TestAccContactGroupDataSource_basic(t *testing.T) {
 	name := testutil.RandomName("test-contact-group")
 	slug := testutil.GenerateSlug(name)
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactGroupCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckContactGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccContactGroupDataSourceConfig(name, slug),
