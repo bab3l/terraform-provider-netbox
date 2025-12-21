@@ -3,12 +3,12 @@ package resources_acceptance_tests
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -17,8 +17,8 @@ func TestAccAggregateResource_basic(t *testing.T) {
 	t.Parallel()
 	rirName := testutil.RandomName("tf-test-rir")
 	rirSlug := testutil.RandomSlug("tf-test-rir")
-	// Use a timestamp-based prefix to ensure uniqueness across test runs
-	prefix := fmt.Sprintf("192.0.%d.0/24", (int(time.Now().Unix()) % 256))
+	// Use a random third octet to ensure uniqueness across test runs
+	prefix := fmt.Sprintf("192.0.%d.0/24", acctest.RandIntRange(0, 255))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
@@ -71,8 +71,8 @@ func TestAccAggregateResource_full(t *testing.T) {
 
 	rirSlug := testutil.RandomSlug("tf-test-rir-full")
 
-	// Use a timestamp-based prefix to ensure uniqueness across test runs
-	prefix := fmt.Sprintf("198.51.%d.0/24", (int(time.Now().Unix()) % 256))
+	// Use a random third octet to ensure uniqueness across test runs
+	prefix := fmt.Sprintf("198.51.%d.0/24", acctest.RandIntRange(0, 255))
 
 	description := "Test aggregate with all fields"
 
@@ -177,8 +177,8 @@ resource "netbox_aggregate" "test" {
 func TestAccConsistency_Aggregate(t *testing.T) {
 
 	t.Parallel()
-	// Use a timestamp-based prefix to ensure uniqueness across test runs
-	prefix := fmt.Sprintf("10.%d.0.0/16", (int(time.Now().Unix()) % 256))
+	// Use random second and third octets to ensure uniqueness across test runs
+	prefix := fmt.Sprintf("10.%d.%d.0/16", acctest.RandIntRange(0, 255), acctest.RandIntRange(0, 255))
 
 	rirName := testutil.RandomName("rir")
 
@@ -266,8 +266,8 @@ resource "netbox_aggregate" "test" {
 func TestAccConsistency_Aggregate_LiteralNames(t *testing.T) {
 
 	t.Parallel()
-	// Use a timestamp-based prefix to ensure uniqueness across test runs
-	prefix := fmt.Sprintf("10.%d.0.0/16", (int(time.Now().Unix()) % 256))
+	// Use random second and third octets to ensure uniqueness across test runs
+	prefix := fmt.Sprintf("10.%d.%d.0/16", acctest.RandIntRange(0, 255), acctest.RandIntRange(0, 255))
 
 	rirName := testutil.RandomName("rir")
 
