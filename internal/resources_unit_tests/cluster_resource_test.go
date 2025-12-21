@@ -13,6 +13,8 @@ func TestClusterResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewClusterResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestClusterResource(t *testing.T) {
 }
 
 func TestClusterResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -62,6 +66,8 @@ func TestClusterResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewClusterResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_cluster")
@@ -69,6 +75,8 @@ func TestClusterResourceMetadata(t *testing.T) {
 }
 
 func TestClusterResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

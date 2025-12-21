@@ -13,6 +13,8 @@ func TestCircuitResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewCircuitResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestCircuitResource(t *testing.T) {
 }
 
 func TestCircuitResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -62,6 +66,8 @@ func TestCircuitResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewCircuitResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_circuit")
@@ -69,6 +75,8 @@ func TestCircuitResourceMetadata(t *testing.T) {
 }
 
 func TestCircuitResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

@@ -9,6 +9,8 @@ import (
 )
 
 func TestAccCableTerminationDataSource_basic(t *testing.T) {
+
+	t.Parallel()
 	t.Skip("Skipping cable_termination data source test because netbox_cable resource does not export termination IDs")
 	siteName := testutil.RandomName("test-site-cable-term")
 	siteSlug := testutil.GenerateSlug(siteName)

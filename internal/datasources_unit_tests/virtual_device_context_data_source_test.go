@@ -10,6 +10,8 @@ import (
 )
 
 func TestVirtualDeviceContextDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewVirtualDeviceContextDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestVirtualDeviceContextDataSourceSchema(t *testing.T) {
 }
 
 func TestVirtualDeviceContextDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewVirtualDeviceContextDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_virtual_device_context")
 }
 
 func TestVirtualDeviceContextDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewVirtualDeviceContextDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

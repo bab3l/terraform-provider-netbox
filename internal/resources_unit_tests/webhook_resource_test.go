@@ -13,6 +13,8 @@ func TestWebhookResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewWebhookResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestWebhookResource(t *testing.T) {
 }
 
 func TestWebhookResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -95,6 +99,8 @@ func TestWebhookResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewWebhookResource()
 
 	metadataRequest := fwresource.MetadataRequest{
@@ -117,6 +123,8 @@ func TestWebhookResourceMetadata(t *testing.T) {
 }
 
 func TestWebhookResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

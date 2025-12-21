@@ -15,6 +15,8 @@ import (
 
 func TestMapToCustomFieldModels_Panic(t *testing.T) {
 
+	t.Parallel()
+
 	// Setup
 
 	customFields := map[string]interface{}{
@@ -113,6 +115,8 @@ func TestMapToCustomFieldModels_Panic(t *testing.T) {
 
 func TestParseDuplicateErrorFromBytes(t *testing.T) {
 
+	t.Parallel()
+
 	tests := []struct {
 		name string
 
@@ -205,6 +209,7 @@ func TestParseDuplicateErrorFromBytes(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			resp := &http.Response{
 
@@ -262,6 +267,8 @@ func TestParseDuplicateErrorFromBytes(t *testing.T) {
 }
 
 func TestCreateErrorHandler_HandleCreateError_Duplicate(t *testing.T) {
+
+	t.Parallel()
 
 	ctx := context.Background()
 
@@ -333,6 +340,8 @@ func TestCreateErrorHandler_HandleCreateError_Duplicate(t *testing.T) {
 
 func TestCreateErrorHandler_HandleCreateError_DuplicateWithLookupFailure(t *testing.T) {
 
+	t.Parallel()
+
 	ctx := context.Background()
 
 	// Test with lookup that fails
@@ -396,6 +405,8 @@ func TestCreateErrorHandler_HandleCreateError_DuplicateWithLookupFailure(t *test
 }
 
 func TestCreateErrorHandler_HandleCreateError_NonDuplicate(t *testing.T) {
+
+	t.Parallel()
 
 	ctx := context.Background()
 

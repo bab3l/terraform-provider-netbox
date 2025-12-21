@@ -10,6 +10,8 @@ import (
 )
 
 func TestCustomFieldDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewCustomFieldDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestCustomFieldDataSourceSchema(t *testing.T) {
 }
 
 func TestCustomFieldDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewCustomFieldDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_custom_field")
 }
 
 func TestCustomFieldDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewCustomFieldDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

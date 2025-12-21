@@ -10,6 +10,8 @@ import (
 )
 
 func TestDeviceRoleDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewDeviceRoleDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestDeviceRoleDataSourceSchema(t *testing.T) {
 }
 
 func TestDeviceRoleDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewDeviceRoleDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_device_role")
 }
 
 func TestDeviceRoleDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewDeviceRoleDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

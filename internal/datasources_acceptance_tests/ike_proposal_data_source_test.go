@@ -147,6 +147,8 @@ func TestIKEProposalDataSourceConfigure(t *testing.T) {
 
 func TestAccIKEProposalDataSource_byID(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("tf-test-ike-proposal-ds")
@@ -181,6 +183,8 @@ func TestAccIKEProposalDataSource_byID(t *testing.T) {
 }
 
 func TestAccIKEProposalDataSource_byName(t *testing.T) {
+
+	t.Parallel()
 
 	testutil.TestAccPreCheck(t)
 

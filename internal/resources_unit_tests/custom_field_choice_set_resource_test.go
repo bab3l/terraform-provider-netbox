@@ -13,6 +13,8 @@ func TestCustomFieldChoiceSetResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewCustomFieldChoiceSetResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestCustomFieldChoiceSetResource(t *testing.T) {
 }
 
 func TestCustomFieldChoiceSetResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -56,6 +60,8 @@ func TestCustomFieldChoiceSetResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewCustomFieldChoiceSetResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_custom_field_choice_set")
@@ -63,6 +69,8 @@ func TestCustomFieldChoiceSetResourceMetadata(t *testing.T) {
 }
 
 func TestCustomFieldChoiceSetResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

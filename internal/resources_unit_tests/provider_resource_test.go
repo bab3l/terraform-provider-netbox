@@ -13,6 +13,8 @@ func TestProviderResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewProviderResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestProviderResource(t *testing.T) {
 }
 
 func TestProviderResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -62,6 +66,8 @@ func TestProviderResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewProviderResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_provider")
@@ -69,6 +75,8 @@ func TestProviderResourceMetadata(t *testing.T) {
 }
 
 func TestProviderResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

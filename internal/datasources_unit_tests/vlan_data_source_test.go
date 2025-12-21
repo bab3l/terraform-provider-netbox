@@ -10,6 +10,8 @@ import (
 )
 
 func TestVLANDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewVLANDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestVLANDataSourceSchema(t *testing.T) {
 }
 
 func TestVLANDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewVLANDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_vlan")
 }
 
 func TestVLANDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewVLANDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

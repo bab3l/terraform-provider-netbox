@@ -10,6 +10,8 @@ import (
 )
 
 func TestTenantGroupResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTenantGroupResource()
@@ -19,6 +21,8 @@ func TestTenantGroupResource(t *testing.T) {
 }
 
 func TestTenantGroupResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTenantGroupResource()
@@ -43,6 +47,8 @@ func TestTenantGroupResourceSchema(t *testing.T) {
 }
 
 func TestTenantGroupResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTenantGroupResource()
@@ -50,6 +56,8 @@ func TestTenantGroupResourceMetadata(t *testing.T) {
 }
 
 func TestTenantGroupResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTenantGroupResource()

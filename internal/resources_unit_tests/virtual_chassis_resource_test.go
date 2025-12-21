@@ -13,6 +13,8 @@ func TestVirtualChassisResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewVirtualChassisResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestVirtualChassisResource(t *testing.T) {
 }
 
 func TestVirtualChassisResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -62,6 +66,8 @@ func TestVirtualChassisResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewVirtualChassisResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_virtual_chassis")
@@ -69,6 +75,8 @@ func TestVirtualChassisResourceMetadata(t *testing.T) {
 }
 
 func TestVirtualChassisResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

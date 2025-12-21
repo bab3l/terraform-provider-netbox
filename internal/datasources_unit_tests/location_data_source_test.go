@@ -10,6 +10,8 @@ import (
 )
 
 func TestLocationDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewLocationDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestLocationDataSourceSchema(t *testing.T) {
 }
 
 func TestLocationDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewLocationDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_location")
 }
 
 func TestLocationDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewLocationDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

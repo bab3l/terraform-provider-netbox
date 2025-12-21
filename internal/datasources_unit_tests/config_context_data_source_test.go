@@ -10,6 +10,8 @@ import (
 )
 
 func TestConfigContextDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewConfigContextDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestConfigContextDataSourceSchema(t *testing.T) {
 }
 
 func TestConfigContextDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewConfigContextDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_config_context")
 }
 
 func TestConfigContextDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewConfigContextDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

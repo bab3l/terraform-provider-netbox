@@ -13,6 +13,8 @@ func TestCustomLinkResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewCustomLinkResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestCustomLinkResource(t *testing.T) {
 }
 
 func TestCustomLinkResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -56,6 +60,8 @@ func TestCustomLinkResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewCustomLinkResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_custom_link")
@@ -63,6 +69,8 @@ func TestCustomLinkResourceMetadata(t *testing.T) {
 }
 
 func TestCustomLinkResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

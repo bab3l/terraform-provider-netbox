@@ -13,6 +13,8 @@ func TestRackRoleResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewRackRoleResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestRackRoleResource(t *testing.T) {
 }
 
 func TestRackRoleResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -62,6 +66,8 @@ func TestRackRoleResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewRackRoleResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_rack_role")
@@ -69,6 +75,8 @@ func TestRackRoleResourceMetadata(t *testing.T) {
 }
 
 func TestRackRoleResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

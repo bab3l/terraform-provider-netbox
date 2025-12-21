@@ -10,6 +10,8 @@ import (
 )
 
 func TestCircuitTypeResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewCircuitTypeResource()
@@ -19,6 +21,8 @@ func TestCircuitTypeResource(t *testing.T) {
 }
 
 func TestCircuitTypeResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewCircuitTypeResource()
@@ -42,6 +46,8 @@ func TestCircuitTypeResourceSchema(t *testing.T) {
 }
 
 func TestCircuitTypeResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewCircuitTypeResource()
@@ -49,6 +55,8 @@ func TestCircuitTypeResourceMetadata(t *testing.T) {
 }
 
 func TestCircuitTypeResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewCircuitTypeResource()

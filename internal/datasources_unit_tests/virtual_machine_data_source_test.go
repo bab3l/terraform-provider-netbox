@@ -10,6 +10,8 @@ import (
 )
 
 func TestVirtualMachineDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewVirtualMachineDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestVirtualMachineDataSourceSchema(t *testing.T) {
 }
 
 func TestVirtualMachineDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewVirtualMachineDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_virtual_machine")
 }
 
 func TestVirtualMachineDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewVirtualMachineDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

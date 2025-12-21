@@ -10,6 +10,8 @@ import (
 )
 
 func TestServiceTemplateResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewServiceTemplateResource()
@@ -19,6 +21,8 @@ func TestServiceTemplateResource(t *testing.T) {
 }
 
 func TestServiceTemplateResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewServiceTemplateResource()
@@ -42,6 +46,8 @@ func TestServiceTemplateResourceSchema(t *testing.T) {
 }
 
 func TestServiceTemplateResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewServiceTemplateResource()
@@ -49,6 +55,8 @@ func TestServiceTemplateResourceMetadata(t *testing.T) {
 }
 
 func TestServiceTemplateResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewServiceTemplateResource()

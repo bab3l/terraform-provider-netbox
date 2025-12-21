@@ -13,6 +13,8 @@ import (
 
 func TestAccDeviceTypeDataSource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	// Generate unique names
 
 	model := testutil.RandomName("tf-test-devicetype-ds")

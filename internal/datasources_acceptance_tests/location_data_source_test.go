@@ -13,6 +13,8 @@ import (
 
 func TestAccLocationDataSource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	// Generate unique names
 
 	siteName := testutil.RandomName("tf-test-loc-ds-site")

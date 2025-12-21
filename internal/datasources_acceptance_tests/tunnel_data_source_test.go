@@ -147,6 +147,8 @@ func TestTunnelDataSourceConfigure(t *testing.T) {
 
 func TestAccTunnelDataSource_byID(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("tf-test-tunnel-ds")
@@ -181,6 +183,8 @@ func TestAccTunnelDataSource_byID(t *testing.T) {
 }
 
 func TestAccTunnelDataSource_byName(t *testing.T) {
+
+	t.Parallel()
 
 	testutil.TestAccPreCheck(t)
 

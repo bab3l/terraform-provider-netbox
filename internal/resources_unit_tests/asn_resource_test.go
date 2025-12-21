@@ -13,6 +13,8 @@ func TestASNResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewASNResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestASNResource(t *testing.T) {
 }
 
 func TestASNResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -62,6 +66,8 @@ func TestASNResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewASNResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_asn")
@@ -69,6 +75,8 @@ func TestASNResourceMetadata(t *testing.T) {
 }
 
 func TestASNResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

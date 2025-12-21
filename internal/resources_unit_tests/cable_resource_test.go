@@ -13,6 +13,8 @@ func TestCableResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewCableResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestCableResource(t *testing.T) {
 }
 
 func TestCableResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -69,6 +73,8 @@ func TestCableResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewCableResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_cable")
@@ -76,6 +82,8 @@ func TestCableResourceMetadata(t *testing.T) {
 }
 
 func TestCableResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

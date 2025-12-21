@@ -13,6 +13,8 @@ import (
 
 func TestAccPlatformDataSource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	// Generate unique names for both manufacturer and platform
 
 	// Platform requires a manufacturer, so we create both

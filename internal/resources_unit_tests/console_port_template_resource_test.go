@@ -13,6 +13,8 @@ func TestConsolePortTemplateResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewConsolePortTemplateResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestConsolePortTemplateResource(t *testing.T) {
 }
 
 func TestConsolePortTemplateResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -56,6 +60,8 @@ func TestConsolePortTemplateResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewConsolePortTemplateResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_console_port_template")
@@ -63,6 +69,8 @@ func TestConsolePortTemplateResourceMetadata(t *testing.T) {
 }
 
 func TestConsolePortTemplateResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

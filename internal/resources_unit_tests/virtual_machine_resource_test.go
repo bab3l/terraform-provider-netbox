@@ -13,6 +13,8 @@ func TestVirtualMachineResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewVirtualMachineResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestVirtualMachineResource(t *testing.T) {
 }
 
 func TestVirtualMachineResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -62,6 +66,8 @@ func TestVirtualMachineResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewVirtualMachineResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_virtual_machine")
@@ -69,6 +75,8 @@ func TestVirtualMachineResourceMetadata(t *testing.T) {
 }
 
 func TestVirtualMachineResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

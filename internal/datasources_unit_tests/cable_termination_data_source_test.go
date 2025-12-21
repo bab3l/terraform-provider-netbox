@@ -10,6 +10,8 @@ import (
 )
 
 func TestCableTerminationDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewCableTerminationDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestCableTerminationDataSourceSchema(t *testing.T) {
 }
 
 func TestCableTerminationDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewCableTerminationDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_cable_termination")
 }
 
 func TestCableTerminationDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewCableTerminationDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

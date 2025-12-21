@@ -10,6 +10,8 @@ import (
 )
 
 func TestFrontPortTemplateDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewFrontPortTemplateDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestFrontPortTemplateDataSourceSchema(t *testing.T) {
 }
 
 func TestFrontPortTemplateDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewFrontPortTemplateDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_front_port_template")
 }
 
 func TestFrontPortTemplateDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewFrontPortTemplateDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

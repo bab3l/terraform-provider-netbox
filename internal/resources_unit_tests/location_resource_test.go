@@ -10,6 +10,8 @@ import (
 )
 
 func TestLocationResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewLocationResource()
 	if r == nil {
@@ -18,6 +20,8 @@ func TestLocationResource(t *testing.T) {
 }
 
 func TestLocationResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewLocationResource()
 	schemaRequest := fwresource.SchemaRequest{}
@@ -40,12 +44,16 @@ func TestLocationResourceSchema(t *testing.T) {
 }
 
 func TestLocationResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewLocationResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_location")
 }
 
 func TestLocationResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewLocationResource()
 	testutil.ValidateResourceConfigure(t, r)

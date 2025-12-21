@@ -10,6 +10,8 @@ import (
 )
 
 func TestRegionDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRegionDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestRegionDataSourceSchema(t *testing.T) {
 }
 
 func TestRegionDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRegionDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_region")
 }
 
 func TestRegionDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRegionDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

@@ -10,6 +10,8 @@ import (
 )
 
 func TestContactRoleDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewContactRoleDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestContactRoleDataSourceSchema(t *testing.T) {
 }
 
 func TestContactRoleDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewContactRoleDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_contact_role")
 }
 
 func TestContactRoleDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewContactRoleDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

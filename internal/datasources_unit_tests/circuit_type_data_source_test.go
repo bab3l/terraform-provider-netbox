@@ -10,6 +10,8 @@ import (
 )
 
 func TestCircuitTypeDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewCircuitTypeDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestCircuitTypeDataSourceSchema(t *testing.T) {
 }
 
 func TestCircuitTypeDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewCircuitTypeDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_circuit_type")
 }
 
 func TestCircuitTypeDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewCircuitTypeDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

@@ -147,6 +147,8 @@ func TestContactDataSourceConfigure(t *testing.T) {
 
 func TestAccContactDataSource_byID(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("test-contact-ds")
@@ -178,6 +180,8 @@ func TestAccContactDataSource_byID(t *testing.T) {
 
 func TestAccContactDataSource_byName(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("test-contact-ds")
@@ -208,6 +212,8 @@ func TestAccContactDataSource_byName(t *testing.T) {
 }
 
 func TestAccContactDataSource_byEmail(t *testing.T) {
+
+	t.Parallel()
 
 	testutil.TestAccPreCheck(t)
 

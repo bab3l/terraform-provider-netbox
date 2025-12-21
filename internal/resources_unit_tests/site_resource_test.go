@@ -10,6 +10,8 @@ import (
 )
 
 func TestSiteResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewSiteResource()
@@ -19,6 +21,8 @@ func TestSiteResource(t *testing.T) {
 }
 
 func TestSiteResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewSiteResource()
@@ -42,6 +46,8 @@ func TestSiteResourceSchema(t *testing.T) {
 }
 
 func TestSiteResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewSiteResource()
@@ -49,6 +55,8 @@ func TestSiteResourceMetadata(t *testing.T) {
 }
 
 func TestSiteResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewSiteResource()

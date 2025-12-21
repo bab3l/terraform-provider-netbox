@@ -197,6 +197,8 @@ data "netbox_config_template" "test" {
 
 func TestAccConfigTemplateDataSource_byID(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	name := testutil.RandomName("config-tmpl-ds")
@@ -231,6 +233,8 @@ func TestAccConfigTemplateDataSource_byID(t *testing.T) {
 }
 
 func TestAccConfigTemplateDataSource_byName(t *testing.T) {
+
+	t.Parallel()
 
 	testutil.TestAccPreCheck(t)
 

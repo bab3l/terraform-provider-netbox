@@ -10,6 +10,8 @@ import (
 )
 
 func TestFHRPGroupAssignmentResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewFHRPGroupAssignmentResource()
 	if r == nil {
@@ -18,6 +20,8 @@ func TestFHRPGroupAssignmentResource(t *testing.T) {
 }
 
 func TestFHRPGroupAssignmentResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewFHRPGroupAssignmentResource()
 	schemaRequest := fwresource.SchemaRequest{}
@@ -36,12 +40,16 @@ func TestFHRPGroupAssignmentResourceSchema(t *testing.T) {
 }
 
 func TestFHRPGroupAssignmentResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewFHRPGroupAssignmentResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_fhrp_group_assignment")
 }
 
 func TestFHRPGroupAssignmentResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewFHRPGroupAssignmentResource()
 	testutil.ValidateResourceConfigure(t, r)

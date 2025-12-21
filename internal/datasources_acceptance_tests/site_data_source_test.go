@@ -13,6 +13,8 @@ import (
 
 func TestAccSiteDataSource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 
 	name := testutil.RandomName("tf-test-site-ds")

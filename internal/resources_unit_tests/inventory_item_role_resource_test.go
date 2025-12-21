@@ -10,6 +10,8 @@ import (
 )
 
 func TestInventoryItemRoleResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewInventoryItemRoleResource()
 	if r == nil {
@@ -18,6 +20,8 @@ func TestInventoryItemRoleResource(t *testing.T) {
 }
 
 func TestInventoryItemRoleResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewInventoryItemRoleResource()
 	schemaRequest := fwresource.SchemaRequest{}
@@ -30,12 +34,16 @@ func TestInventoryItemRoleResourceSchema(t *testing.T) {
 }
 
 func TestInventoryItemRoleResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewInventoryItemRoleResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_inventory_item_role")
 }
 
 func TestInventoryItemRoleResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewInventoryItemRoleResource()
 	testutil.ValidateResourceConfigure(t, r)

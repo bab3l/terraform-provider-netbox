@@ -10,6 +10,8 @@ import (
 )
 
 func TestIPSecProfileResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewIPSecProfileResource()
 	if r == nil {
@@ -18,6 +20,8 @@ func TestIPSecProfileResource(t *testing.T) {
 }
 
 func TestIPSecProfileResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewIPSecProfileResource()
 	schemaRequest := &resource.SchemaRequest{}
@@ -36,12 +40,16 @@ func TestIPSecProfileResourceSchema(t *testing.T) {
 }
 
 func TestIPSecProfileResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewIPSecProfileResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_ipsec_profile")
 }
 
 func TestIPSecProfileResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewIPSecProfileResource()
 	testutil.ValidateResourceConfigure(t, r)

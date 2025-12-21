@@ -13,6 +13,8 @@ import (
 
 func TestAccTenantDataSource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	// Generate unique names
 
 	name := testutil.RandomName("tf-test-tenant-ds")

@@ -13,6 +13,8 @@ func TestRackTypeResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewRackTypeResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestRackTypeResource(t *testing.T) {
 }
 
 func TestRackTypeResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -62,6 +66,8 @@ func TestRackTypeResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewRackTypeResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_rack_type")
@@ -69,6 +75,8 @@ func TestRackTypeResourceMetadata(t *testing.T) {
 }
 
 func TestRackTypeResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

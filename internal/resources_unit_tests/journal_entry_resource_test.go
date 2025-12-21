@@ -10,6 +10,8 @@ import (
 )
 
 func TestJournalEntryResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewJournalEntryResource()
 	if r == nil {
@@ -18,6 +20,8 @@ func TestJournalEntryResource(t *testing.T) {
 }
 
 func TestJournalEntryResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewJournalEntryResource()
 	schemaRequest := fwresource.SchemaRequest{}
@@ -30,12 +34,16 @@ func TestJournalEntryResourceSchema(t *testing.T) {
 }
 
 func TestJournalEntryResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewJournalEntryResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_journal_entry")
 }
 
 func TestJournalEntryResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewJournalEntryResource()
 	testutil.ValidateResourceConfigure(t, r)

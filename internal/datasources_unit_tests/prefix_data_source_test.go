@@ -10,6 +10,8 @@ import (
 )
 
 func TestPrefixDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPrefixDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestPrefixDataSourceSchema(t *testing.T) {
 }
 
 func TestPrefixDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPrefixDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_prefix")
 }
 
 func TestPrefixDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPrefixDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

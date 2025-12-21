@@ -10,6 +10,8 @@ import (
 )
 
 func TestTenantDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewTenantDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestTenantDataSourceSchema(t *testing.T) {
 }
 
 func TestTenantDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewTenantDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_tenant")
 }
 
 func TestTenantDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewTenantDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

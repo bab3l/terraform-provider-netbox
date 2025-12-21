@@ -147,6 +147,8 @@ func TestIPSecProposalDataSourceConfigure(t *testing.T) {
 
 func TestAccIPSecProposalDataSource_byID(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("tf-test-ipsec-proposal-ds")
@@ -181,6 +183,8 @@ func TestAccIPSecProposalDataSource_byID(t *testing.T) {
 }
 
 func TestAccIPSecProposalDataSource_byName(t *testing.T) {
+
+	t.Parallel()
 
 	testutil.TestAccPreCheck(t)
 

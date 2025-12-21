@@ -10,6 +10,8 @@ import (
 )
 
 func TestUserDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewUserDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestUserDataSourceSchema(t *testing.T) {
 }
 
 func TestUserDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewUserDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_user")
 }
 
 func TestUserDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewUserDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

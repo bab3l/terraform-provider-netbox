@@ -10,6 +10,8 @@ import (
 )
 
 func TestIPRangeResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewIPRangeResource()
 	if r == nil {
@@ -18,6 +20,8 @@ func TestIPRangeResource(t *testing.T) {
 }
 
 func TestIPRangeResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewIPRangeResource()
 	schemaRequest := fwresource.SchemaRequest{}
@@ -30,12 +34,16 @@ func TestIPRangeResourceSchema(t *testing.T) {
 }
 
 func TestIPRangeResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewIPRangeResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_ip_range")
 }
 
 func TestIPRangeResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewIPRangeResource()
 	testutil.ValidateResourceConfigure(t, r)

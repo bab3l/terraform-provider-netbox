@@ -10,6 +10,8 @@ import (
 )
 
 func TestFrontPortTemplateResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewFrontPortTemplateResource()
 	if r == nil {
@@ -18,6 +20,8 @@ func TestFrontPortTemplateResource(t *testing.T) {
 }
 
 func TestFrontPortTemplateResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewFrontPortTemplateResource()
 	schemaRequest := fwresource.SchemaRequest{}
@@ -36,12 +40,16 @@ func TestFrontPortTemplateResourceSchema(t *testing.T) {
 }
 
 func TestFrontPortTemplateResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewFrontPortTemplateResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_front_port_template")
 }
 
 func TestFrontPortTemplateResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewFrontPortTemplateResource()
 	testutil.ValidateResourceConfigure(t, r)

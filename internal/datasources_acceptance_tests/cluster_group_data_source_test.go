@@ -9,6 +9,8 @@ import (
 )
 
 func TestAccClusterGroupDataSource_basic(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("test-cluster-group")
 	slug := testutil.GenerateSlug(name)
 

@@ -10,6 +10,8 @@ import (
 )
 
 func TestIPRangeDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewIPRangeDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestIPRangeDataSourceSchema(t *testing.T) {
 }
 
 func TestIPRangeDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewIPRangeDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_ip_range")
 }
 
 func TestIPRangeDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewIPRangeDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

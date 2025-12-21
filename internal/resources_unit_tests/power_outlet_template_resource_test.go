@@ -10,6 +10,8 @@ import (
 )
 
 func TestPowerOutletTemplateResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPowerOutletTemplateResource()
@@ -19,6 +21,8 @@ func TestPowerOutletTemplateResource(t *testing.T) {
 }
 
 func TestPowerOutletTemplateResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPowerOutletTemplateResource()
@@ -42,6 +46,8 @@ func TestPowerOutletTemplateResourceSchema(t *testing.T) {
 }
 
 func TestPowerOutletTemplateResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPowerOutletTemplateResource()
@@ -49,6 +55,8 @@ func TestPowerOutletTemplateResourceMetadata(t *testing.T) {
 }
 
 func TestPowerOutletTemplateResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPowerOutletTemplateResource().(*resources.PowerOutletTemplateResource)

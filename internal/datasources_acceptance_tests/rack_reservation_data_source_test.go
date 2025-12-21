@@ -9,6 +9,8 @@ import (
 )
 
 func TestAccRackReservationDataSource_basic(t *testing.T) {
+
+	t.Parallel()
 	siteName := testutil.RandomName("test-site-rr")
 	siteSlug := testutil.GenerateSlug(siteName)
 	rackName := testutil.RandomName("test-rack-rr")

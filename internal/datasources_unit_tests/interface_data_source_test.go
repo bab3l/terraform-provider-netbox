@@ -10,6 +10,8 @@ import (
 )
 
 func TestInterfaceDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewInterfaceDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestInterfaceDataSourceSchema(t *testing.T) {
 }
 
 func TestInterfaceDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewInterfaceDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_interface")
 }
 
 func TestInterfaceDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewInterfaceDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

@@ -14,6 +14,8 @@ func TestVLANResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewVLANResource()
 
 	if r == nil {
@@ -25,6 +27,8 @@ func TestVLANResource(t *testing.T) {
 }
 
 func TestVLANResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -90,6 +94,8 @@ func TestVLANResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewVLANResource()
 
 	metadataRequest := fwresource.MetadataRequest{
@@ -112,6 +118,8 @@ func TestVLANResourceMetadata(t *testing.T) {
 }
 
 func TestVLANResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

@@ -13,6 +13,8 @@ func TestPowerOutletResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewPowerOutletResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestPowerOutletResource(t *testing.T) {
 }
 
 func TestPowerOutletResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -62,6 +66,8 @@ func TestPowerOutletResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewPowerOutletResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_power_outlet")
@@ -69,6 +75,8 @@ func TestPowerOutletResourceMetadata(t *testing.T) {
 }
 
 func TestPowerOutletResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

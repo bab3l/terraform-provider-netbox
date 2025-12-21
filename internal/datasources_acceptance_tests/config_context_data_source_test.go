@@ -9,6 +9,8 @@ import (
 )
 
 func TestAccConfigContextDataSource_basic(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("test-config-context")
 
 	resource.Test(t, resource.TestCase{

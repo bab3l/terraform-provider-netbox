@@ -13,6 +13,8 @@ func TestConfigTemplateResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewConfigTemplateResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestConfigTemplateResource(t *testing.T) {
 }
 
 func TestConfigTemplateResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -56,6 +60,8 @@ func TestConfigTemplateResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewConfigTemplateResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_config_template")
@@ -63,6 +69,8 @@ func TestConfigTemplateResourceMetadata(t *testing.T) {
 }
 
 func TestConfigTemplateResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

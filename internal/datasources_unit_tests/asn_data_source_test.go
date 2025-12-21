@@ -10,6 +10,8 @@ import (
 )
 
 func TestASNDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewASNDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestASNDataSourceSchema(t *testing.T) {
 }
 
 func TestASNDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewASNDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_asn")
 }
 
 func TestASNDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewASNDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

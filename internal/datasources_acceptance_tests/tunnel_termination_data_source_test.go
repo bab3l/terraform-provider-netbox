@@ -108,6 +108,8 @@ func TestTunnelTerminationDataSourceConfigure(t *testing.T) {
 // Acceptance Tests
 
 func TestAccTunnelTerminationDataSource_byID(t *testing.T) {
+
+	t.Parallel()
 	tunnelName := testutil.RandomName("tf-test-tunnel-term-ds")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -135,6 +137,8 @@ func TestAccTunnelTerminationDataSource_byID(t *testing.T) {
 }
 
 func TestAccTunnelTerminationDataSource_byTunnel(t *testing.T) {
+
+	t.Parallel()
 	tunnelName := testutil.RandomName("tf-test-tunnel-term-ds2")
 
 	cleanup := testutil.NewCleanupResource(t)

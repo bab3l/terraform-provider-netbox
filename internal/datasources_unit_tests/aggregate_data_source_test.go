@@ -10,6 +10,8 @@ import (
 )
 
 func TestAggregateDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewAggregateDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestAggregateDataSourceSchema(t *testing.T) {
 }
 
 func TestAggregateDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewAggregateDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_aggregate")
 }
 
 func TestAggregateDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewAggregateDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

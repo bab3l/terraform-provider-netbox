@@ -10,6 +10,8 @@ import (
 )
 
 func TestContactGroupDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewContactGroupDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestContactGroupDataSourceSchema(t *testing.T) {
 }
 
 func TestContactGroupDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewContactGroupDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_contact_group")
 }
 
 func TestContactGroupDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewContactGroupDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

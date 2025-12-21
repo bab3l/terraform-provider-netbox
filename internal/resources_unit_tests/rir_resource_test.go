@@ -13,6 +13,8 @@ func TestRIRResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewRIRResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestRIRResource(t *testing.T) {
 }
 
 func TestRIRResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -56,6 +60,8 @@ func TestRIRResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewRIRResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_rir")
@@ -63,6 +69,8 @@ func TestRIRResourceMetadata(t *testing.T) {
 }
 
 func TestRIRResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

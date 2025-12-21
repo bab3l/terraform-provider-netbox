@@ -10,6 +10,8 @@ import (
 
 func TestParseID(t *testing.T) {
 
+	t.Parallel()
+
 	tests := []struct {
 		name string
 
@@ -167,6 +169,7 @@ func TestParseID(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got, err := ParseID(tt.input)
 
@@ -204,9 +207,12 @@ func TestParseID(t *testing.T) {
 
 func TestMustParseID(t *testing.T) {
 
+	t.Parallel()
+
 	// Test valid case
 
 	t.Run("valid ID", func(t *testing.T) {
+		t.Parallel()
 
 		got := MustParseID("123")
 
@@ -221,6 +227,7 @@ func TestMustParseID(t *testing.T) {
 	// Test panic case
 
 	t.Run("invalid ID panics", func(t *testing.T) {
+		t.Parallel()
 
 		defer func() {
 
@@ -239,6 +246,8 @@ func TestMustParseID(t *testing.T) {
 }
 
 func TestParseInt32(t *testing.T) {
+
+	t.Parallel()
 
 	// Note: ParseInt32 silently returns 0 on error, so we test that behavior
 
@@ -272,6 +281,7 @@ func TestParseInt32(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			// ParseInt32 takes types.String, so we need to use ParseInt32FromString for string input
 
@@ -290,6 +300,8 @@ func TestParseInt32(t *testing.T) {
 }
 
 func TestParseInt32FromString(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -339,6 +351,7 @@ func TestParseInt32FromString(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := ParseInt32FromString(tt.input)
 
@@ -361,6 +374,8 @@ func TestParseInt32FromString(t *testing.T) {
 // =====================================================
 
 func TestStringFromAPI(t *testing.T) {
+
+	t.Parallel()
 
 	const ignoredValue = "ignored"
 
@@ -458,6 +473,7 @@ func TestStringFromAPI(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := StringFromAPI(tt.hasValue, tt.getValue, tt.current)
 
@@ -474,6 +490,8 @@ func TestStringFromAPI(t *testing.T) {
 }
 
 func TestStringFromAPIPreserveEmpty(t *testing.T) {
+
+	t.Parallel()
 
 	const ignoredValue = "ignored"
 
@@ -545,6 +563,7 @@ func TestStringFromAPIPreserveEmpty(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := StringFromAPIPreserveEmpty(tt.hasValue, tt.getValue, tt.current)
 
@@ -561,6 +580,8 @@ func TestStringFromAPIPreserveEmpty(t *testing.T) {
 }
 
 func TestNullableStringFromAPI(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -630,6 +651,7 @@ func TestNullableStringFromAPI(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := NullableStringFromAPI(tt.hasValue, tt.getValue, tt.current)
 
@@ -652,6 +674,8 @@ func TestNullableStringFromAPI(t *testing.T) {
 // =====================================================
 
 func TestInt64FromAPI(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -734,6 +758,7 @@ func TestInt64FromAPI(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := Int64FromAPI(tt.hasValue, tt.getValue, tt.current)
 
@@ -750,6 +775,8 @@ func TestInt64FromAPI(t *testing.T) {
 }
 
 func TestInt64FromInt32API(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -806,6 +833,7 @@ func TestInt64FromInt32API(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := Int64FromInt32API(tt.hasValue, tt.getValue, tt.current)
 
@@ -822,6 +850,8 @@ func TestInt64FromInt32API(t *testing.T) {
 }
 
 func TestNullableInt64FromAPI(t *testing.T) {
+
+	t.Parallel()
 
 	val42 := int32(42)
 
@@ -893,6 +923,7 @@ func TestNullableInt64FromAPI(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := NullableInt64FromAPI(tt.hasValue, tt.getValue, tt.current)
 
@@ -915,6 +946,8 @@ func TestNullableInt64FromAPI(t *testing.T) {
 // =====================================================
 
 func TestFloat64FromAPI(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -984,6 +1017,7 @@ func TestFloat64FromAPI(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := Float64FromAPI(tt.hasValue, tt.getValue, tt.current)
 
@@ -1000,6 +1034,8 @@ func TestFloat64FromAPI(t *testing.T) {
 }
 
 func TestNullableFloat64FromAPI(t *testing.T) {
+
+	t.Parallel()
 
 	val := 3.14159
 
@@ -1058,6 +1094,7 @@ func TestNullableFloat64FromAPI(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := NullableFloat64FromAPI(tt.hasValue, tt.getValue, tt.current)
 
@@ -1080,6 +1117,8 @@ func TestNullableFloat64FromAPI(t *testing.T) {
 // =====================================================
 
 func TestBoolFromAPI(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -1149,6 +1188,7 @@ func TestBoolFromAPI(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := BoolFromAPI(tt.hasValue, tt.getValue, tt.current)
 
@@ -1171,6 +1211,8 @@ func TestBoolFromAPI(t *testing.T) {
 // =====================================================
 
 func TestReferenceIDFromAPI(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -1266,6 +1308,7 @@ func TestReferenceIDFromAPI(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := ReferenceIDFromAPI(tt.hasValue, tt.getID, tt.current)
 
@@ -1282,6 +1325,8 @@ func TestReferenceIDFromAPI(t *testing.T) {
 }
 
 func TestRequiredReferenceIDFromAPI(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -1330,6 +1375,7 @@ func TestRequiredReferenceIDFromAPI(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := RequiredReferenceIDFromAPI(tt.getID, tt.current)
 
@@ -1360,6 +1406,8 @@ const (
 )
 
 func TestEnumFromAPI(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -1397,6 +1445,7 @@ func TestEnumFromAPI(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := EnumFromAPI(tt.hasValue, tt.getValue)
 
@@ -1413,6 +1462,8 @@ func TestEnumFromAPI(t *testing.T) {
 }
 
 func TestEnumFromAPIWithDefault(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -1469,6 +1520,7 @@ func TestEnumFromAPIWithDefault(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := EnumFromAPIWithDefault(tt.hasValue, tt.getValue, tt.current)
 
@@ -1491,6 +1543,8 @@ func TestEnumFromAPIWithDefault(t *testing.T) {
 // =====================================================
 
 func TestIsSet(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -1540,6 +1594,7 @@ func TestIsSet(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := IsSet(tt.value)
 
@@ -1557,7 +1612,10 @@ func TestIsSet(t *testing.T) {
 
 func TestIsSetWithDifferentTypes(t *testing.T) {
 
+	t.Parallel()
+
 	t.Run("Int64 set", func(t *testing.T) {
+		t.Parallel()
 
 		if !IsSet(types.Int64Value(42)) {
 
@@ -1568,6 +1626,7 @@ func TestIsSetWithDifferentTypes(t *testing.T) {
 	})
 
 	t.Run("Int64 null", func(t *testing.T) {
+		t.Parallel()
 
 		if IsSet(types.Int64Null()) {
 
@@ -1578,6 +1637,7 @@ func TestIsSetWithDifferentTypes(t *testing.T) {
 	})
 
 	t.Run("Bool set", func(t *testing.T) {
+		t.Parallel()
 
 		if !IsSet(types.BoolValue(true)) {
 
@@ -1588,6 +1648,7 @@ func TestIsSetWithDifferentTypes(t *testing.T) {
 	})
 
 	t.Run("Bool null", func(t *testing.T) {
+		t.Parallel()
 
 		if IsSet(types.BoolNull()) {
 
@@ -1598,6 +1659,7 @@ func TestIsSetWithDifferentTypes(t *testing.T) {
 	})
 
 	t.Run("Float64 set", func(t *testing.T) {
+		t.Parallel()
 
 		if !IsSet(types.Float64Value(3.14)) {
 
@@ -1608,6 +1670,7 @@ func TestIsSetWithDifferentTypes(t *testing.T) {
 	})
 
 	t.Run("Float64 null", func(t *testing.T) {
+		t.Parallel()
 
 		if IsSet(types.Float64Null()) {
 
@@ -1620,6 +1683,8 @@ func TestIsSetWithDifferentTypes(t *testing.T) {
 }
 
 func TestStringPtr(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -1675,6 +1740,7 @@ func TestStringPtr(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := StringPtr(tt.value)
 
@@ -1707,6 +1773,8 @@ func TestStringPtr(t *testing.T) {
 }
 
 func TestInt32Ptr(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -1773,6 +1841,7 @@ func TestInt32Ptr(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := Int32Ptr(tt.value)
 
@@ -1805,6 +1874,8 @@ func TestInt32Ptr(t *testing.T) {
 }
 
 func TestInt32Value(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -1854,6 +1925,7 @@ func TestInt32Value(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := Int32Value(tt.value)
 
@@ -1870,6 +1942,8 @@ func TestInt32Value(t *testing.T) {
 }
 
 func TestFloat64Ptr(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -1916,6 +1990,7 @@ func TestFloat64Ptr(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := Float64Ptr(tt.value)
 
@@ -1948,6 +2023,8 @@ func TestFloat64Ptr(t *testing.T) {
 }
 
 func TestBoolPtr(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -1994,6 +2071,7 @@ func TestBoolPtr(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := BoolPtr(tt.value)
 
@@ -2026,6 +2104,8 @@ func TestBoolPtr(t *testing.T) {
 }
 
 func TestParseInt32_TypesString(t *testing.T) {
+
+	t.Parallel()
 
 	tests := []struct {
 		name string
@@ -2084,6 +2164,7 @@ func TestParseInt32_TypesString(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
 			got := ParseInt32(tt.value)
 

@@ -219,6 +219,8 @@ data "netbox_interface_template" "test" {
 
 func TestAccInterfaceTemplateDataSource_byID(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	manufacturerName := testutil.RandomName("mfr-ds")
@@ -261,6 +263,8 @@ func TestAccInterfaceTemplateDataSource_byID(t *testing.T) {
 }
 
 func TestAccInterfaceTemplateDataSource_byName(t *testing.T) {
+
+	t.Parallel()
 
 	testutil.TestAccPreCheck(t)
 

@@ -10,6 +10,8 @@ import (
 )
 
 func TestRouteTargetDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRouteTargetDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestRouteTargetDataSourceSchema(t *testing.T) {
 }
 
 func TestRouteTargetDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRouteTargetDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_route_target")
 }
 
 func TestRouteTargetDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRouteTargetDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

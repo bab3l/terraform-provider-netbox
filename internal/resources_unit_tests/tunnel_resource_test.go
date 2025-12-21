@@ -10,6 +10,8 @@ import (
 )
 
 func TestTunnelResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTunnelResource()
@@ -19,6 +21,8 @@ func TestTunnelResource(t *testing.T) {
 }
 
 func TestTunnelResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTunnelResource()
@@ -43,6 +47,8 @@ func TestTunnelResourceSchema(t *testing.T) {
 }
 
 func TestTunnelResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTunnelResource()
@@ -50,6 +56,8 @@ func TestTunnelResourceMetadata(t *testing.T) {
 }
 
 func TestTunnelResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTunnelResource()

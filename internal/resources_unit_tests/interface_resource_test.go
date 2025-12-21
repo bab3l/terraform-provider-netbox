@@ -10,6 +10,8 @@ import (
 )
 
 func TestInterfaceResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewInterfaceResource()
 	if r == nil {
@@ -18,6 +20,8 @@ func TestInterfaceResource(t *testing.T) {
 }
 
 func TestInterfaceResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewInterfaceResource()
 	schemaRequest := fwresource.SchemaRequest{}
@@ -36,12 +40,16 @@ func TestInterfaceResourceSchema(t *testing.T) {
 }
 
 func TestInterfaceResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewInterfaceResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_interface")
 }
 
 func TestInterfaceResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewInterfaceResource()
 	testutil.ValidateResourceConfigure(t, r)

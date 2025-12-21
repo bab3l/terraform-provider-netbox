@@ -10,6 +10,8 @@ import (
 )
 
 func TestTunnelTerminationResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTunnelTerminationResource()
@@ -19,6 +21,8 @@ func TestTunnelTerminationResource(t *testing.T) {
 }
 
 func TestTunnelTerminationResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTunnelTerminationResource()
@@ -43,6 +47,8 @@ func TestTunnelTerminationResourceSchema(t *testing.T) {
 }
 
 func TestTunnelTerminationResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTunnelTerminationResource()
@@ -50,6 +56,8 @@ func TestTunnelTerminationResourceMetadata(t *testing.T) {
 }
 
 func TestTunnelTerminationResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTunnelTerminationResource()

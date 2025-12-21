@@ -9,6 +9,8 @@ import (
 )
 
 func TestAccContactGroupDataSource_basic(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("test-contact-group")
 	slug := testutil.GenerateSlug(name)
 

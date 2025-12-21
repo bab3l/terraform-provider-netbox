@@ -12,6 +12,8 @@ import (
 )
 
 func TestAccUserDataSource_byUsername(t *testing.T) {
+
+	t.Parallel()
 	// Use the admin user that's always present in NetBox
 	username := "admin"
 
@@ -33,6 +35,8 @@ func TestAccUserDataSource_byUsername(t *testing.T) {
 }
 
 func TestAccUserDataSource_byID(t *testing.T) {
+
+	t.Parallel()
 	// First get admin user to obtain the ID, then test by ID
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },

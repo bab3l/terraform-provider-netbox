@@ -10,6 +10,8 @@ import (
 )
 
 func TestPowerPanelDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPowerPanelDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestPowerPanelDataSourceSchema(t *testing.T) {
 }
 
 func TestPowerPanelDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPowerPanelDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_power_panel")
 }
 
 func TestPowerPanelDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPowerPanelDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

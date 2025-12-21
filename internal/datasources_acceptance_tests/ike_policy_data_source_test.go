@@ -147,6 +147,8 @@ func TestIKEPolicyDataSourceConfigure(t *testing.T) {
 
 func TestAccIKEPolicyDataSource_byID(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("tf-test-ike-policy-ds")
@@ -179,6 +181,8 @@ func TestAccIKEPolicyDataSource_byID(t *testing.T) {
 }
 
 func TestAccIKEPolicyDataSource_byName(t *testing.T) {
+
+	t.Parallel()
 
 	testutil.TestAccPreCheck(t)
 

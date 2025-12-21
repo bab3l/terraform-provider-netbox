@@ -13,6 +13,8 @@ func TestContactRoleResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewContactRoleResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestContactRoleResource(t *testing.T) {
 }
 
 func TestContactRoleResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -56,6 +60,8 @@ func TestContactRoleResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewContactRoleResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_contact_role")
@@ -63,6 +69,8 @@ func TestContactRoleResourceMetadata(t *testing.T) {
 }
 
 func TestContactRoleResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

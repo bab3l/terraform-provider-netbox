@@ -166,6 +166,8 @@ func TestFHRPGroupDataSourceConfigure(t *testing.T) {
 
 func TestAccFHRPGroupDataSource_byID(t *testing.T) {
 
+	t.Parallel()
+
 	protocol := "vrrp2"
 
 	groupID := int32(acctest.RandIntRange(1, 254)) // #nosec G115 -- test value range is 1-254, safe for int32
@@ -210,6 +212,8 @@ func TestAccFHRPGroupDataSource_byID(t *testing.T) {
 }
 
 func TestAccFHRPGroupDataSource_byProtocolAndGroupID(t *testing.T) {
+
+	t.Parallel()
 
 	protocol := "hsrp"
 

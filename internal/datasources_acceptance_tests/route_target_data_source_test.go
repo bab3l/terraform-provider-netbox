@@ -13,6 +13,8 @@ import (
 
 func TestAccRouteTargetDataSource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	// Generate unique name - route targets have 21 char max, use format like "65000:400-<random>"
 
 	name := fmt.Sprintf("65000:400-%s", testutil.RandomSlug("ds")[:8])

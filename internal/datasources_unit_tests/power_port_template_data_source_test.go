@@ -10,6 +10,8 @@ import (
 )
 
 func TestPowerPortTemplateDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPowerPortTemplateDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestPowerPortTemplateDataSourceSchema(t *testing.T) {
 }
 
 func TestPowerPortTemplateDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPowerPortTemplateDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_power_port_template")
 }
 
 func TestPowerPortTemplateDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPowerPortTemplateDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

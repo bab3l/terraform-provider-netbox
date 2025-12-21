@@ -10,6 +10,8 @@ import (
 )
 
 func TestWirelessLANDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewWirelessLANDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestWirelessLANDataSourceSchema(t *testing.T) {
 }
 
 func TestWirelessLANDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewWirelessLANDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_wireless_lan")
 }
 
 func TestWirelessLANDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewWirelessLANDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

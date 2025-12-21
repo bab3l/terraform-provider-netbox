@@ -173,6 +173,8 @@ func TestContactAssignmentDataSourceConfigure(t *testing.T) {
 
 func TestAccContactAssignmentDataSource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("test-contact-ds")

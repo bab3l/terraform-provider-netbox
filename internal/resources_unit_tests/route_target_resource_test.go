@@ -10,6 +10,8 @@ import (
 )
 
 func TestRouteTargetResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewRouteTargetResource()
@@ -19,6 +21,8 @@ func TestRouteTargetResource(t *testing.T) {
 }
 
 func TestRouteTargetResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewRouteTargetResource()
@@ -42,6 +46,8 @@ func TestRouteTargetResourceSchema(t *testing.T) {
 }
 
 func TestRouteTargetResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewRouteTargetResource()
@@ -49,6 +55,8 @@ func TestRouteTargetResourceMetadata(t *testing.T) {
 }
 
 func TestRouteTargetResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewRouteTargetResource()

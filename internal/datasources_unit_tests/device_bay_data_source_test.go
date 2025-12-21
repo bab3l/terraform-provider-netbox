@@ -10,6 +10,8 @@ import (
 )
 
 func TestDeviceBayDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewDeviceBayDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestDeviceBayDataSourceSchema(t *testing.T) {
 }
 
 func TestDeviceBayDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewDeviceBayDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_device_bay")
 }
 
 func TestDeviceBayDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewDeviceBayDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

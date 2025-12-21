@@ -10,6 +10,8 @@ import (
 )
 
 func TestManufacturerResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewManufacturerResource()
 	if r == nil {
@@ -18,6 +20,8 @@ func TestManufacturerResource(t *testing.T) {
 }
 
 func TestManufacturerResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewManufacturerResource()
 	schemaRequest := fwresource.SchemaRequest{}
@@ -39,12 +43,16 @@ func TestManufacturerResourceSchema(t *testing.T) {
 }
 
 func TestManufacturerResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewManufacturerResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_manufacturer")
 }
 
 func TestManufacturerResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewManufacturerResource()
 	testutil.ValidateResourceConfigure(t, r)

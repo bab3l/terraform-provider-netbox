@@ -10,6 +10,8 @@ import (
 )
 
 func TestValidSlug(t *testing.T) {
+
+	t.Parallel()
 	ctx := context.Background()
 	v := ValidSlug()
 
@@ -85,6 +87,7 @@ func TestValidSlug(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			req := validator.StringRequest{
 				Path:        path.Root("test"),
 				ConfigValue: types.StringValue(tt.value),
@@ -118,6 +121,8 @@ func TestValidSlug(t *testing.T) {
 }
 
 func TestValidSlugWithNullValue(t *testing.T) {
+
+	t.Parallel()
 	ctx := context.Background()
 	v := ValidSlug()
 
@@ -135,6 +140,8 @@ func TestValidSlugWithNullValue(t *testing.T) {
 }
 
 func TestValidSlugWithUnknownValue(t *testing.T) {
+
+	t.Parallel()
 	ctx := context.Background()
 	v := ValidSlug()
 
@@ -152,6 +159,8 @@ func TestValidSlugWithUnknownValue(t *testing.T) {
 }
 
 func TestValidCustomFieldValue(t *testing.T) {
+
+	t.Parallel()
 	ctx := context.Background()
 
 	tests := []struct {
@@ -254,6 +263,7 @@ func TestValidCustomFieldValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			v := ValidCustomFieldValue(tt.cfType)
 
 			req := validator.StringRequest{

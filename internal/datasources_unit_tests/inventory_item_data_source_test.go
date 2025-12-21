@@ -10,6 +10,8 @@ import (
 )
 
 func TestInventoryItemDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewInventoryItemDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestInventoryItemDataSourceSchema(t *testing.T) {
 }
 
 func TestInventoryItemDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewInventoryItemDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_inventory_item")
 }
 
 func TestInventoryItemDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewInventoryItemDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

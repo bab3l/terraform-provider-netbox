@@ -9,6 +9,8 @@ import (
 )
 
 func TestAccRearPortDataSource_basic(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("test-rear-port")
 	manufacturerName := testutil.RandomName("test-manufacturer-rp")
 	manufacturerSlug := testutil.GenerateSlug(manufacturerName)

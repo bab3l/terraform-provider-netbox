@@ -14,6 +14,8 @@ func TestVMInterfaceResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewVMInterfaceResource()
 
 	if r == nil {
@@ -25,6 +27,8 @@ func TestVMInterfaceResource(t *testing.T) {
 }
 
 func TestVMInterfaceResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -90,6 +94,8 @@ func TestVMInterfaceResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewVMInterfaceResource()
 
 	metadataRequest := fwresource.MetadataRequest{
@@ -112,6 +118,8 @@ func TestVMInterfaceResourceMetadata(t *testing.T) {
 }
 
 func TestVMInterfaceResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

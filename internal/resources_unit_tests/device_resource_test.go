@@ -10,6 +10,8 @@ import (
 )
 
 func TestDeviceResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewDeviceResource()
 	if r == nil {
@@ -18,6 +20,8 @@ func TestDeviceResource(t *testing.T) {
 }
 
 func TestDeviceResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewDeviceResource()
 	schemaRequest := fwresource.SchemaRequest{}
@@ -36,12 +40,16 @@ func TestDeviceResourceSchema(t *testing.T) {
 }
 
 func TestDeviceResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewDeviceResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_device")
 }
 
 func TestDeviceResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewDeviceResource()
 	testutil.ValidateResourceConfigure(t, r)

@@ -10,6 +10,8 @@ import (
 )
 
 func TestIKEProposalResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewIKEProposalResource()
 	if r == nil {
@@ -18,6 +20,8 @@ func TestIKEProposalResource(t *testing.T) {
 }
 
 func TestIKEProposalResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewIKEProposalResource()
 	schemaRequest := fwresource.SchemaRequest{}
@@ -36,12 +40,16 @@ func TestIKEProposalResourceSchema(t *testing.T) {
 }
 
 func TestIKEProposalResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewIKEProposalResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_ike_proposal")
 }
 
 func TestIKEProposalResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewIKEProposalResource()
 	testutil.ValidateResourceConfigure(t, r)

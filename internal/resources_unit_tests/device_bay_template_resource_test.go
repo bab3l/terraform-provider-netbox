@@ -10,6 +10,8 @@ import (
 )
 
 func TestDeviceBayTemplateResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewDeviceBayTemplateResource()
 	if r == nil {
@@ -18,6 +20,8 @@ func TestDeviceBayTemplateResource(t *testing.T) {
 }
 
 func TestDeviceBayTemplateResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewDeviceBayTemplateResource()
 	schemaRequest := fwresource.SchemaRequest{}
@@ -36,12 +40,16 @@ func TestDeviceBayTemplateResourceSchema(t *testing.T) {
 }
 
 func TestDeviceBayTemplateResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewDeviceBayTemplateResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_device_bay_template")
 }
 
 func TestDeviceBayTemplateResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewDeviceBayTemplateResource()
 	testutil.ValidateResourceConfigure(t, r)

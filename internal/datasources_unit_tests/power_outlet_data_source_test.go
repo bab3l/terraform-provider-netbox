@@ -10,6 +10,8 @@ import (
 )
 
 func TestPowerOutletDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPowerOutletDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestPowerOutletDataSourceSchema(t *testing.T) {
 }
 
 func TestPowerOutletDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPowerOutletDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_power_outlet")
 }
 
 func TestPowerOutletDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPowerOutletDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

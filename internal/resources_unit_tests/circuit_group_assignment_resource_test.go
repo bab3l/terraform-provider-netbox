@@ -13,6 +13,8 @@ func TestCircuitGroupAssignmentResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewCircuitGroupAssignmentResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestCircuitGroupAssignmentResource(t *testing.T) {
 }
 
 func TestCircuitGroupAssignmentResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -62,6 +66,8 @@ func TestCircuitGroupAssignmentResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewCircuitGroupAssignmentResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_circuit_group_assignment")
@@ -69,6 +75,8 @@ func TestCircuitGroupAssignmentResourceMetadata(t *testing.T) {
 }
 
 func TestCircuitGroupAssignmentResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

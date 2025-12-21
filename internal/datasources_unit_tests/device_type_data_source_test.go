@@ -10,6 +10,8 @@ import (
 )
 
 func TestDeviceTypeDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewDeviceTypeDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestDeviceTypeDataSourceSchema(t *testing.T) {
 }
 
 func TestDeviceTypeDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewDeviceTypeDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_device_type")
 }
 
 func TestDeviceTypeDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewDeviceTypeDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

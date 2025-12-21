@@ -10,6 +10,8 @@ import (
 )
 
 func TestPowerFeedDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPowerFeedDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestPowerFeedDataSourceSchema(t *testing.T) {
 }
 
 func TestPowerFeedDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPowerFeedDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_power_feed")
 }
 
 func TestPowerFeedDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewPowerFeedDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

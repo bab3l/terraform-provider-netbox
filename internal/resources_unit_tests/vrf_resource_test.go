@@ -14,6 +14,8 @@ func TestVRFResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewVRFResource()
 
 	if r == nil {
@@ -25,6 +27,8 @@ func TestVRFResource(t *testing.T) {
 }
 
 func TestVRFResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -90,6 +94,8 @@ func TestVRFResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewVRFResource()
 
 	metadataRequest := fwresource.MetadataRequest{
@@ -112,6 +118,8 @@ func TestVRFResourceMetadata(t *testing.T) {
 }
 
 func TestVRFResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

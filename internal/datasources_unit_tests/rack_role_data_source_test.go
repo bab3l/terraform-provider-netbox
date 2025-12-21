@@ -10,6 +10,8 @@ import (
 )
 
 func TestRackRoleDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRackRoleDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestRackRoleDataSourceSchema(t *testing.T) {
 }
 
 func TestRackRoleDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRackRoleDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_rack_role")
 }
 
 func TestRackRoleDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRackRoleDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

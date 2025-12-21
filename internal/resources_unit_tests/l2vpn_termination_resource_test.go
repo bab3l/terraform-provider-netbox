@@ -10,6 +10,8 @@ import (
 )
 
 func TestL2VPNTerminationResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewL2VPNTerminationResource()
 	if r == nil {
@@ -18,6 +20,8 @@ func TestL2VPNTerminationResource(t *testing.T) {
 }
 
 func TestL2VPNTerminationResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewL2VPNTerminationResource()
 	schemaRequest := fwresource.SchemaRequest{}
@@ -39,12 +43,16 @@ func TestL2VPNTerminationResourceSchema(t *testing.T) {
 }
 
 func TestL2VPNTerminationResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewL2VPNTerminationResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_l2vpn_termination")
 }
 
 func TestL2VPNTerminationResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewL2VPNTerminationResource()
 	testutil.ValidateResourceConfigure(t, r)

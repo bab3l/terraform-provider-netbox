@@ -8,6 +8,8 @@ import (
 )
 
 func TestAccScriptDataSource_basic(t *testing.T) {
+
+	t.Parallel()
 	t.Skip("Scripts cannot be created via API and require filesystem access on the server. Skipping test as we cannot ensure a script exists.")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

@@ -105,6 +105,8 @@ func TestServiceTemplateDataSourceConfigure(t *testing.T) {
 }
 
 func TestAccServiceTemplateDataSource_byID(t *testing.T) {
+
+	t.Parallel()
 	name := acctest.RandomWithPrefix("test-svc-tmpl-ds")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -126,6 +128,8 @@ func TestAccServiceTemplateDataSource_byID(t *testing.T) {
 }
 
 func TestAccServiceTemplateDataSource_byName(t *testing.T) {
+
+	t.Parallel()
 	name := acctest.RandomWithPrefix("test-svc-tmpl-ds")
 
 	resource.ParallelTest(t, resource.TestCase{

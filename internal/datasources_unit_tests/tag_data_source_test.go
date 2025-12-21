@@ -10,6 +10,8 @@ import (
 )
 
 func TestTagDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewTagDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestTagDataSourceSchema(t *testing.T) {
 }
 
 func TestTagDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewTagDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_tag")
 }
 
 func TestTagDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewTagDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

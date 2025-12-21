@@ -9,6 +9,8 @@ import (
 )
 
 func TestAccInventoryItemTemplateDataSource_basic(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("test-inventory-item-template")
 	manufacturerName := testutil.RandomName("test-manufacturer-iit")
 	manufacturerSlug := testutil.GenerateSlug(manufacturerName)

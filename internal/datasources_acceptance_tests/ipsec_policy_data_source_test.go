@@ -147,6 +147,8 @@ func TestIPSecPolicyDataSourceConfigure(t *testing.T) {
 
 func TestAccIPSecPolicyDataSource_byID(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("tf-test-ipsec-policy-ds")
@@ -177,6 +179,8 @@ func TestAccIPSecPolicyDataSource_byID(t *testing.T) {
 }
 
 func TestAccIPSecPolicyDataSource_byName(t *testing.T) {
+
+	t.Parallel()
 
 	testutil.TestAccPreCheck(t)
 

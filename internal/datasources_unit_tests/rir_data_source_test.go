@@ -10,6 +10,8 @@ import (
 )
 
 func TestRIRDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRIRDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestRIRDataSourceSchema(t *testing.T) {
 }
 
 func TestRIRDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRIRDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_rir")
 }
 
 func TestRIRDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRIRDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

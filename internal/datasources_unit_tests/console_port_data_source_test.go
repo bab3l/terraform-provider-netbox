@@ -10,6 +10,8 @@ import (
 )
 
 func TestConsolePortDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewConsolePortDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestConsolePortDataSourceSchema(t *testing.T) {
 }
 
 func TestConsolePortDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewConsolePortDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_console_port")
 }
 
 func TestConsolePortDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewConsolePortDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

@@ -10,6 +10,8 @@ import (
 )
 
 func TestWirelessLANGroupDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewWirelessLANGroupDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestWirelessLANGroupDataSourceSchema(t *testing.T) {
 }
 
 func TestWirelessLANGroupDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewWirelessLANGroupDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_wireless_lan_group")
 }
 
 func TestWirelessLANGroupDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewWirelessLANGroupDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

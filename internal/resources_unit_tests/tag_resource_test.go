@@ -10,6 +10,8 @@ import (
 )
 
 func TestTagResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTagResource()
@@ -19,6 +21,8 @@ func TestTagResource(t *testing.T) {
 }
 
 func TestTagResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTagResource()
@@ -42,6 +46,8 @@ func TestTagResourceSchema(t *testing.T) {
 }
 
 func TestTagResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTagResource()
@@ -49,6 +55,8 @@ func TestTagResourceMetadata(t *testing.T) {
 }
 
 func TestTagResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewTagResource()

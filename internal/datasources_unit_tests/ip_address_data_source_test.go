@@ -10,6 +10,8 @@ import (
 )
 
 func TestIPAddressDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewIPAddressDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestIPAddressDataSourceSchema(t *testing.T) {
 }
 
 func TestIPAddressDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewIPAddressDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_ip_address")
 }
 
 func TestIPAddressDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewIPAddressDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

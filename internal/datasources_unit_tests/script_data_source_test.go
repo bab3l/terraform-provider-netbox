@@ -10,6 +10,8 @@ import (
 )
 
 func TestScriptDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewScriptDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestScriptDataSourceSchema(t *testing.T) {
 }
 
 func TestScriptDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewScriptDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_script")
 }
 
 func TestScriptDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewScriptDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

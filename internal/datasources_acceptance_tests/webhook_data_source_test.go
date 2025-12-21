@@ -147,6 +147,8 @@ func TestWebhookDataSourceConfigure(t *testing.T) {
 
 func TestAccWebhookDataSource_byID(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("test-webhook-ds")
@@ -177,6 +179,8 @@ func TestAccWebhookDataSource_byID(t *testing.T) {
 }
 
 func TestAccWebhookDataSource_byName(t *testing.T) {
+
+	t.Parallel()
 
 	testutil.TestAccPreCheck(t)
 

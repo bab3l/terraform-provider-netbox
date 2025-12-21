@@ -13,6 +13,8 @@ func TestCustomFieldResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewCustomFieldResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestCustomFieldResource(t *testing.T) {
 }
 
 func TestCustomFieldResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -56,6 +60,8 @@ func TestCustomFieldResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewCustomFieldResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_custom_field")
@@ -63,6 +69,8 @@ func TestCustomFieldResourceMetadata(t *testing.T) {
 }
 
 func TestCustomFieldResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

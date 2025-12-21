@@ -10,6 +10,8 @@ import (
 )
 
 func TestProviderNetworkDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewProviderNetworkDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestProviderNetworkDataSourceSchema(t *testing.T) {
 }
 
 func TestProviderNetworkDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewProviderNetworkDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_provider_network")
 }
 
 func TestProviderNetworkDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewProviderNetworkDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

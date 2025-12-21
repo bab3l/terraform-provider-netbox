@@ -147,6 +147,8 @@ func TestTunnelGroupDataSourceConfigure(t *testing.T) {
 
 func TestAccTunnelGroupDataSource_byID(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("tf-test-tunnel-grp-ds")
@@ -182,6 +184,8 @@ func TestAccTunnelGroupDataSource_byID(t *testing.T) {
 
 func TestAccTunnelGroupDataSource_byName(t *testing.T) {
 
+	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("tf-test-tunnel-grp-ds")
@@ -216,6 +220,8 @@ func TestAccTunnelGroupDataSource_byName(t *testing.T) {
 }
 
 func TestAccTunnelGroupDataSource_bySlug(t *testing.T) {
+
+	t.Parallel()
 
 	testutil.TestAccPreCheck(t)
 

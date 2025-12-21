@@ -10,6 +10,8 @@ import (
 )
 
 func TestSiteGroupDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewSiteGroupDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestSiteGroupDataSourceSchema(t *testing.T) {
 }
 
 func TestSiteGroupDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewSiteGroupDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_site_group")
 }
 
 func TestSiteGroupDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewSiteGroupDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

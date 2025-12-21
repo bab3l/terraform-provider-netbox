@@ -13,6 +13,8 @@ import (
 
 func TestAccDeviceRoleDataSource_basic(t *testing.T) {
 
+	t.Parallel()
+
 	// Generate unique names
 
 	name := testutil.RandomName("tf-test-devicerole-ds")

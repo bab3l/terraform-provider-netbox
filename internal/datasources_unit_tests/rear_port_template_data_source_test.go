@@ -10,6 +10,8 @@ import (
 )
 
 func TestRearPortTemplateDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRearPortTemplateDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestRearPortTemplateDataSourceSchema(t *testing.T) {
 }
 
 func TestRearPortTemplateDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRearPortTemplateDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_rear_port_template")
 }
 
 func TestRearPortTemplateDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRearPortTemplateDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

@@ -13,6 +13,8 @@ func TestConfigContextResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewConfigContextResource()
 
 	if r == nil {
@@ -24,6 +26,8 @@ func TestConfigContextResource(t *testing.T) {
 }
 
 func TestConfigContextResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -67,6 +71,8 @@ func TestConfigContextResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewConfigContextResource()
 
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_config_context")
@@ -74,6 +80,8 @@ func TestConfigContextResourceMetadata(t *testing.T) {
 }
 
 func TestConfigContextResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

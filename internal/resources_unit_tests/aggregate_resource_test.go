@@ -12,6 +12,8 @@ func TestAggregateResource(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewAggregateResource()
 
 	if r == nil {
@@ -23,6 +25,8 @@ func TestAggregateResource(t *testing.T) {
 }
 
 func TestAggregateResourceSchema(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 
@@ -94,6 +98,8 @@ func TestAggregateResourceMetadata(t *testing.T) {
 
 	t.Parallel()
 
+	t.Parallel()
+
 	r := resources.NewAggregateResource()
 
 	metadataRequest := fwresource.MetadataRequest{
@@ -116,6 +122,8 @@ func TestAggregateResourceMetadata(t *testing.T) {
 }
 
 func TestAggregateResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 
 	t.Parallel()
 

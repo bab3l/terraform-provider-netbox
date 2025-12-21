@@ -9,6 +9,8 @@ import (
 )
 
 func TestAccModuleBayTemplateDataSource_basic(t *testing.T) {
+
+	t.Parallel()
 	name := testutil.RandomName("test-module-bay-template")
 	manufacturerName := testutil.RandomName("test-manufacturer-mbt")
 	manufacturerSlug := testutil.GenerateSlug(manufacturerName)

@@ -145,6 +145,8 @@ func TestDeviceDataSourceConfigure(t *testing.T) {
 
 func TestAccDeviceDataSource_byName(t *testing.T) {
 
+	t.Parallel()
+
 	// Generate unique names
 
 	deviceName := testutil.RandomName("tf-test-device")
@@ -228,6 +230,8 @@ func TestAccDeviceDataSource_byName(t *testing.T) {
 }
 
 func TestAccDeviceDataSource_bySerial(t *testing.T) {
+
+	t.Parallel()
 
 	// Generate unique names
 

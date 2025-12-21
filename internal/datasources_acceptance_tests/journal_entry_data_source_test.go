@@ -159,6 +159,8 @@ func TestJournalEntryDataSourceConfigure(t *testing.T) {
 
 func TestAccJournalEntryDataSource_byID(t *testing.T) {
 
+	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site-journal-ds")
 
 	resource.Test(t, resource.TestCase{

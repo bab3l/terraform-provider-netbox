@@ -10,6 +10,8 @@ import (
 )
 
 func TestPowerPortResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPowerPortResource()
@@ -19,6 +21,8 @@ func TestPowerPortResource(t *testing.T) {
 }
 
 func TestPowerPortResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPowerPortResource()
@@ -42,6 +46,8 @@ func TestPowerPortResourceSchema(t *testing.T) {
 }
 
 func TestPowerPortResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPowerPortResource()
@@ -49,6 +55,8 @@ func TestPowerPortResourceMetadata(t *testing.T) {
 }
 
 func TestPowerPortResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 
 	r := resources.NewPowerPortResource().(*resources.PowerPortResource)

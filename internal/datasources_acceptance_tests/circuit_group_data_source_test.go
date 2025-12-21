@@ -110,6 +110,8 @@ func TestCircuitGroupDataSourceConfigure(t *testing.T) {
 // Acceptance Tests
 
 func TestAccCircuitGroupDataSource_byID(t *testing.T) {
+
+	t.Parallel()
 	// Generate unique names to avoid conflicts between test runs
 	name := testutil.RandomName("tf-test-cg-ds-id")
 	slug := testutil.RandomSlug("tf-test-cg-ds-id")
@@ -138,6 +140,8 @@ func TestAccCircuitGroupDataSource_byID(t *testing.T) {
 }
 
 func TestAccCircuitGroupDataSource_byName(t *testing.T) {
+
+	t.Parallel()
 	// Generate unique names
 	name := testutil.RandomName("tf-test-cg-ds-name")
 	slug := testutil.RandomSlug("tf-test-cg-ds-name")
@@ -166,6 +170,8 @@ func TestAccCircuitGroupDataSource_byName(t *testing.T) {
 }
 
 func TestAccCircuitGroupDataSource_bySlug(t *testing.T) {
+
+	t.Parallel()
 	// Generate unique names
 	name := testutil.RandomName("tf-test-cg-ds-slug")
 	slug := testutil.RandomSlug("tf-test-cg-ds-slug")

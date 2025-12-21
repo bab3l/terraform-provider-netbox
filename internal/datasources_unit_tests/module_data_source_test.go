@@ -10,6 +10,8 @@ import (
 )
 
 func TestModuleDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewModuleDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestModuleDataSourceSchema(t *testing.T) {
 }
 
 func TestModuleDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewModuleDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_module")
 }
 
 func TestModuleDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewModuleDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

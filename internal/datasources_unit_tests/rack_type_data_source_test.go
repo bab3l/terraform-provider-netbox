@@ -10,6 +10,8 @@ import (
 )
 
 func TestRackTypeDataSourceSchema(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRackTypeDataSource()
 
 	req := datasource.SchemaRequest{}
@@ -28,11 +30,15 @@ func TestRackTypeDataSourceSchema(t *testing.T) {
 }
 
 func TestRackTypeDataSourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRackTypeDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_rack_type")
 }
 
 func TestRackTypeDataSourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	d := datasources.NewRackTypeDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

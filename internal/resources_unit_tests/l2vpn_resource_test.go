@@ -10,6 +10,8 @@ import (
 )
 
 func TestL2VPNResource(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewL2VPNResource()
 	if r == nil {
@@ -18,6 +20,8 @@ func TestL2VPNResource(t *testing.T) {
 }
 
 func TestL2VPNResourceSchema(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewL2VPNResource()
 	schemaRequest := fwresource.SchemaRequest{}
@@ -40,12 +44,16 @@ func TestL2VPNResourceSchema(t *testing.T) {
 }
 
 func TestL2VPNResourceMetadata(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewL2VPNResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_l2vpn")
 }
 
 func TestL2VPNResourceConfigure(t *testing.T) {
+
+	t.Parallel()
 	t.Parallel()
 	r := resources.NewL2VPNResource()
 	testutil.ValidateResourceConfigure(t, r)
