@@ -223,8 +223,6 @@ func TestAccConsistency_RackRole(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	rackRoleName := testutil.RandomName("rack-role")
 
 	rackRoleSlug := testutil.RandomSlug("rack-role")

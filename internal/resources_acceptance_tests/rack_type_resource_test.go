@@ -140,8 +140,6 @@ func TestAccConsistency_RackType_LiteralNames(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	mfgName := testutil.RandomName("manufacturer")
 
 	mfgSlug := testutil.RandomSlug("manufacturer")

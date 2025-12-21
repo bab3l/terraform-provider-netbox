@@ -231,7 +231,6 @@ resource "netbox_vm_interface" "test" {
 func TestAccConsistency_VMInterface(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	vmName := testutil.RandomName("vm")
 	clusterName := testutil.RandomName("cluster")

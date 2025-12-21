@@ -217,7 +217,6 @@ resource "netbox_vlan" "test" {
 func TestAccConsistency_VLAN(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	vlanName := testutil.RandomName("vlan")
 	vlanVid := 100

@@ -309,8 +309,6 @@ func TestAccConsistency_Rack(t *testing.T) {
 
 	t.Parallel()
 
-	t.Parallel()
-
 	rackName := testutil.RandomName("rack")
 
 	siteName := testutil.RandomName("site")

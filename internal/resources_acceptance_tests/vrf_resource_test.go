@@ -160,7 +160,6 @@ resource "netbox_vrf" "test" {
 func TestAccConsistency_VRF(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	vrfName := testutil.RandomName("vrf")
 	tenantName := testutil.RandomName("tenant")

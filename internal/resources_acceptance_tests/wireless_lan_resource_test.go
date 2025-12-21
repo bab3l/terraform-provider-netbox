@@ -108,7 +108,6 @@ resource "netbox_wireless_lan" "test" {
 func TestAccConsistency_WirelessLAN(t *testing.T) {
 
 	t.Parallel()
-	t.Parallel()
 
 	wlanName := testutil.RandomName("wlan")
 	ssid := testutil.RandomName("ssid")
