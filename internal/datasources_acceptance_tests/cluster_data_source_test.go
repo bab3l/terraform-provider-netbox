@@ -11,14 +11,27 @@ import (
 func TestAccClusterDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("cluster-type")
+	clusterTypeSlug := testutil.RandomSlug("cluster-type")
+	clusterName := testutil.RandomName("cluster")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterClusterCleanup(clusterName)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckClusterTypeDestroy,
+			testutil.CheckClusterDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccClusterDataSourceConfig("Test Cluster"),
+				Config: testAccClusterDataSourceConfig(clusterTypeName, clusterTypeSlug, clusterName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_cluster.test", "name", "Test Cluster"),
+					resource.TestCheckResourceAttr("data.netbox_cluster.test", "name", clusterName),
 					resource.TestCheckResourceAttrSet("data.netbox_cluster.test", "type"),
 				),
 			},
@@ -26,11 +39,11 @@ func TestAccClusterDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccClusterDataSourceConfig(name string) string {
+func testAccClusterDataSourceConfig(typeName, typeSlug, name string) string {
 	return fmt.Sprintf(`
 resource "netbox_cluster_type" "test" {
-  name = "Test Cluster Type"
-  slug = "test-cluster-type"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_cluster" "test" {
@@ -41,5 +54,5 @@ resource "netbox_cluster" "test" {
 data "netbox_cluster" "test" {
   id = netbox_cluster.test.id
 }
-`, name)
+`, typeName, typeSlug, name)
 }

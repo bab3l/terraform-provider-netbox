@@ -11,14 +11,29 @@ import (
 func TestAccCircuitDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	providerName := testutil.RandomName("provider")
+	providerSlug := testutil.RandomSlug("provider")
+	circuitTypeName := testutil.RandomName("circuit-type")
+	circuitTypeSlug := testutil.RandomSlug("circuit-type")
+	cid := testutil.RandomName("circuit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckProviderDestroy,
+			testutil.CheckCircuitTypeDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCircuitDataSourceConfig("TEST-CIRCUIT-1"),
+				Config: testAccCircuitDataSourceConfig(providerName, providerSlug, circuitTypeName, circuitTypeSlug, cid),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_circuit.test", "cid", "TEST-CIRCUIT-1"),
+					resource.TestCheckResourceAttr("data.netbox_circuit.test", "cid", cid),
 					resource.TestCheckResourceAttrSet("data.netbox_circuit.test", "circuit_provider"),
 					resource.TestCheckResourceAttrSet("data.netbox_circuit.test", "type"),
 				),
@@ -27,16 +42,16 @@ func TestAccCircuitDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccCircuitDataSourceConfig(cid string) string {
+func testAccCircuitDataSourceConfig(providerName, providerSlug, typeName, typeSlug, cid string) string {
 	return fmt.Sprintf(`
 resource "netbox_provider" "test" {
-  name = "Test Provider"
-  slug = "test-provider"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_circuit_type" "test" {
-  name = "Test Circuit Type"
-  slug = "test-circuit-type"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_circuit" "test" {
@@ -49,5 +64,5 @@ resource "netbox_circuit" "test" {
 data "netbox_circuit" "test" {
   id = netbox_circuit.test.id
 }
-`, cid)
+`, providerName, providerSlug, typeName, typeSlug, cid)
 }

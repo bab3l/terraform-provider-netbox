@@ -1,6 +1,7 @@
 package datasources_acceptance_tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -10,28 +11,38 @@ import (
 func TestAccProviderDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	name := testutil.RandomName("provider")
+	slug := testutil.RandomSlug("provider")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccProviderDataSourceConfig,
+				Config: testAccProviderDataSourceConfig(name, slug),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_provider.test", "name", "Test Provider"),
-					resource.TestCheckResourceAttr("data.netbox_provider.test", "slug", "test-provider"),
+					resource.TestCheckResourceAttr("data.netbox_provider.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_provider.test", "slug", slug),
 				),
 			},
 		},
 	})
 }
 
-const testAccProviderDataSourceConfig = `
+func testAccProviderDataSourceConfig(name, slug string) string {
+	return fmt.Sprintf(`
 resource "netbox_provider" "test" {
-  name = "Test Provider"
-  slug = "test-provider"
+  name = "%s"
+  slug = "%s"
 }
 
 data "netbox_provider" "test" {
   id = netbox_provider.test.id
 }
-`
+`, name, slug)
+}
