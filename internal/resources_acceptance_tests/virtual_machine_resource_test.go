@@ -241,41 +241,6 @@ resource "netbox_virtual_machine" "test" {
 
 }
 
-func TestAccVirtualMachineResource_customFieldsWithDigit(t *testing.T) {
-
-	t.Parallel()
-	clusterTypeName := testutil.RandomName("tf-test-cluster-type-custom")
-	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-custom")
-	clusterName := testutil.RandomName("tf-test-cluster-custom")
-	vmName := testutil.RandomName("tf-test-vm-custom")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterVirtualMachineCleanup(vmName)
-	cleanup.RegisterClusterCleanup(clusterName)
-	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.ComposeCheckDestroy(
-			testutil.CheckVirtualMachineDestroy,
-			testutil.CheckClusterDestroy,
-			testutil.CheckClusterTypeDestroy,
-		),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccVirtualMachineResourceConfig_customFieldsWithDigit(clusterTypeName, clusterTypeSlug, clusterName, vmName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
-					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "custom_fields.#", "3"),
-				),
-			},
-		},
-	})
-}
-
 func testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments string) string {
 
 	return fmt.Sprintf(`
@@ -318,45 +283,6 @@ resource "netbox_virtual_machine" "test" {
 
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments)
 
-}
-
-func testAccVirtualMachineResourceConfig_customFieldsWithDigit(clusterTypeName, clusterTypeSlug, clusterName, vmName string) string {
-	return fmt.Sprintf(`
-resource "netbox_cluster_type" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_cluster" "test" {
-  name = %q
-  type = netbox_cluster_type.test.id
-}
-
-resource "netbox_virtual_machine" "test" {
-  name    = %q
-  cluster = netbox_cluster.test.id
-  status  = "active"
-
-  # Test custom field names
-  custom_fields = [
-    {
-      name  = "field_4me"
-      type  = "text"
-      value = "test-value-1"
-    },
-    {
-      name  = "field_2factor"
-      type  = "boolean"
-      value = "true"
-    },
-    {
-      name  = "normal_field"
-      type  = "text"
-      value = "test-value-2"
-    }
-  ]
-}
-`, clusterTypeName, clusterTypeSlug, clusterName, vmName)
 }
 
 func TestAccConsistency_VirtualMachine_PlatformNamePersistence(t *testing.T) {

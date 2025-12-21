@@ -8,6 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+// NOTE: CustomFieldChoiceSet resources are safe to create with t.Parallel()
+// because they do not have a "required" flag and do not persist state
+// that interferes with other tests.
+
 func TestAccCustomFieldChoiceSetResource_basic(t *testing.T) {
 
 	t.Parallel()

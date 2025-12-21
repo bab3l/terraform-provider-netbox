@@ -205,7 +205,9 @@ func testAccIPSECProfileResourcePrereqs(name string) string {
 
 resource "netbox_ike_policy" "test" {
 
-  name = %q
+  name    = %q
+
+  version = "1"
 
 }
 

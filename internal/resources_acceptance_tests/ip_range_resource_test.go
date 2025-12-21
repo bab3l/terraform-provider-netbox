@@ -152,9 +152,9 @@ func testAccIPRangeResourceConfig_basic() string {
 
 resource "netbox_ip_range" "test" {
 
-  start_address = "192.0.2.10"
+  start_address = "192.0.2.10/32"
 
-  end_address   = "192.0.2.20"
+  end_address   = "192.0.2.20/32"
 
 }
 
@@ -168,9 +168,9 @@ func testAccIPRangeResourceConfig_full() string {
 
 resource "netbox_ip_range" "test" {
 
-  start_address = "10.0.0.1"
+  start_address = "10.0.0.1/32"
 
-  end_address   = "10.0.0.254"
+  end_address   = "10.0.0.254/32"
 
   status        = "active"
 

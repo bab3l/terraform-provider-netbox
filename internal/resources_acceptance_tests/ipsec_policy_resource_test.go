@@ -175,7 +175,7 @@ resource "netbox_ipsec_policy" "test" {
 
   name        = %q
 
-  pfs_group   = 14
+  pfs_group   = "group14"
 
   description = "Test IPsec policy"
 

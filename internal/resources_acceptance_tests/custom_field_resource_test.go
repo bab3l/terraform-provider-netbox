@@ -9,6 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+// NOTE: Some tests in this file create custom fields with required=true.
+// These tests must NOT run in parallel (t.Parallel removed) because required
+// custom fields can interfere with other acceptance tests that depend on
+// predictable resource state.
+
 func TestAccCustomFieldResource_basic(t *testing.T) {
 
 	t.Parallel()
@@ -53,8 +58,9 @@ func TestAccCustomFieldResource_basic(t *testing.T) {
 }
 
 func TestAccCustomFieldResource_full(t *testing.T) {
-
-	t.Parallel()
+	// This test cannot use t.Parallel() because it creates a required custom field
+	// that persists in the test environment and could interfere with other tests.
+	// Required fields must be created serially to avoid conflicts.
 
 	// Custom field names can only contain alphanumeric characters and underscores
 
@@ -126,6 +132,37 @@ resource "netbox_custom_field" "test" {
 
 }
 
+func TestAccCustomFieldResource_digitStartingName(t *testing.T) {
+	// This test cannot use t.Parallel() because it creates a custom field that will be used by other tests.
+	// Testing custom field names that start with digits validates the regex fix that allows this pattern.
+
+	name := fmt.Sprintf("%s_%s", "4me", acctest.RandString(8))
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCustomFieldResourceConfig_digitStartingName(name),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_custom_field.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "type", "text"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCustomFieldResourceConfig_full(name, description string) string {
 
 	return fmt.Sprintf(`
@@ -151,5 +188,25 @@ resource "netbox_custom_field" "test" {
 }
 
 `, name, description)
+
+}
+
+func testAccCustomFieldResourceConfig_digitStartingName(name string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_custom_field" "test" {
+
+  name         = %q
+
+  type         = "text"
+
+  object_types = ["dcim.site"]
+
+  required     = false
+
+}
+
+`, name)
 
 }
