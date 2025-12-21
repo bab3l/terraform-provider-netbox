@@ -72,7 +72,7 @@ func TestAccInterfaceTemplateResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_interface_template.test", "poe_mode", "pd"),
 
-					resource.TestCheckResourceAttr("netbox_interface_template.test", "poe_type", "type2"),
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "poe_type", "type2-ieee802.3at"),
 
 					resource.TestCheckResourceAttr("netbox_interface_template.test", "description", "Test interface template with full options"),
 				),
@@ -186,7 +186,7 @@ resource "netbox_interface_template" "test" {
 
   poe_mode    = "pd"
 
-  poe_type    = "type2"
+  poe_type    = "type2-ieee802.3at"
 
   description = "Test interface template with full options"
 
