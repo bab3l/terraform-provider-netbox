@@ -11,12 +11,30 @@ import (
 func TestAccDeviceBayDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	siteSlug := testutil.RandomSlug("site")
+	deviceRoleSlug := testutil.RandomSlug("device-role")
+	manufacturerSlug := testutil.RandomSlug("manufacturer")
+	deviceName := testutil.RandomName("device")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDeviceBayDataSourceConfig("Bay 1"),
+				Config: testAccDeviceBayDataSourceConfig("Bay 1", siteSlug, deviceRoleSlug, manufacturerSlug, deviceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_device_bay.test", "name", "Bay 1"),
 					resource.TestCheckResourceAttrSet("data.netbox_device_bay.test", "device"),
@@ -26,21 +44,21 @@ func TestAccDeviceBayDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccDeviceBayDataSourceConfig(name string) string {
+func testAccDeviceBayDataSourceConfig(name, siteSlug, deviceRoleSlug, manufacturerSlug, deviceName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
-  name = "Test Site"
-  slug = "test-site"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_device_role" "test" {
-  name = "Test Device Role"
-  slug = "test-device-role"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_manufacturer" "test" {
-  name = "Test Manufacturer"
-  slug = "test-manufacturer"
+  name = "%s"
+  slug = "%s"
 }
 
 resource "netbox_device_type" "test" {
@@ -51,7 +69,7 @@ resource "netbox_device_type" "test" {
 }
 
 resource "netbox_device" "test" {
-  name        = "test-device"
+  name        = "%s"
   device_type = netbox_device_type.test.id
   role        = netbox_device_role.test.id
   site        = netbox_site.test.id
@@ -65,5 +83,5 @@ resource "netbox_device_bay" "test" {
 data "netbox_device_bay" "test" {
   id = netbox_device_bay.test.id
 }
-`, name)
+`, siteSlug, siteSlug, deviceRoleSlug, deviceRoleSlug, manufacturerSlug, manufacturerSlug, deviceName, name)
 }

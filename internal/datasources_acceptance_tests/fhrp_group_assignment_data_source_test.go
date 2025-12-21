@@ -8,6 +8,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -107,11 +108,27 @@ func TestFHRPGroupAssignmentDataSourceConfigure(t *testing.T) {
 func TestAccFHRPGroupAssignmentDataSource_byID(t *testing.T) {
 
 	name := acctest.RandomWithPrefix("test-fhrp-assign-ds")
+	siteSlug := acctest.RandomWithPrefix("site")
+	deviceRoleSlug := acctest.RandomWithPrefix("role")
+	manufacturerSlug := acctest.RandomWithPrefix("mfg")
+	deviceSlug := acctest.RandomWithPrefix("device")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceCleanup(deviceSlug)
 
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccFHRPGroupAssignmentDataSourceConfig_byID(name),
