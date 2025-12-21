@@ -1,6 +1,7 @@
 package datasources_acceptance_tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -10,14 +11,21 @@ import (
 func TestAccPrefixDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	prefix := testutil.RandomIPv4Prefix()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPrefixDataSourceConfig,
+				Config: testAccPrefixDataSourceConfig(prefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_prefix.test", "prefix", "10.0.0.0/24"),
+					resource.TestCheckResourceAttr("data.netbox_prefix.test", "prefix", prefix),
 					resource.TestCheckResourceAttr("data.netbox_prefix.test", "status", "active"),
 				),
 			},
@@ -25,13 +33,15 @@ func TestAccPrefixDataSource_basic(t *testing.T) {
 	})
 }
 
-const testAccPrefixDataSourceConfig = `
+func testAccPrefixDataSourceConfig(prefix string) string {
+	return fmt.Sprintf(`
 resource "netbox_prefix" "test" {
-  prefix = "10.0.0.0/24"
+  prefix = "%s"
   status = "active"
 }
 
 data "netbox_prefix" "test" {
   prefix = netbox_prefix.test.prefix
 }
-`
+`, prefix)
+}

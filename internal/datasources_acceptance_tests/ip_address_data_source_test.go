@@ -1,6 +1,7 @@
 package datasources_acceptance_tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -10,14 +11,21 @@ import (
 func TestAccIPAddressDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	ipAddress := testutil.RandomIPv4Prefix()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(ipAddress)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckIPAddressDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIPAddressDataSourceConfig,
+				Config: testAccIPAddressDataSourceConfig(ipAddress),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_ip_address.test", "address", "10.0.0.1/24"),
+					resource.TestCheckResourceAttr("data.netbox_ip_address.test", "address", ipAddress),
 					resource.TestCheckResourceAttr("data.netbox_ip_address.test", "status", "active"),
 				),
 			},
@@ -25,13 +33,15 @@ func TestAccIPAddressDataSource_basic(t *testing.T) {
 	})
 }
 
-const testAccIPAddressDataSourceConfig = `
+func testAccIPAddressDataSourceConfig(ipAddress string) string {
+	return fmt.Sprintf(`
 resource "netbox_ip_address" "test" {
-  address = "10.0.0.1/24"
+  address = "%s"
   status  = "active"
 }
 
 data "netbox_ip_address" "test" {
   address = netbox_ip_address.test.address
 }
-`
+`, ipAddress)
+}
