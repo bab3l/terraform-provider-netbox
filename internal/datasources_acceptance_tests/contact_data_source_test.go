@@ -151,7 +151,13 @@ func TestAccContactDataSource_byID(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	randomName := testutil.RandomName("test-contact-ds")
+
+	email := fmt.Sprintf("%s@example.com", randomName)
+
+	cleanup.RegisterContactCleanup(email)
 
 	resource.Test(t, resource.TestCase{
 
@@ -159,6 +165,10 @@ func TestAccContactDataSource_byID(t *testing.T) {
 
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckContactDestroy,
+		),
 
 		Steps: []resource.TestStep{
 
@@ -184,7 +194,13 @@ func TestAccContactDataSource_byName(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	randomName := testutil.RandomName("test-contact-ds")
+
+	email := fmt.Sprintf("%s@example.com", randomName)
+
+	cleanup.RegisterContactCleanup(email)
 
 	resource.Test(t, resource.TestCase{
 
@@ -192,6 +208,10 @@ func TestAccContactDataSource_byName(t *testing.T) {
 
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckContactDestroy,
+		),
 
 		Steps: []resource.TestStep{
 
@@ -217,9 +237,13 @@ func TestAccContactDataSource_byEmail(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	randomName := testutil.RandomName("test-contact-ds")
 
 	email := fmt.Sprintf("%s@example.com", randomName)
+
+	cleanup.RegisterContactCleanup(email)
 
 	resource.Test(t, resource.TestCase{
 
@@ -227,6 +251,10 @@ func TestAccContactDataSource_byEmail(t *testing.T) {
 
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckContactDestroy,
+		),
 
 		Steps: []resource.TestStep{
 

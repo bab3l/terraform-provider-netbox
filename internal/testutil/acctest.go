@@ -3024,13 +3024,173 @@ func (c *CleanupResource) RegisterConfigContextCleanup(name string) {
 			c.t.Logf("Cleanup: config context with name %s not found (already deleted)", name)
 			return
 		}
+	})
+}
+
+// RegisterWirelessLANCleanup registers a cleanup function that will delete
+// a wireless LAN by SSID after the test completes.
+func (c *CleanupResource) RegisterWirelessLANCleanup(ssid string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.WirelessAPI.WirelessWirelessLansList(ctx).Ssid([]string{ssid}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list wireless LANs with SSID %s: %v", ssid, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: wireless LAN with SSID %s not found (already deleted)", ssid)
+			return
+		}
 
 		id := list.Results[0].GetId()
-		_, err = c.client.ExtrasAPI.ExtrasConfigContextsDestroy(ctx, id).Execute()
+		_, err = c.client.WirelessAPI.WirelessWirelessLansDestroy(ctx, id).Execute()
 		if err != nil {
-			c.t.Logf("Cleanup: failed to delete config context %d (name: %s): %v", id, name, err)
+			c.t.Logf("Cleanup: failed to delete wireless LAN %d (SSID: %s): %v", id, ssid, err)
 		} else {
-			c.t.Logf("Cleanup: successfully deleted config context %d (name: %s)", id, name)
+			c.t.Logf("Cleanup: successfully deleted wireless LAN %d (SSID: %s)", id, ssid)
+		}
+	})
+}
+
+// RegisterContactCleanup registers a cleanup function that will delete
+// a contact by email after the test completes.
+func (c *CleanupResource) RegisterContactCleanup(email string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.TenancyAPI.TenancyContactsList(ctx).Email([]string{email}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list contacts with email %s: %v", email, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: contact with email %s not found (already deleted)", email)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.TenancyAPI.TenancyContactsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete contact %d (email: %s): %v", id, email, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted contact %d (email: %s)", id, email)
+		}
+	})
+}
+
+// RegisterContactRoleCleanup registers a cleanup function that will delete
+// a contact role by slug after the test completes.
+func (c *CleanupResource) RegisterContactRoleCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.TenancyAPI.TenancyContactRolesList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list contact roles with slug %s: %v", slug, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: contact role with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.TenancyAPI.TenancyContactRolesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete contact role %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted contact role %d (slug: %s)", id, slug)
+		}
+	})
+}
+
+// RegisterWirelessLANGroupCleanup registers a cleanup function that will delete
+// a wireless LAN group by slug after the test completes.
+func (c *CleanupResource) RegisterWirelessLANGroupCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.WirelessAPI.WirelessWirelessLanGroupsList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list wireless LAN groups with slug %s: %v", slug, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: wireless LAN group with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.WirelessAPI.WirelessWirelessLanGroupsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete wireless LAN group %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted wireless LAN group %d (slug: %s)", id, slug)
+		}
+	})
+}
+
+// RegisterVirtualChassisCleanup registers a cleanup function that will delete
+// a virtual chassis by name after the test completes.
+func (c *CleanupResource) RegisterVirtualChassisCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimVirtualChassisList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list virtual chassis with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: virtual chassis with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimVirtualChassisDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete virtual chassis %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted virtual chassis %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterL2VPNCleanup registers a cleanup function that will delete
+// an L2VPN by name after the test completes.
+func (c *CleanupResource) RegisterL2VPNCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.VpnAPI.VpnL2vpnsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list L2VPNs with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: L2VPN with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.VpnAPI.VpnL2vpnsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete L2VPN %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted L2VPN %d (name: %s)", id, name)
 		}
 	})
 }

@@ -98,6 +98,7 @@ func TestCustomFieldChoiceSetDataSourceConfigure(t *testing.T) {
 func TestAccCustomFieldChoiceSetDataSource_byID(t *testing.T) {
 
 	t.Parallel()
+
 	name := testutil.RandomName("cfcs")
 
 	resource.Test(t, resource.TestCase{
@@ -121,6 +122,7 @@ func TestAccCustomFieldChoiceSetDataSource_byID(t *testing.T) {
 func TestAccCustomFieldChoiceSetDataSource_byName(t *testing.T) {
 
 	t.Parallel()
+
 	name := testutil.RandomName("cfcs")
 
 	resource.Test(t, resource.TestCase{

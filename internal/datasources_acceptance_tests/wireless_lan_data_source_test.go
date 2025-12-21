@@ -12,11 +12,18 @@ func TestAccWirelessLANDataSource_basic(t *testing.T) {
 
 	t.Parallel()
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	ssid := testutil.RandomName("wlan")
+
+	cleanup.RegisterWirelessLANCleanup(ssid)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckWirelessLANDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccWirelessLANDataSourceConfig(ssid),

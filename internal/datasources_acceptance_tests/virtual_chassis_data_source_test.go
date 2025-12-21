@@ -12,11 +12,18 @@ func TestAccVirtualChassisDataSource_basic(t *testing.T) {
 
 	t.Parallel()
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	name := testutil.RandomName("vc")
+
+	cleanup.RegisterVirtualChassisCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVirtualChassisDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVirtualChassisDataSourceConfig(name),

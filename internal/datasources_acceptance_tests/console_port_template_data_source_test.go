@@ -11,6 +11,7 @@ import (
 func TestAccConsolePortTemplateDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,

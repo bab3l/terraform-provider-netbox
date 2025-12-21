@@ -8,6 +8,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -106,12 +107,19 @@ func TestL2VPNDataSourceConfigure(t *testing.T) {
 
 func TestAccL2VPNDataSource_byID(t *testing.T) {
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	name := acctest.RandomWithPrefix("test-l2vpn-ds")
+
+	cleanup.RegisterL2VPNCleanup(name)
 
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckL2VPNDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccL2VPNDataSourceConfig_byID(name),
@@ -127,12 +135,19 @@ func TestAccL2VPNDataSource_byID(t *testing.T) {
 
 func TestAccL2VPNDataSource_byName(t *testing.T) {
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	name := acctest.RandomWithPrefix("test-l2vpn-ds")
+
+	cleanup.RegisterL2VPNCleanup(name)
 
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckL2VPNDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccL2VPNDataSourceConfig_byName(name),

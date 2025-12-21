@@ -12,12 +12,20 @@ func TestAccWirelessLANGroupDataSource_basic(t *testing.T) {
 
 	t.Parallel()
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	name := testutil.RandomName("wlan-group")
+
 	slug := testutil.RandomSlug("wlan-group")
+
+	cleanup.RegisterWirelessLANGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckWirelessLANGroupDestroy,
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccWirelessLANGroupDataSourceConfig(name, slug),

@@ -11,10 +11,19 @@ import (
 func TestAccRackReservationDataSource_basic(t *testing.T) {
 
 	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
 	siteName := testutil.RandomName("test-site-rr")
+
 	siteSlug := testutil.GenerateSlug(siteName)
+
 	rackName := testutil.RandomName("test-rack-rr")
+
 	description := "Test Rack Reservation Description"
+
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterRackCleanup(rackName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

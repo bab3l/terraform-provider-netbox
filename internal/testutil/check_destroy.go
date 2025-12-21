@@ -1889,6 +1889,105 @@ func CheckClusterGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
+// CheckWirelessLANDestroy verifies that a wireless LAN has been destroyed.
+func CheckWirelessLANDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_wireless_lan" {
+			continue
+		}
+
+		ssid := rs.Primary.Attributes["ssid"]
+		if ssid == "" {
+			continue
+		}
+
+		list, resp, err := client.WirelessAPI.WirelessWirelessLansList(ctx).Ssid([]string{ssid}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("wireless LAN with SSID %s still exists (ID: %d)", ssid, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckContactDestroy verifies that a contact has been destroyed.
+func CheckContactDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_contact" {
+			continue
+		}
+
+		email := rs.Primary.Attributes["email"]
+		if email == "" {
+			continue
+		}
+
+		list, resp, err := client.TenancyAPI.TenancyContactsList(ctx).Email([]string{email}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("contact with email %s still exists (ID: %d)", email, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckContactRoleDestroy verifies that a contact role has been destroyed.
+func CheckContactRoleDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_contact_role" {
+			continue
+		}
+
+		slug := rs.Primary.Attributes["slug"]
+		if slug == "" {
+			continue
+		}
+
+		list, resp, err := client.TenancyAPI.TenancyContactRolesList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("contact role with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
 // CheckRoleDestroy verifies that a role has been destroyed.
 func CheckRoleDestroy(s *terraform.State) error {
 	client, err := GetSharedClient()
@@ -2246,6 +2345,105 @@ func CheckConfigContextDestroy(s *terraform.State) error {
 
 		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
 			return fmt.Errorf("config context with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckL2VPNDestroy verifies that an L2VPN has been destroyed.
+func CheckL2VPNDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_l2vpn" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.VpnAPI.VpnL2vpnsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("L2VPN with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckVirtualChassisDestroy verifies that a virtual chassis has been destroyed.
+func CheckVirtualChassisDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_virtual_chassis" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.DcimAPI.DcimVirtualChassisList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("virtual chassis with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckWirelessLANGroupDestroy verifies that a wireless LAN group has been destroyed.
+func CheckWirelessLANGroupDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_wireless_lan_group" {
+			continue
+		}
+
+		slug := rs.Primary.Attributes["slug"]
+		if slug == "" {
+			continue
+		}
+
+		list, resp, err := client.WirelessAPI.WirelessWirelessLanGroupsList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("wireless LAN group with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 		}
 	}
 

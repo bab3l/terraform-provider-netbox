@@ -151,11 +151,15 @@ func TestAccIPSecProfileDataSource_byID(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	randomName := testutil.RandomName("tf-test-ipsec-profile-ds")
 
 	ikePolicyName := testutil.RandomName("tf-test-ike-policy-for-profile-ds")
 
 	ipsecPolicyName := testutil.RandomName("tf-test-ipsec-policy-for-profile-ds")
+
+	cleanup.RegisterIPSecProfileCleanup(randomName)
 
 	resource.Test(t, resource.TestCase{
 
@@ -163,6 +167,10 @@ func TestAccIPSecProfileDataSource_byID(t *testing.T) {
 
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckIPSecProfileDestroy,
+		),
 
 		Steps: []resource.TestStep{
 
@@ -190,11 +198,15 @@ func TestAccIPSecProfileDataSource_byName(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
+	cleanup := testutil.NewCleanupResource(t)
+
 	randomName := testutil.RandomName("tf-test-ipsec-profile-ds")
 
 	ikePolicyName := testutil.RandomName("tf-test-ike-policy-for-profile-ds")
 
 	ipsecPolicyName := testutil.RandomName("tf-test-ipsec-policy-for-profile-ds")
+
+	cleanup.RegisterIPSecProfileCleanup(randomName)
 
 	resource.Test(t, resource.TestCase{
 
@@ -202,6 +214,10 @@ func TestAccIPSecProfileDataSource_byName(t *testing.T) {
 
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckIPSecProfileDestroy,
+		),
 
 		Steps: []resource.TestStep{
 
