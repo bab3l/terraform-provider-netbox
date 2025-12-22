@@ -17,6 +17,9 @@ func TestAccConfigContextResource_basic(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-config-context")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigContextCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },

@@ -19,6 +19,9 @@ func TestAccConfigTemplateResource_basic(t *testing.T) {
 
 	templateCode := "hostname {{ device.name }}"
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigTemplateCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -72,6 +75,10 @@ func TestAccConfigTemplateResource_full(t *testing.T) {
 	updatedTemplateCode := "hostname {{ device.name }}\ninterface {{ interface.name }}"
 
 	updatedDescription := "Updated test config template"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigTemplateCleanup(name)
+	cleanup.RegisterConfigTemplateCleanup(updatedName)
 
 	resource.Test(t, resource.TestCase{
 
