@@ -57,6 +57,8 @@ type FrontPortTemplateResourceModel struct {
 
 	Color types.String `tfsdk:"color"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	RearPort types.String `tfsdk:"rear_port"`
 
 	RearPortPosition types.Int32 `tfsdk:"rear_port_position"`
@@ -594,6 +596,13 @@ func (r *FrontPortTemplateResource) mapResponseToModel(template *netbox.FrontPor
 	data.ID = types.Int32Value(template.GetId())
 
 	data.Name = types.StringValue(template.GetName())
+
+	// DisplayName
+	if template.Display != "" {
+		data.DisplayName = types.StringValue(template.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device type - preserve user's input format
 

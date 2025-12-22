@@ -8,6 +8,7 @@ import (
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -58,6 +59,8 @@ type InterfaceTemplateResourceModel struct {
 	Enabled types.Bool `tfsdk:"enabled"`
 
 	MgmtOnly types.Bool `tfsdk:"mgmt_only"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 
 	Description types.String `tfsdk:"description"`
 
@@ -160,6 +163,8 @@ func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.Sch
 
 				Default: booldefault.StaticBool(false),
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("interface template"),
 
 			"description": schema.StringAttribute{
 
@@ -657,6 +662,13 @@ func (r *InterfaceTemplateResource) mapResponseToModel(template *netbox.Interfac
 	data.Name = types.StringValue(template.GetName())
 
 	data.Type = types.StringValue(string(template.Type.GetValue()))
+
+	// DisplayName
+	if template.Display != "" {
+		data.DisplayName = types.StringValue(template.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device type - preserve user's input format
 
