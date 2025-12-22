@@ -303,9 +303,9 @@ resource "netbox_circuit" "test" {
 
   cid              = %[7]q
 
-  circuit_provider = netbox_provider.test.slug
+  circuit_provider = netbox_provider.test.id
 
-  type             = netbox_circuit_type.test.slug
+  type             = netbox_circuit_type.test.id
 
 }
 
@@ -353,9 +353,9 @@ resource "netbox_circuit" "test" {
 
   cid              = %[7]q
 
-  circuit_provider = netbox_provider.test.slug
+  circuit_provider = netbox_provider.test.id
 
-  type             = netbox_circuit_type.test.slug
+  type             = netbox_circuit_type.test.id
 
 }
 
@@ -477,9 +477,9 @@ resource "netbox_circuit" "test" {
 
   cid              = %[7]q
 
-  circuit_provider = netbox_provider.test.slug
+  circuit_provider = netbox_provider.test.id
 
-  type             = netbox_circuit_type.test.slug
+  type             = netbox_circuit_type.test.id
 
 }
 

@@ -283,9 +283,9 @@ resource "netbox_vlan" "test" {
   name = "%[1]s"
   vid  = %[2]d
   site = netbox_site.test.name
-  group = netbox_vlan_group.test.slug
+  group = netbox_vlan_group.test.id
   tenant = netbox_tenant.test.name
-  role = netbox_role.test.slug
+  role = netbox_role.test.id
 }
 `, vlanName, vlanVid, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug)
 }

@@ -204,7 +204,7 @@ resource "netbox_device_type" "test" {
 
   slug           = %q
 
-  manufacturer   = netbox_manufacturer.test.slug
+  manufacturer   = netbox_manufacturer.test.id
 
   subdevice_role = "parent"
 
@@ -240,7 +240,7 @@ resource "netbox_device_type" "test" {
 
   slug           = %[4]q
 
-  manufacturer   = netbox_manufacturer.test.slug
+  manufacturer   = netbox_manufacturer.test.id
 
   subdevice_role = "parent"
 
@@ -342,7 +342,7 @@ resource "netbox_device_type" "test" {
 
   slug           = %[4]q
 
-  manufacturer   = netbox_manufacturer.test.slug
+  manufacturer   = netbox_manufacturer.test.id
 
   subdevice_role = "parent"
 
@@ -382,7 +382,7 @@ resource "netbox_device_type" "test" {
 
   slug           = %[4]q
 
-  manufacturer   = netbox_manufacturer.test.slug
+  manufacturer   = netbox_manufacturer.test.id
 
   subdevice_role = "parent"
 

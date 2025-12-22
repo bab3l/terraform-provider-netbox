@@ -174,7 +174,7 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_device_type" "test" {
 
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
 
   model        = %q
 
@@ -200,7 +200,7 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_device_type" "test" {
 
-  manufacturer      = netbox_manufacturer.test.slug
+  manufacturer      = netbox_manufacturer.test.id
 
   model             = %q
 
@@ -238,7 +238,7 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_device_type" "test" {
 
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
 
   model        = %q
 
@@ -299,7 +299,7 @@ resource "netbox_manufacturer" "test" {
 }
 
 resource "netbox_device_type" "test" {
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
   model        = %q
   slug         = %q
   description  = %q

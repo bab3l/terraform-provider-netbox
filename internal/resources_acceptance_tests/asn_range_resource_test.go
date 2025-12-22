@@ -489,7 +489,7 @@ resource "netbox_asn_range" "test" {
 
   slug = "%[2]s"
 
-  rir = netbox_rir.test.slug
+  rir = netbox_rir.test.id
 
   tenant = netbox_tenant.test.name
 

@@ -184,7 +184,7 @@ resource "netbox_manufacturer" "test_manufacturer" {
 resource "netbox_platform" "test" {
   name         = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test_manufacturer.slug
+  manufacturer = netbox_manufacturer.test_manufacturer.id
 }
 `, manufacturerName, manufacturerSlug, platformName, platformSlug)
 }
@@ -210,7 +210,7 @@ resource "netbox_manufacturer" "test_manufacturer" {
 resource "netbox_platform" "test" {
   name         = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test_manufacturer.slug
+  manufacturer = netbox_manufacturer.test_manufacturer.id
   description  = %q
 }
 `, manufacturerName, manufacturerSlug, platformName, platformSlug, description)
@@ -268,7 +268,7 @@ resource "netbox_manufacturer" "test_manufacturer" {
 resource "netbox_platform" "test" {
   name         = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test_manufacturer.slug
+  manufacturer = netbox_manufacturer.test_manufacturer.id
   description  = %q
 }
 `, manufacturerName, manufacturerSlug, platformName, platformSlug, description)
@@ -283,7 +283,7 @@ resource "netbox_manufacturer" "test" {
 resource "netbox_platform" "test" {
   name         = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
 }
 `, manufacturerName, manufacturerSlug, platformName, platformSlug)
 }

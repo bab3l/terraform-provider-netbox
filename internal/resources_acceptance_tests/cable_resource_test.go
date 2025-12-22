@@ -308,7 +308,7 @@ resource "netbox_device_type" "test" {
 
   slug  = %[8]q
 
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
 
 }
 
@@ -316,11 +316,11 @@ resource "netbox_device" "test_a" {
 
   name           = "%[9]s-a"
 
-  device_type    = netbox_device_type.test.slug
+  device_type    = netbox_device_type.test.id
 
-  role           = netbox_device_role.test.slug
+  role           = netbox_device_role.test.id
 
-  site           = netbox_site.test.slug
+  site           = netbox_site.test.id
 
 }
 
@@ -328,11 +328,11 @@ resource "netbox_device" "test_b" {
 
   name           = "%[9]s-b"
 
-  device_type    = netbox_device_type.test.slug
+  device_type    = netbox_device_type.test.id
 
-  role           = netbox_device_role.test.slug
+  role           = netbox_device_role.test.id
 
-  site           = netbox_site.test.slug
+  site           = netbox_site.test.id
 
 }
 

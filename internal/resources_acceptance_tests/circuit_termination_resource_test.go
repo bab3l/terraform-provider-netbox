@@ -253,7 +253,7 @@ resource "netbox_circuit_type" "test" {
 resource "netbox_circuit" "test" {
   cid = "%[5]s"
   circuit_provider = netbox_provider.test.id
-  type = netbox_circuit_type.test.slug
+  type = netbox_circuit_type.test.id
 }
 
 resource "netbox_site" "test" {

@@ -224,7 +224,7 @@ func testAccInterfaceTemplateResourceConfig_consistency_device_type_slug(name st
 
 resource "netbox_interface_template" "test" {
 
-  device_type = netbox_device_type.test.slug
+  device_type = netbox_device_type.test.id
 
   name        = %q
 

@@ -222,7 +222,7 @@ resource "netbox_manufacturer" "test" {
 }
 
 resource "netbox_device_type" "test" {
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
   model        = %[3]q
   slug         = %[4]q
 }
@@ -240,9 +240,9 @@ resource "netbox_site" "test" {
 
 resource "netbox_device" "test" {
   name        = %[9]q
-  device_type = netbox_device_type.test.slug
-  role        = netbox_device_role.test.slug
-  site        = netbox_site.test.slug
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
 }
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName)
 }
@@ -255,7 +255,7 @@ resource "netbox_manufacturer" "test" {
 }
 
 resource "netbox_device_type" "test" {
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
   model        = %[3]q
   slug         = %[4]q
 }
@@ -273,9 +273,9 @@ resource "netbox_site" "test" {
 
 resource "netbox_device" "test" {
   name        = %[9]q
-  device_type = netbox_device_type.test.slug
-  role        = netbox_device_role.test.slug
-  site        = netbox_site.test.slug
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
   status      = "planned"
   serial      = %[10]q
   asset_tag   = %[11]q
@@ -293,7 +293,7 @@ resource "netbox_manufacturer" "test" {
 }
 
 resource "netbox_device_type" "test" {
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
   model        = %[3]q
   slug         = %[4]q
 }
@@ -311,9 +311,9 @@ resource "netbox_site" "test" {
 
 resource "netbox_device" "test" {
   name        = %[9]q
-  device_type = netbox_device_type.test.slug
-  role        = netbox_device_role.test.slug
-  site        = netbox_site.test.slug
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
   status      = "staged"
   description = "Updated description"
 }
@@ -350,10 +350,10 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_device" "test" {
   name = "%[1]s"
-  device_type = netbox_device_type.test.slug
-  role = netbox_device_role.test.slug
-  site = netbox_site.test.name
-  tenant = netbox_tenant.test.name
+  device_type = netbox_device_type.test.id
+  role = netbox_device_role.test.id
+  site = netbox_site.test.id
+  tenant = netbox_tenant.test.id
 }
 `, deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, tenantName, tenantSlug)
 }

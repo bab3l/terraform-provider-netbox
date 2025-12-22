@@ -81,7 +81,7 @@ func testAccExportTemplateResourceConfig_updated(name string) string {
 resource "netbox_export_template" "test" {
   name          = "` + name + `-updated"
   object_types  = ["dcim.site"]
-  template_code = "{% for site in queryset %}{{ site.name }},{{ site.slug }}\n{% endfor %}"
+  template_code = "{% for site in queryset %}{{ site.name }},{{ site.id }}\n{% endfor %}"
   description   = "Updated description"
 }
 `
@@ -92,7 +92,7 @@ func testAccExportTemplateResourceConfig_full(name string) string {
 resource "netbox_export_template" "test" {
   name           = "` + name + `"
   object_types   = ["dcim.site", "dcim.device"]
-  template_code  = "name,slug\n{% for obj in queryset %}{{ obj.name }},{{ obj.slug }}\n{% endfor %}"
+  template_code  = "name,slug\n{% for obj in queryset %}{{ obj.name }},{{ obj.id }}\n{% endfor %}"
   description    = "Test description"
   mime_type      = "text/csv"
   file_extension = "csv"
@@ -134,7 +134,7 @@ func testAccExportTemplateConsistencyLiteralNamesConfig(name, description string
 resource "netbox_export_template" "test" {
   name           = "` + name + `"
   object_types   = ["dcim.site"]
-  template_code  = "name,slug\n{% for site in queryset %}{{ site.name }},{{ site.slug }}\n{% endfor %}"
+  template_code  = "name,slug\n{% for site in queryset %}{{ site.name }},{{ site.id }}\n{% endfor %}"
   description    = "` + description + `"
 }
 `

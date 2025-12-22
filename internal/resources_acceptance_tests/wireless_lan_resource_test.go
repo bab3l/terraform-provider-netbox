@@ -154,7 +154,7 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_wireless_lan" "test" {
   ssid = "%[2]s"
-  group = netbox_wireless_lan_group.test.slug
+  group = netbox_wireless_lan_group.test.id
   tenant = netbox_tenant.test.name
 }
 `, wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug)
@@ -197,7 +197,7 @@ resource "netbox_wireless_lan_group" "test" {
 
 resource "netbox_wireless_lan" "test" {
   ssid  = %q
-  group = netbox_wireless_lan_group.test.slug
+  group = netbox_wireless_lan_group.test.id
 }
 `, groupName, groupSlug, ssid)
 }
