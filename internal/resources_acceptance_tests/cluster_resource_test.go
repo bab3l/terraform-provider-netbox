@@ -338,7 +338,7 @@ resource "netbox_cluster" "test" {
 
   name = %q
 
-  type = netbox_cluster_type.test.slug
+  type = netbox_cluster_type.test.id
 
 }
 
@@ -362,7 +362,7 @@ resource "netbox_cluster" "test" {
 
   name        = %q
 
-  type        = netbox_cluster_type.test.slug
+  type        = netbox_cluster_type.test.id
 
   status      = "active"
 
@@ -392,7 +392,7 @@ resource "netbox_cluster" "test" {
 
   name = %q
 
-  type = netbox_cluster_type.test.slug
+  type = netbox_cluster_type.test.id
 
 }
 
