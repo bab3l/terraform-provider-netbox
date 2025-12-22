@@ -296,7 +296,6 @@ resource "netbox_cluster_type" "test" {
 }
 
 `, name, slug)
-
 }
 
 func testAccClusterTypeResourceConfig_full(name, slug, description string) string {

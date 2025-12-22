@@ -101,3 +101,42 @@ resource "netbox_export_template" "test" {
 }
 `
 }
+
+func TestAccConsistency_ExportTemplate_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-export-template-lit")
+	description := testutil.RandomName("description")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccExportTemplateConsistencyLiteralNamesConfig(name, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_export_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_export_template.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_export_template.test", "description", description),
+				),
+			},
+			{
+				Config:   testAccExportTemplateConsistencyLiteralNamesConfig(name, description),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_export_template.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccExportTemplateConsistencyLiteralNamesConfig(name, description string) string {
+	return `
+resource "netbox_export_template" "test" {
+  name           = "` + name + `"
+  object_types   = ["dcim.site"]
+  template_code  = "name,slug\n{% for site in queryset %}{{ site.name }},{{ site.slug }}\n{% endfor %}"
+  description    = "` + description + `"
+}
+`
+}

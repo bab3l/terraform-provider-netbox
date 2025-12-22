@@ -253,3 +253,56 @@ resource "netbox_device_type" "test" {
 `, manufacturerName, manufacturerSlug, model, slug)
 
 }
+
+func TestAccConsistency_DeviceType_LiteralNames(t *testing.T) {
+	t.Parallel()
+	model := testutil.RandomName("tf-test-device-type-lit")
+	slug := testutil.RandomSlug("tf-test-dt-lit")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer-lit")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-lit")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(slug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.ComposeCheckDestroy(testutil.CheckDeviceTypeDestroy, testutil.CheckManufacturerDestroy),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceTypeConsistencyLiteralNamesConfig(model, slug, manufacturerName, manufacturerSlug, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device_type.test", "id"),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "model", model),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "description", description),
+				),
+			},
+			{
+				Config:   testAccDeviceTypeConsistencyLiteralNamesConfig(model, slug, manufacturerName, manufacturerSlug, description),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device_type.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccDeviceTypeConsistencyLiteralNamesConfig(model, slug, manufacturerName, manufacturerSlug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.slug
+  model        = %q
+  slug         = %q
+  description  = %q
+}
+`, manufacturerName, manufacturerSlug, model, slug, description)
+}

@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -228,4 +231,53 @@ resource "netbox_fhrp_group" "test" {
 
 `, protocol, groupID, name, description, authType, authKey)
 
+}
+
+func TestAccConsistency_FHRPGroup_LiteralNames(t *testing.T) {
+	t.Parallel()
+	protocol := "vrrp3"
+	groupID := int32(123)
+	name := testutil.RandomName("tf-test-fhrp-group-lit")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckFHRPGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFHRPGroupConsistencyLiteralNamesConfig(protocol, groupID, name, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_fhrp_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "protocol", protocol),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "group_id", "123"),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "description", description),
+				),
+			},
+			{
+				Config:   testAccFHRPGroupConsistencyLiteralNamesConfig(protocol, groupID, name, description),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_fhrp_group.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccFHRPGroupConsistencyLiteralNamesConfig(protocol string, groupID int32, name, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_fhrp_group" "test" {
+  protocol    = %q
+  group_id    = %d
+  name        = %q
+  description = %q
+}
+`, protocol, groupID, name, description)
 }
