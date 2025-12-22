@@ -70,6 +70,8 @@ type InventoryItemResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -186,6 +188,8 @@ func (r *InventoryItemResource) Schema(ctx context.Context, req resource.SchemaR
 				Optional: true,
 			},
 
+			"display_name": nbschema.DisplayNameAttribute("inventory item"),
+
 			"tags": nbschema.TagsAttribute(),
 
 			"custom_fields": nbschema.CustomFieldsAttribute(),
@@ -193,8 +197,6 @@ func (r *InventoryItemResource) Schema(ctx context.Context, req resource.SchemaR
 	}
 
 }
-
-// Configure adds the provider configured client to the resource.
 
 func (r *InventoryItemResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
@@ -822,6 +824,13 @@ func (r *InventoryItemResource) mapResponseToModel(ctx context.Context, item *ne
 	data.ID = types.StringValue(fmt.Sprintf("%d", item.GetId()))
 
 	data.Name = types.StringValue(item.GetName())
+
+	// DisplayName
+	if item.Display != "" {
+		data.DisplayName = types.StringValue(item.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device - preserve user's input format
 

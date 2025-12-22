@@ -64,6 +64,8 @@ type ModuleResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -157,6 +159,8 @@ func (r *ModuleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional: true,
 			},
 
+			"display_name": nbschema.DisplayNameAttribute("module"),
+
 			"tags": nbschema.TagsAttribute(),
 
 			"custom_fields": nbschema.CustomFieldsAttribute(),
@@ -164,8 +168,6 @@ func (r *ModuleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 	}
 
 }
-
-// Configure adds the provider configured client to the resource.
 
 func (r *ModuleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
@@ -701,6 +703,13 @@ func (r *ModuleResource) ImportState(ctx context.Context, req resource.ImportSta
 func (r *ModuleResource) mapResponseToModel(ctx context.Context, module *netbox.Module, data *ModuleResourceModel, diags *diag.Diagnostics) {
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", module.GetId()))
+
+	// DisplayName
+	if module.Display != "" {
+		data.DisplayName = types.StringValue(module.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device - preserve user's input format
 
