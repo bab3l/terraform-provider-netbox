@@ -54,6 +54,8 @@ type ServiceResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Protocol types.String `tfsdk:"protocol"`
 
 	Ports types.List `tfsdk:"ports"`
@@ -119,6 +121,8 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 
 				Required: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("service"),
 
 			"protocol": schema.StringAttribute{
 

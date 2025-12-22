@@ -54,6 +54,8 @@ type CircuitResourceModel struct {
 
 	Cid types.String `tfsdk:"cid"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	CircuitProvider types.String `tfsdk:"circuit_provider"`
 
 	Type types.String `tfsdk:"type"`
@@ -118,6 +120,8 @@ func (r *CircuitResource) Schema(ctx context.Context, req resource.SchemaRequest
 					stringvalidator.LengthAtLeast(1),
 				},
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("circuit"),
 
 			"circuit_provider": schema.StringAttribute{
 
@@ -713,6 +717,13 @@ func (r *CircuitResource) mapCircuitToState(ctx context.Context, circuit *netbox
 	data.ID = types.StringValue(fmt.Sprintf("%d", circuit.GetId()))
 
 	data.Cid = types.StringValue(circuit.GetCid())
+
+	// DisplayName
+	if circuit.Display != "" {
+		data.DisplayName = types.StringValue(circuit.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Provider - preserve user input if it matches
 

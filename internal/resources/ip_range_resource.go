@@ -57,6 +57,8 @@ type IPRangeResourceModel struct {
 
 	Size types.Int64 `tfsdk:"size"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	VRF types.String `tfsdk:"vrf"`
 
 	Tenant types.String `tfsdk:"tenant"`
@@ -126,6 +128,8 @@ func (r *IPRangeResource) Schema(ctx context.Context, req resource.SchemaRequest
 
 				Computed: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("IP range"),
 
 			"vrf": schema.StringAttribute{
 
@@ -669,6 +673,13 @@ func (r *IPRangeResource) mapIPRangeToState(ctx context.Context, ipRange *netbox
 	data.EndAddress = types.StringValue(ipRange.EndAddress)
 
 	data.Size = types.Int64Value(int64(ipRange.Size))
+
+	// DisplayName
+	if ipRange.Display != "" {
+		data.DisplayName = types.StringValue(ipRange.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// VRF - preserve user input if it matches
 

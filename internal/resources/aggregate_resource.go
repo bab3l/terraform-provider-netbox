@@ -41,6 +41,7 @@ type AggregateResource struct {
 type AggregateResourceModel struct {
 	ID           types.String `tfsdk:"id"`
 	Prefix       types.String `tfsdk:"prefix"`
+	DisplayName  types.String `tfsdk:"display_name"`
 	RIR          types.String `tfsdk:"rir"`
 	Tenant       types.String `tfsdk:"tenant"`
 	DateAdded    types.String `tfsdk:"date_added"`
@@ -71,6 +72,7 @@ func (r *AggregateResource) Schema(ctx context.Context, req resource.SchemaReque
 				MarkdownDescription: "The IP prefix in CIDR notation (e.g., 10.0.0.0/8, 2001:db8::/32).",
 				Required:            true,
 			},
+			"display_name": nbschema.DisplayNameAttribute("aggregate"),
 			"rir": schema.StringAttribute{
 				MarkdownDescription: "The name, slug, or ID of the Regional Internet Registry (RIR) this aggregate belongs to.",
 				Required:            true,
@@ -365,6 +367,13 @@ func (r *AggregateResource) buildCreateRequest(ctx context.Context, data *Aggreg
 func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *netbox.Aggregate, data *AggregateResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", aggregate.GetId()))
 	data.Prefix = types.StringValue(aggregate.GetPrefix())
+
+	// DisplayName
+	if aggregate.Display != "" {
+		data.DisplayName = types.StringValue(aggregate.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map RIR
 	if rir := aggregate.GetRir(); rir.Id != 0 {
