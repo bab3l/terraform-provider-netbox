@@ -61,6 +61,8 @@ type RackReservationResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -139,8 +141,8 @@ func (r *RackReservationResource) Schema(ctx context.Context, req resource.Schem
 
 				Optional: true,
 			},
-
-			"tags": nbschema.TagsAttribute(),
+			"display_name": nbschema.DisplayNameAttribute("rack reservation"),
+			"tags":         nbschema.TagsAttribute(),
 
 			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
