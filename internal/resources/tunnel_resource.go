@@ -49,6 +49,8 @@ type TunnelResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Status types.String `tfsdk:"status"`
 
 	Group types.String `tfsdk:"group"`
@@ -87,6 +89,8 @@ func (r *TunnelResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"id": nbschema.IDAttribute("tunnel"),
 
 			"name": nbschema.NameAttribute("tunnel", 100),
+
+			"display_name": nbschema.DisplayNameAttribute("tunnel"),
 
 			"status": schema.StringAttribute{
 
@@ -501,6 +505,13 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 	data.ID = types.StringValue(fmt.Sprintf("%d", tunnel.GetId()))
 
 	data.Name = types.StringValue(tunnel.GetName())
+
+	// DisplayName
+	if tunnel.Display != "" {
+		data.DisplayName = types.StringValue(tunnel.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
 
