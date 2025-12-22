@@ -49,6 +49,8 @@ type InterfaceResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Label types.String `tfsdk:"label"`
 
 	Type types.String `tfsdk:"type"`
@@ -130,6 +132,8 @@ func (r *InterfaceResource) Schema(ctx context.Context, req resource.SchemaReque
 					stringvalidator.LengthAtMost(64),
 				},
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("interface"),
 
 			"type": schema.StringAttribute{
 
@@ -881,6 +885,8 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 	data.ID = types.StringValue(fmt.Sprintf("%d", iface.GetId()))
 
 	data.Name = types.StringValue(iface.GetName())
+
+	data.DisplayName = types.StringValue(iface.GetDisplay())
 
 	// Device
 

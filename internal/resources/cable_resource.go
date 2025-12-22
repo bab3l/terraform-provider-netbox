@@ -44,6 +44,8 @@ type CableResource struct {
 type CableResourceModel struct {
 	ID types.String `tfsdk:"id"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	ATerminations types.List `tfsdk:"a_terminations"`
 
 	BTerminations types.List `tfsdk:"b_terminations"`
@@ -114,6 +116,8 @@ func (r *CableResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 		Attributes: map[string]schema.Attribute{
 
 			"id": nbschema.IDAttribute("cable"),
+
+			"display_name": nbschema.DisplayNameAttribute("cable"),
 
 			"a_terminations": schema.ListNestedAttribute{
 
@@ -858,6 +862,8 @@ func (r *CableResource) mapResponseToState(ctx context.Context, result *netbox.C
 	var diags diag.Diagnostics
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
+
+	data.DisplayName = types.StringValue(result.GetDisplay())
 
 	// Map A terminations
 
