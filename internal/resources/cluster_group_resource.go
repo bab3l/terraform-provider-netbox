@@ -42,6 +42,8 @@ type ClusterGroupResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Slug types.String `tfsdk:"slug"`
 
 	Description types.String `tfsdk:"description"`
@@ -68,6 +70,8 @@ func (r *ClusterGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 			"id": nbschema.IDAttribute("cluster group"),
 
 			"name": nbschema.NameAttribute("cluster group", 100),
+
+			"display_name": nbschema.DisplayNameAttribute("cluster group"),
 
 			"slug": nbschema.SlugAttribute("cluster group"),
 
@@ -478,6 +482,13 @@ func (r *ClusterGroupResource) mapClusterGroupToState(ctx context.Context, clust
 	data.ID = types.StringValue(fmt.Sprintf("%d", clusterGroup.GetId()))
 
 	data.Name = types.StringValue(clusterGroup.GetName())
+
+	// DisplayName
+	if clusterGroup.Display != "" {
+		data.DisplayName = types.StringValue(clusterGroup.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	data.Slug = types.StringValue(clusterGroup.GetSlug())
 

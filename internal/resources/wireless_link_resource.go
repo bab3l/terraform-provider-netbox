@@ -75,6 +75,8 @@ type WirelessLinkResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -885,6 +887,13 @@ func (r *WirelessLinkResource) ImportState(ctx context.Context, req resource.Imp
 func (r *WirelessLinkResource) mapToState(ctx context.Context, result *netbox.WirelessLink, data *WirelessLinkResourceModel, diags *diag.Diagnostics) {
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
+
+	// DisplayName
+	if result.Display != "" {
+		data.DisplayName = types.StringValue(result.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map interface IDs
 
