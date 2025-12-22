@@ -20,14 +20,17 @@ func TestAccModuleBayDataSource_basic(t *testing.T) {
 	deviceRoleSlug := testutil.GenerateSlug(deviceRoleName)
 	mfgName := testutil.RandomName("tf-test-module-bay-mfg-ds")
 	mfgSlug := testutil.GenerateSlug(mfgName)
+	deviceTypeModel := testutil.RandomName("tf-test-module-bay-dt")
+	deviceTypeSlug := testutil.RandomSlug("module-bay-dt")
 	deviceName := testutil.RandomName("tf-test-module-bay-device-ds")
+	moduleBayName := testutil.RandomName("module-bay")
 
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
-	cleanup.RegisterDeviceTypeCleanup("test-device-type-module-bay-ds")
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 	cleanup.RegisterDeviceCleanup(deviceName)
-	cleanup.RegisterModuleBayCleanup("Test Module Bay")
+	cleanup.RegisterModuleBayCleanup(moduleBayName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -42,9 +45,9 @@ func TestAccModuleBayDataSource_basic(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccModuleBayDataSourceConfig(siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceName),
+				Config: testAccModuleBayDataSourceConfig(siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceTypeModel, deviceTypeSlug, deviceName, moduleBayName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_module_bay.test", "name", "Test Module Bay"),
+					resource.TestCheckResourceAttr("data.netbox_module_bay.test", "name", moduleBayName),
 					resource.TestCheckResourceAttrSet("data.netbox_module_bay.test", "device_id"),
 				),
 			},
@@ -52,7 +55,7 @@ func TestAccModuleBayDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccModuleBayDataSourceConfig(siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceName string) string {
+func testAccModuleBayDataSourceConfig(siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceTypeModel, deviceTypeSlug, deviceName, moduleBayName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = %[1]q
@@ -71,12 +74,12 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_device_type" "test" {
   manufacturer = netbox_manufacturer.test.id
-  model        = "Test Device Type"
-  slug         = "test-device-type-module-bay-ds"
+  model        = %[7]q
+  slug         = %[8]q
 }
 
 resource "netbox_device" "test" {
-  name        = %[7]q
+  name        = %[9]q
   device_type = netbox_device_type.test.id
   role        = netbox_device_role.test.id
   site        = netbox_site.test.id
@@ -84,11 +87,11 @@ resource "netbox_device" "test" {
 
 resource "netbox_module_bay" "test" {
   device = netbox_device.test.id
-  name   = "Test Module Bay"
+  name   = %[10]q
 }
 
 data "netbox_module_bay" "test" {
   id = netbox_module_bay.test.id
 }
-`, siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceName)
+`, siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceTypeModel, deviceTypeSlug, deviceName, moduleBayName)
 }
