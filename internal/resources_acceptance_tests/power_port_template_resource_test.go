@@ -99,15 +99,15 @@ func TestAccPowerPortTemplateResource_full(t *testing.T) {
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
 	deviceTypeSlug := testutil.RandomSlug("dt")
-	const name = "psu0"
-	label := "PSU 0"
+	name := testutil.RandomName("power-port")
+	label := testutil.RandomName("label")
 	portType := "iec-60320-c14"
-	description := "Test power port template"
+	description := testutil.RandomName("description")
 	maxDraw := 500
 	allocDraw := 400
-	updatedName := "psu1"
-	updatedLabel := "PSU 1"
-	updatedDescription := "Updated power port template"
+	updatedName := testutil.RandomName("power-port")
+	updatedLabel := testutil.RandomName("label")
+	updatedDescription := testutil.RandomName("description")
 	updatedMaxDraw := 600
 	updatedAllocDraw := 450
 
