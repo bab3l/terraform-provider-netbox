@@ -56,6 +56,8 @@ type CircuitTerminationResourceModel struct {
 
 	TermSide types.String `tfsdk:"term_side"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Site types.String `tfsdk:"site"`
 
 	ProviderNetwork types.String `tfsdk:"provider_network"`
@@ -125,6 +127,8 @@ func (r *CircuitTerminationResource) Schema(ctx context.Context, req resource.Sc
 					stringvalidator.OneOf("A", "Z"),
 				},
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("circuit termination"),
 
 			"site": schema.StringAttribute{
 
@@ -714,6 +718,13 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 	data.ID = types.StringValue(fmt.Sprintf("%d", termination.GetId()))
 
 	data.TermSide = types.StringValue(string(termination.GetTermSide()))
+
+	// DisplayName
+	if termination.Display != "" {
+		data.DisplayName = types.StringValue(termination.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map Circuit - preserve user's input format
 

@@ -49,6 +49,8 @@ type CircuitGroupAssignmentResourceModel struct {
 
 	Priority types.String `tfsdk:"priority"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -105,6 +107,8 @@ func (r *CircuitGroupAssignmentResource) Schema(ctx context.Context, req resourc
 					stringvalidator.OneOf("primary", "secondary", "tertiary", "inactive", ""),
 				},
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("circuit group assignment"),
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -633,6 +637,13 @@ func (r *CircuitGroupAssignmentResource) ImportState(ctx context.Context, req re
 func (r *CircuitGroupAssignmentResource) mapResponseToState(ctx context.Context, assignment *netbox.CircuitGroupAssignment, data *CircuitGroupAssignmentResourceModel, diags *diag.Diagnostics) {
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", assignment.GetId()))
+
+	// DisplayName
+	if assignment.Display != "" {
+		data.DisplayName = types.StringValue(assignment.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Group (required field) - preserve user's input format
 

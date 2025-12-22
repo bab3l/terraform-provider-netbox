@@ -46,6 +46,8 @@ type L2VPNResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Slug types.String `tfsdk:"slug"`
 
 	Type types.String `tfsdk:"type"`
@@ -84,6 +86,8 @@ func (r *L2VPNResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 			"id": nbschema.IDAttribute("L2VPN"),
 
 			"name": nbschema.NameAttribute("L2VPN", 100),
+
+			"display_name": nbschema.DisplayNameAttribute("L2VPN"),
 
 			"slug": nbschema.SlugAttribute("L2VPN"),
 
@@ -815,6 +819,13 @@ func (r *L2VPNResource) mapResponseToState(ctx context.Context, l2vpn *netbox.L2
 	data.ID = types.StringValue(fmt.Sprintf("%d", l2vpn.GetId()))
 
 	data.Name = types.StringValue(l2vpn.GetName())
+
+	// DisplayName
+	if l2vpn.Display != "" {
+		data.DisplayName = types.StringValue(l2vpn.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	data.Slug = types.StringValue(l2vpn.GetSlug())
 
