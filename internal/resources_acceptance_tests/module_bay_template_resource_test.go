@@ -183,3 +183,66 @@ resource "netbox_module_bay_template" "test" {
 }
 `, mfgName, mfgSlug, dtModel, dtSlug, templateName, labelAttr, positionAttr, descAttr)
 }
+
+func TestAccConsistency_ModuleBayTemplate_LiteralNames(t *testing.T) {
+	t.Parallel()
+	mfgName := testutil.RandomName("tf-test-mfg-lit")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-lit")
+	dtModel := testutil.RandomName("tf-test-dt-lit")
+	dtSlug := testutil.RandomSlug("tf-test-dt-lit")
+	templateName := testutil.RandomName("tf-test-mbt-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckModuleBayTemplateDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleBayTemplateConsistencyLiteralNamesConfig(mfgName, mfgSlug, dtModel, dtSlug, templateName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_bay_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_module_bay_template.test", "name", templateName),
+				),
+			},
+			{
+				Config:   testAccModuleBayTemplateConsistencyLiteralNamesConfig(mfgName, mfgSlug, dtModel, dtSlug, templateName),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_bay_template.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccModuleBayTemplateConsistencyLiteralNamesConfig(mfgName, mfgSlug, dtModel, dtSlug, templateName string) string {
+	return fmt.Sprintf(`
+provider "netbox" {}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %q
+  slug         = %q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_module_bay_template" "test" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+}
+`, mfgName, mfgSlug, dtModel, dtSlug, templateName)
+}

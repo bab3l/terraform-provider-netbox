@@ -102,3 +102,42 @@ resource "netbox_l2vpn" "test" {
 }
 `, name, name)
 }
+
+func TestAccConsistency_L2VPN_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := "test-l2vpn-lit"
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccL2VPNConsistencyLiteralNamesConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "slug", name),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "type", "vxlan"),
+				),
+			},
+			{
+				Config:   testAccL2VPNConsistencyLiteralNamesConfig(name),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccL2VPNConsistencyLiteralNamesConfig(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_l2vpn" "test" {
+  name = %q
+  slug = %q
+  type = "vxlan"
+}
+`, name, name)
+}

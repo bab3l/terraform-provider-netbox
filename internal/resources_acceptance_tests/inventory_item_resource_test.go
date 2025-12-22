@@ -260,3 +260,67 @@ resource "netbox_device" "test" {
 `, name+"-site", testutil.RandomSlug("site"), name+"-mfr", testutil.RandomSlug("mfr"), name+"-model", testutil.RandomSlug("device"), name+"-role", testutil.RandomSlug("role"), name+"-device")
 
 }
+
+func TestAccConsistency_InventoryItem_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-inv-item-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemConsistencyLiteralNamesConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_inventory_item.test", "id"),
+					resource.TestCheckResourceAttr("netbox_inventory_item.test", "name", name),
+				),
+			},
+			{
+				Config:   testAccInventoryItemConsistencyLiteralNamesConfig(name),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_inventory_item.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccInventoryItemConsistencyLiteralNamesConfig(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = "%s-site"
+  slug = "%s-site"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "%s-mfr"
+  slug = "%s-mfr"
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = "%s-model"
+  slug         = "%s-model"
+}
+
+resource "netbox_device_role" "test" {
+  name = "%s-role"
+  slug = "%s-role"
+}
+
+resource "netbox_device" "test" {
+  site        = netbox_site.test.id
+  name        = "%s-device"
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  status      = "offline"
+}
+
+resource "netbox_inventory_item" "test" {
+  device = netbox_device.test.id
+  name   = %q
+}
+`, name, name, name, name, name, name, name, name, name, name)
+}

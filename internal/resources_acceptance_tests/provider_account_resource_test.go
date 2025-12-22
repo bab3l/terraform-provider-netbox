@@ -173,3 +173,51 @@ resource "netbox_provider_account" "test" {
 `, providerName, providerSlug, accountID, accountName, description)
 
 }
+
+func TestAccConsistency_ProviderAccount_LiteralNames(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-lit")
+	providerSlug := testutil.RandomSlug("tf-test-provider-lit")
+	accountID := testutil.RandomName("acct-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderAccountConsistencyLiteralNamesConfig(providerName, providerSlug, accountID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_provider_account.test", "id"),
+					resource.TestCheckResourceAttr("netbox_provider_account.test", "account", accountID),
+				),
+			},
+			{
+				Config:   testAccProviderAccountConsistencyLiteralNamesConfig(providerName, providerSlug, accountID),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_provider_account.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccProviderAccountConsistencyLiteralNamesConfig(providerName, providerSlug, accountID string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_provider_account" "test" {
+  circuit_provider = netbox_provider.test.id
+  account          = %q
+}
+`, providerName, providerSlug, accountID)
+}

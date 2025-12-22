@@ -187,3 +187,36 @@ func testAccIPAddressResourceConfig_full(address string) string {
 `, address)
 
 }
+
+func TestAccConsistency_IPAddress_LiteralNames(t *testing.T) {
+	t.Parallel()
+	address := "10.0.0.1/24"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPAddressConsistencyLiteralNamesConfig(address),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
+				),
+			},
+			{
+				Config:   testAccIPAddressConsistencyLiteralNamesConfig(address),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIPAddressConsistencyLiteralNamesConfig(address string) string {
+	return fmt.Sprintf(`resource "netbox_ip_address" "test" {
+  address = %q
+}
+`, address)
+}

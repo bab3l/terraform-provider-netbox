@@ -226,3 +226,50 @@ resource "netbox_device_type" "test" {
 `, name+"-mfr", testutil.RandomSlug("mfr"), name+"-model", testutil.RandomSlug("device"))
 
 }
+
+func TestAccConsistency_InventoryItemTemplate_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-inv-template-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemTemplateConsistencyLiteralNamesConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "name", name),
+				),
+			},
+			{
+				Config:   testAccInventoryItemTemplateConsistencyLiteralNamesConfig(name),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccInventoryItemTemplateConsistencyLiteralNamesConfig(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = "%s-mfr"
+  slug = "%s-mfr"
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = "%s-model"
+  slug         = "%s-model"
+}
+
+resource "netbox_inventory_item_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %q
+  part_id     = "PART-001"
+}
+`, name, name, name, name, name)
+}

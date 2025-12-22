@@ -231,3 +231,44 @@ resource "netbox_journal_entry" "test" {
 `, siteName, siteSlug)
 
 }
+
+func TestAccConsistency_JournalEntry_LiteralNames(t *testing.T) {
+	t.Parallel()
+	siteName := testutil.RandomName("tf-test-site-lit")
+	siteSlug := testutil.RandomSlug("tf-test-site-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccJournalEntryConsistencyLiteralNamesConfig(siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_journal_entry.test", "id"),
+				),
+			},
+			{
+				Config:   testAccJournalEntryConsistencyLiteralNamesConfig(siteName, siteSlug),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_journal_entry.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccJournalEntryConsistencyLiteralNamesConfig(siteName, siteSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_journal_entry" "test" {
+  assigned_object_type = "dcim.site"
+  assigned_object_id   = netbox_site.test.id
+  comments             = "Test journal entry"
+}
+`, siteName, siteSlug)
+}

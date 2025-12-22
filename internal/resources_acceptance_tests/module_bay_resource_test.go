@@ -271,3 +271,93 @@ resource "netbox_module_bay" "test" {
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, description)
 
 }
+
+func TestAccConsistency_ModuleBay_LiteralNames(t *testing.T) {
+	t.Parallel()
+	siteName := testutil.RandomName("tf-test-site-lit")
+	siteSlug := testutil.RandomSlug("tf-test-site-lit")
+	mfgName := testutil.RandomName("tf-test-mfg-lit")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-lit")
+	dtModel := testutil.RandomName("tf-test-dt-lit")
+	dtSlug := testutil.RandomSlug("tf-test-dt-lit")
+	roleName := testutil.RandomName("tf-test-role-lit")
+	roleSlug := testutil.RandomSlug("tf-test-role-lit")
+	deviceName := testutil.RandomName("tf-test-device-lit")
+	bayName := testutil.RandomName("tf-test-mbay-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckDeviceDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleBayConsistencyLiteralNamesConfig(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_bay.test", "id"),
+					resource.TestCheckResourceAttr("netbox_module_bay.test", "name", bayName),
+				),
+			},
+			{
+				Config:   testAccModuleBayConsistencyLiteralNamesConfig(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_bay.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccModuleBayConsistencyLiteralNamesConfig(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %q
+  slug   = %q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_device_role" "test" {
+  name  = %q
+  slug  = %q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_module_bay" "test" {
+  device = netbox_device.test.id
+  name   = %q
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName)
+}

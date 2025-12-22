@@ -240,3 +240,39 @@ resource "netbox_ike_policy" "test" {
 `, name)
 
 }
+
+func TestAccConsistency_IKEPolicy_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-ike-policy-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEPolicyConsistencyLiteralNamesConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ike_policy.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ike_policy.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_ike_policy.test", "version", "2"),
+				),
+			},
+			{
+				Config:   testAccIKEPolicyConsistencyLiteralNamesConfig(name),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ike_policy.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIKEPolicyConsistencyLiteralNamesConfig(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_ike_policy" "test" {
+  name    = %q
+  version = 2
+}
+`, name)
+}

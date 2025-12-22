@@ -250,3 +250,41 @@ resource "netbox_ike_proposal" "test" {
 `, name)
 
 }
+
+func TestAccConsistency_IKEProposal_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-ike-proposal-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEProposalConsistencyLiteralNamesConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ike_proposal.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "name", name),
+				),
+			},
+			{
+				Config:   testAccIKEProposalConsistencyLiteralNamesConfig(name),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ike_proposal.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIKEProposalConsistencyLiteralNamesConfig(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_ike_proposal" "test" {
+  name                     = %q
+  authentication_method    = "preshared-keys"
+  encryption_algorithm     = "aes-256-cbc"
+  authentication_algorithm = "hmac-sha256"
+  group                    = 14
+}
+`, name)
+}

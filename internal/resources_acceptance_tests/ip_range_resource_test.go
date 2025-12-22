@@ -205,3 +205,40 @@ resource "netbox_ip_range" "test" {
 `, startAddress, endAddress, description)
 
 }
+
+func TestAccConsistency_IPRange_LiteralNames(t *testing.T) {
+	t.Parallel()
+	startAddress := "10.0.0.10"
+	endAddress := "10.0.0.20"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPRangeConsistencyLiteralNamesConfig(startAddress, endAddress),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", startAddress),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "end_address", endAddress),
+				),
+			},
+			{
+				Config:   testAccIPRangeConsistencyLiteralNamesConfig(startAddress, endAddress),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIPRangeConsistencyLiteralNamesConfig(startAddress, endAddress string) string {
+	return fmt.Sprintf(`
+resource "netbox_ip_range" "test" {
+  start_address = %q
+  end_address   = %q
+}
+`, startAddress, endAddress)
+}

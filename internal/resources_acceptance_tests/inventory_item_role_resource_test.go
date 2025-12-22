@@ -190,3 +190,40 @@ resource "netbox_inventory_item_role" "test" {
 `, name, testutil.RandomSlug("role"))
 
 }
+
+func TestAccConsistency_InventoryItemRole_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-inv-role-lit")
+	slug := testutil.RandomSlug("tf-test-inv-role-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemRoleConsistencyLiteralNamesConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_inventory_item_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_inventory_item_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_inventory_item_role.test", "slug", slug),
+				),
+			},
+			{
+				Config:   testAccInventoryItemRoleConsistencyLiteralNamesConfig(name, slug),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_inventory_item_role.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccInventoryItemRoleConsistencyLiteralNamesConfig(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_inventory_item_role" "test" {
+  name = %q
+  slug = %q
+}
+`, name, slug)
+}

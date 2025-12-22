@@ -173,3 +173,51 @@ resource "netbox_provider_network" "test" {
 `, providerName, providerSlug, networkName, serviceID, description)
 
 }
+
+func TestAccConsistency_ProviderNetwork_LiteralNames(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-lit")
+	providerSlug := testutil.RandomSlug("tf-test-provider-lit")
+	networkName := testutil.RandomName("tf-test-network-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderNetworkConsistencyLiteralNamesConfig(providerName, providerSlug, networkName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_provider_network.test", "id"),
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "name", networkName),
+				),
+			},
+			{
+				Config:   testAccProviderNetworkConsistencyLiteralNamesConfig(providerName, providerSlug, networkName),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_provider_network.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccProviderNetworkConsistencyLiteralNamesConfig(providerName, providerSlug, networkName string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_provider_network" "test" {
+  circuit_provider = netbox_provider.test.id
+  name             = %q
+}
+`, providerName, providerSlug, networkName)
+}
