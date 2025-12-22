@@ -50,6 +50,8 @@ type TenantResourceModel struct {
 
 	Slug types.String `tfsdk:"slug"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Group types.String `tfsdk:"group"`
 
 	GroupID types.String `tfsdk:"group_id"`
@@ -82,6 +84,8 @@ func (r *TenantResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"name": nbschema.NameAttribute("tenant", 100),
 
 			"slug": nbschema.SlugAttribute("tenant"),
+
+			"display_name": nbschema.DisplayNameAttribute("tenant"),
 
 			"group":    nbschema.ReferenceAttribute("tenant group", "Name, Slug, or ID of the tenant group that this tenant belongs to."),
 			"group_id": nbschema.ComputedIDAttribute("tenant group"),
@@ -539,6 +543,8 @@ func (r *TenantResource) mapTenantToState(ctx context.Context, tenant *netbox.Te
 	data.Name = types.StringValue(tenant.GetName())
 
 	data.Slug = types.StringValue(tenant.GetSlug())
+
+	data.DisplayName = types.StringValue(tenant.GetDisplay())
 
 	// Handle group reference
 
