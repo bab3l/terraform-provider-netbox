@@ -209,6 +209,8 @@ resource "netbox_ike_policy" "test" {
 
   version = "1"
 
+  mode    = "main"
+
 }
 
 resource "netbox_ipsec_policy" "test" {

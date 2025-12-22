@@ -62,7 +62,7 @@ func TestAccIPSECPolicyResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "name", name),
 
-					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "pfs_group", "group14"),
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "pfs_group", "14"),
 
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "description", "Test IPsec policy"),
 				),
@@ -106,7 +106,7 @@ func TestAccIPSECPolicyResource_update(t *testing.T) {
 
 					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
 
-					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "pfs_group", "group14"),
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "pfs_group", "14"),
 
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "description", "Test IPsec policy"),
 				),
@@ -175,7 +175,7 @@ resource "netbox_ipsec_policy" "test" {
 
   name        = %q
 
-  pfs_group   = "group14"
+  pfs_group   = 14
 
   description = "Test IPsec policy"
 

@@ -15,8 +15,8 @@ func TestAccIPRangeResource_basic(t *testing.T) {
 
 	startOctet := 10 + acctest.RandIntRange(1, 200)
 	endOctet := startOctet + 10
-	startAddress := fmt.Sprintf("192.0.2.%d/32", startOctet)
-	endAddress := fmt.Sprintf("192.0.2.%d/32", endOctet)
+	startAddress := fmt.Sprintf("192.0.2.%d", startOctet)
+	endAddress := fmt.Sprintf("192.0.2.%d", endOctet)
 
 	resource.Test(t, resource.TestCase{
 
@@ -50,8 +50,8 @@ func TestAccIPRangeResource_full(t *testing.T) {
 
 	startOctet := 10 + acctest.RandIntRange(1, 200)
 	endOctet := startOctet + 253
-	startAddress := fmt.Sprintf("10.0.0.%d/32", startOctet)
-	endAddress := fmt.Sprintf("10.0.0.%d/32", endOctet)
+	startAddress := fmt.Sprintf("10.0.0.%d", startOctet)
+	endAddress := fmt.Sprintf("10.0.0.%d", endOctet)
 	description := testutil.RandomName("ip-range-desc")
 
 	resource.Test(t, resource.TestCase{
@@ -90,8 +90,8 @@ func TestAccIPRangeResource_update(t *testing.T) {
 
 	startOctet2 := 10 + acctest.RandIntRange(1, 200)
 	endOctet2 := startOctet2 + 253
-	startAddress2 := fmt.Sprintf("10.0.0.%d/32", startOctet2)
-	endAddress2 := fmt.Sprintf("10.0.0.%d/32", endOctet2)
+	startAddress2 := fmt.Sprintf("10.0.0.%d", startOctet2)
+	endAddress2 := fmt.Sprintf("10.0.0.%d", endOctet2)
 	description := testutil.RandomName("ip-range-desc")
 
 	resource.Test(t, resource.TestCase{
