@@ -52,6 +52,8 @@ type ClusterResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Type types.String `tfsdk:"type"`
 
 	Group types.String `tfsdk:"group"`
@@ -102,6 +104,8 @@ func (r *ClusterResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 
 			"name": nbschema.NameAttribute("cluster", 100),
+
+			"display_name": nbschema.DisplayNameAttribute("cluster"),
 
 			"type": schema.StringAttribute{
 
@@ -195,6 +199,8 @@ func (r *ClusterResource) mapClusterToState(ctx context.Context, cluster *netbox
 	data.ID = types.StringValue(fmt.Sprintf("%d", cluster.GetId()))
 
 	data.Name = types.StringValue(cluster.GetName())
+
+	data.DisplayName = types.StringValue(cluster.GetDisplay())
 
 	// Type (always present - required field)
 
