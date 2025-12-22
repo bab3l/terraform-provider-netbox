@@ -36,6 +36,8 @@ type PlatformResourceModel struct {
 
 	Slug types.String `tfsdk:"slug"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Manufacturer types.String `tfsdk:"manufacturer"`
 
 	ManufacturerID types.String `tfsdk:"manufacturer_id"`
@@ -62,6 +64,8 @@ func (r *PlatformResource) Schema(ctx context.Context, req resource.SchemaReques
 			"name": nbschema.NameAttribute("platform", 100),
 
 			"slug": nbschema.SlugAttribute("platform"),
+
+			"display_name": nbschema.DisplayNameAttribute("platform"),
 
 			"manufacturer": nbschema.ReferenceAttribute("manufacturer", "Reference to the manufacturer (ID or slug)."),
 
@@ -173,6 +177,8 @@ func (r *PlatformResource) Create(ctx context.Context, req resource.CreateReques
 
 	data.Slug = types.StringValue(platform.GetSlug())
 
+	data.DisplayName = types.StringValue(platform.GetDisplay())
+
 	if platform.HasManufacturer() {
 
 		m, ok := platform.GetManufacturerOk()
@@ -276,6 +282,8 @@ func (r *PlatformResource) Read(ctx context.Context, req resource.ReadRequest, r
 	data.Name = types.StringValue(platform.GetName())
 
 	data.Slug = types.StringValue(platform.GetSlug())
+
+	data.DisplayName = types.StringValue(platform.GetDisplay())
 
 	if platform.HasManufacturer() {
 
@@ -411,6 +419,8 @@ func (r *PlatformResource) Update(ctx context.Context, req resource.UpdateReques
 	data.Name = types.StringValue(platform.GetName())
 
 	data.Slug = types.StringValue(platform.GetSlug())
+
+	data.DisplayName = types.StringValue(platform.GetDisplay())
 
 	if platform.HasManufacturer() {
 
