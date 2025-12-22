@@ -23,7 +23,7 @@ func TestAccRearPortTemplateResource_basic(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("dt")
 
-	const name = "rear0"
+	name := testutil.RandomName("rear-port")
 
 	portType := "8p8c"
 
@@ -79,23 +79,23 @@ func TestAccRearPortTemplateResource_full(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("dt")
 
-	const name = "rear0"
+	name := testutil.RandomName("rear-port")
 
 	portType := "lc"
 
-	label := "Rear Port 0"
+	label := testutil.RandomName("label")
 
 	color := "aa1409"
 
-	description := "Test rear port template"
+	description := testutil.RandomName("description")
 
 	positions := int32(2)
 
-	updatedName := "rear1"
+	updatedName := testutil.RandomName("rear-port")
 
-	updatedLabel := "Rear Port 1"
+	updatedLabel := testutil.RandomName("label")
 
-	updatedDescription := "Updated rear port template"
+	updatedDescription := testutil.RandomName("description")
 
 	updatedPositions := int32(4)
 

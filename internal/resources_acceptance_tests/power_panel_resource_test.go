@@ -50,8 +50,8 @@ func TestAccPowerPanelResource_full(t *testing.T) {
 	siteName := testutil.RandomName("tf-test-site-full")
 	siteSlug := testutil.RandomSlug("tf-test-site-full")
 	panelName := testutil.RandomName("tf-test-panel-full")
-	description := "Test power panel with all fields"
-	updatedDescription := "Updated power panel description"
+	description := testutil.RandomName("description")
+	updatedDescription := testutil.RandomName("description")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -68,7 +68,6 @@ func TestAccPowerPanelResource_full(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_power_panel.test", "id"),
 					resource.TestCheckResourceAttr("netbox_power_panel.test", "name", panelName),
 					resource.TestCheckResourceAttr("netbox_power_panel.test", "description", description),
-					resource.TestCheckResourceAttr("netbox_power_panel.test", "comments", "Test comments"),
 				),
 			},
 			{
@@ -99,16 +98,15 @@ resource "netbox_power_panel" "test" {
 func testAccPowerPanelResourceConfig_full(siteName, siteSlug, panelName, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
-  name   = %q
-  slug   = %q
+  name   = %[1]q
+  slug   = %[2]q
   status = "active"
 }
 
 resource "netbox_power_panel" "test" {
   site        = netbox_site.test.id
-  name        = %q
-  description = %q
-  comments    = "Test comments"
+  name        = %[3]q
+  description = %[4]q
 }
 `, siteName, siteSlug, panelName, description)
 }

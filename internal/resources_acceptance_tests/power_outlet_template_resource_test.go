@@ -61,7 +61,7 @@ func TestAccPowerOutletTemplateResource_basic(t *testing.T) {
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
 	deviceTypeSlug := testutil.RandomSlug("dt")
-	name := "outlet0"
+	name := testutil.RandomName("power-outlet")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
@@ -97,13 +97,13 @@ func TestAccPowerOutletTemplateResource_full(t *testing.T) {
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
 	deviceTypeSlug := testutil.RandomSlug("dt")
-	name := "outlet0"
-	label := "Outlet 0"
+	name := testutil.RandomName("power-outlet")
+	label := testutil.RandomName("label")
 	outletType := "iec-60320-c13"
-	description := "Test power outlet template"
-	updatedName := "outlet1"
-	updatedLabel := "Outlet 1"
-	updatedDescription := "Updated power outlet template"
+	description := testutil.RandomName("description")
+	updatedName := testutil.RandomName("power-outlet")
+	updatedLabel := testutil.RandomName("label")
+	updatedDescription := testutil.RandomName("description")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
