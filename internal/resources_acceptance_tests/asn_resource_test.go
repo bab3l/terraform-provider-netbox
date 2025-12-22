@@ -24,6 +24,9 @@ func TestAccASNResource_basic(t *testing.T) {
 
 	asn := int64(acctest.RandIntRange(64512, 65534))
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -77,6 +80,9 @@ func TestAccASNResource_full(t *testing.T) {
 	description := testutil.RandomName("description")
 
 	updatedDescription := "Updated ASN description"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
 
 	resource.Test(t, resource.TestCase{
 
@@ -189,6 +195,10 @@ func TestAccConsistency_ASN_LiteralNames(t *testing.T) {
 	tenantName := testutil.RandomName("tenant")
 
 	tenantSlug := testutil.RandomSlug("tenant")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
 
