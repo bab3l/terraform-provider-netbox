@@ -19,6 +19,10 @@ func TestAccFrontPortTemplateResource_basic(t *testing.T) {
 	portType := "8p8c"
 	rearPortName := testutil.RandomName("rear-port")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,

@@ -4,14 +4,13 @@ import (
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccExportTemplateResource_basic(t *testing.T) {
 
 	t.Parallel()
-	name := acctest.RandomWithPrefix("test-export-template")
+	name := testutil.RandomName("export-template")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -46,7 +45,7 @@ func TestAccExportTemplateResource_basic(t *testing.T) {
 func TestAccExportTemplateResource_full(t *testing.T) {
 
 	t.Parallel()
-	name := acctest.RandomWithPrefix("test-export-template")
+	name := testutil.RandomName("export-template")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

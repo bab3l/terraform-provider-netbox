@@ -4,22 +4,18 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccServiceTemplateResource_basic(t *testing.T) {
 
 	t.Parallel()
-	name := acctest.RandomWithPrefix("test-service-template")
+	name := testutil.RandomName("service-template")
 
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccServiceTemplateResourceConfig_basic(name),
@@ -52,12 +48,11 @@ func TestAccServiceTemplateResource_basic(t *testing.T) {
 func TestAccServiceTemplateResource_full(t *testing.T) {
 
 	t.Parallel()
-	name := acctest.RandomWithPrefix("test-service-template")
+	name := testutil.RandomName("service-template")
 
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccServiceTemplateResourceConfig_full(name),
