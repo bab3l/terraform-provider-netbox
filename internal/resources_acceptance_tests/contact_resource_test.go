@@ -16,6 +16,9 @@ func TestAccContactResource_basic(t *testing.T) {
 
 	randomName := testutil.RandomName("test-contact")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactCleanup(randomName)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -75,6 +78,9 @@ func TestAccContactResource_full(t *testing.T) {
 
 	randomName := testutil.RandomName("test-contact-full")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactCleanup(randomName)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -122,6 +128,10 @@ func TestAccConsistency_Contact(t *testing.T) {
 
 	contactGroupSlug := testutil.RandomSlug("contactgroup")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactGroupCleanup(contactGroupSlug)
+	cleanup.RegisterContactCleanup(contactName)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -161,6 +171,10 @@ func TestAccConsistency_Contact_LiteralNames(t *testing.T) {
 	contactGroupName := testutil.RandomName("contactgroup")
 
 	contactGroupSlug := testutil.RandomSlug("contactgroup")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactGroupCleanup(contactGroupSlug)
+	cleanup.RegisterContactCleanup(contactName)
 
 	resource.Test(t, resource.TestCase{
 

@@ -67,6 +67,11 @@ func TestAccContactAssignmentResource_withRole(t *testing.T) {
 
 	randomSlug := testutil.RandomSlug("test-ca")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(randomSlug + "-site")
+	cleanup.RegisterContactCleanup(randomName + "-contact")
+	cleanup.RegisterContactRoleCleanup(randomSlug + "-role")
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -102,6 +107,11 @@ func TestAccContactAssignmentResource_update(t *testing.T) {
 	randomName := testutil.RandomName("test-contact-assign")
 
 	randomSlug := testutil.RandomSlug("test-ca")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(randomSlug + "-site")
+	cleanup.RegisterContactCleanup(randomName + "-contact")
+	cleanup.RegisterContactRoleCleanup(randomSlug + "-role")
 
 	resource.Test(t, resource.TestCase{
 

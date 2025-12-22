@@ -16,6 +16,9 @@ func TestAccContactRoleResource_basic(t *testing.T) {
 
 	slug := testutil.GenerateSlug(name)
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactRoleCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
