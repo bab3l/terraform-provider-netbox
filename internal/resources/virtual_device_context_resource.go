@@ -69,6 +69,8 @@ type VirtualDeviceContextResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -157,7 +159,7 @@ func (r *VirtualDeviceContextResource) Schema(ctx context.Context, req resource.
 					stringvalidator.OneOf("active", "planned", "offline"),
 				},
 			},
-
+			"display_name": nbschema.DisplayNameAttribute("virtual device context"),
 			"description": schema.StringAttribute{
 
 				MarkdownDescription: "A description of the virtual device context.",
@@ -761,6 +763,13 @@ func (r *VirtualDeviceContextResource) mapToState(ctx context.Context, result *n
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
 	data.Name = types.StringValue(result.GetName())
+
+	// DisplayName
+	if result.Display != "" {
+		data.DisplayName = types.StringValue(result.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device (required field) - preserve user's input format
 
