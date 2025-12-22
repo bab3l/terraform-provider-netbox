@@ -35,6 +35,8 @@ type ManufacturerResourceModel struct {
 
 	Slug types.String `tfsdk:"slug"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Description types.String `tfsdk:"description"`
 }
 
@@ -57,6 +59,8 @@ func (r *ManufacturerResource) Schema(ctx context.Context, req resource.SchemaRe
 			"name": nbschema.NameAttribute("manufacturer", 100),
 
 			"slug": nbschema.SlugAttribute("manufacturer"),
+
+			"display_name": nbschema.DisplayNameAttribute("manufacturer"),
 
 			"description": nbschema.DescriptionAttribute("manufacturer"),
 		},
@@ -341,6 +345,8 @@ func (r *ManufacturerResource) mapManufacturerToState(manufacturer *netbox.Manuf
 	data.Name = types.StringValue(manufacturer.GetName())
 
 	data.Slug = types.StringValue(manufacturer.GetSlug())
+
+	data.DisplayName = types.StringValue(manufacturer.GetDisplay())
 
 	data.Description = utils.StringFromAPI(manufacturer.HasDescription(), manufacturer.GetDescription, data.Description)
 

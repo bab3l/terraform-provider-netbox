@@ -52,6 +52,8 @@ type SiteResourceModel struct {
 
 	Slug types.String `tfsdk:"slug"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Status types.String `tfsdk:"status"`
 
 	Region types.String `tfsdk:"region"`
@@ -96,6 +98,8 @@ func (r *SiteResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"name": nbschema.NameAttribute("site", 100),
 
 			"slug": nbschema.SlugAttribute("site"),
+
+			"display_name": nbschema.DisplayNameAttribute("site"),
 
 			"status": nbschema.StatusAttribute(
 
@@ -686,6 +690,8 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 	data.Name = types.StringValue(site.GetName())
 
 	data.Slug = types.StringValue(site.GetSlug())
+
+	data.DisplayName = types.StringValue(site.GetDisplay())
 
 	// Handle status
 
