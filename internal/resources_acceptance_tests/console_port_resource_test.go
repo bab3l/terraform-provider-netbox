@@ -194,6 +194,7 @@ func TestAccConsistency_ConsolePort(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
 
@@ -256,6 +257,7 @@ func TestAccConsistency_ConsolePort_LiteralNames(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
 
