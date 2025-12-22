@@ -47,7 +47,7 @@ func TestAccTenantResource_full(t *testing.T) {
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tenant-full")
 	slug := testutil.RandomSlug("tf-test-tenant-full")
-	description := "Test tenant with all fields"
+	description := testutil.RandomName("description")
 
 	// Register cleanup
 	cleanup := testutil.NewCleanupResource(t)

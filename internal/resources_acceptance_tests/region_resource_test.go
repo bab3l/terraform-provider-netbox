@@ -62,7 +62,7 @@ func TestAccRegionResource_full(t *testing.T) {
 
 	slug := testutil.RandomSlug("tf-test-region-full")
 
-	description := "Test region with all fields"
+	description := testutil.RandomName("description")
 
 	cleanup := testutil.NewCleanupResource(t)
 

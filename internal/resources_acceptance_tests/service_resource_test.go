@@ -69,7 +69,7 @@ func TestAccServiceResource_full(t *testing.T) {
 	roleSlug := testutil.RandomSlug("tf-test-role-full")
 	deviceName := testutil.RandomName("tf-test-device-full")
 	serviceName := testutil.RandomName("tf-test-svc-full")
-	description := "Test service with all fields"
+	description := testutil.RandomName("description")
 	updatedDescription := "Updated service description"
 
 	cleanup := testutil.NewCleanupResource(t)

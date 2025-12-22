@@ -67,7 +67,7 @@ func TestAccRIRResource_full(t *testing.T) {
 
 	slug := testutil.RandomSlug("tf-test-rir-full")
 
-	description := "Test RIR with all fields"
+	description := testutil.RandomName("description")
 
 	updatedDescription := "Updated RIR description"
 

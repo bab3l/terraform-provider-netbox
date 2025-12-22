@@ -81,7 +81,7 @@ func TestAccRackTypeResource_full(t *testing.T) {
 
 	slug := testutil.RandomSlug("tf-test-rack-type-full")
 
-	description := "Test rack type with all fields"
+	description := testutil.RandomName("description")
 
 	updatedDescription := "Updated rack type description"
 

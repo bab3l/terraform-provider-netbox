@@ -44,7 +44,7 @@ func TestAccSiteGroupResource_full(t *testing.T) {
 	t.Parallel()
 	name := testutil.RandomName("tf-test-site-group-full")
 	slug := testutil.RandomSlug("tf-test-sg-full")
-	description := "Test site group with all fields"
+	description := testutil.RandomName("description")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteGroupCleanup(slug)

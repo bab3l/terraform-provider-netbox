@@ -46,7 +46,7 @@ func TestAccTagResource_full(t *testing.T) {
 	name := testutil.RandomName("tag")
 	slug := testutil.RandomSlug("tag")
 	color := "ff5722"
-	description := "Test tag description"
+	description := testutil.RandomName("description")
 	updatedName := testutil.RandomName("tag-updated")
 	updatedSlug := testutil.RandomSlug("tag-updated")
 	updatedColor := "2196f3"

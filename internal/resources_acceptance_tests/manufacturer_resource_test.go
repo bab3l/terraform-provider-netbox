@@ -62,7 +62,7 @@ func TestAccManufacturerResource_full(t *testing.T) {
 
 	slug := testutil.RandomSlug("tf-test-mfr-full")
 
-	description := "Test manufacturer with all fields"
+	description := testutil.RandomName("description")
 
 	cleanup := testutil.NewCleanupResource(t)
 

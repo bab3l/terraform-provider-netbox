@@ -45,7 +45,7 @@ func TestAccSiteResource_full(t *testing.T) {
 	t.Parallel()
 	name := testutil.RandomName("tf-test-site-full")
 	slug := testutil.RandomSlug("tf-test-site-full")
-	description := "Test site with all fields"
+	description := testutil.RandomName("description")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(slug)

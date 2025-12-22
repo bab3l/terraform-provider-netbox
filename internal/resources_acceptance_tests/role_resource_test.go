@@ -67,7 +67,7 @@ func TestAccRoleResource_full(t *testing.T) {
 
 	slug := testutil.RandomSlug("tf-test-role-full")
 
-	description := "Test IPAM role with all fields"
+	description := testutil.RandomName("description")
 
 	updatedDescription := "Updated IPAM role description"
 

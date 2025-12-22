@@ -21,7 +21,7 @@ func TestAccRackReservationResource_basic(t *testing.T) {
 
 	rackName := testutil.RandomName("tf-test-rack")
 
-	description := "Test rack reservation"
+	description := testutil.RandomName("description")
 
 	cleanup := testutil.NewCleanupResource(t)
 

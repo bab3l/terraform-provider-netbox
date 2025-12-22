@@ -53,7 +53,7 @@ func TestAccPlatformResource_full(t *testing.T) {
 	platformSlug := testutil.RandomSlug("tf-test-plat-full")
 	manufacturerName := testutil.RandomName("tf-test-mfr-for-plat-full")
 	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-pf")
-	description := "Test platform with all fields"
+	description := testutil.RandomName("description")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterPlatformCleanup(platformSlug)

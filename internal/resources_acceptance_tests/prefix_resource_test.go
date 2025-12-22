@@ -41,7 +41,7 @@ func TestAccPrefixResource_full(t *testing.T) {
 
 	t.Parallel()
 	prefix := testutil.RandomIPv4Prefix()
-	description := "Test prefix with all fields"
+	description := testutil.RandomName("description")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterPrefixCleanup(prefix)

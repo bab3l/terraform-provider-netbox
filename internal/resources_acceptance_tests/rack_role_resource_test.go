@@ -68,7 +68,7 @@ func TestAccRackRoleResource_full(t *testing.T) {
 
 	rackRoleSlug := testutil.RandomSlug("tf-test-rack-role-f")
 
-	description := "Test rack role with all fields"
+	description := testutil.RandomName("description")
 
 	color := "ff5722"
 
