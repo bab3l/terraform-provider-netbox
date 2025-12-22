@@ -48,6 +48,8 @@ type DeviceResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	DeviceType types.String `tfsdk:"device_type"`
 
 	DeviceTypeID types.String `tfsdk:"device_type_id"`
@@ -122,6 +124,8 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"id": nbschema.IDAttribute("device"),
 
 			"name": nbschema.OptionalNameAttribute("device", 64),
+
+			"display_name": nbschema.DisplayNameAttribute("device"),
 
 			"device_type": nbschema.RequiredReferenceAttribute("device type", "ID or slug of the device type for this device. Required."),
 
@@ -1162,6 +1166,18 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	} else if !data.Name.IsNull() {
 
 		data.Name = types.StringNull()
+
+	}
+
+	// Handle display_name
+
+	if device.Display != "" {
+
+		data.DisplayName = types.StringValue(device.Display)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 
