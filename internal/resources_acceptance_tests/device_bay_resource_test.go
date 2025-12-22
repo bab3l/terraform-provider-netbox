@@ -63,7 +63,7 @@ func TestAccDeviceBayResource_full(t *testing.T) {
 	roleSlug := testutil.RandomSlug("tf-test-role-full")
 	deviceName := testutil.RandomName("tf-test-device-full")
 	bayName := testutil.RandomName("tf-test-bay-full")
-	description := "Test device bay with all fields"
+	description := testutil.RandomName("description")
 	updatedDescription := "Updated device bay description"
 
 	cleanup := testutil.NewCleanupResource(t)

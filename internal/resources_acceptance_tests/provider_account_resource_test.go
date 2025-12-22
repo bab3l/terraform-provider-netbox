@@ -73,7 +73,7 @@ func TestAccProviderAccountResource_full(t *testing.T) {
 
 	accountName := testutil.RandomName("tf-test-acct")
 
-	description := "Test provider account with all fields"
+	description := testutil.RandomName("description")
 
 	updatedDescription := "Updated provider account description"
 

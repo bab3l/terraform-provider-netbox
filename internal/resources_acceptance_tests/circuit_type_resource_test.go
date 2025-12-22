@@ -62,7 +62,7 @@ func TestAccCircuitTypeResource_full(t *testing.T) {
 
 	slug := testutil.RandomSlug("tf-test-circuit-type-full")
 
-	description := "Test circuit type with all fields"
+	description := testutil.RandomName("description")
 
 	cleanup := testutil.NewCleanupResource(t)
 

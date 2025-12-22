@@ -109,7 +109,7 @@ func TestAccConsolePortResource_full(t *testing.T) {
 
 	consolePortName := testutil.RandomName("tf-test-cp-full")
 
-	description := "Test console port with all fields"
+	description := testutil.RandomName("description")
 
 	updatedDescription := "Updated console port description"
 

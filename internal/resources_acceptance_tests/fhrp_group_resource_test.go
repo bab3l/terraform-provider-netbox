@@ -53,7 +53,7 @@ func TestAccFHRPGroupResource_full(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-fhrp")
 
-	description := "Test FHRP Group with all fields"
+	description := testutil.RandomName("description")
 
 	authType := "plaintext"
 

@@ -61,7 +61,7 @@ func TestAccCircuitTerminationResource_full(t *testing.T) {
 	circuitCID := testutil.RandomName("tf-test-circuit-full")
 	siteName := testutil.RandomName("tf-test-site-full")
 	siteSlug := testutil.RandomSlug("tf-test-site-full")
-	description := "Test circuit termination with all fields"
+	description := testutil.RandomName("description")
 	updatedDescription := "Updated circuit termination description"
 
 	cleanup := testutil.NewCleanupResource(t)

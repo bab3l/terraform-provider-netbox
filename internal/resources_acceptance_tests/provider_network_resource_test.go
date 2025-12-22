@@ -73,7 +73,7 @@ func TestAccProviderNetworkResource_full(t *testing.T) {
 
 	serviceID := testutil.RandomName("svc")
 
-	description := "Test provider network with all fields"
+	description := testutil.RandomName("description")
 
 	updatedDescription := "Updated provider network description"
 

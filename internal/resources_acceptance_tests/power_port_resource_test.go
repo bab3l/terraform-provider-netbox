@@ -68,7 +68,7 @@ func TestAccPowerPortResource_full(t *testing.T) {
 	roleSlug := testutil.RandomSlug("tf-test-role-full")
 	deviceName := testutil.RandomName("tf-test-device-full")
 	powerPortName := testutil.RandomName("tf-test-pp-full")
-	description := "Test power port with all fields"
+	description := testutil.RandomName("description")
 	updatedDescription := "Updated power port description"
 
 	cleanup := testutil.NewCleanupResource(t)

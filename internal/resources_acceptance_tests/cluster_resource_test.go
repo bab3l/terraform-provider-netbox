@@ -73,9 +73,9 @@ func TestAccClusterResource_full(t *testing.T) {
 
 	clusterName := testutil.RandomName("tf-test-cluster-full")
 
-	description := "Test cluster with all fields"
+	description := testutil.RandomName("description")
 
-	comments := "Test comments"
+	comments := testutil.RandomName("comments")
 
 	cleanup := testutil.NewCleanupResource(t)
 

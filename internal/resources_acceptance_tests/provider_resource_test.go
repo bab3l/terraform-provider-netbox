@@ -64,7 +64,7 @@ func TestAccProviderResource_full(t *testing.T) {
 
 	description := testutil.RandomName("description")
 
-	comments := "Test comments for circuit provider"
+	comments := testutil.RandomName("comments")
 
 	cleanup := testutil.NewCleanupResource(t)
 

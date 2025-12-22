@@ -50,7 +50,7 @@ func TestAccModuleTypeResource_full(t *testing.T) {
 	mfgName := testutil.RandomName("tf-test-mfg-full")
 	mfgSlug := testutil.RandomSlug("tf-test-mfg-full")
 	model := testutil.RandomName("tf-test-module-type-full")
-	description := "Test module type with all fields"
+	description := testutil.RandomName("description")
 	updatedDescription := "Updated module type description"
 
 	cleanup := testutil.NewCleanupResource(t)

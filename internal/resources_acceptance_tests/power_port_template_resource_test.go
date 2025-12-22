@@ -63,7 +63,7 @@ func TestAccPowerPortTemplateResource_basic(t *testing.T) {
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
 	deviceTypeSlug := testutil.RandomSlug("dt")
-	const name = "psu0"
+	name := testutil.RandomName("power-port")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
@@ -154,7 +154,7 @@ func TestAccConsistency_PowerPortTemplate(t *testing.T) {
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
 	deviceTypeName := testutil.RandomName("devicetype")
 	deviceTypeSlug := testutil.RandomSlug("devicetype")
-	const portName = "psu0"
+	portName := testutil.RandomName("power-port")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

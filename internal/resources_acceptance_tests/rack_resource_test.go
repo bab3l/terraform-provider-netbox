@@ -74,7 +74,7 @@ func TestAccRackResource_full(t *testing.T) {
 
 	rackName := testutil.RandomName("tf-test-rack-full")
 
-	description := "Test rack with all fields"
+	description := testutil.RandomName("description")
 
 	// Register cleanup
 

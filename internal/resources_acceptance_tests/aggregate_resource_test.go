@@ -74,7 +74,7 @@ func TestAccAggregateResource_full(t *testing.T) {
 	// Use a random third octet to ensure uniqueness across test runs
 	prefix := fmt.Sprintf("198.51.%d.0/24", acctest.RandIntRange(0, 255))
 
-	description := "Test aggregate with all fields"
+	description := testutil.RandomName("description")
 
 	updatedDescription := "Updated aggregate description"
 

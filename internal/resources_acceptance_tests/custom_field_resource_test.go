@@ -66,7 +66,7 @@ func TestAccCustomFieldResource_full(t *testing.T) {
 
 	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
 
-	description := "Test custom field with all fields"
+	description := testutil.RandomName("description")
 
 	updatedDescription := "Updated custom field description"
 

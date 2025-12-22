@@ -175,7 +175,7 @@ func TestAccConsistency_RearPortTemplate(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("devicetype")
 
-	const portName = "rear0"
+	portName := testutil.RandomName("rear-port")
 
 	resource.Test(t, resource.TestCase{
 

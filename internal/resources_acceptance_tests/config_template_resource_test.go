@@ -65,7 +65,7 @@ func TestAccConfigTemplateResource_full(t *testing.T) {
 
 	templateCode := "hostname {{ device.name }}"
 
-	description := "Test config template"
+	description := testutil.RandomName("description")
 
 	updatedName := testutil.RandomName("config-tmpl-updated")
 

@@ -59,9 +59,9 @@ func TestAccVirtualChassisResource_full(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-vc-full")
 
-	description := "Test virtual chassis with all fields"
+	description := testutil.RandomName("description")
 
-	updatedDescription := "Updated virtual chassis description"
+	updatedDescription := testutil.RandomName("description")
 
 	resource.Test(t, resource.TestCase{
 

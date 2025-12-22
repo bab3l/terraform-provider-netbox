@@ -74,7 +74,7 @@ func TestAccASNResource_full(t *testing.T) {
 
 	asn := int64(acctest.RandIntRange(64512, 65534))
 
-	description := "Test ASN with all fields"
+	description := testutil.RandomName("description")
 
 	updatedDescription := "Updated ASN description"
 

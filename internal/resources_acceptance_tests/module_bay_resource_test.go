@@ -75,7 +75,7 @@ func TestAccModuleBayResource_full(t *testing.T) {
 
 	bayName := testutil.RandomName("tf-test-mbay-full")
 
-	description := "Test module bay with all fields"
+	description := testutil.RandomName("description")
 
 	updatedDescription := "Updated module bay description"
 

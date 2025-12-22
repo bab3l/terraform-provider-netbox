@@ -42,51 +42,58 @@ func TestAccWirelessLinkResource_basic(t *testing.T) {
 }
 
 func testAccWirelessLinkResourceConfig(siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB string) string {
+	manufacturerName := testutil.RandomName("mfr")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+	deviceRoleName := testutil.RandomName("role")
+	deviceRoleSlug := testutil.GenerateSlug(deviceRoleName)
+	deviceTypeName := testutil.RandomName("dtype")
+	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
+
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
-  name = %q
-  slug = %q
+  name = %[1]q
+  slug = %[2]q
   status = "active"
 }
 
 resource "netbox_manufacturer" "test" {
-  name = "Test Manufacturer Wireless"
-  slug = "test-manufacturer-wireless"
+  name = %[3]q
+  slug = %[4]q
 }
 
 resource "netbox_device_role" "test" {
-  name = "Test Device Role Wireless"
-  slug = "test-device-role-wireless"
+  name = %[5]q
+  slug = %[6]q
 }
 
 resource "netbox_device_type" "test" {
-  model = "Test Device Type Wireless"
-  slug  = "test-device-type-wireless"
+  model = %[7]q
+  slug  = %[8]q
   manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_device" "test_a" {
-  name           = "%s-a"
+  name           = "%[9]s-a"
   device_type    = netbox_device_type.test.id
   role           = netbox_device_role.test.id
   site           = netbox_site.test.id
 }
 
 resource "netbox_device" "test_b" {
-  name           = "%s-b"
+  name           = "%[9]s-b"
   device_type    = netbox_device_type.test.id
   role           = netbox_device_role.test.id
   site           = netbox_site.test.id
 }
 
 resource "netbox_interface" "test_a" {
-  name      = %q
+  name      = %[10]q
   device    = netbox_device.test_a.id
   type      = "ieee802.11ac"
 }
 
 resource "netbox_interface" "test_b" {
-  name      = %q
+  name      = %[11]q
   device    = netbox_device.test_b.id
   type      = "ieee802.11ac"
 }
@@ -97,5 +104,5 @@ resource "netbox_wireless_link" "test" {
   ssid        = "Test SSID"
   status      = "connected"
 }
-`, siteName, siteSlug, deviceName, deviceName, interfaceNameA, interfaceNameB)
+`, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceNameA, interfaceNameB)
 }

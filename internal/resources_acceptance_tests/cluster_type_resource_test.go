@@ -62,7 +62,7 @@ func TestAccClusterTypeResource_full(t *testing.T) {
 
 	slug := testutil.RandomSlug("tf-test-cluster-type-full")
 
-	description := "Test cluster type with all fields"
+	description := testutil.RandomName("description")
 
 	cleanup := testutil.NewCleanupResource(t)
 
