@@ -190,7 +190,7 @@ func testAccIPAddressResourceConfig_full(address string) string {
 
 func TestAccConsistency_IPAddress_LiteralNames(t *testing.T) {
 	t.Parallel()
-	address := "10.0.0.1/24"
+	address := fmt.Sprintf("10.200.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

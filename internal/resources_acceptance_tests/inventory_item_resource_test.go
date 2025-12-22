@@ -68,7 +68,7 @@ func TestAccInventoryItemResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_inventory_item.test", "serial", "SN-12345"),
 
-					resource.TestCheckResourceAttr("netbox_inventory_item.test", "asset_tag", "ASSET-001"),
+					resource.TestCheckResourceAttr("netbox_inventory_item.test", "asset_tag", name+"-asset-tag"),
 
 					resource.TestCheckResourceAttr("netbox_inventory_item.test", "description", "Test inventory item"),
 				),
@@ -195,13 +195,13 @@ resource "netbox_inventory_item" "test" {
 
   serial      = "SN-12345"
 
-  asset_tag   = "ASSET-001"
+  asset_tag   = %q
 
   description = "Test inventory item"
 
 }
 
-`, testAccInventoryItemResourcePrereqs(name), name)
+`, testAccInventoryItemResourcePrereqs(name), name, name+"-asset-tag")
 
 }
 

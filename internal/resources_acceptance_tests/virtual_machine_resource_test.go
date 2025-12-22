@@ -395,7 +395,7 @@ resource "netbox_cluster_type" "test" {
 
 resource "netbox_cluster" "test" {
   name = %[3]q
-  type = netbox_cluster_type.test.name
+  type = netbox_cluster_type.test.slug
 }
 
 resource "netbox_virtual_machine" "test" {

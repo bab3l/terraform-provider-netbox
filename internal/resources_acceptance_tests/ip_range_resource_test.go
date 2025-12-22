@@ -49,9 +49,9 @@ func TestAccIPRangeResource_full(t *testing.T) {
 	t.Parallel()
 
 	startOctet := 10 + acctest.RandIntRange(1, 200)
-	endOctet := startOctet + 253
-	startAddress := fmt.Sprintf("10.0.0.%d", startOctet)
-	endAddress := fmt.Sprintf("10.0.0.%d", endOctet)
+	endOctet := startOctet + 10
+	startAddress := fmt.Sprintf("192.0.3.%d", startOctet)
+	endAddress := fmt.Sprintf("192.0.3.%d", endOctet)
 	description := testutil.RandomName("ip-range-desc")
 
 	resource.Test(t, resource.TestCase{
@@ -89,9 +89,9 @@ func TestAccIPRangeResource_update(t *testing.T) {
 	t.Parallel()
 
 	startOctet2 := 10 + acctest.RandIntRange(1, 200)
-	endOctet2 := startOctet2 + 253
-	startAddress2 := fmt.Sprintf("10.0.0.%d", startOctet2)
-	endAddress2 := fmt.Sprintf("10.0.0.%d", endOctet2)
+	endOctet2 := startOctet2 + 10
+	startAddress2 := fmt.Sprintf("192.0.4.%d", startOctet2)
+	endAddress2 := fmt.Sprintf("192.0.4.%d", endOctet2)
 	description := testutil.RandomName("ip-range-desc")
 
 	resource.Test(t, resource.TestCase{
@@ -208,8 +208,10 @@ resource "netbox_ip_range" "test" {
 
 func TestAccConsistency_IPRange_LiteralNames(t *testing.T) {
 	t.Parallel()
-	startAddress := "10.0.0.10"
-	endAddress := "10.0.0.20"
+	startOctet := 50 + acctest.RandIntRange(1, 100)
+	endOctet := startOctet + 10
+	startAddress := fmt.Sprintf("172.16.%d.10", startOctet)
+	endAddress := fmt.Sprintf("172.16.%d.20", endOctet)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

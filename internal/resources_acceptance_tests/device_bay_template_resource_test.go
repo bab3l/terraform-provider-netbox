@@ -338,11 +338,13 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_device_type" "test" {
 
-  model        = %[3]q
+  model          = %[3]q
 
-  slug         = %[4]q
+  slug           = %[4]q
 
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer   = netbox_manufacturer.test.slug
+
+  subdevice_role = "parent"
 
 }
 

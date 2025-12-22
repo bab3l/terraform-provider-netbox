@@ -184,13 +184,13 @@ resource "netbox_device" "test_b" {
 resource "netbox_interface" "test_a" {
   name   = "wlan0"
   device = netbox_device.test_a.id
-  type   = "wireless"
+  type   = "ieee802.11ac"
 }
 
 resource "netbox_interface" "test_b" {
   name   = "wlan1"
   device = netbox_device.test_b.id
-  type   = "wireless"
+  type   = "ieee802.11ac"
 }
 
 resource "netbox_wireless_link" "test" {
