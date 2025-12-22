@@ -222,3 +222,52 @@ resource "netbox_ipsec_policy" "test" {
 `, name+"-ike-policy", name+"-ipsec-policy")
 
 }
+
+func TestAccConsistency_IPSECProfile_LiteralNames(t *testing.T) {
+	t.Parallel()
+	ikePolicyName := testutil.RandomName("tf-test-ike-policy")
+	ipsecPolicyName := testutil.RandomName("tf-test-ipsec-policy")
+	ipsecProfileName := testutil.RandomName("tf-test-ipsec-profile-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSECProfileConsistencyLiteralNamesConfig(ikePolicyName, ipsecPolicyName, ipsecProfileName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ipsec_profile.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "name", ipsecProfileName),
+				),
+			},
+			{
+				Config:   testAccIPSECProfileConsistencyLiteralNamesConfig(ikePolicyName, ipsecPolicyName, ipsecProfileName),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ipsec_profile.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIPSECProfileConsistencyLiteralNamesConfig(ikePolicyName, ipsecPolicyName, profileName string) string {
+	return fmt.Sprintf(`
+resource "netbox_ike_policy" "test" {
+  name    = %q
+  version = "1"
+  mode    = "main"
+}
+
+resource "netbox_ipsec_policy" "test" {
+  name = %q
+}
+
+resource "netbox_ipsec_profile" "test" {
+  name         = %q
+  mode         = "esp"
+  ike_policy   = netbox_ike_policy.test.id
+  ipsec_policy = netbox_ipsec_policy.test.id
+}
+`, ikePolicyName, ipsecPolicyName, profileName)
+}

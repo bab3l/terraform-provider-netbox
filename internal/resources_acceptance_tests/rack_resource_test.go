@@ -358,6 +358,49 @@ func TestAccConsistency_Rack(t *testing.T) {
 
 }
 
+func TestAccConsistency_Rack_LiteralNames(t *testing.T) {
+	t.Parallel()
+	rackName := testutil.RandomName("tf-test-rack-lit")
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackConsistencyLiteralNamesConfig(rackName, siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
+					resource.TestCheckResourceAttr("netbox_rack.test", "site", siteName),
+				),
+			},
+			{
+				Config:   testAccRackConsistencyLiteralNamesConfig(rackName, siteName, siteSlug),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccRackConsistencyLiteralNamesConfig(rackName, siteName, siteSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_rack" "test" {
+  name = %q
+  site = netbox_site.test.name
+}
+`, siteName, siteSlug, rackName)
+}
+
 // testAccRackResourceConfig_basic returns a basic test configuration.
 
 func testAccRackResourceConfig_basic(siteName, siteSlug, rackName string) string {

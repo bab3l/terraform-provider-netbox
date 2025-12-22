@@ -194,3 +194,38 @@ resource "netbox_ipsec_proposal" "test" {
 `, name)
 
 }
+
+func TestAccConsistency_IPSECProposal_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-ipsec-proposal-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSECProposalConsistencyLiteralNamesConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ipsec_proposal.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "name", name),
+				),
+			},
+			{
+				Config:   testAccIPSECProposalConsistencyLiteralNamesConfig(name),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ipsec_proposal.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIPSECProposalConsistencyLiteralNamesConfig(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_ipsec_proposal" "test" {
+  name                 = %q
+  encryption_algorithm = "aes-128-cbc"
+}
+`, name)
+}

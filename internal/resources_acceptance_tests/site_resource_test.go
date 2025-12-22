@@ -171,6 +171,44 @@ func TestAccConsistency_Site(t *testing.T) {
 	})
 }
 
+func TestAccConsistency_Site_LiteralNames(t *testing.T) {
+	t.Parallel()
+	siteName := testutil.RandomName("tf-test-site-lit")
+	siteSlug := testutil.RandomSlug("tf-test-site-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSiteConsistencyLiteralNamesConfig(siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_site.test", "id"),
+					resource.TestCheckResourceAttr("netbox_site.test", "name", siteName),
+					resource.TestCheckResourceAttr("netbox_site.test", "slug", siteSlug),
+				),
+			},
+			{
+				Config:   testAccSiteConsistencyLiteralNamesConfig(siteName, siteSlug),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_site.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccSiteConsistencyLiteralNamesConfig(siteName, siteSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %q
+  slug   = %q
+  status = "active"
+}
+`, siteName, siteSlug)
+}
+
 func testAccSiteResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {

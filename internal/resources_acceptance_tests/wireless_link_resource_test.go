@@ -106,3 +106,98 @@ resource "netbox_wireless_link" "test" {
 }
 `, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceNameA, interfaceNameB)
 }
+
+func TestAccConsistency_WirelessLink_LiteralNames(t *testing.T) {
+	t.Parallel()
+	ssid := testutil.RandomName("tf-test-ssid-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLinkConsistencyLiteralNamesConfig(ssid),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_wireless_link.test", "id"),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "ssid", ssid),
+				),
+			},
+			{
+				Config:   testAccWirelessLinkConsistencyLiteralNamesConfig(ssid),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_wireless_link.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccWirelessLinkConsistencyLiteralNamesConfig(ssid string) string {
+	manufacturerName := testutil.RandomName("mfr")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+	deviceRoleName := testutil.RandomName("role")
+	deviceRoleSlug := testutil.GenerateSlug(deviceRoleName)
+	deviceTypeName := testutil.RandomName("dtype")
+	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
+	deviceName := testutil.RandomName("device")
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.GenerateSlug(siteName)
+
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = "%[10]s"
+  slug   = "%[11]s"
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "%[3]s"
+  slug = "%[4]s"
+}
+
+resource "netbox_device_role" "test" {
+  name = "%[5]s"
+  slug = "%[6]s"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "%[7]s"
+  slug         = "%[8]s"
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device" "test_a" {
+  name        = "%[9]s-a"
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_device" "test_b" {
+  name        = "%[9]s-b"
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_interface" "test_a" {
+  name   = "wlan0"
+  device = netbox_device.test_a.id
+  type   = "wireless"
+}
+
+resource "netbox_interface" "test_b" {
+  name   = "wlan1"
+  device = netbox_device.test_b.id
+  type   = "wireless"
+}
+
+resource "netbox_wireless_link" "test" {
+  interface_a = netbox_interface.test_a.id
+  interface_b = netbox_interface.test_b.id
+  ssid        = "%[1]s"
+  status      = "connected"
+}
+`, ssid, siteName, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, siteName, siteSlug)
+}

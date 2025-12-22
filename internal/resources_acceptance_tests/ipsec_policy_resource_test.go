@@ -184,3 +184,37 @@ resource "netbox_ipsec_policy" "test" {
 `, name)
 
 }
+
+func TestAccConsistency_IPSECPolicy_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-ipsec-policy-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSECPolicyConsistencyLiteralNamesConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "name", name),
+				),
+			},
+			{
+				Config:   testAccIPSECPolicyConsistencyLiteralNamesConfig(name),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIPSECPolicyConsistencyLiteralNamesConfig(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_ipsec_policy" "test" {
+  name = %q
+}
+`, name)
+}

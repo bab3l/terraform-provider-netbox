@@ -109,3 +109,39 @@ resource "netbox_webhook" "test" {
 }
 `, name)
 }
+
+func TestAccConsistency_Webhook_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("webhook")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWebhookConsistencyLiteralNamesConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_webhook.test", "id"),
+					resource.TestCheckResourceAttr("netbox_webhook.test", "name", name),
+				),
+			},
+			{
+				Config:   testAccWebhookConsistencyLiteralNamesConfig(name),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_webhook.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccWebhookConsistencyLiteralNamesConfig(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_webhook" "test" {
+  name        = %q
+  payload_url = "https://example.com/webhook"
+  http_method = "POST"
+}
+`, name)
+}

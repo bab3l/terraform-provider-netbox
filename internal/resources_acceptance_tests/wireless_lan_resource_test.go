@@ -159,3 +159,45 @@ resource "netbox_wireless_lan" "test" {
 }
 `, wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug)
 }
+
+func TestAccConsistency_WirelessLAN_LiteralNames(t *testing.T) {
+	t.Parallel()
+	ssid := testutil.RandomName("tf-test-ssid-lit")
+	groupName := testutil.RandomName("tf-test-wlan-group-lit")
+	groupSlug := testutil.RandomSlug("tf-test-wlan-group-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLANConsistencyLiteralNamesConfig(ssid, groupName, groupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_wireless_lan.test", "id"),
+					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "ssid", ssid),
+				),
+			},
+			{
+				Config:   testAccWirelessLANConsistencyLiteralNamesConfig(ssid, groupName, groupSlug),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_wireless_lan.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccWirelessLANConsistencyLiteralNamesConfig(ssid, groupName, groupSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_wireless_lan_group" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_wireless_lan" "test" {
+  ssid  = %q
+  group = netbox_wireless_lan_group.test.slug
+}
+`, groupName, groupSlug, ssid)
+}

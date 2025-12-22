@@ -132,6 +132,43 @@ resource "netbox_rir" "test" {
 
 }
 
+func TestAccConsistency_RIR_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-rir-lit")
+	slug := testutil.RandomSlug("tf-test-rir-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRIRConsistencyLiteralNamesConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rir.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rir.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_rir.test", "slug", slug),
+				),
+			},
+			{
+				Config:   testAccRIRConsistencyLiteralNamesConfig(name, slug),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rir.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccRIRConsistencyLiteralNamesConfig(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = %q
+  slug = %q
+}
+`, name, slug)
+}
+
 func testAccRIRResourceConfig_full(name, slug, description string, isPrivate bool) string {
 
 	return fmt.Sprintf(`
