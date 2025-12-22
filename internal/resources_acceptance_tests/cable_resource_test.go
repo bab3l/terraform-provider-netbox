@@ -30,9 +30,21 @@ func TestAccCableResource_basic(t *testing.T) {
 
 	deviceName := testutil.RandomName("test-device-cable")
 
-	interfaceNameA := "eth2"
+	mfgName := testutil.RandomName("tf-test-mfg-cable")
 
-	interfaceNameB := "eth1"
+	mfgSlug := testutil.GenerateSlug(mfgName)
+
+	deviceRoleName := testutil.RandomName("tf-test-role-cable")
+
+	deviceRoleSlug := testutil.GenerateSlug(deviceRoleName)
+
+	deviceTypeModel := testutil.RandomName("tf-test-type-cable")
+
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	interfaceNameA := testutil.RandomName("eth")
+
+	interfaceNameB := testutil.RandomName("eth")
 
 	resource.Test(t, resource.TestCase{
 
@@ -44,7 +56,7 @@ func TestAccCableResource_basic(t *testing.T) {
 
 			{
 
-				Config: testAccCableResourceConfig(siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB),
+				Config: testAccCableResourceConfig(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -67,15 +79,15 @@ func TestAccCableResource_basic(t *testing.T) {
 
 }
 
-func testAccCableResourceConfig(siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB string) string {
+func testAccCableResourceConfig(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB string) string {
 
 	return fmt.Sprintf(`
 
 resource "netbox_site" "test" {
 
-  name = %q
+  name = %[1]q
 
-  slug = %q
+  slug = %[2]q
 
   status = "active"
 
@@ -83,25 +95,25 @@ resource "netbox_site" "test" {
 
 resource "netbox_manufacturer" "test" {
 
-  name = "Test Manufacturer"
+  name = %[3]q
 
-  slug = "test-manufacturer"
+  slug = %[4]q
 
 }
 
 resource "netbox_device_role" "test" {
 
-  name = "Test Device Role"
+  name = %[5]q
 
-  slug = "test-device-role"
+  slug = %[6]q
 
 }
 
 resource "netbox_device_type" "test" {
 
-  model = "Test Device Type"
+  model = %[7]q
 
-  slug  = "test-device-type"
+  slug  = %[8]q
 
   manufacturer = netbox_manufacturer.test.id
 
@@ -109,7 +121,7 @@ resource "netbox_device_type" "test" {
 
 resource "netbox_device" "test_a" {
 
-  name           = "%s-a"
+  name           = "%[9]s-a"
 
   device_type    = netbox_device_type.test.id
 
@@ -121,7 +133,7 @@ resource "netbox_device" "test_a" {
 
 resource "netbox_device" "test_b" {
 
-  name           = "%s-b"
+  name           = "%[9]s-b"
 
   device_type    = netbox_device_type.test.id
 
@@ -133,7 +145,7 @@ resource "netbox_device" "test_b" {
 
 resource "netbox_interface" "test_a" {
 
-  name      = %q
+  name      = %[10]q
 
   device    = netbox_device.test_a.id
 
@@ -143,7 +155,7 @@ resource "netbox_interface" "test_a" {
 
 resource "netbox_interface" "test_b" {
 
-  name      = %q
+  name      = %[11]q
 
   device    = netbox_device.test_b.id
 
@@ -183,6 +195,6 @@ resource "netbox_cable" "test" {
 
 }
 
-`, siteName, siteSlug, deviceName, deviceName, interfaceNameA, interfaceNameB)
+`, siteName, siteSlug, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, deviceName, interfaceNameA, interfaceNameB)
 
 }

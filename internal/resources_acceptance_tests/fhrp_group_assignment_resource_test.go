@@ -12,13 +12,14 @@ func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 
 	t.Parallel()
 	name := testutil.RandomName("test-fhrp-assign")
+	interfaceName := testutil.RandomName("eth")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name),
+				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "interface_type", "dcim.interface"),
 					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "priority", "100"),
@@ -28,7 +29,7 @@ func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccFHRPGroupAssignmentResourceConfig_updated(name),
+				Config: testAccFHRPGroupAssignmentResourceConfig_updated(name, interfaceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "priority", "200"),
 				),
@@ -43,39 +44,39 @@ func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 	})
 }
 
-func testAccFHRPGroupAssignmentResourceConfig_basic(name string) string {
+func testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
-  name = "%s-site"
-  slug = "%s-site"
+  name = "%[1]s-site"
+  slug = "%[1]s-site"
 }
 
 resource "netbox_manufacturer" "test" {
-  name = "%s-mfr"
-  slug = "%s-mfr"
+  name = "%[1]s-mfr"
+  slug = "%[1]s-mfr"
 }
 
 resource "netbox_device_type" "test" {
-  model        = "%s-dt"
-  slug         = "%s-dt"
+  model        = "%[1]s-dt"
+  slug         = "%[1]s-dt"
   manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_device_role" "test" {
-  name  = "%s-role"
-  slug  = "%s-role"
+  name  = "%[1]s-role"
+  slug  = "%[1]s-role"
   color = "ff0000"
 }
 
 resource "netbox_device" "test" {
-  name        = "%s-device"
+  name        = "%[1]s-device"
   site        = netbox_site.test.id
   device_type = netbox_device_type.test.id
   role        = netbox_device_role.test.id
 }
 
 resource "netbox_interface" "test" {
-  name   = "eth0"
+  name   = %[2]q
   device = netbox_device.test.id
   type   = "virtual"
 }
@@ -91,42 +92,42 @@ resource "netbox_fhrp_group_assignment" "test" {
   interface_id   = netbox_interface.test.id
   priority       = 100
 }
-`, name, name, name, name, name, name, name, name, name)
+`, name, interfaceName)
 }
 
-func testAccFHRPGroupAssignmentResourceConfig_updated(name string) string {
+func testAccFHRPGroupAssignmentResourceConfig_updated(name, interfaceName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
-  name = "%s-site"
-  slug = "%s-site"
+  name = "%[1]s-site"
+  slug = "%[1]s-site"
 }
 
 resource "netbox_manufacturer" "test" {
-  name = "%s-mfr"
-  slug = "%s-mfr"
+  name = "%[1]s-mfr"
+  slug = "%[1]s-mfr"
 }
 
 resource "netbox_device_type" "test" {
-  model        = "%s-dt"
-  slug         = "%s-dt"
+  model        = "%[1]s-dt"
+  slug         = "%[1]s-dt"
   manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_device_role" "test" {
-  name  = "%s-role"
-  slug  = "%s-role"
+  name  = "%[1]s-role"
+  slug  = "%[1]s-role"
   color = "ff0000"
 }
 
 resource "netbox_device" "test" {
-  name        = "%s-device"
+  name        = "%[1]s-device"
   site        = netbox_site.test.id
   device_type = netbox_device_type.test.id
   role        = netbox_device_role.test.id
 }
 
 resource "netbox_interface" "test" {
-  name   = "eth0"
+  name   = %[2]q
   device = netbox_device.test.id
   type   = "virtual"
 }
@@ -142,5 +143,5 @@ resource "netbox_fhrp_group_assignment" "test" {
   interface_id   = netbox_interface.test.id
   priority       = 200
 }
-`, name, name, name, name, name, name, name, name, name)
+`, name, interfaceName)
 }

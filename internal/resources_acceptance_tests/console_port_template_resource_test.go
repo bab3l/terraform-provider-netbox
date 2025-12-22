@@ -23,7 +23,7 @@ func TestAccConsolePortTemplateResource_basic(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("dt")
 
-	const name = "console0"
+	name := testutil.RandomName("console")
 
 	resource.Test(t, resource.TestCase{
 
@@ -75,19 +75,19 @@ func TestAccConsolePortTemplateResource_full(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("dt")
 
-	const name = "console0"
+	name := testutil.RandomName("console")
 
-	label := "Console 0"
+	label := testutil.RandomName("label")
 
 	portType := "rj-45"
 
-	description := "Test console port template"
+	description := testutil.RandomName("description")
 
-	updatedName := "console1"
+	updatedName := testutil.RandomName("console-upd")
 
-	updatedLabel := "Console 1"
+	updatedLabel := testutil.RandomName("label-upd")
 
-	updatedDescription := "Updated console port template"
+	updatedDescription := testutil.RandomName("description-upd")
 
 	resource.Test(t, resource.TestCase{
 
@@ -147,7 +147,7 @@ func TestAccConsistency_ConsolePortTemplate(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("devicetype")
 
-	const portName = "console0"
+	portName := testutil.RandomName("console")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)

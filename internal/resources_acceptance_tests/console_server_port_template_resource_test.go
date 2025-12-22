@@ -23,7 +23,7 @@ func TestAccConsoleServerPortTemplateResource_basic(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("dt")
 
-	name := "consoleserver0"
+	name := testutil.RandomName("consoleserver")
 
 	resource.Test(t, resource.TestCase{
 
@@ -75,19 +75,19 @@ func TestAccConsoleServerPortTemplateResource_full(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("dt")
 
-	name := "consoleserver0"
+	name := testutil.RandomName("consoleserver")
 
-	label := "Console Server 0"
+	label := testutil.RandomName("label")
 
 	portType := "rj-45"
 
-	description := "Test console server port template"
+	description := testutil.RandomName("description")
 
-	updatedName := "consoleserver1"
+	updatedName := testutil.RandomName("consoleserver-upd")
 
-	updatedLabel := "Console Server 1"
+	updatedLabel := testutil.RandomName("label-upd")
 
-	updatedDescription := "Updated console server port template"
+	updatedDescription := testutil.RandomName("description-upd")
 
 	resource.Test(t, resource.TestCase{
 

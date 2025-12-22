@@ -62,6 +62,14 @@ func TestAccDeviceBayTemplateResource_full(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("tf-test-dt")
 
+	label := testutil.RandomName("label")
+
+	description := testutil.RandomName("description")
+
+	updatedLabel := testutil.RandomName("label-upd")
+
+	updatedDescription := testutil.RandomName("description-upd")
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -72,7 +80,7 @@ func TestAccDeviceBayTemplateResource_full(t *testing.T) {
 
 			{
 
-				Config: testAccDeviceBayTemplateResourceConfig_full(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
+				Config: testAccDeviceBayTemplateResourceConfig_full(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, label, description),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -80,11 +88,27 @@ func TestAccDeviceBayTemplateResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "name", name),
 
-					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "label", "Test Label"),
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "label", label),
 
-					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "description", "Test device bay template with full options"),
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "description", description),
 
 					resource.TestCheckResourceAttrSet("netbox_device_bay_template.test", "device_type"),
+				),
+			},
+
+			{
+
+				Config: testAccDeviceBayTemplateResourceConfig_updated(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, updatedLabel, updatedDescription),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_device_bay_template.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "label", updatedLabel),
+
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "description", updatedDescription),
 				),
 			},
 		},
@@ -105,6 +129,10 @@ func TestAccDeviceBayTemplateResource_update(t *testing.T) {
 	deviceTypeName := testutil.RandomName("tf-test-dt")
 
 	deviceTypeSlug := testutil.RandomSlug("tf-test-dt")
+
+	updatedLabel := testutil.RandomName("label-upd")
+
+	updatedDescription := testutil.RandomName("description-upd")
 
 	resource.Test(t, resource.TestCase{
 
@@ -128,7 +156,7 @@ func TestAccDeviceBayTemplateResource_update(t *testing.T) {
 
 			{
 
-				Config: testAccDeviceBayTemplateResourceConfig_updated(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
+				Config: testAccDeviceBayTemplateResourceConfig_updated(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, updatedLabel, updatedDescription),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -136,9 +164,9 @@ func TestAccDeviceBayTemplateResource_update(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "name", name),
 
-					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "label", "Updated Label"),
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "label", updatedLabel),
 
-					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "description", "Updated description"),
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "description", updatedDescription),
 				),
 			},
 		},
@@ -182,23 +210,23 @@ resource "netbox_device_bay_template" "test" {
 
 }
 
-func testAccDeviceBayTemplateResourceConfig_full(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug string) string {
+func testAccDeviceBayTemplateResourceConfig_full(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, label, description string) string {
 
 	return fmt.Sprintf(`
 
 resource "netbox_manufacturer" "test" {
 
-  name = %q
+  name = %[1]q
 
-  slug = %q
+  slug = %[2]q
 
 }
 
 resource "netbox_device_type" "test" {
 
-  model          = %q
+  model          = %[3]q
 
-  slug           = %q
+  slug           = %[4]q
 
   manufacturer   = netbox_manufacturer.test.slug
 
@@ -210,35 +238,35 @@ resource "netbox_device_bay_template" "test" {
 
   device_type = netbox_device_type.test.id
 
-  name        = %q
+  name        = %[5]q
 
-  label       = "Test Label"
+  label       = %[6]q
 
-  description = "Test device bay template with full options"
-
-}
-
-`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
+  description = %[7]q
 
 }
 
-func testAccDeviceBayTemplateResourceConfig_updated(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug string) string {
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, description)
+
+}
+
+func testAccDeviceBayTemplateResourceConfig_updated(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, label, description string) string {
 
 	return fmt.Sprintf(`
 
 resource "netbox_manufacturer" "test" {
 
-  name = %q
+  name = %[1]q
 
-  slug = %q
+  slug = %[2]q
 
 }
 
 resource "netbox_device_type" "test" {
 
-  model          = %q
+  model          = %[3]q
 
-  slug           = %q
+  slug           = %[4]q
 
   manufacturer   = netbox_manufacturer.test.slug
 
@@ -250,14 +278,14 @@ resource "netbox_device_bay_template" "test" {
 
   device_type = netbox_device_type.test.id
 
-  name        = %q
+  name        = %[5]q
 
-  label       = "Updated Label"
+  label       = %[6]q
 
-  description = "Updated description"
+  description = %[7]q
 
 }
 
-`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, description)
 
 }

@@ -15,7 +15,7 @@ func TestAccFrontPortTemplateResource_basic(t *testing.T) {
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
 	deviceTypeSlug := testutil.RandomSlug("dt")
-	frontPortName := "front0"
+	frontPortName := testutil.RandomName("front-port")
 	portType := "8p8c"
 	rearPortName := testutil.RandomName("rear-port")
 
@@ -49,14 +49,14 @@ func TestAccFrontPortTemplateResource_full(t *testing.T) {
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
 	deviceTypeSlug := testutil.RandomSlug("dt")
-	frontPortName := "front0"
+	frontPortName := testutil.RandomName("front-port")
 	portType := "lc"
-	label := "Front Port 0"
-	description := "Test front port template"
+	label := testutil.RandomName("label")
+	description := testutil.RandomName("description")
 	rearPortPosition := int32(1)
-	updatedFrontPortName := "front1"
-	updatedLabel := "Front Port 1"
-	updatedDescription := "Updated front port template"
+	updatedFrontPortName := testutil.RandomName("front-port-upd")
+	updatedLabel := testutil.RandomName("label-upd")
+	updatedDescription := testutil.RandomName("description-upd")
 	updatedRearPortPosition := int32(2)
 	rearPortName := testutil.RandomName("rear-port")
 	color := testutil.Color
@@ -104,13 +104,14 @@ func TestAccConsistency_FrontPortTemplate_LiteralNames(t *testing.T) {
 	deviceTypeName := testutil.RandomName("device-type")
 	deviceTypeSlug := testutil.RandomSlug("device-type")
 	resourceName := testutil.RandomName("front_port")
+	rearPortTemplateName := testutil.RandomName("rear-port")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccFrontPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName),
+				Config: testAccFrontPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName, rearPortTemplateName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_front_port_template.test", "name", resourceName),
 					resource.TestCheckResourceAttr("netbox_front_port_template.test", "device_type", deviceTypeSlug),
@@ -118,7 +119,7 @@ func TestAccConsistency_FrontPortTemplate_LiteralNames(t *testing.T) {
 			},
 			{
 				PlanOnly: true,
-				Config:   testAccFrontPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName),
+				Config:   testAccFrontPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName, rearPortTemplateName),
 			},
 		},
 	})
@@ -186,34 +187,34 @@ resource "netbox_front_port_template" "test" {
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, portType, frontPortName, portType, rearPortPosition, label, color, description)
 }
 
-func testAccFrontPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName string) string {
+func testAccFrontPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName, rearPortTemplateName string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
-  name = %q
-  slug = %q
+  name = %[1]q
+  slug = %[2]q
 }
 
 resource "netbox_device_type" "test" {
-  model        = %q
-  slug         = %q
+  model        = %[3]q
+  slug         = %[4]q
   manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_rear_port_template" "rear" {
   device_type = netbox_device_type.test.id
-  name        = "rear-port"
+  name        = %[5]q
   type        = "8p8c"
   positions   = 1
 }
 
 resource "netbox_front_port_template" "test" {
-  device_type = %q
-  name = %q
+  device_type = %[4]q
+  name = %[6]q
   type = "8p8c"
   rear_port = netbox_rear_port_template.rear.name
   rear_port_position = 1
 
   depends_on = [netbox_device_type.test]
 }
-`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceTypeSlug, resourceName)
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortTemplateName, resourceName)
 }

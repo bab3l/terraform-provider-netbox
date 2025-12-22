@@ -12,6 +12,9 @@ func TestAccJournalEntryResource_basic(t *testing.T) {
 
 	t.Parallel()
 
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.GenerateSlug(siteName)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -22,7 +25,7 @@ func TestAccJournalEntryResource_basic(t *testing.T) {
 
 			{
 
-				Config: testAccJournalEntryResourceConfig_basic(),
+				Config: testAccJournalEntryResourceConfig_basic(siteName, siteSlug),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -72,6 +75,9 @@ func TestAccJournalEntryResource_update(t *testing.T) {
 
 	t.Parallel()
 
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.GenerateSlug(siteName)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -82,7 +88,7 @@ func TestAccJournalEntryResource_update(t *testing.T) {
 
 			{
 
-				Config: testAccJournalEntryResourceConfig_basic(),
+				Config: testAccJournalEntryResourceConfig_basic(siteName, siteSlug),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -94,7 +100,7 @@ func TestAccJournalEntryResource_update(t *testing.T) {
 
 			{
 
-				Config: testAccJournalEntryResourceConfig_updated(),
+				Config: testAccJournalEntryResourceConfig_updated(siteName, siteSlug),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -112,6 +118,9 @@ func TestAccJournalEntryResource_import(t *testing.T) {
 
 	t.Parallel()
 
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.GenerateSlug(siteName)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -122,7 +131,7 @@ func TestAccJournalEntryResource_import(t *testing.T) {
 
 			{
 
-				Config: testAccJournalEntryResourceConfig_basic(),
+				Config: testAccJournalEntryResourceConfig_basic(siteName, siteSlug),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -143,15 +152,15 @@ func TestAccJournalEntryResource_import(t *testing.T) {
 
 }
 
-func testAccJournalEntryResourceConfig_basic() string {
+func testAccJournalEntryResourceConfig_basic(siteName, siteSlug string) string {
 
-	return `
+	return fmt.Sprintf(`
 
 resource "netbox_site" "test" {
 
-  name = "test-site"
+  name = %[1]q
 
-  slug = "test-site"
+  slug = %[2]q
 
 }
 
@@ -165,7 +174,7 @@ resource "netbox_journal_entry" "test" {
 
 }
 
-`
+`, siteName, siteSlug)
 
 }
 
@@ -197,15 +206,15 @@ resource "netbox_journal_entry" "test" {
 
 }
 
-func testAccJournalEntryResourceConfig_updated() string {
+func testAccJournalEntryResourceConfig_updated(siteName, siteSlug string) string {
 
-	return `
+	return fmt.Sprintf(`
 
 resource "netbox_site" "test" {
 
-  name = "test-site"
+  name = %[1]q
 
-  slug = "test-site"
+  slug = %[2]q
 
 }
 
@@ -219,6 +228,6 @@ resource "netbox_journal_entry" "test" {
 
 }
 
-`
+`, siteName, siteSlug)
 
 }
