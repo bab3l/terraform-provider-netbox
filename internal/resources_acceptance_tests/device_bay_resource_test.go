@@ -153,6 +153,7 @@ func TestAccConsistency_DeviceBay_LiteralNames(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

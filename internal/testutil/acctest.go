@@ -3194,3 +3194,87 @@ func (c *CleanupResource) RegisterL2VPNCleanup(name string) {
 		}
 	})
 }
+
+// RegisterCustomFieldCleanup registers a cleanup function that will delete
+// a custom field by name after the test completes.
+func (c *CleanupResource) RegisterCustomFieldCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.ExtrasAPI.ExtrasCustomFieldsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list custom fields with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: custom field with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.ExtrasAPI.ExtrasCustomFieldsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete custom field %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted custom field %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterCustomFieldChoiceSetCleanupByName registers a cleanup function that will delete
+// a custom field choice set by name after the test completes.
+func (c *CleanupResource) RegisterCustomFieldChoiceSetCleanupByName(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.ExtrasAPI.ExtrasCustomFieldChoiceSetsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list custom field choice sets with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: custom field choice set with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.ExtrasAPI.ExtrasCustomFieldChoiceSetsDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete custom field choice set %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted custom field choice set %d (name: %s)", id, name)
+		}
+	})
+}
+
+// RegisterCustomLinkCleanupByName registers a cleanup function that will delete
+// a custom link by name after the test completes.
+func (c *CleanupResource) RegisterCustomLinkCleanupByName(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.ExtrasAPI.ExtrasCustomLinksList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list custom links with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != 200 || list.Count == 0 {
+			c.t.Logf("Cleanup: custom link with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.ExtrasAPI.ExtrasCustomLinksDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete custom link %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted custom link %d (name: %s)", id, name)
+		}
+	})
+}

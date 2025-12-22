@@ -22,6 +22,10 @@ func TestAccDeviceBayTemplateResource_basic(t *testing.T) {
 
 	deviceTypeSlug := testutil.RandomSlug("tf-test-dt")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -69,6 +73,10 @@ func TestAccDeviceBayTemplateResource_full(t *testing.T) {
 	updatedLabel := testutil.RandomName("label-upd")
 
 	updatedDescription := testutil.RandomName("description-upd")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 
 	resource.Test(t, resource.TestCase{
 
@@ -133,6 +141,10 @@ func TestAccDeviceBayTemplateResource_update(t *testing.T) {
 	updatedLabel := testutil.RandomName("label-upd")
 
 	updatedDescription := testutil.RandomName("description-upd")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 
 	resource.Test(t, resource.TestCase{
 

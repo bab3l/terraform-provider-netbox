@@ -59,6 +59,9 @@ func TestAccCustomLinkResource_full(t *testing.T) {
 
 	name := testutil.RandomName("cl")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomLinkCleanupByName(name)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -100,6 +103,10 @@ func TestAccCustomLinkResource_update(t *testing.T) {
 	name := testutil.RandomName("cl")
 
 	updatedName := name + "-updated"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomLinkCleanupByName(name)
+	cleanup.RegisterCustomLinkCleanupByName(updatedName)
 
 	resource.Test(t, resource.TestCase{
 

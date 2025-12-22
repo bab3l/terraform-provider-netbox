@@ -59,6 +59,9 @@ func TestAccCustomFieldChoiceSetResource_full(t *testing.T) {
 
 	name := testutil.RandomName("cfcs")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldChoiceSetCleanupByName(name)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -96,6 +99,10 @@ func TestAccCustomFieldChoiceSetResource_update(t *testing.T) {
 	name := testutil.RandomName("cfcs")
 
 	updatedName := name + "-updated"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldChoiceSetCleanupByName(name)
+	cleanup.RegisterCustomFieldChoiceSetCleanupByName(updatedName)
 
 	resource.Test(t, resource.TestCase{
 

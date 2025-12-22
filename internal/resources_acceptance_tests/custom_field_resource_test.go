@@ -22,6 +22,9 @@ func TestAccCustomFieldResource_basic(t *testing.T) {
 
 	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -68,6 +71,9 @@ func TestAccCustomFieldResource_full(t *testing.T) {
 	description := testutil.RandomName("description")
 
 	updatedDescription := "Updated custom field description"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 
