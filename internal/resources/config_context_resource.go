@@ -44,6 +44,8 @@ type ConfigContextResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Weight types.Int64 `tfsdk:"weight"`
 
 	IsActive types.Bool `tfsdk:"is_active"`

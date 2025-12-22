@@ -60,6 +60,8 @@ type IPSecPolicyResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -126,6 +128,8 @@ func (r *IPSecPolicyResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 
 			"comments": nbschema.CommentsAttribute("IPSec policy"),
+
+			"display_name": nbschema.DisplayNameAttribute("IPSec policy"),
 
 			"tags": nbschema.TagsAttribute(),
 
