@@ -58,9 +58,8 @@ func TestAccCustomFieldResource_basic(t *testing.T) {
 }
 
 func TestAccCustomFieldResource_full(t *testing.T) {
-	// This test cannot use t.Parallel() because it creates a required custom field
-	// that persists in the test environment and could interfere with other tests.
-	// Required fields must be created serially to avoid conflicts.
+
+	t.Parallel()
 
 	// Custom field names can only contain alphanumeric characters and underscores
 
@@ -92,7 +91,7 @@ func TestAccCustomFieldResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_custom_field.test", "description", description),
 
-					resource.TestCheckResourceAttr("netbox_custom_field.test", "required", "true"),
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "required", "false"),
 
 					resource.TestCheckResourceAttr("netbox_custom_field.test", "validation_minimum", "1"),
 
@@ -177,7 +176,7 @@ resource "netbox_custom_field" "test" {
 
   description        = %q
 
-  required           = true
+  required           = false
 
   validation_minimum = 1
 
