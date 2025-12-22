@@ -55,6 +55,8 @@ type ConsolePortResourceModel struct {
 
 	Label types.String `tfsdk:"label"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Type types.String `tfsdk:"type"`
 
 	Speed types.Int32 `tfsdk:"speed"`
@@ -118,6 +120,8 @@ func (r *ConsolePortResource) Schema(ctx context.Context, req resource.SchemaReq
 
 				Optional: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("console port"),
 
 			"type": schema.StringAttribute{
 
@@ -677,6 +681,13 @@ func (r *ConsolePortResource) mapResponseToModel(ctx context.Context, consolePor
 	data.ID = types.StringValue(fmt.Sprintf("%d", consolePort.GetId()))
 
 	data.Name = types.StringValue(consolePort.GetName())
+
+	// DisplayName
+	if consolePort.Display != "" {
+		data.DisplayName = types.StringValue(consolePort.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device - preserve user's input format
 
