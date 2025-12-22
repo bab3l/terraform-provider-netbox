@@ -139,6 +139,34 @@ func TestAccTunnelGroupResource_import(t *testing.T) {
 	})
 }
 
+func TestAccConsistency_TunnelGroup_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tg")
+	slug := testutil.RandomSlug("tg")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelGroupCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTunnelGroupConsistencyLiteralNamesConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "name", name),
+				),
+			},
+			{
+				PlanOnly: true,
+				Config:   testAccTunnelGroupConsistencyLiteralNamesConfig(name, slug),
+			},
+		},
+	})
+}
+
 func testAccTunnelGroupResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_tunnel_group" "test" {
@@ -156,4 +184,13 @@ resource "netbox_tunnel_group" "test" {
   description = %[3]q
 }
 `, name, slug, description)
+}
+
+func testAccTunnelGroupConsistencyLiteralNamesConfig(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tunnel_group" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+`, name, slug)
 }

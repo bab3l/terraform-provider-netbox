@@ -243,3 +243,39 @@ resource "netbox_provider" "test" {
 `, name, slug, description, comments)
 
 }
+
+func TestAccConsistency_Provider_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("provider")
+	slug := testutil.RandomSlug("provider")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderConsistencyLiteralNamesConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider.test", "name", name),
+				),
+			},
+			{
+				PlanOnly: true,
+				Config:   testAccProviderConsistencyLiteralNamesConfig(name, slug),
+			},
+		},
+	})
+}
+func testAccProviderConsistencyLiteralNamesConfig(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+`, name, slug)
+}

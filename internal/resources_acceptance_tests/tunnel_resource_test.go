@@ -140,6 +140,33 @@ func TestAccTunnelResource_import(t *testing.T) {
 	})
 }
 
+func TestAccConsistency_Tunnel_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tunnel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTunnelConsistencyLiteralNamesConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tunnel.test", "name", name),
+				),
+			},
+			{
+				PlanOnly: true,
+				Config:   testAccTunnelConsistencyLiteralNamesConfig(name),
+			},
+		},
+	})
+}
+
 func testAccTunnelResourceConfig_basic(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_tunnel" "test" {
@@ -160,4 +187,14 @@ resource "netbox_tunnel" "test" {
   tunnel_id     = 12345
 }
 `, name, description)
+}
+
+func testAccTunnelConsistencyLiteralNamesConfig(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_tunnel" "test" {
+  name          = %[1]q
+  status        = "active"
+  encapsulation = "gre"
+}
+`, name)
 }

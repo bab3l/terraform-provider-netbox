@@ -70,7 +70,7 @@ func TestAccRackRoleResource_full(t *testing.T) {
 
 	description := testutil.RandomName("description")
 
-	color := "ff5722"
+	color := testutil.ColorOrange
 
 	// Register cleanup
 
@@ -287,6 +287,82 @@ resource "netbox_rack_role" "test" {
   description = %[3]q
 
   color       = %[4]q
+
+}
+
+`, name, slug, description, color)
+
+}
+
+func TestAccConsistency_RackRole_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+	rackRoleName := testutil.RandomName("tf-test-rack-role-lit")
+	rackRoleSlug := testutil.RandomSlug("tf-test-rack-role-lit")
+	description := testutil.RandomName("description")
+	color := "4caf50"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackRoleCleanup(rackRoleSlug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckRackRoleDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccRackRoleConsistencyLiteralNamesConfig(rackRoleName, rackRoleSlug, description, color),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_rack_role.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "name", rackRoleName),
+
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "slug", rackRoleSlug),
+
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "color", color),
+				),
+			},
+
+			{
+
+				Config: testAccRackRoleConsistencyLiteralNamesConfig(rackRoleName, rackRoleSlug, description, color),
+
+				PlanOnly: true,
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_rack_role.test", "id"),
+				),
+			},
+		},
+	})
+
+}
+
+func testAccRackRoleConsistencyLiteralNamesConfig(name, slug, description, color string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_rack_role" "test" {
+
+  name        = %q
+
+  slug        = %q
+
+  description = %q
+
+  color       = %q
 
 }
 

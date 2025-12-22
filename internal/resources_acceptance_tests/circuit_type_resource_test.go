@@ -207,114 +207,70 @@ func TestAccCircuitTypeResource_import(t *testing.T) {
 }
 
 func TestAccConsistency_CircuitType_LiteralNames(t *testing.T) {
-
 	t.Parallel()
-
 	name := testutil.RandomName("tf-test-circuit-type-lit")
-
 	slug := testutil.RandomSlug("tf-test-circuit-type-lit")
-
 	description := testutil.RandomName("description")
+	color := "2196f3"
 
 	cleanup := testutil.NewCleanupResource(t)
-
 	cleanup.RegisterCircuitTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.CheckCircuitTypeDestroy,
-
 		Steps: []resource.TestStep{
-
 			{
-
-				Config: testAccCircuitTypeConsistencyLiteralNamesConfig(name, slug, description),
-
+				Config: testAccCircuitTypeConsistencyLiteralNamesConfig(name, slug, description, color),
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_circuit_type.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_circuit_type.test", "name", name),
-
 					resource.TestCheckResourceAttr("netbox_circuit_type.test", "slug", slug),
-
 					resource.TestCheckResourceAttr("netbox_circuit_type.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_circuit_type.test", "color", color),
 				),
 			},
-
 			{
-
-				Config: testAccCircuitTypeConsistencyLiteralNamesConfig(name, slug, description),
-
+				Config:   testAccCircuitTypeConsistencyLiteralNamesConfig(name, slug, description, color),
 				PlanOnly: true,
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_circuit_type.test", "id"),
 				),
 			},
 		},
 	})
-
-}
-
-func testAccCircuitTypeConsistencyLiteralNamesConfig(name, slug, description string) string {
-
-	return fmt.Sprintf(`
-
-resource "netbox_circuit_type" "test" {
-
-  name        = %q
-
-  slug        = %q
-
-  description = %q
-
-}
-
-`, name, slug, description)
-
 }
 
 func testAccCircuitTypeResourceConfig_basic(name, slug string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_circuit_type" "test" {
-
   name = %q
-
   slug = %q
-
 }
-
 `, name, slug)
-
 }
 
 func testAccCircuitTypeResourceConfig_full(name, slug, description, color string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_circuit_type" "test" {
-
   name        = %q
-
   slug        = %q
-
   description = %q
-
   color       = %q
-
+}
+`, name, slug, description, color)
 }
 
+func testAccCircuitTypeConsistencyLiteralNamesConfig(name, slug, description, color string) string {
+	return fmt.Sprintf(`
+resource "netbox_circuit_type" "test" {
+  name        = %q
+  slug        = %q
+  description = %q
+  color       = %q
+}
 `, name, slug, description, color)
-
 }

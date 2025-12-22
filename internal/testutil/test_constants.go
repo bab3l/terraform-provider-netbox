@@ -8,5 +8,6 @@ const (
 	Description2  = "Updated description"
 	RearPortName  = "rear0"
 	Color         = "aa1409"
+	ColorOrange   = "ff5722"
 	InterfaceName = "eth0"
 )

@@ -154,7 +154,51 @@ resource "netbox_tenant_group" "test" {
 `, name, slug)
 }
 
-// testAccTenantGroupResourceConfig_full returns a test configuration with all fields.
+func TestAccConsistency_TenantGroup_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-tenant-group-lit")
+	slug := testutil.RandomSlug("tf-test-tenant-group-lit")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTenantGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckTenantGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTenantGroupConsistencyLiteralNamesConfig(name, slug, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tenant_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_tenant_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_tenant_group.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_tenant_group.test", "description", description),
+				),
+			},
+			{
+				Config:   testAccTenantGroupConsistencyLiteralNamesConfig(name, slug, description),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tenant_group.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccTenantGroupConsistencyLiteralNamesConfig(name, slug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant_group" "test" {
+  name        = %q
+  slug        = %q
+  description = %q
+}
+`, name, slug, description)
+} // testAccTenantGroupResourceConfig_full returns a test configuration with all fields.
 func testAccTenantGroupResourceConfig_full(name, slug, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_tenant_group" "test" {

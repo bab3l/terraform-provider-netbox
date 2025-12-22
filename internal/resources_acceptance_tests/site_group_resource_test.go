@@ -146,6 +146,52 @@ resource "netbox_site_group" "test" {
 `, name, slug)
 }
 
+func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-site-group-lit")
+	slug := testutil.RandomSlug("tf-test-site-group-lit")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckSiteGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSiteGroupConsistencyLiteralNamesConfig(name, slug, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_site_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_site_group.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_site_group.test", "description", description),
+				),
+			},
+			{
+				Config:   testAccSiteGroupConsistencyLiteralNamesConfig(name, slug, description),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccSiteGroupConsistencyLiteralNamesConfig(name, slug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_site_group" "test" {
+  name        = %q
+  slug        = %q
+  description = %q
+}
+`, name, slug, description)
+}
+
 func testAccSiteGroupResourceConfig_full(name, slug, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_site_group" "test" {

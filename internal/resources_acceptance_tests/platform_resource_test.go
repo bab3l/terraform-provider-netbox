@@ -215,7 +215,64 @@ resource "netbox_platform" "test" {
 }
 `, manufacturerName, manufacturerSlug, platformName, platformSlug, description)
 }
+func TestAccConsistency_Platform_LiteralNames(t *testing.T) {
 
+	t.Parallel()
+	platformName := testutil.RandomName("tf-test-platform-lit")
+	platformSlug := testutil.RandomSlug("tf-test-plat-lit")
+	manufacturerName := testutil.RandomName("tf-test-mfr-for-platform-lit")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-plat-lit")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPlatformCleanup(platformSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckPlatformDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPlatformConsistencyLiteralNamesConfig(platformName, platformSlug, manufacturerName, manufacturerSlug, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_platform.test", "id"),
+					resource.TestCheckResourceAttr("netbox_platform.test", "name", platformName),
+					resource.TestCheckResourceAttr("netbox_platform.test", "slug", platformSlug),
+					resource.TestCheckResourceAttr("netbox_platform.test", "description", description),
+				),
+			},
+			{
+				Config:   testAccPlatformConsistencyLiteralNamesConfig(platformName, platformSlug, manufacturerName, manufacturerSlug, description),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_platform.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccPlatformConsistencyLiteralNamesConfig(platformName, platformSlug, manufacturerName, manufacturerSlug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test_manufacturer" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_platform" "test" {
+  name         = %q
+  slug         = %q
+  manufacturer = netbox_manufacturer.test_manufacturer.slug
+  description  = %q
+}
+`, manufacturerName, manufacturerSlug, platformName, platformSlug, description)
+}
 func testAccPlatformResourceConfig_import(platformName, platformSlug, manufacturerName, manufacturerSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {

@@ -209,6 +209,38 @@ func TestAccVirtualMachineResource_update(t *testing.T) {
 
 }
 
+func TestAccConsistency_VirtualMachine_LiteralNames(t *testing.T) {
+	t.Parallel()
+	clusterTypeName := testutil.RandomName("ct")
+	clusterTypeSlug := testutil.RandomSlug("ct")
+	clusterName := testutil.RandomName("cluster")
+	vmName := testutil.RandomName("vm")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualMachineConsistencyLiteralNamesConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
+				),
+			},
+			{
+				PlanOnly: true,
+				Config:   testAccVirtualMachineConsistencyLiteralNamesConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName),
+			},
+		},
+	})
+}
+
 func testAccVirtualMachineResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName string) string {
 
 	return fmt.Sprintf(`
@@ -352,4 +384,23 @@ resource "netbox_virtual_machine" "test" {
   platform = netbox_platform.test.name
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, platformName, platformSlug, vmName)
+}
+
+func testAccVirtualMachineConsistencyLiteralNamesConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_cluster" "test" {
+  name = %[3]q
+  type = netbox_cluster_type.test.name
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = %[4]q
+  cluster = netbox_cluster.test.name
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName)
 }

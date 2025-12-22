@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
@@ -100,6 +101,34 @@ func TestAccTunnelTerminationResource_import(t *testing.T) {
 	})
 }
 
+func TestAccConsistency_TunnelTermination_LiteralNames(t *testing.T) {
+	t.Parallel()
+	tunnelName := testutil.RandomName("tunnel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelCleanup(tunnelName)
+	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTunnelTerminationConsistencyLiteralNamesConfig(tunnelName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tunnel_termination.test", "id"),
+				),
+			},
+			{
+				PlanOnly: true,
+				Config:   testAccTunnelTerminationConsistencyLiteralNamesConfig(tunnelName),
+			},
+		},
+	})
+}
+
 func testAccTunnelTerminationResourceConfig_basic(tunnelName string) string {
 	return `
 resource "netbox_tunnel" "test" {
@@ -113,6 +142,21 @@ resource "netbox_tunnel_termination" "test" {
   role             = "peer"
 }
 `
+}
+
+func testAccTunnelTerminationConsistencyLiteralNamesConfig(tunnelName string) string {
+	return fmt.Sprintf(`
+resource "netbox_tunnel" "test" {
+  name          = %[1]q
+  encapsulation = "ipsec-tunnel"
+}
+
+resource "netbox_tunnel_termination" "test" {
+  tunnel           = netbox_tunnel.test.id
+  termination_type = "dcim.device"
+  role             = "peer"
+}
+`, tunnelName)
 }
 
 func testAccTunnelTerminationResourceConfig_withRole(tunnelName, role string) string {

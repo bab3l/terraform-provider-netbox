@@ -219,3 +219,49 @@ resource "netbox_tenant" "test" {
 }
 `, groupName, groupSlug, tenantName, tenantSlug)
 }
+
+func TestAccConsistency_Tenant_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-tenant-lit")
+	slug := testutil.RandomSlug("tf-test-tenant-lit")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTenantCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckTenantDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTenantConsistencyLiteralNamesConfig(name, slug, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "description", description),
+				),
+			},
+			{
+				Config:   testAccTenantConsistencyLiteralNamesConfig(name, slug, description),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tenant.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccTenantConsistencyLiteralNamesConfig(name, slug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name        = %q
+  slug        = %q
+  description = %q
+}
+`, name, slug, description)
+}

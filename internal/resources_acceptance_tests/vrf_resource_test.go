@@ -201,3 +201,58 @@ resource "netbox_vrf" "test" {
 }
 `, vrfName, tenantName, tenantSlug)
 }
+
+func TestAccConsistency_VRF_LiteralNames(t *testing.T) {
+	t.Parallel()
+	vrfName := testutil.RandomName("vrf-lit")
+	tenantName := testutil.RandomName("tenant-lit")
+	tenantSlug := testutil.RandomSlug("tenant-lit")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVRFCleanup(vrfName)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVRFDestroy,
+			testutil.CheckTenantDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVRFConsistencyLiteralNamesConfig(vrfName, tenantName, tenantSlug, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "name", vrfName),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "description", description),
+				),
+			},
+			{
+				Config:   testAccVRFConsistencyLiteralNamesConfig(vrfName, tenantName, tenantSlug, description),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVRFConsistencyLiteralNamesConfig(vrfName, tenantName, tenantSlug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = "%[2]s"
+  slug = "%[3]s"
+}
+
+resource "netbox_vrf" "test" {
+  name        = "%[1]s"
+  tenant      = netbox_tenant.test.name
+  description = %q
+}
+`, vrfName, tenantName, tenantSlug, description)
+}

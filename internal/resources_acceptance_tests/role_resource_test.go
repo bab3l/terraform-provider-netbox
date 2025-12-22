@@ -151,3 +151,44 @@ resource "netbox_role" "test" {
 `, name, slug, description, weight)
 
 }
+func TestAccConsistency_Role_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-role-lit")
+	slug := testutil.RandomSlug("tf-test-role-lit")
+	description := testutil.RandomName("description")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoleConsistencyLiteralNamesConfig(name, slug, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_role.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_role.test", "description", description),
+				),
+			},
+			{
+				Config:   testAccRoleConsistencyLiteralNamesConfig(name, slug, description),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_role.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccRoleConsistencyLiteralNamesConfig(name, slug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_role" "test" {
+  name        = %q
+  slug        = %q
+  description = %q
+}
+`, name, slug, description)
+}

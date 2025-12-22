@@ -99,6 +99,40 @@ func TestAccVMInterfaceResource_full(t *testing.T) {
 	})
 }
 
+func TestAccConsistency_VMInterface_LiteralNames(t *testing.T) {
+	t.Parallel()
+	clusterTypeName := testutil.RandomName("ct")
+	clusterTypeSlug := testutil.RandomSlug("ct")
+	clusterName := testutil.RandomName("cluster")
+	vmName := testutil.RandomName("vm")
+	ifaceName := testutil.RandomName("eth")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVMInterfaceConsistencyLiteralNamesConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
+				),
+			},
+			{
+				PlanOnly: true,
+				Config:   testAccVMInterfaceConsistencyLiteralNamesConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
+			},
+		},
+	})
+}
+
 func TestAccVMInterfaceResource_update(t *testing.T) {
 
 	t.Parallel()
@@ -306,4 +340,28 @@ resource "netbox_vm_interface" "test" {
   untagged_vlan = netbox_vlan.test.name
 }
 `, vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName, vlanVid, siteName, siteSlug)
+}
+
+func testAccVMInterfaceConsistencyLiteralNamesConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName, interfaceName string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_cluster" "test" {
+  name = %[3]q
+  type = netbox_cluster_type.test.name
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = %[4]q
+  cluster = netbox_cluster.test.name
+}
+
+resource "netbox_vm_interface" "test" {
+  virtual_machine = netbox_virtual_machine.test.name
+  name            = %[5]q
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName, interfaceName)
 }

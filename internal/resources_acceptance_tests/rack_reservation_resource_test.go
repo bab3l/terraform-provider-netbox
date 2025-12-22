@@ -175,3 +175,63 @@ resource "netbox_rack_reservation" "test" {
 `, siteName, siteSlug, rackName, description)
 
 }
+
+func TestAccConsistency_RackReservation_LiteralNames(t *testing.T) {
+	t.Parallel()
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	rackName := testutil.RandomName("rack")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterRackCleanup(rackName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackReservationConsistencyLiteralNamesConfig(siteName, siteSlug, rackName, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rack_reservation.test", "id"),
+				),
+			},
+			{
+				PlanOnly: true,
+				Config:   testAccRackReservationConsistencyLiteralNamesConfig(siteName, siteSlug, rackName, description),
+			},
+		},
+	})
+}
+func testAccRackReservationConsistencyLiteralNamesConfig(siteName, siteSlug, rackName, description string) string {
+	return fmt.Sprintf(`
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_rack" "test" {
+  name     = %[3]q
+  site     = netbox_site.test.id
+  status   = "active"
+  u_height = 42
+}
+
+data "netbox_user" "admin" {
+  username = "admin"
+}
+
+resource "netbox_rack_reservation" "test" {
+  rack        = netbox_rack.test.name
+  units       = [1, 2]
+  user        = data.netbox_user.admin.id
+  description = %[4]q
+}
+`, siteName, siteSlug, rackName, description)
+}

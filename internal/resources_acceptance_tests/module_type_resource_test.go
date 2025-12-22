@@ -110,3 +110,54 @@ resource "netbox_module_type" "test" {
 }
 `, mfgName, mfgSlug, model, description)
 }
+
+func TestAccConsistency_ModuleType_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+	mfgName := testutil.RandomName("tf-test-mfg-lit")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-lit")
+	model := testutil.RandomName("tf-test-module-type-lit")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleTypeConsistencyLiteralNamesConfig(mfgName, mfgSlug, model, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_type.test", "id"),
+					resource.TestCheckResourceAttr("netbox_module_type.test", "model", model),
+					resource.TestCheckResourceAttr("netbox_module_type.test", "description", description),
+				),
+			},
+			{
+				Config:   testAccModuleTypeConsistencyLiteralNamesConfig(mfgName, mfgSlug, model, description),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_type.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccModuleTypeConsistencyLiteralNamesConfig(mfgName, mfgSlug, model, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  description  = %q
+}
+`, mfgName, mfgSlug, model, description)
+}

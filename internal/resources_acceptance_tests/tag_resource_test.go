@@ -45,7 +45,7 @@ func TestAccTagResource_full(t *testing.T) {
 	t.Parallel()
 	name := testutil.RandomName("tag")
 	slug := testutil.RandomSlug("tag")
-	color := "ff5722"
+	color := testutil.ColorOrange
 	description := testutil.RandomName("description")
 	updatedName := testutil.RandomName("tag-updated")
 	updatedSlug := testutil.RandomSlug("tag-updated")
@@ -115,6 +115,50 @@ resource "netbox_tag" "test" {
 `, name, slug)
 }
 
+func TestAccConsistency_Tag_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tag-lit")
+	slug := testutil.RandomSlug("tag-lit")
+	color := testutil.ColorOrange
+	description := testutil.RandomName("description")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTagConsistencyLiteralNamesConfig(name, slug, color, description),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tag.test", "id"),
+					resource.TestCheckResourceAttr("netbox_tag.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_tag.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_tag.test", "color", color),
+					resource.TestCheckResourceAttr("netbox_tag.test", "description", description),
+				),
+			},
+			{
+				Config:   testAccTagConsistencyLiteralNamesConfig(name, slug, color, description),
+				PlanOnly: true,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tag.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccTagConsistencyLiteralNamesConfig(name, slug, color, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_tag" "test" {
+  name        = %q
+  slug        = %q
+  color       = %q
+  description = %q
+}
+`, name, slug, color, description)
+}
 func testAccTagResourceFull(name, slug, color, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "test" {

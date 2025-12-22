@@ -354,3 +354,49 @@ resource "netbox_vlan" "test" {
 }
 `, siteName, siteSlug, vlanName, vlanVid, description)
 }
+
+func TestAccConsistency_VLAN_LiteralNames(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-vlan-lit")
+	vid := testutil.RandomVID()
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVLANCleanup(vid)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckVLANDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVLANConsistencyLiteralNamesConfig(name, vid, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "vid", fmt.Sprintf("%d", vid)),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "description", description),
+				),
+			},
+			{
+				Config:   testAccVLANConsistencyLiteralNamesConfig(name, vid, description),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVLANConsistencyLiteralNamesConfig(name string, vid int32, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_vlan" "test" {
+  name        = %q
+  vid         = %d
+  description = %q
+}
+`, name, vid, description)
+}

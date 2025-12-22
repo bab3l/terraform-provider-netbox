@@ -373,6 +373,83 @@ resource "netbox_region" "child" {
 
 }
 
+func TestAccConsistency_Region_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-region-lit")
+
+	slug := testutil.RandomSlug("tf-test-region-lit")
+
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterRegionCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckRegionDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccRegionConsistencyLiteralNamesConfig(name, slug, description),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_region.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_region.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_region.test", "slug", slug),
+
+					resource.TestCheckResourceAttr("netbox_region.test", "description", description),
+				),
+			},
+
+			{
+
+				Config: testAccRegionConsistencyLiteralNamesConfig(name, slug, description),
+
+				PlanOnly: true,
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_region.test", "id"),
+				),
+			},
+		},
+	})
+
+}
+
+func testAccRegionConsistencyLiteralNamesConfig(name, slug, description string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_region" "test" {
+
+  name        = %q
+
+  slug        = %q
+
+  description = %q
+
+}
+
+`, name, slug, description)
+
+}
+
 func testAccRegionResourceConfig_import(name, slug string) string {
 
 	return fmt.Sprintf(`
