@@ -8,6 +8,7 @@ import (
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -59,6 +60,8 @@ type PowerPortTemplateResourceModel struct {
 	AllocatedDraw types.Int32 `tfsdk:"allocated_draw"`
 
 	Description types.String `tfsdk:"description"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the resource type name.
@@ -129,6 +132,8 @@ func (r *PowerPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 
 				Optional: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("power port template"),
 
 			"maximum_draw": schema.Int32Attribute{
 
@@ -564,6 +569,13 @@ func (r *PowerPortTemplateResource) mapResponseToModel(template *netbox.PowerPor
 	data.ID = types.Int32Value(template.GetId())
 
 	data.Name = types.StringValue(template.GetName())
+
+	// DisplayName
+	if template.Display != "" {
+		data.DisplayName = types.StringValue(template.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device type - preserve user's input format
 

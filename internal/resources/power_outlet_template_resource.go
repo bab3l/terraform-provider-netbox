@@ -8,6 +8,7 @@ import (
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -59,6 +60,8 @@ type PowerOutletTemplateResourceModel struct {
 	FeedLeg types.String `tfsdk:"feed_leg"`
 
 	Description types.String `tfsdk:"description"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the resource type name.
@@ -129,6 +132,8 @@ func (r *PowerOutletTemplateResource) Schema(ctx context.Context, req resource.S
 
 				Optional: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("power outlet template"),
 
 			"power_port": schema.Int32Attribute{
 
@@ -612,6 +617,13 @@ func (r *PowerOutletTemplateResource) mapResponseToModel(template *netbox.PowerO
 	data.ID = types.Int32Value(template.GetId())
 
 	data.Name = types.StringValue(template.GetName())
+
+	// DisplayName
+	if template.Display != "" {
+		data.DisplayName = types.StringValue(template.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device type - preserve user's input format
 
