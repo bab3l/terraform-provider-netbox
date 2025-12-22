@@ -62,7 +62,7 @@ func TestAccProviderResource_full(t *testing.T) {
 
 	slug := testutil.RandomSlug("tf-test-provider-full")
 
-	description := "Test circuit provider with all fields"
+	description := testutil.RandomName("description")
 
 	comments := "Test comments for circuit provider"
 

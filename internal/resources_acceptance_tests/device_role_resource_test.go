@@ -50,7 +50,7 @@ func TestAccDeviceRoleResource_full(t *testing.T) {
 
 	slug := testutil.RandomSlug("tf-test-dr-full")
 
-	description := "Test device role with all fields"
+	description := testutil.RandomName("description")
 
 	resource.Test(t, resource.TestCase{
 

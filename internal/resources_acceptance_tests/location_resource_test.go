@@ -74,7 +74,7 @@ func TestAccLocationResource_full(t *testing.T) {
 
 	slug := testutil.RandomSlug("tf-test-loc-full")
 
-	description := "Test location with all fields"
+	description := testutil.RandomName("description")
 
 	facility := "Building A"
 
