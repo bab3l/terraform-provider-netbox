@@ -54,6 +54,8 @@ type ContactAssignmentResourceModel struct {
 
 	Priority types.String `tfsdk:"priority"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`

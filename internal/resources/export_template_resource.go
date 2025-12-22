@@ -55,6 +55,8 @@ type ExportTemplateResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	TemplateCode types.String `tfsdk:"template_code"`
 
 	MimeType types.String `tfsdk:"mime_type"`
@@ -111,7 +113,7 @@ func (r *ExportTemplateResource) Schema(ctx context.Context, req resource.Schema
 
 				Optional: true,
 			},
-
+			"display_name": nbschema.DisplayNameAttribute("export template"),
 			"template_code": schema.StringAttribute{
 
 				MarkdownDescription: "Jinja2 template code. The list of objects being exported is passed as a context variable named `queryset`.",
