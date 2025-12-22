@@ -55,6 +55,8 @@ type CircuitTypeResourceModel struct {
 
 	Slug types.String `tfsdk:"slug"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Description types.String `tfsdk:"description"`
 
 	Color types.String `tfsdk:"color"`
@@ -124,6 +126,8 @@ func (r *CircuitTypeResource) Schema(ctx context.Context, req resource.SchemaReq
 					),
 				},
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("circuit type"),
 
 			"description": schema.StringAttribute{
 
@@ -602,6 +606,8 @@ func (r *CircuitTypeResource) mapCircuitTypeToState(ctx context.Context, circuit
 	data.Name = types.StringValue(circuitType.GetName())
 
 	data.Slug = types.StringValue(circuitType.GetSlug())
+
+	data.DisplayName = types.StringValue(circuitType.GetDisplay())
 
 	// Handle description
 
