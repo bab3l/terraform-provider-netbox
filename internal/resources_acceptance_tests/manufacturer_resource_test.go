@@ -276,6 +276,82 @@ resource "netbox_manufacturer" "test" {
 
 }
 
+func TestAccConsistency_Manufacturer_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-manufacturer-lit")
+
+	slug := testutil.RandomSlug("tf-test-mfr-lit")
+
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckManufacturerDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccManufacturerConsistencyLiteralNamesConfig(name, slug, description),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_manufacturer.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "slug", slug),
+
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "description", description),
+				),
+			},
+
+			{
+
+				Config: testAccManufacturerConsistencyLiteralNamesConfig(name, slug, description),
+
+				PlanOnly: true,
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_manufacturer.test", "id"),
+				),
+			},
+		},
+	})
+
+}
+
+func testAccManufacturerConsistencyLiteralNamesConfig(name, slug, description string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_manufacturer" "test" {
+
+  name        = %q
+
+  slug        = %q
+
+  description = %q
+
+}
+
+`, name, slug, description)
+
+}
+
 func testAccManufacturerResourceConfig_import(name, slug string) string {
 
 	return fmt.Sprintf(`

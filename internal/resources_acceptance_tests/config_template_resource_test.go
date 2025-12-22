@@ -11,13 +11,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+const defaultTemplateCode = "hostname {{ device.name }}"
+
 func TestAccConfigTemplateResource_basic(t *testing.T) {
 
 	t.Parallel()
 
 	name := testutil.RandomName("config-tmpl")
 
-	templateCode := "hostname {{ device.name }}"
+	templateCode := defaultTemplateCode
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterConfigTemplateCleanup(name)
@@ -66,7 +68,7 @@ func TestAccConfigTemplateResource_full(t *testing.T) {
 
 	name := testutil.RandomName("config-tmpl")
 
-	templateCode := "hostname {{ device.name }}"
+	templateCode := defaultTemplateCode
 
 	description := testutil.RandomName("description")
 
@@ -122,6 +124,80 @@ func TestAccConfigTemplateResource_full(t *testing.T) {
 			},
 		},
 	})
+
+}
+
+func TestAccConsistency_ConfigTemplate_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("config-tmpl-lit")
+
+	templateCode := defaultTemplateCode
+
+	description := "Test template"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigTemplateCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccConfigTemplateConsistencyLiteralNamesConfig(name, templateCode, description),
+
+				Check: resource.ComposeAggregateTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_config_template.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_config_template.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_config_template.test", "template_code", templateCode),
+
+					resource.TestCheckResourceAttr("netbox_config_template.test", "description", description),
+				),
+			},
+
+			{
+
+				Config: testAccConfigTemplateConsistencyLiteralNamesConfig(name, templateCode, description),
+
+				PlanOnly: true,
+
+				Check: resource.ComposeAggregateTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_config_template.test", "id"),
+				),
+			},
+		},
+	})
+
+}
+
+func testAccConfigTemplateConsistencyLiteralNamesConfig(name, templateCode, description string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_config_template" "test" {
+
+  name          = %q
+
+  template_code = %q
+
+  description   = %q
+
+}
+
+`, name, templateCode, description)
 
 }
 

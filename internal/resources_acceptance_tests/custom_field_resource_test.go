@@ -119,6 +119,71 @@ func TestAccCustomFieldResource_full(t *testing.T) {
 
 }
 
+func TestAccConsistency_CustomField_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCustomFieldConsistencyLiteralNamesConfig(name),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_custom_field.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "type", "text"),
+				),
+			},
+
+			{
+
+				Config: testAccCustomFieldConsistencyLiteralNamesConfig(name),
+
+				PlanOnly: true,
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_custom_field.test", "id"),
+				),
+			},
+		},
+	})
+
+}
+
+func testAccCustomFieldConsistencyLiteralNamesConfig(name string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_custom_field" "test" {
+
+  name         = %q
+
+  type         = "text"
+
+  object_types = ["dcim.site"]
+
+}
+
+`, name)
+
+}
+
 func testAccCustomFieldResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`

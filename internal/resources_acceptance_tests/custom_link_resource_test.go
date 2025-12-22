@@ -142,6 +142,75 @@ func TestAccCustomLinkResource_update(t *testing.T) {
 
 }
 
+func TestAccConsistency_CustomLink_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("cl-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomLinkCleanupByName(name)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		CheckDestroy: testutil.CheckCustomLinkDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCustomLinkConsistencyLiteralNamesConfig(name),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_text", "View in External System"),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_url", "https://example.com/device/{{ object.name }}"),
+				),
+			},
+
+			{
+
+				Config: testAccCustomLinkConsistencyLiteralNamesConfig(name),
+
+				PlanOnly: true,
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_custom_link.test", "id"),
+				),
+			},
+		},
+	})
+
+}
+
+func testAccCustomLinkConsistencyLiteralNamesConfig(name string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_custom_link" "test" {
+
+  name       = %q
+
+  link_text  = "View in External System"
+
+  link_url   = "https://example.com/device/{{ object.name }}"
+
+  object_types = ["dcim.device"]
+
+}
+
+`, name)
+
+}
+
 func testAccCustomLinkResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`

@@ -58,6 +58,72 @@ func TestAccConfigContextResource_basic(t *testing.T) {
 
 }
 
+func TestAccConsistency_ConfigContext_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-config-context-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigContextCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccConfigContextConsistencyLiteralNamesConfig(name),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_config_context.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_config_context.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_config_context.test", "data", "{\"foo\":\"bar\"}"),
+				),
+			},
+
+			{
+
+				Config: testAccConfigContextConsistencyLiteralNamesConfig(name),
+
+				PlanOnly: true,
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_config_context.test", "id"),
+				),
+			},
+		},
+	})
+
+}
+
+func testAccConfigContextConsistencyLiteralNamesConfig(name string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_config_context" "test" {
+
+  name = %q
+
+  data = "{\"foo\":\"bar\"}"
+
+}
+
+`, name)
+
+}
+
 func testAccConfigContextResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`

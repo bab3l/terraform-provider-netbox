@@ -206,6 +206,83 @@ func TestAccClusterTypeResource_import(t *testing.T) {
 
 }
 
+func TestAccConsistency_ClusterType_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-cluster-type-lit")
+
+	slug := testutil.RandomSlug("tf-test-cluster-type-lit")
+
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterClusterTypeCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckClusterTypeDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccClusterTypeConsistencyLiteralNamesConfig(name, slug, description),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_cluster_type.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_cluster_type.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_cluster_type.test", "slug", slug),
+
+					resource.TestCheckResourceAttr("netbox_cluster_type.test", "description", description),
+				),
+			},
+
+			{
+
+				Config: testAccClusterTypeConsistencyLiteralNamesConfig(name, slug, description),
+
+				PlanOnly: true,
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_cluster_type.test", "id"),
+				),
+			},
+		},
+	})
+
+}
+
+func testAccClusterTypeConsistencyLiteralNamesConfig(name, slug, description string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_cluster_type" "test" {
+
+  name        = %q
+
+  slug        = %q
+
+  description = %q
+
+}
+
+`, name, slug, description)
+
+}
+
 func testAccClusterTypeResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`

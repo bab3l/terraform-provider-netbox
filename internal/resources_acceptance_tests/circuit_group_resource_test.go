@@ -195,6 +195,83 @@ func TestAccCircuitGroupResource_import(t *testing.T) {
 
 }
 
+func TestAccConsistency_CircuitGroup_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-circuit-group-lit")
+
+	slug := testutil.RandomSlug("tf-test-cg-lit")
+
+	description := testutil.Description1
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterCircuitGroupCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckCircuitGroupDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCircuitGroupConsistencyLiteralNamesConfig(name, slug, description),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_circuit_group.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_circuit_group.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_circuit_group.test", "slug", slug),
+
+					resource.TestCheckResourceAttr("netbox_circuit_group.test", "description", description),
+				),
+			},
+
+			{
+
+				Config: testAccCircuitGroupConsistencyLiteralNamesConfig(name, slug, description),
+
+				PlanOnly: true,
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_circuit_group.test", "id"),
+				),
+			},
+		},
+	})
+
+}
+
+func testAccCircuitGroupConsistencyLiteralNamesConfig(name, slug, description string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_circuit_group" "test" {
+
+  name        = %[1]q
+
+  slug        = %[2]q
+
+  description = %[3]q
+
+}
+
+`, name, slug, description)
+
+}
+
 func testAccCircuitGroupResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`

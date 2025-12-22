@@ -281,6 +281,97 @@ resource "netbox_location" "test" {
 
 }
 
+func TestAccConsistency_Location_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-loc-site-lit")
+
+	siteSlug := testutil.RandomSlug("tf-test-loc-site-lit")
+
+	name := testutil.RandomName("tf-test-location-lit")
+
+	slug := testutil.RandomSlug("tf-test-location-lit")
+
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterLocationCleanup(slug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckLocationDestroy, testutil.CheckSiteDestroy),
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccLocationConsistencyLiteralNamesConfig(siteName, siteSlug, name, slug, description),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_location.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_location.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_location.test", "slug", slug),
+
+					resource.TestCheckResourceAttr("netbox_location.test", "description", description),
+				),
+			},
+
+			{
+
+				Config: testAccLocationConsistencyLiteralNamesConfig(siteName, siteSlug, name, slug, description),
+
+				PlanOnly: true,
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_location.test", "id"),
+				),
+			},
+		},
+	})
+
+}
+
+func testAccLocationConsistencyLiteralNamesConfig(siteName, siteSlug, name, slug, description string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_site" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+resource "netbox_location" "test" {
+
+  name        = %q
+
+  slug        = %q
+
+  description = %q
+
+  site        = netbox_site.test.id
+
+}
+
+`, siteName, siteSlug, name, slug, description)
+
+}
+
 func testAccLocationResourceConfig_import(siteName, siteSlug, name, slug string) string {
 
 	return fmt.Sprintf(`

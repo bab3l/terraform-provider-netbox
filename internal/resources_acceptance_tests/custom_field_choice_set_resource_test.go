@@ -138,6 +138,79 @@ func TestAccCustomFieldChoiceSetResource_update(t *testing.T) {
 
 }
 
+func TestAccConsistency_CustomFieldChoiceSet_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("cfcs-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldChoiceSetCleanupByName(name)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		CheckDestroy: testutil.CheckCustomFieldChoiceSetDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCustomFieldChoiceSetConsistencyLiteralNamesConfig(name),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "extra_choices.#", "3"),
+				),
+			},
+
+			{
+
+				Config: testAccCustomFieldChoiceSetConsistencyLiteralNamesConfig(name),
+
+				PlanOnly: true,
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_custom_field_choice_set.test", "id"),
+				),
+			},
+		},
+	})
+
+}
+
+func testAccCustomFieldChoiceSetConsistencyLiteralNamesConfig(name string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_custom_field_choice_set" "test" {
+
+  name                  = %q
+
+  order_alphabetically = true
+
+  extra_choices = [
+
+    { value = "critical", label = "Critical" },
+
+    { value = "high",     label = "High" },
+
+    { value = "low",      label = "Low" },
+
+  ]
+
+}
+
+`, name)
+
+}
+
 func testAccCustomFieldChoiceSetResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`
