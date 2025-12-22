@@ -372,3 +372,125 @@ resource "netbox_circuit_group_assignment" "test" {
 `, groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, priority)
 
 }
+
+func TestAccConsistency_CircuitGroupAssignment_LiteralNames(t *testing.T) {
+
+	t.Parallel()
+
+	groupName := testutil.RandomName("tf-test-cga-grp-lit")
+
+	groupSlug := testutil.RandomSlug("tf-test-cga-grp-lit")
+
+	providerName := testutil.RandomName("tf-test-cga-prov-lit")
+
+	providerSlug := testutil.RandomSlug("tf-test-cga-prov-lit")
+
+	circuitTypeName := testutil.RandomName("tf-test-cga-type-lit")
+
+	circuitTypeSlug := testutil.RandomSlug("tf-test-cga-type-lit")
+
+	circuitCid := testutil.RandomSlug("tf-test-cga-ckt-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterCircuitGroupAssignmentCleanup(groupName)
+
+	cleanup.RegisterCircuitGroupCleanup(groupName)
+
+	cleanup.RegisterCircuitCleanup(circuitCid)
+
+	cleanup.RegisterProviderCleanup(providerSlug)
+
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckCircuitGroupAssignmentDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCircuitGroupAssignmentResourceConfigLiteralNames(
+
+					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_circuit_group_assignment.test", "group_id", groupName),
+
+					resource.TestCheckResourceAttr("netbox_circuit_group_assignment.test", "circuit_id", circuitCid),
+				),
+			},
+
+			{
+
+				PlanOnly: true,
+
+				Config: testAccCircuitGroupAssignmentResourceConfigLiteralNames(
+
+					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid),
+			},
+		},
+	})
+
+}
+
+func testAccCircuitGroupAssignmentResourceConfigLiteralNames(groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_circuit_group" "test" {
+
+  name = %[1]q
+
+  slug = %[2]q
+
+}
+
+resource "netbox_provider" "test" {
+
+  name = %[3]q
+
+  slug = %[4]q
+
+}
+
+resource "netbox_circuit_type" "test" {
+
+  name = %[5]q
+
+  slug = %[6]q
+
+}
+
+resource "netbox_circuit" "test" {
+
+  cid              = %[7]q
+
+  circuit_provider = netbox_provider.test.slug
+
+  type             = netbox_circuit_type.test.slug
+
+}
+
+resource "netbox_circuit_group_assignment" "test" {
+
+  group_id   = netbox_circuit_group.test.name
+
+  circuit_id = netbox_circuit.test.cid
+
+}
+
+`, groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid)
+
+}
