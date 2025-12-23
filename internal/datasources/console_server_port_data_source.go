@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -52,6 +53,8 @@ type ConsoleServerPortDataSourceModel struct {
 	Description types.String `tfsdk:"description"`
 
 	MarkConnected types.Bool `tfsdk:"mark_connected"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -140,6 +143,8 @@ func (d *ConsoleServerPortDataSource) Schema(ctx context.Context, req datasource
 
 				Computed: true,
 			},
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the console server port."),
 		},
 	}
 
@@ -381,6 +386,13 @@ func (d *ConsoleServerPortDataSource) mapResponseToModel(consoleServerPort *netb
 
 		data.MarkConnected = types.BoolValue(false)
 
+	}
+
+	// Map display name
+	if consoleServerPort.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(consoleServerPort.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 }

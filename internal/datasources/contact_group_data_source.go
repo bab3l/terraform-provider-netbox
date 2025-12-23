@@ -31,6 +31,7 @@ type ContactGroupDataSourceModel struct {
 	Parent      types.String `tfsdk:"parent"`
 	ParentID    types.String `tfsdk:"parent_id"`
 	Description types.String `tfsdk:"description"`
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 func (d *ContactGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -42,12 +43,13 @@ func (d *ContactGroupDataSource) Schema(ctx context.Context, req datasource.Sche
 		MarkdownDescription: "Use this data source to get information about a contact group in Netbox.",
 
 		Attributes: map[string]schema.Attribute{
-			"id":          nbschema.DSIDAttribute("contact group"),
-			"name":        nbschema.DSNameAttribute("contact group"),
-			"slug":        nbschema.DSSlugAttribute("contact group"),
-			"parent":      nbschema.DSComputedStringAttribute("Name of the parent contact group."),
-			"parent_id":   nbschema.DSComputedStringAttribute("ID of the parent contact group."),
-			"description": nbschema.DSComputedStringAttribute("Description of the contact group."),
+			"id":           nbschema.DSIDAttribute("contact group"),
+			"name":         nbschema.DSNameAttribute("contact group"),
+			"slug":         nbschema.DSSlugAttribute("contact group"),
+			"parent":       nbschema.DSComputedStringAttribute("Name of the parent contact group."),
+			"parent_id":    nbschema.DSComputedStringAttribute("ID of the parent contact group."),
+			"description":  nbschema.DSComputedStringAttribute("Description of the contact group."),
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the contact group."),
 		},
 	}
 }
@@ -156,6 +158,13 @@ func (d *ContactGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 	} else {
 		data.Parent = types.StringNull()
 		data.ParentID = types.StringNull()
+	}
+
+	// Map display name
+	if contactGroup.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(contactGroup.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

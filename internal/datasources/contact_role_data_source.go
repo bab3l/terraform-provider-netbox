@@ -29,6 +29,7 @@ type ContactRoleDataSourceModel struct {
 	Name        types.String `tfsdk:"name"`
 	Slug        types.String `tfsdk:"slug"`
 	Description types.String `tfsdk:"description"`
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 func (d *ContactRoleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -40,10 +41,11 @@ func (d *ContactRoleDataSource) Schema(ctx context.Context, req datasource.Schem
 		MarkdownDescription: "Use this data source to get information about a contact role in Netbox.",
 
 		Attributes: map[string]schema.Attribute{
-			"id":          nbschema.DSIDAttribute("contact role"),
-			"name":        nbschema.DSNameAttribute("contact role"),
-			"slug":        nbschema.DSSlugAttribute("contact role"),
-			"description": nbschema.DSComputedStringAttribute("Description of the contact role."),
+			"id":           nbschema.DSIDAttribute("contact role"),
+			"name":         nbschema.DSNameAttribute("contact role"),
+			"slug":         nbschema.DSSlugAttribute("contact role"),
+			"description":  nbschema.DSComputedStringAttribute("Description of the contact role."),
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the contact role."),
 		},
 	}
 }
@@ -137,6 +139,13 @@ func (d *ContactRoleDataSource) Read(ctx context.Context, req datasource.ReadReq
 		data.Description = types.StringValue(contactRole.GetDescription())
 	} else {
 		data.Description = types.StringNull()
+	}
+
+	// Map display name
+	if contactRole.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(contactRole.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

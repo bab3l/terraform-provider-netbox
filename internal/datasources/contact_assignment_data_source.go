@@ -53,6 +53,8 @@ type ContactAssignmentDataSourceModel struct {
 	PriorityName types.String `tfsdk:"priority_name"`
 
 	Tags types.Set `tfsdk:"tags"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 func (d *ContactAssignmentDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -88,6 +90,8 @@ func (d *ContactAssignmentDataSource) Schema(ctx context.Context, req datasource
 			"priority_name": nbschema.DSComputedStringAttribute("Display name for the priority."),
 
 			"tags": nbschema.DSTagsAttribute(),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the contact assignment."),
 		},
 	}
 
@@ -278,6 +282,13 @@ func (d *ContactAssignmentDataSource) mapResponseToState(ctx context.Context, as
 
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 
+	}
+
+	// Map display name
+	if assignment.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(assignment.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 }
