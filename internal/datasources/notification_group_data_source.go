@@ -34,6 +34,7 @@ type NotificationGroupDataSource struct {
 // NotificationGroupDataSourceModel describes the data source model.
 type NotificationGroupDataSourceModel struct {
 	ID          types.String `tfsdk:"id"`
+	DisplayName types.String `tfsdk:"display_name"`
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
 	GroupIDs    types.Set    `tfsdk:"group_ids"`
@@ -69,6 +70,10 @@ func (d *NotificationGroupDataSource) Schema(ctx context.Context, req datasource
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique numeric ID of the notification group to look up.",
 				Required:            true,
+			},
+			"display_name": schema.StringAttribute{
+				MarkdownDescription: "The display name of the notification group.",
+				Computed:            true,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the notification group.",
@@ -183,6 +188,18 @@ func (d *NotificationGroupDataSource) Read(ctx context.Context, req datasource.R
 func (d *NotificationGroupDataSource) mapToDataSourceModel(ctx context.Context, result *netbox.NotificationGroup, data *NotificationGroupDataSourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 	data.Name = types.StringValue(result.GetName())
+
+	// Display Name
+
+	if result.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(result.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	// Map description
 	if result.HasDescription() && result.GetDescription() != "" {

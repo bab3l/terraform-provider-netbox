@@ -42,6 +42,8 @@ type ModuleBayTemplateDataSource struct {
 type ModuleBayTemplateDataSourceModel struct {
 	ID types.String `tfsdk:"id"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	DeviceType types.String `tfsdk:"device_type"`
 
 	DeviceTypeID types.String `tfsdk:"device_type_id"`
@@ -82,6 +84,13 @@ func (d *ModuleBayTemplateDataSource) Schema(ctx context.Context, req datasource
 				MarkdownDescription: "The unique numeric ID of the module bay template.",
 
 				Required: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the module bay template.",
+
+				Computed: true,
 			},
 
 			"device_type": schema.StringAttribute{
@@ -246,6 +255,18 @@ func (d *ModuleBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 func (d *ModuleBayTemplateDataSource) mapToState(ctx context.Context, result *netbox.ModuleBayTemplate, data *ModuleBayTemplateDataSourceModel, diags *diag.Diagnostics) {
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
+
+	// Display Name
+
+	if result.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(result.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	data.Name = types.StringValue(result.GetName())
 

@@ -37,6 +37,8 @@ type ModuleDataSource struct {
 type ModuleDataSourceModel struct {
 	ID types.Int32 `tfsdk:"id"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	DeviceID types.Int32 `tfsdk:"device_id"`
 
 	Device types.String `tfsdk:"device"`
@@ -83,6 +85,13 @@ func (d *ModuleDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				MarkdownDescription: "The unique numeric ID of the module.",
 
 				Optional: true,
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the module.",
 
 				Computed: true,
 			},
@@ -349,6 +358,18 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 func (d *ModuleDataSource) mapResponseToModel(module *netbox.Module, data *ModuleDataSourceModel) {
 
 	data.ID = types.Int32Value(module.GetId())
+
+	// Display Name
+
+	if module.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(module.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	// Map device
 
