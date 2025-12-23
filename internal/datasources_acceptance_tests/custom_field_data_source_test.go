@@ -2,6 +2,7 @@ package datasources_acceptance_tests
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -12,14 +13,17 @@ func TestAccCustomFieldDataSource_basic(t *testing.T) {
 
 	t.Parallel()
 
+	// Custom field names only allow alphanumeric and underscores
+	name := strings.ReplaceAll(testutil.RandomName("tf_test_cf_ds"), "-", "_")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCustomFieldDataSourceConfig("test_custom_field"),
+				Config: testAccCustomFieldDataSourceConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_custom_field.test", "name", "test_custom_field"),
+					resource.TestCheckResourceAttr("data.netbox_custom_field.test", "name", name),
 					resource.TestCheckResourceAttr("data.netbox_custom_field.test", "type", "text"),
 				),
 			},
