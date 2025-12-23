@@ -60,6 +60,8 @@ type ServiceTemplateResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -143,6 +145,8 @@ func (r *ServiceTemplateResource) Schema(ctx context.Context, req resource.Schem
 
 				Optional: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("service template"),
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -701,6 +705,13 @@ func (r *ServiceTemplateResource) mapResponseToState(ctx context.Context, servic
 
 		data.Comments = types.StringNull()
 
+	}
+
+	// Map display_name
+	if serviceTemplate.Display != "" {
+		data.DisplayName = types.StringValue(serviceTemplate.Display)
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	// Handle tags
