@@ -74,6 +74,8 @@ type PrefixDataSourceModel struct {
 	Comments types.String `tfsdk:"comments"`
 
 	Tags types.List `tfsdk:"tags"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -224,6 +226,13 @@ func (d *PrefixDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Computed: true,
 
 				ElementType: types.StringType,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the prefix.",
+
+				Computed: true,
 			},
 		},
 	}
@@ -589,6 +598,18 @@ func (d *PrefixDataSource) mapPrefixToState(ctx context.Context, prefix *netbox.
 	} else {
 
 		data.Tags = types.ListNull(types.StringType)
+
+	}
+
+	// Map display_name
+
+	if prefix.Display != "" {
+
+		data.DisplayName = types.StringValue(prefix.Display)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 
