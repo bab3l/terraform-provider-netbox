@@ -67,6 +67,8 @@ type InterfaceDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Mode types.String `tfsdk:"mode"`
 
 	MarkConnected types.Bool `tfsdk:"mark_connected"`
@@ -135,6 +137,8 @@ func (d *InterfaceDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"mgmt_only": nbschema.DSComputedBoolAttribute("Interface is used only for out-of-band management."),
 
 			"description": nbschema.DSComputedStringAttribute("Brief description of the interface."),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the interface."),
 
 			"mode": nbschema.DSComputedStringAttribute("802.1Q mode (access, tagged, tagged-all)."),
 
@@ -669,6 +673,13 @@ func (d *InterfaceDataSource) mapInterfaceToDataSource(ctx context.Context, ifac
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 
+	}
+
+	// Display name
+	if iface.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(iface.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 }

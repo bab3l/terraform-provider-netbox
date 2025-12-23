@@ -66,6 +66,8 @@ type InventoryItemTemplateDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	ComponentType types.String `tfsdk:"component_type"`
 
 	ComponentID types.String `tfsdk:"component_id"`
@@ -176,6 +178,13 @@ func (d *InventoryItemTemplateDataSource) Schema(ctx context.Context, req dataso
 			"description": schema.StringAttribute{
 
 				MarkdownDescription: "A description of the inventory item template.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the inventory item template.",
 
 				Computed: true,
 			},
@@ -442,6 +451,18 @@ func (d *InventoryItemTemplateDataSource) mapToState(ctx context.Context, result
 	} else {
 
 		data.ComponentID = types.StringNull()
+
+	}
+
+	// Map display_name
+
+	if result.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(result.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 
