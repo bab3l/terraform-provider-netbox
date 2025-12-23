@@ -45,8 +45,6 @@ type ExportTemplateDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	TemplateCode types.String `tfsdk:"template_code"`
 
 	MimeType types.String `tfsdk:"mime_type"`
@@ -88,8 +86,6 @@ func (d *ExportTemplateDataSource) Schema(ctx context.Context, req datasource.Sc
 			},
 
 			"description": nbschema.DSComputedStringAttribute("Description of the export template."),
-
-			"display_name": nbschema.DSComputedStringAttribute("The display name of the export template."),
 
 			"template_code": nbschema.DSComputedStringAttribute("Jinja2 template code."),
 
@@ -304,18 +300,6 @@ func (d *ExportTemplateDataSource) mapResponseToState(ctx context.Context, expor
 	} else {
 
 		data.Description = types.StringNull()
-
-	}
-
-	// Handle display_name
-
-	if exportTemplate.GetDisplay() != "" {
-
-		data.DisplayName = types.StringValue(exportTemplate.GetDisplay())
-
-	} else {
-
-		data.DisplayName = types.StringNull()
 
 	}
 

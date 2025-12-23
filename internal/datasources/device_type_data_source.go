@@ -133,7 +133,9 @@ func (d *DeviceTypeDataSource) Schema(ctx context.Context, req datasource.Schema
 
 			"display_name": nbschema.DSComputedStringAttribute("The display name of the device type."),
 
-			"device_count": nbschema.DSComputedInt64Attribute("Number of devices of this type."),
+			"tags":          nbschema.DSTagsAttribute(),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
+			"device_count":  nbschema.DSComputedInt64Attribute("Number of devices of this type."),
 		},
 	}
 
