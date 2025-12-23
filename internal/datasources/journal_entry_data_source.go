@@ -35,6 +35,8 @@ type JournalEntryDataSource struct {
 type JournalEntryDataSourceModel struct {
 	ID types.Int32 `tfsdk:"id"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	AssignedObjectType types.String `tfsdk:"assigned_object_type"`
 
 	AssignedObjectID types.Int64 `tfsdk:"assigned_object_id"`
@@ -67,6 +69,13 @@ func (d *JournalEntryDataSource) Schema(ctx context.Context, req datasource.Sche
 				MarkdownDescription: "The unique numeric ID of the journal entry. Required for lookup.",
 
 				Required: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the journal entry.",
+
+				Computed: true,
 			},
 
 			"assigned_object_type": schema.StringAttribute{
@@ -173,6 +182,18 @@ func (d *JournalEntryDataSource) Read(ctx context.Context, req datasource.ReadRe
 	// Map response to state
 
 	data.ID = types.Int32Value(journalEntry.GetId())
+
+	// Display Name
+
+	if journalEntry.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(journalEntry.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	data.AssignedObjectType = types.StringValue(journalEntry.GetAssignedObjectType())
 

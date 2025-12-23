@@ -36,6 +36,8 @@ type L2VPNDataSource struct {
 type L2VPNDataSourceModel struct {
 	ID types.String `tfsdk:"id"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Name types.String `tfsdk:"name"`
 
 	Slug types.String `tfsdk:"slug"`
@@ -76,6 +78,8 @@ func (d *L2VPNDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 		Attributes: map[string]schema.Attribute{
 
 			"id": nbschema.DSIDAttribute("L2VPN"),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the L2VPN."),
 
 			"name": nbschema.DSNameAttribute("L2VPN"),
 
@@ -339,6 +343,18 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 func (d *L2VPNDataSource) mapResponseToState(ctx context.Context, l2vpn *netbox.L2VPN, data *L2VPNDataSourceModel, resp *datasource.ReadResponse) {
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", l2vpn.GetId()))
+
+	// Display Name
+
+	if l2vpn.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(l2vpn.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	data.Name = types.StringValue(l2vpn.GetName())
 
