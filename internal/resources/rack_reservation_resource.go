@@ -816,4 +816,16 @@ func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox
 
 	}
 
+	// Map display_name
+
+	if result.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(result.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
+
 }
