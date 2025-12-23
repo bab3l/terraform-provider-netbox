@@ -80,6 +80,8 @@ type RackTypeDataSourceModel struct {
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -237,6 +239,8 @@ func (d *RackTypeDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 			"tags": nbschema.DSTagsAttribute(),
 
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the rack type."),
 		},
 	}
 
@@ -693,6 +697,18 @@ func (d *RackTypeDataSource) mapResponseToModel(ctx context.Context, rackType *n
 	} else {
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+
+	}
+
+	// Map display_name
+
+	if rackType.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(rackType.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

@@ -103,6 +103,8 @@ type RackDataSourceModel struct {
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 func (d *RackDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -192,6 +194,8 @@ func (d *RackDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 			"tags": nbschema.DSTagsAttribute(),
 
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the rack."),
 		},
 	}
 
@@ -797,6 +801,18 @@ func mapRackDataSourceToState(ctx context.Context, rack *netbox.Rack, data *Rack
 	} else {
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+
+	}
+
+	// Map display_name
+
+	if rack.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(rack.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 
