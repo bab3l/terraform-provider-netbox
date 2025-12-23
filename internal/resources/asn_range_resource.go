@@ -66,6 +66,8 @@ type ASNRangeResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -144,6 +146,8 @@ func (r *ASNRangeResource) Schema(ctx context.Context, req resource.SchemaReques
 			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this ASN range."),
 
 			"description": nbschema.DescriptionAttribute("ASN range"),
+
+			"display_name": nbschema.DisplayNameAttribute("ASN range"),
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -712,6 +716,18 @@ func (r *ASNRangeResource) mapASNRangeToState(ctx context.Context, asnRange *net
 	} else {
 
 		data.Description = types.StringNull()
+
+	}
+
+	// Display name
+
+	if asnRange.Display != "" {
+
+		data.DisplayName = types.StringValue(asnRange.Display)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

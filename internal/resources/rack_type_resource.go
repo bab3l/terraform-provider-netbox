@@ -83,6 +83,8 @@ type RackTypeResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -117,6 +119,8 @@ func (r *RackTypeResource) Schema(ctx context.Context, req resource.SchemaReques
 			"slug": nbschema.SlugAttribute("rack type"),
 
 			"description": nbschema.DescriptionAttribute("rack type"),
+
+			"display_name": nbschema.DisplayNameAttribute("rack type"),
 
 			"form_factor": schema.StringAttribute{
 
@@ -800,6 +804,18 @@ func (r *RackTypeResource) mapResponseToModel(ctx context.Context, rackType *net
 	} else {
 
 		data.Description = types.StringNull()
+
+	}
+
+	// Map display_name
+
+	if rackType.Display != "" {
+
+		data.DisplayName = types.StringValue(rackType.Display)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

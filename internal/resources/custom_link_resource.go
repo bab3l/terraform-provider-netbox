@@ -55,7 +55,8 @@ type CustomLinkResourceModel struct {
 
 	ButtonClass types.String `tfsdk:"button_class"`
 
-	NewWindow types.Bool `tfsdk:"new_window"`
+	NewWindow   types.Bool   `tfsdk:"new_window"`
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 func (r *CustomLinkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -172,6 +173,10 @@ func (r *CustomLinkResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Optional: true,
 
 				Computed: true,
+			},
+			"display_name": schema.StringAttribute{
+				MarkdownDescription: "Display name of the custom link.",
+				Computed:            true,
 			},
 		},
 	}
@@ -637,6 +642,18 @@ func (r *CustomLinkResource) mapToState(ctx context.Context, result *netbox.Cust
 	} else {
 
 		data.NewWindow = types.BoolNull()
+
+	}
+
+	// Map display_name
+
+	if result.Display != "" {
+
+		data.DisplayName = types.StringValue(result.Display)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 
