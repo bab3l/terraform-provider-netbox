@@ -820,6 +820,12 @@ func (r *ServiceResource) mapResponseToModel(ctx context.Context, svc *netbox.Se
 
 	data.Name = types.StringValue(svc.GetName())
 
+	if svc.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(svc.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
+	}
+
 	// Map device
 
 	// Map device - preserve user's input format
