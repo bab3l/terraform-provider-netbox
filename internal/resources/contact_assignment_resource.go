@@ -720,6 +720,13 @@ func (r *ContactAssignmentResource) mapResponseToState(ctx context.Context, assi
 
 	data.ObjectID = types.StringValue(fmt.Sprintf("%d", assignment.GetObjectId()))
 
+	// DisplayName
+	if assignment.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(assignment.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
+	}
+
 	// Contact (required field) - preserve user's input format
 
 	contact := assignment.GetContact()

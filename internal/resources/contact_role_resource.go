@@ -487,6 +487,13 @@ func (r *ContactRoleResource) mapContactRoleToState(ctx context.Context, contact
 
 	data.Description = utils.StringFromAPI(contactRole.HasDescription(), contactRole.GetDescription, data.Description)
 
+	// Handle display_name
+	if contactRole.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(contactRole.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
+	}
+
 	// Handle tags
 
 	if contactRole.HasTags() {
