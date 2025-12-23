@@ -707,6 +707,10 @@ func (r *IPSecProposalResource) mapIPSecProposalToState(ctx context.Context, ips
 
 	}
 
+	// Display Name
+
+	data.DisplayName = types.StringValue(ipsec.Display)
+
 	// Tags
 
 	if len(ipsec.Tags) > 0 {

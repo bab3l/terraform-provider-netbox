@@ -663,6 +663,10 @@ func (r *IPSecProfileResource) mapIPSecProfileToState(ctx context.Context, ipsec
 
 	}
 
+	// Display Name
+
+	data.DisplayName = types.StringValue(ipsec.Display)
+
 	// Tags
 
 	if len(ipsec.Tags) > 0 {

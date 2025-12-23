@@ -243,6 +243,8 @@ func (r *PowerFeedResource) Schema(ctx context.Context, req resource.SchemaReque
 				Optional: true,
 			},
 
+			"display_name": nbschema.DisplayNameAttribute("power feed"),
+
 			"tags": nbschema.TagsAttribute(),
 
 			"custom_fields": nbschema.CustomFieldsAttribute(),
