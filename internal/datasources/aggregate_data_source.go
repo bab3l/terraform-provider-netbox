@@ -77,7 +77,7 @@ func (d *AggregateDataSource) Schema(ctx context.Context, req datasource.SchemaR
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Use this data source to retrieve information about an aggregate in Netbox.",
+		MarkdownDescription: "Use this data source to retrieve information about an aggregate in Netbox. You can identify the aggregate using `id` or `prefix`.",
 
 		Attributes: map[string]schema.Attribute{
 

@@ -34,9 +34,14 @@ func TestAccVirtualMachineDataSource_basic(t *testing.T) {
 			{
 				Config: testAccVirtualMachineDataSourceConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_virtual_machine.test", "name", vmName),
-					resource.TestCheckResourceAttr("data.netbox_virtual_machine.test", "status", "active"),
-					resource.TestCheckResourceAttrSet("data.netbox_virtual_machine.test", "id"),
+					// Test lookup by name
+					resource.TestCheckResourceAttr("data.netbox_virtual_machine.by_name", "name", vmName),
+					resource.TestCheckResourceAttr("data.netbox_virtual_machine.by_name", "status", "active"),
+					resource.TestCheckResourceAttrSet("data.netbox_virtual_machine.by_name", "id"),
+					// Test lookup by id
+					resource.TestCheckResourceAttr("data.netbox_virtual_machine.by_id", "name", vmName),
+					resource.TestCheckResourceAttr("data.netbox_virtual_machine.by_id", "status", "active"),
+					resource.TestCheckResourceAttrSet("data.netbox_virtual_machine.by_id", "id"),
 				),
 			},
 		},
@@ -61,8 +66,12 @@ resource "netbox_virtual_machine" "test" {
 	status  = "active"
 }
 
-data "netbox_virtual_machine" "test" {
+data "netbox_virtual_machine" "by_name" {
 	name = netbox_virtual_machine.test.name
+}
+
+data "netbox_virtual_machine" "by_id" {
+	id = netbox_virtual_machine.test.id
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName)
 }

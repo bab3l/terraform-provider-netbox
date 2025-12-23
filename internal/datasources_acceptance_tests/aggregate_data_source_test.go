@@ -27,8 +27,14 @@ func TestAccAggregateDataSource_basic(t *testing.T) {
 			{
 				Config: testAccAggregateDataSourceConfig(rirName, rirSlug, prefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_aggregate.test", "prefix", prefix),
-					resource.TestCheckResourceAttrSet("data.netbox_aggregate.test", "rir"),
+					// Test lookup by prefix
+					resource.TestCheckResourceAttr("data.netbox_aggregate.by_prefix", "prefix", prefix),
+					resource.TestCheckResourceAttrSet("data.netbox_aggregate.by_prefix", "rir"),
+					resource.TestCheckResourceAttrSet("data.netbox_aggregate.by_prefix", "id"),
+					// Test lookup by id
+					resource.TestCheckResourceAttr("data.netbox_aggregate.by_id", "prefix", prefix),
+					resource.TestCheckResourceAttrSet("data.netbox_aggregate.by_id", "rir"),
+					resource.TestCheckResourceAttrSet("data.netbox_aggregate.by_id", "id"),
 				),
 			},
 		},
@@ -47,7 +53,11 @@ resource "netbox_aggregate" "test" {
   rir    = netbox_rir.test.id
 }
 
-data "netbox_aggregate" "test" {
+data "netbox_aggregate" "by_prefix" {
+  prefix = netbox_aggregate.test.prefix
+}
+
+data "netbox_aggregate" "by_id" {
   id = netbox_aggregate.test.id
 }
 `, rirName, rirSlug, prefix)
