@@ -1,7 +1,15 @@
-data "netbox_asn" "test" {
+data "netbox_asn" "by_asn" {
   asn = 65001
 }
 
-output "example" {
-  value = data.netbox_asn.test.id
+data "netbox_asn" "by_id" {
+  id = 123
+}
+
+output "by_asn" {
+  value = data.netbox_asn.by_asn.id
+}
+
+output "by_id" {
+  value = data.netbox_asn.by_id.asn
 }

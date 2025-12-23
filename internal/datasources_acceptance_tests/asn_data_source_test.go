@@ -28,8 +28,14 @@ func TestAccASNDataSource_basic(t *testing.T) {
 			{
 				Config: testAccASNDataSourceConfig(rirName, rirSlug, asnValue),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_asn.test", "asn", fmt.Sprintf("%d", asnValue)),
-					resource.TestCheckResourceAttrSet("data.netbox_asn.test", "rir"),
+					// Test lookup by asn
+					resource.TestCheckResourceAttr("data.netbox_asn.by_asn", "asn", fmt.Sprintf("%d", asnValue)),
+					resource.TestCheckResourceAttrSet("data.netbox_asn.by_asn", "rir"),
+					resource.TestCheckResourceAttrSet("data.netbox_asn.by_asn", "id"),
+					// Test lookup by id
+					resource.TestCheckResourceAttr("data.netbox_asn.by_id", "asn", fmt.Sprintf("%d", asnValue)),
+					resource.TestCheckResourceAttrSet("data.netbox_asn.by_id", "rir"),
+					resource.TestCheckResourceAttrSet("data.netbox_asn.by_id", "id"),
 				),
 			},
 		},
@@ -48,7 +54,11 @@ resource "netbox_asn" "test" {
   rir = netbox_rir.test.id
 }
 
-data "netbox_asn" "test" {
+data "netbox_asn" "by_asn" {
+  asn = netbox_asn.test.asn
+}
+
+data "netbox_asn" "by_id" {
   id = netbox_asn.test.id
 }
 `, rirName, rirSlug, asn)

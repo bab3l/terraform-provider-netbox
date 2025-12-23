@@ -78,7 +78,7 @@ func (d *ASNDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Retrieves information about an Autonomous System Number (ASN) in NetBox.",
+		MarkdownDescription: "Retrieves information about an Autonomous System Number (ASN) in NetBox. You can identify the ASN using `id` or `asn`.",
 
 		Attributes: map[string]schema.Attribute{
 
