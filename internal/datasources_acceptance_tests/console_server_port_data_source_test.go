@@ -15,12 +15,15 @@ func TestAccConsoleServerPortDataSource_basic(t *testing.T) {
 	siteSlug := testutil.RandomSlug("site")
 	deviceRoleSlug := testutil.RandomSlug("device-role")
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
+	deviceTypeName := testutil.RandomName("tf-test-dt")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dt")
 	deviceName := testutil.RandomName("device")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
@@ -30,11 +33,12 @@ func TestAccConsoleServerPortDataSource_basic(t *testing.T) {
 			testutil.CheckSiteDestroy,
 			testutil.CheckDeviceRoleDestroy,
 			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceTypeDestroy,
 			testutil.CheckDeviceDestroy,
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConsoleServerPortDataSourceConfig("console-server-port-0", siteSlug, deviceRoleSlug, manufacturerSlug, deviceName),
+				Config: testAccConsoleServerPortDataSourceConfig("console-server-port-0", siteSlug, deviceRoleSlug, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_console_server_port.test", "name", "console-server-port-0"),
 					resource.TestCheckResourceAttr("data.netbox_console_server_port.test", "type", "de-9"),
@@ -45,7 +49,7 @@ func TestAccConsoleServerPortDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccConsoleServerPortDataSourceConfig(name, siteSlug, deviceRoleSlug, manufacturerSlug, deviceName string) string {
+func testAccConsoleServerPortDataSourceConfig(name, siteSlug, deviceRoleSlug, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = "%s"
@@ -64,8 +68,8 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_device_type" "test" {
   manufacturer = netbox_manufacturer.test.id
-  model        = "Test Device Type"
-  slug         = "test-device-type"
+  model        = %q
+  slug         = %q
 }
 
 resource "netbox_device" "test" {
@@ -84,5 +88,5 @@ resource "netbox_console_server_port" "test" {
 data "netbox_console_server_port" "test" {
   id = netbox_console_server_port.test.id
 }
-`, siteSlug, siteSlug, deviceRoleSlug, deviceRoleSlug, manufacturerSlug, manufacturerSlug, deviceName, name)
+`, siteSlug, siteSlug, deviceRoleSlug, deviceRoleSlug, manufacturerSlug, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceName, name)
 }
