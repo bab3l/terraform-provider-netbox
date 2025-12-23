@@ -96,3 +96,47 @@ data "netbox_l2vpn" "test" {
 }
 `, name, name)
 }
+
+func TestAccL2VPNDataSource_bySlug(t *testing.T) {
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	name := acctest.RandomWithPrefix("test-l2vpn-ds")
+
+	cleanup.RegisterL2VPNCleanup(name)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckL2VPNDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccL2VPNDataSourceConfig_bySlug(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_l2vpn.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_l2vpn.test", "slug", name),
+					resource.TestCheckResourceAttr("data.netbox_l2vpn.test", "type", "vxlan"),
+				),
+			},
+		},
+	})
+}
+
+func testAccL2VPNDataSourceConfig_bySlug(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_l2vpn" "test" {
+  name = %q
+  slug = %q
+  type = "vxlan"
+}
+
+data "netbox_l2vpn" "test" {
+  slug = netbox_l2vpn.test.slug
+
+  depends_on = [netbox_l2vpn.test]
+}
+`, name, name)
+}

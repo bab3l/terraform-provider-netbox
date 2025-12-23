@@ -1,8 +1,17 @@
-data "netbox_l2vpn_termination" "test" {
-  l2vpn_id           = 123
-  assigned_object_id = 456
+# Example: Look up an L2VPN termination by ID (only supported lookup method)
+data "netbox_l2vpn_termination" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_l2vpn_termination.test.id
+# Example: Use L2VPN termination data in other resources
+output "termination_id" {
+  value = data.netbox_l2vpn_termination.by_id.id
+}
+
+output "termination_l2vpn" {
+  value = data.netbox_l2vpn_termination.by_id.l2vpn
+}
+
+output "termination_object_type" {
+  value = data.netbox_l2vpn_termination.by_id.assigned_object_type
 }
