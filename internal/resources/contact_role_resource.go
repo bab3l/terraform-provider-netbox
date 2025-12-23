@@ -75,6 +75,8 @@ func (r *ContactRoleResource) Schema(ctx context.Context, req resource.SchemaReq
 
 			"description": nbschema.DescriptionAttribute("contact role"),
 
+			"display_name": nbschema.DisplayNameAttribute("contact role"),
+
 			"tags": nbschema.TagsAttribute(),
 
 			"custom_fields": nbschema.CustomFieldsAttribute(),

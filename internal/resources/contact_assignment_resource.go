@@ -137,6 +137,8 @@ func (r *ContactAssignmentResource) Schema(ctx context.Context, req resource.Sch
 				},
 			},
 
+			"display_name": nbschema.DisplayNameAttribute("contact assignment"),
+
 			"tags": nbschema.TagsAttribute(),
 
 			"custom_fields": nbschema.CustomFieldsAttribute(),

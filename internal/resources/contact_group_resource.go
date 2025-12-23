@@ -87,6 +87,8 @@ func (r *ContactGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 
 			"description": nbschema.DescriptionAttribute("contact group"),
 
+			"display_name": nbschema.DisplayNameAttribute("contact group"),
+
 			"tags": nbschema.TagsAttribute(),
 
 			"custom_fields": nbschema.CustomFieldsAttribute(),
