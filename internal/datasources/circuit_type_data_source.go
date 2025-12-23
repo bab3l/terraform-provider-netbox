@@ -71,19 +71,13 @@ func (d *CircuitTypeDataSource) Schema(ctx context.Context, req datasource.Schem
 		MarkdownDescription: "Retrieves information about a circuit type in Netbox. Circuit types categorize the various types of circuits used by your organization (e.g., Internet Transit, MPLS, Point-to-Point, etc.).",
 
 		Attributes: map[string]schema.Attribute{
-
-			"id": nbschema.DSIDAttribute("circuit type"),
-
-			"name": nbschema.DSNameAttribute("circuit type"),
-
-			"slug": nbschema.DSSlugAttribute("circuit type"),
-
-			"description": nbschema.DSComputedStringAttribute("Description of the circuit type."),
-
-			"color": nbschema.DSComputedStringAttribute("Color of the circuit type (6-character hex code)."),
-
-			"tags": nbschema.DSTagsAttribute(),
-
+			"id":            nbschema.DSIDAttribute("circuit type"),
+			"name":          nbschema.DSNameAttribute("circuit type"),
+			"slug":          nbschema.DSSlugAttribute("circuit type"),
+			"description":   nbschema.DSComputedStringAttribute("Description of the circuit type."),
+			"color":         nbschema.DSComputedStringAttribute("Color of the circuit type (6-character hex code)."),
+			"display_name":  nbschema.DSComputedStringAttribute("The display name of the circuit type."),
+			"tags":          nbschema.DSTagsAttribute(),
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
