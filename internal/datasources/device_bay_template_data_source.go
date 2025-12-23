@@ -51,6 +51,8 @@ type DeviceBayTemplateDataSourceModel struct {
 	Label types.String `tfsdk:"label"`
 
 	Description types.String `tfsdk:"description"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -70,53 +72,36 @@ func (d *DeviceBayTemplateDataSource) Schema(ctx context.Context, req datasource
 		MarkdownDescription: "Use this data source to get information about a Device Bay Template in Netbox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the device bay template. Either `id` or `name` (with `device_type`) must be specified.",
-
-				Optional: true,
-
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
 			},
-
 			"device_type": schema.StringAttribute{
-
 				MarkdownDescription: "The ID or slug of the device type this template belongs to. Required when looking up by name.",
-
-				Optional: true,
-
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
 			},
-
 			"device_type_name": schema.StringAttribute{
-
 				MarkdownDescription: "The model name of the device type.",
-
-				Computed: true,
+				Computed:            true,
 			},
-
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the device bay template.",
-
-				Optional: true,
-
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
 			},
-
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label for the device bay.",
-
-				Computed: true,
+				Computed:            true,
 			},
-
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "Description of the device bay template.",
-
-				Computed: true,
+				Computed:            true,
+			},
+			"display_name": schema.StringAttribute{
+				MarkdownDescription: "The display name of the device bay template.",
+				Computed:            true,
 			},
 		},
 	}
@@ -332,6 +317,13 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 
 		"name": data.Name.ValueString(),
 	})
+
+	// Map display_name
+	if template.Display != "" {
+		data.DisplayName = types.StringValue(template.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Save data into Terraform state
 

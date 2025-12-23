@@ -56,6 +56,8 @@ type DeviceRoleDataSourceModel struct {
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 func (d *DeviceRoleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -71,22 +73,15 @@ func (d *DeviceRoleDataSource) Schema(ctx context.Context, req datasource.Schema
 		MarkdownDescription: "Use this data source to get information about a device role in Netbox. Device roles categorize devices by their function (e.g., Router, Switch, Server, Firewall). You can identify the device role using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-
-			"id": nbschema.DSIDAttribute("device role"),
-
-			"name": nbschema.DSNameAttribute("device role"),
-
-			"slug": nbschema.DSSlugAttribute("device role"),
-
-			"color": nbschema.DSComputedStringAttribute("Color for the device role in 6-character hexadecimal format (e.g., 'aa1409')."),
-
-			"vm_role": nbschema.DSComputedBoolAttribute("Whether virtual machines may be assigned to this role."),
-
-			"description": nbschema.DSComputedStringAttribute("Detailed description of the device role."),
-
-			"tags": nbschema.DSTagsAttribute(),
-
+			"id":            nbschema.DSIDAttribute("device role"),
+			"name":          nbschema.DSNameAttribute("device role"),
+			"slug":          nbschema.DSSlugAttribute("device role"),
+			"color":         nbschema.DSComputedStringAttribute("Color for the device role in 6-character hexadecimal format (e.g., 'aa1409')."),
+			"vm_role":       nbschema.DSComputedBoolAttribute("Whether virtual machines may be assigned to this role."),
+			"description":   nbschema.DSComputedStringAttribute("Detailed description of the device role."),
+			"tags":          nbschema.DSTagsAttribute(),
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
+			"display_name":  nbschema.DSComputedStringAttribute("The display name of the device role."),
 		},
 	}
 
@@ -443,6 +438,13 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 
+	}
+
+	// Map display_name
+	if deviceRole.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(deviceRole.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	// Save data into Terraform state

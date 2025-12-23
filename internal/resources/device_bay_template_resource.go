@@ -236,7 +236,7 @@ func (r *DeviceBayTemplateResource) Create(ctx context.Context, req resource.Cre
 
 	// Map response to model
 
-	data.ID = types.StringValue(fmt.Sprintf("%d", template.Id))
+	r.mapTemplateToModel(template, &data)
 
 	tflog.Debug(ctx, "Created DeviceBayTemplate", map[string]interface{}{
 
