@@ -48,6 +48,8 @@ type FHRPGroupAssignmentDataSourceModel struct {
 	InterfaceID types.String `tfsdk:"interface_id"`
 
 	Priority types.Int64 `tfsdk:"priority"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -79,6 +81,8 @@ func (d *FHRPGroupAssignmentDataSource) Schema(ctx context.Context, req datasour
 			"interface_id": nbschema.DSComputedStringAttribute("ID of the interface."),
 
 			"priority": nbschema.DSComputedInt64Attribute("Priority of this assignment."),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the FHRP group assignment."),
 		},
 	}
 
@@ -224,5 +228,12 @@ func (d *FHRPGroupAssignmentDataSource) mapResponseToState(ctx context.Context, 
 	data.InterfaceID = types.StringValue(fmt.Sprintf("%d", assignment.GetInterfaceId()))
 
 	data.Priority = types.Int64Value(int64(assignment.GetPriority()))
+
+	// Map display_name
+	if assignment.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(assignment.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 }
