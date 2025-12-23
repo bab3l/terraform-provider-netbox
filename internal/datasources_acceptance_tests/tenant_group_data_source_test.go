@@ -58,6 +58,88 @@ func TestAccTenantGroupDataSource_basic(t *testing.T) {
 
 }
 
+func TestAccTenantGroupDataSource_byID(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-tg-ds")
+	slug := testutil.RandomSlug("tf-test-tg-ds")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTenantGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckTenantGroupDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccTenantGroupDataSourceConfigByID(name, slug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("data.netbox_tenant_group.test", "id"),
+
+					resource.TestCheckResourceAttr("data.netbox_tenant_group.test", "name", name),
+
+					resource.TestCheckResourceAttr("data.netbox_tenant_group.test", "slug", slug),
+				),
+			},
+		},
+	})
+
+}
+
+func TestAccTenantGroupDataSource_byName(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-tg-ds")
+	slug := testutil.RandomSlug("tf-test-tg-ds")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTenantGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckTenantGroupDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccTenantGroupDataSourceConfigByName(name, slug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("data.netbox_tenant_group.test", "id"),
+
+					resource.TestCheckResourceAttr("data.netbox_tenant_group.test", "name", name),
+
+					resource.TestCheckResourceAttr("data.netbox_tenant_group.test", "slug", slug),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccTenantGroupDataSourceConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
@@ -91,6 +173,50 @@ resource "netbox_tenant_group" "test" {
 data "netbox_tenant_group" "test" {
 
   slug = netbox_tenant_group.test.slug
+
+}
+
+`, name, slug)
+
+}
+
+func testAccTenantGroupDataSourceConfigByID(name, slug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_tenant_group" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+data "netbox_tenant_group" "test" {
+
+  id = netbox_tenant_group.test.id
+
+}
+
+`, name, slug)
+
+}
+
+func testAccTenantGroupDataSourceConfigByName(name, slug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_tenant_group" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+data "netbox_tenant_group" "test" {
+
+  name = netbox_tenant_group.test.name
 
 }
 
