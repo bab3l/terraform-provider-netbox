@@ -41,6 +41,8 @@ type IPSecPolicyDataSource struct {
 type IPSecPolicyDataSourceModel struct {
 	ID types.String `tfsdk:"id"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Name types.String `tfsdk:"name"`
 
 	Description types.String `tfsdk:"description"`
@@ -86,6 +88,13 @@ func (d *IPSecPolicyDataSource) Schema(ctx context.Context, req datasource.Schem
 				MarkdownDescription: "The name of the IPSec policy. Either `id` or `name` must be specified.",
 
 				Optional: true,
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the IPSec policy.",
 
 				Computed: true,
 			},
@@ -313,6 +322,18 @@ func (d *IPSecPolicyDataSource) mapIPSecPolicyToState(ipsec *netbox.IPSecPolicy,
 	// ID
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipsec.Id))
+
+	// Display Name
+
+	if ipsec.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(ipsec.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	// Name
 
