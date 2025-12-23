@@ -80,7 +80,7 @@ func (d *CircuitDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Retrieves information about a circuit in Netbox. Circuits represent physical or logical network connections provided by external carriers or service providers.",
+		MarkdownDescription: "Retrieves information about a circuit in Netbox. Circuits represent physical or logical network connections provided by external carriers or service providers. You can identify the circuit using `id` or `cid`.",
 
 		Attributes: map[string]schema.Attribute{
 
