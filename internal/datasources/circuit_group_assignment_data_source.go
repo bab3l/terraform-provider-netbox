@@ -48,6 +48,8 @@ type CircuitGroupAssignmentDataSourceModel struct {
 
 	PriorityName types.String `tfsdk:"priority_name"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 }
 
@@ -78,6 +80,8 @@ func (d *CircuitGroupAssignmentDataSource) Schema(ctx context.Context, req datas
 			"priority": nbschema.DSComputedStringAttribute("Priority value (primary, secondary, tertiary, inactive)."),
 
 			"priority_name": nbschema.DSComputedStringAttribute("Display name for the priority."),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the circuit group assignment."),
 
 			"tags": nbschema.DSTagsAttribute(),
 		},
@@ -256,6 +260,14 @@ func (d *CircuitGroupAssignmentDataSource) mapResponseToState(ctx context.Contex
 
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 
+	}
+
+	// Map display name
+
+	if assignment.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(assignment.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 }

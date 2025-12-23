@@ -48,6 +48,8 @@ type CircuitGroupDataSourceModel struct {
 
 	CircuitCount types.Int64 `tfsdk:"circuit_count"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -80,6 +82,8 @@ func (d *CircuitGroupDataSource) Schema(ctx context.Context, req datasource.Sche
 			"tenant_id": nbschema.DSComputedStringAttribute("ID of the tenant."),
 
 			"circuit_count": nbschema.DSComputedInt64Attribute("Number of circuits in this group."),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the circuit group."),
 
 			"tags": nbschema.DSTagsAttribute(),
 
@@ -377,6 +381,14 @@ func (d *CircuitGroupDataSource) mapResponseToState(ctx context.Context, group *
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 
+	}
+
+	// Map display name
+
+	if group.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(group.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 }

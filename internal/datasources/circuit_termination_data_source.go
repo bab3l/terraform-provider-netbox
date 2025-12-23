@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -62,6 +63,8 @@ type CircuitTerminationDataSourceModel struct {
 	PPInfo types.String `tfsdk:"pp_info"`
 
 	Description types.String `tfsdk:"description"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 
 	MarkConnected types.Bool `tfsdk:"mark_connected"`
 
@@ -173,6 +176,8 @@ func (d *CircuitTerminationDataSource) Schema(ctx context.Context, req datasourc
 
 				Computed: true,
 			},
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the circuit termination."),
 
 			"mark_connected": schema.BoolAttribute{
 
@@ -452,6 +457,14 @@ func (d *CircuitTerminationDataSource) mapResponseToModel(ctx context.Context, t
 
 		data.Tags = types.ListNull(types.StringType)
 
+	}
+
+	// Map display name
+
+	if termination.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(termination.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 }

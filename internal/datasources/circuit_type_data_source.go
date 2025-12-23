@@ -47,6 +47,8 @@ type CircuitTypeDataSourceModel struct {
 
 	Color types.String `tfsdk:"color"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -365,6 +367,14 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 
+	}
+
+	// Map display name
+
+	if circuitType.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(circuitType.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	tflog.Debug(ctx, "Read circuit type", map[string]interface{}{
