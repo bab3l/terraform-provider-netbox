@@ -50,6 +50,8 @@ type RegionDataSourceModel struct {
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 func (d *RegionDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -81,6 +83,8 @@ func (d *RegionDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			"tags": nbschema.DSTagsAttribute(),
 
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the region."),
 		},
 	}
 
@@ -334,6 +338,18 @@ func (d *RegionDataSource) mapRegionToState(ctx context.Context, region *netbox.
 	} else {
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+
+	}
+
+	// Map display_name
+
+	if region.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(region.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

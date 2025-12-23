@@ -52,6 +52,8 @@ type RearPortTemplateDataSourceModel struct {
 	Positions types.Int32 `tfsdk:"positions"`
 
 	Description types.String `tfsdk:"description"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -139,6 +141,13 @@ func (d *RearPortTemplateDataSource) Schema(ctx context.Context, req datasource.
 			"description": schema.StringAttribute{
 
 				MarkdownDescription: "A description of the rear port template.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the rear port template.",
 
 				Computed: true,
 			},
@@ -402,6 +411,18 @@ func (d *RearPortTemplateDataSource) mapResponseToModel(template *netbox.RearPor
 	} else {
 
 		data.Description = types.StringNull()
+
+	}
+
+	// Map display_name
+
+	if template.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(template.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

@@ -52,6 +52,8 @@ type RouteTargetDataSourceModel struct {
 	Comments types.String `tfsdk:"comments"`
 
 	Tags types.List `tfsdk:"tags"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -125,6 +127,13 @@ func (d *RouteTargetDataSource) Schema(ctx context.Context, req datasource.Schem
 				Computed: true,
 
 				ElementType: types.StringType,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the route target.",
+
+				Computed: true,
 			},
 		},
 	}
@@ -392,6 +401,18 @@ func (d *RouteTargetDataSource) mapRouteTargetToDataSourceModel(ctx context.Cont
 	} else {
 
 		data.Tags = types.ListNull(types.StringType)
+
+	}
+
+	// Map display_name
+
+	if rt.Display != "" {
+
+		data.DisplayName = types.StringValue(rt.Display)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 
