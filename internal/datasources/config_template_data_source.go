@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -46,6 +47,8 @@ type ConfigTemplateDataSourceModel struct {
 	DataSource types.Int32 `tfsdk:"data_source"`
 
 	DataPath types.String `tfsdk:"data_path"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -111,6 +114,8 @@ func (d *ConfigTemplateDataSource) Schema(ctx context.Context, req datasource.Sc
 
 				Computed: true,
 			},
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the config template."),
 		},
 	}
 
@@ -298,4 +303,10 @@ func (d *ConfigTemplateDataSource) mapResponseToModel(template *netbox.ConfigTem
 
 	data.DataPath = types.StringValue(template.GetDataPath())
 
+	// Map display name
+	if template.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(template.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 }
