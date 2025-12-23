@@ -220,6 +220,8 @@ func (r *WirelessLinkResource) Schema(ctx context.Context, req resource.SchemaRe
 
 			"comments": nbschema.CommentsAttribute("wireless link"),
 
+			"display_name": nbschema.DisplayNameAttribute("wireless link"),
+
 			"tags": nbschema.TagsAttribute(),
 
 			"custom_fields": nbschema.CustomFieldsAttribute(),

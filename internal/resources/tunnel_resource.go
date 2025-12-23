@@ -918,6 +918,14 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
 
+	// Update display_name from response
+
+	if tunnel.Display != "" {
+		data.DisplayName = types.StringValue(tunnel.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
+
 	// Handle group reference from response - preserve user's input format
 
 	if tunnel.HasGroup() && tunnel.Group.IsSet() && tunnel.Group.Get() != nil {
