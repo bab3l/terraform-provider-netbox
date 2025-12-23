@@ -31,8 +31,14 @@ func TestAccClusterDataSource_basic(t *testing.T) {
 			{
 				Config: testAccClusterDataSourceConfig(clusterTypeName, clusterTypeSlug, clusterName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_cluster.test", "name", clusterName),
-					resource.TestCheckResourceAttrSet("data.netbox_cluster.test", "type"),
+					// Check by_id lookup
+					resource.TestCheckResourceAttr("data.netbox_cluster.by_id", "name", clusterName),
+					resource.TestCheckResourceAttrSet("data.netbox_cluster.by_id", "type"),
+					// Check by_name lookup
+					resource.TestCheckResourceAttr("data.netbox_cluster.by_name", "name", clusterName),
+					resource.TestCheckResourceAttrSet("data.netbox_cluster.by_name", "type"),
+					// Verify both lookups return same cluster
+					resource.TestCheckResourceAttrPair("data.netbox_cluster.by_id", "id", "data.netbox_cluster.by_name", "id"),
 				),
 			},
 		},
@@ -51,8 +57,12 @@ resource "netbox_cluster" "test" {
   type = netbox_cluster_type.test.id
 }
 
-data "netbox_cluster" "test" {
+data "netbox_cluster" "by_id" {
   id = netbox_cluster.test.id
+}
+
+data "netbox_cluster" "by_name" {
+  name = netbox_cluster.test.name
 }
 `, typeName, typeSlug, name)
 }

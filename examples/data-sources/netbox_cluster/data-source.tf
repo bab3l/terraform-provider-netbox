@@ -1,7 +1,15 @@
-data "netbox_cluster" "test" {
-  name = "test-cluster"
+data "netbox_cluster" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_cluster.test.id
+data "netbox_cluster" "by_name" {
+  name = "example-cluster"
+}
+
+output "by_id" {
+  value = data.netbox_cluster.by_id.name
+}
+
+output "by_name" {
+  value = data.netbox_cluster.by_name.id
 }

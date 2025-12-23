@@ -29,8 +29,18 @@ func TestAccCircuitTypeDataSource_basic(t *testing.T) {
 			{
 				Config: testAccCircuitTypeDataSourceConfig(name, slug),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_circuit_type.test", "name", name),
-					resource.TestCheckResourceAttr("data.netbox_circuit_type.test", "slug", slug),
+					// Check by_id lookup
+					resource.TestCheckResourceAttr("data.netbox_circuit_type.by_id", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_circuit_type.by_id", "slug", slug),
+					// Check by_name lookup
+					resource.TestCheckResourceAttr("data.netbox_circuit_type.by_name", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_circuit_type.by_name", "slug", slug),
+					// Check by_slug lookup
+					resource.TestCheckResourceAttr("data.netbox_circuit_type.by_slug", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_circuit_type.by_slug", "slug", slug),
+					// Verify all lookups return same circuit type
+					resource.TestCheckResourceAttrPair("data.netbox_circuit_type.by_id", "id", "data.netbox_circuit_type.by_name", "id"),
+					resource.TestCheckResourceAttrPair("data.netbox_circuit_type.by_id", "id", "data.netbox_circuit_type.by_slug", "id"),
 				),
 			},
 		},
@@ -44,8 +54,16 @@ resource "netbox_circuit_type" "test" {
   slug = "%s"
 }
 
-data "netbox_circuit_type" "test" {
+data "netbox_circuit_type" "by_id" {
   id = netbox_circuit_type.test.id
+}
+
+data "netbox_circuit_type" "by_name" {
+  name = netbox_circuit_type.test.name
+}
+
+data "netbox_circuit_type" "by_slug" {
+  slug = netbox_circuit_type.test.slug
 }
 `, name, slug)
 }

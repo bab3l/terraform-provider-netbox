@@ -65,7 +65,7 @@ func (d *CircuitGroupDataSource) Schema(ctx context.Context, req datasource.Sche
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Use this data source to get information about a circuit group in Netbox.",
+		MarkdownDescription: "Use this data source to get information about a circuit group in Netbox. You can identify the circuit group using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
 
