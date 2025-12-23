@@ -38,7 +38,7 @@ func (d *ClusterGroupDataSource) Metadata(ctx context.Context, req datasource.Me
 
 func (d *ClusterGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Use this data source to get information about a cluster group in Netbox.",
+		MarkdownDescription: "Use this data source to get information about a cluster group in Netbox. You can identify the cluster group using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
 			"id":          nbschema.DSIDAttribute("cluster group"),

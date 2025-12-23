@@ -26,10 +26,18 @@ func TestAccConsoleServerPortTemplateDataSource_basic(t *testing.T) {
 			{
 				Config: testAccConsoleServerPortTemplateDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.netbox_console_server_port_template.test", "id"),
-					resource.TestCheckResourceAttr("data.netbox_console_server_port_template.test", "name", name),
-					resource.TestCheckResourceAttr("data.netbox_console_server_port_template.test", "type", "de-9"),
-					resource.TestCheckResourceAttrSet("data.netbox_console_server_port_template.test", "device_type"),
+					// Check by_id lookup
+					resource.TestCheckResourceAttrSet("data.netbox_console_server_port_template.by_id", "id"),
+					resource.TestCheckResourceAttr("data.netbox_console_server_port_template.by_id", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_console_server_port_template.by_id", "type", "de-9"),
+					resource.TestCheckResourceAttrSet("data.netbox_console_server_port_template.by_id", "device_type"),
+					// Check by_device_type_and_name lookup
+					resource.TestCheckResourceAttrSet("data.netbox_console_server_port_template.by_device_type_and_name", "id"),
+					resource.TestCheckResourceAttr("data.netbox_console_server_port_template.by_device_type_and_name", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_console_server_port_template.by_device_type_and_name", "type", "de-9"),
+					resource.TestCheckResourceAttrSet("data.netbox_console_server_port_template.by_device_type_and_name", "device_type"),
+					// Verify both lookups return same template
+					resource.TestCheckResourceAttrPair("data.netbox_console_server_port_template.by_id", "id", "data.netbox_console_server_port_template.by_device_type_and_name", "id"),
 				),
 			},
 		},
@@ -66,8 +74,13 @@ resource "netbox_console_server_port_template" "test" {
   type        = "de-9"
 }
 
-data "netbox_console_server_port_template" "test" {
+data "netbox_console_server_port_template" "by_id" {
   id = netbox_console_server_port_template.test.id
+}
+
+data "netbox_console_server_port_template" "by_device_type_and_name" {
+  device_type = netbox_device_type.test.id
+  name        = netbox_console_server_port_template.test.name
 }
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
 }

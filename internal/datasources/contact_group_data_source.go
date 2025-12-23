@@ -40,7 +40,7 @@ func (d *ContactGroupDataSource) Metadata(ctx context.Context, req datasource.Me
 
 func (d *ContactGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Use this data source to get information about a contact group in Netbox.",
+		MarkdownDescription: "Use this data source to get information about a contact group in Netbox. You can identify the contact group using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
 			"id":           nbschema.DSIDAttribute("contact group"),

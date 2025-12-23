@@ -31,6 +31,28 @@ func TestAccCustomFieldDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccCustomFieldDataSource_byName(t *testing.T) {
+
+	t.Parallel()
+
+	// Custom field names only allow alphanumeric and underscores
+	name := strings.ReplaceAll(testutil.RandomName("tf_test_cf_ds"), "-", "_")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomFieldDataSourceConfigByName(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_custom_field.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_custom_field.test", "type", "text"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCustomFieldDataSourceConfig(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_custom_field" "test" {
@@ -41,6 +63,20 @@ resource "netbox_custom_field" "test" {
 
 data "netbox_custom_field" "test" {
   id = netbox_custom_field.test.id
+}
+`, name)
+}
+
+func testAccCustomFieldDataSourceConfigByName(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "test" {
+  name         = "%s"
+  type         = "text"
+  object_types = ["dcim.site"]
+}
+
+data "netbox_custom_field" "test" {
+  name = netbox_custom_field.test.name
 }
 `, name)
 }

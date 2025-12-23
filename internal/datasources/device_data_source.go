@@ -100,7 +100,7 @@ func (d *DeviceDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Use this data source to get information about a device in Netbox. Devices represent physical or virtual hardware. You can identify the device using `id`, `name`, or `serial`.",
+		MarkdownDescription: "Use this data source to get information about a device in Netbox. Devices represent physical or virtual hardware. You can identify the device using `id` (unique), `name` (may be non-unique), or `serial` (unique, recommended for uniqueness).",
 
 		Attributes: map[string]schema.Attribute{
 			"id":          nbschema.DSIDAttribute("device"),
@@ -110,7 +110,7 @@ func (d *DeviceDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			"tenant":      nbschema.DSComputedStringAttribute("The tenant that owns this device. Returns the tenant slug."),
 			"platform":    nbschema.DSComputedStringAttribute("The platform running on this device. Returns the platform slug."),
 			"serial": schema.StringAttribute{
-				MarkdownDescription: "Chassis serial number. Can be used to identify the device instead of `id` or `name`.",
+				MarkdownDescription: "Chassis serial number (unique). Use this for reliable device lookup, or use `id` if you already have it. Note: `name` may not be unique.",
 				Optional:            true,
 				Computed:            true,
 			},

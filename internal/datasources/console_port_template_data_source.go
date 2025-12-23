@@ -67,7 +67,7 @@ func (d *ConsolePortTemplateDataSource) Schema(ctx context.Context, req datasour
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Retrieves information about a console port template in NetBox.",
+		MarkdownDescription: "Retrieves information about a console port template in NetBox. You can identify the template using `id` or the combination of `name` with `device_type` or `module_type`.",
 
 		Attributes: map[string]schema.Attribute{
 

@@ -52,3 +52,90 @@ data "netbox_contact_role" "test" {
 }
 `, name, slug)
 }
+func TestAccContactRoleDataSource_byName(t *testing.T) {
+
+	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	name := testutil.RandomName("test-contact-role")
+
+	slug := testutil.GenerateSlug(name)
+
+	cleanup.RegisterContactRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckContactRoleDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactRoleDataSourceConfigByName(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_contact_role.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_contact_role.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
+func testAccContactRoleDataSourceConfigByName(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_contact_role" "test" {
+  name        = %q
+  slug        = %q
+  description = "Test Contact Role Description"
+}
+
+data "netbox_contact_role" "test" {
+  name = netbox_contact_role.test.name
+}
+`, name, slug)
+}
+
+func TestAccContactRoleDataSource_bySlug(t *testing.T) {
+
+	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	name := testutil.RandomName("test-contact-role")
+
+	slug := testutil.GenerateSlug(name)
+
+	cleanup.RegisterContactRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckContactRoleDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactRoleDataSourceConfigBySlug(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_contact_role.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_contact_role.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
+func testAccContactRoleDataSourceConfigBySlug(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_contact_role" "test" {
+  name        = %q
+  slug        = %q
+  description = "Test Contact Role Description"
+}
+
+data "netbox_contact_role" "test" {
+  slug = netbox_contact_role.test.slug
+}
+`, name, slug)
+}

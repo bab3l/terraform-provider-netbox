@@ -65,7 +65,7 @@ func (d *ConfigTemplateDataSource) Schema(ctx context.Context, req datasource.Sc
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Retrieves information about a config template in NetBox.",
+		MarkdownDescription: "Retrieves information about a config template in NetBox. You can identify the config template using `id` or `name`.",
 
 		Attributes: map[string]schema.Attribute{
 

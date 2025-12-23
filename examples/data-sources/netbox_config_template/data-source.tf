@@ -1,7 +1,15 @@
-data "netbox_config_template" "test" {
-  name = "test-config-template"
+data "netbox_config_template" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_config_template.test.id
+data "netbox_config_template" "by_name" {
+  name = "device-config"
+}
+
+output "by_id" {
+  value = data.netbox_config_template.by_id.name
+}
+
+output "by_name" {
+  value = data.netbox_config_template.by_name.id
 }

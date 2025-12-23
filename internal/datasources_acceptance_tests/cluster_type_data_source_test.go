@@ -26,8 +26,18 @@ func TestAccClusterTypeDataSource_basic(t *testing.T) {
 			{
 				Config: testAccClusterTypeDataSourceConfig(name, slug),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_cluster_type.test", "name", name),
-					resource.TestCheckResourceAttr("data.netbox_cluster_type.test", "slug", slug),
+					// Check by_id lookup
+					resource.TestCheckResourceAttr("data.netbox_cluster_type.by_id", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_cluster_type.by_id", "slug", slug),
+					// Check by_name lookup
+					resource.TestCheckResourceAttr("data.netbox_cluster_type.by_name", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_cluster_type.by_name", "slug", slug),
+					// Check by_slug lookup
+					resource.TestCheckResourceAttr("data.netbox_cluster_type.by_slug", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_cluster_type.by_slug", "slug", slug),
+					// Verify all lookups return same cluster type
+					resource.TestCheckResourceAttrPair("data.netbox_cluster_type.by_id", "id", "data.netbox_cluster_type.by_name", "id"),
+					resource.TestCheckResourceAttrPair("data.netbox_cluster_type.by_id", "id", "data.netbox_cluster_type.by_slug", "id"),
 				),
 			},
 		},
@@ -41,8 +51,16 @@ resource "netbox_cluster_type" "test" {
   slug = "%s"
 }
 
-data "netbox_cluster_type" "test" {
+data "netbox_cluster_type" "by_id" {
   id = netbox_cluster_type.test.id
+}
+
+data "netbox_cluster_type" "by_name" {
+  name = netbox_cluster_type.test.name
+}
+
+data "netbox_cluster_type" "by_slug" {
+  slug = netbox_cluster_type.test.slug
 }
 `, name, slug)
 }

@@ -40,9 +40,16 @@ func TestAccConsoleServerPortDataSource_basic(t *testing.T) {
 			{
 				Config: testAccConsoleServerPortDataSourceConfig("console-server-port-0", siteSlug, deviceRoleSlug, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_console_server_port.test", "name", "console-server-port-0"),
-					resource.TestCheckResourceAttr("data.netbox_console_server_port.test", "type", "de-9"),
-					resource.TestCheckResourceAttrSet("data.netbox_console_server_port.test", "device"),
+					// Check by_id lookup
+					resource.TestCheckResourceAttr("data.netbox_console_server_port.by_id", "name", "console-server-port-0"),
+					resource.TestCheckResourceAttr("data.netbox_console_server_port.by_id", "type", "de-9"),
+					resource.TestCheckResourceAttrSet("data.netbox_console_server_port.by_id", "device"),
+					// Check by_device_and_name lookup
+					resource.TestCheckResourceAttr("data.netbox_console_server_port.by_device_and_name", "name", "console-server-port-0"),
+					resource.TestCheckResourceAttr("data.netbox_console_server_port.by_device_and_name", "type", "de-9"),
+					resource.TestCheckResourceAttrSet("data.netbox_console_server_port.by_device_and_name", "device"),
+					// Verify both lookups return same console server port
+					resource.TestCheckResourceAttrPair("data.netbox_console_server_port.by_id", "id", "data.netbox_console_server_port.by_device_and_name", "id"),
 				),
 			},
 		},
@@ -85,8 +92,13 @@ resource "netbox_console_server_port" "test" {
   type   = "de-9"
 }
 
-data "netbox_console_server_port" "test" {
+data "netbox_console_server_port" "by_id" {
   id = netbox_console_server_port.test.id
+}
+
+data "netbox_console_server_port" "by_device_and_name" {
+  device_id = netbox_device.test.id
+  name      = netbox_console_server_port.test.name
 }
 `, siteSlug, siteSlug, deviceRoleSlug, deviceRoleSlug, manufacturerSlug, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceName, name)
 }

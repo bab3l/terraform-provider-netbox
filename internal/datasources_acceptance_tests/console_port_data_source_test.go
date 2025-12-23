@@ -42,9 +42,16 @@ func TestAccConsolePortDataSource_basic(t *testing.T) {
 			{
 				Config: testAccConsolePortDataSourceConfig(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName, portName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_console_port.test", "name", portName),
-					resource.TestCheckResourceAttr("data.netbox_console_port.test", "type", "de-9"),
-					resource.TestCheckResourceAttrSet("data.netbox_console_port.test", "device"),
+					// Check by_id lookup
+					resource.TestCheckResourceAttr("data.netbox_console_port.by_id", "name", portName),
+					resource.TestCheckResourceAttr("data.netbox_console_port.by_id", "type", "de-9"),
+					resource.TestCheckResourceAttrSet("data.netbox_console_port.by_id", "device"),
+					// Check by_device_and_name lookup
+					resource.TestCheckResourceAttr("data.netbox_console_port.by_device_and_name", "name", portName),
+					resource.TestCheckResourceAttr("data.netbox_console_port.by_device_and_name", "type", "de-9"),
+					resource.TestCheckResourceAttrSet("data.netbox_console_port.by_device_and_name", "device"),
+					// Verify both lookups return same console port
+					resource.TestCheckResourceAttrPair("data.netbox_console_port.by_id", "id", "data.netbox_console_port.by_device_and_name", "id"),
 				),
 			},
 		},
@@ -87,8 +94,13 @@ resource "netbox_console_port" "test" {
   type   = "de-9"
 }
 
-data "netbox_console_port" "test" {
+data "netbox_console_port" "by_id" {
   id = netbox_console_port.test.id
+}
+
+data "netbox_console_port" "by_device_and_name" {
+  device_id = netbox_device.test.id
+  name      = netbox_console_port.test.name
 }
 `, siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName, portName)
 }

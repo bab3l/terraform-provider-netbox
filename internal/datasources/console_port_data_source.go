@@ -71,7 +71,7 @@ func (d *ConsolePortDataSource) Schema(ctx context.Context, req datasource.Schem
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Retrieves information about a console port in NetBox.",
+		MarkdownDescription: "Retrieves information about a console port in NetBox. You can identify the console port using `id` or the combination of `device_id` and `name`.",
 
 		Attributes: map[string]schema.Attribute{
 

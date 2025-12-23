@@ -65,7 +65,7 @@ func (d *ContactDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Use this data source to get information about a contact in Netbox.",
+		MarkdownDescription: "Use this data source to get information about a contact in Netbox. You can identify the contact using `id`, `name`, or `email`.",
 
 		Attributes: map[string]schema.Attribute{
 
