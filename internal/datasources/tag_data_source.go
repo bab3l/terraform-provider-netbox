@@ -31,6 +31,7 @@ type TagDataSourceModel struct {
 	Slug        types.String `tfsdk:"slug"`
 	Color       types.String `tfsdk:"color"`
 	Description types.String `tfsdk:"description"`
+	DisplayName types.String `tfsdk:"display_name"`
 	ObjectTypes types.List   `tfsdk:"object_types"`
 }
 
@@ -46,8 +47,7 @@ func (d *TagDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			"name":        nbschema.DSNameAttribute("tag"),
 			"slug":        nbschema.DSSlugAttribute("tag"),
 			"color":       nbschema.DSComputedStringAttribute("Color of the tag (6-character hex code)."),
-			"description": nbschema.DSComputedStringAttribute("Description of the tag."),
-			"object_types": schema.ListAttribute{
+			"description": nbschema.DSComputedStringAttribute("Description of the tag."), "display_name": nbschema.DSComputedStringAttribute("The display name of the tag."), "object_types": schema.ListAttribute{
 				MarkdownDescription: "List of object types this tag can be applied to.",
 				Computed:            true,
 				ElementType:         types.StringType,
@@ -147,6 +147,7 @@ func (d *TagDataSource) mapTagToState(ctx context.Context, tag *netbox.Tag, data
 	data.Slug = types.StringValue(tag.GetSlug())
 	data.Color = utils.StringFromAPI(tag.HasColor(), tag.GetColor, data.Color)
 	data.Description = utils.StringFromAPI(tag.HasDescription(), tag.GetDescription, data.Description)
+	data.DisplayName = utils.StringFromAPI(tag.GetDisplay() != "", tag.GetDisplay, data.DisplayName)
 
 	// Handle object_types
 	if tag.HasObjectTypes() && len(tag.GetObjectTypes()) > 0 {

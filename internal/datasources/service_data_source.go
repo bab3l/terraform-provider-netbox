@@ -62,6 +62,8 @@ type ServiceDataSourceModel struct {
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -156,6 +158,8 @@ func (d *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 
 				Computed: true,
 			},
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the service."),
 
 			"tags": nbschema.DSTagsAttribute(),
 
@@ -505,6 +509,18 @@ func (d *ServiceDataSource) mapResponseToModel(ctx context.Context, svc *netbox.
 	} else {
 
 		data.Comments = types.StringNull()
+
+	}
+
+	// Map display_name
+
+	if svc.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(svc.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

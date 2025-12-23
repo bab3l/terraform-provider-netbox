@@ -54,6 +54,8 @@ type SiteGroupDataSourceModel struct {
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 func (d *SiteGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -79,6 +81,8 @@ func (d *SiteGroupDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"parent": nbschema.DSComputedStringAttribute("ID of the parent site group. Null if this is a top-level group."),
 
 			"description": nbschema.DSComputedStringAttribute("Detailed description of the site group."),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the site group."),
 
 			"tags": nbschema.DSTagsAttribute(),
 
@@ -300,6 +304,18 @@ func (d *SiteGroupDataSource) mapSiteGroupToState(ctx context.Context, siteGroup
 	// Handle description
 
 	data.Description = utils.StringFromAPIPreserveEmpty(siteGroup.HasDescription(), siteGroup.GetDescription, data.Description)
+
+	// Handle display_name
+
+	if siteGroup.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(siteGroup.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	// Handle tags
 
