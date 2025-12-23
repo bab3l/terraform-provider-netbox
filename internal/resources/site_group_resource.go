@@ -576,6 +576,18 @@ func (r *SiteGroupResource) mapSiteGroupToState(ctx context.Context, siteGroup *
 
 	data.Description = utils.StringFromAPI(siteGroup.HasDescription(), siteGroup.GetDescription, data.Description)
 
+	// Handle display_name
+
+	if siteGroup.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(siteGroup.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
+
 	// Handle tags
 
 	if siteGroup.HasTags() {
