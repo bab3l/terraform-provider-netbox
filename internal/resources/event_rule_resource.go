@@ -50,6 +50,7 @@ type EventRuleResourceModel struct {
 	ActionObjectType types.String `tfsdk:"action_object_type"`
 	ActionObjectID   types.String `tfsdk:"action_object_id"`
 	Description      types.String `tfsdk:"description"`
+	DisplayName      types.String `tfsdk:"display_name"`
 	Tags             types.Set    `tfsdk:"tags"`
 	CustomFields     types.Set    `tfsdk:"custom_fields"`
 }
@@ -109,6 +110,7 @@ func (r *EventRuleResource) Schema(ctx context.Context, req resource.SchemaReque
 				Optional:            true,
 			},
 			"description":   nbschema.DescriptionAttribute("event rule"),
+			"display_name":  nbschema.DisplayNameAttribute("event rule"),
 			"tags":          nbschema.TagsAttribute(),
 			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
@@ -500,6 +502,13 @@ func (r *EventRuleResource) mapToState(ctx context.Context, result *netbox.Event
 		data.Description = types.StringValue(result.GetDescription())
 	} else {
 		data.Description = types.StringNull()
+	}
+
+	// Map display_name
+	if result.Display != "" {
+		data.DisplayName = types.StringValue(result.Display)
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	// Map tags
