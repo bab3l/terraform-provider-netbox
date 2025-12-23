@@ -1,7 +1,17 @@
-data "netbox_provider_account" "test" {
-  account = "123456789"
+# Lookup by ID
+data "netbox_provider_account" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_provider_account.test.id
+output "by_id" {
+  value = data.netbox_provider_account.by_id.account
+}
+
+# Lookup by account identifier
+data "netbox_provider_account" "by_account" {
+  account = "ACC-123456789"
+}
+
+output "by_account" {
+  value = data.netbox_provider_account.by_account.name
 }
