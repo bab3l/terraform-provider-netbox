@@ -62,6 +62,8 @@ type CableDataSourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 }
 
@@ -151,6 +153,8 @@ func (d *CableDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 			"description": nbschema.DSComputedStringAttribute("Description of the cable."),
 
 			"comments": nbschema.DSComputedStringAttribute("Comments about the cable."),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the cable."),
 
 			"tags": nbschema.DSTagsAttribute(),
 		},
@@ -443,6 +447,14 @@ func (d *CableDataSource) mapResponseToState(ctx context.Context, result *netbox
 
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 
+	}
+
+	// Map display name
+
+	if result.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(result.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	return diags

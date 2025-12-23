@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -56,6 +57,8 @@ type AggregateDataSourceModel struct {
 	Description types.String `tfsdk:"description"`
 
 	Comments types.String `tfsdk:"comments"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 
 	Tags types.List `tfsdk:"tags"`
 }
@@ -144,6 +147,8 @@ func (d *AggregateDataSource) Schema(ctx context.Context, req datasource.SchemaR
 
 				Computed: true,
 			},
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the aggregate."),
 
 			"tags": schema.ListAttribute{
 
@@ -426,6 +431,14 @@ func (d *AggregateDataSource) mapResponseToModel(ctx context.Context, aggregate 
 
 		data.Tags = types.ListNull(types.StringType)
 
+	}
+
+	// Map display name
+
+	if aggregate.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(aggregate.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 }

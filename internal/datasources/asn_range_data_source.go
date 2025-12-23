@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -58,6 +59,8 @@ type ASNRangeDataSourceModel struct {
 	TenantName types.String `tfsdk:"tenant_name"`
 
 	Description types.String `tfsdk:"description"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 
 	ASNCount types.Int64 `tfsdk:"asn_count"`
 
@@ -164,6 +167,8 @@ func (d *ASNRangeDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 
 				Computed: true,
 			},
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the ASN range."),
 
 			"tags": schema.ListAttribute{
 
@@ -495,6 +500,14 @@ func (d *ASNRangeDataSource) mapASNRangeToDataSourceModel(ctx context.Context, a
 
 		data.Tags = types.ListNull(types.StringType)
 
+	}
+
+	// Map display name
+
+	if asnRange.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(asnRange.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 }
