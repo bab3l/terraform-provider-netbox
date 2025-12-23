@@ -58,6 +58,88 @@ func TestAccSiteGroupDataSource_basic(t *testing.T) {
 
 }
 
+func TestAccSiteGroupDataSource_byID(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-sg-ds")
+	slug := testutil.RandomSlug("tf-test-sg-ds")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckSiteGroupDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccSiteGroupDataSourceConfigByID(name, slug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("data.netbox_site_group.test", "id"),
+
+					resource.TestCheckResourceAttr("data.netbox_site_group.test", "name", name),
+
+					resource.TestCheckResourceAttr("data.netbox_site_group.test", "slug", slug),
+				),
+			},
+		},
+	})
+
+}
+
+func TestAccSiteGroupDataSource_byName(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-sg-ds")
+	slug := testutil.RandomSlug("tf-test-sg-ds")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckSiteGroupDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccSiteGroupDataSourceConfigByName(name, slug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("data.netbox_site_group.test", "id"),
+
+					resource.TestCheckResourceAttr("data.netbox_site_group.test", "name", name),
+
+					resource.TestCheckResourceAttr("data.netbox_site_group.test", "slug", slug),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccSiteGroupDataSourceConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
@@ -91,6 +173,50 @@ resource "netbox_site_group" "test" {
 data "netbox_site_group" "test" {
 
   slug = netbox_site_group.test.slug
+
+}
+
+`, name, slug)
+
+}
+
+func testAccSiteGroupDataSourceConfigByID(name, slug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_site_group" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+data "netbox_site_group" "test" {
+
+  id = netbox_site_group.test.id
+
+}
+
+`, name, slug)
+
+}
+
+func testAccSiteGroupDataSourceConfigByName(name, slug string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_site_group" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+data "netbox_site_group" "test" {
+
+  name = netbox_site_group.test.name
 
 }
 
