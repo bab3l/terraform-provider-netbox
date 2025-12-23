@@ -29,6 +29,7 @@ type WebhookDataSourceModel struct {
 	ID                types.String `tfsdk:"id"`
 	Name              types.String `tfsdk:"name"`
 	Description       types.String `tfsdk:"description"`
+	DisplayName       types.String `tfsdk:"display_name"`
 	PayloadURL        types.String `tfsdk:"payload_url"`
 	HTTPMethod        types.String `tfsdk:"http_method"`
 	HTTPContentType   types.String `tfsdk:"http_content_type"`
@@ -50,6 +51,7 @@ func (d *WebhookDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			"id":                 nbschema.DSIDAttribute("webhook"),
 			"name":               nbschema.DSNameAttribute("webhook"),
 			"description":        nbschema.DSComputedStringAttribute("Description of the webhook."),
+			"display_name":       nbschema.DSComputedStringAttribute("Display name for the webhook."),
 			"payload_url":        nbschema.DSComputedStringAttribute("The URL that will be called when the webhook is triggered."),
 			"http_method":        nbschema.DSComputedStringAttribute("The HTTP method used when calling the webhook URL."),
 			"http_content_type":  nbschema.DSComputedStringAttribute("The HTTP content type header."),
@@ -186,6 +188,13 @@ func (d *WebhookDataSource) mapWebhookToState(ctx context.Context, webhook *netb
 		data.CAFilePath = types.StringValue(*webhook.CaFilePath.Get())
 	} else {
 		data.CAFilePath = types.StringNull()
+	}
+
+	// Map display name
+	if displayName := webhook.GetDisplay(); displayName != "" {
+		data.DisplayName = types.StringValue(displayName)
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	// Handle tags

@@ -69,6 +69,8 @@ type VLANDataSourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.List `tfsdk:"tags"`
 }
 
@@ -190,6 +192,13 @@ func (d *VLANDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 			"comments": schema.StringAttribute{
 
 				MarkdownDescription: "Comments for the VLAN.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "Display name of the VLAN.",
 
 				Computed: true,
 			},
@@ -574,7 +583,17 @@ func (d *VLANDataSource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, 
 		data.Comments = types.StringNull()
 
 	}
+	// Handle display_name
 
+	if vlan.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(vlan.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 	// Tags
 
 	if len(vlan.Tags) > 0 {

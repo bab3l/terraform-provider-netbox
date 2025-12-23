@@ -47,6 +47,8 @@ type VRFDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Comments types.String `tfsdk:"comments"`
 
 	Tags types.Set `tfsdk:"tags"`
@@ -110,6 +112,13 @@ func (d *VRFDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			"description": schema.StringAttribute{
 
 				MarkdownDescription: "Brief description of the VRF.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "Display name for the VRF.",
 
 				Computed: true,
 			},
@@ -357,6 +366,18 @@ func (d *VRFDataSource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data
 	} else {
 
 		data.Comments = types.StringNull()
+
+	}
+
+	// Display name
+
+	if displayName := vrf.GetDisplay(); displayName != "" {
+
+		data.DisplayName = types.StringValue(displayName)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

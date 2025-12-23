@@ -50,6 +50,8 @@ type ServiceTemplateDataSourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -91,6 +93,8 @@ func (d *ServiceTemplateDataSource) Schema(ctx context.Context, req datasource.S
 			"description": nbschema.DSComputedStringAttribute("Description of the service template."),
 
 			"comments": nbschema.DSComputedStringAttribute("Comments about the service template."),
+
+			"display_name": nbschema.DSComputedStringAttribute("Display name of the service template."),
 
 			"tags": nbschema.DSTagsAttribute(),
 
@@ -365,6 +369,18 @@ func (d *ServiceTemplateDataSource) mapResponseToState(ctx context.Context, serv
 	} else {
 
 		data.Comments = types.StringNull()
+
+	}
+
+	// Handle display_name
+
+	if serviceTemplate.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(serviceTemplate.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

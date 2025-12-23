@@ -535,6 +535,18 @@ func (r *TenantGroupResource) mapTenantGroupToState(ctx context.Context, tenantG
 
 	data.Description = utils.StringFromAPI(tenantGroup.HasDescription(), tenantGroup.GetDescription, data.Description)
 
+	// Handle display_name
+
+	if tenantGroup.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(tenantGroup.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
+
 	// Handle parent reference
 
 	if tenantGroup.HasParent() {

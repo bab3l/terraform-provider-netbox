@@ -52,6 +52,8 @@ type TenantDataSourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -84,6 +86,8 @@ func (d *TenantDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			"description": nbschema.DSComputedStringAttribute("Detailed description of the tenant."),
 
 			"comments": nbschema.DSComputedStringAttribute("Additional comments or notes about the tenant."),
+
+			"display_name": nbschema.DSComputedStringAttribute("Display name of the tenant."),
 
 			"tags": nbschema.DSTagsAttribute(),
 
@@ -267,6 +271,18 @@ func (d *TenantDataSource) mapTenantToState(ctx context.Context, tenant *netbox.
 	data.Description = utils.StringFromAPI(tenant.HasDescription(), tenant.GetDescription, data.Description)
 
 	data.Comments = utils.StringFromAPI(tenant.HasComments(), tenant.GetComments, data.Comments)
+
+	// Handle display_name
+
+	if tenant.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(tenant.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	// Handle tags
 

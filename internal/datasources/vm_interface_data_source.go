@@ -51,6 +51,8 @@ type VMInterfaceDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Mode types.String `tfsdk:"mode"`
 
 	UntaggedVLAN types.String `tfsdk:"untagged_vlan"`
@@ -107,6 +109,8 @@ func (d *VMInterfaceDataSource) Schema(ctx context.Context, req datasource.Schem
 			"mac_address": nbschema.DSComputedStringAttribute("The MAC address of the interface."),
 
 			"description": nbschema.DSComputedStringAttribute("Detailed description of the VM interface."),
+
+			"display_name": nbschema.DSComputedStringAttribute("Display name for the VM interface."),
 
 			"mode": nbschema.DSComputedStringAttribute("The 802.1Q mode of the interface (access, tagged, tagged-all)."),
 
@@ -397,6 +401,18 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 	} else {
 
 		data.VRF = types.StringNull()
+
+	}
+
+	// Display name
+
+	if displayName := iface.GetDisplay(); displayName != "" {
+
+		data.DisplayName = types.StringValue(displayName)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

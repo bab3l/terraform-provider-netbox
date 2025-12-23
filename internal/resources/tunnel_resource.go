@@ -407,6 +407,18 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
 
+	// Handle display_name
+
+	if tunnel.Display != "" {
+
+		data.DisplayName = types.StringValue(tunnel.Display)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
+
 	// Handle group reference from response
 
 	if tunnel.HasGroup() && tunnel.Group.IsSet() && tunnel.Group.Get() != nil {

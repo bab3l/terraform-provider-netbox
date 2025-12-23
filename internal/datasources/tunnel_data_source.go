@@ -67,6 +67,8 @@ type TunnelDataSourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -111,6 +113,8 @@ func (d *TunnelDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			"description": nbschema.DSComputedStringAttribute("Detailed description of the tunnel."),
 
 			"comments": nbschema.DSComputedStringAttribute("Additional comments about the tunnel."),
+
+			"display_name": nbschema.DSComputedStringAttribute("Display name of the tunnel."),
 
 			"tags": nbschema.DSTagsAttribute(),
 
@@ -418,6 +422,18 @@ func (d *TunnelDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	} else {
 
 		data.Comments = types.StringNull()
+
+	}
+
+	// Handle display_name
+
+	if tunnel.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(tunnel.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 
