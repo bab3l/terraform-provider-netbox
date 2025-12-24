@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccVLANGroupDataSource_basic(t *testing.T) {
+func TestAccVLANGroupDataSource_byID(t *testing.T) {
 
 	t.Parallel()
 
@@ -24,7 +24,7 @@ func TestAccVLANGroupDataSource_basic(t *testing.T) {
 		CheckDestroy:             testutil.CheckVLANGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVLANGroupDataSourceConfig(vlanGroupName, vlanGroupSlug),
+				Config: testAccVLANGroupDataSourceByIDConfig(vlanGroupName, vlanGroupSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_vlan_group.test", "name", vlanGroupName),
 					resource.TestCheckResourceAttr("data.netbox_vlan_group.test", "slug", vlanGroupSlug),
@@ -35,7 +35,87 @@ func TestAccVLANGroupDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccVLANGroupDataSourceConfig(vlanGroupName, vlanGroupSlug string) string {
+func TestAccVLANGroupDataSource_bySlug(t *testing.T) {
+
+	t.Parallel()
+
+	vlanGroupName := testutil.RandomName("vlan-group")
+	vlanGroupSlug := testutil.RandomSlug("vlan-group")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVLANGroupCleanup(vlanGroupSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVLANGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVLANGroupDataSourceBySlugConfig(vlanGroupName, vlanGroupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_vlan_group.test", "name", vlanGroupName),
+					resource.TestCheckResourceAttr("data.netbox_vlan_group.test", "slug", vlanGroupSlug),
+					resource.TestCheckResourceAttrSet("data.netbox_vlan_group.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccVLANGroupDataSource_byName(t *testing.T) {
+
+	t.Parallel()
+
+	vlanGroupName := testutil.RandomName("vlan-group")
+	vlanGroupSlug := testutil.RandomSlug("vlan-group")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVLANGroupCleanup(vlanGroupSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVLANGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVLANGroupDataSourceByNameConfig(vlanGroupName, vlanGroupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_vlan_group.test", "name", vlanGroupName),
+					resource.TestCheckResourceAttr("data.netbox_vlan_group.test", "slug", vlanGroupSlug),
+					resource.TestCheckResourceAttrSet("data.netbox_vlan_group.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVLANGroupDataSourceByIDConfig(vlanGroupName, vlanGroupSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_vlan_group" "test" {
+	name = "%s"
+	slug = "%s"
+}
+
+data "netbox_vlan_group" "test" {
+	id = netbox_vlan_group.test.id
+}
+`, vlanGroupName, vlanGroupSlug)
+}
+
+func testAccVLANGroupDataSourceBySlugConfig(vlanGroupName, vlanGroupSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_vlan_group" "test" {
+	name = "%s"
+	slug = "%s"
+}
+
+data "netbox_vlan_group" "test" {
+	slug = netbox_vlan_group.test.slug
+}
+`, vlanGroupName, vlanGroupSlug)
+}
+
+func testAccVLANGroupDataSourceByNameConfig(vlanGroupName, vlanGroupSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_vlan_group" "test" {
 	name = "%s"
