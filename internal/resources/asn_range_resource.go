@@ -522,9 +522,10 @@ func (r *ASNRangeResource) Update(ctx context.Context, req resource.UpdateReques
 
 	}
 
-	// Map response to model
-
+	// Map response to model, preserving computed display_name to avoid inconsistent result error
+	displayNameBeforeUpdate := data.DisplayName
 	r.mapASNRangeToState(ctx, asnRange, &data, &resp.Diagnostics)
+	data.DisplayName = displayNameBeforeUpdate
 
 	tflog.Debug(ctx, "Updated ASNRange", map[string]interface{}{
 
