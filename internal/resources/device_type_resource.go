@@ -752,9 +752,14 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 		"model": deviceType.GetModel(),
 	})
 
+	// Preserve display_name since it's computed but might change when other attributes update
+	displayNameBeforeUpdate := data.DisplayName
+
 	// Map response to state
 
 	r.mapDeviceTypeToState(ctx, deviceType, &data, &resp.Diagnostics)
+
+	data.DisplayName = displayNameBeforeUpdate
 
 	if resp.Diagnostics.HasError() {
 

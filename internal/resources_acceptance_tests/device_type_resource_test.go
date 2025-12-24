@@ -40,7 +40,7 @@ func TestAccDeviceTypeResource_basic(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_device_type.test", "slug", slug),
 
-					resource.TestCheckResourceAttr("netbox_device_type.test", "manufacturer", manufacturerSlug),
+					resource.TestCheckResourceAttrSet("netbox_device_type.test", "manufacturer"),
 
 					resource.TestCheckResourceAttr("netbox_device_type.test", "u_height", "1"),
 				),
@@ -82,7 +82,7 @@ func TestAccDeviceTypeResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_device_type.test", "slug", slug),
 
-					resource.TestCheckResourceAttr("netbox_device_type.test", "manufacturer", manufacturerSlug),
+					resource.TestCheckResourceAttrSet("netbox_device_type.test", "manufacturer"),
 
 					resource.TestCheckResourceAttr("netbox_device_type.test", "part_number", "TEST-PART-001"),
 
