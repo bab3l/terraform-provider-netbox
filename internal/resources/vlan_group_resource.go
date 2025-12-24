@@ -398,6 +398,9 @@ func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateReque
 		"name": vlanGroup.GetName(),
 	})
 
+	// Preserve display_name from current state since it's computed and managed by Terraform
+	displayNameBeforeMapping := data.DisplayName
+
 	// Map response back to state
 
 	r.mapVLANGroupToState(ctx, vlanGroup, &data, &resp.Diagnostics)
@@ -407,6 +410,10 @@ func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 
 	}
+
+	// Restore the previous display_name to avoid inconsistent result error
+	// (display_name is computed, so Terraform handles its updates separately)
+	data.DisplayName = displayNameBeforeMapping
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

@@ -271,9 +271,16 @@ func (r *IPRangeResource) Create(ctx context.Context, req resource.CreateRequest
 
 	}
 
+	// Preserve start_address and end_address since they might be normalized by API (e.g., 192.0.3.212 -> 192.0.3.212/32)
+	startAddressBeforeMapping := data.StartAddress
+	endAddressBeforeMapping := data.EndAddress
+
 	// Map response to model
 
 	r.mapIPRangeToState(ctx, ipRange, &data)
+
+	data.StartAddress = startAddressBeforeMapping
+	data.EndAddress = endAddressBeforeMapping
 
 	tflog.Debug(ctx, "Created IP range", map[string]interface{}{
 
@@ -355,9 +362,21 @@ func (r *IPRangeResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	}
 
+	// Preserve start_address and end_address since they might be normalized by API (e.g., 192.0.3.212 -> 192.0.3.212/32)
+	startAddressBeforeMapping := data.StartAddress
+	endAddressBeforeMapping := data.EndAddress
+
 	// Map response to model
 
 	r.mapIPRangeToState(ctx, ipRange, &data)
+
+	// Only preserve the original addresses if they were set in the state (i.e., not during import)
+	if !startAddressBeforeMapping.IsNull() && !startAddressBeforeMapping.IsUnknown() {
+		data.StartAddress = startAddressBeforeMapping
+	}
+	if !endAddressBeforeMapping.IsNull() && !endAddressBeforeMapping.IsUnknown() {
+		data.EndAddress = endAddressBeforeMapping
+	}
 
 	tflog.Debug(ctx, "Read IP range", map[string]interface{}{
 
@@ -449,9 +468,16 @@ func (r *IPRangeResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	}
 
+	// Preserve start_address and end_address since they might be normalized by API (e.g., 192.0.3.212 -> 192.0.3.212/32)
+	startAddressBeforeUpdate := data.StartAddress
+	endAddressBeforeUpdate := data.EndAddress
+
 	// Map response to model
 
 	r.mapIPRangeToState(ctx, ipRange, &data)
+
+	data.StartAddress = startAddressBeforeUpdate
+	data.EndAddress = endAddressBeforeUpdate
 
 	tflog.Debug(ctx, "Updated IP range", map[string]interface{}{
 

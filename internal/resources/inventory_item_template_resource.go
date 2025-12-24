@@ -636,9 +636,14 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 
 	}
 
+	// Preserve display_name since it's computed but might change when other attributes update
+	displayNameBeforeUpdate := data.DisplayName
+
 	// Map response to state
 
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
+
+	data.DisplayName = displayNameBeforeUpdate
 
 	if resp.Diagnostics.HasError() {
 

@@ -442,9 +442,16 @@ func (r *IPAddressResource) Update(ctx context.Context, req resource.UpdateReque
 
 	}
 
+	// Preserve display_name and address since they're computed but might change when other attributes update
+	displayNameBeforeUpdate := data.DisplayName
+	addressBeforeUpdate := data.Address
+
 	// Map response to model
 
 	r.mapIPAddressToState(ctx, ipAddress, &data)
+
+	data.DisplayName = displayNameBeforeUpdate
+	data.Address = addressBeforeUpdate
 
 	tflog.Debug(ctx, "Updated IP address", map[string]interface{}{
 
