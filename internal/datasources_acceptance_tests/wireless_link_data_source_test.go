@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccWirelessLinkDataSource_basic(t *testing.T) {
+func TestAccWirelessLinkDataSource_byID(t *testing.T) {
 
 	t.Parallel()
 
@@ -39,18 +39,19 @@ func TestAccWirelessLinkDataSource_basic(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccWirelessLinkDataSourceConfig(mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, siteName, siteSlug, roleName, roleSlug, deviceAName, deviceBName, wirelessLinkName),
+				Config: testAccWirelessLinkDataSourceByIDConfig(mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, siteName, siteSlug, roleName, roleSlug, deviceAName, deviceBName, wirelessLinkName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_wireless_link.test", "ssid", wirelessLinkName),
 					resource.TestCheckResourceAttrSet("data.netbox_wireless_link.test", "interface_a"),
 					resource.TestCheckResourceAttrSet("data.netbox_wireless_link.test", "interface_b"),
+					resource.TestCheckResourceAttrSet("data.netbox_wireless_link.test", "id"),
 				),
 			},
 		},
 	})
 }
 
-func testAccWirelessLinkDataSourceConfig(mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, siteName, siteSlug, roleName, roleSlug, deviceAName, deviceBName, wirelessLinkName string) string {
+func testAccWirelessLinkDataSourceByIDConfig(mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, siteName, siteSlug, roleName, roleSlug, deviceAName, deviceBName, wirelessLinkName string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
   name = "%s"
