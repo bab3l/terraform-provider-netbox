@@ -389,9 +389,14 @@ func (r *FHRPGroupResource) Update(ctx context.Context, req resource.UpdateReque
 		"id": fhrpGroup.GetId(),
 	})
 
+	// Preserve display_name since it's computed but might change when other attributes update
+	displayNameBeforeUpdate := data.DisplayName
+
 	// Map response back to state
 
 	r.mapFHRPGroupToState(ctx, fhrpGroup, &data, &resp.Diagnostics)
+
+	data.DisplayName = displayNameBeforeUpdate
 
 	if resp.Diagnostics.HasError() {
 

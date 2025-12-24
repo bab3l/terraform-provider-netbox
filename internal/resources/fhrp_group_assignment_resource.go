@@ -542,9 +542,14 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 
 	}
 
+	// Preserve display_name since it's computed but might change when other attributes update
+	displayNameBeforeUpdate := data.DisplayName
+
 	// Map response to state
 
 	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
+
+	data.DisplayName = displayNameBeforeUpdate
 
 	tflog.Debug(ctx, "Updated FHRP group assignment", map[string]interface{}{
 

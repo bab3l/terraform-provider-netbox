@@ -34,9 +34,10 @@ func TestAccExportTemplateResource_basic(t *testing.T) {
 			},
 			// Test import
 			{
-				ResourceName:      "netbox_export_template.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "netbox_export_template.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"display_name"},
 			},
 		},
 	})

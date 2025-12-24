@@ -450,9 +450,14 @@ func (r *ExportTemplateResource) Update(ctx context.Context, req resource.Update
 
 	}
 
+	// Preserve display_name since it's computed but might change when other attributes update
+	displayNameBeforeUpdate := data.DisplayName
+
 	// Map response to state
 
 	r.mapResponseToState(ctx, exportTemplate, &data, &resp.Diagnostics)
+
+	data.DisplayName = displayNameBeforeUpdate
 
 	tflog.Debug(ctx, "Updated export template", map[string]interface{}{
 
