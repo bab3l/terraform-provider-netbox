@@ -622,9 +622,10 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 
 	}
 
-	// Map response to state
-
+	// Map response to state, preserving computed display_name to avoid inconsistent result error
+	displayNameBeforeUpdate := data.DisplayName
 	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
+	data.DisplayName = displayNameBeforeUpdate
 
 	tflog.Debug(ctx, "Updated contact assignment", map[string]interface{}{
 

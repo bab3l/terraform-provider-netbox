@@ -455,7 +455,10 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 
 	}
 
+	// Map response to model, preserving computed display_name to avoid inconsistent result error
+	displayNameBeforeUpdate := data.DisplayName
 	r.mapContactGroupToState(ctx, contactGroup, &data, &resp.Diagnostics)
+	data.DisplayName = displayNameBeforeUpdate
 
 	if resp.Diagnostics.HasError() {
 

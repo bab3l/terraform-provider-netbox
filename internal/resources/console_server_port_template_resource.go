@@ -437,9 +437,10 @@ func (r *ConsoleServerPortTemplateResource) Update(ctx context.Context, req reso
 
 	}
 
-	// Map response to model
-
+	// Map response to model, preserving computed display_name to avoid inconsistent result error
+	displayNameBeforeUpdate := data.DisplayName
 	r.mapResponseToModel(response, &data)
+	data.DisplayName = displayNameBeforeUpdate
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
