@@ -407,7 +407,12 @@ func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateReq
 
 	}
 
+	// Preserve display_name since it's computed but might change when other attributes update
+	displayNameBeforeUpdate := data.DisplayName
+
 	r.mapContactRoleToState(ctx, contactRole, &data, &resp.Diagnostics)
+
+	data.DisplayName = displayNameBeforeUpdate
 
 	if resp.Diagnostics.HasError() {
 
