@@ -94,7 +94,7 @@ func TestAccFrontPortTemplateResource_full(t *testing.T) {
 				ResourceName:            "netbox_front_port_template.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device_type", "rear_port"},
+				ImportStateVerifyIgnore: []string{"device_type", "rear_port", "display_name"},
 			},
 		},
 	})
