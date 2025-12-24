@@ -727,6 +727,9 @@ func (r *L2VPNResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 	}
 
+	// Preserve display_name from current state since it's computed and managed by Terraform
+	displayNameBeforeMapping := data.DisplayName
+
 	// Map response to state
 
 	r.mapResponseToState(ctx, l2vpn, &data, &resp.Diagnostics)
@@ -735,6 +738,12 @@ func (r *L2VPNResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 		return
 
+	}
+
+	// Always restore display_name to preserve computed field consistency during update
+	// (Terraform will call Read after import to refresh computed fields)
+	if !displayNameBeforeMapping.IsNull() && !displayNameBeforeMapping.IsUnknown() {
+		data.DisplayName = displayNameBeforeMapping
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

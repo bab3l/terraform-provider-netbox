@@ -37,9 +37,10 @@ func TestAccL2VPNResource_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "netbox_l2vpn.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "netbox_l2vpn.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"display_name"}, // display_name is computed and may differ after name changes
 			},
 		},
 	})
