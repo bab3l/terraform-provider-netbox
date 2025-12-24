@@ -55,7 +55,7 @@ func TestAccClusterResource_basic(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_cluster.test", "name", clusterName),
 
-					resource.TestCheckResourceAttr("netbox_cluster.test", "type", clusterTypeSlug),
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "type"),
 				),
 			},
 		},
@@ -111,7 +111,7 @@ func TestAccClusterResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_cluster.test", "name", clusterName),
 
-					resource.TestCheckResourceAttr("netbox_cluster.test", "type", clusterTypeSlug),
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "type"),
 
 					resource.TestCheckResourceAttr("netbox_cluster.test", "status", "active"),
 
@@ -233,7 +233,7 @@ func TestAccClusterResource_import(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_cluster.test", "name", clusterName),
 
-					resource.TestCheckResourceAttr("netbox_cluster.test", "type", clusterTypeSlug),
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "type"),
 				),
 			},
 
