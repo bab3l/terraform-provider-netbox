@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccVirtualChassisDataSource_basic(t *testing.T) {
+func TestAccVirtualChassisDataSource_byName(t *testing.T) {
 
 	t.Parallel()
 
@@ -26,7 +26,7 @@ func TestAccVirtualChassisDataSource_basic(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVirtualChassisDataSourceConfig(name),
+				Config: testAccVirtualChassisDataSourceByNameConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_virtual_chassis.test", "name", name),
 					resource.TestCheckResourceAttrSet("data.netbox_virtual_chassis.test", "id"),
@@ -36,7 +36,35 @@ func TestAccVirtualChassisDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccVirtualChassisDataSourceConfig(name string) string {
+func TestAccVirtualChassisDataSource_byID(t *testing.T) {
+
+	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	name := testutil.RandomName("vc")
+
+	cleanup.RegisterVirtualChassisCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVirtualChassisDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualChassisDataSourceByIDConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_virtual_chassis.test", "name", name),
+					resource.TestCheckResourceAttrSet("data.netbox_virtual_chassis.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVirtualChassisDataSourceByNameConfig(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_virtual_chassis" "test" {
 	name = "%s"
@@ -44,6 +72,18 @@ resource "netbox_virtual_chassis" "test" {
 
 data "netbox_virtual_chassis" "test" {
 	name = netbox_virtual_chassis.test.name
+}
+`, name)
+}
+
+func testAccVirtualChassisDataSourceByIDConfig(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_virtual_chassis" "test" {
+	name = "%s"
+}
+
+data "netbox_virtual_chassis" "test" {
+	id = netbox_virtual_chassis.test.id
 }
 `, name)
 }

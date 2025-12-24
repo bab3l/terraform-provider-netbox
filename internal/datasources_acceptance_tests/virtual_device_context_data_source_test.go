@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccVirtualDeviceContextDataSource_basic(t *testing.T) {
+func TestAccVirtualDeviceContextDataSource_byID(t *testing.T) {
 
 	t.Parallel()
 
