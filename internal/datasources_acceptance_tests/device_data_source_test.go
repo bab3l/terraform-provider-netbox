@@ -170,6 +170,44 @@ func TestAccDeviceDataSource_bySerial(t *testing.T) {
 
 }
 
+func TestAccDeviceDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	deviceName := testutil.RandomName("tf-test-device-id")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer-id")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-id")
+	deviceTypeModel := testutil.RandomName("tf-test-device-type-id")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dt-id")
+	deviceRoleName := testutil.RandomName("tf-test-device-role-id")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-dr-id")
+	siteName := testutil.RandomName("tf-test-site-id")
+	siteSlug := testutil.RandomSlug("tf-test-site-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceDataSourceConfig_byName(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					// Verify datasource returns ID correctly
+					resource.TestCheckResourceAttrSet("data.netbox_device.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_device.test", "name", deviceName),
+					resource.TestCheckResourceAttrSet("data.netbox_device.test", "device_type"),
+					resource.TestCheckResourceAttrSet("data.netbox_device.test", "site"),
+				),
+			},
+		},
+	})
+}
+
 // Helper functions to generate test configurations
 
 func testAccDeviceDataSourceConfig_byName(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug string) string {

@@ -277,6 +277,36 @@ func TestAccDeviceTypeDataSource_byID(t *testing.T) {
 
 }
 
+func TestAccDeviceTypeDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	model := testutil.RandomName("tf-test-devicetype-id")
+	slug := testutil.RandomSlug("tf-test-dt-id")
+	manufacturerName := testutil.RandomName("tf-test-mfr-id")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(slug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceTypeDataSourceConfig(model, slug, manufacturerName, manufacturerSlug),
+				Check: resource.ComposeTestCheckFunc(
+					// Verify datasource returns ID correctly
+					resource.TestCheckResourceAttrSet("data.netbox_device_type.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_device_type.test", "model", model),
+					resource.TestCheckResourceAttr("data.netbox_device_type.test", "slug", slug),
+					resource.TestCheckResourceAttrSet("data.netbox_device_type.test", "manufacturer"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDeviceTypeDataSourceConfigByID(model, slug, manufacturerName, manufacturerSlug string) string {
 
 	return fmt.Sprintf(`

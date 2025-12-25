@@ -43,17 +43,31 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 ---
 
 ## Batch 2: Device/Hardware Resources
-**Status**: Not Started
+**Status**: COMPLETE ✅
 **Items**: 9
-- [ ] device_resource.go ✅ (already fixed - skip)
-- [ ] device_type_resource.go ✅ (already fixed - skip)
-- [ ] device_role_resource.go ✅ (already fixed - skip)
-- [ ] device_bay_resource.go
-- [ ] device_bay_template_resource.go ✅ (already fixed - skip)
-- [ ] module_resource.go
-- [ ] module_type_resource.go
-- [ ] device_data_source.go
-- [ ] device_type_data_source.go
+- [x] device_resource.go ✅ (already fixed - skip)
+- [x] device_type_resource.go ✅ (already fixed - skip)
+- [x] device_role_resource.go ✅ (already fixed - skip)
+- [x] device_bay_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] device_bay_template_resource.go ✅ (already fixed - skip)
+- [x] module_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] module_type_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] device_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+- [x] device_type_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+
+**Tests Added**:
+- `internal/resources_acceptance_tests/device_bay_resource_test.go`: `TestAccDeviceBayResource_IDPreservation`
+- `internal/resources_acceptance_tests/module_resource_test.go`: `TestAccModuleResource_IDPreservation`
+- `internal/resources_acceptance_tests/module_type_resource_test.go`: `TestAccModuleTypeResource_IDPreservation`
+- `internal/datasources_acceptance_tests/device_data_source_test.go`: `TestAccDeviceDataSource_IDPreservation`
+- `internal/datasources_acceptance_tests/device_type_data_source_test.go`: `TestAccDeviceTypeDataSource_IDPreservation`
+
+**Test Results**: All tests PASSING ✅
+- DeviceBay resource test: 41.56s ✅
+- Module resource test: 44.06s ✅
+- ModuleType resource test: 43.69s ✅
+- Device datasource test: 44.22s ✅
+- DeviceType datasource test: 75.43s ✅
 
 ---
 

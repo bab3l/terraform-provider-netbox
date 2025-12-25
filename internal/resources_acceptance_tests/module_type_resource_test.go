@@ -81,6 +81,34 @@ func TestAccModuleTypeResource_full(t *testing.T) {
 	})
 }
 
+func TestAccModuleTypeResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg-id")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-id")
+	model := testutil.RandomName("tf-test-module-type-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleTypeResourceConfig_basic(mfgName, mfgSlug, model),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_type.test", "id"),
+					resource.TestCheckResourceAttr("netbox_module_type.test", "model", model),
+					resource.TestCheckResourceAttrSet("netbox_module_type.test", "manufacturer"),
+				),
+			},
+		},
+	})
+}
+
 func testAccModuleTypeResourceConfig_basic(mfgName, mfgSlug, model string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
