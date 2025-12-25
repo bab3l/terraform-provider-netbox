@@ -587,14 +587,9 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 		"name": deviceRole.GetName(),
 	})
 
-	// Preserve display_name since it's computed but might change when other attributes update
-	displayNameBeforeUpdate := data.DisplayName
-
 	// Map response to state
 
 	r.mapDeviceRoleToState(ctx, deviceRole, &data, &resp.Diagnostics)
-
-	data.DisplayName = displayNameBeforeUpdate
 
 	if resp.Diagnostics.HasError() {
 

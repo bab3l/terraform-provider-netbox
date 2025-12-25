@@ -509,14 +509,9 @@ func (r *FrontPortTemplateResource) Update(ctx context.Context, req resource.Upd
 
 	}
 
-	// Preserve display_name since it's computed but might change when other attributes update
-	displayNameBeforeUpdate := data.DisplayName
-
 	// Map response to model
 
 	r.mapResponseToModel(response, &data)
-
-	data.DisplayName = displayNameBeforeUpdate
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
