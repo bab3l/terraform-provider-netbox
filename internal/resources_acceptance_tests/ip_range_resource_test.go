@@ -178,6 +178,33 @@ func TestAccIPRangeResource_import(t *testing.T) {
 
 }
 
+func TestAccIPRangeResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	secondOctet := acctest.RandIntRange(101, 150)
+	thirdOctet := acctest.RandIntRange(101, 150)
+	startOctet := 10 + acctest.RandIntRange(1, 200)
+	endOctet := startOctet + 10
+	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
+	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPRangeResourceConfig_basic(startAddress, endAddress),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", startAddress),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "end_address", endAddress),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccIPRangeResourceConfig_basic(startAddress, endAddress string) string {
 
 	return fmt.Sprintf(`

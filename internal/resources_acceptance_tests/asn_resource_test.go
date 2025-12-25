@@ -127,6 +127,34 @@ func TestAccASNResource_full(t *testing.T) {
 
 }
 
+func TestAccASNResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	rirName := testutil.RandomName("tf-test-rir-id")
+	rirSlug := testutil.RandomSlug("tf-test-rir-id")
+	asn := int64(acctest.RandIntRange(64512, 65000))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccASNResourceConfig_basic(rirName, rirSlug, asn),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_asn.test", "id"),
+					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccASNResourceConfig_basic(rirName, rirSlug string, asn int64) string {
 
 	return fmt.Sprintf(`

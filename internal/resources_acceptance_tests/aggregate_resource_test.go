@@ -122,6 +122,34 @@ func TestAccAggregateResource_full(t *testing.T) {
 
 }
 
+func TestAccAggregateResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	rirName := testutil.RandomName("tf-test-rir-id")
+	rirSlug := testutil.RandomSlug("tf-test-rir-id")
+	prefix := fmt.Sprintf("203.0.%d.0/24", acctest.RandIntRange(0, 255))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAggregateResourceConfig_basic(rirName, rirSlug, prefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "id"),
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "prefix", prefix),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccAggregateResourceConfig_basic(rirName, rirSlug, prefix string) string {
 
 	return fmt.Sprintf(`

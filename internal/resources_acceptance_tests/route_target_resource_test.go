@@ -160,6 +160,32 @@ func TestAccConsistency_RouteTarget_LiteralNames(t *testing.T) {
 	})
 }
 
+func TestAccRouteTargetResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("65000:400")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRouteTargetCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckRouteTargetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRouteTargetResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
+					resource.TestCheckResourceAttr("netbox_route_target.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func testAccRouteTargetResourceConfig_basic(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_route_target" "test" {

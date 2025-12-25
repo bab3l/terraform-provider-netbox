@@ -160,6 +160,32 @@ func TestAccPrefixResource_update(t *testing.T) {
 	})
 }
 
+func TestAccPrefixResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	prefix := testutil.RandomIPv4Prefix()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckPrefixDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPrefixResourceConfig_basic(prefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
+				),
+			},
+		},
+	})
+}
+
 func testAccPrefixResourceConfig_basic(prefix string) string {
 	return fmt.Sprintf(`
 resource "netbox_prefix" "test" {

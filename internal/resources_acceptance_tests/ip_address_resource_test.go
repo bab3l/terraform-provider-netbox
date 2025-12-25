@@ -157,7 +157,26 @@ func TestAccIPAddressResource_import(t *testing.T) {
 	})
 
 }
+func TestAccIPAddressResource_IDPreservation(t *testing.T) {
+	t.Parallel()
 
+	ip := fmt.Sprintf("192.0.%d.%d/24", 200+acctest.RandIntRange(0, 50), acctest.RandIntRange(1, 254))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPAddressResourceConfig_basic(ip),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", ip),
+				),
+			},
+		},
+	})
+
+}
 func testAccIPAddressResourceConfig_basic(address string) string {
 
 	return fmt.Sprintf(`resource "netbox_ip_address" "test" {

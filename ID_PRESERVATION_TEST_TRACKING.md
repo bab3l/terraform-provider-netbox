@@ -5,8 +5,8 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 
 ## Progress Summary
 - **Total Items**: 205 (101 Resources + 104 Datasources)
-- **Completed**: 40 items (19.5%)
-- **Remaining**: ~165 items across 10 remaining batches
+- **Completed**: 50 items (24.4%)
+- **Remaining**: ~155 items across 9 remaining batches
 
 ---
 
@@ -168,18 +168,42 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 ---
 
 ## Batch 6: Network (IPAM) Resources
-**Status**: Not Started
+**Status**: COMPLETE ✅
 **Items**: 10
-- [ ] aggregate_resource.go
-- [ ] prefix_resource.go
-- [ ] ip_address_resource.go
-- [ ] ip_range_resource.go
-- [ ] vrf_resource.go
-- [ ] route_target_resource.go
-- [ ] asn_resource.go
-- [ ] asn_range_resource.go
-- [ ] prefix_data_source.go
-- [ ] ip_address_data_source.go
+- [x] aggregate_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] prefix_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] ip_address_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] ip_range_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] vrf_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] route_target_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] asn_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] asn_range_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] prefix_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+- [x] ip_address_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+
+**Tests Added**:
+- `internal/resources_acceptance_tests/aggregate_resource_test.go`: `TestAccAggregateResource_IDPreservation`
+- `internal/resources_acceptance_tests/prefix_resource_test.go`: `TestAccPrefixResource_IDPreservation`
+- `internal/resources_acceptance_tests/ip_address_resource_test.go`: `TestAccIPAddressResource_IDPreservation`
+- `internal/resources_acceptance_tests/ip_range_resource_test.go`: `TestAccIPRangeResource_IDPreservation`
+- `internal/resources_acceptance_tests/vrf_resource_test.go`: `TestAccVRFResource_IDPreservation`
+- `internal/resources_acceptance_tests/route_target_resource_test.go`: `TestAccRouteTargetResource_IDPreservation`
+- `internal/resources_acceptance_tests/asn_resource_test.go`: `TestAccASNResource_IDPreservation`
+- `internal/resources_acceptance_tests/asn_range_resource_test.go`: `TestAccASNRangeResource_IDPreservation`
+- `internal/datasources_acceptance_tests/prefix_data_source_test.go`: `TestAccPrefixDataSource_IDPreservation`
+- `internal/datasources_acceptance_tests/ip_address_data_source_test.go`: `TestAccIPAddressDataSource_IDPreservation`
+
+**Test Results**: All tests PASSING ✅
+- Aggregate resource test: 42.27s ✅
+- Prefix resource test: 42.29s ✅
+- IPAddress resource test: 41.94s ✅
+- IPRange resource test: 42.13s ✅
+- VRF resource test: 41.20s ✅
+- RouteTarget resource test: 42.10s ✅
+- ASN resource test: 42.39s ✅
+- ASNRange resource test: 42.37s ✅
+- Prefix datasource test: 25.69s ✅
+- IPAddress datasource test: 28.21s ✅
 
 ---
 

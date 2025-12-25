@@ -138,6 +138,32 @@ func TestAccVRFResource_import(t *testing.T) {
 	})
 }
 
+func TestAccVRFResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-vrf-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVRFCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckVRFDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVRFResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func testAccVRFResourceConfig_basic(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_vrf" "test" {

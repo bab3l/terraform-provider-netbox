@@ -58,6 +58,30 @@ func TestAccPrefixDataSource_byID(t *testing.T) {
 	})
 }
 
+func TestAccPrefixDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	prefix := testutil.RandomIPv4Prefix()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckPrefixDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPrefixDataSourceConfig(prefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_prefix.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_prefix.test", "prefix", prefix),
+				),
+			},
+		},
+	})
+}
+
 func testAccPrefixDataSourceConfig(prefix string) string {
 	return fmt.Sprintf(`
 resource "netbox_prefix" "test" {
