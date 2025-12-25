@@ -13,10 +13,12 @@ func TestAccIPRangeResource_basic(t *testing.T) {
 
 	t.Parallel()
 
+	secondOctet := acctest.RandIntRange(1, 50)
+	thirdOctet := acctest.RandIntRange(1, 50)
 	startOctet := 10 + acctest.RandIntRange(1, 200)
 	endOctet := startOctet + 10
-	startAddress := fmt.Sprintf("192.0.2.%d", startOctet)
-	endAddress := fmt.Sprintf("192.0.2.%d", endOctet)
+	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
+	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
 
 	resource.Test(t, resource.TestCase{
 
@@ -48,10 +50,12 @@ func TestAccIPRangeResource_full(t *testing.T) {
 
 	t.Parallel()
 
+	secondOctet := acctest.RandIntRange(51, 100)
+	thirdOctet := acctest.RandIntRange(51, 100)
 	startOctet := 10 + acctest.RandIntRange(1, 200)
 	endOctet := startOctet + 10
-	startAddress := fmt.Sprintf("192.0.3.%d", startOctet)
-	endAddress := fmt.Sprintf("192.0.3.%d", endOctet)
+	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
+	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
 	description := testutil.RandomName("ip-range-desc")
 
 	resource.Test(t, resource.TestCase{
@@ -88,10 +92,12 @@ func TestAccIPRangeResource_update(t *testing.T) {
 
 	t.Parallel()
 
+	secondOctet := acctest.RandIntRange(101, 150)
+	thirdOctet := acctest.RandIntRange(101, 150)
 	startOctet2 := 10 + acctest.RandIntRange(1, 200)
 	endOctet2 := startOctet2 + 10
-	startAddress2 := fmt.Sprintf("192.0.4.%d", startOctet2)
-	endAddress2 := fmt.Sprintf("192.0.4.%d", endOctet2)
+	startAddress2 := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet2)
+	endAddress2 := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet2)
 	description := testutil.RandomName("ip-range-desc")
 
 	resource.Test(t, resource.TestCase{
@@ -134,10 +140,12 @@ func TestAccIPRangeResource_import(t *testing.T) {
 
 	t.Parallel()
 
+	secondOctet := acctest.RandIntRange(151, 200)
+	thirdOctet := acctest.RandIntRange(151, 200)
 	startOctet := 10 + acctest.RandIntRange(1, 200)
 	endOctet := startOctet + 10
-	startAddress := fmt.Sprintf("192.0.2.%d/32", startOctet)
-	endAddress := fmt.Sprintf("192.0.2.%d/32", endOctet)
+	startAddress := fmt.Sprintf("10.%d.%d.%d/32", secondOctet, thirdOctet, startOctet)
+	endAddress := fmt.Sprintf("10.%d.%d.%d/32", secondOctet, thirdOctet, endOctet)
 
 	resource.Test(t, resource.TestCase{
 
