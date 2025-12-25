@@ -5,8 +5,8 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 
 ## Progress Summary
 - **Total Items**: 205 (101 Resources + 104 Datasources)
-- **Completed**: 35 items (17.1%)
-- **Remaining**: ~170 items across 11 remaining batches
+- **Completed**: 40 items (19.5%)
+- **Remaining**: ~165 items across 10 remaining batches
 
 ---
 
@@ -141,15 +141,29 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 ---
 
 ## Batch 5: Rack & Reservation Resources
-**Status**: Not Started
-**Items**: 7
-- [ ] rack_reservation_resource.go ✅ (already fixed - skip)
-- [ ] virtual_chassis_resource.go
-- [ ] module_bay_resource.go
-- [ ] module_bay_template_resource.go ✅ (already fixed - skip)
-- [ ] cable_resource.go
-- [ ] rack_data_source.go
-- [ ] rack_reservation_data_source.go
+**Status**: COMPLETE ✅
+**Items**: 7 (2 already fixed, 5 new tests)
+- [x] rack_reservation_resource.go ✅ (already fixed - skip)
+- [x] virtual_chassis_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] module_bay_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] module_bay_template_resource.go ✅ (already fixed - skip)
+- [x] cable_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] rack_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+- [x] rack_reservation_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+
+**Tests Added**:
+- `internal/resources_acceptance_tests/virtual_chassis_resource_test.go`: `TestAccVirtualChassisResource_IDPreservation`
+- `internal/resources_acceptance_tests/module_bay_resource_test.go`: `TestAccModuleBayResource_IDPreservation`
+- `internal/resources_acceptance_tests/cable_resource_test.go`: `TestAccCableResource_IDPreservation`
+- `internal/datasources_acceptance_tests/rack_data_source_test.go`: `TestAccRackDataSource_IDPreservation`
+- `internal/datasources_acceptance_tests/rack_reservation_data_source_test.go`: `TestAccRackReservationDataSource_IDPreservation`
+
+**Test Results**: All tests PASSING ✅
+- VirtualChassis resource test: 23.78s ✅
+- ModuleBay resource test: 26.95s ✅
+- Cable resource test: 25.43s ✅
+- Rack datasource test: 54.41s ✅
+- RackReservation datasource test: 24.29s ✅
 
 ---
 

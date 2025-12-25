@@ -41,6 +41,33 @@ func TestAccRackReservationDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccRackReservationDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+	siteName := testutil.RandomName("test-site-rr-id")
+	siteSlug := testutil.GenerateSlug(siteName)
+	rackName := testutil.RandomName("test-rack-rr-id")
+	description := "Test Rack Reservation IDPreservation"
+
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterRackCleanup(rackName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackReservationDataSourceConfig(siteName, siteSlug, rackName, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_rack_reservation.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_rack_reservation.test", "description", description),
+				),
+			},
+		},
+	})
+}
+
 func testAccRackReservationDataSourceConfig(siteName, siteSlug, rackName, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {

@@ -106,6 +106,29 @@ func TestAccVirtualChassisResource_full(t *testing.T) {
 
 }
 
+func TestAccVirtualChassisResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-vc-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualChassisResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_chassis.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "name", name),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccVirtualChassisResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`

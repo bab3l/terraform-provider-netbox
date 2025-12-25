@@ -105,6 +105,36 @@ func TestAccRackDataSource_byName(t *testing.T) {
 
 }
 
+func TestAccRackDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-rack-ds-id")
+	siteSlug := testutil.RandomSlug("tf-test-rack-ds-id")
+	rackName := testutil.RandomName("tf-test-rack-ds-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackCleanup(rackName)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckRackDestroy, testutil.CheckSiteDestroy),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackDataSourceConfig(siteName, siteSlug, rackName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_rack.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_rack.test", "name", rackName),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccRackDataSourceConfig(siteName, siteSlug, rackName string) string {
 
 	return fmt.Sprintf(`
