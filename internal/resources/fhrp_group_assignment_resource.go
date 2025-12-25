@@ -650,10 +650,10 @@ func (r *FHRPGroupAssignmentResource) mapResponseToState(ctx context.Context, as
 
 	data.Priority = types.Int64Value(int64(assignment.GetPriority()))
 
-	// Map display_name
+	// Map display_name (computed field, always set a value)
 	if assignment.Display != "" {
 		data.DisplayName = types.StringValue(assignment.Display)
 	} else {
-		data.DisplayName = types.StringNull()
+		data.DisplayName = types.StringValue("")
 	}
 }

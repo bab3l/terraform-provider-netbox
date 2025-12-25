@@ -616,18 +616,12 @@ func (r *ExportTemplateResource) mapResponseToState(ctx context.Context, exportT
 
 	}
 
-	// Handle display_name
-
+	// Handle display_name (computed field, always set a value)
 	display := exportTemplate.GetDisplay()
-
 	if display != "" {
-
 		data.DisplayName = types.StringValue(display)
-
 	} else {
-
-		data.DisplayName = types.StringNull()
-
+		data.DisplayName = types.StringValue("")
 	}
 
 }
