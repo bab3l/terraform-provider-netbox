@@ -222,6 +222,36 @@ func TestAccConsistency_Location_LiteralNames(t *testing.T) {
 	})
 }
 
+func TestAccLocationResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-id")
+	siteSlug := testutil.RandomSlug("tf-test-site-id")
+	locationName := testutil.RandomName("tf-test-location-id")
+	locationSlug := testutil.RandomSlug("tf-test-loc-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterLocationCleanup(locationSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccLocationResourceConfig_basic(siteName, siteSlug, locationName, locationSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_location.test", "id"),
+					resource.TestCheckResourceAttr("netbox_location.test", "name", locationName),
+					resource.TestCheckResourceAttrSet("netbox_location.test", "site"),
+				),
+			},
+		},
+	})
+}
+
 func testAccLocationConsistencyLiteralNamesConfig(siteName, siteSlug, name, slug, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {

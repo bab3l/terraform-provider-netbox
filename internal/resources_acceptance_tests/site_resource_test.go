@@ -199,6 +199,33 @@ func TestAccConsistency_Site_LiteralNames(t *testing.T) {
 	})
 }
 
+func TestAccSiteResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-site-id")
+	slug := testutil.RandomSlug("tf-test-site-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckSiteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSiteResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_site.test", "id"),
+					resource.TestCheckResourceAttr("netbox_site.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_site.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func testAccSiteConsistencyLiteralNamesConfig(siteName, siteSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {

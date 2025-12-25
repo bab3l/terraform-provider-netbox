@@ -258,6 +258,34 @@ func TestAccConsistency_RackRole(t *testing.T) {
 
 }
 
+func TestAccRackRoleResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-rack-role-id")
+	slug := testutil.RandomSlug("tf-test-rr-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckRackRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackRoleResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rack_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func testAccRackRoleResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`

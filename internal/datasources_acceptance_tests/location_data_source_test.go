@@ -64,6 +64,48 @@ func TestAccLocationDataSource_basic(t *testing.T) {
 
 }
 
+func TestAccLocationDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-ds-id")
+	siteSlug := testutil.RandomSlug("tf-test-site-ds-id")
+	name := testutil.RandomName("tf-test-location-ds-id")
+	slug := testutil.RandomSlug("tf-test-location-ds-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterLocationCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckSiteDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccLocationDataSourceConfig(siteName, siteSlug, name, slug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("data.netbox_location.test", "id"),
+
+					resource.TestCheckResourceAttr("data.netbox_location.test", "name", name),
+
+					resource.TestCheckResourceAttrSet("data.netbox_location.test", "site"),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccLocationDataSourceConfig(siteName, siteSlug, name, slug string) string {
 
 	return fmt.Sprintf(`

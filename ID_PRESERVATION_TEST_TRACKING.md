@@ -5,8 +5,8 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 
 ## Progress Summary
 - **Total Items**: 205 (101 Resources + 104 Datasources)
-- **Already Fixed**: 8 resources (circuit, device, device_type, device_role, rack_reservation, cluster, cluster_type, inventory_item, inventory_item_template, export_template, config_template)
-- **Remaining**: ~193 items across 15 batches
+- **Completed**: 35 items (17.1%)
+- **Remaining**: ~170 items across 11 remaining batches
 
 ---
 
@@ -104,17 +104,39 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 ---
 
 ## Batch 4: Site/Location Resources
-**Status**: Not Started
+**Status**: COMPLETE ✅
 **Items**: 9
-- [ ] site_resource.go
-- [ ] site_group_resource.go
-- [ ] location_resource.go
-- [ ] region_resource.go
-- [ ] rack_resource.go
-- [ ] rack_role_resource.go
-- [ ] rack_type_resource.go
-- [ ] site_data_source.go
-- [ ] location_data_source.go
+- [x] site_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] site_group_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] location_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] region_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] rack_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] rack_role_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] rack_type_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] site_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+- [x] location_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+
+**Tests Added**:
+- `internal/resources_acceptance_tests/site_resource_test.go`: `TestAccSiteResource_IDPreservation`
+- `internal/resources_acceptance_tests/site_group_resource_test.go`: `TestAccSiteGroupResource_IDPreservation`
+- `internal/resources_acceptance_tests/location_resource_test.go`: `TestAccLocationResource_IDPreservation`
+- `internal/resources_acceptance_tests/region_resource_test.go`: `TestAccRegionResource_IDPreservation`
+- `internal/resources_acceptance_tests/rack_resource_test.go`: `TestAccRackResource_IDPreservation`
+- `internal/resources_acceptance_tests/rack_role_resource_test.go`: `TestAccRackRoleResource_IDPreservation`
+- `internal/resources_acceptance_tests/rack_type_resource_test.go`: `TestAccRackTypeResource_IDPreservation`
+- `internal/datasources_acceptance_tests/site_data_source_test.go`: `TestAccSiteDataSource_IDPreservation`
+- `internal/datasources_acceptance_tests/location_data_source_test.go`: `TestAccLocationDataSource_IDPreservation`
+
+**Test Results**: All tests PASSING ✅
+- Site resource test: 39.93s ✅
+- SiteGroup resource test: 42.04s ✅
+- Location resource test: 75.96s ✅
+- Region resource test: 76.40s ✅
+- Rack resource test: 77.06s ✅
+- RackRole resource test: 39.53s ✅
+- RackType resource test: 39.80s ✅
+- Site datasource test: 54.02s ✅
+- Location datasource test: 55.05s ✅
 
 ---
 

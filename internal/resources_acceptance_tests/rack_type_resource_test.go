@@ -181,6 +181,35 @@ func TestAccConsistency_RackType_LiteralNames(t *testing.T) {
 
 }
 
+func TestAccRackTypeResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("tf-test-mfg-id")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfg-id")
+	model := testutil.RandomName("tf-test-rack-type-id")
+	slug := testutil.RandomSlug("tf-test-rt-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackTypeResourceConfig_basic(manufacturerName, manufacturerSlug, model, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rack_type.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "model", model),
+					resource.TestCheckResourceAttrSet("netbox_rack_type.test", "manufacturer"),
+				),
+			},
+		},
+	})
+}
+
 func testAccRackTypeResourceConfig_basic(mfgName, mfgSlug, model, slug string) string {
 
 	return fmt.Sprintf(`
