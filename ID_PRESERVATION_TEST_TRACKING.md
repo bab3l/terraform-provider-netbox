@@ -5,8 +5,8 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 
 ## Progress Summary
 - **Total Items**: 205 (101 Resources + 104 Datasources)
-- **Completed**: 57 items (27.8%)
-- **Remaining**: ~148 items across 8 remaining batches
+- **Completed**: 66 items (32.2%)
+- **Remaining**: ~139 items across 7 remaining batches
 
 ---
 
@@ -239,15 +239,39 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 ---
 
 ## Batch 8: Interface Resources
-**Status**: Not Started
+**Status**: COMPLETE ✅
 **Items**: 9
-- [ ] interface_resource.go
-- [ ] interface_template_resource.go
-- [ ] front_port_resource.go
-- [ ] front_port_template_resource.go
-- [ ] rear_port_resource.go
-- [ ] rear_port_template_resource.go
-- [ ] console_port_resource.go
+- [x] interface_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] interface_template_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] front_port_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] front_port_template_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] rear_port_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] rear_port_template_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] console_port_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] interface_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+- [x] front_port_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+
+**Tests Added**:
+- `internal/resources_acceptance_tests/interface_resource_test.go`: `TestAccInterfaceResource_IDPreservation`
+- `internal/resources_acceptance_tests/interface_template_resource_test.go`: `TestAccInterfaceTemplateResource_IDPreservation`
+- `internal/resources_acceptance_tests/front_port_resource_test.go`: `TestAccFrontPortResource_IDPreservation`
+- `internal/resources_acceptance_tests/front_port_template_resource_test.go`: `TestAccFrontPortTemplateResource_IDPreservation`
+- `internal/resources_acceptance_tests/rear_port_resource_test.go`: `TestAccRearPortResource_IDPreservation`
+- `internal/resources_acceptance_tests/rear_port_template_resource_test.go`: `TestAccRearPortTemplateResource_IDPreservation`
+- `internal/resources_acceptance_tests/console_port_resource_test.go`: `TestAccConsolePortResource_IDPreservation`
+- `internal/datasources_acceptance_tests/interface_data_source_test.go`: `TestAccInterfaceDataSource_IDPreservation`
+- `internal/datasources_acceptance_tests/front_port_data_source_test.go`: `TestAccFrontPortDataSource_IDPreservation`
+
+**Test Results**: All tests PASSING ✅
+- Interface resource test: 41.28s ✅
+- InterfaceTemplate resource test: 39.55s ✅
+- FrontPort resource test: 41.61s ✅
+- FrontPortTemplate resource test: 40.02s ✅
+- RearPort resource test: 41.76s ✅
+- RearPortTemplate resource test: 41.93s ✅
+- ConsolePort resource test: 41.75s ✅
+- Interface datasource test: 26.21s ✅
+- FrontPort datasource test: 25.91s ✅
 - [ ] interface_data_source.go
 - [ ] front_port_data_source.go
 

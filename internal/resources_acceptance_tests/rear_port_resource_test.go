@@ -281,6 +281,46 @@ func TestAccConsistency_RearPort_LiteralNames(t *testing.T) {
 
 }
 
+func TestAccRearPortResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-id")
+	siteSlug := testutil.RandomSlug("tf-test-site-id")
+	mfgName := testutil.RandomName("tf-test-mfg-id")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-id")
+	dtModel := testutil.RandomName("tf-test-dt-id")
+	dtSlug := testutil.RandomSlug("tf-test-dt-id")
+	roleName := testutil.RandomName("tf-test-role-id")
+	roleSlug := testutil.RandomSlug("tf-test-role-id")
+	deviceName := testutil.RandomName("tf-test-device-id")
+	rearPortName := testutil.RandomName("tf-test-rp-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRearPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rear_port.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "name", rearPortName),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "type", "8p8c"),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccRearPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName string) string {
 
 	return fmt.Sprintf(`

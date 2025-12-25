@@ -146,6 +146,28 @@ func TestAccConsistency_InterfaceTemplate_LiteralNames(t *testing.T) {
 
 }
 
+func TestAccInterfaceTemplateResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-interface-template-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceTemplateResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_interface_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "type", "1000base-t"),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccInterfaceTemplateResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`

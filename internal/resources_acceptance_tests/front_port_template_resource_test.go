@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+const frontPortTypeStandard = "8p8c"
+
 func TestAccFrontPortTemplateResource_basic(t *testing.T) {
 
 	t.Parallel()
@@ -16,7 +18,7 @@ func TestAccFrontPortTemplateResource_basic(t *testing.T) {
 	deviceTypeName := testutil.RandomName("dt")
 	deviceTypeSlug := testutil.RandomSlug("dt")
 	frontPortName := testutil.RandomName("front-port")
-	portType := "8p8c"
+	portType := frontPortTypeStandard
 	rearPortName := testutil.RandomName("rear-port")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -124,6 +126,37 @@ func TestAccConsistency_FrontPortTemplate_LiteralNames(t *testing.T) {
 			{
 				PlanOnly: true,
 				Config:   testAccFrontPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName, rearPortTemplateName),
+			},
+		},
+	})
+}
+
+func TestAccFrontPortTemplateResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("mfr-id")
+	manufacturerSlug := testutil.RandomSlug("mfr-id")
+	deviceTypeName := testutil.RandomName("dt-id")
+	deviceTypeSlug := testutil.RandomSlug("dt-id")
+	frontPortName := testutil.RandomName("front-port-id")
+	portType := frontPortTypeStandard
+	rearPortName := testutil.RandomName("rear-port-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFrontPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, portType),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_front_port_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "name", frontPortName),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "type", portType),
+				),
 			},
 		},
 	})

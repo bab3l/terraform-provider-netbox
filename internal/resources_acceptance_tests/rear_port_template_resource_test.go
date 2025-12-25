@@ -253,6 +253,35 @@ func TestAccConsistency_RearPortTemplate_LiteralNames(t *testing.T) {
 
 }
 
+func TestAccRearPortTemplateResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("mfr-id")
+	manufacturerSlug := testutil.RandomSlug("mfr-id")
+	deviceTypeName := testutil.RandomName("dt-id")
+	deviceTypeSlug := testutil.RandomSlug("dt-id")
+	name := testutil.RandomName("rear-port-id")
+	portType := "8p8c"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRearPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, portType),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rear_port_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "type", portType),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccRearPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, portType string) string {
 
 	return fmt.Sprintf(`
