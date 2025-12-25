@@ -104,6 +104,28 @@ resource "netbox_l2vpn" "test" {
 `, name, name)
 }
 
+func TestAccL2VPNResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := acctest.RandomWithPrefix("test-l2vpn-id")
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccL2VPNResourceConfig_basic(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "type", "vxlan"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConsistency_L2VPN_LiteralNames(t *testing.T) {
 	t.Parallel()
 	name := "test-l2vpn-lit"

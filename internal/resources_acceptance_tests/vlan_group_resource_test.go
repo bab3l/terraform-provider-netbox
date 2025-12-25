@@ -181,6 +181,34 @@ func TestAccConsistency_VLANGroup_LiteralNames(t *testing.T) {
 	})
 }
 
+func TestAccVLANGroupResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-vlangrp-id")
+	slug := testutil.GenerateSlug("tf-test-vlangrp-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVLANGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckVLANGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVLANGroupResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vlan_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vlan_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_vlan_group.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func testAccVLANGroupResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_vlan_group" "test" {

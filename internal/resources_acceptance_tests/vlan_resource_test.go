@@ -179,6 +179,34 @@ func TestAccVLANResource_import(t *testing.T) {
 	})
 }
 
+func TestAccVLANResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-vlan-id")
+	vid := testutil.RandomVID()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVLANCleanup(vid)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckVLANDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVLANResourceConfig_basic(name, vid),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "vid", fmt.Sprintf("%d", vid)),
+				),
+			},
+		},
+	})
+}
+
 func testAccVLANResourceConfig_basic(name string, vid int32) string {
 	return fmt.Sprintf(`
 resource "netbox_vlan" "test" {

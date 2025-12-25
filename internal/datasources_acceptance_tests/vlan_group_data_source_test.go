@@ -89,6 +89,32 @@ func TestAccVLANGroupDataSource_byName(t *testing.T) {
 	})
 }
 
+func TestAccVLANGroupDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	vlanGroupName := testutil.RandomName("vlan-group-id")
+	vlanGroupSlug := testutil.RandomSlug("vlan-group-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVLANGroupCleanup(vlanGroupSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVLANGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVLANGroupDataSourceByIDConfig(vlanGroupName, vlanGroupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_vlan_group.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_vlan_group.test", "name", vlanGroupName),
+					resource.TestCheckResourceAttr("data.netbox_vlan_group.test", "slug", vlanGroupSlug),
+				),
+			},
+		},
+	})
+}
+
 func testAccVLANGroupDataSourceByIDConfig(vlanGroupName, vlanGroupSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_vlan_group" "test" {

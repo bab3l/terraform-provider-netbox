@@ -5,8 +5,8 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 
 ## Progress Summary
 - **Total Items**: 205 (101 Resources + 104 Datasources)
-- **Completed**: 50 items (24.4%)
-- **Remaining**: ~155 items across 9 remaining batches
+- **Completed**: 57 items (27.8%)
+- **Remaining**: ~148 items across 8 remaining batches
 
 ---
 
@@ -208,15 +208,33 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 ---
 
 ## Batch 7: VLAN Resources
-**Status**: Not Started
+**Status**: COMPLETE ✅
 **Items**: 7
-- [ ] vlan_resource.go
-- [ ] vlan_group_resource.go
-- [ ] l2vpn_resource.go
-- [ ] l2vpn_termination_resource.go
-- [ ] service_resource.go
-- [ ] vlan_data_source.go
-- [ ] vlan_group_data_source.go
+- [x] vlan_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] vlan_group_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] l2vpn_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] l2vpn_termination_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] service_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] vlan_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+- [x] vlan_group_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+
+**Tests Added**:
+- `internal/resources_acceptance_tests/vlan_resource_test.go`: `TestAccVLANResource_IDPreservation`
+- `internal/resources_acceptance_tests/vlan_group_resource_test.go`: `TestAccVLANGroupResource_IDPreservation`
+- `internal/resources_acceptance_tests/l2vpn_resource_test.go`: `TestAccL2VPNResource_IDPreservation`
+- `internal/resources_acceptance_tests/l2vpn_termination_resource_test.go`: `TestAccL2VPNTerminationResource_IDPreservation`
+- `internal/resources_acceptance_tests/service_resource_test.go`: `TestAccServiceResource_IDPreservation`
+- `internal/datasources_acceptance_tests/vlan_data_source_test.go`: `TestAccVLANDataSource_IDPreservation`
+- `internal/datasources_acceptance_tests/vlan_group_data_source_test.go`: `TestAccVLANGroupDataSource_IDPreservation`
+
+**Test Results**: All tests PASSING ✅
+- VLAN resource test: 34.91s ✅
+- VLANGroup resource test: 34.08s ✅
+- L2VPN resource test: 32.52s ✅
+- L2VPNTermination resource test: 33.39s ✅
+- Service resource test: 33.84s ✅
+- VLAN datasource test: 23.73s ✅
+- VLANGroup datasource test: 23.29s ✅
 
 ---
 
