@@ -2344,6 +2344,143 @@ func LookupCircuit(ctx context.Context, client *netbox.APIClient, value string) 
 
 }
 
+// CircuitGroupLookupConfig returns the lookup configuration for Circuit Groups.
+
+func CircuitGroupLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.CircuitGroup, netbox.BriefCircuitGroupRequest] {
+
+	return LookupConfig[*netbox.CircuitGroup, netbox.BriefCircuitGroupRequest]{
+
+		ResourceName: "Circuit Group",
+
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.CircuitGroup, *http.Response, error) {
+
+			return client.CircuitsAPI.CircuitsCircuitGroupsRetrieve(ctx, id).Execute()
+
+		},
+
+		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.CircuitGroup, *http.Response, error) {
+
+			list, resp, err := client.CircuitsAPI.CircuitsCircuitGroupsList(ctx).Slug([]string{slug}).Execute()
+
+			if err != nil {
+
+				return nil, resp, err
+
+			}
+
+			results := make([]*netbox.CircuitGroup, len(list.Results))
+
+			for i := range list.Results {
+
+				results[i] = &list.Results[i]
+
+			}
+
+			return results, resp, nil
+
+		},
+
+		ToBriefRequest: func(cg *netbox.CircuitGroup) netbox.BriefCircuitGroupRequest {
+
+			return netbox.BriefCircuitGroupRequest{
+
+				Name: cg.GetName(),
+			}
+
+		},
+	}
+
+}
+
+// LookupCircuitGroup looks up a Circuit Group by ID or slug.
+
+func LookupCircuitGroup(ctx context.Context, client *netbox.APIClient, value string) (*netbox.CircuitGroup, diag.Diagnostics) {
+
+	var id int32
+
+	if _, err := fmt.Sscanf(value, "%d", &id); err == nil {
+
+		// Lookup by ID
+
+		resource, resp, err := client.CircuitsAPI.CircuitsCircuitGroupsRetrieve(ctx, id).Execute()
+
+		defer utils.CloseResponseBody(resp)
+
+		if err != nil || resp.StatusCode != 200 {
+
+			errMsg := unknownErrorMsg
+
+			if err != nil {
+
+				errMsg = err.Error()
+
+			}
+
+			return nil, diag.Diagnostics{diag.NewErrorDiagnostic(
+
+				"Circuit Group lookup failed",
+
+				fmt.Sprintf("Could not find Circuit Group with ID %d: %s", id, errMsg),
+			)}
+
+		}
+
+		return resource, nil
+
+	}
+
+	// Lookup by slug first
+
+	list, resp, err := client.CircuitsAPI.CircuitsCircuitGroupsList(ctx).Slug([]string{value}).Execute()
+
+	defer utils.CloseResponseBody(resp)
+
+	if err == nil && resp.StatusCode == 200 && len(list.Results) > 0 {
+
+		return &list.Results[0], nil
+
+	}
+
+	// Try lookup by name
+
+	list, resp, err = client.CircuitsAPI.CircuitsCircuitGroupsList(ctx).Name([]string{value}).Execute()
+
+	defer utils.CloseResponseBody(resp)
+
+	if err != nil || resp.StatusCode != 200 {
+
+		errMsg := unknownErrorMsg
+
+		if err != nil {
+
+			errMsg = err.Error()
+
+		}
+
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic(
+
+			"Circuit Group lookup failed",
+
+			fmt.Sprintf("Could not find Circuit Group with slug or name '%s': %s", value, errMsg),
+		)}
+
+	}
+
+	if len(list.Results) == 0 {
+
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic(
+
+			"Circuit Group lookup failed",
+
+			fmt.Sprintf("No Circuit Group found with slug or name '%s'", value),
+		)}
+
+	}
+
+	return &list.Results[0], nil
+
+}
+
 // =====================================================
 
 // WIRELESS LOOKUPS

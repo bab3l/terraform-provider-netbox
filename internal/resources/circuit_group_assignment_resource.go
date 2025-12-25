@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -157,35 +158,25 @@ func (r *CircuitGroupAssignmentResource) Create(ctx context.Context, req resourc
 
 	}
 
-	// Parse group ID
+	// Look up group by ID or slug
 
-	groupID, err := utils.ParseID(data.Group.ValueString())
+	circuitGroup, groupDiags := netboxlookup.LookupCircuitGroup(ctx, r.client, data.Group.ValueString())
 
-	if err != nil {
+	resp.Diagnostics.Append(groupDiags...)
 
-		resp.Diagnostics.AddError(
-
-			"Invalid Group ID",
-
-			fmt.Sprintf("Unable to parse group ID: %s", err),
-		)
+	if resp.Diagnostics.HasError() {
 
 		return
 
 	}
 
-	// Parse circuit ID
+	// Look up circuit by ID or CID
 
-	circuitID, err := utils.ParseID(data.Circuit.ValueString())
+	circuit, circuitDiags := netboxlookup.LookupCircuit(ctx, r.client, data.Circuit.ValueString())
 
-	if err != nil {
+	resp.Diagnostics.Append(circuitDiags...)
 
-		resp.Diagnostics.AddError(
-
-			"Invalid Circuit ID",
-
-			fmt.Sprintf("Unable to parse circuit ID: %s", err),
-		)
+	if resp.Diagnostics.HasError() {
 
 		return
 
@@ -193,28 +184,21 @@ func (r *CircuitGroupAssignmentResource) Create(ctx context.Context, req resourc
 
 	tflog.Debug(ctx, "Creating circuit group assignment", map[string]interface{}{
 
-		"group_id": groupID,
+		"group_id": circuitGroup.GetSlug(),
 
-		"circuit_id": circuitID,
+		"circuit_id": circuit.GetCid(),
 	})
 
-	// Build the API request - need to create placeholder Brief objects
+	// Convert CircuitGroup to BriefCircuitGroupRequest for API
 
-	// We'll use AdditionalProperties to pass the actual IDs
+	groupRequest := netbox.BriefCircuitGroupRequest{
 
-	briefGroup := *netbox.NewBriefCircuitGroupRequest("placeholder")
+		Name: circuitGroup.GetName(),
+	}
 
-	briefCircuit := *netbox.NewBriefCircuitRequest("placeholder", *netbox.NewBriefProviderRequest("placeholder", "placeholder"))
+	// Build the API request using the converted group and circuit
 
-	assignmentRequest := netbox.NewWritableCircuitGroupAssignmentRequest(briefGroup, briefCircuit)
-
-	// Use AdditionalProperties to pass the IDs
-
-	assignmentRequest.AdditionalProperties = make(map[string]interface{})
-
-	assignmentRequest.AdditionalProperties["group"] = int(groupID)
-
-	assignmentRequest.AdditionalProperties["circuit"] = int(circuitID)
+	assignmentRequest := netbox.NewWritableCircuitGroupAssignmentRequest(groupRequest, *circuit)
 
 	// Set priority if provided
 
@@ -383,35 +367,25 @@ func (r *CircuitGroupAssignmentResource) Update(ctx context.Context, req resourc
 
 	}
 
-	// Parse group ID
+	// Look up group by ID or slug
 
-	groupID, err := utils.ParseID(data.Group.ValueString())
+	circuitGroup, groupDiags := netboxlookup.LookupCircuitGroup(ctx, r.client, data.Group.ValueString())
 
-	if err != nil {
+	resp.Diagnostics.Append(groupDiags...)
 
-		resp.Diagnostics.AddError(
-
-			"Invalid Group ID",
-
-			fmt.Sprintf("Unable to parse group ID: %s", err),
-		)
+	if resp.Diagnostics.HasError() {
 
 		return
 
 	}
 
-	// Parse circuit ID
+	// Look up circuit by ID or CID
 
-	circuitID, err := utils.ParseID(data.Circuit.ValueString())
+	circuit, circuitDiags := netboxlookup.LookupCircuit(ctx, r.client, data.Circuit.ValueString())
 
-	if err != nil {
+	resp.Diagnostics.Append(circuitDiags...)
 
-		resp.Diagnostics.AddError(
-
-			"Invalid Circuit ID",
-
-			fmt.Sprintf("Unable to parse circuit ID: %s", err),
-		)
+	if resp.Diagnostics.HasError() {
 
 		return
 
@@ -421,26 +395,21 @@ func (r *CircuitGroupAssignmentResource) Update(ctx context.Context, req resourc
 
 		"id": id,
 
-		"group_id": groupID,
+		"group_id": circuitGroup.GetSlug(),
 
-		"circuit_id": circuitID,
+		"circuit_id": circuit.GetCid(),
 	})
+
+	// Convert CircuitGroup to BriefCircuitGroupRequest for API
+
+	groupRequest := netbox.BriefCircuitGroupRequest{
+
+		Name: circuitGroup.GetName(),
+	}
 
 	// Build the API request
 
-	briefGroup := *netbox.NewBriefCircuitGroupRequest("placeholder")
-
-	briefCircuit := *netbox.NewBriefCircuitRequest("placeholder", *netbox.NewBriefProviderRequest("placeholder", "placeholder"))
-
-	assignmentRequest := netbox.NewWritableCircuitGroupAssignmentRequest(briefGroup, briefCircuit)
-
-	// Use AdditionalProperties to pass the IDs
-
-	assignmentRequest.AdditionalProperties = make(map[string]interface{})
-
-	assignmentRequest.AdditionalProperties["group"] = int(groupID)
-
-	assignmentRequest.AdditionalProperties["circuit"] = int(circuitID)
+	assignmentRequest := netbox.NewWritableCircuitGroupAssignmentRequest(groupRequest, *circuit)
 
 	// Set priority if provided
 

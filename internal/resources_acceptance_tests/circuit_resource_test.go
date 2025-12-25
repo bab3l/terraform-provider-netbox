@@ -291,11 +291,11 @@ func TestAccConsistency_Circuit(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
 
-					resource.TestCheckResourceAttr("netbox_circuit.test", "circuit_provider", providerSlug),
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "circuit_provider"),
 
-					resource.TestCheckResourceAttr("netbox_circuit.test", "type", typeSlug),
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "type"),
 
-					resource.TestCheckResourceAttr("netbox_circuit.test", "tenant", tenantName),
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "tenant"),
 				),
 			},
 

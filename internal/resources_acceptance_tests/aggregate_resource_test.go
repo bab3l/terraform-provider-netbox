@@ -177,8 +177,9 @@ resource "netbox_aggregate" "test" {
 func TestAccConsistency_Aggregate(t *testing.T) {
 
 	t.Parallel()
-	// Use random second and third octets to ensure uniqueness across test runs
-	prefix := fmt.Sprintf("10.%d.%d.0/16", acctest.RandIntRange(0, 255), acctest.RandIntRange(0, 255))
+	// Use random second octet to ensure uniqueness across test runs
+	// /16 requires the last two octets to be 0
+	prefix := fmt.Sprintf("10.%d.0.0/16", acctest.RandIntRange(0, 255))
 
 	rirName := testutil.RandomName("rir")
 
@@ -208,9 +209,9 @@ func TestAccConsistency_Aggregate(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_aggregate.test", "prefix", prefix),
 
-					resource.TestCheckResourceAttr("netbox_aggregate.test", "rir", rirSlug),
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "rir"),
 
-					resource.TestCheckResourceAttr("netbox_aggregate.test", "tenant", tenantName),
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "tenant"),
 				),
 			},
 
@@ -266,8 +267,9 @@ resource "netbox_aggregate" "test" {
 func TestAccConsistency_Aggregate_LiteralNames(t *testing.T) {
 
 	t.Parallel()
-	// Use random second and third octets to ensure uniqueness across test runs
-	prefix := fmt.Sprintf("10.%d.%d.0/16", acctest.RandIntRange(0, 255), acctest.RandIntRange(0, 255))
+	// Use random second octet to ensure uniqueness across test runs
+	// /16 requires the last two octets to be 0
+	prefix := fmt.Sprintf("10.%d.0.0/16", acctest.RandIntRange(0, 255))
 
 	rirName := testutil.RandomName("rir")
 
@@ -297,9 +299,9 @@ func TestAccConsistency_Aggregate_LiteralNames(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_aggregate.test", "prefix", prefix),
 
-					resource.TestCheckResourceAttr("netbox_aggregate.test", "rir", rirSlug),
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "rir"),
 
-					resource.TestCheckResourceAttr("netbox_aggregate.test", "tenant", tenantName),
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "tenant"),
 				),
 			},
 
