@@ -2179,3 +2179,119 @@ func TestParseInt32_TypesString(t *testing.T) {
 	}
 
 }
+
+// TestUpdateReferenceAttribute tests the UpdateReferenceAttribute function to ensure
+// IDs are preserved as immutable identifiers while allowing flexibility for user input.
+func TestUpdateReferenceAttribute(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		currentValue  types.String
+		apiName       string
+		apiSlug       string
+		apiID         int32
+		expectedValue string
+	}{
+		{
+			name:          "Preserve ID when user provided ID",
+			currentValue:  types.StringValue("123"),
+			apiID:         123,
+			apiName:       "provider-name",
+			apiSlug:       "provider-slug",
+			expectedValue: "123",
+		},
+		{
+			name:          "Preserve slug when user provided slug",
+			currentValue:  types.StringValue("provider-slug"),
+			apiID:         123,
+			apiName:       "provider-name",
+			apiSlug:       "provider-slug",
+			expectedValue: "provider-slug",
+		},
+		{
+			name:          "Preserve name when user provided name",
+			currentValue:  types.StringValue("provider-name"),
+			apiID:         123,
+			apiName:       "provider-name",
+			apiSlug:       "provider-slug",
+			expectedValue: "provider-name",
+		},
+		{
+			name:          "Set to ID when unknown (during create)",
+			currentValue:  types.StringUnknown(),
+			apiID:         456,
+			apiName:       "new-provider",
+			apiSlug:       "new-provider-slug",
+			expectedValue: "456",
+		},
+		{
+			name:          "Keep null when current is null",
+			currentValue:  types.StringNull(),
+			apiID:         789,
+			apiName:       "provider",
+			apiSlug:       "provider-slug",
+			expectedValue: "", // null value should remain null
+		},
+		{
+			name:          "Preserve non-numeric value when reference changed but value is not numeric",
+			currentValue:  types.StringValue("old-slug"),
+			apiID:         999,
+			apiName:       "new-provider",
+			apiSlug:       "new-provider-slug",
+			expectedValue: "old-slug",
+		},
+		{
+			name:          "Update to ID when reference changed and current is numeric but doesn't match",
+			currentValue:  types.StringValue("555"),
+			apiID:         999,
+			apiName:       "new-provider",
+			apiSlug:       "new-provider-slug",
+			expectedValue: "999",
+		},
+		{
+			name:          "Preserve ID when reference unchanged but ID matches",
+			currentValue:  types.StringValue("123"),
+			apiID:         123,
+			apiName:       "different-name",
+			apiSlug:       "different-slug",
+			expectedValue: "123",
+		},
+		{
+			name:          "Case-insensitive name match preserves user input",
+			currentValue:  types.StringValue("Provider-Name"),
+			apiID:         555,
+			apiName:       "provider-name",
+			apiSlug:       "provider-slug",
+			expectedValue: "Provider-Name",
+		},
+		{
+			name:          "Case-insensitive slug match preserves user input",
+			currentValue:  types.StringValue("Provider-Slug"),
+			apiID:         555,
+			apiName:       "provider-name",
+			apiSlug:       "provider-slug",
+			expectedValue: "Provider-Slug",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := UpdateReferenceAttribute(tt.currentValue, tt.apiName, tt.apiSlug, tt.apiID)
+
+			// Handle null case specially
+			if tt.expectedValue == "" && tt.currentValue.IsNull() {
+				if !result.IsNull() {
+					t.Errorf("UpdateReferenceAttribute() expected null, got %s", result.ValueString())
+				}
+				return
+			}
+
+			if result.ValueString() != tt.expectedValue {
+				t.Errorf("UpdateReferenceAttribute() = %s, want %s", result.ValueString(), tt.expectedValue)
+			}
+		})
+	}
+}

@@ -271,6 +271,36 @@ func TestAccConsistency_Provider_LiteralNames(t *testing.T) {
 		},
 	})
 }
+
+// TestAccProviderResource_IDPreservation tests that the provider resource preserves the
+// ID as the immutable identifier when using different reference formats (ID, name, slug).
+func TestAccProviderResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-provider-id")
+	slug := testutil.RandomSlug("tf-test-provider-id")
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckProviderDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_provider.test", "id"),
+					resource.TestCheckResourceAttr("netbox_provider.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_provider.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func testAccProviderConsistencyLiteralNamesConfig(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_provider" "test" {
