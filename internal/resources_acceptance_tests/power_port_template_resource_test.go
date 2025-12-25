@@ -174,7 +174,34 @@ func TestAccConsistency_PowerPortTemplate(t *testing.T) {
 		},
 	})
 }
+func TestAccPowerPortTemplateResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	manufacturerName := testutil.RandomName("mfr-id")
+	manufacturerSlug := testutil.RandomSlug("mfr-id")
+	deviceTypeName := testutil.RandomName("dt-id")
+	deviceTypeSlug := testutil.RandomSlug("dt-id")
+	name := testutil.RandomName("power-port-id")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_port_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "name", name),
+				),
+			},
+		},
+	})
+}
 func testAccPowerPortTemplateConsistencyConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, portName string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {

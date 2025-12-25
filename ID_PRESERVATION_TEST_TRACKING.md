@@ -5,8 +5,8 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 
 ## Progress Summary
 - **Total Items**: 205 (101 Resources + 104 Datasources)
-- **Completed**: 66 items (32.2%)
-- **Remaining**: ~139 items across 7 remaining batches
+- **Completed**: 74 items (36.1%)
+- **Remaining**: ~131 items across 6 remaining batches
 
 ---
 
@@ -272,24 +272,42 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 - ConsolePort resource test: 41.75s ✅
 - Interface datasource test: 26.21s ✅
 - FrontPort datasource test: 25.91s ✅
-- [ ] interface_data_source.go
-- [ ] front_port_data_source.go
 
 ---
 
 ## Batch 9: Port Templates & Power
-**Status**: Not Started
-**Items**: 10
-- [ ] console_port_template_resource.go ✅ (already fixed - skip)
-- [ ] console_server_port_resource.go
-- [ ] console_server_port_template_resource.go ✅ (already fixed - skip)
-- [ ] power_port_resource.go
-- [ ] power_port_template_resource.go
-- [ ] power_outlet_resource.go
-- [ ] power_outlet_template_resource.go
-- [ ] power_panel_resource.go
-- [ ] power_port_data_source.go
-- [ ] power_outlet_data_source.go
+**Status**: COMPLETE ✅
+**Items**: 8 (2 already fixed, 6 new tests)
+- [x] console_port_template_resource.go ✅ (already fixed - skip)
+- [x] console_server_port_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] console_server_port_template_resource.go ✅ (already fixed - skip)
+- [x] power_port_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] power_port_template_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] power_outlet_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] power_outlet_template_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] power_panel_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] power_port_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+- [x] power_outlet_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+
+**Tests Added**:
+- `internal/resources_acceptance_tests/console_server_port_resource_test.go`: `TestAccConsoleServerPortResource_IDPreservation`
+- `internal/resources_acceptance_tests/power_port_resource_test.go`: `TestAccPowerPortResource_IDPreservation`
+- `internal/resources_acceptance_tests/power_port_template_resource_test.go`: `TestAccPowerPortTemplateResource_IDPreservation`
+- `internal/resources_acceptance_tests/power_outlet_resource_test.go`: `TestAccPowerOutletResource_IDPreservation`
+- `internal/resources_acceptance_tests/power_outlet_template_resource_test.go`: `TestAccPowerOutletTemplateResource_IDPreservation`
+- `internal/resources_acceptance_tests/power_panel_resource_test.go`: `TestAccPowerPanelResource_IDPreservation`
+- `internal/datasources_acceptance_tests/power_port_data_source_test.go`: `TestAccPowerPortDataSource_IDPreservation`
+- `internal/datasources_acceptance_tests/power_outlet_data_source_test.go`: `TestAccPowerOutletDataSource_IDPreservation`
+
+**Test Results**: All tests PASSING ✅
+- ConsoleServerPort resource test: 40.53s ✅
+- PowerPort resource test: 39.01s ✅
+- PowerPortTemplate resource test: 38.12s ✅
+- PowerOutlet resource test: 38.98s ✅
+- PowerOutletTemplate resource test: 40.13s ✅
+- PowerPanel resource test: 37.80s ✅
+- PowerPort datasource test: 25.20s ✅
+- PowerOutlet datasource test: 24.81s ✅
 
 ---
 

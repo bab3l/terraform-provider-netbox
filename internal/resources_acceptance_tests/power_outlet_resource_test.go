@@ -103,6 +103,43 @@ func TestAccPowerOutletResource_full(t *testing.T) {
 	})
 }
 
+func TestAccPowerOutletResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	siteName := testutil.RandomName("tf-test-site-id")
+	siteSlug := testutil.RandomSlug("tf-test-site-id")
+	mfgName := testutil.RandomName("tf-test-mfg-id")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-id")
+	dtModel := testutil.RandomName("tf-test-dt-id")
+	dtSlug := testutil.RandomSlug("tf-test-dt-id")
+	roleName := testutil.RandomName("tf-test-role-id")
+	roleSlug := testutil.RandomSlug("tf-test-role-id")
+	deviceName := testutil.RandomName("tf-test-device-id")
+	powerOutletName := testutil.RandomName("tf-test-po-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerOutletResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_outlet.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_outlet.test", "name", powerOutletName),
+				),
+			},
+		},
+	})
+}
+
 func testAccPowerOutletResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
