@@ -464,10 +464,9 @@ func (r *CircuitGroupAssignmentResource) Update(ctx context.Context, req resourc
 
 	}
 
-	// Map response to state, preserving computed display_name to avoid inconsistent result error
-	displayNameBeforeUpdate := data.DisplayName
+	// Map response to state
+
 	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
-	data.DisplayName = displayNameBeforeUpdate
 
 	tflog.Debug(ctx, "Updated circuit group assignment", map[string]interface{}{
 

@@ -695,13 +695,9 @@ func (r *InventoryItemResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	// Preserve display_name since it's computed but might change when other attributes update
-	displayNameBeforeUpdate := data.DisplayName
-
 	// Map response to model
 
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
-
-	data.DisplayName = displayNameBeforeUpdate
 
 	if resp.Diagnostics.HasError() {
 

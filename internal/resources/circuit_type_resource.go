@@ -511,10 +511,9 @@ func (r *CircuitTypeResource) Update(ctx context.Context, req resource.UpdateReq
 		"name": circuitType.GetName(),
 	})
 
-	// Map the response to state, preserving computed display_name to avoid inconsistent result error
-	displayNameBeforeUpdate := data.DisplayName
+	// Map the response to state
+
 	r.mapCircuitTypeToState(ctx, circuitType, &data, &resp.Diagnostics)
-	data.DisplayName = displayNameBeforeUpdate
 
 	if resp.Diagnostics.HasError() {
 

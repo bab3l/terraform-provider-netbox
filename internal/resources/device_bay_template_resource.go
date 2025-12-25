@@ -449,14 +449,9 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 
 	}
 
-	// Preserve display_name since it's computed but might change when other attributes update
-	displayNameBeforeUpdate := data.DisplayName
-
 	// Map response to model
 
 	r.mapTemplateToModel(template, &data)
-
-	data.DisplayName = displayNameBeforeUpdate
 
 	tflog.Debug(ctx, "Updated DeviceBayTemplate", map[string]interface{}{
 

@@ -79,11 +79,6 @@ func DisplayNameAttribute(resourceName string) schema.StringAttribute {
 		MarkdownDescription: "Human-readable name of the " + resourceName + " (computed from the referenced resource).",
 
 		Computed: true,
-
-		PlanModifiers: []planmodifier.String{
-
-			stringplanmodifier.UseStateForUnknown(),
-		},
 	}
 
 }

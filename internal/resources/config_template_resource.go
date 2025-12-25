@@ -332,10 +332,9 @@ func (r *ConfigTemplateResource) Update(ctx context.Context, req resource.Update
 
 	}
 
-	// Map response to model, preserving computed display_name to avoid inconsistent result error
-	displayNameBeforeUpdate := data.DisplayName
+	// Map response to model
+
 	r.mapResponseToModel(response, &data)
-	data.DisplayName = displayNameBeforeUpdate
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

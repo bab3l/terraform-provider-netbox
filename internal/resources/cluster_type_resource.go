@@ -537,10 +537,9 @@ func (r *ClusterTypeResource) Update(ctx context.Context, req resource.UpdateReq
 		"name": clusterType.GetName(),
 	})
 
-	// Map response to state, preserving computed display_name to avoid inconsistent result error
-	displayNameBeforeUpdate := data.DisplayName
+	// Map response to state
+
 	r.mapClusterTypeToState(ctx, clusterType, &data, &resp.Diagnostics)
-	data.DisplayName = displayNameBeforeUpdate
 
 	if resp.Diagnostics.HasError() {
 
