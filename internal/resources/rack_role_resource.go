@@ -54,8 +54,6 @@ type RackRoleResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -84,8 +82,6 @@ func (r *RackRoleResource) Schema(ctx context.Context, req resource.SchemaReques
 			"color": nbschema.ComputedColorAttribute("rack role"),
 
 			"description": nbschema.DescriptionAttribute("rack role"),
-
-			"display_name": nbschema.DisplayNameAttribute("rack role"),
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -638,8 +634,6 @@ func (r *RackRoleResource) mapRackRoleToState(ctx context.Context, rackRole *net
 	data.Name = types.StringValue(rackRole.GetName())
 
 	data.Slug = types.StringValue(rackRole.GetSlug())
-
-	data.DisplayName = types.StringValue(rackRole.GetDisplay())
 
 	// Handle color
 

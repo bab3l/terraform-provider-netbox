@@ -23,8 +23,8 @@ func TestAccIPRangeDataSource_basic(t *testing.T) {
 			{
 				Config: testAccIPRangeDataSourceConfig(startOctet, endOctet),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "start_address", fmt.Sprintf("10.0.0.%d/24", startOctet)),
-					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "end_address", fmt.Sprintf("10.0.0.%d/24", endOctet)),
+					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "start_address", fmt.Sprintf("10.0.1.%d/32", startOctet)),
+					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "end_address", fmt.Sprintf("10.0.1.%d/32", endOctet)),
 					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "status", "active"),
 				),
 			},
@@ -35,8 +35,8 @@ func TestAccIPRangeDataSource_basic(t *testing.T) {
 func testAccIPRangeDataSourceConfig(startOctet, endOctet int) string {
 	return fmt.Sprintf(`
 resource "netbox_ip_range" "test" {
-  start_address = "10.0.0.%d/24"
-  end_address   = "10.0.0.%d/24"
+  start_address = "10.0.1.%d"
+  end_address   = "10.0.1.%d"
   status        = "active"
 }
 
