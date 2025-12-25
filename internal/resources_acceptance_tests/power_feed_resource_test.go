@@ -89,6 +89,33 @@ func TestAccPowerFeedResource_full(t *testing.T) {
 	})
 }
 
+func TestAccPowerFeedResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	siteName := testutil.RandomName("site-id")
+	siteSlug := testutil.RandomSlug("site-id")
+	panelName := testutil.RandomName("power-panel-id")
+	feedName := testutil.RandomName("power-feed-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerFeedResourceConfig_basic(siteName, siteSlug, panelName, feedName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_feed.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "name", feedName),
+				),
+			},
+		},
+	})
+}
+
 func testAccPowerFeedResourceConfig_basic(siteName, siteSlug, panelName, feedName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {

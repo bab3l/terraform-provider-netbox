@@ -388,6 +388,45 @@ func TestAccConsistency_VirtualDisk_LiteralNames(t *testing.T) {
 
 }
 
+func TestAccVirtualDiskResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	diskName := testutil.RandomName("tf-test-disk-id")
+	vmName := testutil.RandomName("tf-test-vm-id")
+	clusterName := testutil.RandomName("tf-test-cluster-id")
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-id")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-ct-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualDiskCleanup(diskName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVirtualDiskDestroy,
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualDiskResourceConfig_basic(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_disk.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_disk.test", "name", diskName),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccVirtualDiskResourceConfig_basic(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug string) string {
 
 	return fmt.Sprintf(`

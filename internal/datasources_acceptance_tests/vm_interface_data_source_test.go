@@ -82,6 +82,42 @@ func TestAccVMInterfaceDataSource_byName(t *testing.T) {
 	})
 }
 
+func TestAccVMInterfaceDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("cluster-type-id")
+	clusterTypeSlug := testutil.RandomSlug("cluster-type-id")
+	clusterName := testutil.RandomName("cluster-id")
+	vmName := testutil.RandomName("vm-id")
+	interfaceName := testutil.RandomName("eth-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterVMInterfaceCleanup(interfaceName, vmName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckClusterTypeDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckVMInterfaceDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVMInterfaceDataSourceByIDConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName, interfaceName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_vm_interface.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_vm_interface.test", "name", interfaceName),
+				),
+			},
+		},
+	})
+}
+
 func testAccVMInterfaceDataSourceByIDConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName, interfaceName string) string {
 	return fmt.Sprintf(`
 resource "netbox_cluster_type" "test" {

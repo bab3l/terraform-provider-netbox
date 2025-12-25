@@ -5,8 +5,8 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 
 ## Progress Summary
 - **Total Items**: 205 (101 Resources + 104 Datasources)
-- **Completed**: 74 items (36.1%)
-- **Remaining**: ~131 items across 6 remaining batches
+- **Completed**: 81 items (39.5%)
+- **Remaining**: ~124 items across 5 remaining batches
 
 ---
 
@@ -312,16 +312,34 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 ---
 
 ## Batch 10: Power Feed & Virtualization
-**Status**: Not Started
-**Items**: 8
-- [ ] power_feed_resource.go
-- [ ] virtual_device_context_resource.go
-- [ ] virtual_machine_resource.go
-- [ ] virtual_disk_resource.go
-- [ ] vm_interface_resource.go
-- [ ] cluster_resource.go ✅ (already fixed - skip)
-- [ ] virtual_machine_data_source.go
-- [ ] vm_interface_data_source.go
+**Status**: COMPLETE ✅
+**Items**: 7 (1 already fixed, 6 new tests)
+- [x] power_feed_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] virtual_device_context_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] virtual_machine_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] virtual_disk_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] vm_interface_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] cluster_resource.go ✅ (already fixed - skip)
+- [x] virtual_machine_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+- [x] vm_interface_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+
+**Tests Added**:
+- `internal/resources_acceptance_tests/power_feed_resource_test.go`: `TestAccPowerFeedResource_IDPreservation`
+- `internal/resources_acceptance_tests/virtual_device_context_resource_test.go`: `TestAccVirtualDeviceContextResource_IDPreservation`
+- `internal/resources_acceptance_tests/virtual_machine_resource_test.go`: `TestAccVirtualMachineResource_IDPreservation`
+- `internal/resources_acceptance_tests/virtual_disk_resource_test.go`: `TestAccVirtualDiskResource_IDPreservation`
+- `internal/resources_acceptance_tests/vm_interface_resource_test.go`: `TestAccVMInterfaceResource_IDPreservation`
+- `internal/datasources_acceptance_tests/virtual_machine_data_source_test.go`: `TestAccVirtualMachineDataSource_IDPreservation`
+- `internal/datasources_acceptance_tests/vm_interface_data_source_test.go`: `TestAccVMInterfaceDataSource_IDPreservation`
+
+**Test Results**: All tests PASSING ✅
+- PowerFeed resource test: 29.56s ✅
+- VirtualDeviceContext resource test: 30.24s ✅
+- VirtualMachine resource test: 28.69s ✅
+- VirtualDisk resource test: 29.64s ✅
+- VMInterface resource test: 30.25s ✅
+- VirtualMachine datasource test: 23.30s ✅
+- VMInterface datasource test: 24.27s ✅
 
 ---
 

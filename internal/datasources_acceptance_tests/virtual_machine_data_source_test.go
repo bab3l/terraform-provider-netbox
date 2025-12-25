@@ -48,6 +48,39 @@ func TestAccVirtualMachineDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccVirtualMachineDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("cluster-type-id")
+	clusterTypeSlug := testutil.RandomSlug("cluster-type-id")
+	clusterName := testutil.RandomName("cluster-id")
+	vmName := testutil.RandomName("vm-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckClusterTypeDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckVirtualMachineDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualMachineDataSourceConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_virtual_machine.by_name", "id"),
+					resource.TestCheckResourceAttr("data.netbox_virtual_machine.by_name", "name", vmName),
+				),
+			},
+		},
+	})
+}
+
 func testAccVirtualMachineDataSourceConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName string) string {
 	return fmt.Sprintf(`
 resource "netbox_cluster_type" "test" {

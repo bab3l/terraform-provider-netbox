@@ -211,6 +211,46 @@ func TestAccVMInterfaceResource_import(t *testing.T) {
 	})
 }
 
+func TestAccVMInterfaceResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-id")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-id")
+	clusterName := testutil.RandomName("tf-test-cluster-id")
+	vmName := testutil.RandomName("tf-test-vm-id")
+	ifaceName := testutil.RandomName("eth-id")
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVMInterfaceDestroy,
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+		),
+
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
+
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
+				),
+			},
+		},
+	})
+}
+
 func testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName string) string {
 	return fmt.Sprintf(`
 resource "netbox_cluster_type" "test" {
