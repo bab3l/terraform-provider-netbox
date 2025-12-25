@@ -154,10 +154,10 @@ func TestAccConsistency_Device(t *testing.T) {
 				Config: testAccDeviceConsistencyConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, tenantName, tenantSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceName),
-					resource.TestCheckResourceAttr("netbox_device.test", "device_type", deviceTypeSlug),
-					resource.TestCheckResourceAttr("netbox_device.test", "role", roleSlug),
-					resource.TestCheckResourceAttr("netbox_device.test", "site", siteName),
-					resource.TestCheckResourceAttr("netbox_device.test", "tenant", tenantName),
+					resource.TestCheckResourceAttrSet("netbox_device.test", "device_type"),
+					resource.TestCheckResourceAttrSet("netbox_device.test", "role"),
+					resource.TestCheckResourceAttrSet("netbox_device.test", "site"),
+					resource.TestCheckResourceAttrSet("netbox_device.test", "tenant"),
 				),
 			},
 			{

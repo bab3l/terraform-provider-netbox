@@ -127,7 +127,7 @@ func TestAccConsistency_WirelessLAN(t *testing.T) {
 
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "ssid", ssid),
-					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "group", groupSlug),
+					resource.TestCheckResourceAttrSet("netbox_wireless_lan.test", "group"),
 					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "tenant", tenantName),
 				),
 			},

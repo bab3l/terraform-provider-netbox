@@ -200,6 +200,8 @@ func TestAccManufacturerResource_import(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+
+				ImportStateVerifyIgnore: []string{"display_name"}, // display_name is computed and may differ after name changes
 			},
 		},
 	})

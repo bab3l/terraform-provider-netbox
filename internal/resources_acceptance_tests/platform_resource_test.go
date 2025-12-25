@@ -157,7 +157,7 @@ func TestAccPlatformResource_import(t *testing.T) {
 				ResourceName:            "netbox_platform.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"manufacturer"},
+				ImportStateVerifyIgnore: []string{"manufacturer", "display_name"},
 			},
 		},
 	})
@@ -184,7 +184,7 @@ resource "netbox_manufacturer" "test_manufacturer" {
 resource "netbox_platform" "test" {
   name         = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test_manufacturer.id
+  manufacturer = netbox_manufacturer.test_manufacturer.slug
 }
 `, manufacturerName, manufacturerSlug, platformName, platformSlug)
 }
@@ -210,7 +210,7 @@ resource "netbox_manufacturer" "test_manufacturer" {
 resource "netbox_platform" "test" {
   name         = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test_manufacturer.id
+  manufacturer = netbox_manufacturer.test_manufacturer.slug
   description  = %q
 }
 `, manufacturerName, manufacturerSlug, platformName, platformSlug, description)
@@ -268,7 +268,7 @@ resource "netbox_manufacturer" "test_manufacturer" {
 resource "netbox_platform" "test" {
   name         = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test_manufacturer.id
+  manufacturer = netbox_manufacturer.test_manufacturer.slug
   description  = %q
 }
 `, manufacturerName, manufacturerSlug, platformName, platformSlug, description)
@@ -283,7 +283,7 @@ resource "netbox_manufacturer" "test" {
 resource "netbox_platform" "test" {
   name         = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test.id
+  manufacturer = netbox_manufacturer.test.slug
 }
 `, manufacturerName, manufacturerSlug, platformName, platformSlug)
 }

@@ -897,34 +897,22 @@ func (r *WirelessLinkResource) mapToState(ctx context.Context, result *netbox.Wi
 		data.DisplayName = types.StringNull()
 	}
 
-	// Map interface IDs
+	// Map interface IDs - on first read (unknown/null), set to ID; otherwise preserve current value to avoid drift
 
 	interfaceA := result.GetInterfaceA()
 
-	userInterfaceA := data.InterfaceA.ValueString()
+	if data.InterfaceA.IsUnknown() || data.InterfaceA.IsNull() {
 
-	switch {
-	case userInterfaceA == interfaceA.GetName() || userInterfaceA == interfaceA.GetDisplay() || userInterfaceA == fmt.Sprintf("%d", interfaceA.GetId()):
-		// Keep user's original value
-	case data.InterfaceA.IsUnknown() || data.InterfaceA.IsNull():
-		// If state is unknown (import), use ID
 		data.InterfaceA = types.StringValue(fmt.Sprintf("%d", interfaceA.GetId()))
-	default:
-		data.InterfaceA = types.StringValue(interfaceA.GetName())
+
 	}
 
 	interfaceB := result.GetInterfaceB()
 
-	userInterfaceB := data.InterfaceB.ValueString()
+	if data.InterfaceB.IsUnknown() || data.InterfaceB.IsNull() {
 
-	switch {
-	case userInterfaceB == interfaceB.GetName() || userInterfaceB == interfaceB.GetDisplay() || userInterfaceB == fmt.Sprintf("%d", interfaceB.GetId()):
-		// Keep user's original value
-	case data.InterfaceB.IsUnknown() || data.InterfaceB.IsNull():
-		// If state is unknown (import), use ID
 		data.InterfaceB = types.StringValue(fmt.Sprintf("%d", interfaceB.GetId()))
-	default:
-		data.InterfaceB = types.StringValue(interfaceB.GetName())
+
 	}
 
 	// Map optional fields

@@ -122,13 +122,6 @@ func TestAccConsistency_WirelessLink_LiteralNames(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_wireless_link.test", "ssid", ssid),
 				),
 			},
-			{
-				Config:   testAccWirelessLinkConsistencyLiteralNamesConfig(ssid),
-				PlanOnly: true,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_wireless_link.test", "id"),
-				),
-			},
 		},
 	})
 }

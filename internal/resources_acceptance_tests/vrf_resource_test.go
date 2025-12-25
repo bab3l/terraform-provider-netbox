@@ -252,7 +252,7 @@ resource "netbox_tenant" "test" {
 resource "netbox_vrf" "test" {
   name        = "%[1]s"
   tenant      = netbox_tenant.test.name
-  description = %q
+  description = "%[4]s"
 }
 `, vrfName, tenantName, tenantSlug, description)
 }

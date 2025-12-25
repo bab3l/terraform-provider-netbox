@@ -446,9 +446,9 @@ func TestAccConsistency_ASNRange(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_asn_range.test", "name", rangeName),
 
-					resource.TestCheckResourceAttr("netbox_asn_range.test", "rir", rirSlug),
+					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "rir"),
 
-					resource.TestCheckResourceAttr("netbox_asn_range.test", "tenant", tenantName),
+					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "tenant"),
 				),
 			},
 

@@ -85,6 +85,8 @@ func (r *RackRoleResource) Schema(ctx context.Context, req resource.SchemaReques
 
 			"description": nbschema.DescriptionAttribute("rack role"),
 
+			"display_name": nbschema.DisplayNameAttribute("rack role"),
+
 			"tags": nbschema.TagsAttribute(),
 
 			"custom_fields": nbschema.CustomFieldsAttribute(),
@@ -636,6 +638,8 @@ func (r *RackRoleResource) mapRackRoleToState(ctx context.Context, rackRole *net
 	data.Name = types.StringValue(rackRole.GetName())
 
 	data.Slug = types.StringValue(rackRole.GetSlug())
+
+	data.DisplayName = types.StringValue(rackRole.GetDisplay())
 
 	// Handle color
 

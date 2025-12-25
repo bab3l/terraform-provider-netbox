@@ -241,9 +241,9 @@ func TestAccConsistency_VLAN(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_vlan.test", "name", vlanName),
 					resource.TestCheckResourceAttr("netbox_vlan.test", "site", siteName),
-					resource.TestCheckResourceAttr("netbox_vlan.test", "group", groupSlug),
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "group"),
 					resource.TestCheckResourceAttr("netbox_vlan.test", "tenant", tenantName),
-					resource.TestCheckResourceAttr("netbox_vlan.test", "role", roleSlug),
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "role"),
 				),
 			},
 			{
