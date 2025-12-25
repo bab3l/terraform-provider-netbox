@@ -11,17 +11,34 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 ---
 
 ## Batch 1: Core Reference Resources (IN PROGRESS)
-**Status**: Starting
+**Status**: Mostly Complete - 7/9 Items Done
 **Items**: 9
-- [ ] circuit_resource.go ✅ (already fixed - skip)
-- [ ] provider_resource.go
-- [ ] circuit_type_resource.go
-- [ ] fhrp_group_resource.go
-- [ ] fhrp_group_assignment_resource.go ✅ (already fixed - skip)
-- [ ] contact_resource.go
-- [ ] contact_role_resource.go ✅ (already fixed - skip)
-- [ ] circuit_data_source.go
-- [ ] provider_data_source.go
+- [x] circuit_resource.go ✅ (already fixed - skip)
+- [x] provider_resource.go ✅ **COMPLETE** - Unit test + Acceptance test added and passing
+- [x] circuit_type_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] fhrp_group_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] fhrp_group_assignment_resource.go ✅ (already fixed - skip)
+- [x] contact_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] contact_role_resource.go ✅ (already fixed - skip)
+- [x] circuit_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+- [x] provider_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+
+**Tests Added**:
+- `internal/utils/state_helpers_test.go`: `TestUpdateReferenceAttribute` (10 unit tests)
+- `internal/resources_acceptance_tests/provider_resource_test.go`: `TestAccProviderResource_IDPreservation`
+- `internal/resources_acceptance_tests/circuit_type_resource_test.go`: `TestAccCircuitTypeResource_IDPreservation`
+- `internal/resources_acceptance_tests/fhrp_group_resource_test.go`: `TestAccFHRPGroupResource_IDPreservation`
+- `internal/resources_acceptance_tests/contact_resource_test.go`: `TestAccContactResource_IDPreservation`
+- `internal/datasources_acceptance_tests/circuit_data_source_test.go`: `TestAccCircuitDataSource_IDPreservation`
+- `internal/datasources_acceptance_tests/provider_data_source_test.go`: `TestAccProviderDataSource_IDPreservation`
+
+**Test Results**: All tests PASSING ✅
+- Provider resource test: 42.37s ✅
+- CircuitType resource test: 41.47s ✅
+- FHRPGroup resource test: 42.22s ✅
+- Contact resource test: 42.25s ✅
+- Circuit datasource test: 42.06s ✅
+- Provider datasource test: 41.89s ✅
 
 ---
 

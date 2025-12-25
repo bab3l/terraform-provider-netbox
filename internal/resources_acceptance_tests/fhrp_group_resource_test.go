@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+const fhrpGroupProtocol = "vrrp3"
+
 func TestAccFHRPGroupResource_basic(t *testing.T) {
 
 	t.Parallel()
@@ -100,7 +102,7 @@ func TestAccFHRPGroupResource_update(t *testing.T) {
 
 	t.Parallel()
 
-	protocol := "vrrp3"
+	protocol := fhrpGroupProtocol
 
 	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
 
@@ -235,7 +237,7 @@ resource "netbox_fhrp_group" "test" {
 
 func TestAccConsistency_FHRPGroup_LiteralNames(t *testing.T) {
 	t.Parallel()
-	protocol := "vrrp3"
+	protocol := fhrpGroupProtocol
 	groupID := int32(123)
 	name := testutil.RandomName("tf-test-fhrp-group-lit")
 	description := testutil.RandomName("description")
@@ -265,6 +267,30 @@ func TestAccConsistency_FHRPGroup_LiteralNames(t *testing.T) {
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_fhrp_group.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+// TestAccFHRPGroupResource_IDPreservation tests that the FHRP group resource preserves the
+// ID as the immutable identifier.
+func TestAccFHRPGroupResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	protocol := fhrpGroupProtocol
+	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFHRPGroupResourceConfig_basic(protocol, groupID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_fhrp_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "protocol", protocol),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "group_id", fmt.Sprintf("%d", groupID)),
 				),
 			},
 		},

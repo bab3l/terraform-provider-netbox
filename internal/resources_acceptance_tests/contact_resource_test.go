@@ -207,6 +207,32 @@ func TestAccConsistency_Contact_LiteralNames(t *testing.T) {
 
 }
 
+func TestAccContactResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+
+	contactName := testutil.RandomName("tf-test-contact-id")
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactCleanup("test@example.com")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactResource(contactName, "test@example.com", "+1-555-0100"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_contact.test", "id"),
+					resource.TestCheckResourceAttr("netbox_contact.test", "name", contactName),
+					resource.TestCheckResourceAttr("netbox_contact.test", "email", "test@example.com"),
+					resource.TestCheckResourceAttr("netbox_contact.test", "phone", "+1-555-0100"),
+				),
+			},
+		},
+	})
+}
+
 func testAccContactResource(name, email, phone string) string {
 
 	return fmt.Sprintf(`

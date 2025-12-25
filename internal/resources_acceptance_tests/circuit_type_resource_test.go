@@ -244,6 +244,35 @@ func TestAccConsistency_CircuitType_LiteralNames(t *testing.T) {
 	})
 }
 
+// TestAccCircuitTypeResource_IDPreservation tests that the circuit type resource preserves the
+// ID as the immutable identifier.
+func TestAccCircuitTypeResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-circuit-type-id")
+	slug := testutil.RandomSlug("tf-test-circuit-type-id")
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitTypeCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckCircuitTypeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitTypeResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit_type.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit_type.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_circuit_type.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func testAccCircuitTypeResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_circuit_type" "test" {

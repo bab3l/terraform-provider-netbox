@@ -86,6 +86,33 @@ func TestAccProviderDataSource_byName(t *testing.T) {
 	})
 }
 
+func TestAccProviderDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-provider-id")
+	slug := testutil.RandomSlug("tf-test-provider-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckProviderDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					// Verify datasource returns ID correctly
+					resource.TestCheckResourceAttrSet("data.netbox_provider.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_provider.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_provider.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func testAccProviderDataSourceConfig(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_provider" "test" {
