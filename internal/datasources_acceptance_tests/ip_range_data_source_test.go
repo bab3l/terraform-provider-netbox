@@ -13,6 +13,8 @@ func TestAccIPRangeDataSource_basic(t *testing.T) {
 
 	t.Parallel()
 
+	secondOctet := acctest.RandIntRange(1, 50)
+	thirdOctet := acctest.RandIntRange(1, 50)
 	startOctet := acctest.RandIntRange(10, 100)
 	endOctet := startOctet + 5
 
@@ -21,10 +23,10 @@ func TestAccIPRangeDataSource_basic(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIPRangeDataSourceConfig(startOctet, endOctet),
+				Config: testAccIPRangeDataSourceConfig(secondOctet, thirdOctet, startOctet, endOctet),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "start_address", fmt.Sprintf("10.0.1.%d/32", startOctet)),
-					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "end_address", fmt.Sprintf("10.0.1.%d/32", endOctet)),
+					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "start_address", fmt.Sprintf("10.%d.%d.%d/32", secondOctet, thirdOctet, startOctet)),
+					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "end_address", fmt.Sprintf("10.%d.%d.%d/32", secondOctet, thirdOctet, endOctet)),
 					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "status", "active"),
 				),
 			},
@@ -32,25 +34,27 @@ func TestAccIPRangeDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccIPRangeDataSourceConfig(startOctet, endOctet int) string {
+func testAccIPRangeDataSourceConfig(secondOctet, thirdOctet, startOctet, endOctet int) string {
 	return fmt.Sprintf(`
 resource "netbox_ip_range" "test" {
-  start_address = "10.0.1.%d"
-  end_address   = "10.0.1.%d"
+  start_address = "10.%d.%d.%d"
+  end_address   = "10.%d.%d.%d"
   status        = "active"
 }
 
 data "netbox_ip_range" "test" {
   id = netbox_ip_range.test.id
 }
-`, startOctet, endOctet)
+`, secondOctet, thirdOctet, startOctet, secondOctet, thirdOctet, endOctet)
 }
 
 func TestAccIPRangeDataSource_byAddresses(t *testing.T) {
 
 	t.Parallel()
 
-	startOctet := acctest.RandIntRange(110, 200)
+	secondOctet := acctest.RandIntRange(51, 100)
+	thirdOctet := acctest.RandIntRange(51, 100)
+	startOctet := acctest.RandIntRange(10, 100)
 	endOctet := startOctet + 5
 
 	resource.Test(t, resource.TestCase{
@@ -58,10 +62,10 @@ func TestAccIPRangeDataSource_byAddresses(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIPRangeDataSourceConfigByAddresses(startOctet, endOctet),
+				Config: testAccIPRangeDataSourceConfigByAddresses(secondOctet, thirdOctet, startOctet, endOctet),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "start_address", fmt.Sprintf("10.0.0.%d/24", startOctet)),
-					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "end_address", fmt.Sprintf("10.0.0.%d/24", endOctet)),
+					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "start_address", fmt.Sprintf("10.%d.%d.%d/32", secondOctet, thirdOctet, startOctet)),
+					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "end_address", fmt.Sprintf("10.%d.%d.%d/32", secondOctet, thirdOctet, endOctet)),
 					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "status", "active"),
 				),
 			},
@@ -69,11 +73,11 @@ func TestAccIPRangeDataSource_byAddresses(t *testing.T) {
 	})
 }
 
-func testAccIPRangeDataSourceConfigByAddresses(startOctet, endOctet int) string {
+func testAccIPRangeDataSourceConfigByAddresses(secondOctet, thirdOctet, startOctet, endOctet int) string {
 	return fmt.Sprintf(`
 resource "netbox_ip_range" "test" {
-  start_address = "10.0.0.%d/24"
-  end_address   = "10.0.0.%d/24"
+  start_address = "10.%d.%d.%d"
+  end_address   = "10.%d.%d.%d"
   status        = "active"
 }
 
@@ -81,5 +85,5 @@ data "netbox_ip_range" "test" {
   start_address = netbox_ip_range.test.start_address
   end_address   = netbox_ip_range.test.end_address
 }
-`, startOctet, endOctet)
+`, secondOctet, thirdOctet, startOctet, secondOctet, thirdOctet, endOctet)
 }
