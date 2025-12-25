@@ -72,16 +72,34 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 ---
 
 ## Batch 3: Tenancy/Organization Resources
-**Status**: Not Started
+**Status**: COMPLETE ✅
 **Items**: 8
-- [ ] tenant_resource.go
-- [ ] tenant_group_resource.go
-- [ ] contact_group_resource.go ✅ (already fixed - skip)
-- [ ] contact_assignment_resource.go
-- [ ] provider_account_resource.go
-- [ ] provider_network_resource.go
-- [ ] tenant_data_source.go
-- [ ] tenant_group_data_source.go
+- [x] tenant_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] tenant_group_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] contact_group_resource.go ✅ (already fixed - skip)
+- [x] contact_assignment_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] provider_account_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] provider_network_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] tenant_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+- [x] tenant_group_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+
+**Tests Added**:
+- `internal/resources_acceptance_tests/tenant_resource_test.go`: `TestAccTenantResource_IDPreservation`
+- `internal/resources_acceptance_tests/tenant_group_resource_test.go`: `TestAccTenantGroupResource_IDPreservation`
+- `internal/resources_acceptance_tests/contact_assignment_resource_test.go`: `TestAccContactAssignmentResource_IDPreservation`
+- `internal/resources_acceptance_tests/provider_account_resource_test.go`: `TestAccProviderAccountResource_IDPreservation`
+- `internal/resources_acceptance_tests/provider_network_resource_test.go`: `TestAccProviderNetworkResource_IDPreservation`
+- `internal/datasources_acceptance_tests/tenant_data_source_test.go`: `TestAccTenantDataSource_IDPreservation`
+- `internal/datasources_acceptance_tests/tenant_group_data_source_test.go`: `TestAccTenantGroupDataSource_IDPreservation`
+
+**Test Results**: All tests PASSING ✅
+- Tenant resource test: 49.84s ✅
+- TenantGroup resource test: 49.54s ✅
+- ContactAssignment resource test: 50.02s ✅
+- ProviderAccount resource test: 49.97s ✅
+- ProviderNetwork resource test: 51.40s ✅
+- Tenant datasource test: 75.43s ✅
+- TenantGroup datasource test: 75.13s ✅
 
 ---
 

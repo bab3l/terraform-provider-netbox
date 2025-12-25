@@ -122,6 +122,34 @@ func TestAccProviderNetworkResource_full(t *testing.T) {
 
 }
 
+func TestAccProviderNetworkResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-id")
+	providerSlug := testutil.RandomSlug("tf-test-provider-id")
+	networkName := testutil.RandomName("tf-test-network-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, networkName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_provider_network.test", "id"),
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "name", networkName),
+					resource.TestCheckResourceAttrSet("netbox_provider_network.test", "circuit_provider"),
+				),
+			},
+		},
+	})
+}
+
 func testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, networkName string) string {
 
 	return fmt.Sprintf(`

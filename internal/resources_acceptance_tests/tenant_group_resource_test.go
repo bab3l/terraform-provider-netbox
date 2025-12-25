@@ -144,6 +144,34 @@ func TestAccTenantGroupResource_import(t *testing.T) {
 	})
 }
 
+func TestAccTenantGroupResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-tenant-group-id")
+	slug := testutil.RandomSlug("tf-test-tg-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTenantGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckTenantGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTenantGroupResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tenant_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_tenant_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_tenant_group.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 // testAccTenantGroupResourceConfig_basic returns a basic test configuration.
 func testAccTenantGroupResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`

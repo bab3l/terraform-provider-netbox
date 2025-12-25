@@ -173,6 +173,35 @@ func TestAccConsistency_ContactAssignment_LiteralNames(t *testing.T) {
 	})
 }
 
+func TestAccContactAssignmentResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+
+	randomName := testutil.RandomName("tf-test-contact-assign-id")
+	randomSlug := testutil.RandomSlug("tf-test-ca-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(randomSlug + "-site")
+	cleanup.RegisterContactCleanup(randomName + "-contact")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactAssignmentResourceBasic(randomName, randomSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "id"),
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "object_type", "dcim.site"),
+					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "contact_id"),
+					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "object_id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccContactAssignmentResourceBasic(name, slug string) string {
 
 	return fmt.Sprintf(`
