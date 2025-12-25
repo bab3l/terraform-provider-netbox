@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -949,7 +950,9 @@ func TestAccReferenceNamePersistence_RouteTarget(t *testing.T) {
 
 	tenantSlug := testutil.RandomSlug("tenant")
 
-	routeTargetName := "65000:1"
+	randomSuffix := acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum)
+
+	routeTargetName := fmt.Sprintf("65000:%s", randomSuffix)
 
 	resource.Test(t, resource.TestCase{
 
