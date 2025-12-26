@@ -11,6 +11,33 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccRackRoleDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-rackrole-ds-id")
+	slug := testutil.RandomSlug("tf-test-rr-ds-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckRackRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackRoleDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_rack_role.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_rack_role.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func TestAccRackRoleDataSource_basic(t *testing.T) {
 
 	t.Parallel()

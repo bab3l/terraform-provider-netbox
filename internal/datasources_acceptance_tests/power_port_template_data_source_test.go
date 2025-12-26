@@ -8,6 +8,36 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccPowerPortTemplateDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	manufacturerSlug := testutil.RandomSlug("manufacturer-id")
+	deviceTypeModel := testutil.RandomName("device-type-id")
+	deviceTypeSlug := testutil.RandomSlug("device-type-id")
+	powerPortTemplateName := testutil.RandomName("power-port-template-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceTypeDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerPortTemplateDataSourceConfig(manufacturerSlug, deviceTypeModel, deviceTypeSlug, powerPortTemplateName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_power_port_template.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_power_port_template.test", "name", powerPortTemplateName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccPowerPortTemplateDataSource_basic(t *testing.T) {
 
 	t.Parallel()

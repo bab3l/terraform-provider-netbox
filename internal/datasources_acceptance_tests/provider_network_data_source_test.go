@@ -9,6 +9,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccProviderNetworkDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-id")
+	providerSlug := testutil.RandomSlug("tf-test-prov-id")
+	networkName := testutil.RandomName("tf-test-network-id")
+	serviceID := fmt.Sprintf("svc-%d", acctest.RandIntRange(10000, 99999))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderNetworkDataSourceConfig(providerName, providerSlug, networkName, serviceID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_provider_network.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_provider_network.test", "name", networkName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccProviderNetworkDataSource_basic(t *testing.T) {
 
 	t.Parallel()

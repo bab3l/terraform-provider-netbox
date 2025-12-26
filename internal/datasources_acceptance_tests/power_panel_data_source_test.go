@@ -8,6 +8,37 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccPowerPanelDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	siteName := testutil.RandomName("tf-test-power-panel-site-id")
+	siteSlug := testutil.GenerateSlug(siteName)
+	powerPanelName := testutil.RandomName("tf-test-power-panel-id")
+
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterPowerPanelCleanup(powerPanelName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckPowerPanelDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerPanelDataSourceConfig(siteName, siteSlug, powerPanelName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_power_panel.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_power_panel.test", "name", powerPanelName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccPowerPanelDataSource_basic(t *testing.T) {
 
 	t.Parallel()

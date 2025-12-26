@@ -8,6 +8,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccProviderAccountDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-id")
+	providerSlug := testutil.RandomSlug("tf-test-prov-id")
+	accountName := testutil.RandomName("tf-test-acct-id")
+	accountNumber := testutil.RandomName("account-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderAccountDataSourceConfig(providerName, providerSlug, accountName, accountNumber),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_provider_account.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_provider_account.test", "name", accountName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccProviderAccountDataSource_basic(t *testing.T) {
 
 	t.Parallel()
