@@ -8,6 +8,31 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccContactGroupDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("test-contact-group-ds-id")
+	slug := testutil.GenerateSlug(name)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckContactGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactGroupDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_contact_group.by_id", "id"),
+					resource.TestCheckResourceAttr("data.netbox_contact_group.by_id", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_contact_group.by_id", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func TestAccContactGroupDataSource_basic(t *testing.T) {
 
 	t.Parallel()

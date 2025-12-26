@@ -11,6 +11,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccCustomFieldChoiceSetDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("cfcs-ds-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckCustomFieldChoiceSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomFieldChoiceSetDataSourceConfig_byID(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_custom_field_choice_set.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_custom_field_choice_set.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCustomFieldChoiceSetDataSource_byID(t *testing.T) {
 
 	t.Parallel()

@@ -11,6 +11,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccCustomLinkDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("cl-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckCustomLinkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomLinkDataSourceConfig_byID(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_custom_link.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_custom_link.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCustomLinkDataSource_byID(t *testing.T) {
 
 	t.Parallel()

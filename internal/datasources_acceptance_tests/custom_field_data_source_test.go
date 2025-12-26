@@ -9,6 +9,27 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccCustomFieldDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	// Custom field names only allow alphanumeric and underscores
+	name := strings.ReplaceAll(testutil.RandomName("tf_test_cf_ds_id"), "-", "_")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomFieldDataSourceConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_custom_field.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_custom_field.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCustomFieldDataSource_basic(t *testing.T) {
 
 	t.Parallel()
