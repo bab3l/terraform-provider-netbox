@@ -6,7 +6,7 @@ This document tracks the progress of refactoring resources and datasources to us
 
 **Branch**: `refactor/extract-common-helpers`
 **Start Date**: December 26, 2025
-**Status**: ✅ Phase 3 Batch 2 Complete - Moving to Batch 1 Additions
+**Status**: ✅ Phase 3 Batch 1 Additions Complete - 77 resources refactored total
 
 ---
 
@@ -22,7 +22,8 @@ This document tracks the progress of refactoring resources and datasources to us
 | Phase 3b | DescriptionOnly Helper | 5 | 5 | 8eb12a3 |
 | **Phase 3 Batch 1** | **Full Schema Refactor** | **20** | **81** | **6 commits** |
 | **Phase 3 Batch 2** | **DescriptionOnly Refactor** | **27** | **62** | **3 commits** |
-| **TOTAL** | **All Phases** | **71** | **1,304** | **15 commits** |
+| **Phase 3 Batch 1+** | **Batch 1 Additions** | **6** | **77** | **afca597** |
+| **TOTAL** | **All Phases** | **77** | **1,381** | **16 commits** |
 
 ### Phase 3 Batch 1 Details
 - Part 1 (5 resources): 9 lines saved - commit f4612ae
@@ -276,7 +277,7 @@ if group := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlook
 
 ## Phase 3: Schema Composition
 
-**Status**: ✅ Batch 2 Complete (47/71 resources) - **Next: Batch 1 Additions (8 misclassified)**
+**Status**: ✅ Batch 1 + Batch 2 + Batch 1 Additions Complete (53/71 resources)
 
 ### 3.1 Common Resource Attributes Helpers
 
@@ -411,6 +412,21 @@ Resources with description but no comments field:
 - **Moved to Batch 1** (have comments field): aggregate, cable, power_feed, rack, site, virtual_machine, vlan, vrf
 - **Moved to Batch 3** (no description field): contact_assignment, fhrp_group_assignment, l2vpn_termination, tunnel_termination
 - **Excluded** (no tags/custom_fields support): console_port_template, and other port templates without metadata
+
+#### Batch 1 Additions: Description + Comments + Tags + Custom Fields (CommonDescriptiveAttributes + CommonMetadataAttributes)
+Misclassified resources moved from Batch 2 that actually have comments field:
+- [x] aggregate_resource.go ✅
+- [x] cable_resource.go ✅
+- [x] power_feed_resource.go ✅
+- [x] rack_resource.go ✅
+- [x] site_resource.go ✅ (already in Phase 3a)
+- [x] virtual_machine_resource.go ✅
+- [x] vlan_resource.go ✅
+- [x] vrf_resource.go ✅ (already in Phase 1)
+
+**Completed: 6/6 new resources ✅** (2 already done)
+**Lines saved: 77 lines**
+**Commit**: afca597
 
 #### Batch 3: Tags + Custom Fields Only (CommonMetadataAttributes)
 Resources with only metadata, no description or comments:
