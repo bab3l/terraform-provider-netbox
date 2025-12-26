@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -141,13 +142,14 @@ func (r *ModuleBayTemplateResource) Schema(ctx context.Context, req resource.Sch
 			},
 
 			"display_name": nbschema.DisplayNameAttribute("module bay template"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("module bay template"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.

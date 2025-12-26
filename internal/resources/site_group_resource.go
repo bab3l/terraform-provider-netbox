@@ -11,6 +11,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -90,16 +91,15 @@ func (r *SiteGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 				MarkdownDescription: "The numeric ID of the parent site group.",
 			},
 
-			"description": nbschema.DescriptionAttribute("site group"),
-
 			"display_name": nbschema.DisplayNameAttribute("site group"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("site group"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *SiteGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

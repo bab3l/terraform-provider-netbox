@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -79,16 +80,15 @@ func (r *TunnelGroupResource) Schema(ctx context.Context, req resource.SchemaReq
 
 			"slug": nbschema.SlugAttribute("tunnel group"),
 
-			"description": nbschema.DescriptionAttribute("tunnel group"),
-
 			"display_name": nbschema.DisplayNameAttribute("tunnel group"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("tunnel group"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure configures the resource with the provider client.

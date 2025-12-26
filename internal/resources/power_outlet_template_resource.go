@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -148,20 +149,11 @@ func (r *PowerOutletTemplateResource) Schema(ctx context.Context, req resource.S
 
 				Optional: true,
 			},
-
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the power outlet template.",
-
-				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(""),
-			},
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("power outlet template"))
 }
 
 // Configure adds the provider configured client to the resource.

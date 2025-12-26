@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -157,20 +158,11 @@ func (r *RearPortTemplateResource) Schema(ctx context.Context, req resource.Sche
 
 				Default: int32default.StaticInt32(1),
 			},
-
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the rear port template.",
-
-				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(""),
-			},
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("rear port template"))
 }
 
 // Configure adds the provider configured client to the resource.
