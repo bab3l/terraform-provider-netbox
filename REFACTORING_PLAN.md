@@ -6,7 +6,30 @@ This document tracks the progress of refactoring resources and datasources to us
 
 **Branch**: `refactor/extract-common-helpers`
 **Start Date**: December 26, 2025
-**Status**: 🟡 In Progress
+**Status**: � Phase 3 Batch 1 Complete - Moving to Batch 2
+
+---
+
+## Progress Summary
+
+### Completed Phases
+
+| Phase | Description | Resources | Lines Saved | Commit(s) |
+|-------|-------------|-----------|-------------|-----------|
+| Phase 1 | State Mapping Helpers | 13 | 1,070 | 43f8e21 |
+| Phase 2 | Reference Resolution | 3 | 80 | f9995a4 |
+| Phase 3a | Schema Composition Pilot | 3 | 6 | 37f8733 |
+| Phase 3b | DescriptionOnly Helper | 5 | 5 | 8eb12a3 |
+| **Phase 3 Batch 1** | **Full Schema Refactor** | **20** | **81** | **6 commits** |
+| **TOTAL** | **All Phases** | **44** | **1,242** | **12 commits** |
+
+### Phase 3 Batch 1 Details
+- Part 1 (5 resources): 9 lines saved - commit f4612ae
+- Part 2 (5 resources): 11 lines saved - commit 526e6cb
+- Part 3 (4 resources): 31 lines saved - commit 91d2214
+- Part 4 (4 resources): 26 lines saved - commit e282a4d
+- prefix_resource: 9 lines saved - commit 8e68d01
+- contact_resource: -5 lines (infrastructure) - commit acccce3
 
 ---
 
@@ -19,9 +42,41 @@ This document tracks the progress of refactoring resources and datasources to us
 
 ---
 
-## Phase 1: Low-Risk, High-Impact Helpers
+## Phase 1: State Mapping Helpers
 
-**Status**: 🟡 In Progress
+**Status**: ✅ Complete - 13 resources refactored, 1,070 lines saved
+
+**Helpers Created**:
+- `PreserveReferenceFormat()` - Preserves user's input format (ID/name/slug) for references
+- `PreserveOptionalReferenceFormat()` - Same as above but for nullable references
+- `PreserveOptionalReferenceWithID()` - Handles dual-field pattern (Reference + ReferenceID)
+- `PopulateTagsFromNestedTags()` - Converts Netbox nested tags to Terraform tag models
+- `PopulateCustomFieldsFromMap()` - Converts Netbox custom fields map to Terraform models
+
+**Refactored Resources**: cluster, tenant, site, circuit_type, cluster_group, cluster_type, rir, region, device_role, vrf, asn, route_target, wireless_lan
+
+**Commit**: 43f8e21
+
+---
+
+## Phase 2: Reference Resolution Helpers
+
+**Status**: ✅ Complete - 3 resources refactored, 80 lines saved
+
+**Helpers Created**:
+- `LookupFunc[T]` - Generic type for netboxlookup functions
+- `ResolveRequiredReference[T]()` - Standardized required reference lookup with error handling
+- `ResolveOptionalReference[T]()` - Standardized optional reference lookup with error handling
+
+**Refactored Resources**: cluster, tenant, site
+
+**Commit**: f9995a4
+
+---
+
+## Phase 3: Schema Composition Helpers
+
+**Status**: 🟢 Batch 1 Complete (20/71 resources) - Moving to Batch 2
 
 ### 1.1 PreserveReferenceFormat() Helper
 
@@ -215,28 +270,19 @@ if group := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlook
 
 ## Phase 3: Schema Composition
 
-**Status**: 🟡 In Progress
+**Status**: � Batch 1 Complete (20/71 resources) - **Next: Batch 2**
 
 ### 3.1 Common Resource Attributes Helpers
 
 **Target**: Compose schemas from reusable attribute sets to reduce repetition
 
-**Strategy Refined (Phase 3b)**: Created three-tier composition system to handle different resource patterns:
+**Strategy**: Three-tier composition system to handle different resource patterns:
 
 1. **CommonDescriptiveAttributes** (description + comments) - for resources with both fields
 2. **DescriptionOnlyAttributes** (description only) - for resources without comments field
 3. **CommonMetadataAttributes** (tags + custom_fields) - universal for all resources
 
-**Current Pattern** - Most resources repeat these common attributes:
-```go
-"description": nbschema.DescriptionAttribute("resource"),
-"tags": nbschema.TagsAttribute(),
-"custom_fields": nbschema.CustomFieldsAttribute(),
-// Some resources also have:
-"comments": nbschema.CommentsAttribute("resource"),
-```
-
-**Refined Pattern** - Use appropriate helper based on resource needs:
+**Pattern** - Use appropriate helper based on resource needs:
 ```go
 // Option 1: Resource with description + comments + tags + custom_fields
 maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("resource"))
@@ -248,6 +294,10 @@ maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 // Option 3: Resource with only tags + custom_fields (no description)
 maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+
+// Special Case: Resource without custom_fields (rare)
+maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("resource"))
+// Then add tags directly: "tags": nbschema.TagsAttribute()
 ```
 
 **Benefits**:
@@ -257,12 +307,11 @@ maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 - Makes it easier to add new common attributes to all resources
 - Ensures consistency across all resource schemas
 
-**Progress**:
-- [x] Create `CommonDescriptiveAttributes()` helper (description + comments)
-- [x] Create `DescriptionOnlyAttributes()` helper (description only)
-- [x] Create `CommonMetadataAttributes()` helper (tags + custom_fields)
-- [x] Refactor Phase 3a pilot resources (cluster, tenant, site) - using CommonDescriptiveAttributes
-- [x] Refactor Phase 3b resources (circuit_type, cluster_group, cluster_type, rir, region)
+**Completed**:
+- [x] Create all three composition helpers in `internal/schema/attributes.go`
+- [x] Phase 3a: Pilot resources (cluster, tenant, site) - commit 37f8733
+- [x] Phase 3b: DescriptionOnly pattern (circuit_type, cluster_group, cluster_type, rir, region) - commit 8eb12a3
+- [x] **Batch 1: Full descriptive resources (20 resources)** - commits f4612ae, 526e6cb, 91d2214, e282a4d, 8e68d01, acccce3
 - [x] Validate with tests - all 56 tests passing (32 Phase 3a + 24 Phase 3b)
 - [ ] Create batches for systematic rollout
 - [ ] Execute remaining batches
@@ -288,30 +337,33 @@ maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 **Batch Strategy**: Group resources by schema pattern for efficient refactoring
 
 #### Batch 1: Description + Comments + Tags + Custom Fields (CommonDescriptiveAttributes + CommonMetadataAttributes)
-Resources with full descriptive metadata (like cluster, tenant, site):
+Resources with full descriptive metadata:
 - [x] device_resource.go ✅
 - [x] device_type_resource.go ✅
 - [x] fhrp_group_resource.go ✅
 - [x] ike_proposal_resource.go ✅
 - [x] ip_address_resource.go ✅ (special case - has tags but no custom_fields)
-- [ ] ip_range_resource.go
-- [ ] ipsec_policy_resource.go
-- [ ] ipsec_profile_resource.go
-- [ ] ipsec_proposal_resource.go
-- [ ] l2vpn_resource.go
-- [ ] module_resource.go
-- [ ] module_type_resource.go
-- [ ] power_panel_resource.go
-- [ ] prefix_resource.go
-- [ ] provider_account_resource.go
-- [ ] provider_network_resource.go
-- [ ] provider_resource.go
-- [ ] rack_reservation_resource.go
-- [ ] rack_type_resource.go
-- [ ] contact_resource.go (if has comments)
+- [x] ip_range_resource.go ✅
+- [x] ipsec_policy_resource.go ✅
+- [x] ipsec_profile_resource.go ✅
+- [x] ipsec_proposal_resource.go ✅
+- [x] l2vpn_resource.go ✅
+- [x] module_resource.go ✅
+- [x] module_type_resource.go ✅
+- [x] power_panel_resource.go ✅
+- [x] prefix_resource.go ✅ (special case - has tags but no custom_fields)
+- [x] provider_account_resource.go ✅
+- [x] provider_network_resource.go ✅
+- [x] provider_resource.go ✅
+- [x] rack_reservation_resource.go ✅
+- [x] rack_type_resource.go ✅
+- [x] contact_resource.go ✅ (special case - has tags but no custom_fields)
 
-**Completed: 5/20 - Lines saved so far: 9**
-**Estimated total savings**: ~2 lines × 20 resources = **40 lines**
+**Completed: 20/20 ✅**
+**Lines saved: 81 lines** (Part 1: 9, Part 2: 11, Part 3: 31, Part 4: 26, prefix: 9, contact: -5)
+**Commits**: f4612ae, 526e6cb, 91d2214, e282a4d, 8e68d01, acccce3
+
+**Note**: Two resources (prefix, contact) lack custom_fields and use TagsAttribute() directly instead of CommonMetadataAttributes().
 
 #### Batch 2: Description + Tags + Custom Fields (DescriptionOnlyAttributes + CommonMetadataAttributes)
 Resources with description but no comments field:
