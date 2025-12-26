@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -57,9 +58,8 @@ func (r *ContactResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"name":         nbschema.NameAttribute("contact", 100),
 			"display_name": nbschema.DisplayNameAttribute("contact"),
 			"group":        nbschema.ReferenceAttribute("contact group", "ID or slug of the contact group this contact belongs to."),
-			"description":  nbschema.DescriptionAttribute("contact"),
-			"comments":     nbschema.CommentsAttribute("contact"),
-			"tags":         nbschema.TagsAttribute(),
+
+			"tags": nbschema.TagsAttribute(),
 			"title": schema.StringAttribute{
 				MarkdownDescription: "Job title or role of the contact.",
 				Optional:            true,
@@ -97,6 +97,11 @@ func (r *ContactResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 		},
 	}
+
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("contact"))
+
+	// Note: This resource does not have custom_fields
 }
 
 func (r *ContactResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
