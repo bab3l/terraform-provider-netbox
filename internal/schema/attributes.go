@@ -833,6 +833,22 @@ func DSCustomFieldsAttribute() dsschema.SetNestedAttribute {
 
 // together across many resources, reducing schema definition boilerplate.
 
+// DescriptionOnlyAttributes returns just the description attribute.
+// Use this for resources that have description but not comments.
+//
+// Usage:
+//
+//	attrs := map[string]schema.Attribute{
+//	    "id": IDAttribute("resource"),
+//	    "name": NameAttribute("resource", 100),
+//	}
+//	maps.Copy(attrs, DescriptionOnlyAttributes("resource"))
+func DescriptionOnlyAttributes(resourceName string) map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"description": DescriptionAttribute(resourceName),
+	}
+}
+
 // CommonDescriptiveAttributes returns the standard description and comments attributes.
 
 // These are optional text fields that appear on most Netbox resources.

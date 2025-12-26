@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 	"regexp"
 
 	"github.com/bab3l/go-netbox"
@@ -102,10 +103,11 @@ func (r *CircuitTypeResource) Schema(ctx context.Context, req resource.SchemaReq
 					),
 				},
 			},
-			"tags":          nbschema.TagsAttribute(),
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure sets up the resource with the provider client.

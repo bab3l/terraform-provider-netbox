@@ -209,190 +209,112 @@ func (r *ConsolePortTemplateResource) Read(ctx context.Context, req resource.Rea
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-
 func (r *ConsolePortTemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data ConsolePortTemplateResourceModel
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
-
 	templateID := data.ID.ValueInt32()
 
 	// Build the API request
-
 	apiReq := netbox.NewWritableConsolePortTemplateRequest(data.Name.ValueString())
 
 	// Set device type or module type
-
 	if !data.DeviceType.IsNull() && !data.DeviceType.IsUnknown() {
-
 		deviceType, diags := netboxlookup.LookupDeviceType(ctx, r.client, data.DeviceType.ValueString())
-
 		resp.Diagnostics.Append(diags...)
-
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
-
 		apiReq.SetDeviceType(*deviceType)
-
 	}
 
 	if !data.ModuleType.IsNull() && !data.ModuleType.IsUnknown() {
-
 		moduleType, diags := netboxlookup.LookupModuleType(ctx, r.client, data.ModuleType.ValueString())
-
 		resp.Diagnostics.Append(diags...)
-
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
-
 		apiReq.SetModuleType(*moduleType)
-
 	}
 
 	// Set optional fields
-
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-
 		apiReq.SetLabel(data.Label.ValueString())
-
 	}
 
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
-
 		apiReq.SetType(netbox.ConsolePortTypeValue(data.Type.ValueString()))
-
 	}
 
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
 		apiReq.SetDescription(data.Description.ValueString())
-
 	}
 
 	tflog.Debug(ctx, "Updating console port template", map[string]interface{}{
-
 		"id": templateID,
 	})
-
 	response, httpResp, err := r.client.DcimAPI.DcimConsolePortTemplatesUpdate(ctx, templateID).WritableConsolePortTemplateRequest(*apiReq).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
-
 		resp.Diagnostics.AddError(
-
 			"Error updating console port template",
-
 			utils.FormatAPIError(fmt.Sprintf("update console port template ID %d", templateID), err, httpResp),
 		)
-
 		return
-
 	}
 
 	// Map response to model
-
 	r.mapResponseToModel(response, &data)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-
 func (r *ConsolePortTemplateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data ConsolePortTemplateResourceModel
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
-
 	templateID := data.ID.ValueInt32()
-
 	tflog.Debug(ctx, "Deleting console port template", map[string]interface{}{
-
 		"id": templateID,
 	})
-
 	httpResp, err := r.client.DcimAPI.DcimConsolePortTemplatesDestroy(ctx, templateID).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			// Resource already deleted
-
 			return
-
 		}
-
 		resp.Diagnostics.AddError(
-
 			"Error deleting console port template",
-
 			utils.FormatAPIError(fmt.Sprintf("delete console port template ID %d", templateID), err, httpResp),
 		)
-
 		return
-
 	}
-
 }
 
 // ImportState imports the resource state from Terraform.
-
 func (r *ConsolePortTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	// Parse the import ID as an integer
-
 	id, err := utils.ParseInt32ID(req.ID)
-
 	if err != nil {
-
 		resp.Diagnostics.AddError(
-
 			"Invalid Import ID",
-
 			fmt.Sprintf("Could not parse import ID %q as integer: %s", req.ID, err),
 		)
-
 		return
-
 	}
 
 	// Set the ID in state
-
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
-
 func (r *ConsolePortTemplateResource) mapResponseToModel(template *netbox.ConsolePortTemplate, data *ConsolePortTemplateResourceModel) {
-
 	data.ID = types.Int32Value(template.GetId())
-
 	data.Name = types.StringValue(template.GetName())
 
 	// DisplayName
@@ -403,67 +325,39 @@ func (r *ConsolePortTemplateResource) mapResponseToModel(template *netbox.Consol
 	}
 
 	// Map device type - preserve user's input format
-
 	if template.DeviceType.IsSet() && template.DeviceType.Get() != nil {
-
 		dt := template.DeviceType.Get()
-
 		data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, dt.GetModel(), dt.GetSlug(), dt.Id)
-
 	} else {
-
 		data.DeviceType = types.StringNull()
-
 	}
 
 	// Map module type - preserve user's input format
-
 	if template.ModuleType.IsSet() && template.ModuleType.Get() != nil {
-
 		mt := template.ModuleType.Get()
-
 		data.ModuleType = utils.UpdateReferenceAttribute(data.ModuleType, mt.GetModel(), "", mt.Id)
-
 	} else {
-
 		data.ModuleType = types.StringNull()
-
 	}
 
 	// Map label
-
 	if label, ok := template.GetLabelOk(); ok && label != nil {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringValue("")
-
 	}
 
 	// Map type
-
 	if template.Type != nil {
-
 		data.Type = types.StringValue(string(template.Type.GetValue()))
-
 	} else {
-
 		data.Type = types.StringNull()
-
 	}
 
 	// Map description
-
 	if desc, ok := template.GetDescriptionOk(); ok && desc != nil {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringValue("")
-
 	}
-
 }

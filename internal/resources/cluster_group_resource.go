@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -49,15 +50,18 @@ func (r *ClusterGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a cluster group in Netbox. Cluster groups provide a way to organize virtualization clusters for better management (e.g., by datacenter, environment, or team).",
 		Attributes: map[string]schema.Attribute{
-			"id":            nbschema.IDAttribute("cluster group"),
-			"name":          nbschema.NameAttribute("cluster group", 100),
-			"display_name":  nbschema.DisplayNameAttribute("cluster group"),
-			"slug":          nbschema.SlugAttribute("cluster group"),
-			"description":   nbschema.DescriptionAttribute("cluster group"),
-			"tags":          nbschema.TagsAttribute(),
-			"custom_fields": nbschema.CustomFieldsAttribute(),
+			"id":           nbschema.IDAttribute("cluster group"),
+			"name":         nbschema.NameAttribute("cluster group", 100),
+			"display_name": nbschema.DisplayNameAttribute("cluster group"),
+			"slug":         nbschema.SlugAttribute("cluster group"),
 		},
 	}
+
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("cluster group"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *ClusterGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
