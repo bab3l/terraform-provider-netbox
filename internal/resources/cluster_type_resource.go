@@ -137,77 +137,20 @@ func (r *ClusterTypeResource) mapClusterTypeToState(ctx context.Context, cluster
 	data.DisplayName = types.StringValue(clusterType.GetDisplay())
 
 	// Handle description
-
-	if clusterType.HasDescription() && clusterType.GetDescription() != "" {
-
-		data.Description = types.StringValue(clusterType.GetDescription())
-
-	} else if !data.Description.IsNull() {
-
-		data.Description = types.StringNull()
-
-	}
+	data.Description = utils.NullableStringFromAPI(
+		clusterType.HasDescription() && clusterType.GetDescription() != "",
+		clusterType.GetDescription,
+		data.Description,
+	)
 
 	// Handle tags
-
-	if clusterType.HasTags() {
-
-		tags := utils.NestedTagsToTagModels(clusterType.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		data.Tags = tagsValue
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, clusterType.HasTags(), clusterType.GetTags(), diags)
+	if diags.HasError() {
+		return
 	}
 
 	// Handle custom fields
-
-	if clusterType.HasCustomFields() && !data.CustomFields.IsNull() {
-
-		var stateCustomFields []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		customFields := utils.MapToCustomFieldModels(clusterType.GetCustomFields(), stateCustomFields)
-
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfValueDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		data.CustomFields = customFieldsValue
-
-	} else if data.CustomFields.IsNull() {
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
-
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, clusterType.HasCustomFields(), clusterType.GetCustomFields(), data.CustomFields, diags)
 }
 
 // Create creates a new cluster type resource.

@@ -495,73 +495,11 @@ func (r *ClusterGroupResource) mapClusterGroupToState(ctx context.Context, clust
 	data.Description = utils.StringFromAPI(clusterGroup.HasDescription(), clusterGroup.GetDescription, data.Description)
 
 	// Handle tags
-
-	if clusterGroup.HasTags() {
-
-		tags := utils.NestedTagsToTagModels(clusterGroup.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if !diags.HasError() {
-
-			data.Tags = tagsValue
-
-		}
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), diags)
+	if diags.HasError() {
+		return
 	}
 
 	// Handle custom fields
-
-	switch {
-
-	case clusterGroup.HasCustomFields() && !data.CustomFields.IsNull():
-
-		var stateCustomFields []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		diags.Append(cfDiags...)
-
-		if !diags.HasError() {
-
-			customFields := utils.MapToCustomFieldModels(clusterGroup.GetCustomFields(), stateCustomFields)
-
-			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-			diags.Append(cfValueDiags...)
-
-			if !diags.HasError() {
-
-				data.CustomFields = customFieldsValue
-
-			}
-
-		}
-
-	case clusterGroup.HasCustomFields():
-
-		customFields := utils.MapToCustomFieldModels(clusterGroup.GetCustomFields(), []utils.CustomFieldModel{})
-
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfValueDiags...)
-
-		if !diags.HasError() {
-
-			data.CustomFields = customFieldsValue
-
-		}
-
-	default:
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
-
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, clusterGroup.HasCustomFields(), clusterGroup.GetCustomFields(), data.CustomFields, diags)
 }
