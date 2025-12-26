@@ -2295,3 +2295,188 @@ func TestUpdateReferenceAttribute(t *testing.T) {
 		})
 	}
 }
+
+func TestPreserveReferenceFormat(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		stateValue    types.String
+		apiID         int32
+		apiName       string
+		apiSlug       string
+		expectedValue string
+		expectedNull  bool
+	}{
+		{
+			name:          "Null state returns name",
+			stateValue:    types.StringNull(),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "Test Name",
+		},
+		{
+			name:          "Unknown state returns name",
+			stateValue:    types.StringUnknown(),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "Test Name",
+		},
+		{
+			name:          "ID match preserves ID",
+			stateValue:    types.StringValue("123"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "123",
+		},
+		{
+			name:          "Slug match preserves slug",
+			stateValue:    types.StringValue("test-slug"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "test-slug",
+		},
+		{
+			name:          "Name match preserves name",
+			stateValue:    types.StringValue("Test Name"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "Test Name",
+		},
+		{
+			name:          "Case-insensitive name match preserves user casing",
+			stateValue:    types.StringValue("TEST NAME"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "TEST NAME",
+		},
+		{
+			name:          "Case-insensitive slug match preserves user casing",
+			stateValue:    types.StringValue("TEST-SLUG"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "TEST-SLUG",
+		},
+		{
+			name:          "Non-matching value defaults to name",
+			stateValue:    types.StringValue("old-value"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "Test Name",
+		},
+		{
+			name:          "Empty slug with name match",
+			stateValue:    types.StringValue("Test Name"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "",
+			expectedValue: "Test Name",
+		},
+		{
+			name:          "Empty slug with ID match",
+			stateValue:    types.StringValue("123"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "",
+			expectedValue: "123",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := PreserveReferenceFormat(tt.stateValue, tt.apiID, tt.apiName, tt.apiSlug)
+
+			if tt.expectedNull {
+				if !result.IsNull() {
+					t.Errorf("PreserveReferenceFormat() expected null, got %s", result.ValueString())
+				}
+				return
+			}
+
+			if result.ValueString() != tt.expectedValue {
+				t.Errorf("PreserveReferenceFormat() = %s, want %s", result.ValueString(), tt.expectedValue)
+			}
+		})
+	}
+}
+
+func TestPreserveOptionalReferenceFormat(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		stateValue    types.String
+		hasValue      bool
+		apiID         int32
+		apiName       string
+		apiSlug       string
+		expectedValue string
+		expectedNull  bool
+	}{
+		{
+			name:         "No value returns null",
+			stateValue:   types.StringValue("some-value"),
+			hasValue:     false,
+			apiID:        123,
+			apiName:      "Test Name",
+			apiSlug:      "test-slug",
+			expectedNull: true,
+		},
+		{
+			name:          "Has value with ID match",
+			stateValue:    types.StringValue("123"),
+			hasValue:      true,
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "123",
+		},
+		{
+			name:          "Has value with name match",
+			stateValue:    types.StringValue("Test Name"),
+			hasValue:      true,
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "Test Name",
+		},
+		{
+			name:         "Null state with no value",
+			stateValue:   types.StringNull(),
+			hasValue:     false,
+			apiID:        123,
+			apiName:      "Test Name",
+			apiSlug:      "test-slug",
+			expectedNull: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := PreserveOptionalReferenceFormat(tt.stateValue, tt.hasValue, tt.apiID, tt.apiName, tt.apiSlug)
+
+			if tt.expectedNull {
+				if !result.IsNull() {
+					t.Errorf("PreserveOptionalReferenceFormat() expected null, got %s", result.ValueString())
+				}
+				return
+			}
+
+			if result.ValueString() != tt.expectedValue {
+				t.Errorf("PreserveOptionalReferenceFormat() = %s, want %s", result.ValueString(), tt.expectedValue)
+			}
+		})
+	}
+}

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bab3l/go-netbox"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -498,51 +499,96 @@ func EnumFromAPIWithDefault[T ~string](hasValue bool, getValue func() T, current
 
 // =====================================================
 
+// REFERENCE FIELD HELPERS
+
+// =====================================================
+
+// PreserveReferenceFormat preserves the user's configured format (ID, name, or slug) for reference fields.
+// This is a simpler alternative to UpdateReferenceAttribute for required reference fields
+// that always have a value from the API.
+//
+// Parameters:
+//   - stateValue: The current state value (user's configured format)
+//   - apiID: The ID from the API response
+//   - apiName: The name/display from the API response
+//   - apiSlug: The slug from the API response (can be empty if not applicable)
+//
+// Returns the value that preserves the user's format to prevent unnecessary plan diffs.
+//
+// Example:
+//
+//	data.Type = utils.PreserveReferenceFormat(data.Type, cluster.Type.GetId(), cluster.Type.GetName(), cluster.Type.GetSlug())
+func PreserveReferenceFormat(stateValue types.String, apiID int32, apiName, apiSlug string) types.String {
+	apiIDStr := fmt.Sprintf("%d", apiID)
+
+	// If state is null or unknown, return the name (default for new/imported resources)
+	if stateValue.IsNull() || stateValue.IsUnknown() {
+		return types.StringValue(apiName)
+	}
+
+	// Check if the configured value matches any API identifier
+	configValue := stateValue.ValueString()
+
+	// Exact matches - preserve the user's format
+	if configValue == apiIDStr {
+		return types.StringValue(apiIDStr)
+	}
+	if configValue == apiSlug && apiSlug != "" {
+		return types.StringValue(apiSlug)
+	}
+	if configValue == apiName {
+		return types.StringValue(apiName)
+	}
+
+	// Case-insensitive matches for name/slug - preserve user's casing
+	if apiName != "" && strings.EqualFold(configValue, apiName) {
+		return stateValue
+	}
+	if apiSlug != "" && strings.EqualFold(configValue, apiSlug) {
+		return stateValue
+	}
+
+	// Default to name for any other case (reference resolved but format changed)
+	return types.StringValue(apiName)
+}
+
+// PreserveOptionalReferenceFormat is like PreserveReferenceFormat but handles nullable references.
+// It returns a null string if the API value indicates no reference is set.
+//
+// Example:
+//
+//	data.Group = utils.PreserveOptionalReferenceFormat(data.Group, group.IsSet() && group.Get() != nil, ...)
+func PreserveOptionalReferenceFormat(stateValue types.String, hasValue bool, apiID int32, apiName, apiSlug string) types.String {
+	if !hasValue {
+		return types.StringNull()
+	}
+	return PreserveReferenceFormat(stateValue, apiID, apiName, apiSlug)
+}
+
+// =====================================================
+
 // TAGS AND CUSTOM FIELDS HELPERS
 
 // =====================================================
 
 // TagsFromAPI converts API tags to a Terraform Set value.
-
 // Returns a null set if the API has no tags.
-
-func TagsFromAPI(ctx context.Context, hasTags bool, getTags func() []interface {
-	GetName() string
-
-	GetSlug() string
-}, diags *diag.Diagnostics) types.Set {
-
+//
+// Deprecated: Use PopulateTagsFromNestedTags instead which provides a cleaner API.
+func TagsFromAPI(ctx context.Context, hasTags bool, getTags func() []netbox.NestedTag, diags *diag.Diagnostics) types.Set {
 	if hasTags {
-
-		tags := make([]TagModel, 0, len(getTags()))
-
-		for _, tag := range getTags() {
-
-			tags = append(tags, TagModel{
-
-				Name: types.StringValue(tag.GetName()),
-
-				Slug: types.StringValue(tag.GetSlug()),
-			})
-
-		}
+		tags := NestedTagsToTagModels(getTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, GetTagsAttributeType().ElemType, tags)
-
 		diags.Append(tagDiags...)
-
 		if diags.HasError() {
-
 			return types.SetNull(GetTagsAttributeType().ElemType)
-
 		}
 
 		return tagsValue
-
 	}
 
 	return types.SetNull(GetTagsAttributeType().ElemType)
-
 }
 
 // CustomFieldsFromAPI converts API custom fields to a Terraform Set value.
@@ -589,6 +635,60 @@ func CustomFieldsFromAPI(ctx context.Context, hasCustomFields bool, getCustomFie
 
 	return stateCustomFields
 
+}
+
+// PopulateTagsFromNestedTags converts Netbox NestedTag slice to a Terraform Set value.
+// This is the preferred helper for resources using []netbox.NestedTag.
+//
+// Example:
+//
+//	data.Tags = utils.PopulateTagsFromNestedTags(ctx, cluster.HasTags(), cluster.GetTags(), &diags)
+func PopulateTagsFromNestedTags(ctx context.Context, hasTags bool, tags []netbox.NestedTag, diags *diag.Diagnostics) types.Set {
+	if !hasTags || len(tags) == 0 {
+		return types.SetNull(GetTagsAttributeType().ElemType)
+	}
+
+	tagModels := NestedTagsToTagModels(tags)
+
+	tagsValue, tagDiags := types.SetValueFrom(ctx, GetTagsAttributeType().ElemType, tagModels)
+	diags.Append(tagDiags...)
+	if diags.HasError() {
+		return types.SetNull(GetTagsAttributeType().ElemType)
+	}
+
+	return tagsValue
+}
+
+// PopulateCustomFieldsFromMap converts Netbox custom fields map to a Terraform Set value.
+// It preserves type information from the existing state custom fields.
+//
+// Example:
+//
+//	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, cluster.HasCustomFields(), cluster.GetCustomFields(), data.CustomFields, &diags)
+func PopulateCustomFieldsFromMap(ctx context.Context, hasCustomFields bool, customFieldsMap map[string]interface{}, stateCustomFields types.Set, diags *diag.Diagnostics) types.Set {
+	// If the API has no custom fields or state doesn't have custom fields configured, return null
+	if !hasCustomFields || stateCustomFields.IsNull() {
+		return types.SetNull(GetCustomFieldsAttributeType().ElemType)
+	}
+
+	// Extract existing state custom fields to preserve type information
+	var existingFields []CustomFieldModel
+	cfDiags := stateCustomFields.ElementsAs(ctx, &existingFields, false)
+	diags.Append(cfDiags...)
+	if diags.HasError() {
+		return stateCustomFields
+	}
+
+	// Convert API custom fields using state type information
+	customFields := MapToCustomFieldModels(customFieldsMap, existingFields)
+
+	customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, GetCustomFieldsAttributeType().ElemType, customFields)
+	diags.Append(cfValueDiags...)
+	if diags.HasError() {
+		return stateCustomFields
+	}
+
+	return customFieldsValue
 }
 
 // =====================================================
