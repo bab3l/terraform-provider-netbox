@@ -2480,3 +2480,112 @@ func TestPreserveOptionalReferenceFormat(t *testing.T) {
 		})
 	}
 }
+func TestPreserveOptionalReferenceWithID(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name              string
+		stateValue        types.String
+		hasValue          bool
+		apiID             int32
+		apiName           string
+		apiSlug           string
+		expectedReference string
+		expectedID        string
+		expectedBothNull  bool
+	}{
+		{
+			name:              "User configured with ID",
+			stateValue:        types.StringValue("123"),
+			hasValue:          true,
+			apiID:             123,
+			apiName:           "Test Name",
+			apiSlug:           "test-slug",
+			expectedReference: "123",
+			expectedID:        "123",
+		},
+		{
+			name:              "User configured with name",
+			stateValue:        types.StringValue("Test Name"),
+			hasValue:          true,
+			apiID:             123,
+			apiName:           "Test Name",
+			apiSlug:           "test-slug",
+			expectedReference: "Test Name",
+			expectedID:        "123",
+		},
+		{
+			name:              "User configured with slug",
+			stateValue:        types.StringValue("test-slug"),
+			hasValue:          true,
+			apiID:             123,
+			apiName:           "Test Name",
+			apiSlug:           "test-slug",
+			expectedReference: "test-slug",
+			expectedID:        "123",
+		},
+		{
+			name:              "Null state with value - defaults to name",
+			stateValue:        types.StringNull(),
+			hasValue:          true,
+			apiID:             123,
+			apiName:           "Test Name",
+			apiSlug:           "test-slug",
+			expectedReference: "Test Name",
+			expectedID:        "123",
+		},
+		{
+			name:             "No value from API",
+			stateValue:       types.StringValue("Test Name"),
+			hasValue:         false,
+			apiID:            0,
+			apiName:          "",
+			apiSlug:          "",
+			expectedBothNull: true,
+		},
+		{
+			name:             "Null state with no value",
+			stateValue:       types.StringNull(),
+			hasValue:         false,
+			apiID:            0,
+			apiName:          "",
+			apiSlug:          "",
+			expectedBothNull: true,
+		},
+		{
+			name:              "Empty slug - uses name and ID",
+			stateValue:        types.StringValue("456"),
+			hasValue:          true,
+			apiID:             456,
+			apiName:           "Another Name",
+			apiSlug:           "",
+			expectedReference: "456",
+			expectedID:        "456",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := PreserveOptionalReferenceWithID(tt.stateValue, tt.hasValue, tt.apiID, tt.apiName, tt.apiSlug)
+
+			if tt.expectedBothNull {
+				if !result.Reference.IsNull() {
+					t.Errorf("PreserveOptionalReferenceWithID() Reference expected null, got %s", result.Reference.ValueString())
+				}
+				if !result.ID.IsNull() {
+					t.Errorf("PreserveOptionalReferenceWithID() ID expected null, got %s", result.ID.ValueString())
+				}
+				return
+			}
+
+			if result.Reference.ValueString() != tt.expectedReference {
+				t.Errorf("PreserveOptionalReferenceWithID() Reference = %s, want %s", result.Reference.ValueString(), tt.expectedReference)
+			}
+			if result.ID.ValueString() != tt.expectedID {
+				t.Errorf("PreserveOptionalReferenceWithID() ID = %s, want %s", result.ID.ValueString(), tt.expectedID)
+			}
+		})
+	}
+}

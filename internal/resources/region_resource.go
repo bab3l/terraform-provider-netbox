@@ -518,31 +518,15 @@ func (r *RegionResource) mapRegionToState(ctx context.Context, region *netbox.Re
 	data.DisplayName = types.StringValue(region.GetDisplay())
 
 	// Handle parent
-
+	var parentResult utils.ReferenceWithID
 	if region.HasParent() && region.GetParent().Id != 0 {
-
 		parent := region.GetParent()
-
-		data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
-
-		userParent := data.Parent.ValueString()
-
-		if userParent == parent.GetName() || userParent == parent.GetSlug() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Parent = types.StringValue(parent.GetName())
-
-		}
-
+		parentResult = utils.PreserveOptionalReferenceWithID(data.Parent, true, parent.GetId(), parent.GetName(), parent.GetSlug())
 	} else {
-
-		data.Parent = types.StringNull()
-		data.ParentID = types.StringNull()
-
+		parentResult = utils.PreserveOptionalReferenceWithID(data.Parent, false, 0, "", "")
 	}
+	data.Parent = parentResult.Reference
+	data.ParentID = parentResult.ID
 
 	// Handle description - use StringFromAPI to treat empty string as null
 	data.Description = utils.StringFromAPI(region.HasDescription(), region.GetDescription, data.Description)

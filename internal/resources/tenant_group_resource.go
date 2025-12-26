@@ -548,40 +548,15 @@ func (r *TenantGroupResource) mapTenantGroupToState(ctx context.Context, tenantG
 	}
 
 	// Handle parent reference
-
+	var parentResult utils.ReferenceWithID
 	if tenantGroup.HasParent() {
-
 		parent := tenantGroup.GetParent()
-
-		if parent.GetId() != 0 {
-
-			data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
-
-			userParent := data.Parent.ValueString()
-
-			if userParent == parent.GetName() || userParent == parent.GetSlug() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
-
-				// Keep user's original value
-
-			} else {
-
-				data.Parent = types.StringValue(parent.GetName())
-
-			}
-
-		} else {
-
-			data.Parent = types.StringNull()
-			data.ParentID = types.StringNull()
-
-		}
-
+		parentResult = utils.PreserveOptionalReferenceWithID(data.Parent, parent.GetId() != 0, parent.GetId(), parent.GetName(), parent.GetSlug())
 	} else {
-
-		data.Parent = types.StringNull()
-		data.ParentID = types.StringNull()
-
+		parentResult = utils.PreserveOptionalReferenceWithID(data.Parent, false, 0, "", "")
 	}
+	data.Parent = parentResult.Reference
+	data.ParentID = parentResult.ID
 
 	// Handle tags
 	data.Tags = utils.PopulateTagsFromNestedTags(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), diags)

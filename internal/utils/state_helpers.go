@@ -565,6 +565,48 @@ func PreserveOptionalReferenceFormat(stateValue types.String, hasValue bool, api
 	return PreserveReferenceFormat(stateValue, apiID, apiName, apiSlug)
 }
 
+// ReferenceWithID holds both the reference field value and the computed ID field value.
+// This is used by PreserveOptionalReferenceWithID for the dual-field pattern.
+type ReferenceWithID struct {
+	Reference types.String
+	ID        types.String
+}
+
+// PreserveOptionalReferenceWithID handles the dual-field pattern where a resource has both
+// a Reference field (e.g., Tenant) and a computed ReferenceID field (e.g., TenantID).
+// This is common in older resources or resources that expose the ID separately.
+//
+// The Reference field preserves user input format (ID/name/slug), while the ID field
+// always contains the numeric ID for computed display.
+//
+// Parameters:
+//   - stateValue: The current state value for the reference field
+//   - hasValue: Whether the API returned a valid reference
+//   - apiID: The ID from the API response
+//   - apiName: The name/display from the API response
+//   - apiSlug: The slug from the API response (can be empty)
+//
+// Returns a ReferenceWithID struct containing both field values.
+//
+// Example:
+//
+//	result := utils.PreserveOptionalReferenceWithID(data.Tenant, site.HasTenant(), tenant.GetId(), tenant.GetName(), tenant.GetSlug())
+//	data.Tenant = result.Reference
+//	data.TenantID = result.ID
+func PreserveOptionalReferenceWithID(stateValue types.String, hasValue bool, apiID int32, apiName, apiSlug string) ReferenceWithID {
+	if !hasValue {
+		return ReferenceWithID{
+			Reference: types.StringNull(),
+			ID:        types.StringNull(),
+		}
+	}
+
+	return ReferenceWithID{
+		Reference: PreserveReferenceFormat(stateValue, apiID, apiName, apiSlug),
+		ID:        types.StringValue(fmt.Sprintf("%d", apiID)),
+	}
+}
+
 // =====================================================
 
 // TAGS AND CUSTOM FIELDS HELPERS
