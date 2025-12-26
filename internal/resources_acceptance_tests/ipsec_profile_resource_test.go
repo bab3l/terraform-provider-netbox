@@ -152,7 +152,24 @@ func TestAccIPSECProfileResource_import(t *testing.T) {
 	})
 
 }
+func TestAccIPSecProfileResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-ipsec-profile-id")
 
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSECProfileResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ipsec_profile.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "name", name),
+				),
+			},
+		},
+	})
+}
 func testAccIPSECProfileResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`

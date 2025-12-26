@@ -169,6 +169,25 @@ func TestAccIKEPolicyResource_import(t *testing.T) {
 
 }
 
+func TestAccIKEPolicyResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-ike-policy-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEPolicyResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ike_policy.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ike_policy.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func testAccIKEPolicyResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`

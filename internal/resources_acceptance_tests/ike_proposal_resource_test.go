@@ -177,6 +177,25 @@ func TestAccIKEProposalResource_import(t *testing.T) {
 
 }
 
+func TestAccIKEProposalResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-ike-proposal-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEProposalResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ike_proposal.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func testAccIKEProposalResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`

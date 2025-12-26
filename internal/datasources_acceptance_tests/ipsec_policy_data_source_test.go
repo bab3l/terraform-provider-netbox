@@ -111,6 +111,32 @@ data "netbox_ipsec_policy" "test" {
 
 }
 
+func TestAccIPSecPolicyDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+	cleanup := testutil.NewCleanupResource(t)
+	randomName := testutil.RandomName("tf-test-ipsec-policy-ds-id")
+	cleanup.RegisterIPSecPolicyCleanup(randomName)
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSecPolicyDataSourceByID(randomName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_ipsec_policy.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_ipsec_policy.test", "name", randomName),
+				),
+			},
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckIPSecPolicyDestroy,
+		),
+	})
+}
+
 func testAccIPSecPolicyDataSourceByName(name string) string {
 
 	return fmt.Sprintf(`

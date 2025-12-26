@@ -152,6 +152,28 @@ func TestAccJournalEntryResource_import(t *testing.T) {
 
 }
 
+func TestAccJournalEntryResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	siteName := testutil.RandomName("site-id")
+	siteSlug := testutil.RandomSlug("site-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccJournalEntryResourceConfig_basic(siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_journal_entry.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccJournalEntryResourceConfig_basic(siteName, siteSlug string) string {
 
 	return fmt.Sprintf(`

@@ -80,6 +80,28 @@ func TestAccWirelessLANGroupResource_full(t *testing.T) {
 	})
 }
 
+func TestAccWirelessLANGroupResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-wlan-group-id")
+	slug := testutil.RandomSlug("tf-test-wlan-group-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLANGroupResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_wireless_lan_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_wireless_lan_group.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func testAccWirelessLANGroupResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_wireless_lan_group" "test" {

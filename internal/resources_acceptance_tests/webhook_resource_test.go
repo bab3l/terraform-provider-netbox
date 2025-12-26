@@ -87,6 +87,27 @@ func TestAccWebhookResource_full(t *testing.T) {
 	})
 }
 
+func TestAccWebhookResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+	randomName := testutil.RandomName("test-webhook-id")
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWebhookResource(randomName, "https://example.com/webhook"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_webhook.test", "id"),
+					resource.TestCheckResourceAttr("netbox_webhook.test", "name", randomName),
+				),
+			},
+		},
+	})
+}
+
 func testAccWebhookResource(name, payloadURL string) string {
 	return fmt.Sprintf(`
 resource "netbox_webhook" "test" {

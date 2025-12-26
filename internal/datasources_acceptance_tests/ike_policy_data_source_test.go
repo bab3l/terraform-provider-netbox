@@ -119,6 +119,32 @@ data "netbox_ike_policy" "test" {
 
 }
 
+func TestAccIKEPolicyDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+	cleanup := testutil.NewCleanupResource(t)
+	randomName := testutil.RandomName("tf-test-ike-policy-ds-id")
+	cleanup.RegisterIKEPolicyCleanup(randomName)
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEPolicyDataSourceByID(randomName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_ike_policy.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_ike_policy.test", "name", randomName),
+				),
+			},
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckIKEPolicyDestroy,
+		),
+	})
+}
+
 func testAccIKEPolicyDataSourceByName(name string) string {
 
 	return fmt.Sprintf(`
