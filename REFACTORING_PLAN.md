@@ -54,13 +54,14 @@ data.Type = utils.PreserveReferenceFormat(data.Type, cluster.Type.GetId(), clust
 ```
 
 **Progress**:
-- [ ] Add `PreserveReferenceFormat()` to `state_helpers.go`
-- [ ] Add unit tests for the helper
-- [ ] Refactor pilot resource (cluster_resource.go)
+- [x] Add `PreserveReferenceFormat()` to `state_helpers.go`
+- [x] Add `PreserveOptionalReferenceFormat()` for nullable references
+- [x] Add unit tests for the helpers (14 test cases)
+- [x] Refactor pilot resource (cluster_resource.go)
 - [ ] Run acceptance tests to validate
-- [ ] Apply to remaining resources
+- [ ] Apply to remaining resources (53 resources not yet using helpers)
 
-### 1.2 PopulateTags() Helper
+### 1.2 PopulateTagsFromNestedTags() Helper
 
 **Target**: Simplify tags handling from 20 lines to 1 line per resource
 
@@ -81,23 +82,52 @@ if cluster.HasTags() {
 
 **After**:
 ```go
-data.Tags = utils.PopulateTags(ctx, cluster.HasTags(), cluster.GetTags, &diags)
+data.Tags = utils.PopulateTagsFromNestedTags(ctx, cluster.HasTags(), cluster.GetTags(), diags)
 ```
 
 **Progress**:
-- [ ] Add `PopulateTags()` to `state_helpers.go`
+- [x] Add `PopulateTagsFromNestedTags()` to `state_helpers.go`
+- [x] Refactor pilot resource (cluster_resource.go)
 - [ ] Add unit tests for the helper
-- [ ] Refactor pilot resource (cluster_resource.go)
 - [ ] Run acceptance tests to validate
 - [ ] Apply to remaining resources
 
-### 1.3 PopulateCustomFields() Helper
+### 1.3 PopulateCustomFieldsFromMap() Helper
 
 **Target**: Simplify custom fields handling
 
+**Before**:
+```go
+if cluster.HasCustomFields() && !data.CustomFields.IsNull() {
+    var stateCustomFields []utils.CustomFieldModel
+    cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
+    diags.Append(cfDiags...)
+    if diags.HasError() {
+        return
+    }
+    customFields := utils.MapToCustomFieldModels(cluster.GetCustomFields(), stateCustomFields)
+    customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+    diags.Append(cfValueDiags...)
+    if diags.HasError() {
+        return
+    }
+    data.CustomFields = customFieldsValue
+} else if data.CustomFields.IsNull() {
+    data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+}
+```
+
+**After**:
+```go
+data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, cluster.HasCustomFields(), cluster.GetCustomFields(), data.CustomFields, diags)
+```
+
 **Progress**:
-- [ ] Add `PopulateCustomFields()` to `state_helpers.go`
+- [x] Add `PopulateCustomFieldsFromMap()` to `state_helpers.go`
+- [x] Refactor pilot resource (cluster_resource.go)
 - [ ] Add unit tests for the helper
+- [ ] Run acceptance tests to validate
+- [ ] Apply to remaining resources
 - [ ] Refactor pilot resource (cluster_resource.go)
 - [ ] Run acceptance tests to validate
 - [ ] Apply to remaining resources
@@ -142,7 +172,8 @@ data.Tags = utils.PopulateTags(ctx, cluster.HasTags(), cluster.GetTags, &diags)
 
 | Date | Commit | Description |
 |------|--------|-------------|
-| 2025-12-26 | - | Initial plan document |
+| 2025-12-26 | 5e13472 | Initial plan document |
+| 2025-12-26 | - | Add helpers and refactor cluster_resource.go |
 
 ---
 
@@ -150,11 +181,19 @@ data.Tags = utils.PopulateTags(ctx, cluster.HasTags(), cluster.GetTags, &diags)
 
 ### Code Reduction (Estimated vs Actual)
 
-| Pattern | Estimated Savings | Actual Savings | Status |
-|---------|-------------------|----------------|--------|
-| PreserveReferenceFormat | ~83% | TBD | ⬜ |
-| PopulateTags | ~87% | TBD | ⬜ |
-| PopulateCustomFields | ~87% | TBD | ⬜ |
+| Pattern | Before (lines) | After (lines) | Savings | Status |
+|---------|----------------|---------------|---------|--------|
+| PreserveReferenceFormat (required) | 20 | 1 | 95% | ✅ Implemented |
+| PreserveOptionalReferenceFormat | 15 | 1 | 93% | ✅ Implemented |
+| PopulateTagsFromNestedTags | 14 | 1 | 93% | ✅ Implemented |
+| PopulateCustomFieldsFromMap | 20 | 1 | 95% | ✅ Implemented |
+
+### cluster_resource.go mapClusterToState()
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Lines of code | ~140 | ~55 |
+| Reduction | - | **61%** |
 
 ---
 
