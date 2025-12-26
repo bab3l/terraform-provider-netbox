@@ -43,10 +43,10 @@ func TestAccModuleBayDataSource_IDPreservation(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccModuleBayDataSourceConfig("Module Bay 1", siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceTypeModel, deviceTypeSlug, deviceName),
+				Config: testAccModuleBayDataSourceConfig(moduleBayName, siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceTypeModel, deviceTypeSlug, deviceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.netbox_module_bay.test", "id"),
-					resource.TestCheckResourceAttr("data.netbox_module_bay.test", "name", "Module Bay 1"),
+					resource.TestCheckResourceAttr("data.netbox_module_bay.test", "name", moduleBayName),
 				),
 			},
 		},

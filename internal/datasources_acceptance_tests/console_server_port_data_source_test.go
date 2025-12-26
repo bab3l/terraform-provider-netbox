@@ -39,8 +39,8 @@ func TestAccConsoleServerPortDataSource_IDPreservation(t *testing.T) {
 			{
 				Config: testAccConsoleServerPortDataSourceConfig("eth0", siteSlug, deviceRoleSlug, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.netbox_console_server_port.test", "id"),
-					resource.TestCheckResourceAttr("data.netbox_console_server_port.test", "name", "eth0"),
+					resource.TestCheckResourceAttrSet("data.netbox_console_server_port.by_id", "id"),
+					resource.TestCheckResourceAttr("data.netbox_console_server_port.by_id", "name", "eth0"),
 				),
 			},
 		},
