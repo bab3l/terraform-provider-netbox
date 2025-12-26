@@ -95,6 +95,32 @@ func TestAccTagDataSource_bySlug(t *testing.T) {
 	})
 }
 
+func TestAccTagDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	cleanup := testutil.NewCleanupResource(t)
+	tagName := testutil.RandomName("tag-ds-id")
+	tagSlug := testutil.RandomSlug("tag-ds-id")
+	cleanup.RegisterTagCleanup(tagSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckTagDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTagDataSourceConfig(tagName, tagSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_tag.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_tag.test", "name", tagName),
+					resource.TestCheckResourceAttr("data.netbox_tag.test", "slug", tagSlug),
+				),
+			},
+		},
+	})
+}
+
 func testAccTagDataSourceConfig(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "test" {

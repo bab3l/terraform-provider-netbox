@@ -95,6 +95,32 @@ func TestAccRoleDataSource_bySlug(t *testing.T) {
 	})
 }
 
+func TestAccRoleDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	cleanup := testutil.NewCleanupResource(t)
+	roleName := testutil.RandomName("role-ds-id")
+	roleSlug := testutil.GenerateSlug(roleName)
+	cleanup.RegisterRoleCleanup(roleSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckRoleDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoleDataSourceConfig(roleName, roleSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_role.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_role.test", "name", roleName),
+					resource.TestCheckResourceAttr("data.netbox_role.test", "slug", roleSlug),
+				),
+			},
+		},
+	})
+}
+
 func testAccRoleDataSourceConfig(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_role" "test" {

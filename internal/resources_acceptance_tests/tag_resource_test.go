@@ -106,6 +106,26 @@ func TestAccTagResource_withObjectTypes(t *testing.T) {
 	})
 }
 
+func TestAccTagResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-tag-id")
+	slug := testutil.RandomSlug("tf-test-tag-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTagResourceBasic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tag.test", "id"),
+					resource.TestCheckResourceAttr("netbox_tag.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func testAccTagResourceBasic(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "test" {

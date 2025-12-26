@@ -30,6 +30,28 @@ func TestAccEventRuleDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccEventRuleDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	webhookName := testutil.RandomName("webhook-ds-id")
+	eventRuleName := testutil.RandomName("event-rule-ds-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccEventRuleDataSourceConfig(webhookName, eventRuleName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_event_rule.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_event_rule.test", "name", eventRuleName),
+					resource.TestCheckResourceAttr("data.netbox_event_rule.test", "action_type", "webhook"),
+				),
+			},
+		},
+	})
+}
+
 func testAccEventRuleDataSourceConfig(webhookName, eventRuleName string) string {
 	return fmt.Sprintf(`
 resource "netbox_webhook" "test" {

@@ -173,6 +173,33 @@ data "netbox_platform" "test" {
 
 }
 
+func TestAccPlatformDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	cleanup := testutil.NewCleanupResource(t)
+	platformName := testutil.RandomName("platform-ds-id")
+	platformSlug := testutil.GenerateSlug(platformName)
+	manufacturerName := testutil.RandomName("mfr-ds-id")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+	cleanup.RegisterPlatformCleanup(platformName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckPlatformDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPlatformDataSourceConfig(platformName, platformSlug, manufacturerName, manufacturerSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_platform.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_platform.test", "name", platformName),
+				),
+			},
+		},
+	})
+}
+
 func testAccPlatformDataSourceConfigByName(platName, platSlug, mfrName, mfrSlug string) string {
 
 	return fmt.Sprintf(`

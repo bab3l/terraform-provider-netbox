@@ -116,6 +116,26 @@ func TestAccRIRResource_full(t *testing.T) {
 
 }
 
+func TestAccRIRResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-rir-id")
+	slug := testutil.RandomSlug("tf-test-rir-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRIRResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rir.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rir.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func testAccRIRResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`

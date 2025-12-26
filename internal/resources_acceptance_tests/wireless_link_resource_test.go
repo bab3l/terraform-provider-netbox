@@ -41,6 +41,33 @@ func TestAccWirelessLinkResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccWirelessLinkResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	siteName := testutil.RandomName("site-wl-id")
+	siteSlug := testutil.GenerateSlug(siteName)
+	deviceName := testutil.RandomName("device-wl-id")
+	interfaceNameA := "wlan0"
+	interfaceNameB := "wlan1"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLinkResourceConfig(siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB),
+
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_wireless_link.test", "id"),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "status", "connected"),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "ssid", "Test SSID"),
+				),
+			},
+		},
+	})
+}
+
 func testAccWirelessLinkResourceConfig(siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB string) string {
 	manufacturerName := testutil.RandomName("mfr")
 	manufacturerSlug := testutil.GenerateSlug(manufacturerName)

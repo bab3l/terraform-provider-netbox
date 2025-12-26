@@ -163,6 +163,28 @@ func TestAccPlatformResource_import(t *testing.T) {
 	})
 }
 
+func TestAccPlatformResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	platformName := testutil.RandomName("tf-test-platform-id")
+	platformSlug := testutil.RandomSlug("tf-test-platform-id")
+	manufacturerName := testutil.RandomName("manufacturer")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPlatformResourceConfig_basic(platformName, platformSlug, manufacturerName, manufacturerSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_platform.test", "id"),
+					resource.TestCheckResourceAttr("netbox_platform.test", "name", platformName),
+				),
+			},
+		},
+	})
+}
+
 func testAccPlatformResourceConfig_basic(platformName, platformSlug, manufacturerName, manufacturerSlug string) string {
 	return fmt.Sprintf(`
 terraform {

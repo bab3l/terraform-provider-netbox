@@ -116,6 +116,26 @@ func TestAccRoleResource_full(t *testing.T) {
 
 }
 
+func TestAccRoleResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-role-id")
+	slug := testutil.RandomSlug("tf-test-role-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoleResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func testAccRoleResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`

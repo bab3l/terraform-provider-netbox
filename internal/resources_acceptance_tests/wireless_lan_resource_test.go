@@ -81,6 +81,27 @@ func TestAccWirelessLANResource_full(t *testing.T) {
 	})
 }
 
+func TestAccWirelessLANResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	ssid := testutil.RandomName("tf-test-ssid-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLANResourceConfig_basic(ssid),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_wireless_lan.test", "id"),
+					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "ssid", ssid),
+				),
+			},
+		},
+	})
+}
+
 func testAccWirelessLANResourceConfig_basic(ssid string) string {
 	return fmt.Sprintf(`
 resource "netbox_wireless_lan" "test" {
