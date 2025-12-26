@@ -54,6 +54,45 @@ func TestAccRouteTargetDataSource_basic(t *testing.T) {
 
 }
 
+func TestAccRouteTargetDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	name := fmt.Sprintf("65000:401-%s", testutil.RandomSlug("ds-id")[:8])
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterRouteTargetCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckRouteTargetDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccRouteTargetDataSourceConfig(name),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("data.netbox_route_target.test", "id"),
+
+					resource.TestCheckResourceAttr("data.netbox_route_target.test", "name", name),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccRouteTargetDataSource_byID(t *testing.T) {
 
 	t.Parallel()

@@ -13,6 +13,47 @@ import (
 
 // Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
 
+func TestAccWebhookDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	randomName := testutil.RandomName("test-webhook-ds-id")
+
+	cleanup.RegisterWebhookCleanup(randomName)
+
+	resource.Test(t, resource.TestCase{
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckWebhookDestroy,
+		),
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccWebhookDataSourceByID(randomName),
+
+				Check: resource.ComposeAggregateTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("data.netbox_webhook.test", "id"),
+
+					resource.TestCheckResourceAttr("data.netbox_webhook.test", "name", randomName),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccWebhookDataSource_byID(t *testing.T) {
 
 	t.Parallel()

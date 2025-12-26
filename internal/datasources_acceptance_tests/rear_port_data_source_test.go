@@ -8,6 +8,47 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccRearPortDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+	name := testutil.RandomName("test-rear-port-id")
+	manufacturerName := testutil.RandomName("test-manufacturer-rp-id")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+	deviceTypeName := testutil.RandomName("test-device-type-rp-id")
+	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
+	deviceName := testutil.RandomName("test-device-rp-id")
+	siteName := testutil.RandomName("test-site-rp-id")
+	siteSlug := testutil.GenerateSlug(siteName)
+	deviceRoleName := testutil.RandomName("test-device-role-rp-id")
+	deviceRoleSlug := testutil.GenerateSlug(deviceRoleName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRearPortDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceName, siteName, siteSlug, deviceRoleName, deviceRoleSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_rear_port.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_rear_port.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func TestAccRearPortDataSource_basic(t *testing.T) {
 
 	t.Parallel()

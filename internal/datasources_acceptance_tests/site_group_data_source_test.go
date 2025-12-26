@@ -58,6 +58,47 @@ func TestAccSiteGroupDataSource_basic(t *testing.T) {
 
 }
 
+func TestAccSiteGroupDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-sg-ds-id")
+
+	slug := testutil.RandomSlug("tf-test-sg-ds-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterSiteGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckSiteGroupDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccSiteGroupDataSourceConfig(name, slug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("data.netbox_site_group.test", "id"),
+
+					resource.TestCheckResourceAttr("data.netbox_site_group.test", "name", name),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccSiteGroupDataSource_byID(t *testing.T) {
 
 	t.Parallel()

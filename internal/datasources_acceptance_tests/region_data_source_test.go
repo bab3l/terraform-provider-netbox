@@ -58,6 +58,47 @@ func TestAccRegionDataSource_basic(t *testing.T) {
 
 }
 
+func TestAccRegionDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-region-ds-id")
+
+	slug := testutil.RandomSlug("tf-test-region-ds-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterRegionCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckRegionDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccRegionDataSourceConfig(name, slug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("data.netbox_region.test", "id"),
+
+					resource.TestCheckResourceAttr("data.netbox_region.test", "name", name),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccRegionDataSource_byID(t *testing.T) {
 
 	t.Parallel()

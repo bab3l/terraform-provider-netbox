@@ -8,6 +8,32 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccRIRDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	rirName := testutil.RandomName("rir-id")
+	rirSlug := testutil.RandomSlug("rir-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRIRDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRIRDataSourceConfig(rirName, rirSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_rir.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_rir.test", "name", rirName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccRIRDataSource_basic(t *testing.T) {
 
 	t.Parallel()

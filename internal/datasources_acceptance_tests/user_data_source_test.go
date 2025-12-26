@@ -11,6 +11,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccUserDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+	username := "admin"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccUserDataSourceConfig_byUsername(username),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_user.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_user.test", "username", username),
+				),
+			},
+		},
+	})
+}
+
 func TestAccUserDataSource_byUsername(t *testing.T) {
 
 	t.Parallel()

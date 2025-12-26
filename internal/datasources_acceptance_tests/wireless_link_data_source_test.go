@@ -8,6 +8,47 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccWirelessLinkDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	mfgName := testutil.RandomName("mfg-id")
+	mfgSlug := testutil.RandomSlug("mfg-id")
+	deviceTypeName := testutil.RandomName("device-type-id")
+	deviceTypeSlug := testutil.RandomSlug("device-type-id")
+	siteName := testutil.RandomName("site-id")
+	siteSlug := testutil.RandomSlug("site-id")
+	roleName := testutil.RandomName("device-role-id")
+	roleSlug := testutil.RandomSlug("device-role-id")
+	deviceAName := testutil.RandomName("device-a-id")
+	deviceBName := testutil.RandomName("device-b-id")
+	wirelessLinkName := testutil.RandomName("wl-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLinkDataSourceByIDConfig(mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, siteName, siteSlug, roleName, roleSlug, deviceAName, deviceBName, wirelessLinkName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_wireless_link.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_wireless_link.test", "ssid", wirelessLinkName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccWirelessLinkDataSource_byID(t *testing.T) {
 
 	t.Parallel()

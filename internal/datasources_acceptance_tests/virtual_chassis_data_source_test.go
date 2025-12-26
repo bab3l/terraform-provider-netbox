@@ -8,6 +8,34 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccVirtualChassisDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	name := testutil.RandomName("vc-id")
+
+	cleanup.RegisterVirtualChassisCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVirtualChassisDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualChassisDataSourceByNameConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_virtual_chassis.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_virtual_chassis.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func TestAccVirtualChassisDataSource_byName(t *testing.T) {
 
 	t.Parallel()

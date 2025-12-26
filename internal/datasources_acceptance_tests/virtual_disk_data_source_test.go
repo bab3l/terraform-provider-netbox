@@ -11,6 +11,68 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccVirtualDiskDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-vdisk-ds-id")
+
+	clusterTypeName := testutil.RandomName("tf-test-ct-id")
+
+	clusterTypeSlug := testutil.RandomSlug("tf-test-ct-id")
+
+	clusterName := testutil.RandomName("tf-test-cluster-id")
+
+	vmName := testutil.RandomName("tf-test-vm-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterVirtualDiskCleanup(name)
+
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+
+	cleanup.RegisterClusterCleanup(clusterName)
+
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+
+			testutil.CheckVirtualDiskDestroy,
+
+			testutil.CheckVirtualMachineDestroy,
+
+			testutil.CheckClusterDestroy,
+
+			testutil.CheckClusterTypeDestroy,
+		),
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccVirtualDiskDataSourceConfigByID(name, clusterTypeName, clusterTypeSlug, clusterName, vmName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("data.netbox_virtual_disk.test", "id"),
+
+					resource.TestCheckResourceAttr("data.netbox_virtual_disk.test", "name", name),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccVirtualDiskDataSource_byID(t *testing.T) {
 
 	t.Parallel()

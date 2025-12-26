@@ -13,6 +13,46 @@ import (
 
 // Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
 
+func TestAccTunnelGroupDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+
+	randomName := testutil.RandomName("tf-test-tunnel-grp-ds-id")
+
+	randomSlug := testutil.RandomSlug("tf-test-tg-ds-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelGroupCleanup(randomName)
+
+	resource.Test(t, resource.TestCase{
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckTunnelGroupDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccTunnelGroupDataSourceByID(randomName, randomSlug),
+
+				Check: resource.ComposeAggregateTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("data.netbox_tunnel_group.test", "id"),
+
+					resource.TestCheckResourceAttr("data.netbox_tunnel_group.test", "name", randomName),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccTunnelGroupDataSource_byID(t *testing.T) {
 
 	t.Parallel()

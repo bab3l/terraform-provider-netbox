@@ -12,6 +12,33 @@ import (
 
 // Acceptance Tests
 
+func TestAccTunnelTerminationDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+	tunnelName := testutil.RandomName("tf-test-tunnel-term-ds-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelCleanup(tunnelName)
+	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckTunnelTerminationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTunnelTerminationDataSourceConfig_byID(tunnelName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_tunnel_termination.test", "id"),
+					resource.TestCheckResourceAttrPair("data.netbox_tunnel_termination.test", "tunnel", "netbox_tunnel_termination.test", "tunnel"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccTunnelTerminationDataSource_byID(t *testing.T) {
 
 	t.Parallel()

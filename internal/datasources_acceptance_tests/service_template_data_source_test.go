@@ -44,6 +44,37 @@ func TestAccServiceTemplateDataSource_byID(t *testing.T) {
 	})
 }
 
+func TestAccServiceTemplateDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	name := testutil.RandomName("test-svc-tmpl-ds-id")
+
+	cleanup.RegisterServiceTemplateCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckServiceTemplateDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccServiceTemplateDataSourceConfig_byID(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_service_template.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_service_template.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func TestAccServiceTemplateDataSource_byName(t *testing.T) {
 
 	t.Parallel()
