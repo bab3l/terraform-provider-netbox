@@ -558,49 +558,9 @@ func (r *RIRResource) mapRIRToState(ctx context.Context, rir *netbox.RIR, data *
 	}
 
 	// Tags
-
-	if len(rir.Tags) > 0 {
-
-		tags := utils.NestedTagsToTagModels(rir.Tags)
-
-		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		data.Tags = tagsValue
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
-	}
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, len(rir.Tags) > 0, rir.Tags, diags)
 
 	// Custom Fields
-
-	switch {
-
-	case len(rir.CustomFields) > 0 && !data.CustomFields.IsNull():
-
-		var stateCustomFields []utils.CustomFieldModel
-
-		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		customFields := utils.MapToCustomFieldModels(rir.CustomFields, stateCustomFields)
-
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		data.CustomFields = customFieldsValue
-
-	case len(rir.CustomFields) > 0:
-
-		customFields := utils.MapToCustomFieldModels(rir.CustomFields, []utils.CustomFieldModel{})
-
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		data.CustomFields = customFieldsValue
-
-	default:
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, len(rir.CustomFields) > 0, rir.CustomFields, data.CustomFields, diags)
 
 }

@@ -545,65 +545,12 @@ func (r *RegionResource) mapRegionToState(ctx context.Context, region *netbox.Re
 	}
 
 	// Handle description - use StringFromAPI to treat empty string as null
-
 	data.Description = utils.StringFromAPI(region.HasDescription(), region.GetDescription, data.Description)
 
 	// Handle tags
-
-	if region.HasTags() {
-
-		tags := utils.NestedTagsToTagModels(region.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if !diags.HasError() {
-
-			data.Tags = tagsValue
-
-		}
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
-	}
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, region.HasTags(), region.GetTags(), diags)
 
 	// Handle custom fields
-
-	if region.HasCustomFields() {
-
-		var existingModels []utils.CustomFieldModel
-
-		if !data.CustomFields.IsNull() {
-
-			cfDiags := data.CustomFields.ElementsAs(ctx, &existingModels, false)
-
-			diags.Append(cfDiags...)
-
-		}
-
-		if !diags.HasError() {
-
-			customFields := utils.MapToCustomFieldModels(region.GetCustomFields(), existingModels)
-
-			customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-			diags.Append(cfDiags...)
-
-			if !cfDiags.HasError() {
-
-				data.CustomFields = customFieldsValue
-
-			}
-
-		}
-
-	} else {
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, region.HasCustomFields(), region.GetCustomFields(), data.CustomFields, diags)
 
 }

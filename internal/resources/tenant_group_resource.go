@@ -584,73 +584,9 @@ func (r *TenantGroupResource) mapTenantGroupToState(ctx context.Context, tenantG
 	}
 
 	// Handle tags
-
-	if tenantGroup.HasTags() {
-
-		tags := utils.NestedTagsToTagModels(tenantGroup.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if !diags.HasError() {
-
-			data.Tags = tagsValue
-
-		}
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
-	}
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), diags)
 
 	// Handle custom fields
-
-	switch {
-
-	case tenantGroup.HasCustomFields() && !data.CustomFields.IsNull():
-
-		var stateCustomFields []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		diags.Append(cfDiags...)
-
-		if !diags.HasError() {
-
-			customFields := utils.MapToCustomFieldModels(tenantGroup.GetCustomFields(), stateCustomFields)
-
-			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-			diags.Append(cfValueDiags...)
-
-			if !diags.HasError() {
-
-				data.CustomFields = customFieldsValue
-
-			}
-
-		}
-
-	case tenantGroup.HasCustomFields():
-
-		customFields := utils.MapToCustomFieldModels(tenantGroup.GetCustomFields(), []utils.CustomFieldModel{})
-
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfValueDiags...)
-
-		if !diags.HasError() {
-
-			data.CustomFields = customFieldsValue
-
-		}
-
-	default:
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, tenantGroup.HasCustomFields(), tenantGroup.GetCustomFields(), data.CustomFields, diags)
 
 }

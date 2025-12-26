@@ -17,6 +17,7 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -378,8 +379,10 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	// Map response to state using helper
-
-	r.mapSiteToState(ctx, site, &data)
+	r.mapSiteToState(ctx, site, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, "Created site", map[string]interface{}{
 
@@ -447,8 +450,10 @@ func (r *SiteResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	}
 
 	// Map response to state using helper
-
-	r.mapSiteToState(ctx, site, &data)
+	r.mapSiteToState(ctx, site, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -602,7 +607,6 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	site, httpResp, err := r.client.DcimAPI.DcimSitesUpdate(ctx, siteIDInt).WritableSiteRequest(siteRequest).Execute()
 
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
 
 		resp.Diagnostics.AddError("Error updating site", utils.FormatAPIError(fmt.Sprintf("update site ID %s", siteID), err, httpResp))
@@ -620,8 +624,10 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	// Map response to state using helper
-
-	r.mapSiteToState(ctx, site, &data)
+	r.mapSiteToState(ctx, site, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -683,7 +689,7 @@ func (r *SiteResource) ImportState(ctx context.Context, req resource.ImportState
 
 // mapSiteToState maps API response to Terraform state using state helpers.
 
-func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, data *SiteResourceModel) {
+func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, data *SiteResourceModel, diags *diag.Diagnostics) {
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", site.GetId()))
 
@@ -822,59 +828,14 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 	}
 
 	// Handle optional string fields using helpers
-
 	data.Facility = utils.StringFromAPI(site.HasFacility(), site.GetFacility, data.Facility)
-
 	data.Description = utils.StringFromAPI(site.HasDescription(), site.GetDescription, data.Description)
-
 	data.Comments = utils.StringFromAPI(site.HasComments(), site.GetComments, data.Comments)
 
 	// Handle tags
-
-	if site.HasTags() {
-
-		tags := utils.NestedTagsToTagModels(site.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		if !tagDiags.HasError() {
-
-			data.Tags = tagsValue
-
-		}
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
-	}
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, site.HasTags(), site.GetTags(), diags)
 
 	// Handle custom fields - preserve state structure
-
-	if site.HasCustomFields() && !data.CustomFields.IsNull() {
-
-		var stateCustomFields []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		if !cfDiags.HasError() {
-
-			customFields := utils.MapToCustomFieldModels(site.GetCustomFields(), stateCustomFields)
-
-			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-			if !cfValueDiags.HasError() {
-
-				data.CustomFields = customFieldsValue
-
-			}
-
-		}
-
-	} else if data.CustomFields.IsNull() {
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, site.HasCustomFields(), site.GetCustomFields(), data.CustomFields, diags)
 
 }
