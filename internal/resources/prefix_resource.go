@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -185,24 +186,14 @@ func (r *PrefixResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Default: booldefault.StaticBool(false),
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description for the prefix.",
-
-				Optional: true,
-			},
-
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "Comments for the prefix.",
-
-				Optional: true,
-			},
-
 			"tags": nbschema.TagsAttribute(),
 		},
 	}
 
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("prefix"))
+
+	// Note: This resource does not have custom_fields
 }
 
 // Configure adds the provider configured client to the resource.
