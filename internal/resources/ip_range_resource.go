@@ -276,8 +276,10 @@ func (r *IPRangeResource) Create(ctx context.Context, req resource.CreateRequest
 	endAddressBeforeMapping := data.EndAddress
 
 	// Map response to model
-
-	r.mapIPRangeToState(ctx, ipRange, &data)
+	r.mapIPRangeToState(ctx, ipRange, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	data.StartAddress = startAddressBeforeMapping
 	data.EndAddress = endAddressBeforeMapping
@@ -367,8 +369,10 @@ func (r *IPRangeResource) Read(ctx context.Context, req resource.ReadRequest, re
 	endAddressBeforeMapping := data.EndAddress
 
 	// Map response to model
-
-	r.mapIPRangeToState(ctx, ipRange, &data)
+	r.mapIPRangeToState(ctx, ipRange, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Only preserve the original addresses if they were set in the state (i.e., not during import)
 	if !startAddressBeforeMapping.IsNull() && !startAddressBeforeMapping.IsUnknown() {
@@ -473,8 +477,10 @@ func (r *IPRangeResource) Update(ctx context.Context, req resource.UpdateRequest
 	endAddressBeforeUpdate := data.EndAddress
 
 	// Map response to model
-
-	r.mapIPRangeToState(ctx, ipRange, &data)
+	r.mapIPRangeToState(ctx, ipRange, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	data.StartAddress = startAddressBeforeUpdate
 	data.EndAddress = endAddressBeforeUpdate
@@ -690,7 +696,7 @@ func (r *IPRangeResource) setOptionalFields(ctx context.Context, ipRangeRequest 
 
 // mapIPRangeToState maps a Netbox IPRange to the Terraform state model.
 
-func (r *IPRangeResource) mapIPRangeToState(ctx context.Context, ipRange *netbox.IPRange, data *IPRangeResourceModel) {
+func (r *IPRangeResource) mapIPRangeToState(ctx context.Context, ipRange *netbox.IPRange, data *IPRangeResourceModel, diags *diag.Diagnostics) {
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipRange.Id))
 
@@ -708,169 +714,63 @@ func (r *IPRangeResource) mapIPRangeToState(ctx context.Context, ipRange *netbox
 	}
 
 	// VRF - preserve user input if it matches
-
 	if ipRange.Vrf.IsSet() && ipRange.Vrf.Get() != nil {
-
 		vrfObj := ipRange.Vrf.Get()
-
-		userVrf := data.VRF.ValueString()
-
-		if userVrf == vrfObj.Name || userVrf == fmt.Sprintf("%d", vrfObj.Id) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.VRF = types.StringValue(vrfObj.Name)
-
-		}
-
+		data.VRF = utils.PreserveOptionalReferenceFormat(data.VRF, true, vrfObj.Id, vrfObj.Name, "")
 	} else {
-
 		data.VRF = types.StringNull()
-
 	}
 
 	// Tenant - preserve user input if it matches
-
 	if ipRange.Tenant.IsSet() && ipRange.Tenant.Get() != nil {
-
 		tenantObj := ipRange.Tenant.Get()
-
-		userTenant := data.Tenant.ValueString()
-
-		if userTenant == tenantObj.Name || userTenant == tenantObj.Slug || userTenant == fmt.Sprintf("%d", tenantObj.Id) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Tenant = types.StringValue(tenantObj.Name)
-
-		}
-
+		data.Tenant = utils.PreserveOptionalReferenceFormat(data.Tenant, true, tenantObj.Id, tenantObj.Name, tenantObj.Slug)
 	} else {
-
 		data.Tenant = types.StringNull()
-
 	}
 
 	// Status
-
 	if ipRange.Status != nil {
-
 		data.Status = types.StringValue(string(ipRange.Status.GetValue()))
-
 	} else {
-
 		data.Status = types.StringNull()
-
 	}
 
 	// Role - preserve user input if it matches
-
 	if ipRange.Role.IsSet() && ipRange.Role.Get() != nil {
-
 		roleObj := ipRange.Role.Get()
-
-		userRole := data.Role.ValueString()
-
-		if userRole == roleObj.Name || userRole == roleObj.Slug || userRole == fmt.Sprintf("%d", roleObj.Id) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Role = types.StringValue(roleObj.Name)
-
-		}
-
+		data.Role = utils.PreserveOptionalReferenceFormat(data.Role, true, roleObj.Id, roleObj.Name, roleObj.Slug)
 	} else {
-
 		data.Role = types.StringNull()
-
 	}
 
 	// Description
-
 	if ipRange.Description != nil && *ipRange.Description != "" {
-
 		data.Description = types.StringValue(*ipRange.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Comments
-
 	if ipRange.Comments != nil && *ipRange.Comments != "" {
-
 		data.Comments = types.StringValue(*ipRange.Comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Mark Utilized
-
 	if ipRange.MarkUtilized != nil {
-
 		data.MarkUtilized = types.BoolValue(*ipRange.MarkUtilized)
-
 	} else {
-
 		data.MarkUtilized = types.BoolValue(false)
-
 	}
 
 	// Tags
-
-	if len(ipRange.Tags) > 0 {
-
-		tags := utils.NestedTagsToTagModels(ipRange.Tags)
-
-		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		data.Tags = tagsValue
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, len(ipRange.Tags) > 0, ipRange.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
 	// Custom Fields
-
-	switch {
-
-	case len(ipRange.CustomFields) > 0 && !data.CustomFields.IsNull():
-
-		var stateCustomFields []utils.CustomFieldModel
-
-		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		customFields := utils.MapToCustomFieldModels(ipRange.CustomFields, stateCustomFields)
-
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		data.CustomFields = customFieldsValue
-
-	case len(ipRange.CustomFields) > 0:
-
-		customFields := utils.MapToCustomFieldModels(ipRange.CustomFields, []utils.CustomFieldModel{})
-
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		data.CustomFields = customFieldsValue
-
-	default:
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
-
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, len(ipRange.CustomFields) > 0, ipRange.CustomFields, data.CustomFields, diags)
 }
