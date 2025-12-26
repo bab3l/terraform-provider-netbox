@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -166,25 +167,14 @@ func (r *IPAddressResource) Schema(ctx context.Context, req resource.SchemaReque
 
 				Optional: true,
 			},
-
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description for the IP address.",
-
-				Optional: true,
-			},
-
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "Comments for the IP address.",
-
-				Optional: true,
-			},
-
-			"tags": nbschema.TagsAttribute(),
 		},
 	}
 
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("IP address"))
+
+	// Add tags attribute (no custom_fields for IP address)
+	resp.Schema.Attributes["tags"] = nbschema.TagsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.

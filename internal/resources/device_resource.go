@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -279,17 +280,14 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					int64validator.Between(0, 255),
 				},
 			},
-
-			"description": nbschema.DescriptionAttribute("device"),
-
-			"comments": nbschema.CommentsAttribute("device"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("device"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *DeviceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
