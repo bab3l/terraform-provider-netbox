@@ -8,6 +8,47 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccInventoryItemDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("site-inv-id")
+	siteSlug := testutil.RandomSlug("site-inv-id")
+	roleName := testutil.RandomName("device-role-inv-id")
+	roleSlug := testutil.RandomSlug("device-role-inv-id")
+	mfgName := testutil.RandomName("mfg-inv-id")
+	mfgSlug := testutil.RandomSlug("mfg-inv-id")
+	deviceTypeName := testutil.RandomName("device-type-inv-id")
+	deviceTypeSlug := testutil.RandomSlug("device-type-inv-id")
+	deviceName := testutil.RandomName("device-inv-id")
+	itemName := testutil.RandomName("item-inv-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemDataSourceConfig(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName, itemName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_inventory_item.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_inventory_item.test", "name", itemName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccInventoryItemDataSource_basic(t *testing.T) {
 
 	t.Parallel()

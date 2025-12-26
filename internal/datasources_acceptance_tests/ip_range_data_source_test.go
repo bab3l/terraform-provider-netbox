@@ -9,6 +9,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccIPRangeDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	secondOctet := acctest.RandIntRange(1, 50)
+	thirdOctet := acctest.RandIntRange(1, 50)
+	startOctet := acctest.RandIntRange(10, 100)
+	endOctet := startOctet + 5
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPRangeDataSourceConfig(secondOctet, thirdOctet, startOctet, endOctet),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_ip_range.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_ip_range.test", "start_address", fmt.Sprintf("10.%d.%d.%d/32", secondOctet, thirdOctet, startOctet)),
+				),
+			},
+		},
+	})
+}
+
 func TestAccIPRangeDataSource_basic(t *testing.T) {
 
 	t.Parallel()

@@ -8,6 +8,38 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccInterfaceTemplateDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("tf-test-mfr-it-id")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+	deviceTypeName := testutil.RandomName("tf-test-dt-it-id")
+	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
+	templateName := testutil.RandomName("tf-test-it-ds-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceTypeDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceTemplateDataSourceByID(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, templateName, "virtual"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_interface_template.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_interface_template.test", "name", templateName),
+				),
+			},
+		},
+	})
+}
+
 // testAccInterfaceTemplateDataSourcePrereqs creates prerequisites for interface template data source tests.
 
 func testAccInterfaceTemplateDataSourcePrereqs(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, templateName, templateType string) string {

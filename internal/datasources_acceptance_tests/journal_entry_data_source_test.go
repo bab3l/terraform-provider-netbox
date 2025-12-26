@@ -11,6 +11,33 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccJournalEntryDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+	siteName := testutil.RandomName("tf-test-site-journal-ds-id")
+	cleanup.RegisterSiteCleanup(testutil.GenerateSlug(siteName))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckJournalEntryDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccJournalEntryDataSourceConfig_byID(siteName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_journal_entry.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccJournalEntryDataSource_byID(t *testing.T) {
 
 	t.Parallel()
