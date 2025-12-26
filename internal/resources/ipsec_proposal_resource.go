@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -159,19 +160,16 @@ func (r *IPSecProposalResource) Schema(ctx context.Context, req resource.SchemaR
 				},
 			},
 
-			"comments": nbschema.CommentsAttribute("IPSec proposal"),
-
 			"display_name": nbschema.DisplayNameAttribute("IPSec proposal"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
-}
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("IPSec proposal"))
 
-// Configure adds the provider configured client to the resource.
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+}
 
 func (r *IPSecProposalResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 

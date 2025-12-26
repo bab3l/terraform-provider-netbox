@@ -289,12 +289,11 @@ maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 #### Batch 1: Description + Comments + Tags + Custom Fields (CommonDescriptiveAttributes + CommonMetadataAttributes)
 Resources with full descriptive metadata (like cluster, tenant, site):
-- [ ] contact_resource.go
-- [ ] device_resource.go
-- [ ] device_type_resource.go
-- [ ] fhrp_group_resource.go
-- [ ] ike_proposal_resource.go
-- [ ] ip_address_resource.go
+- [x] device_resource.go ✅
+- [x] device_type_resource.go ✅
+- [x] fhrp_group_resource.go ✅
+- [x] ike_proposal_resource.go ✅
+- [x] ip_address_resource.go ✅ (special case - has tags but no custom_fields)
 - [ ] ip_range_resource.go
 - [ ] ipsec_policy_resource.go
 - [ ] ipsec_profile_resource.go
@@ -309,8 +308,10 @@ Resources with full descriptive metadata (like cluster, tenant, site):
 - [ ] provider_resource.go
 - [ ] rack_reservation_resource.go
 - [ ] rack_type_resource.go
+- [ ] contact_resource.go (if has comments)
 
-**Estimated savings**: ~2 lines × 20 resources = **40 lines**
+**Completed: 5/20 - Lines saved so far: 9**
+**Estimated total savings**: ~2 lines × 20 resources = **40 lines**
 
 #### Batch 2: Description + Tags + Custom Fields (DescriptionOnlyAttributes + CommonMetadataAttributes)
 Resources with description but no comments field:

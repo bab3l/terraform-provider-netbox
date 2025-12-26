@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -163,10 +164,6 @@ func (r *IPRangeResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional: true,
 			},
 
-			"description": nbschema.DescriptionAttribute("IP range"),
-
-			"comments": nbschema.CommentsAttribute("IP range"),
-
 			"mark_utilized": schema.BoolAttribute{
 
 				MarkdownDescription: "Treat this range as fully utilized regardless of actual usage. Defaults to `false`.",
@@ -177,16 +174,15 @@ func (r *IPRangeResource) Schema(ctx context.Context, req resource.SchemaRequest
 
 				Default: booldefault.StaticBool(false),
 			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
-}
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("IP range"))
 
-// Configure adds the provider configured client to the resource.
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+}
 
 func (r *IPRangeResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 

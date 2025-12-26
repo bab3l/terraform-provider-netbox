@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 	"strconv"
 
 	"github.com/bab3l/go-netbox"
@@ -135,19 +136,16 @@ func (r *IPSecProfileResource) Schema(ctx context.Context, req resource.SchemaRe
 				Required: true,
 			},
 
-			"comments": nbschema.CommentsAttribute("IPSec profile"),
-
 			"display_name": nbschema.DisplayNameAttribute("IPSec profile"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
-}
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("IPSec profile"))
 
-// Configure adds the provider configured client to the resource.
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+}
 
 func (r *IPSecProfileResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
