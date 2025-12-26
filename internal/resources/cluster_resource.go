@@ -202,210 +202,62 @@ func (r *ClusterResource) mapClusterToState(ctx context.Context, cluster *netbox
 
 	data.DisplayName = types.StringValue(cluster.GetDisplay())
 
-	// Type (always present - required field)
+	// Type (required field) - preserve user's input format (ID, name, or slug)
+	data.Type = utils.PreserveReferenceFormat(data.Type, cluster.Type.GetId(), cluster.Type.GetName(), cluster.Type.GetSlug())
 
-	// Preserve the user's input format (ID, name, or slug) to avoid state drift
-
-	clusterTypeID := fmt.Sprintf("%d", cluster.Type.GetId())
-
-	clusterTypeName := cluster.Type.GetName()
-
-	clusterTypeSlug := cluster.Type.GetSlug()
-
-	if !data.Type.IsNull() && !data.Type.IsUnknown() {
-
-		configuredValue := data.Type.ValueString()
-
-		switch configuredValue {
-
-		case clusterTypeID:
-
-			data.Type = types.StringValue(clusterTypeID)
-
-		case clusterTypeSlug:
-
-			data.Type = types.StringValue(clusterTypeSlug)
-
-		default:
-
-			data.Type = types.StringValue(clusterTypeName)
-
-		}
-
-	} else {
-
-		data.Type = types.StringValue(clusterTypeName)
-
-	}
-
-	// Group
-
+	// Group (optional)
 	if cluster.Group.IsSet() && cluster.Group.Get() != nil {
-
 		group := cluster.Group.Get()
-
-		userGroup := data.Group.ValueString()
-
-		if userGroup == group.GetName() || userGroup == group.GetSlug() || userGroup == group.GetDisplay() || userGroup == fmt.Sprintf("%d", group.GetId()) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Group = types.StringValue(group.GetName())
-
-		}
-
+		data.Group = utils.PreserveOptionalReferenceFormat(data.Group, true, group.GetId(), group.GetName(), group.GetSlug())
 	} else {
-
 		data.Group = types.StringNull()
-
 	}
 
 	// Status
-
 	if cluster.HasStatus() {
-
 		data.Status = types.StringValue(string(cluster.Status.GetValue()))
-
 	} else {
-
 		data.Status = types.StringValue("active")
-
 	}
 
-	// Tenant
-
+	// Tenant (optional)
 	if cluster.Tenant.IsSet() && cluster.Tenant.Get() != nil {
-
 		tenant := cluster.Tenant.Get()
-
-		userTenant := data.Tenant.ValueString()
-
-		if userTenant == tenant.GetName() || userTenant == tenant.GetSlug() || userTenant == tenant.GetDisplay() || userTenant == fmt.Sprintf("%d", tenant.GetId()) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Tenant = types.StringValue(tenant.GetName())
-
-		}
-
+		data.Tenant = utils.PreserveOptionalReferenceFormat(data.Tenant, true, tenant.GetId(), tenant.GetName(), tenant.GetSlug())
 	} else {
-
 		data.Tenant = types.StringNull()
-
 	}
 
-	// Site
-
+	// Site (optional)
 	if cluster.Site.IsSet() && cluster.Site.Get() != nil {
-
 		site := cluster.Site.Get()
-
-		userSite := data.Site.ValueString()
-
-		if userSite == site.GetName() || userSite == site.GetSlug() || userSite == site.GetDisplay() || userSite == fmt.Sprintf("%d", site.GetId()) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Site = types.StringValue(site.GetName())
-
-		}
-
+		data.Site = utils.PreserveOptionalReferenceFormat(data.Site, true, site.GetId(), site.GetName(), site.GetSlug())
 	} else {
-
 		data.Site = types.StringNull()
-
 	}
 
 	// Description
-
-	if cluster.HasDescription() && cluster.GetDescription() != "" {
-
-		data.Description = types.StringValue(cluster.GetDescription())
-
-	} else {
-
-		data.Description = types.StringNull()
-
-	}
+	data.Description = utils.NullableStringFromAPI(
+		cluster.HasDescription() && cluster.GetDescription() != "",
+		cluster.GetDescription,
+		data.Description,
+	)
 
 	// Comments
-
-	if cluster.HasComments() && cluster.GetComments() != "" {
-
-		data.Comments = types.StringValue(cluster.GetComments())
-
-	} else {
-
-		data.Comments = types.StringNull()
-
-	}
+	data.Comments = utils.NullableStringFromAPI(
+		cluster.HasComments() && cluster.GetComments() != "",
+		cluster.GetComments,
+		data.Comments,
+	)
 
 	// Handle tags
-
-	if cluster.HasTags() {
-
-		tags := utils.NestedTagsToTagModels(cluster.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		data.Tags = tagsValue
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, cluster.HasTags(), cluster.GetTags(), diags)
+	if diags.HasError() {
+		return
 	}
 
 	// Handle custom fields
-
-	if cluster.HasCustomFields() && !data.CustomFields.IsNull() {
-
-		var stateCustomFields []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		customFields := utils.MapToCustomFieldModels(cluster.GetCustomFields(), stateCustomFields)
-
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfValueDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		data.CustomFields = customFieldsValue
-
-	} else if data.CustomFields.IsNull() {
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
-
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, cluster.HasCustomFields(), cluster.GetCustomFields(), data.CustomFields, diags)
 }
 
 // buildClusterRequest builds a WritableClusterRequest from the resource model.
