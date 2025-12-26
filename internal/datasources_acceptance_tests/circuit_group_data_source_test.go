@@ -11,6 +11,35 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccCircuitGroupDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	// Generate unique names to avoid conflicts between test runs
+	name := testutil.RandomName("tf-test-cg-ds-id-name")
+	slug := testutil.RandomSlug("tf-test-cg-ds-id-name")
+
+	// Register cleanup to ensure resources are deleted even if test fails
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitGroupCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckCircuitGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitGroupDataSourceConfig_byID(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_circuit_group.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_circuit_group.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_circuit_group.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCircuitGroupDataSource_byID(t *testing.T) {
 
 	t.Parallel()

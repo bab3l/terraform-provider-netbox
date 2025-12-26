@@ -48,6 +48,45 @@ func TestAccCableDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccCableDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("cable-ds-id-site")
+	siteSlug := testutil.RandomSlug("cable-ds-id-site")
+	deviceRoleName := testutil.RandomName("cable-ds-id-role")
+	deviceRoleSlug := testutil.RandomSlug("cable-ds-id-role")
+	manufacturerName := testutil.RandomName("cable-ds-id-mfg")
+	manufacturerSlug := testutil.RandomSlug("cable-ds-id-mfg")
+	deviceTypeName := testutil.RandomName("cable-ds-id-dt")
+	deviceTypeSlug := testutil.RandomSlug("cable-ds-id-dt")
+	deviceAName := testutil.RandomName("cable-ds-id-a")
+	deviceBName := testutil.RandomName("cable-ds-id-b")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCableDataSourceConfig(siteName, siteSlug, deviceRoleName, deviceRoleSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceAName, deviceBName, "cat6"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_cable.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_cable.test", "type", "cat6"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCableDataSourceConfig(siteName, siteSlug, deviceRoleName, deviceRoleSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceAName, deviceBName, cableType string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {

@@ -13,6 +13,46 @@ import (
 
 // Acceptance Tests
 
+func TestAccCircuitGroupAssignmentDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	// Generate unique names to avoid conflicts between test runs
+	groupName := testutil.RandomName("tf-test-cga-ds-id-group")
+	groupSlug := testutil.RandomSlug("tf-test-cga-ds-id-grp")
+	providerName := testutil.RandomName("tf-test-cga-ds-id-prov")
+	providerSlug := testutil.RandomSlug("tf-test-cga-ds-id-prov")
+	circuitTypeName := testutil.RandomName("tf-test-cga-ds-id-type")
+	circuitTypeSlug := testutil.RandomSlug("tf-test-cga-ds-id-type")
+	circuitCid := testutil.RandomSlug("tf-test-cga-ds-id-ckt")
+
+	// Register cleanup to ensure resources are deleted even if test fails
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitGroupAssignmentCleanup(groupName)
+	cleanup.RegisterCircuitGroupCleanup(groupName)
+	cleanup.RegisterCircuitCleanup(circuitCid)
+	cleanup.RegisterProviderCleanup(providerName)
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckCircuitGroupAssignmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitGroupAssignmentDataSourceConfig_byID(
+					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_circuit_group_assignment.test", "id"),
+					resource.TestCheckResourceAttrSet("data.netbox_circuit_group_assignment.test", "group_id"),
+					resource.TestCheckResourceAttrSet("data.netbox_circuit_group_assignment.test", "circuit_id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCircuitGroupAssignmentDataSource_byID(t *testing.T) {
 
 	t.Parallel()

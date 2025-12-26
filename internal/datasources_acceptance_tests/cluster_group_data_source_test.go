@@ -8,6 +8,36 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccClusterGroupDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	name := testutil.RandomName("cg-ds-id-group")
+	slug := testutil.GenerateSlug(name)
+
+	cleanup.RegisterClusterGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckClusterGroupDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccClusterGroupDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_cluster_group.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_cluster_group.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_cluster_group.test", "slug", slug),
+					resource.TestCheckResourceAttr("data.netbox_cluster_group.test", "description", "Test Cluster Group Description"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccClusterGroupDataSource_basic(t *testing.T) {
 
 	t.Parallel()

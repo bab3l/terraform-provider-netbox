@@ -8,6 +8,49 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccConsolePortDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("cp-ds-id-site")
+	siteSlug := testutil.RandomSlug("cp-ds-id-site")
+	roleName := testutil.RandomName("cp-ds-id-role")
+	roleSlug := testutil.RandomSlug("cp-ds-id-role")
+	mfgName := testutil.RandomName("cp-ds-id-mfg")
+	mfgSlug := testutil.RandomSlug("cp-ds-id-mfg")
+	deviceTypeName := testutil.RandomName("cp-ds-id-device-type")
+	deviceTypeSlug := testutil.RandomSlug("cp-ds-id-device-type")
+	deviceName := testutil.RandomName("cp-ds-id-device")
+	portName := testutil.RandomName("cp-ds-id-console")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConsolePortDataSourceConfig(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName, portName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_console_port.by_id", "id"),
+					resource.TestCheckResourceAttr("data.netbox_console_port.by_id", "name", portName),
+					resource.TestCheckResourceAttr("data.netbox_console_port.by_id", "type", "de-9"),
+					resource.TestCheckResourceAttrSet("data.netbox_console_port.by_id", "device"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConsolePortDataSource_basic(t *testing.T) {
 
 	t.Parallel()
