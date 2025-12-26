@@ -87,6 +87,32 @@ func TestAccExportTemplateDataSource_byName(t *testing.T) {
 	})
 }
 
+func TestAccExportTemplateDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+	cleanup := testutil.NewCleanupResource(t)
+	name := testutil.RandomName("test-export-tmpl-ds-id")
+	cleanup.RegisterExportTemplateCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckExportTemplateDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccExportTemplateDataSourceConfig_byID(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_export_template.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_export_template.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func testAccExportTemplateDataSourceConfig_byName(name string) string {
 	return `
 resource "netbox_export_template" "test" {

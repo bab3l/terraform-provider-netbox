@@ -211,6 +211,25 @@ resource "netbox_custom_field_choice_set" "test" {
 
 }
 
+func TestAccCustomFieldChoiceSetResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("custom-field-choice-set-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomFieldChoiceSetResourceConfig_basic(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_custom_field_choice_set.test", "id"),
+					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func testAccCustomFieldChoiceSetResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`

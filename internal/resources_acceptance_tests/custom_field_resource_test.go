@@ -184,6 +184,27 @@ resource "netbox_custom_field" "test" {
 
 }
 
+func TestAccCustomFieldResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomFieldResourceConfig_basic(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_custom_field.test", "id"),
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func testAccCustomFieldResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`

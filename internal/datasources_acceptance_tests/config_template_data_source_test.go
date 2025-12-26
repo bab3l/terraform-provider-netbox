@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+const configTemplateTestCode = "hostname {{ device.name }}"
+
 // testAccConfigTemplateDataSourcePrereqs creates prerequisites for config template data source tests.
 
 func testAccConfigTemplateDataSourcePrereqs(name, templateCode string) string {
@@ -73,7 +75,7 @@ func TestAccConfigTemplateDataSource_byID(t *testing.T) {
 
 	name := testutil.RandomName("config-tmpl-ds")
 
-	templateCode := "hostname {{ device.name }}"
+	templateCode := configTemplateTestCode
 
 	cleanup.RegisterConfigTemplateCleanup(name)
 
@@ -108,6 +110,33 @@ func TestAccConfigTemplateDataSource_byID(t *testing.T) {
 
 }
 
+func TestAccConfigTemplateDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+	cleanup := testutil.NewCleanupResource(t)
+	name := testutil.RandomName("config-tmpl-ds-id")
+	templateCode := configTemplateTestCode
+	cleanup.RegisterConfigTemplateCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckConfigTemplateDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigTemplateDataSourceByID(name, templateCode),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_config_template.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_config_template.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConfigTemplateDataSource_byName(t *testing.T) {
 
 	t.Parallel()
@@ -118,7 +147,7 @@ func TestAccConfigTemplateDataSource_byName(t *testing.T) {
 
 	name := testutil.RandomName("config-tmpl-ds")
 
-	templateCode := "hostname {{ device.name }}"
+	templateCode := configTemplateTestCode
 
 	cleanup.RegisterConfigTemplateCleanup(name)
 

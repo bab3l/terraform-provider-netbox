@@ -124,6 +124,25 @@ resource "netbox_config_context" "test" {
 
 }
 
+func TestAccConfigContextResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("config-context")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigContextResourceConfig_basic(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_config_context.test", "id"),
+					resource.TestCheckResourceAttr("netbox_config_context.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func testAccConfigContextResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`

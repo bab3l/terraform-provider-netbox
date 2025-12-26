@@ -369,16 +369,32 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 ---
 
 ## Batch 12: Templates & Exports
-**Status**: Not Started
-**Items**: 8
-- [ ] export_template_resource.go ✅ (already fixed - skip)
-- [ ] config_template_resource.go ✅ (already fixed - skip)
-- [ ] service_template_resource.go
-- [ ] custom_field_resource.go
-- [ ] custom_field_choice_set_resource.go
-- [ ] config_context_resource.go
-- [ ] export_template_data_source.go
-- [ ] config_template_data_source.go
+**Status**: COMPLETE ✅
+**Items**: 6
+- [x] export_template_resource.go ✅ (already fixed - skip)
+- [x] config_template_resource.go ✅ (already fixed - skip)
+- [x] service_template_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] custom_field_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] custom_field_choice_set_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] config_context_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] export_template_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+- [x] config_template_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+
+**Tests Added**:
+- `internal/resources_acceptance_tests/service_template_resource_test.go`: `TestAccServiceTemplateResource_IDPreservation`
+- `internal/resources_acceptance_tests/custom_field_resource_test.go`: `TestAccCustomFieldResource_IDPreservation`
+- `internal/resources_acceptance_tests/custom_field_choice_set_resource_test.go`: `TestAccCustomFieldChoiceSetResource_IDPreservation`
+- `internal/resources_acceptance_tests/config_context_resource_test.go`: `TestAccConfigContextResource_IDPreservation`
+- `internal/datasources_acceptance_tests/export_template_data_source_test.go`: `TestAccExportTemplateDataSource_IDPreservation`
+- `internal/datasources_acceptance_tests/config_template_data_source_test.go`: `TestAccConfigTemplateDataSource_IDPreservation`
+
+**Test Results**: All tests PASSING ✅
+- ServiceTemplate resource test: 27.27s ✅
+- CustomField resource test: 25.32s ✅
+- CustomFieldChoiceSet resource test: 26.87s ✅
+- ConfigContext resource test: 27.28s ✅
+- ExportTemplate datasource test: 24.31s ✅
+- ConfigTemplate datasource test: 23.98s ✅
 
 ---
 

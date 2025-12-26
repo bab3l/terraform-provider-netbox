@@ -89,6 +89,25 @@ resource "netbox_service_template" "test" {
 `, name+"-updated")
 }
 
+func TestAccServiceTemplateResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("service-template-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccServiceTemplateResourceConfig_basic(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_service_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_service_template.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func testAccServiceTemplateResourceConfig_full(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_service_template" "test" {
