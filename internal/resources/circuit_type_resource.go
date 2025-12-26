@@ -89,10 +89,6 @@ func (r *CircuitTypeResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 			"display_name": nbschema.DisplayNameAttribute("circuit type"),
-			"description": schema.StringAttribute{
-				MarkdownDescription: "A description of the circuit type.",
-				Optional:            true,
-			},
 			"color": schema.StringAttribute{
 				MarkdownDescription: "The color to use when displaying this circuit type (6-character hex code without the leading #, e.g., 'aa1409').",
 				Optional:            true,
@@ -105,6 +101,9 @@ func (r *CircuitTypeResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 		},
 	}
+
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("circuit type"))
 
 	// Add common metadata attributes (tags, custom_fields)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())

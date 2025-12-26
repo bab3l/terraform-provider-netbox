@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -95,13 +96,16 @@ func (r *ASNRangeResource) Schema(ctx context.Context, req resource.SchemaReques
 					),
 				},
 			},
-			"tenant":        nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this ASN range."),
-			"description":   nbschema.DescriptionAttribute("ASN range"),
-			"display_name":  nbschema.DisplayNameAttribute("ASN range"),
-			"tags":          nbschema.TagsAttribute(),
-			"custom_fields": nbschema.CustomFieldsAttribute(),
+			"tenant":       nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this ASN range."),
+			"display_name": nbschema.DisplayNameAttribute("ASN range"),
 		},
 	}
+
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("ASN range"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
