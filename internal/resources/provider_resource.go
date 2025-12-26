@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -86,22 +87,14 @@ func (r *ProviderResource) Schema(ctx context.Context, req resource.SchemaReques
 			"slug": nbschema.SlugAttribute("circuit provider"),
 
 			"display_name": nbschema.DisplayNameAttribute("circuit provider"),
-
-			"description": nbschema.DescriptionAttribute("circuit provider"),
-
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "Additional comments or notes about the circuit provider.",
-
-				Optional: true,
-			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("circuit provider"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure sets up the resource with the provider client.
