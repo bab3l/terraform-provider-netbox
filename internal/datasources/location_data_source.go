@@ -43,6 +43,8 @@ type LocationDataSource struct {
 type LocationDataSourceModel struct {
 	ID types.String `tfsdk:"id"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Name types.String `tfsdk:"name"`
 
 	Slug types.String `tfsdk:"slug"`
@@ -85,6 +87,8 @@ func (d *LocationDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 		Attributes: map[string]schema.Attribute{
 
 			"id": nbschema.DSIDAttribute("location"),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the location."),
 
 			"name": nbschema.DSNameAttribute("location"),
 
@@ -351,6 +355,18 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 	// Map response to state
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", location.GetId()))
+
+	// Display Name
+
+	if location.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(location.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	data.Name = types.StringValue(location.GetName())
 

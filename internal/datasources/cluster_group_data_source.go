@@ -29,6 +29,7 @@ type ClusterGroupDataSourceModel struct {
 	Name        types.String `tfsdk:"name"`
 	Slug        types.String `tfsdk:"slug"`
 	Description types.String `tfsdk:"description"`
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 func (d *ClusterGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -37,14 +38,13 @@ func (d *ClusterGroupDataSource) Metadata(ctx context.Context, req datasource.Me
 
 func (d *ClusterGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Use this data source to get information about a cluster group in Netbox.",
+		MarkdownDescription: "Use this data source to get information about a cluster group in Netbox. You can identify the cluster group using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
 			"id":          nbschema.DSIDAttribute("cluster group"),
 			"name":        nbschema.DSNameAttribute("cluster group"),
 			"slug":        nbschema.DSSlugAttribute("cluster group"),
-			"description": nbschema.DSComputedStringAttribute("Description of the cluster group."),
-		},
+			"description": nbschema.DSComputedStringAttribute("Description of the cluster group."), "display_name": nbschema.DSComputedStringAttribute("The display name of the cluster group.")},
 	}
 }
 
@@ -137,6 +137,13 @@ func (d *ClusterGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		data.Description = types.StringValue(clusterGroup.GetDescription())
 	} else {
 		data.Description = types.StringNull()
+	}
+
+	// Map display name
+	if clusterGroup.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(clusterGroup.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

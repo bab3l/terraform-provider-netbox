@@ -53,6 +53,7 @@ type CustomFieldDataSourceModel struct {
 	ChoiceSet         types.String `tfsdk:"choice_set"`
 	Comments          types.String `tfsdk:"comments"`
 	DataType          types.String `tfsdk:"data_type"`
+	DisplayName       types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -155,6 +156,10 @@ func (d *CustomFieldDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 			"data_type": schema.StringAttribute{
 				MarkdownDescription: "The data type of the custom field.",
+				Computed:            true,
+			},
+			"display_name": schema.StringAttribute{
+				MarkdownDescription: "The display name of the custom field.",
 				Computed:            true,
 			},
 		},
@@ -398,5 +403,12 @@ func (d *CustomFieldDataSource) mapResponseToModel(ctx context.Context, customFi
 		data.Comments = types.StringValue(*comments)
 	} else {
 		data.Comments = types.StringNull()
+	}
+
+	// Map display_name
+	if customField.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(customField.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 }

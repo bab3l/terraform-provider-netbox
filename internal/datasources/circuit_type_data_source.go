@@ -47,6 +47,8 @@ type CircuitTypeDataSourceModel struct {
 
 	Color types.String `tfsdk:"color"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -66,22 +68,16 @@ func (d *CircuitTypeDataSource) Schema(ctx context.Context, req datasource.Schem
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Retrieves information about a circuit type in Netbox. Circuit types categorize the various types of circuits used by your organization (e.g., Internet Transit, MPLS, Point-to-Point, etc.).",
+		MarkdownDescription: "Retrieves information about a circuit type in Netbox. Circuit types categorize the various types of circuits used by your organization (e.g., Internet Transit, MPLS, Point-to-Point, etc.). You can identify the circuit type using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-
-			"id": nbschema.DSIDAttribute("circuit type"),
-
-			"name": nbschema.DSNameAttribute("circuit type"),
-
-			"slug": nbschema.DSSlugAttribute("circuit type"),
-
-			"description": nbschema.DSComputedStringAttribute("Description of the circuit type."),
-
-			"color": nbschema.DSComputedStringAttribute("Color of the circuit type (6-character hex code)."),
-
-			"tags": nbschema.DSTagsAttribute(),
-
+			"id":            nbschema.DSIDAttribute("circuit type"),
+			"name":          nbschema.DSNameAttribute("circuit type"),
+			"slug":          nbschema.DSSlugAttribute("circuit type"),
+			"description":   nbschema.DSComputedStringAttribute("Description of the circuit type."),
+			"color":         nbschema.DSComputedStringAttribute("Color of the circuit type (6-character hex code)."),
+			"display_name":  nbschema.DSComputedStringAttribute("The display name of the circuit type."),
+			"tags":          nbschema.DSTagsAttribute(),
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
@@ -365,6 +361,14 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 
+	}
+
+	// Map display name
+
+	if circuitType.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(circuitType.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	tflog.Debug(ctx, "Read circuit type", map[string]interface{}{

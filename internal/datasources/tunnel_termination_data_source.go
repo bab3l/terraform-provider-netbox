@@ -55,6 +55,8 @@ type TunnelTerminationDataSourceModel struct {
 
 	OutsideIP types.String `tfsdk:"outside_ip"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -111,6 +113,8 @@ func (d *TunnelTerminationDataSource) Schema(ctx context.Context, req datasource
 			},
 
 			"outside_ip": nbschema.DSComputedStringAttribute("ID of the outside IP address."),
+
+			"display_name": nbschema.DSComputedStringAttribute("Display name of the tunnel termination."),
 
 			"tags": nbschema.DSTagsAttribute(),
 
@@ -376,6 +380,18 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 	} else {
 
 		data.OutsideIP = types.StringNull()
+
+	}
+
+	// Handle display_name
+
+	if tunnelTermination.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(tunnelTermination.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

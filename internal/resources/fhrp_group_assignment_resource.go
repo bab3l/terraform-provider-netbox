@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -57,6 +58,8 @@ type FHRPGroupAssignmentResourceModel struct {
 	InterfaceID types.String `tfsdk:"interface_id"`
 
 	Priority types.Int64 `tfsdk:"priority"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the resource type name.
@@ -141,6 +144,7 @@ func (r *FHRPGroupAssignmentResource) Schema(ctx context.Context, req resource.S
 
 				Required: true,
 			},
+			"display_name": nbschema.DisplayNameAttribute("FHRP group assignment"),
 		},
 	}
 
@@ -641,4 +645,10 @@ func (r *FHRPGroupAssignmentResource) mapResponseToState(ctx context.Context, as
 
 	data.Priority = types.Int64Value(int64(assignment.GetPriority()))
 
+	// Map display_name (computed field, always set a value)
+	if assignment.Display != "" {
+		data.DisplayName = types.StringValue(assignment.Display)
+	} else {
+		data.DisplayName = types.StringValue("")
+	}
 }

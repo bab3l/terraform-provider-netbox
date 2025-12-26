@@ -50,6 +50,8 @@ type RIRDataSourceModel struct {
 	Description types.String `tfsdk:"description"`
 
 	Tags types.List `tfsdk:"tags"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -118,6 +120,13 @@ func (d *RIRDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 				Computed: true,
 
 				ElementType: types.StringType,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the RIR.",
+
+				Computed: true,
 			},
 		},
 	}
@@ -414,6 +423,18 @@ func (d *RIRDataSource) mapRIRToDataSourceModel(ctx context.Context, rir *netbox
 	} else {
 
 		data.Tags = types.ListNull(types.StringType)
+
+	}
+
+	// Map display_name
+
+	if rir.Display != "" {
+
+		data.DisplayName = types.StringValue(rir.Display)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

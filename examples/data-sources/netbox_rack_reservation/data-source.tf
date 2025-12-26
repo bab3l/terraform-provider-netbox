@@ -1,7 +1,12 @@
-data "netbox_rack_reservation" "test" {
-  id = 123
+# Lookup by ID
+data "netbox_rack_reservation" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_rack_reservation.test.id
+output "by_id" {
+  value = data.netbox_rack_reservation.by_id.rack
+}
+
+output "by_id_units" {
+  value = data.netbox_rack_reservation.by_id.units
 }

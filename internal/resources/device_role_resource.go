@@ -46,6 +46,8 @@ type DeviceRoleResourceModel struct {
 
 	Color types.String `tfsdk:"color"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	VMRole types.Bool `tfsdk:"vm_role"`
 
 	Description types.String `tfsdk:"description"`
@@ -76,6 +78,8 @@ func (r *DeviceRoleResource) Schema(ctx context.Context, req resource.SchemaRequ
 			"slug": nbschema.SlugAttribute("device role"),
 
 			"color": nbschema.ComputedColorAttribute("device role"),
+
+			"display_name": nbschema.DisplayNameAttribute("device role"),
 
 			"vm_role": nbschema.BoolAttributeWithDefault("Whether virtual machines may be assigned to this role. Set to true to allow VMs to use this role, false otherwise. Defaults to true.", true),
 
@@ -125,6 +129,8 @@ func (r *DeviceRoleResource) mapDeviceRoleToState(ctx context.Context, deviceRol
 	data.Name = types.StringValue(deviceRole.GetName())
 
 	data.Slug = types.StringValue(deviceRole.GetSlug())
+
+	data.DisplayName = types.StringValue(deviceRole.GetDisplay())
 
 	// Handle color - use value from API if available
 

@@ -1,21 +1,26 @@
 # Look up a wireless link by ID
-data "netbox_wireless_link" "example" {
-  id = "123"
+data "netbox_wireless_link" "by_id" {
+  id = "1"
 }
 
-# Output the wireless link details
-output "wireless_link_ssid" {
-  value = data.netbox_wireless_link.example.ssid
+# Use wireless link data in outputs
+output "link_info" {
+  value = {
+    id            = data.netbox_wireless_link.by_id.id
+    interface_a   = data.netbox_wireless_link.by_id.interface_a
+    interface_b   = data.netbox_wireless_link.by_id.interface_b
+    ssid          = data.netbox_wireless_link.by_id.ssid
+    status        = data.netbox_wireless_link.by_id.status
+    auth_type     = data.netbox_wireless_link.by_id.auth_type
+    auth_cipher   = data.netbox_wireless_link.by_id.auth_cipher
+    distance      = data.netbox_wireless_link.by_id.distance
+    distance_unit = data.netbox_wireless_link.by_id.distance_unit
+  }
 }
 
-output "wireless_link_status" {
-  value = data.netbox_wireless_link.example.status
-}
-
-output "wireless_link_interface_a" {
-  value = data.netbox_wireless_link.example.interface_a
-}
-
-output "wireless_link_interface_b" {
-  value = data.netbox_wireless_link.example.interface_b
+output "wireless_link_interfaces" {
+  value = {
+    interface_a = data.netbox_wireless_link.by_id.interface_a
+    interface_b = data.netbox_wireless_link.by_id.interface_b
+  }
 }

@@ -37,6 +37,8 @@ type PowerOutletTemplateDataSource struct {
 type PowerOutletTemplateDataSourceModel struct {
 	ID types.Int32 `tfsdk:"id"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	DeviceType types.Int32 `tfsdk:"device_type"`
 
 	ModuleType types.Int32 `tfsdk:"module_type"`
@@ -77,6 +79,13 @@ func (d *PowerOutletTemplateDataSource) Schema(ctx context.Context, req datasour
 				MarkdownDescription: "The unique numeric ID of the power outlet template.",
 
 				Optional: true,
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the power outlet template.",
 
 				Computed: true,
 			},
@@ -326,6 +335,18 @@ func (d *PowerOutletTemplateDataSource) Read(ctx context.Context, req datasource
 func (d *PowerOutletTemplateDataSource) mapResponseToModel(template *netbox.PowerOutletTemplate, data *PowerOutletTemplateDataSourceModel) {
 
 	data.ID = types.Int32Value(template.GetId())
+
+	// Display Name
+
+	if template.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(template.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	data.Name = types.StringValue(template.GetName())
 

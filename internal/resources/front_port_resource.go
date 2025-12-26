@@ -60,6 +60,8 @@ type FrontPortResourceModel struct {
 
 	Color types.String `tfsdk:"color"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	RearPort types.String `tfsdk:"rear_port"`
 
 	RearPortPosition types.Int32 `tfsdk:"rear_port_position"`
@@ -137,6 +139,8 @@ func (r *FrontPortResource) Schema(ctx context.Context, req resource.SchemaReque
 
 				Optional: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("front port"),
 
 			"rear_port": schema.StringAttribute{
 
@@ -733,6 +737,13 @@ func (r *FrontPortResource) mapResponseToModel(ctx context.Context, port *netbox
 	data.ID = types.StringValue(fmt.Sprintf("%d", port.GetId()))
 
 	data.Name = types.StringValue(port.GetName())
+
+	// DisplayName
+	if port.Display != "" {
+		data.DisplayName = types.StringValue(port.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device - preserve user's input format
 

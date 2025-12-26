@@ -45,6 +45,8 @@ type WirelessLANDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	GroupID types.Int64 `tfsdk:"group_id"`
 
 	GroupName types.String `tfsdk:"group_name"`
@@ -111,6 +113,13 @@ func (d *WirelessLANDataSource) Schema(ctx context.Context, req datasource.Schem
 			"description": schema.StringAttribute{
 
 				MarkdownDescription: "A description of the wireless LAN.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "Display name for the wireless LAN.",
 
 				Computed: true,
 			},
@@ -477,6 +486,18 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 	} else {
 
 		data.Comments = types.StringNull()
+
+	}
+
+	// Map display name
+
+	if displayName := wlan.GetDisplay(); displayName != "" {
+
+		data.DisplayName = types.StringValue(displayName)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

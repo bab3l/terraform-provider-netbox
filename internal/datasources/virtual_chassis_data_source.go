@@ -55,6 +55,8 @@ type VirtualChassisDataSourceModel struct {
 
 	MemberCount types.Int64 `tfsdk:"member_count"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -130,7 +132,12 @@ func (d *VirtualChassisDataSource) Schema(ctx context.Context, req datasource.Sc
 
 				Computed: true,
 			},
+			"display_name": schema.StringAttribute{
 
+				MarkdownDescription: "Display name of the virtual chassis.",
+
+				Computed: true,
+			},
 			"tags": nbschema.DSTagsAttribute(),
 
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
@@ -363,6 +370,18 @@ func (d *VirtualChassisDataSource) mapResponseToModel(ctx context.Context, vc *n
 	} else {
 
 		data.Comments = types.StringNull()
+
+	}
+
+	// Handle display_name
+
+	if vc.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(vc.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

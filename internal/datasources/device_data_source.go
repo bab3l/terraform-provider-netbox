@@ -86,6 +86,8 @@ type DeviceDataSourceModel struct {
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 func (d *DeviceDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -98,62 +100,37 @@ func (d *DeviceDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Use this data source to get information about a device in Netbox. Devices represent physical or virtual hardware. You can identify the device using `id`, `name`, or `serial`.",
+		MarkdownDescription: "Use this data source to get information about a device in Netbox. Devices represent physical or virtual hardware. You can identify the device using `id` (unique), `name` (may be non-unique), or `serial` (unique, recommended for uniqueness).",
 
 		Attributes: map[string]schema.Attribute{
-
-			"id": nbschema.DSIDAttribute("device"),
-
-			"name": nbschema.DSNameAttribute("device"),
-
+			"id":          nbschema.DSIDAttribute("device"),
+			"name":        nbschema.DSNameAttribute("device"),
 			"device_type": nbschema.DSComputedStringAttribute("The device type. Returns the device type slug."),
-
-			"role": nbschema.DSComputedStringAttribute("The device role. Returns the device role slug."),
-
-			"tenant": nbschema.DSComputedStringAttribute("The tenant that owns this device. Returns the tenant slug."),
-
-			"platform": nbschema.DSComputedStringAttribute("The platform running on this device. Returns the platform slug."),
-
+			"role":        nbschema.DSComputedStringAttribute("The device role. Returns the device role slug."),
+			"tenant":      nbschema.DSComputedStringAttribute("The tenant that owns this device. Returns the tenant slug."),
+			"platform":    nbschema.DSComputedStringAttribute("The platform running on this device. Returns the platform slug."),
 			"serial": schema.StringAttribute{
-
-				MarkdownDescription: "Chassis serial number. Can be used to identify the device instead of `id` or `name`.",
-
-				Optional: true,
-
-				Computed: true,
+				MarkdownDescription: "Chassis serial number (unique). Use this for reliable device lookup, or use `id` if you already have it. Note: `name` may not be unique.",
+				Optional:            true,
+				Computed:            true,
 			},
-
-			"asset_tag": nbschema.DSComputedStringAttribute("A unique tag used to identify this device."),
-
-			"site": nbschema.DSComputedStringAttribute("The site where this device is located. Returns the site slug."),
-
-			"location": nbschema.DSComputedStringAttribute("The location within the site. Returns the location slug."),
-
-			"rack": nbschema.DSComputedStringAttribute("The rack where this device is mounted. Returns the rack name."),
-
-			"position": nbschema.DSComputedFloat64Attribute("Position in the rack (in rack units from the bottom)."),
-
-			"face": nbschema.DSComputedStringAttribute("Which face of the rack the device is mounted on (front or rear)."),
-
-			"latitude": nbschema.DSComputedFloat64Attribute("GPS latitude coordinate in decimal format."),
-
-			"longitude": nbschema.DSComputedFloat64Attribute("GPS longitude coordinate in decimal format."),
-
-			"status": nbschema.DSComputedStringAttribute("Operational status of the device."),
-
-			"airflow": nbschema.DSComputedStringAttribute("Direction of airflow through the device."),
-
-			"vc_position": nbschema.DSComputedInt64Attribute("Position within a virtual chassis."),
-
-			"vc_priority": nbschema.DSComputedInt64Attribute("Virtual chassis master election priority."),
-
-			"description": nbschema.DSComputedStringAttribute("Brief description of the device."),
-
-			"comments": nbschema.DSComputedStringAttribute("Comments about the device (supports Markdown)."),
-
-			"tags": nbschema.DSTagsAttribute(),
-
+			"asset_tag":     nbschema.DSComputedStringAttribute("A unique tag used to identify this device."),
+			"site":          nbschema.DSComputedStringAttribute("The site where this device is located. Returns the site slug."),
+			"location":      nbschema.DSComputedStringAttribute("The location within the site. Returns the location slug."),
+			"rack":          nbschema.DSComputedStringAttribute("The rack where this device is mounted. Returns the rack name."),
+			"position":      nbschema.DSComputedFloat64Attribute("Position in the rack (in rack units from the bottom)."),
+			"face":          nbschema.DSComputedStringAttribute("Which face of the rack the device is mounted on (front or rear)."),
+			"latitude":      nbschema.DSComputedFloat64Attribute("GPS latitude coordinate in decimal format."),
+			"longitude":     nbschema.DSComputedFloat64Attribute("GPS longitude coordinate in decimal format."),
+			"status":        nbschema.DSComputedStringAttribute("Operational status of the device."),
+			"airflow":       nbschema.DSComputedStringAttribute("Direction of airflow through the device."),
+			"vc_position":   nbschema.DSComputedInt64Attribute("Position within a virtual chassis."),
+			"vc_priority":   nbschema.DSComputedInt64Attribute("Virtual chassis master election priority."),
+			"description":   nbschema.DSComputedStringAttribute("Brief description of the device."),
+			"comments":      nbschema.DSComputedStringAttribute("Comments about the device (supports Markdown)."),
+			"tags":          nbschema.DSTagsAttribute(),
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
+			"display_name":  nbschema.DSComputedStringAttribute("The display name of the device."),
 		},
 	}
 
@@ -654,4 +631,10 @@ func (d *DeviceDataSource) mapDeviceToDataSource(ctx context.Context, device *ne
 
 	}
 
+	// Map display_name
+	if device.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(device.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 }

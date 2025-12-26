@@ -41,6 +41,8 @@ type IPRangeDataSource struct {
 type IPRangeDataSourceModel struct {
 	ID types.String `tfsdk:"id"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	StartAddress types.String `tfsdk:"start_address"`
 
 	EndAddress types.String `tfsdk:"end_address"`
@@ -93,6 +95,13 @@ func (d *IPRangeDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				MarkdownDescription: "The ID of the IP range. Must be specified to look up a specific range.",
 
 				Optional: true,
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the IP range.",
 
 				Computed: true,
 			},
@@ -408,6 +417,18 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 func (d *IPRangeDataSource) mapIPRangeToDataSourceModel(ctx context.Context, ipRange *netbox.IPRange, data *IPRangeDataSourceModel) {
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipRange.Id))
+
+	// Display Name
+
+	if ipRange.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(ipRange.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	data.StartAddress = types.StringValue(ipRange.StartAddress)
 

@@ -48,7 +48,8 @@ type CustomFieldChoiceSetResourceModel struct {
 
 	ExtraChoices types.List `tfsdk:"extra_choices"`
 
-	OrderAlphabetically types.Bool `tfsdk:"order_alphabetically"`
+	OrderAlphabetically types.Bool   `tfsdk:"order_alphabetically"`
+	DisplayName         types.String `tfsdk:"display_name"`
 }
 
 // ChoicePairModel represents a key-value pair for choices.
@@ -145,6 +146,10 @@ func (r *CustomFieldChoiceSetResource) Schema(ctx context.Context, req resource.
 				Optional: true,
 
 				Computed: true,
+			},
+			"display_name": schema.StringAttribute{
+				MarkdownDescription: "Display name of the custom field choice set.",
+				Computed:            true,
 			},
 		},
 	}
@@ -607,6 +612,18 @@ func (r *CustomFieldChoiceSetResource) mapToState(ctx context.Context, result *n
 	} else {
 
 		data.OrderAlphabetically = types.BoolNull()
+
+	}
+
+	// Map display_name
+
+	if result.Display != "" {
+
+		data.DisplayName = types.StringValue(result.Display)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

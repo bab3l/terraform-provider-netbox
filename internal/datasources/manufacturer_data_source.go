@@ -25,6 +25,7 @@ type ManufacturerDataSource struct {
 
 type ManufacturerDataSourceModel struct {
 	ID          types.String `tfsdk:"id"`
+	DisplayName types.String `tfsdk:"display_name"`
 	Name        types.String `tfsdk:"name"`
 	Slug        types.String `tfsdk:"slug"`
 	Description types.String `tfsdk:"description"`
@@ -38,10 +39,11 @@ func (d *ManufacturerDataSource) Schema(ctx context.Context, req datasource.Sche
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Use this data source to get information about a manufacturer in Netbox. Manufacturers are used to group devices and platforms by vendor.",
 		Attributes: map[string]schema.Attribute{
-			"id":          nbschema.DSIDAttribute("manufacturer"),
-			"name":        nbschema.DSNameAttribute("manufacturer"),
-			"slug":        nbschema.DSSlugAttribute("manufacturer"),
-			"description": nbschema.DSComputedStringAttribute("Description of the manufacturer."),
+			"id":           nbschema.DSIDAttribute("manufacturer"),
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the manufacturer."),
+			"name":         nbschema.DSNameAttribute("manufacturer"),
+			"slug":         nbschema.DSSlugAttribute("manufacturer"),
+			"description":  nbschema.DSComputedStringAttribute("Description of the manufacturer."),
 		},
 	}
 }
@@ -132,6 +134,18 @@ func (d *ManufacturerDataSource) Read(ctx context.Context, req datasource.ReadRe
 // mapManufacturerToState maps API response to Terraform state using state helpers.
 func (d *ManufacturerDataSource) mapManufacturerToState(manufacturer *netbox.Manufacturer, data *ManufacturerDataSourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", manufacturer.GetId()))
+
+	// Display Name
+
+	if manufacturer.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(manufacturer.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 	data.Name = types.StringValue(manufacturer.GetName())
 	data.Slug = types.StringValue(manufacturer.GetSlug())
 	data.Description = utils.StringFromAPI(manufacturer.HasDescription(), manufacturer.GetDescription, data.Description)

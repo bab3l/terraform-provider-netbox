@@ -53,6 +53,8 @@ type ASNResourceModel struct {
 
 	ASN types.Int64 `tfsdk:"asn"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	RIR types.String `tfsdk:"rir"`
 
 	Tenant types.String `tfsdk:"tenant"`
@@ -102,6 +104,8 @@ func (r *ASNResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 
 				Required: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("ASN"),
 
 			"rir": schema.StringAttribute{
 
@@ -611,6 +615,8 @@ func (r *ASNResource) mapResponseToModel(ctx context.Context, asn *netbox.ASN, d
 	data.ID = types.StringValue(fmt.Sprintf("%d", asn.GetId()))
 
 	data.ASN = types.Int64Value(asn.GetAsn())
+
+	data.DisplayName = types.StringValue(asn.GetDisplay())
 
 	// Map RIR - preserve the user's input format (ID or slug)
 

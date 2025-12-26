@@ -32,6 +32,7 @@ type TenantGroupDataSourceModel struct {
 	Parent       types.String `tfsdk:"parent"`
 	ParentID     types.String `tfsdk:"parent_id"`
 	Description  types.String `tfsdk:"description"`
+	DisplayName  types.String `tfsdk:"display_name"`
 	Tags         types.Set    `tfsdk:"tags"`
 	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
@@ -50,6 +51,7 @@ func (d *TenantGroupDataSource) Schema(ctx context.Context, req datasource.Schem
 			"parent":        nbschema.DSComputedStringAttribute("Name of the parent tenant group."),
 			"parent_id":     nbschema.DSComputedStringAttribute("ID of the parent tenant group."),
 			"description":   nbschema.DSComputedStringAttribute("Description of the tenant group."),
+			"display_name":  nbschema.DSComputedStringAttribute("Display name of the tenant group."),
 			"tags":          nbschema.DSTagsAttribute(),
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
@@ -137,6 +139,13 @@ func (d *TenantGroupDataSource) mapTenantGroupToState(ctx context.Context, tenan
 	data.Name = types.StringValue(tenantGroup.GetName())
 	data.Slug = types.StringValue(tenantGroup.GetSlug())
 	data.Description = utils.StringFromAPI(tenantGroup.HasDescription(), tenantGroup.GetDescription, data.Description)
+
+	// Handle display_name
+	if tenantGroup.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(tenantGroup.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	if tenantGroup.HasParent() {
 		parent := tenantGroup.GetParent()

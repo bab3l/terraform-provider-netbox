@@ -44,6 +44,7 @@ type EventRuleDataSourceModel struct {
 	ActionObjectID   types.String `tfsdk:"action_object_id"`
 	ActionObject     types.String `tfsdk:"action_object"`
 	Description      types.String `tfsdk:"description"`
+	DisplayName      types.String `tfsdk:"display_name"`
 	Tags             types.Set    `tfsdk:"tags"`
 	CustomFields     types.Set    `tfsdk:"custom_fields"`
 	Created          types.String `tfsdk:"created"`
@@ -107,6 +108,7 @@ func (d *EventRuleDataSource) Schema(ctx context.Context, req datasource.SchemaR
 				MarkdownDescription: "A description of the event rule.",
 				Computed:            true,
 			},
+			"display_name":  nbschema.DSComputedStringAttribute("The display name of the event rule."),
 			"tags":          nbschema.DSTagsAttribute(),
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 			"created": schema.StringAttribute{
@@ -248,6 +250,13 @@ func (d *EventRuleDataSource) mapToDataSourceModel(ctx context.Context, result *
 		data.Description = types.StringValue(result.GetDescription())
 	} else {
 		data.Description = types.StringNull()
+	}
+
+	// Map display_name
+	if result.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(result.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	// Map tags

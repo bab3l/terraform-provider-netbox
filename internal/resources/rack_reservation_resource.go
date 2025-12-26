@@ -61,6 +61,8 @@ type RackReservationResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -139,8 +141,8 @@ func (r *RackReservationResource) Schema(ctx context.Context, req resource.Schem
 
 				Optional: true,
 			},
-
-			"tags": nbschema.TagsAttribute(),
+			"display_name": nbschema.DisplayNameAttribute("rack reservation"),
+			"tags":         nbschema.TagsAttribute(),
 
 			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
@@ -708,11 +710,16 @@ func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
-	// Map rack (required field)
-
+	// Map rack (required field) - preserve user's input format, but always set something for import
 	rack := result.GetRack()
+	rackValue := utils.UpdateReferenceAttribute(data.Rack, rack.GetName(), "", rack.GetId())
 
-	data.Rack = types.StringValue(fmt.Sprintf("%d", rack.GetId()))
+	// If null (happens during import), set the ID as fallback
+	if rackValue.IsNull() {
+		rackValue = types.StringValue(fmt.Sprintf("%d", rack.GetId()))
+	}
+
+	data.Rack = rackValue
 
 	// Map units
 
@@ -811,6 +818,18 @@ func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox
 	} else {
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+
+	}
+
+	// Map display_name
+
+	if result.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(result.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

@@ -49,15 +49,38 @@ func IDAttribute(resourceName string) schema.StringAttribute {
 }
 
 // ComputedIDAttribute returns a computed ID attribute for reference fields.
+
 // This is used to store the resolved ID of a referenced resource.
+
 func ComputedIDAttribute(resourceName string) schema.StringAttribute {
+
 	return schema.StringAttribute{
+
 		MarkdownDescription: "The numeric ID of the " + resourceName + ".",
-		Computed:            true,
+
+		Computed: true,
+
 		PlanModifiers: []planmodifier.String{
+
 			stringplanmodifier.UseStateForUnknown(),
 		},
 	}
+
+}
+
+// DisplayNameAttribute returns a computed display name attribute.
+
+// This is used to show the human-readable name of a resource referenced by ID.
+
+func DisplayNameAttribute(resourceName string) schema.StringAttribute {
+
+	return schema.StringAttribute{
+
+		MarkdownDescription: "Human-readable name of the " + resourceName + " (computed from the referenced resource).",
+
+		Computed: true,
+	}
+
 }
 
 // NameAttribute returns a required name attribute with standard validation.

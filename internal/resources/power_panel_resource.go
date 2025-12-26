@@ -54,6 +54,8 @@ type PowerPanelResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Description types.String `tfsdk:"description"`
 
 	Comments types.String `tfsdk:"comments"`
@@ -113,6 +115,8 @@ func (r *PowerPanelResource) Schema(ctx context.Context, req resource.SchemaRequ
 
 				Required: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("power panel"),
 
 			"description": schema.StringAttribute{
 
@@ -642,6 +646,13 @@ func (r *PowerPanelResource) mapResponseToModel(ctx context.Context, pp *netbox.
 	data.ID = types.StringValue(fmt.Sprintf("%d", pp.GetId()))
 
 	data.Name = types.StringValue(pp.GetName())
+
+	// DisplayName
+	if pp.Display != "" {
+		data.DisplayName = types.StringValue(pp.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map site - preserve user's input format
 

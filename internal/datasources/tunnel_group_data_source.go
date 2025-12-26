@@ -49,6 +49,8 @@ type TunnelGroupDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -75,6 +77,8 @@ func (d *TunnelGroupDataSource) Schema(ctx context.Context, req datasource.Schem
 			"slug": nbschema.DSSlugAttribute("tunnel group"),
 
 			"description": nbschema.DSComputedStringAttribute("Detailed description of the tunnel group."),
+
+			"display_name": nbschema.DSComputedStringAttribute("Display name of the tunnel group."),
 
 			"tags": nbschema.DSTagsAttribute(),
 
@@ -360,6 +364,18 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 	} else {
 
 		data.Description = types.StringNull()
+
+	}
+
+	// Handle display_name
+
+	if tunnelGroup.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(tunnelGroup.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

@@ -54,6 +54,8 @@ type ProviderAccountDataSourceModel struct {
 	Comments types.String `tfsdk:"comments"`
 
 	Tags types.List `tfsdk:"tags"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -136,6 +138,13 @@ func (d *ProviderAccountDataSource) Schema(ctx context.Context, req datasource.S
 				Computed: true,
 
 				ElementType: types.StringType,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the provider account.",
+
+				Computed: true,
 			},
 		},
 	}
@@ -393,6 +402,18 @@ func (d *ProviderAccountDataSource) mapResponseToModel(ctx context.Context, prov
 	} else {
 
 		data.Tags = types.ListNull(types.StringType)
+
+	}
+
+	// Map display_name
+
+	if providerAccount.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(providerAccount.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

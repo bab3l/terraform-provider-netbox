@@ -63,6 +63,8 @@ type WirelessLinkDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Comments types.String `tfsdk:"comments"`
 
 	Tags types.Set `tfsdk:"tags"`
@@ -138,6 +140,8 @@ func (d *WirelessLinkDataSource) Schema(ctx context.Context, req datasource.Sche
 			"distance_unit": nbschema.DSComputedStringAttribute("Unit for distance."),
 
 			"description": nbschema.DSComputedStringAttribute("Description of the wireless link."),
+
+			"display_name": nbschema.DSComputedStringAttribute("Display name for the wireless link."),
 
 			"comments": nbschema.DSComputedStringAttribute("Additional comments about the wireless link."),
 
@@ -383,6 +387,18 @@ func (d *WirelessLinkDataSource) mapToState(ctx context.Context, result *netbox.
 	} else {
 
 		data.Comments = types.StringNull()
+
+	}
+
+	// Map display name
+
+	if displayName := result.GetDisplay(); displayName != "" {
+
+		data.DisplayName = types.StringValue(displayName)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

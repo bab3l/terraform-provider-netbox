@@ -37,6 +37,8 @@ type L2VPNTerminationDataSource struct {
 type L2VPNTerminationDataSourceModel struct {
 	ID types.String `tfsdk:"id"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	L2VPN types.String `tfsdk:"l2vpn"`
 
 	AssignedObjectType types.String `tfsdk:"assigned_object_type"`
@@ -67,6 +69,13 @@ func (d *L2VPNTerminationDataSource) Schema(ctx context.Context, req datasource.
 				MarkdownDescription: "ID of the L2VPN termination. Required for lookup.",
 
 				Required: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the L2VPN termination.",
+
+				Computed: true,
 			},
 
 			"l2vpn": schema.StringAttribute{
@@ -197,6 +206,18 @@ func (d *L2VPNTerminationDataSource) Read(ctx context.Context, req datasource.Re
 func (d *L2VPNTerminationDataSource) mapResponseToState(ctx context.Context, termination *netbox.L2VPNTermination, data *L2VPNTerminationDataSourceModel, diags *diag.Diagnostics) {
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", termination.GetId()))
+
+	// Display Name
+
+	if termination.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(termination.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	// L2VPN
 

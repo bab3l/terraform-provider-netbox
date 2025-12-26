@@ -51,6 +51,8 @@ type TenantGroupResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -84,6 +86,8 @@ func (r *TenantGroupResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 
 			"description": nbschema.DescriptionAttribute("tenant group"),
+
+			"display_name": nbschema.DisplayNameAttribute("tenant group"),
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -530,6 +534,18 @@ func (r *TenantGroupResource) mapTenantGroupToState(ctx context.Context, tenantG
 	data.Slug = types.StringValue(tenantGroup.GetSlug())
 
 	data.Description = utils.StringFromAPI(tenantGroup.HasDescription(), tenantGroup.GetDescription, data.Description)
+
+	// Handle display_name
+
+	if tenantGroup.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(tenantGroup.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	// Handle parent reference
 

@@ -55,6 +55,8 @@ type PowerPortResourceModel struct {
 
 	Label types.String `tfsdk:"label"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Type types.String `tfsdk:"type"`
 
 	MaximumDraw types.Int32 `tfsdk:"maximum_draw"`
@@ -120,6 +122,8 @@ func (r *PowerPortResource) Schema(ctx context.Context, req resource.SchemaReque
 
 				Optional: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("power port"),
 
 			"type": schema.StringAttribute{
 
@@ -694,6 +698,13 @@ func (r *PowerPortResource) mapResponseToModel(ctx context.Context, powerPort *n
 	data.ID = types.StringValue(fmt.Sprintf("%d", powerPort.GetId()))
 
 	data.Name = types.StringValue(powerPort.GetName())
+
+	// DisplayName
+	if powerPort.Display != "" {
+		data.DisplayName = types.StringValue(powerPort.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device - preserve user's input format
 

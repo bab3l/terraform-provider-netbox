@@ -8,6 +8,7 @@ import (
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -59,6 +60,12 @@ type ModuleBayTemplateResourceModel struct {
 	Position types.String `tfsdk:"position"`
 
 	Description types.String `tfsdk:"description"`
+
+	DisplayName types.String `tfsdk:"display_name"`
+
+	Tags types.Set `tfsdk:"tags"`
+
+	CustomFields types.Set `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the resource type name.
@@ -132,6 +139,12 @@ func (r *ModuleBayTemplateResource) Schema(ctx context.Context, req resource.Sch
 
 				Optional: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("module bay template"),
+
+			"tags": nbschema.TagsAttribute(),
+
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
@@ -596,6 +609,13 @@ func (r *ModuleBayTemplateResource) mapToState(ctx context.Context, result *netb
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
 	data.Name = types.StringValue(result.GetName())
+
+	// DisplayName
+	if result.Display != "" {
+		data.DisplayName = types.StringValue(result.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device type - preserve user's input format
 

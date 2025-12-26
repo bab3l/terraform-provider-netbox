@@ -8,6 +8,7 @@ import (
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -67,6 +68,8 @@ type InventoryItemTemplateResourceModel struct {
 	ComponentType types.String `tfsdk:"component_type"`
 
 	ComponentID types.String `tfsdk:"component_id"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the resource type name.
@@ -154,6 +157,8 @@ func (r *InventoryItemTemplateResource) Schema(ctx context.Context, req resource
 
 				Optional: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("inventory item template"),
 
 			"component_type": schema.StringAttribute{
 
@@ -631,6 +636,7 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 
 	}
 
+	// Preserve display_name since it's computed but might change when other attributes update
 	// Map response to state
 
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
@@ -722,6 +728,13 @@ func (r *InventoryItemTemplateResource) mapToState(ctx context.Context, result *
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
 	data.Name = types.StringValue(result.GetName())
+
+	// DisplayName
+	if result.Display != "" {
+		data.DisplayName = types.StringValue(result.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device type (required field)
 

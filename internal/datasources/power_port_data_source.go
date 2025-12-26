@@ -54,6 +54,8 @@ type PowerPortDataSourceModel struct {
 	Description types.String `tfsdk:"description"`
 
 	MarkConnected types.Bool `tfsdk:"mark_connected"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -146,6 +148,13 @@ func (d *PowerPortDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"mark_connected": schema.BoolAttribute{
 
 				MarkdownDescription: "Treat as if a cable is connected.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the power port.",
 
 				Computed: true,
 			},
@@ -403,5 +412,15 @@ func (d *PowerPortDataSource) mapResponseToModel(powerPort *netbox.PowerPort, da
 		data.MarkConnected = types.BoolValue(false)
 
 	}
+	// Map display_name
 
+	if powerPort.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(powerPort.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 }

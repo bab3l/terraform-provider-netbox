@@ -45,6 +45,8 @@ type ClusterTypeDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -75,6 +77,8 @@ func (d *ClusterTypeDataSource) Schema(ctx context.Context, req datasource.Schem
 			"slug": nbschema.DSSlugAttribute("cluster type"),
 
 			"description": nbschema.DSComputedStringAttribute("Detailed description of the cluster type."),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the cluster type."),
 
 			"tags": nbschema.DSTagsAttribute(),
 
@@ -388,6 +392,13 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 
+	}
+
+	// Map display name
+	if clusterType.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(clusterType.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	tflog.Debug(ctx, "Read cluster type", map[string]interface{}{

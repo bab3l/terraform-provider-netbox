@@ -43,6 +43,8 @@ type PowerFeedDataSource struct {
 type PowerFeedDataSourceModel struct {
 	ID types.String `tfsdk:"id"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	PowerPanel types.String `tfsdk:"power_panel"`
 
 	Rack types.String `tfsdk:"rack"`
@@ -99,6 +101,13 @@ func (d *PowerFeedDataSource) Schema(ctx context.Context, req datasource.SchemaR
 				MarkdownDescription: "The unique numeric ID of the power feed. Use this to look up by ID.",
 
 				Optional: true,
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the power feed.",
 
 				Computed: true,
 			},
@@ -414,6 +423,18 @@ func (d *PowerFeedDataSource) Read(ctx context.Context, req datasource.ReadReque
 func (d *PowerFeedDataSource) mapResponseToModel(ctx context.Context, pf *netbox.PowerFeed, data *PowerFeedDataSourceModel, diags *diag.Diagnostics) {
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", pf.GetId()))
+
+	// Display Name
+
+	if pf.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(pf.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	data.Name = types.StringValue(pf.GetName())
 

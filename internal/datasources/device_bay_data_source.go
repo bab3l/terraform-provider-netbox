@@ -56,6 +56,8 @@ type DeviceBayDataSourceModel struct {
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -75,58 +77,36 @@ func (d *DeviceBayDataSource) Schema(ctx context.Context, req datasource.SchemaR
 		MarkdownDescription: "Retrieves information about a device bay in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the device bay. Use this to look up by ID.",
-
-				Optional: true,
-
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
 			},
-
 			"device": schema.StringAttribute{
-
 				MarkdownDescription: "ID of the parent device. Use with name for lookup.",
-
-				Optional: true,
-
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
 			},
-
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the device bay. Use with device for lookup.",
-
-				Optional: true,
-
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
 			},
-
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label for the device bay.",
-
-				Computed: true,
+				Computed:            true,
 			},
-
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the device bay.",
-
-				Computed: true,
+				Computed:            true,
 			},
-
 			"installed_device": schema.StringAttribute{
-
 				MarkdownDescription: "ID of the child device installed in this bay.",
-
-				Computed: true,
+				Computed:            true,
 			},
-
-			"tags": nbschema.DSTagsAttribute(),
-
+			"tags":          nbschema.DSTagsAttribute(),
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
+			"display_name":  nbschema.DSComputedStringAttribute("The display name of the device bay."),
 		},
 	}
 
@@ -411,4 +391,10 @@ func (d *DeviceBayDataSource) mapResponseToModel(ctx context.Context, db *netbox
 
 	}
 
+	// Map display_name
+	if db.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(db.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 }

@@ -45,6 +45,8 @@ type LocationResourceModel struct {
 
 	Slug types.String `tfsdk:"slug"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Site types.String `tfsdk:"site"`
 
 	Parent types.String `tfsdk:"parent"`
@@ -83,6 +85,8 @@ func (r *LocationResource) Schema(ctx context.Context, req resource.SchemaReques
 			"name": nbschema.NameAttribute("location", 100),
 
 			"slug": nbschema.SlugAttribute("location"),
+
+			"display_name": nbschema.DisplayNameAttribute("location"),
 
 			"site": nbschema.RequiredReferenceAttribute("site", "ID or slug of the site this location belongs to. Required."),
 
@@ -696,6 +700,8 @@ func (r *LocationResource) mapLocationToState(ctx context.Context, location *net
 	data.Name = types.StringValue(location.GetName())
 
 	data.Slug = types.StringValue(location.GetSlug())
+
+	data.DisplayName = types.StringValue(location.GetDisplay())
 
 	// Site - preserve the user's configured value (ID, slug, or name)
 

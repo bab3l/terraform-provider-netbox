@@ -56,6 +56,8 @@ type RoleResourceModel struct {
 
 	Slug types.String `tfsdk:"slug"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Weight types.Int64 `tfsdk:"weight"`
 
 	Description types.String `tfsdk:"description"`
@@ -120,6 +122,8 @@ func (r *RoleResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 					validators.ValidSlug(),
 				},
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("role"),
 
 			"weight": schema.Int64Attribute{
 
@@ -595,6 +599,8 @@ func (r *RoleResource) mapResponseToModel(ctx context.Context, role *netbox.Role
 	data.Name = types.StringValue(role.GetName())
 
 	data.Slug = types.StringValue(role.GetSlug())
+
+	data.DisplayName = types.StringValue(role.GetDisplay())
 
 	// Map weight
 

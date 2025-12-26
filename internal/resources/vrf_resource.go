@@ -43,6 +43,8 @@ type VRFResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	RD types.String `tfsdk:"rd"`
 
 	Tenant types.String `tfsdk:"tenant"`
@@ -77,6 +79,8 @@ func (r *VRFResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 			"id": nbschema.IDAttribute("VRF"),
 
 			"name": nbschema.NameAttribute("VRF", 100),
+
+			"display_name": nbschema.DisplayNameAttribute("VRF"),
 
 			"rd": schema.StringAttribute{
 
@@ -565,6 +569,13 @@ func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *
 	data.ID = types.StringValue(fmt.Sprintf("%d", vrf.GetId()))
 
 	data.Name = types.StringValue(vrf.GetName())
+
+	// DisplayName
+	if vrf.Display != "" {
+		data.DisplayName = types.StringValue(vrf.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Route distinguisher
 

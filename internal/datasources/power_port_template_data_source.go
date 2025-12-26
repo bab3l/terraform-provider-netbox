@@ -52,6 +52,8 @@ type PowerPortTemplateDataSourceModel struct {
 	AllocatedDraw types.Int32 `tfsdk:"allocated_draw"`
 
 	Description types.String `tfsdk:"description"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -139,6 +141,13 @@ func (d *PowerPortTemplateDataSource) Schema(ctx context.Context, req datasource
 			"description": schema.StringAttribute{
 
 				MarkdownDescription: "A description of the power port template.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the power port template.",
 
 				Computed: true,
 			},
@@ -410,6 +419,18 @@ func (d *PowerPortTemplateDataSource) mapResponseToModel(template *netbox.PowerP
 	} else {
 
 		data.Description = types.StringNull()
+
+	}
+
+	// Map display_name
+
+	if template.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(template.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

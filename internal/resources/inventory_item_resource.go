@@ -70,6 +70,8 @@ type InventoryItemResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -90,12 +92,6 @@ func (r *InventoryItemResource) Schema(ctx context.Context, req resource.SchemaR
 	resp.Schema = schema.Schema{
 
 		MarkdownDescription: `Manages an inventory item in NetBox. Inventory items represent hardware components installed within a device, such as power supplies, CPUs, or line cards.
-
-
-
-
-
-
 
 ~> **Deprecation Warning:** Beginning in NetBox v4.3, inventory items are deprecated and planned for removal in a future release. Users are strongly encouraged to use [modules](https://netboxlabs.com/docs/netbox/models/dcim/module/) and [module types](https://netboxlabs.com/docs/netbox/models/dcim/moduletype/) instead.`,
 
@@ -192,6 +188,8 @@ func (r *InventoryItemResource) Schema(ctx context.Context, req resource.SchemaR
 				Optional: true,
 			},
 
+			"display_name": nbschema.DisplayNameAttribute("inventory item"),
+
 			"tags": nbschema.TagsAttribute(),
 
 			"custom_fields": nbschema.CustomFieldsAttribute(),
@@ -199,8 +197,6 @@ func (r *InventoryItemResource) Schema(ctx context.Context, req resource.SchemaR
 	}
 
 }
-
-// Configure adds the provider configured client to the resource.
 
 func (r *InventoryItemResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
@@ -698,6 +694,7 @@ func (r *InventoryItemResource) Update(ctx context.Context, req resource.UpdateR
 
 	}
 
+	// Preserve display_name since it's computed but might change when other attributes update
 	// Map response to model
 
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -828,6 +825,13 @@ func (r *InventoryItemResource) mapResponseToModel(ctx context.Context, item *ne
 	data.ID = types.StringValue(fmt.Sprintf("%d", item.GetId()))
 
 	data.Name = types.StringValue(item.GetName())
+
+	// DisplayName
+	if item.Display != "" {
+		data.DisplayName = types.StringValue(item.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device - preserve user's input format
 

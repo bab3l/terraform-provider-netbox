@@ -58,6 +58,8 @@ type TunnelTerminationResourceModel struct {
 
 	OutsideIP types.String `tfsdk:"outside_ip"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -135,6 +137,8 @@ func (r *TunnelTerminationResource) Schema(ctx context.Context, req resource.Sch
 
 				Optional: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("tunnel termination"),
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -758,6 +762,18 @@ func (r *TunnelTerminationResource) mapTunnelTerminationToState(ctx context.Cont
 	} else {
 
 		data.OutsideIP = types.StringNull()
+
+	}
+
+	// Handle display_name
+
+	if tunnelTermination.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(tunnelTermination.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

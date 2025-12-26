@@ -34,6 +34,7 @@ type TagResourceModel struct {
 	Color       types.String `tfsdk:"color"`
 	Description types.String `tfsdk:"description"`
 	ObjectTypes types.List   `tfsdk:"object_types"`
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 func (r *TagResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -54,6 +55,7 @@ func (r *TagResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				Optional:            true,
 				ElementType:         types.StringType,
 			},
+			"display_name": nbschema.DisplayNameAttribute("tag"),
 		},
 	}
 }
@@ -248,6 +250,17 @@ func (r *TagResource) ImportState(ctx context.Context, req resource.ImportStateR
 
 // mapTagToState maps API response to Terraform state.
 func (r *TagResource) mapTagToState(ctx context.Context, tag *netbox.Tag, data *TagResourceModel) {
+	data.ID = types.StringValue(fmt.Sprintf("%d", tag.GetId()))
+	data.Name = types.StringValue(tag.GetName())
+	data.Slug = types.StringValue(tag.GetSlug())
+	data.Color = utils.StringFromAPI(tag.HasColor(), tag.GetColor, data.Color)
+	data.Description = utils.StringFromAPI(tag.HasDescription(), tag.GetDescription, data.Description)
+	// Map display_name
+	if tag.Display != "" {
+		data.DisplayName = types.StringValue(tag.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 	data.ID = types.StringValue(fmt.Sprintf("%d", tag.GetId()))
 	data.Name = types.StringValue(tag.GetName())
 	data.Slug = types.StringValue(tag.GetSlug())

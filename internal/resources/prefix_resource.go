@@ -53,6 +53,8 @@ type PrefixResourceModel struct {
 
 	Prefix types.String `tfsdk:"prefix"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Site types.String `tfsdk:"site"`
 
 	VRF types.String `tfsdk:"vrf"`
@@ -112,6 +114,8 @@ func (r *PrefixResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 				Required: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("prefix"),
 
 			"site": schema.StringAttribute{
 
@@ -702,6 +706,18 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 	data.ID = types.StringValue(fmt.Sprintf("%d", prefix.Id))
 
 	data.Prefix = types.StringValue(prefix.Prefix)
+
+	// DisplayName
+
+	if prefix.Display != "" {
+
+		data.DisplayName = types.StringValue(prefix.Display)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	// Site
 

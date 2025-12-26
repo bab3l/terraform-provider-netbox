@@ -1,7 +1,19 @@
-data "netbox_ip_address" "test" {
-  ip_address = "10.0.0.1/24"
+data "netbox_ip_address" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_ip_address.test.id
+data "netbox_ip_address" "by_address" {
+  address = "192.168.1.1/32"
+}
+
+output "address_id" {
+  value = data.netbox_ip_address.by_id.id
+}
+
+output "address_value" {
+  value = data.netbox_ip_address.by_address.address
+}
+
+output "address_status" {
+  value = data.netbox_ip_address.by_address.status
 }

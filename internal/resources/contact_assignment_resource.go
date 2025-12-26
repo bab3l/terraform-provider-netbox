@@ -54,6 +54,8 @@ type ContactAssignmentResourceModel struct {
 
 	Priority types.String `tfsdk:"priority"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -134,6 +136,8 @@ func (r *ContactAssignmentResource) Schema(ctx context.Context, req resource.Sch
 					stringvalidator.OneOf("primary", "secondary", "tertiary", "inactive", ""),
 				},
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("contact assignment"),
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -619,7 +623,6 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Map response to state
-
 	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Updated contact assignment", map[string]interface{}{
@@ -715,6 +718,13 @@ func (r *ContactAssignmentResource) mapResponseToState(ctx context.Context, assi
 	data.ObjectType = types.StringValue(assignment.GetObjectType())
 
 	data.ObjectID = types.StringValue(fmt.Sprintf("%d", assignment.GetObjectId()))
+
+	// DisplayName
+	if assignment.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(assignment.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Contact (required field) - preserve user's input format
 

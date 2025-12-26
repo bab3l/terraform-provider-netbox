@@ -53,6 +53,8 @@ type DeviceBayResourceModel struct {
 
 	Label types.String `tfsdk:"label"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Description types.String `tfsdk:"description"`
 
 	InstalledDevice types.String `tfsdk:"installed_device"`
@@ -92,6 +94,8 @@ func (r *DeviceBayResource) Schema(ctx context.Context, req resource.SchemaReque
 
 				Optional: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("device bay"),
 
 			"description": nbschema.DescriptionAttribute("device bay"),
 
@@ -526,6 +530,13 @@ func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.D
 	data.ID = types.StringValue(fmt.Sprintf("%d", db.GetId()))
 
 	data.Name = types.StringValue(db.GetName())
+
+	// DisplayName
+	if db.Display != "" {
+		data.DisplayName = types.StringValue(db.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device - preserve user's input format
 

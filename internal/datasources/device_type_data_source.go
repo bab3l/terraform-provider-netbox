@@ -71,6 +71,8 @@ type DeviceTypeDataSourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -129,11 +131,11 @@ func (d *DeviceTypeDataSource) Schema(ctx context.Context, req datasource.Schema
 
 			"comments": nbschema.DSComputedStringAttribute("Comments about the device type (supports Markdown)."),
 
-			"tags": nbschema.DSTagsAttribute(),
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the device type."),
 
+			"tags":          nbschema.DSTagsAttribute(),
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
-
-			"device_count": nbschema.DSComputedInt64Attribute("Number of devices of this type."),
+			"device_count":  nbschema.DSComputedInt64Attribute("Number of devices of this type."),
 		},
 	}
 
@@ -611,6 +613,13 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	// Handle device_count (read-only, always present)
 
 	data.DeviceCount = types.Int64Value(deviceType.GetDeviceCount())
+
+	// Handle display_name
+	if deviceType.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(deviceType.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Save data into Terraform state
 

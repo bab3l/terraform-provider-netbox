@@ -57,6 +57,8 @@ type FrontPortDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	MarkConnected types.Bool `tfsdk:"mark_connected"`
 }
 
@@ -157,6 +159,13 @@ func (d *FrontPortDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"description": schema.StringAttribute{
 
 				MarkdownDescription: "A description of the front port.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the front port.",
 
 				Computed: true,
 			},
@@ -410,6 +419,13 @@ func (d *FrontPortDataSource) mapResponseToModel(port *netbox.FrontPort, data *F
 
 		data.Description = types.StringNull()
 
+	}
+
+	// Map display_name
+	if port.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(port.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	// Map mark_connected

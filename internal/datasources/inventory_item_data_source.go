@@ -69,6 +69,8 @@ type InventoryItemDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 }
 
@@ -87,12 +89,6 @@ func (d *InventoryItemDataSource) Schema(ctx context.Context, req datasource.Sch
 	resp.Schema = schema.Schema{
 
 		MarkdownDescription: `Retrieves information about an inventory item in NetBox. Inventory items represent hardware components installed within a device.
-
-
-
-
-
-
 
 ~> **Deprecation Warning:** Beginning in NetBox v4.3, inventory items are deprecated and planned for removal in a future release. Users are strongly encouraged to use modules and module types instead.`,
 
@@ -209,6 +205,13 @@ func (d *InventoryItemDataSource) Schema(ctx context.Context, req datasource.Sch
 			"description": schema.StringAttribute{
 
 				MarkdownDescription: "A description of the inventory item.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the inventory item.",
 
 				Computed: true,
 			},
@@ -558,6 +561,13 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 
 		data.Tags = types.SetNull(types.StringType)
 
+	}
+
+	// Map display_name
+	if item.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(item.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

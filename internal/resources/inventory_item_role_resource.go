@@ -55,6 +55,8 @@ type InventoryItemRoleResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -104,12 +106,7 @@ func (r *InventoryItemRoleResource) Schema(ctx context.Context, req resource.Sch
 				Required: true,
 			},
 
-			"color": schema.StringAttribute{
-
-				MarkdownDescription: "The color associated with this role (6-character hex code without #).",
-
-				Optional: true,
-			},
+			"color": nbschema.ComputedColorAttribute("inventory item role"),
 
 			"description": schema.StringAttribute{
 
@@ -118,6 +115,8 @@ func (r *InventoryItemRoleResource) Schema(ctx context.Context, req resource.Sch
 				Optional: true,
 			},
 
+			"display_name": nbschema.DisplayNameAttribute("inventory item role"),
+
 			"tags": nbschema.TagsAttribute(),
 
 			"custom_fields": nbschema.CustomFieldsAttribute(),
@@ -125,8 +124,6 @@ func (r *InventoryItemRoleResource) Schema(ctx context.Context, req resource.Sch
 	}
 
 }
-
-// Configure adds the provider configured client to the resource.
 
 func (r *InventoryItemRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
@@ -578,6 +575,13 @@ func (r *InventoryItemRoleResource) mapResponseToModel(ctx context.Context, role
 	data.Name = types.StringValue(role.GetName())
 
 	data.Slug = types.StringValue(role.GetSlug())
+
+	// DisplayName
+	if role.Display != "" {
+		data.DisplayName = types.StringValue(role.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map color
 

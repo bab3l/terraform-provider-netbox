@@ -56,6 +56,8 @@ type SiteGroupResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -89,6 +91,8 @@ func (r *SiteGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 			},
 
 			"description": nbschema.DescriptionAttribute("site group"),
+
+			"display_name": nbschema.DisplayNameAttribute("site group"),
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -571,6 +575,18 @@ func (r *SiteGroupResource) mapSiteGroupToState(ctx context.Context, siteGroup *
 	// Handle optional string fields using helpers
 
 	data.Description = utils.StringFromAPI(siteGroup.HasDescription(), siteGroup.GetDescription, data.Description)
+
+	// Handle display_name
+
+	if siteGroup.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(siteGroup.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	// Handle tags
 

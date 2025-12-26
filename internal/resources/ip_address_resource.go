@@ -52,6 +52,8 @@ type IPAddressResourceModel struct {
 
 	Address types.String `tfsdk:"address"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	VRF types.String `tfsdk:"vrf"`
 
 	Tenant types.String `tfsdk:"tenant"`
@@ -109,6 +111,8 @@ func (r *IPAddressResource) Schema(ctx context.Context, req resource.SchemaReque
 
 				Required: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("IP address"),
 
 			"vrf": schema.StringAttribute{
 
@@ -650,6 +654,18 @@ func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipAddress.Id))
 
 	data.Address = types.StringValue(ipAddress.Address)
+
+	// DisplayName
+
+	if ipAddress.Display != "" {
+
+		data.DisplayName = types.StringValue(ipAddress.Display)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	// VRF
 

@@ -17,6 +17,8 @@ import (
 // }
 
 func TestProvider(t *testing.T) {
+
+	t.Parallel()
 	// Test that the provider can be instantiated
 	p := New("test")()
 	if p == nil {
@@ -25,6 +27,8 @@ func TestProvider(t *testing.T) {
 }
 
 func TestProviderSchema(t *testing.T) {
+
+	t.Parallel()
 	ctx := context.Background()
 	p := New("test")()
 
@@ -52,6 +56,8 @@ func TestProviderSchema(t *testing.T) {
 }
 
 func TestProviderResources(t *testing.T) {
+
+	t.Parallel()
 	ctx := context.Background()
 	p := New("test")()
 
@@ -75,6 +81,8 @@ func TestProviderResources(t *testing.T) {
 }
 
 func TestProviderDataSources(t *testing.T) {
+
+	t.Parallel()
 	ctx := context.Background()
 	p := New("test")()
 

@@ -1,0 +1,105 @@
+package datasources_acceptance_tests
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+)
+
+func TestAccModuleBayTemplateDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	name := testutil.RandomName("test-module-bay-template-id")
+	manufacturerName := testutil.RandomName("test-manufacturer-mbt-id")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+	deviceTypeName := testutil.RandomName("test-device-type-mbt-id")
+	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
+
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckModuleBayTemplateDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleBayTemplateDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_module_bay_template.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_module_bay_template.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
+func TestAccModuleBayTemplateDataSource_basic(t *testing.T) {
+
+	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	name := testutil.RandomName("test-module-bay-template")
+
+	manufacturerName := testutil.RandomName("test-manufacturer-mbt")
+
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+
+	deviceTypeName := testutil.RandomName("test-device-type-mbt")
+
+	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
+
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckModuleBayTemplateDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleBayTemplateDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_module_bay_template.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_module_bay_template.test", "label", "Test Label"),
+					resource.TestCheckResourceAttr("data.netbox_module_bay_template.test", "description", "Test Description"),
+				),
+			},
+		},
+	})
+}
+
+func testAccModuleBayTemplateDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %q
+  slug         = %q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_module_bay_template" "test" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  label       = "Test Label"
+  description = "Test Description"
+}
+
+data "netbox_module_bay_template" "test" {
+  id = netbox_module_bay_template.test.id
+}
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name)
+}

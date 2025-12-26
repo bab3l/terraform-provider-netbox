@@ -65,6 +65,8 @@ type VirtualDeviceContextDataSourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -171,7 +173,12 @@ func (d *VirtualDeviceContextDataSource) Schema(ctx context.Context, req datasou
 
 				Computed: true,
 			},
+			"display_name": schema.StringAttribute{
 
+				MarkdownDescription: "Display name of the VDC.",
+
+				Computed: true,
+			},
 			"tags": nbschema.DSTagsAttribute(),
 
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
@@ -388,7 +395,17 @@ func (d *VirtualDeviceContextDataSource) mapToState(ctx context.Context, result 
 		data.Comments = types.StringNull()
 
 	}
+	// Handle display_name
 
+	if result.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(result.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 	// Map tags
 
 	if result.HasTags() && len(result.GetTags()) > 0 {

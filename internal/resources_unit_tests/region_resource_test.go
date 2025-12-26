@@ -1,0 +1,73 @@
+package resources_unit_tests
+
+import (
+	"context"
+	"testing"
+
+	"github.com/bab3l/terraform-provider-netbox/internal/resources"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
+)
+
+func TestRegionResource(t *testing.T) {
+
+	t.Parallel()
+
+	r := resources.NewRegionResource()
+
+	if r == nil {
+
+		t.Fatal("Expected non-nil resource")
+
+	}
+
+}
+
+func TestRegionResourceSchema(t *testing.T) {
+
+	t.Parallel()
+
+	r := resources.NewRegionResource()
+
+	schemaRequest := fwresource.SchemaRequest{}
+
+	schemaResponse := &fwresource.SchemaResponse{}
+
+	r.Schema(context.Background(), schemaRequest, schemaResponse)
+
+	if schemaResponse.Diagnostics.HasError() {
+
+		t.Fatalf("Schema returned errors: %v", schemaResponse.Diagnostics)
+
+	}
+
+	testutil.ValidateResourceSchema(t, schemaResponse.Schema.Attributes, testutil.SchemaValidation{
+
+		Required: []string{"name", "slug"},
+
+		Optional: []string{"parent", "description", "tags", "custom_fields"},
+
+		Computed: []string{"id"},
+	})
+
+}
+
+func TestRegionResourceMetadata(t *testing.T) {
+
+	t.Parallel()
+
+	r := resources.NewRegionResource()
+
+	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_region")
+
+}
+
+func TestRegionResourceConfigure(t *testing.T) {
+
+	t.Parallel()
+
+	r := resources.NewRegionResource()
+
+	testutil.ValidateResourceConfigure(t, r)
+
+}

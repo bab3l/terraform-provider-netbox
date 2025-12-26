@@ -8,6 +8,7 @@ import (
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -56,6 +57,8 @@ type FrontPortTemplateResourceModel struct {
 	Type types.String `tfsdk:"type"`
 
 	Color types.String `tfsdk:"color"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 
 	RearPort types.String `tfsdk:"rear_port"`
 
@@ -143,6 +146,8 @@ func (r *FrontPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 
 				Default: stringdefault.StaticString(""),
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("front port template"),
 
 			"rear_port": schema.StringAttribute{
 
@@ -594,6 +599,13 @@ func (r *FrontPortTemplateResource) mapResponseToModel(template *netbox.FrontPor
 	data.ID = types.Int32Value(template.GetId())
 
 	data.Name = types.StringValue(template.GetName())
+
+	// DisplayName
+	if template.Display != "" {
+		data.DisplayName = types.StringValue(template.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device type - preserve user's input format
 

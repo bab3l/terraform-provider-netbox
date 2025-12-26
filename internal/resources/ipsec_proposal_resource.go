@@ -65,6 +65,8 @@ type IPSecProposalResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -158,6 +160,8 @@ func (r *IPSecProposalResource) Schema(ctx context.Context, req resource.SchemaR
 			},
 
 			"comments": nbschema.CommentsAttribute("IPSec proposal"),
+
+			"display_name": nbschema.DisplayNameAttribute("IPSec proposal"),
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -702,6 +706,10 @@ func (r *IPSecProposalResource) mapIPSecProposalToState(ctx context.Context, ips
 		data.Comments = types.StringNull()
 
 	}
+
+	// Display Name
+
+	data.DisplayName = types.StringValue(ipsec.Display)
 
 	// Tags
 

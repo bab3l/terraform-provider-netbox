@@ -53,6 +53,8 @@ type InterfaceTemplateDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Bridge types.Int32 `tfsdk:"bridge"`
 
 	PoeMode types.String `tfsdk:"poe_mode"`
@@ -149,6 +151,13 @@ func (d *InterfaceTemplateDataSource) Schema(ctx context.Context, req datasource
 			"description": schema.StringAttribute{
 
 				MarkdownDescription: "A description of the interface template.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the interface template.",
 
 				Computed: true,
 			},
@@ -479,6 +488,13 @@ func (d *InterfaceTemplateDataSource) mapResponseToModel(template *netbox.Interf
 
 		data.RfRole = types.StringNull()
 
+	}
+
+	// Map display_name
+	if template.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(template.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 }

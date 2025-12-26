@@ -43,6 +43,8 @@ type IPAddressDataSourceModel struct {
 
 	Address types.String `tfsdk:"address"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	VRF types.String `tfsdk:"vrf"`
 
 	VRFID types.Int64 `tfsdk:"vrf_id"`
@@ -100,6 +102,13 @@ func (d *IPAddressDataSource) Schema(ctx context.Context, req datasource.SchemaR
 				MarkdownDescription: "The IP address with prefix length (e.g., 192.168.1.1/24).",
 
 				Optional: true,
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the IP address.",
 
 				Computed: true,
 			},
@@ -393,6 +402,18 @@ func (d *IPAddressDataSource) mapIPAddressToState(ctx context.Context, ipAddress
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipAddress.Id))
 
 	data.Address = types.StringValue(ipAddress.Address)
+
+	// Display Name
+
+	if ipAddress.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(ipAddress.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	// VRF
 

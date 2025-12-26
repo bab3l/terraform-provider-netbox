@@ -37,6 +37,8 @@ type ModuleBayDataSource struct {
 type ModuleBayDataSourceModel struct {
 	ID types.Int32 `tfsdk:"id"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	DeviceID types.Int32 `tfsdk:"device_id"`
 
 	Device types.String `tfsdk:"device"`
@@ -75,6 +77,13 @@ func (d *ModuleBayDataSource) Schema(ctx context.Context, req datasource.SchemaR
 				MarkdownDescription: "The unique numeric ID of the module bay.",
 
 				Optional: true,
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the module bay.",
 
 				Computed: true,
 			},
@@ -301,6 +310,18 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 func (d *ModuleBayDataSource) mapResponseToModel(moduleBay *netbox.ModuleBay, data *ModuleBayDataSourceModel) {
 
 	data.ID = types.Int32Value(moduleBay.GetId())
+
+	// Display Name
+
+	if moduleBay.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(moduleBay.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	data.Name = types.StringValue(moduleBay.GetName())
 

@@ -48,6 +48,8 @@ type TunnelGroupResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -78,6 +80,8 @@ func (r *TunnelGroupResource) Schema(ctx context.Context, req resource.SchemaReq
 			"slug": nbschema.SlugAttribute("tunnel group"),
 
 			"description": nbschema.DescriptionAttribute("tunnel group"),
+
+			"display_name": nbschema.DisplayNameAttribute("tunnel group"),
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -544,6 +548,13 @@ func (r *TunnelGroupResource) mapTunnelGroupToState(ctx context.Context, tunnelG
 
 		data.Description = types.StringNull()
 
+	}
+
+	// Map display_name
+	if tunnelGroup.Display != "" {
+		data.DisplayName = types.StringValue(tunnelGroup.Display)
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	// Tags

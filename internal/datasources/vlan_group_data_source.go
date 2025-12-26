@@ -47,6 +47,8 @@ type VLANGroupDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -110,6 +112,13 @@ func (d *VLANGroupDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"description": schema.StringAttribute{
 
 				MarkdownDescription: "Brief description of the VLAN Group.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "Display name for the VLAN Group.",
 
 				Computed: true,
 			},
@@ -379,6 +388,18 @@ func (d *VLANGroupDataSource) mapVLANGroupToState(ctx context.Context, vlanGroup
 	} else {
 
 		data.Description = types.StringNull()
+
+	}
+
+	// Display name
+
+	if displayName := vlanGroup.GetDisplay(); displayName != "" {
+
+		data.DisplayName = types.StringValue(displayName)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

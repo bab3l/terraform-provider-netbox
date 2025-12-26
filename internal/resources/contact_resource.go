@@ -40,6 +40,8 @@ type ContactResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Group types.String `tfsdk:"group"`
 
 	Title types.String `tfsdk:"title"`
@@ -76,6 +78,8 @@ func (r *ContactResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"id": nbschema.IDAttribute("contact"),
 
 			"name": nbschema.NameAttribute("contact", 100),
+
+			"display_name": nbschema.DisplayNameAttribute("contact"),
 
 			"group": nbschema.ReferenceAttribute("contact group", "ID or slug of the contact group this contact belongs to."),
 
@@ -506,6 +510,13 @@ func (r *ContactResource) mapContactToState(ctx context.Context, contact *netbox
 	data.ID = types.StringValue(fmt.Sprintf("%d", contact.GetId()))
 
 	data.Name = types.StringValue(contact.GetName())
+
+	// DisplayName
+	if contact.Display != "" {
+		data.DisplayName = types.StringValue(contact.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Handle optional group - preserve user's input format
 

@@ -65,6 +65,8 @@ type IKEPolicyResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -154,6 +156,8 @@ func (r *IKEPolicyResource) Schema(ctx context.Context, req resource.SchemaReque
 			},
 
 			"comments": nbschema.CommentsAttribute("IKE policy"),
+
+			"display_name": nbschema.DisplayNameAttribute("IKE policy"),
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -724,6 +728,18 @@ func (r *IKEPolicyResource) mapIKEPolicyToState(ctx context.Context, ike *netbox
 	} else {
 
 		data.Comments = types.StringNull()
+
+	}
+
+	// Display Name
+
+	if ike.Display != "" {
+
+		data.DisplayName = types.StringValue(ike.Display)
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

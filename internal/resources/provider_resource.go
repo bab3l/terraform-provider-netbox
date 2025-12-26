@@ -50,6 +50,8 @@ type ProviderResourceModel struct {
 
 	Slug types.String `tfsdk:"slug"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Description types.String `tfsdk:"description"`
 
 	Comments types.String `tfsdk:"comments"`
@@ -82,6 +84,8 @@ func (r *ProviderResource) Schema(ctx context.Context, req resource.SchemaReques
 			"name": nbschema.NameAttribute("circuit provider", 100),
 
 			"slug": nbschema.SlugAttribute("circuit provider"),
+
+			"display_name": nbschema.DisplayNameAttribute("circuit provider"),
 
 			"description": nbschema.DescriptionAttribute("circuit provider"),
 
@@ -138,6 +142,8 @@ func (r *ProviderResource) mapProviderToState(ctx context.Context, provider *net
 	data.Name = types.StringValue(provider.GetName())
 
 	data.Slug = types.StringValue(provider.GetSlug())
+
+	data.DisplayName = types.StringValue(provider.GetDisplay())
 
 	// Handle description
 

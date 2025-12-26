@@ -1,8 +1,16 @@
-data "netbox_console_server_port" "test" {
-  name      = "test-console-server-port"
-  device_id = 123
+data "netbox_console_server_port" "by_id" {
+  id = "789"
 }
 
-output "example" {
-  value = data.netbox_console_server_port.test.id
+data "netbox_console_server_port" "by_device_and_name" {
+  device_id = "456"
+  name      = "csp0"
+}
+
+output "by_id" {
+  value = data.netbox_console_server_port.by_id.name
+}
+
+output "by_device_and_name" {
+  value = data.netbox_console_server_port.by_device_and_name.id
 }

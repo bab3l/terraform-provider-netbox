@@ -53,6 +53,8 @@ type IKEPolicyDataSourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.List `tfsdk:"tags"`
 }
 
@@ -125,6 +127,13 @@ func (d *IKEPolicyDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"comments": schema.StringAttribute{
 
 				MarkdownDescription: "Comments about the IKE policy.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the IKE policy.",
 
 				Computed: true,
 			},
@@ -395,6 +404,13 @@ func (d *IKEPolicyDataSource) mapIKEPolicyToState(ike *netbox.IKEPolicy, data *I
 
 		data.Comments = types.StringNull()
 
+	}
+
+	// Display name
+	if ike.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(ike.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	// Tags

@@ -8,6 +8,7 @@ import (
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -51,6 +52,8 @@ type ConsolePortTemplateResourceModel struct {
 	Name types.String `tfsdk:"name"`
 
 	Label types.String `tfsdk:"label"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 
 	Type types.String `tfsdk:"type"`
 
@@ -118,6 +121,8 @@ func (r *ConsolePortTemplateResource) Schema(ctx context.Context, req resource.S
 
 				Default: stringdefault.StaticString(""),
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("console port template"),
 
 			"type": schema.StringAttribute{
 
@@ -522,6 +527,13 @@ func (r *ConsolePortTemplateResource) mapResponseToModel(template *netbox.Consol
 	data.ID = types.Int32Value(template.GetId())
 
 	data.Name = types.StringValue(template.GetName())
+
+	// DisplayName
+	if template.Display != "" {
+		data.DisplayName = types.StringValue(template.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Map device type - preserve user's input format
 

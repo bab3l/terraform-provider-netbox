@@ -70,6 +70,8 @@ type SiteDataSourceModel struct {
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 func (d *SiteDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -111,6 +113,8 @@ func (d *SiteDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 			"description": nbschema.DSComputedStringAttribute("Detailed description of the site."),
 
 			"comments": nbschema.DSComputedStringAttribute("Additional comments or notes about the site."),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the site."),
 
 			"tags": nbschema.DSTagsAttribute(),
 
@@ -398,6 +402,18 @@ func (d *SiteDataSource) mapSiteToState(ctx context.Context, site *netbox.Site, 
 	data.Comments = utils.StringFromAPIPreserveEmpty(site.HasComments(), site.GetComments, data.Comments)
 
 	data.Facility = utils.StringFromAPIPreserveEmpty(site.HasFacility(), site.GetFacility, data.Facility)
+
+	// Handle display_name
+
+	if site.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(site.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	// Handle tags
 

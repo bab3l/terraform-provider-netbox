@@ -51,6 +51,8 @@ type ContactDataSourceModel struct {
 	Comments types.String `tfsdk:"comments"`
 
 	Tags types.Set `tfsdk:"tags"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 func (d *ContactDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -63,7 +65,7 @@ func (d *ContactDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Use this data source to get information about a contact in Netbox.",
+		MarkdownDescription: "Use this data source to get information about a contact in Netbox. You can identify the contact using `id`, `name`, or `email`.",
 
 		Attributes: map[string]schema.Attribute{
 
@@ -95,6 +97,8 @@ func (d *ContactDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			"comments": nbschema.DSComputedStringAttribute("Comments about the contact."),
 
 			"tags": nbschema.DSTagsAttribute(),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the contact."),
 		},
 	}
 
@@ -359,6 +363,13 @@ func (d *ContactDataSource) mapContactToState(ctx context.Context, contact *netb
 
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 
+	}
+
+	// Map display name
+	if contact.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(contact.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 }

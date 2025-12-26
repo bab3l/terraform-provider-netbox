@@ -59,6 +59,8 @@ type RouteTargetResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -108,6 +110,8 @@ func (r *RouteTargetResource) Schema(ctx context.Context, req resource.SchemaReq
 			"description": nbschema.DescriptionAttribute("route target"),
 
 			"comments": nbschema.CommentsAttribute("route target"),
+
+			"display_name": nbschema.DisplayNameAttribute("route target"),
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -571,6 +575,13 @@ func (r *RouteTargetResource) mapRouteTargetToState(ctx context.Context, rt *net
 
 		data.Comments = types.StringNull()
 
+	}
+
+	// Map display_name
+	if rt.Display != "" {
+		data.DisplayName = types.StringValue(rt.Display)
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	// Tags

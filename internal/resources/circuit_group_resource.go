@@ -49,6 +49,8 @@ type CircuitGroupResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Slug types.String `tfsdk:"slug"`
 
 	Description types.String `tfsdk:"description"`
@@ -83,6 +85,8 @@ func (r *CircuitGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 			"id": nbschema.IDAttribute("circuit group"),
 
 			"name": nbschema.NameAttribute("circuit group", 100),
+
+			"display_name": nbschema.DisplayNameAttribute("circuit group"),
 
 			"slug": nbschema.SlugAttribute("circuit group"),
 
@@ -576,6 +580,13 @@ func (r *CircuitGroupResource) mapResponseToState(ctx context.Context, group *ne
 	data.ID = types.StringValue(fmt.Sprintf("%d", group.GetId()))
 
 	data.Name = types.StringValue(group.GetName())
+
+	// DisplayName
+	if group.Display != "" {
+		data.DisplayName = types.StringValue(group.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	data.Slug = types.StringValue(group.GetSlug())
 

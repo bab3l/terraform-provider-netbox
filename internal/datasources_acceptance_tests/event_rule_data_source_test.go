@@ -1,0 +1,75 @@
+package datasources_acceptance_tests
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+)
+
+func TestAccEventRuleDataSource_basic(t *testing.T) {
+
+	t.Parallel()
+
+	webhookName := testutil.RandomName("tf-test-webhook")
+	eventRuleName := testutil.RandomName("tf-test-event-rule")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccEventRuleDataSourceConfig(webhookName, eventRuleName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_event_rule.test", "name", eventRuleName),
+					resource.TestCheckResourceAttr("data.netbox_event_rule.test", "action_type", "webhook"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccEventRuleDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	webhookName := testutil.RandomName("webhook-ds-id")
+	eventRuleName := testutil.RandomName("event-rule-ds-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccEventRuleDataSourceConfig(webhookName, eventRuleName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_event_rule.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_event_rule.test", "name", eventRuleName),
+					resource.TestCheckResourceAttr("data.netbox_event_rule.test", "action_type", "webhook"),
+				),
+			},
+		},
+	})
+}
+
+func testAccEventRuleDataSourceConfig(webhookName, eventRuleName string) string {
+	return fmt.Sprintf(`
+resource "netbox_webhook" "test" {
+  name        = "%s"
+  payload_url = "http://example.com/webhook"
+}
+
+resource "netbox_event_rule" "test" {
+  name               = "%s"
+  object_types       = ["dcim.site"]
+  event_types        = ["object_created"]
+  action_type        = "webhook"
+  action_object_type = "extras.webhook"
+  action_object_id   = netbox_webhook.test.id
+}
+
+data "netbox_event_rule" "test" {
+  id = netbox_event_rule.test.id
+}
+`, webhookName, eventRuleName)
+}

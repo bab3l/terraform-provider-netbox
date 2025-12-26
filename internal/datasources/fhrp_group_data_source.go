@@ -45,6 +45,8 @@ type FHRPGroupDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Comments types.String `tfsdk:"comments"`
 }
 
@@ -110,6 +112,13 @@ func (d *FHRPGroupDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"description": schema.StringAttribute{
 
 				MarkdownDescription: "A description of the FHRP group.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the FHRP group.",
 
 				Computed: true,
 			},
@@ -334,6 +343,18 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 	} else {
 
 		data.Description = types.StringNull()
+
+	}
+
+	// Display name
+
+	if fhrpGroup.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(fhrpGroup.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

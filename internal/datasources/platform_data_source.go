@@ -28,6 +28,8 @@ type PlatformDataSource struct {
 type PlatformDataSourceModel struct {
 	ID types.String `tfsdk:"id"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Name types.String `tfsdk:"name"`
 
 	Slug types.String `tfsdk:"slug"`
@@ -52,6 +54,8 @@ func (d *PlatformDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 		Attributes: map[string]schema.Attribute{
 
 			"id": nbschema.DSIDAttribute("platform"),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the platform."),
 
 			"name": nbschema.DSNameAttribute("platform"),
 
@@ -199,6 +203,18 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 	}
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", platform.GetId()))
+
+	// Display Name
+
+	if platform.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(platform.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
+
+	}
 
 	data.Name = types.StringValue(platform.GetName())
 

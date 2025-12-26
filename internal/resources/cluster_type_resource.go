@@ -50,6 +50,8 @@ type ClusterTypeResourceModel struct {
 
 	Slug types.String `tfsdk:"slug"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Description types.String `tfsdk:"description"`
 
 	Tags types.Set `tfsdk:"tags"`
@@ -80,6 +82,8 @@ func (r *ClusterTypeResource) Schema(ctx context.Context, req resource.SchemaReq
 			"name": nbschema.NameAttribute("cluster type", 100),
 
 			"slug": nbschema.SlugAttribute("cluster type"),
+
+			"display_name": nbschema.DisplayNameAttribute("cluster type"),
 
 			"description": nbschema.DescriptionAttribute("cluster type"),
 
@@ -129,6 +133,8 @@ func (r *ClusterTypeResource) mapClusterTypeToState(ctx context.Context, cluster
 	data.Name = types.StringValue(clusterType.GetName())
 
 	data.Slug = types.StringValue(clusterType.GetSlug())
+
+	data.DisplayName = types.StringValue(clusterType.GetDisplay())
 
 	// Handle description
 

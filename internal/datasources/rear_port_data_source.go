@@ -54,6 +54,8 @@ type RearPortDataSourceModel struct {
 	Description types.String `tfsdk:"description"`
 
 	MarkConnected types.Bool `tfsdk:"mark_connected"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -146,6 +148,13 @@ func (d *RearPortDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 			"mark_connected": schema.BoolAttribute{
 
 				MarkdownDescription: "Whether the port is marked as connected.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the rear port.",
 
 				Computed: true,
 			},
@@ -393,6 +402,18 @@ func (d *RearPortDataSource) mapResponseToModel(port *netbox.RearPort, data *Rea
 	} else {
 
 		data.MarkConnected = types.BoolValue(false)
+
+	}
+
+	// Map display_name
+
+	if port.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(port.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

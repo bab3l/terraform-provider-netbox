@@ -53,6 +53,8 @@ type ASNDataSourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	SiteCount types.Int64 `tfsdk:"site_count"`
 
 	ProviderCount types.Int64 `tfsdk:"provider_count"`
@@ -76,7 +78,7 @@ func (d *ASNDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Retrieves information about an Autonomous System Number (ASN) in NetBox.",
+		MarkdownDescription: "Retrieves information about an Autonomous System Number (ASN) in NetBox. You can identify the ASN using `id` or `asn`.",
 
 		Attributes: map[string]schema.Attribute{
 
@@ -141,6 +143,8 @@ func (d *ASNDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			},
 
 			"tags": nbschema.DSTagsAttribute(),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the ASN."),
 
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
@@ -439,6 +443,14 @@ func (d *ASNDataSource) mapResponseToModel(ctx context.Context, asn *netbox.ASN,
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 
+	}
+
+	// Map display name
+
+	if asn.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(asn.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 }

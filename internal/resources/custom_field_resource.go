@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -62,6 +63,7 @@ type CustomFieldResourceModel struct {
 	ValidationRegex   types.String `tfsdk:"validation_regex"`
 	ChoiceSet         types.String `tfsdk:"choice_set"`
 	Comments          types.String `tfsdk:"comments"`
+	DisplayName       types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the resource type name.
@@ -191,6 +193,7 @@ func (r *CustomFieldResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Comments or notes about the custom field.",
 				Optional:            true,
 			},
+			"display_name": nbschema.DisplayNameAttribute("custom field"),
 		},
 	}
 }
@@ -674,5 +677,12 @@ func (r *CustomFieldResource) mapResponseToModel(ctx context.Context, customFiel
 		data.Comments = types.StringValue(*comments)
 	} else {
 		data.Comments = types.StringNull()
+	}
+
+	// Map display_name
+	if customField.Display != "" {
+		data.DisplayName = types.StringValue(customField.Display)
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 }

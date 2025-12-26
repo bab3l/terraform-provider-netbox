@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -48,6 +49,8 @@ type ConsolePortTemplateDataSourceModel struct {
 	Type types.String `tfsdk:"type"`
 
 	Description types.String `tfsdk:"description"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -64,7 +67,7 @@ func (d *ConsolePortTemplateDataSource) Schema(ctx context.Context, req datasour
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Retrieves information about a console port template in NetBox.",
+		MarkdownDescription: "Retrieves information about a console port template in NetBox. You can identify the template using `id` or the combination of `name` with `device_type` or `module_type`.",
 
 		Attributes: map[string]schema.Attribute{
 
@@ -124,6 +127,8 @@ func (d *ConsolePortTemplateDataSource) Schema(ctx context.Context, req datasour
 
 				Computed: true,
 			},
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the console port template."),
 		},
 	}
 
@@ -369,6 +374,13 @@ func (d *ConsolePortTemplateDataSource) mapResponseToModel(template *netbox.Cons
 
 		data.Description = types.StringNull()
 
+	}
+
+	// Map display name
+	if template.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(template.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 }

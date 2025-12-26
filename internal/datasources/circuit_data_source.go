@@ -59,6 +59,8 @@ type CircuitDataSourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -78,7 +80,7 @@ func (d *CircuitDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Retrieves information about a circuit in Netbox. Circuits represent physical or logical network connections provided by external carriers or service providers.",
+		MarkdownDescription: "Retrieves information about a circuit in Netbox. Circuits represent physical or logical network connections provided by external carriers or service providers. You can identify the circuit using `id` or `cid`.",
 
 		Attributes: map[string]schema.Attribute{
 
@@ -105,6 +107,8 @@ func (d *CircuitDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			"comments": nbschema.DSComputedStringAttribute("Additional comments or notes about the circuit."),
 
 			"tags": nbschema.DSTagsAttribute(),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the circuit."),
 
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
@@ -419,6 +423,14 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 
+	}
+
+	// Map display name
+
+	if circuit.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(circuit.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	tflog.Debug(ctx, "Read circuit", map[string]interface{}{

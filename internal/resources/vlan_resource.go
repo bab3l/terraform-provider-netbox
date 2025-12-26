@@ -45,6 +45,8 @@ type VLANResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Site types.String `tfsdk:"site"`
 
 	SiteID types.String `tfsdk:"site_id"`
@@ -92,6 +94,8 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			},
 
 			"name": nbschema.NameAttribute("VLAN", 64),
+
+			"display_name": nbschema.DisplayNameAttribute("VLAN"),
 
 			"site": nbschema.ReferenceAttribute("site", "ID or slug of the site this VLAN belongs to."),
 
@@ -680,6 +684,8 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 	data.VID = types.Int64Value(int64(vlan.GetVid()))
 
 	data.Name = types.StringValue(vlan.GetName())
+
+	data.DisplayName = types.StringValue(vlan.GetDisplay())
 
 	// Site
 

@@ -46,6 +46,8 @@ type RackRoleResource struct {
 type RackRoleResourceModel struct {
 	ID types.String `tfsdk:"id"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Name types.String `tfsdk:"name"`
 
 	Slug types.String `tfsdk:"slug"`
@@ -74,6 +76,8 @@ func (r *RackRoleResource) Schema(ctx context.Context, req resource.SchemaReques
 		Attributes: map[string]schema.Attribute{
 
 			"id": nbschema.IDAttribute("rack role"),
+
+			"display_name": nbschema.DisplayNameAttribute("rack role"),
 
 			"name": nbschema.NameAttribute("rack role", 100),
 
@@ -630,6 +634,8 @@ func (r *RackRoleResource) ImportState(ctx context.Context, req resource.ImportS
 func (r *RackRoleResource) mapRackRoleToState(ctx context.Context, rackRole *netbox.RackRole, data *RackRoleResourceModel, diags *diag.Diagnostics) {
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", rackRole.GetId()))
+
+	data.DisplayName = types.StringValue(rackRole.GetDisplay())
 
 	data.Name = types.StringValue(rackRole.GetName())
 

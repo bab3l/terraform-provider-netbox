@@ -49,6 +49,8 @@ type WirelessLANGroupResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Slug types.String `tfsdk:"slug"`
 
 	Description types.String `tfsdk:"description"`
@@ -96,6 +98,8 @@ func (r *WirelessLANGroupResource) Schema(ctx context.Context, req resource.Sche
 
 				Required: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("wireless LAN group"),
 
 			"slug": schema.StringAttribute{
 
@@ -606,6 +610,13 @@ func (r *WirelessLANGroupResource) mapResponseToModel(ctx context.Context, group
 	data.ID = types.StringValue(fmt.Sprintf("%d", group.GetId()))
 
 	data.Name = types.StringValue(group.GetName())
+
+	// DisplayName
+	if group.Display != "" {
+		data.DisplayName = types.StringValue(group.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	data.Slug = types.StringValue(group.GetSlug())
 

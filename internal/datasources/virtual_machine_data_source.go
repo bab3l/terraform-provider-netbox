@@ -63,6 +63,8 @@ type VirtualMachineDataSourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -111,6 +113,8 @@ func (d *VirtualMachineDataSource) Schema(ctx context.Context, req datasource.Sc
 			"description": nbschema.DSComputedStringAttribute("Detailed description of the virtual machine."),
 
 			"comments": nbschema.DSComputedStringAttribute("Additional comments or notes about the virtual machine."),
+
+			"display_name": nbschema.DSComputedStringAttribute("Display name of the virtual machine."),
 
 			"tags": nbschema.DSTagsAttribute(),
 
@@ -435,6 +439,18 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 	} else {
 
 		data.Comments = types.StringNull()
+
+	}
+
+	// Handle display_name
+
+	if vm.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(vm.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

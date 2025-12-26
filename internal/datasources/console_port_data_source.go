@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -51,6 +52,8 @@ type ConsolePortDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	MarkConnected types.Bool `tfsdk:"mark_connected"`
 }
 
@@ -68,7 +71,7 @@ func (d *ConsolePortDataSource) Schema(ctx context.Context, req datasource.Schem
 
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Retrieves information about a console port in NetBox.",
+		MarkdownDescription: "Retrieves information about a console port in NetBox. You can identify the console port using `id` or the combination of `device_id` and `name`.",
 
 		Attributes: map[string]schema.Attribute{
 
@@ -133,6 +136,8 @@ func (d *ConsolePortDataSource) Schema(ctx context.Context, req datasource.Schem
 
 				Computed: true,
 			},
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the console port."),
 
 			"mark_connected": schema.BoolAttribute{
 
@@ -381,6 +386,13 @@ func (d *ConsolePortDataSource) mapResponseToModel(consolePort *netbox.ConsolePo
 
 		data.MarkConnected = types.BoolValue(false)
 
+	}
+
+	// Map display name
+	if consolePort.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(consolePort.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 }

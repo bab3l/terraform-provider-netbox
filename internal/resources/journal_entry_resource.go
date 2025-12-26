@@ -52,6 +52,8 @@ type JournalEntryResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -122,6 +124,8 @@ func (r *JournalEntryResource) Schema(ctx context.Context, req resource.SchemaRe
 
 				Required: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("journal entry"),
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -519,6 +523,13 @@ func (r *JournalEntryResource) mapJournalEntryToState(ctx context.Context, journ
 	data.AssignedObjectID = types.Int64Value(journalEntry.GetAssignedObjectId())
 
 	data.Comments = types.StringValue(journalEntry.GetComments())
+
+	// Map display_name
+	if journalEntry.Display != "" {
+		data.DisplayName = types.StringValue(journalEntry.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Kind
 

@@ -49,6 +49,8 @@ type InventoryItemRoleDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 }
 
@@ -111,6 +113,13 @@ func (d *InventoryItemRoleDataSource) Schema(ctx context.Context, req datasource
 			"description": schema.StringAttribute{
 
 				MarkdownDescription: "A description of the inventory item role.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "The display name of the inventory item role.",
 
 				Computed: true,
 			},
@@ -348,6 +357,13 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 
 		data.Tags = types.SetNull(types.StringType)
 
+	}
+
+	// Map display_name
+	if role.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(role.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

@@ -9,6 +9,7 @@ import (
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -53,6 +54,8 @@ type DeviceBayTemplateResourceModel struct {
 	Name types.String `tfsdk:"name"`
 
 	Label types.String `tfsdk:"label"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 
 	Description types.String `tfsdk:"description"`
 }
@@ -112,6 +115,8 @@ func (r *DeviceBayTemplateResource) Schema(ctx context.Context, req resource.Sch
 
 				Optional: true,
 			},
+
+			"display_name": nbschema.DisplayNameAttribute("device bay template"),
 
 			"description": schema.StringAttribute{
 
@@ -231,7 +236,7 @@ func (r *DeviceBayTemplateResource) Create(ctx context.Context, req resource.Cre
 
 	// Map response to model
 
-	data.ID = types.StringValue(fmt.Sprintf("%d", template.Id))
+	r.mapTemplateToModel(template, &data)
 
 	tflog.Debug(ctx, "Created DeviceBayTemplate", map[string]interface{}{
 
@@ -561,6 +566,13 @@ func (r *DeviceBayTemplateResource) mapTemplateToModel(template *netbox.DeviceBa
 	data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, template.DeviceType.GetModel(), template.DeviceType.GetSlug(), template.DeviceType.GetId())
 
 	data.Name = types.StringValue(template.Name)
+
+	// DisplayName
+	if template.Display != "" {
+		data.DisplayName = types.StringValue(template.Display)
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Label
 

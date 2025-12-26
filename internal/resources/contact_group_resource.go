@@ -51,6 +51,8 @@ type ContactGroupResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -84,6 +86,8 @@ func (r *ContactGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 			},
 
 			"description": nbschema.DescriptionAttribute("contact group"),
+
+			"display_name": nbschema.DisplayNameAttribute("contact group"),
 
 			"tags": nbschema.TagsAttribute(),
 
@@ -451,6 +455,8 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 
 	}
 
+	// Map response to model
+
 	r.mapContactGroupToState(ctx, contactGroup, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
@@ -530,6 +536,12 @@ func (r *ContactGroupResource) mapContactGroupToState(ctx context.Context, conta
 	data.Slug = types.StringValue(contactGroup.GetSlug())
 
 	data.Description = utils.StringFromAPI(contactGroup.HasDescription(), contactGroup.GetDescription, data.Description)
+
+	if contactGroup.GetDisplay() != "" {
+		data.DisplayName = types.StringValue(contactGroup.GetDisplay())
+	} else {
+		data.DisplayName = types.StringNull()
+	}
 
 	// Handle parent reference
 

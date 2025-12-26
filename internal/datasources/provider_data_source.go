@@ -50,6 +50,8 @@ type ProviderDataSourceModel struct {
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
+
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -83,6 +85,8 @@ func (d *ProviderDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 			"tags": nbschema.DSTagsAttribute(),
 
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
+
+			"display_name": nbschema.DSComputedStringAttribute("The display name of the circuit provider."),
 		},
 	}
 
@@ -364,6 +368,18 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 	} else {
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+
+	}
+
+	// Map display_name
+
+	if provider.GetDisplay() != "" {
+
+		data.DisplayName = types.StringValue(provider.GetDisplay())
+
+	} else {
+
+		data.DisplayName = types.StringNull()
 
 	}
 

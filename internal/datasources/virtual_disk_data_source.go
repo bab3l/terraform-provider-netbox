@@ -51,6 +51,8 @@ type VirtualDiskDataSourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	Tags types.List `tfsdk:"tags"`
 }
 
@@ -116,6 +118,13 @@ func (d *VirtualDiskDataSource) Schema(ctx context.Context, req datasource.Schem
 			"description": schema.StringAttribute{
 
 				MarkdownDescription: "The description of the virtual disk.",
+
+				Computed: true,
+			},
+
+			"display_name": schema.StringAttribute{
+
+				MarkdownDescription: "Display name of the virtual disk.",
 
 				Computed: true,
 			},

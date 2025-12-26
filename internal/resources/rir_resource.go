@@ -53,6 +53,8 @@ type RIRResourceModel struct {
 
 	Slug types.String `tfsdk:"slug"`
 
+	DisplayName types.String `tfsdk:"display_name"`
+
 	IsPrivate types.Bool `tfsdk:"is_private"`
 
 	Description types.String `tfsdk:"description"`
@@ -95,6 +97,8 @@ func (r *RIRResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 			"name": nbschema.NameAttribute("RIR", 100),
 
 			"slug": nbschema.SlugAttribute("RIR"),
+
+			"display_name": nbschema.DisplayNameAttribute("RIR"),
 
 			"is_private": schema.BoolAttribute{
 
@@ -526,6 +530,8 @@ func (r *RIRResource) mapRIRToState(ctx context.Context, rir *netbox.RIR, data *
 	data.Name = types.StringValue(rir.Name)
 
 	data.Slug = types.StringValue(rir.Slug)
+
+	data.DisplayName = types.StringValue(rir.GetDisplay())
 
 	// Is Private
 
