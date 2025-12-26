@@ -11,6 +11,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -90,16 +91,14 @@ func (r *TenantResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 			"group":    nbschema.ReferenceAttribute("tenant group", "Name, Slug, or ID of the tenant group that this tenant belongs to."),
 			"group_id": nbschema.ComputedIDAttribute("tenant group"),
-
-			"description": nbschema.DescriptionAttribute("tenant"),
-
-			"comments": nbschema.CommentsAttributeWithLimit("tenant", 1000),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("tenant"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 

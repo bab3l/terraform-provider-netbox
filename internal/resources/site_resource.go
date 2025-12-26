@@ -8,6 +8,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -94,12 +95,14 @@ func (r *SiteResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 					stringvalidator.LengthAtMost(50),
 				},
 			},
-			"description":   nbschema.DescriptionAttribute("site"),
-			"comments":      nbschema.CommentsAttributeWithLimit("site", 1000),
-			"tags":          nbschema.TagsAttribute(),
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("site"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *SiteResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

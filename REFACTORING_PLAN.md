@@ -215,11 +215,73 @@ if group := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlook
 
 ## Phase 3: Schema Composition
 
-**Status**: ⬜ Not Started
+**Status**: 🟡 In Progress
 
-### 3.1 Common Resource Attributes Helper
+### 3.1 Common Resource Attributes Helpers
 
-**Target**: Compose schemas from reusable attribute sets
+**Target**: Compose schemas from reusable attribute sets to reduce repetition
+
+**Current Pattern** - Most resources repeat these common attributes:
+```go
+"description": nbschema.DescriptionAttribute("resource"),
+"comments": nbschema.CommentsAttributeWithLimit("resource", 200),
+"tags": nbschema.TagsAttribute(),
+"custom_fields": nbschema.CustomFieldsAttribute(),
+```
+
+**Proposed Pattern** - Create composition helpers:
+```go
+// CommonDescriptiveAttributes returns description + comments
+func CommonDescriptiveAttributes(resourceName string, commentsLimit int) map[string]schema.Attribute {
+    return map[string]schema.Attribute{
+        "description": DescriptionAttribute(resourceName),
+        "comments": CommentsAttributeWithLimit(resourceName, commentsLimit),
+    }
+}
+
+// CommonMetadataAttributes returns tags + custom_fields
+func CommonMetadataAttributes() map[string]schema.Attribute {
+    return map[string]schema.Attribute{
+        "tags": TagsAttribute(),
+        "custom_fields": CustomFieldsAttribute(),
+    }
+}
+```
+
+**Usage in resource schema**:
+```go
+resp.Schema = schema.Schema{
+    MarkdownDescription: "...",
+    Attributes: map[string]schema.Attribute{
+        "id": nbschema.IDAttribute("tenant"),
+        "name": nbschema.NameAttribute("tenant", 100),
+        // ... resource-specific fields ...
+    },
+}
+// Add common attributes using helper
+maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("tenant", 200))
+maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+```
+
+**Benefits**:
+- Reduces 4 lines to 2 lines (50% savings) for common attribute blocks
+- Makes it easier to add new common attributes to all resources
+- Ensures consistency across all resource schemas
+- Estimated savings: ~2 lines × 99 resources = **~198 lines**
+
+**Progress**:
+- [x] Create `CommonDescriptiveAttributes()` helper
+- [x] Create `CommonMetadataAttributes()` helper
+- [x] Refactor pilot resources (cluster, tenant, site)
+- [x] Validate with tests - all 32 tests passing
+- [ ] Document pattern for remaining resources
+
+**Initial Results** (3 resources refactored):
+- **cluster_resource.go**: 4 attribute lines → 2 lines (**2 lines saved**)
+- **tenant_resource.go**: 4 attribute lines → 2 lines (**2 lines saved**)
+- **site_resource.go**: 4 attribute lines → 2 lines (**2 lines saved**)
+- **Total**: **6 lines saved** across 3 resources
+- **Average**: ~2 lines per resource × 99 resources = **~198 lines potential savings**
 
 ---
 
@@ -249,7 +311,8 @@ if group := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlook
 | 2025-12-26 | a6ca219 | Refactor vrf_resource.go and ip_range_resource.go |
 | 2025-12-26 | 053944c | Add PreserveOptionalReferenceWithID helper and refactor dual-field resources |
 | 2025-12-26 | 43f8e21 | Complete dual-field migration for tenant and vrf resources |
-| 2025-12-26 | TBD | Phase 2: Add ResolveRequiredReference and ResolveOptionalReference helpers |
+| 2025-12-26 | f9995a4 | Phase 2: Add ResolveRequiredReference and ResolveOptionalReference helpers |
+| 2025-12-26 | TBD | Phase 3: Add CommonDescriptiveAttributes and CommonMetadataAttributes helpers |
 
 ---
 
@@ -266,25 +329,27 @@ if group := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlook
 | PopulateCustomFieldsFromMap | 20 | 1 | 95% | ✅ Implemented (Phase 1) |
 | ResolveRequiredReference | 10 | 2 | 80% | ✅ Implemented (Phase 2) |
 | ResolveOptionalReference | 12 | 3 | 75% | ✅ Implemented (Phase 2) |
+| CommonDescriptiveAttributes | 2 | 1 | 50% | ✅ Implemented (Phase 3) |
+| CommonMetadataAttributes | 2 | 1 | 50% | ✅ Implemented (Phase 3) |
 
 ### Resources Refactored (Phase 1)
 
-| Resource | Lines Removed (Phase 1) | Lines Removed (Phase 2) | Total Lines Removed | Tests Passing |
-|----------|--------------------------|-------------------------|---------------------|---------------|
-| cluster_resource.go | 148 | 26 | 174 | ✅ All |
-| cluster_group_resource.go | 59 | 0 | 59 | ✅ All |
-| cluster_type_resource.go | 73 | 0 | 73 | ✅ All |
-| tenant_resource.go | 60 | 18 | 78 | ✅ All |
-| vrf_resource.go | 78 | 0 | 78 | ✅ All |
-| ip_range_resource.go | 100 | 0 | 100 | ✅ All |
-| rir_resource.go | 60 | 0 | 60 | ✅ All |
-| tenant_group_resource.go | 95 | 0 | 95 | ✅ All |
-| region_resource.go | 98 | 0 | 98 | ✅ All |
-| site_resource.go | 118 | 36 | 154 | ✅ All |
-| role_resource.go | 65 | 0 | 65 | ✅ All |
-| circuit_type_resource.go | 66 | 0 | 66 | ✅ All |
-| asn_resource.go | 50 | 0 | 50 | ✅ All |
-| **Total** | **1,070 lines** | **80 lines** | **1,150 lines** | ✅ |
+| Resource | Lines Removed (Phase 1) | Lines Removed (Phase 2) | Lines Removed (Phase 3) | Total Lines Removed | Tests Passing |
+|----------|--------------------------|-------------------------|-------------------------|---------------------|---------------|
+| cluster_resource.go | 148 | 26 | 2 | 176 | ✅ All |
+| cluster_group_resource.go | 59 | 0 | 0 | 59 | ✅ All |
+| cluster_type_resource.go | 73 | 0 | 0 | 73 | ✅ All |
+| tenant_resource.go | 60 | 18 | 2 | 80 | ✅ All |
+| vrf_resource.go | 78 | 0 | 0 | 78 | ✅ All |
+| ip_range_resource.go | 100 | 0 | 0 | 100 | ✅ All |
+| rir_resource.go | 60 | 0 | 0 | 60 | ✅ All |
+| tenant_group_resource.go | 95 | 0 | 0 | 95 | ✅ All |
+| region_resource.go | 98 | 0 | 0 | 98 | ✅ All |
+| site_resource.go | 118 | 36 | 2 | 156 | ✅ All |
+| role_resource.go | 65 | 0 | 0 | 65 | ✅ All |
+| circuit_type_resource.go | 66 | 0 | 0 | 66 | ✅ All |
+| asn_resource.go | 50 | 0 | 0 | 50 | ✅ All |
+| **Total** | **1,070 lines** | **80 lines** | **6 lines** | **1,156 lines** | ✅ |
 
 ---
 
