@@ -53,6 +53,45 @@ func TestAccCustomLinkResource_basic(t *testing.T) {
 
 }
 
+func TestAccCustomLinkResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("cl-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomLinkCleanupByName(name)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		CheckDestroy: testutil.CheckCustomLinkDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCustomLinkResourceConfig_basic(name),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_custom_link.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_text", "View in External System"),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_url", "https://example.com/device/{{ object.name }}"),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "object_types.#", "1"),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccCustomLinkResource_full(t *testing.T) {
 
 	t.Parallel()

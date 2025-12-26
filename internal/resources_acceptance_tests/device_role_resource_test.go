@@ -42,6 +42,45 @@ func TestAccDeviceRoleResource_basic(t *testing.T) {
 
 }
 
+func TestAccDeviceRoleResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("dr-id")
+
+	slug := testutil.GenerateSlug(name)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		CheckDestroy: testutil.CheckDeviceRoleDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccDeviceRoleResourceConfig_basic(name, slug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_device_role.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_device_role.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_device_role.test", "slug", slug),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccDeviceRoleResource_full(t *testing.T) {
 
 	t.Parallel()

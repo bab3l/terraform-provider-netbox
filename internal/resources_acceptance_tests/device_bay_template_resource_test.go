@@ -52,6 +52,47 @@ func TestAccDeviceBayTemplateResource_basic(t *testing.T) {
 
 }
 
+func TestAccDeviceBayTemplateResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("dbt-id")
+
+	manufacturerName := testutil.RandomName("mfr-dbt")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+	deviceTypeName := testutil.RandomName("dt-dbt")
+	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccDeviceBayTemplateResourceConfig_basic(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_device_bay_template.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "name", name),
+
+					resource.TestCheckResourceAttrSet("netbox_device_bay_template.test", "device_type"),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccDeviceBayTemplateResource_full(t *testing.T) {
 
 	t.Parallel()

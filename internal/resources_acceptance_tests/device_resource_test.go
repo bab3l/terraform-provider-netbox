@@ -125,6 +125,46 @@ func TestAccDeviceResource_update(t *testing.T) {
 	})
 }
 
+func TestAccDeviceResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+	// Generate unique names to avoid conflicts between test runs
+	deviceName := testutil.RandomName("dev-id")
+	manufacturerName := testutil.RandomName("mfr-dev")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+	deviceTypeModel := testutil.RandomName("dt-dev")
+	deviceTypeSlug := testutil.GenerateSlug(deviceTypeModel)
+	deviceRoleName := testutil.RandomName("dr-dev")
+	deviceRoleSlug := testutil.GenerateSlug(deviceRoleName)
+	siteName := testutil.RandomName("site-dev")
+	siteSlug := testutil.GenerateSlug(siteName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceResourceConfig_basic(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device.test", "id"),
+					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceName),
+					resource.TestCheckResourceAttrSet("netbox_device.test", "device_type"),
+					resource.TestCheckResourceAttrSet("netbox_device.test", "role"),
+					resource.TestCheckResourceAttrSet("netbox_device.test", "site"),
+					resource.TestCheckResourceAttr("netbox_device.test", "status", "active"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConsistency_Device(t *testing.T) {
 
 	t.Parallel()
