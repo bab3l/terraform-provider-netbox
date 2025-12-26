@@ -8,6 +8,30 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccConsoleServerPortTemplateDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-cspt-ds-id")
+	manufacturerName := testutil.RandomName("tf-test-mfr-id")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-id")
+	deviceTypeName := testutil.RandomName("tf-test-dt-id")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dt-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConsoleServerPortTemplateDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_console_server_port_template.by_id", "id"),
+					resource.TestCheckResourceAttr("data.netbox_console_server_port_template.by_id", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConsoleServerPortTemplateDataSource_basic(t *testing.T) {
 
 	t.Parallel()

@@ -8,6 +8,45 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccConsoleServerPortDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	siteSlug := testutil.RandomSlug("site-id")
+	deviceRoleSlug := testutil.RandomSlug("device-role-id")
+	manufacturerSlug := testutil.RandomSlug("manufacturer-id")
+	deviceTypeName := testutil.RandomName("tf-test-dt-id")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dt-id")
+	deviceName := testutil.RandomName("device-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckDeviceDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConsoleServerPortDataSourceConfig("eth0", siteSlug, deviceRoleSlug, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_console_server_port.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_console_server_port.test", "name", "eth0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConsoleServerPortDataSource_basic(t *testing.T) {
 
 	t.Parallel()

@@ -13,6 +13,38 @@ import (
 
 // Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
 
+func TestAccContactAssignmentDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+
+	randomName := testutil.RandomName("test-contact-ds-id")
+	randomSlug := testutil.RandomSlug("test-ca-ds-id")
+	siteSlug := testutil.RandomSlug("site-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactAssignmentDataSourceConfig(randomName, randomSlug, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_contact_assignment.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+// Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
+
 func TestAccContactAssignmentDataSource_basic(t *testing.T) {
 
 	t.Parallel()

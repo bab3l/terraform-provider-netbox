@@ -13,6 +13,33 @@ import (
 
 // Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
 
+func TestAccIKEProposalDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+
+	cleanup := testutil.NewCleanupResource(t)
+	randomName := testutil.RandomName("tf-test-ike-proposal-ds-id")
+	cleanup.RegisterIKEProposalCleanup(randomName)
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEProposalDataSourceByID(randomName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_ike_proposal.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_ike_proposal.test", "name", randomName),
+				),
+			},
+		},
+	})
+}
+
+// Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
+
 func TestAccIKEProposalDataSource_byID(t *testing.T) {
 
 	t.Parallel()
