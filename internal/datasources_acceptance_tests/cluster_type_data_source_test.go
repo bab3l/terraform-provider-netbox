@@ -44,6 +44,32 @@ func TestAccClusterTypeDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccClusterTypeDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("cluster-type-id")
+	slug := testutil.RandomSlug("cluster-type-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterTypeCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckClusterTypeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccClusterTypeDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_cluster_type.by_name", "id"),
+					resource.TestCheckResourceAttr("data.netbox_cluster_type.by_name", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_cluster_type.by_name", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func testAccClusterTypeDataSourceConfig(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_cluster_type" "test" {

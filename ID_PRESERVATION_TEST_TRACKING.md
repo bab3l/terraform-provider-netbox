@@ -5,8 +5,8 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 
 ## Progress Summary
 - **Total Items**: 205 (101 Resources + 104 Datasources)
-- **Completed**: 81 items (39.5%)
-- **Remaining**: ~124 items across 5 remaining batches
+- **Completed**: 85 items (41.5%)
+- **Remaining**: ~120 items across 4 remaining batches
 
 ---
 
@@ -344,15 +344,27 @@ Testing all 101 resources and 104 datasources to ensure ID is preserved as the i
 ---
 
 ## Batch 11: Cluster Resources
-**Status**: Not Started
-**Items**: 7
-- [ ] cluster_type_resource.go ✅ (already fixed - skip)
-- [ ] cluster_group_resource.go
-- [ ] inventory_item_resource.go ✅ (already fixed - skip)
-- [ ] inventory_item_template_resource.go ✅ (already fixed - skip)
-- [ ] inventory_item_role_resource.go
-- [ ] cluster_data_source.go
-- [ ] cluster_type_data_source.go
+**Status**: COMPLETE ✅
+**Items**: 4
+- [x] cluster_type_resource.go ✅ (already fixed - skip)
+- [x] cluster_group_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] inventory_item_resource.go ✅ (already fixed - skip)
+- [x] inventory_item_template_resource.go ✅ (already fixed - skip)
+- [x] inventory_item_role_resource.go ✅ **COMPLETE** - Acceptance test added and passing
+- [x] cluster_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+- [x] cluster_type_data_source.go ✅ **COMPLETE** - Datasource ID preservation test added and passing
+
+**Tests Added**:
+- `internal/resources_acceptance_tests/cluster_group_resource_test.go`: `TestAccClusterGroupResource_IDPreservation`
+- `internal/resources_acceptance_tests/inventory_item_role_resource_test.go`: `TestAccInventoryItemRoleResource_IDPreservation`
+- `internal/datasources_acceptance_tests/cluster_data_source_test.go`: `TestAccClusterDataSource_IDPreservation`
+- `internal/datasources_acceptance_tests/cluster_type_data_source_test.go`: `TestAccClusterTypeDataSource_IDPreservation`
+
+**Test Results**: All tests PASSING ✅
+- ClusterGroup resource test: 29.07s ✅
+- InventoryItemRole resource test: 26.38s ✅
+- Cluster datasource test: 28.89s ✅
+- ClusterType datasource test: 26.93s ✅
 
 ---
 

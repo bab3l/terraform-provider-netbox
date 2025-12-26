@@ -117,7 +117,33 @@ func TestAccConsistency_ClusterGroup_LiteralNames(t *testing.T) {
 	})
 
 }
+func TestAccClusterGroupResource_IDPreservation(t *testing.T) {
+	t.Parallel()
 
+	name := testutil.RandomName("tf-test-cluster-group-id")
+	slug := testutil.RandomSlug("tf-test-cluster-group-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckClusterGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccClusterGroupResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cluster_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "name", name),
+				),
+			},
+		},
+	})
+
+}
 func testAccClusterGroupConsistencyLiteralNamesConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
