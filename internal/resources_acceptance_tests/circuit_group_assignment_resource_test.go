@@ -271,6 +271,69 @@ func TestAccCircuitGroupAssignmentResource_import(t *testing.T) {
 
 }
 
+func TestAccCircuitGroupAssignmentResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	groupName := testutil.RandomName("cga-id")
+
+	groupSlug := testutil.RandomSlug("cga-id")
+
+	providerName := testutil.RandomName("cga-prov-id")
+
+	providerSlug := testutil.RandomSlug("cga-prov-id")
+
+	circuitTypeName := testutil.RandomName("cga-type-id")
+
+	circuitTypeSlug := testutil.RandomSlug("cga-type-id")
+
+	circuitCid := testutil.RandomSlug("cga-ckt-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterCircuitGroupAssignmentCleanup(groupName)
+
+	cleanup.RegisterCircuitGroupCleanup(groupName)
+
+	cleanup.RegisterCircuitCleanup(circuitCid)
+
+	cleanup.RegisterProviderCleanup(providerName)
+
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeName)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckCircuitGroupAssignmentDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCircuitGroupAssignmentResourceConfig_basic(
+
+					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "id"),
+
+					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "group_id"),
+
+					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "circuit_id"),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccCircuitGroupAssignmentResourceConfig_basic(groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid string) string {
 
 	return fmt.Sprintf(`

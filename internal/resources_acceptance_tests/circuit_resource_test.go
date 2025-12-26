@@ -190,6 +190,61 @@ func TestAccCircuitResource_update(t *testing.T) {
 
 }
 
+func TestAccCircuitResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	cid := testutil.RandomName("ckt-id")
+
+	providerName := testutil.RandomName("prov-id")
+
+	providerSlug := testutil.RandomSlug("prov-id")
+
+	typeName := testutil.RandomName("type-id")
+
+	typeSlug := testutil.RandomSlug("type-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterCircuitCleanup(cid)
+
+	cleanup.RegisterProviderCleanup(providerSlug)
+
+	cleanup.RegisterCircuitTypeCleanup(typeSlug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckCircuitDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCircuitResourceConfig_basic(cid, providerName, providerSlug, typeName, typeSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+
+					resource.TestCheckResourceAttr("netbox_circuit.test", "circuit_provider", providerSlug),
+
+					resource.TestCheckResourceAttr("netbox_circuit.test", "type", typeSlug),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccCircuitResource_import(t *testing.T) {
 
 	t.Parallel()

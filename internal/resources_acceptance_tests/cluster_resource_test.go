@@ -322,6 +322,58 @@ func TestAccConsistency_Cluster_LiteralNames(t *testing.T) {
 
 }
 
+func TestAccClusterResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("clu-type-id")
+
+	clusterTypeSlug := testutil.RandomSlug("clu-type-id")
+
+	clusterName := testutil.RandomName("clu-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterClusterCleanup(clusterName)
+
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.ComposeCheckDestroy(
+
+			testutil.CheckClusterDestroy,
+
+			testutil.CheckClusterTypeDestroy,
+		),
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccClusterResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_cluster.test", "name", clusterName),
+
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "type"),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccClusterResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName string) string {
 
 	return fmt.Sprintf(`

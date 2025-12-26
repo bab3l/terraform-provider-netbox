@@ -96,6 +96,40 @@ func TestAccCircuitTerminationResource_full(t *testing.T) {
 	})
 }
 
+func TestAccCircuitTerminationResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+	providerName := testutil.RandomName("ct-prov-id")
+	providerSlug := testutil.RandomSlug("ct-prov-id")
+	circuitTypeName := testutil.RandomName("ct-type-id")
+	circuitTypeSlug := testutil.RandomSlug("ct-type-id")
+	circuitCID := testutil.RandomName("ct-ckt-id")
+	siteName := testutil.RandomName("ct-site-id")
+	siteSlug := testutil.RandomSlug("ct-site-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
+	cleanup.RegisterCircuitCleanup(circuitCID)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitTerminationResourceConfig_basic(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit_termination.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "term_side", "A"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCircuitTerminationResourceConfig_basic(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_provider" "test" {
