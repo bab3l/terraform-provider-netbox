@@ -8,6 +8,34 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccModuleTypeDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("mfg-id")
+	mfgSlug := testutil.RandomSlug("mfg-id")
+	modelName := testutil.RandomName("module-type-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckManufacturerDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleTypeDataSourceConfig(mfgName, mfgSlug, modelName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_module_type.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_module_type.test", "model", modelName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccModuleTypeDataSource_basic(t *testing.T) {
 
 	t.Parallel()

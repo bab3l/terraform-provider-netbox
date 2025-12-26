@@ -8,6 +8,51 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccModuleBayDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	siteName := testutil.RandomName("tf-test-module-bay-site-ds-id")
+	siteSlug := testutil.GenerateSlug(siteName)
+	deviceRoleName := testutil.RandomName("tf-test-module-bay-role-ds-id")
+	deviceRoleSlug := testutil.GenerateSlug(deviceRoleName)
+	mfgName := testutil.RandomName("tf-test-module-bay-mfg-ds-id")
+	mfgSlug := testutil.GenerateSlug(mfgName)
+	deviceTypeModel := testutil.RandomName("tf-test-module-bay-dt-id")
+	deviceTypeSlug := testutil.RandomSlug("module-bay-dt-id")
+	deviceName := testutil.RandomName("tf-test-module-bay-device-ds-id")
+	moduleBayName := testutil.RandomName("module-bay-id")
+
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterModuleBayCleanup(moduleBayName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckDeviceDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleBayDataSourceConfig("Module Bay 1", siteName, siteSlug, deviceRoleName, deviceRoleSlug, mfgName, mfgSlug, deviceTypeModel, deviceTypeSlug, deviceName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_module_bay.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_module_bay.test", "name", "Module Bay 1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccModuleBayDataSource_basic(t *testing.T) {
 
 	t.Parallel()

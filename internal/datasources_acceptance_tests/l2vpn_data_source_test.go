@@ -12,6 +12,30 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccL2VPNDataSource_IDPreservation(t *testing.T) {
+	cleanup := testutil.NewCleanupResource(t)
+	name := acctest.RandomWithPrefix("test-l2vpn-ds-id")
+	cleanup.RegisterL2VPNCleanup(name)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckL2VPNDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccL2VPNDataSourceConfig_byID(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_l2vpn.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_l2vpn.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func TestAccL2VPNDataSource_byID(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
