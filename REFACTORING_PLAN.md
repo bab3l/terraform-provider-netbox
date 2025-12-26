@@ -56,10 +56,11 @@ data.Type = utils.PreserveReferenceFormat(data.Type, cluster.Type.GetId(), clust
 **Progress**:
 - [x] Add `PreserveReferenceFormat()` to `state_helpers.go`
 - [x] Add `PreserveOptionalReferenceFormat()` for nullable references
-- [x] Add unit tests for the helpers (14 test cases)
+- [x] Add `PreserveOptionalReferenceWithID()` for dual-field pattern (Reference + ReferenceID)
+- [x] Add unit tests for the helpers (21 test cases)
 - [x] Refactor pilot resource (cluster_resource.go)
-- [ ] Run acceptance tests to validate
-- [ ] Apply to remaining resources (53 resources not yet using helpers)
+- [x] Run acceptance tests to validate
+- [x] Apply to 13+ resources
 
 ### 1.2 PopulateTagsFromNestedTags() Helper
 
@@ -189,6 +190,7 @@ data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, cluster.HasCustomFiel
 |---------|----------------|---------------|---------|--------|
 | PreserveReferenceFormat (required) | 20 | 1 | 95% | ✅ Implemented |
 | PreserveOptionalReferenceFormat | 15 | 1 | 93% | ✅ Implemented |
+| PreserveOptionalReferenceWithID (dual-field) | 28 | 5 | 82% | ✅ Implemented |
 | PopulateTagsFromNestedTags | 14 | 1 | 93% | ✅ Implemented |
 | PopulateCustomFieldsFromMap | 20 | 1 | 95% | ✅ Implemented |
 
@@ -203,13 +205,13 @@ data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, cluster.HasCustomFiel
 | vrf_resource.go | 75 | ✅ All |
 | ip_range_resource.go | 100 | ✅ All |
 | rir_resource.go | 60 | ✅ All |
-| tenant_group_resource.go | 65 | ✅ All |
-| region_resource.go | 73 | ✅ All |
-| site_resource.go | 49 | ✅ All |
+| tenant_group_resource.go | 95 | ✅ All |
+| region_resource.go | 98 | ✅ All |
+| site_resource.go | 118 | ✅ All |
 | role_resource.go | 65 | ✅ All |
 | circuit_type_resource.go | 66 | ✅ All |
 | asn_resource.go | 50 | ✅ All |
-| **Total** | **936 lines** | ✅ |
+| **Total** | **1,064 lines** | ✅ |
 
 ---
 
