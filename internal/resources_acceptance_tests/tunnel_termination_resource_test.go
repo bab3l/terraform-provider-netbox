@@ -40,6 +40,35 @@ func TestAccTunnelTerminationResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccTunnelTerminationResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+	tunnelName := testutil.RandomName("tnl-term-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelCleanup(tunnelName)
+	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckTunnelTerminationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTunnelTerminationResourceConfig_basic(tunnelName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tunnel_termination.test", "id"),
+					resource.TestCheckResourceAttrSet("netbox_tunnel_termination.test", "tunnel"),
+					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "termination_type", "dcim.device"),
+					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "role", "peer"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccTunnelTerminationResource_update(t *testing.T) {
 
 	t.Parallel()

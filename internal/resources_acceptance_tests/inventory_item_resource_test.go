@@ -40,6 +40,38 @@ func TestAccInventoryItemResource_basic(t *testing.T) {
 
 }
 
+func TestAccInventoryItemResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("inv-id")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccInventoryItemResourceConfig_basic(name),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_inventory_item.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_inventory_item.test", "name", name),
+
+					resource.TestCheckResourceAttrSet("netbox_inventory_item.test", "device"),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccInventoryItemResource_full(t *testing.T) {
 
 	t.Parallel()

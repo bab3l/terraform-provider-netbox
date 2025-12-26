@@ -50,6 +50,51 @@ func TestAccDeviceTypeResource_basic(t *testing.T) {
 
 }
 
+func TestAccDeviceTypeResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	model := testutil.RandomName("dt-id")
+	slug := testutil.GenerateSlug(model)
+	manufacturerName := testutil.RandomName("mfr-dt")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(slug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		CheckDestroy: testutil.CheckDeviceTypeDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccDeviceTypeResourceConfig_basic(model, slug, manufacturerName, manufacturerSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_device_type.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_device_type.test", "model", model),
+
+					resource.TestCheckResourceAttr("netbox_device_type.test", "slug", slug),
+
+					resource.TestCheckResourceAttrSet("netbox_device_type.test", "manufacturer"),
+
+					resource.TestCheckResourceAttr("netbox_device_type.test", "u_height", "1"),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccDeviceTypeResource_full(t *testing.T) {
 
 	t.Parallel()

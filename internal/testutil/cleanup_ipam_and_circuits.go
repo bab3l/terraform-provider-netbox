@@ -683,6 +683,24 @@ func (c *CleanupResource) RegisterFHRPGroupCleanup(protocol string, groupID int3
 
 }
 
+// RegisterFHRPGroupAssignmentCleanup registers a cleanup function that will delete
+
+// FHRP group assignments after the test completes.
+
+func (c *CleanupResource) RegisterFHRPGroupAssignmentCleanup(name string) {
+
+	c.t.Cleanup(func() {
+
+		// FHRP group assignments are cleaned up via cascade deletion
+
+		// through interface/device cleanup, so no explicit cleanup needed
+
+		c.t.Logf("Cleanup: FHRP group assignments for %s will be cleaned up via cascade deletion", name)
+
+	})
+
+}
+
 // RegisterRoleCleanup registers a cleanup function that will delete
 
 // a role by slug after the test completes.

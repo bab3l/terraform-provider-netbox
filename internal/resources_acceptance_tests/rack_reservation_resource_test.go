@@ -206,6 +206,49 @@ func TestAccConsistency_RackReservation_LiteralNames(t *testing.T) {
 		},
 	})
 }
+
+func TestAccRackReservationResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	siteName := testutil.RandomName("site-rr")
+	siteSlug := testutil.GenerateSlug(siteName)
+	rackName := testutil.RandomName("rack-rr")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterRackCleanup(rackName)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckRackReservationDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, description),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_rack_reservation.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "description", description),
+
+					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "units.#", "2"),
+				),
+			},
+		},
+	})
+}
 func testAccRackReservationConsistencyLiteralNamesConfig(siteName, siteSlug, rackName, description string) string {
 	return fmt.Sprintf(`
 provider "netbox" {}

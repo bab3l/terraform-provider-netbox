@@ -44,6 +44,41 @@ func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccFHRPGroupAssignmentResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("fga-id")
+	interfaceName := "eth0"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterFHRPGroupAssignmentCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "id"),
+
+					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "group_id"),
+
+					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "interface_id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {

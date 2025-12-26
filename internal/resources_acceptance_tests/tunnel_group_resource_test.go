@@ -41,6 +41,36 @@ func TestAccTunnelGroupResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccTunnelGroupResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+	// Generate unique names
+	name := testutil.RandomName("tg-id")
+	slug := testutil.GenerateSlug(name)
+
+	// Register cleanup
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelGroupCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckTunnelGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTunnelGroupResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tunnel_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func TestAccTunnelGroupResource_full(t *testing.T) {
 
 	t.Parallel()
