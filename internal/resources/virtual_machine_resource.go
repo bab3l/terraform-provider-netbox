@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -237,21 +238,14 @@ func (r *VirtualMachineResource) Schema(ctx context.Context, req resource.Schema
 					int64planmodifier.UseStateForUnknown(),
 				},
 			},
-
-			"description": nbschema.DescriptionAttribute("virtual machine"),
-
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "Additional comments or notes about the virtual machine.",
-
-				Optional: true,
-			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("virtual machine"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 

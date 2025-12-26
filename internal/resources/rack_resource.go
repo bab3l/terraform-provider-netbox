@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -354,16 +355,14 @@ func (r *RackResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 					stringvalidator.OneOf("front-to-rear", "rear-to-front", "passive", "mixed"),
 				},
 			},
-
-			"description": nbschema.DescriptionAttribute("rack"),
-
-			"comments": nbschema.CommentsAttribute("rack"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("rack"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 

@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -86,18 +87,14 @@ func (r *AggregateResource) Schema(ctx context.Context, req resource.SchemaReque
 				MarkdownDescription: "The date this aggregate was added (YYYY-MM-DD format).",
 				Optional:            true,
 			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "A description of the aggregate.",
-				Optional:            true,
-			},
-			"comments": schema.StringAttribute{
-				MarkdownDescription: "Additional comments about the aggregate.",
-				Optional:            true,
-			},
-			"tags":          nbschema.TagsAttribute(),
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("aggregate"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure sets the client for the resource.

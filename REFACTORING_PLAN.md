@@ -6,7 +6,7 @@ This document tracks the progress of refactoring resources and datasources to us
 
 **Branch**: `refactor/extract-common-helpers`
 **Start Date**: December 26, 2025
-**Status**: � Phase 3 Batch 1 Complete - Moving to Batch 2
+**Status**: ✅ Phase 3 Batch 2 Complete - Moving to Batch 1 Additions
 
 ---
 
@@ -21,7 +21,8 @@ This document tracks the progress of refactoring resources and datasources to us
 | Phase 3a | Schema Composition Pilot | 3 | 6 | 37f8733 |
 | Phase 3b | DescriptionOnly Helper | 5 | 5 | 8eb12a3 |
 | **Phase 3 Batch 1** | **Full Schema Refactor** | **20** | **81** | **6 commits** |
-| **TOTAL** | **All Phases** | **44** | **1,242** | **12 commits** |
+| **Phase 3 Batch 2** | **DescriptionOnly Refactor** | **27** | **62** | **3 commits** |
+| **TOTAL** | **All Phases** | **71** | **1,304** | **15 commits** |
 
 ### Phase 3 Batch 1 Details
 - Part 1 (5 resources): 9 lines saved - commit f4612ae
@@ -30,6 +31,11 @@ This document tracks the progress of refactoring resources and datasources to us
 - Part 4 (4 resources): 26 lines saved - commit e282a4d
 - prefix_resource: 9 lines saved - commit 8e68d01
 - contact_resource: -5 lines (infrastructure) - commit acccce3
+
+### Phase 3 Batch 2 Details
+- Part 1 (4 resources): 4 lines saved - commit f4b0b32
+- Part 2 (10 resources): 39 lines saved - commit f1d3048
+- Part 3 (13 resources): 19 lines saved - commit e5faf8f
 
 ---
 
@@ -270,7 +276,7 @@ if group := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlook
 
 ## Phase 3: Schema Composition
 
-**Status**: � Batch 1 Complete (20/71 resources) - **Next: Batch 2**
+**Status**: ✅ Batch 2 Complete (47/71 resources) - **Next: Batch 1 Additions (8 misclassified)**
 
 ### 3.1 Common Resource Attributes Helpers
 
@@ -367,50 +373,44 @@ Resources with full descriptive metadata:
 
 #### Batch 2: Description + Tags + Custom Fields (DescriptionOnlyAttributes + CommonMetadataAttributes)
 Resources with description but no comments field:
-- [ ] aggregate_resource.go
-- [ ] asn_range_resource.go
-- [ ] cable_resource.go
-- [ ] contact_assignment_resource.go
-- [ ] contact_group_resource.go
-- [ ] contact_role_resource.go
-- [ ] device_bay_template_resource.go
-- [ ] front_port_resource.go
-- [ ] front_port_template_resource.go
-- [ ] interface_resource.go
-- [ ] interface_template_resource.go
-- [ ] inventory_item_resource.go
-- [ ] inventory_item_role_resource.go
-- [ ] inventory_item_template_resource.go
-- [ ] l2vpn_termination_resource.go
-- [ ] location_resource.go
-- [ ] manufacturer_resource.go
-- [ ] platform_resource.go
-- [ ] power_feed_resource.go
-- [ ] power_outlet_resource.go
-- [ ] power_outlet_template_resource.go
-- [ ] power_port_resource.go
-- [ ] power_port_template_resource.go
-- [ ] rack_resource.go
-- [ ] rack_role_resource.go
-- [ ] rear_port_resource.go
-- [ ] rear_port_template_resource.go
-- [ ] service_resource.go
-- [ ] service_template_resource.go
-- [ ] site_group_resource.go
-- [ ] tunnel_resource.go
-- [ ] tunnel_group_resource.go
-- [ ] tunnel_termination_resource.go
-- [ ] virtual_chassis_resource.go
-- [ ] virtual_disk_resource.go
-- [ ] vlan_resource.go
-- [ ] vlan_group_resource.go
-- [ ] vm_interface_resource.go
-- [ ] vpn_tunnel_resource.go
-- [ ] wireless_lan_resource.go
-- [ ] wireless_lan_group_resource.go
-- [ ] wireless_link_resource.go
+- [x] asn_range_resource.go ✅
+- [x] circuit_termination_resource.go ✅
+- [x] circuit_type_resource.go ✅ (already in Phase 3b)
+- [x] cluster_group_resource.go ✅ (already in Phase 3b)
+- [x] cluster_type_resource.go ✅ (already in Phase 3b)
+- [x] console_server_port_template_resource.go ✅
+- [x] contact_group_resource.go ✅
+- [x] contact_role_resource.go ✅
+- [x] device_bay_template_resource.go ✅
+- [x] device_role_resource.go ✅
+- [x] front_port_template_resource.go ✅
+- [x] interface_template_resource.go ✅
+- [x] inventory_item_role_resource.go ✅
+- [x] inventory_item_template_resource.go ✅
+- [x] location_resource.go ✅
+- [x] manufacturer_resource.go ✅
+- [x] module_bay_template_resource.go ✅
+- [x] platform_resource.go ✅
+- [x] power_outlet_template_resource.go ✅
+- [x] power_port_template_resource.go ✅
+- [x] rack_role_resource.go ✅
+- [x] rear_port_template_resource.go ✅
+- [x] region_resource.go ✅ (already in Phase 3b)
+- [x] rir_resource.go ✅ (already in Phase 3b)
+- [x] site_group_resource.go ✅
+- [x] tenant_group_resource.go ✅
+- [x] tunnel_group_resource.go ✅
+- [x] virtual_disk_resource.go ✅
+- [x] vlan_group_resource.go ✅
 
-**Estimated savings**: ~1 line × 42 resources = **42 lines**
+**Completed: 27/27 ✅** (includes 5 from Phase 3b)
+**Lines saved: 62 lines** (Part 1: 4, Part 2: 39, Part 3: 19)
+**Commits**: f4b0b32, f1d3048, e5faf8f
+
+**Note**: During audit, discovered misclassifications:
+- **Moved to Batch 1** (have comments field): aggregate, cable, power_feed, rack, site, virtual_machine, vlan, vrf
+- **Moved to Batch 3** (no description field): contact_assignment, fhrp_group_assignment, l2vpn_termination, tunnel_termination
+- **Excluded** (no tags/custom_fields support): console_port_template, and other port templates without metadata
 
 #### Batch 3: Tags + Custom Fields Only (CommonMetadataAttributes)
 Resources with only metadata, no description or comments:

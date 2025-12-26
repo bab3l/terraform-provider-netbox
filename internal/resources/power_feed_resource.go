@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -222,13 +223,6 @@ func (r *PowerFeedResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed: true,
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the power feed.",
-
-				Optional: true,
-			},
-
 			"tenant": schema.StringAttribute{
 
 				MarkdownDescription: "The tenant this power feed belongs to (ID or slug).",
@@ -236,20 +230,15 @@ func (r *PowerFeedResource) Schema(ctx context.Context, req resource.SchemaReque
 				Optional: true,
 			},
 
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "Additional comments or notes about the power feed.",
-
-				Optional: true,
-			},
-
 			"display_name": nbschema.DisplayNameAttribute("power feed"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("power feed"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 

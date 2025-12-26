@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -112,10 +113,6 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 			"tenant_id": nbschema.ComputedIDAttribute("tenant"),
 
-			"description": nbschema.DescriptionAttribute("VLAN"),
-
-			"comments": nbschema.CommentsAttribute("VLAN"),
-
 			"status": schema.StringAttribute{
 
 				MarkdownDescription: "Operational status of the VLAN. Valid values: `active`, `reserved`, `deprecated`. Defaults to `active`.",
@@ -131,12 +128,14 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 				Optional: true,
 			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("VLAN"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 
