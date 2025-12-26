@@ -63,6 +63,44 @@ func TestAccConsoleServerPortTemplateResource_basic(t *testing.T) {
 
 }
 
+func TestAccConsoleServerPortTemplateResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("mfr-cspt")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+	deviceTypeName := testutil.RandomName("dt-cspt")
+	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
+	name := testutil.RandomName("cspt-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccConsoleServerPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),
+
+				Check: resource.ComposeAggregateTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_console_server_port_template.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_console_server_port_template.test", "name", name),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccConsoleServerPortTemplateResource_full(t *testing.T) {
 
 	t.Parallel()

@@ -54,6 +54,49 @@ func TestAccClusterTypeResource_basic(t *testing.T) {
 
 }
 
+func TestAccClusterTypeResource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("ct-id")
+
+	slug := testutil.RandomSlug("ct-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterClusterTypeCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckClusterTypeDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccClusterTypeResourceConfig_basic(name, slug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_cluster_type.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_cluster_type.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_cluster_type.test", "slug", slug),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccClusterTypeResource_full(t *testing.T) {
 
 	t.Parallel()
