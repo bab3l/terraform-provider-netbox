@@ -622,77 +622,16 @@ func (r *CircuitTypeResource) mapCircuitTypeToState(ctx context.Context, circuit
 	}
 
 	// Handle color
-
 	if circuitType.HasColor() && circuitType.GetColor() != "" {
-
 		data.Color = types.StringValue(circuitType.GetColor())
-
 	} else {
-
 		data.Color = types.StringNull()
-
 	}
 
 	// Handle tags
-
-	if circuitType.HasTags() {
-
-		tags := utils.NestedTagsToTagModels(circuitType.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		data.Tags = tagsValue
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
-	}
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, circuitType.HasTags(), circuitType.GetTags(), diags)
 
 	// Handle custom fields
-
-	if circuitType.HasCustomFields() {
-
-		var configuredCFs []utils.CustomFieldModel
-
-		if !data.CustomFields.IsNull() {
-
-			diags.Append(data.CustomFields.ElementsAs(ctx, &configuredCFs, false)...)
-
-			if diags.HasError() {
-
-				return
-
-			}
-
-		}
-
-		customFields := utils.MapToCustomFieldModels(circuitType.GetCustomFields(), configuredCFs)
-
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		data.CustomFields = customFieldsValue
-
-	} else {
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, circuitType.HasCustomFields(), circuitType.GetCustomFields(), data.CustomFields, diags)
 
 }

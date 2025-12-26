@@ -659,73 +659,16 @@ func (r *ASNResource) mapResponseToModel(ctx context.Context, asn *netbox.ASN, d
 	}
 
 	// Map comments
-
 	if comments, ok := asn.GetCommentsOk(); ok && comments != nil && *comments != "" {
-
 		data.Comments = types.StringValue(*comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Handle tags
-
-	if asn.HasTags() {
-
-		tags := utils.NestedTagsToTagModels(asn.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		data.Tags = tagsValue
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
-	}
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, asn.HasTags(), asn.GetTags(), diags)
 
 	// Handle custom fields
-
-	if asn.HasCustomFields() {
-
-		apiCustomFields := asn.GetCustomFields()
-
-		var stateCustomFieldModels []utils.CustomFieldModel
-
-		if !data.CustomFields.IsNull() {
-
-			data.CustomFields.ElementsAs(ctx, &stateCustomFieldModels, false)
-
-		}
-
-		customFields := utils.MapToCustomFieldModels(apiCustomFields, stateCustomFieldModels)
-
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		data.CustomFields = customFieldsValue
-
-	} else {
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, asn.HasCustomFields(), asn.GetCustomFields(), data.CustomFields, diags)
 
 }
