@@ -11,6 +11,31 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccIPSecProposalDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+
+	cleanup := testutil.NewCleanupResource(t)
+	randomName := testutil.RandomName("tf-test-ipsec-proposal-ds-id")
+	cleanup.RegisterIPSecProposalCleanup(randomName)
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSecProposalDataSourceByID(randomName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_ipsec_proposal.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_ipsec_proposal.test", "name", randomName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccIPSecProposalDataSource_byID(t *testing.T) {
 
 	t.Parallel()

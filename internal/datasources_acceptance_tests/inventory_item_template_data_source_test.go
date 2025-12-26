@@ -8,6 +8,37 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccInventoryItemTemplateDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("test-inventory-item-template-id")
+	manufacturerName := testutil.RandomName("test-manufacturer-iit-id")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+	deviceTypeName := testutil.RandomName("test-device-type-iit-id")
+	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceTypeDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemTemplateDataSourceConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_inventory_item_template.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_inventory_item_template.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func TestAccInventoryItemTemplateDataSource_basic(t *testing.T) {
 
 	t.Parallel()

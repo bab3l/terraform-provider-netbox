@@ -8,6 +8,49 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccModuleDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("site-id")
+	siteSlug := testutil.RandomSlug("site-id")
+	roleName := testutil.RandomName("device-role-id")
+	roleSlug := testutil.RandomSlug("device-role-id")
+	mfgName := testutil.RandomName("mfg-id")
+	mfgSlug := testutil.RandomSlug("mfg-id")
+	deviceTypeName := testutil.RandomName("device-type-id")
+	deviceTypeSlug := testutil.RandomSlug("device-type-id")
+	deviceName := testutil.RandomName("device-id")
+	moduleTypeName := testutil.RandomName("module-type-id")
+	moduleBayName := testutil.RandomName("module-bay-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckDeviceDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleDataSourceConfig(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName, moduleTypeName, moduleBayName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_module.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccModuleDataSource_basic(t *testing.T) {
 
 	t.Parallel()

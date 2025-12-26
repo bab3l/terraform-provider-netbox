@@ -8,6 +8,27 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccInventoryItemRoleDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-inv-item-role-id")
+	slug := testutil.RandomSlug("tf-test-inv-item-role-id")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemRoleDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_inventory_item_role.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_inventory_item_role.test", "name", name),
+				),
+			},
+		},
+	})
+}
+
 func TestAccInventoryItemRoleDataSource_basic(t *testing.T) {
 
 	t.Parallel()

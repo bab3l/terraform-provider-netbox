@@ -12,6 +12,40 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccL2VPNTerminationDataSource_IDPreservation(t *testing.T) {
+	name := acctest.RandomWithPrefix("test-l2vpn-term-ds-id")
+	siteSlug := acctest.RandomWithPrefix("site-id")
+	deviceRoleSlug := acctest.RandomWithPrefix("role-id")
+	manufacturerSlug := acctest.RandomWithPrefix("mfg-id")
+	deviceSlug := acctest.RandomWithPrefix("device-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceCleanup(deviceSlug)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccL2VPNTerminationDataSourceConfig_byID(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_l2vpn_termination.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccL2VPNTerminationDataSource_byID(t *testing.T) {
 
 	name := acctest.RandomWithPrefix("test-l2vpn-term-ds")
