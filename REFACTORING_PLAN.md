@@ -173,7 +173,10 @@ data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, cluster.HasCustomFiel
 | Date | Commit | Description |
 |------|--------|-------------|
 | 2025-12-26 | 5e13472 | Initial plan document |
-| 2025-12-26 | - | Add helpers and refactor cluster_resource.go |
+| 2025-12-26 | 6d28ac5 | Add PreserveReferenceFormat and PopulateTagsFromNestedTags helpers |
+| 2025-12-26 | 04280bf | Refactor cluster_resource.go |
+| 2025-12-26 | c95ab48 | Refactor cluster_group and cluster_type resources |
+| 2025-12-26 | 4a34e7f | Refactor tenant_resource.go |
 
 ---
 
@@ -188,12 +191,15 @@ data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, cluster.HasCustomFiel
 | PopulateTagsFromNestedTags | 14 | 1 | 93% | ✅ Implemented |
 | PopulateCustomFieldsFromMap | 20 | 1 | 95% | ✅ Implemented |
 
-### cluster_resource.go mapClusterToState()
+### Resources Refactored (Phase 1)
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Lines of code | ~140 | ~55 |
-| Reduction | - | **61%** |
+| Resource | Lines Removed | Tests Passing |
+|----------|---------------|---------------|
+| cluster_resource.go | 148 | ✅ All |
+| cluster_group_resource.go | 59 | ✅ All |
+| cluster_type_resource.go | 73 | ✅ All |
+| tenant_resource.go | 57 | ✅ All |
+| **Total** | **337 lines** | ✅ |
 
 ---
 
