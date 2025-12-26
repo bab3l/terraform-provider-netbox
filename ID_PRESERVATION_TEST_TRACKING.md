@@ -480,7 +480,115 @@ This session added comprehensive ID preservation tests to the Terraform provider
 - **Datasources**: 43/104 (41.3%) - 61 remaining
 - **Git Commits**: 10 commits with meaningful batches
 
-### What Was Accomplished This Session
+---
+
+## Remaining Datasources - Organized into Batches 21-29
+
+### Batch 21: Contact & Custom Field Resources
+**Status**: NOT STARTED
+**Items**: 7
+- [ ] contact_data_source_test.go
+- [ ] contact_group_data_source_test.go
+- [ ] contact_role_data_source_test.go
+- [ ] custom_field_choice_set_data_source_test.go
+- [ ] custom_field_data_source_test.go
+- [ ] custom_link_data_source_test.go
+- [ ] manufacturer_data_source_test.go
+
+### Batch 22: Device & FHRP Resources
+**Status**: NOT STARTED
+**Items**: 6
+- [ ] device_bay_data_source_test.go
+- [ ] device_bay_template_data_source_test.go
+- [ ] device_role_data_source_test.go
+- [ ] fhrp_group_assignment_data_source_test.go
+- [ ] fhrp_group_data_source_test.go
+- [ ] front_port_template_data_source_test.go
+
+### Batch 23: IKE, Interface & Inventory Resources
+**Status**: NOT STARTED
+**Items**: 6
+- [ ] ike_proposal_data_source_test.go
+- [ ] interface_template_data_source_test.go
+- [ ] inventory_item_data_source_test.go
+- [ ] inventory_item_role_data_source_test.go
+- [ ] inventory_item_template_data_source_test.go
+- [ ] ip_range_data_source_test.go
+
+### Batch 24: IPSec, Journal & L2VPN Resources
+**Status**: NOT STARTED
+**Items**: 6
+- [ ] ipsec_profile_data_source_test.go
+- [ ] ipsec_proposal_data_source_test.go
+- [ ] journal_entry_data_source_test.go
+- [ ] l2vpn_data_source_test.go
+- [ ] l2vpn_termination_data_source_test.go
+- [ ] module_bay_data_source_test.go
+
+### Batch 25: Module & Power Resources
+**Status**: NOT STARTED
+**Items**: 7
+- [ ] module_bay_template_data_source_test.go
+- [ ] module_data_source_test.go
+- [ ] module_type_data_source_test.go
+- [ ] power_feed_data_source_test.go
+- [ ] power_outlet_template_data_source_test.go
+- [ ] power_panel_data_source_test.go
+- [ ] power_port_template_data_source_test.go
+
+### Batch 26: Provider & Rack Resources
+**Status**: NOT STARTED
+**Items**: 6
+- [ ] provider_account_data_source_test.go
+- [ ] provider_network_data_source_test.go
+- [ ] rack_role_data_source_test.go
+- [ ] rack_type_data_source_test.go
+- [ ] rear_port_data_source_test.go
+- [ ] rear_port_template_data_source_test.go
+
+### Batch 27: Region, RIR, Route Target & Script
+**Status**: NOT STARTED
+**Items**: 4
+- [ ] region_data_source_test.go
+- [ ] rir_data_source_test.go
+- [ ] route_target_data_source_test.go
+- [ ] script_data_source_test.go
+
+### Batch 28: Service, Site & Tunnel Resources
+**Status**: NOT STARTED
+**Items**: 6
+- [ ] service_data_source_test.go
+- [ ] service_template_data_source_test.go
+- [ ] site_group_data_source_test.go
+- [ ] tunnel_data_source_test.go
+- [ ] tunnel_group_data_source_test.go
+- [ ] tunnel_termination_data_source_test.go
+
+### Batch 29: User, Virtual, VRF & Wireless Resources
+**Status**: NOT STARTED
+**Items**: 8
+- [ ] user_data_source_test.go
+- [ ] virtual_chassis_data_source_test.go
+- [ ] virtual_device_context_data_source_test.go
+- [ ] virtual_disk_data_source_test.go
+- [ ] vrf_data_source_test.go
+- [ ] webhook_data_source_test.go
+- [ ] wireless_lan_group_data_source_test.go
+- [ ] wireless_link_data_source_test.go
+
+**Note**: cable_termination_data_source_test.go intentionally skipped (has t.Skip() about missing IDs)
+
+---
+
+## Previous Session Work
+
+### Achievement Summary
+**Completion Rate: 70% (142/203)**
+- **Resources**: 99/99 (100%) ✅ COMPLETE
+- **Datasources**: 43/104 (41.3%) - 61 remaining
+- **Git Commits**: 10 commits with meaningful batches
+
+### What Was Accomplished Last Session
 1. **Resource Tests (All 99 Complete)**:
    - Batch 12: 6 template/config items
    - Batch 13: 10 IKE/IPSec/webhook items
