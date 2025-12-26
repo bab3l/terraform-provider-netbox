@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -166,17 +167,6 @@ func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.Sch
 
 			"display_name": nbschema.DisplayNameAttribute("interface template"),
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the interface template.",
-
-				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(""),
-			},
-
 			"bridge": schema.Int32Attribute{
 
 				MarkdownDescription: "The ID of the bridge interface template this interface belongs to.",
@@ -207,6 +197,8 @@ func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.Sch
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("interface template"))
 }
 
 // Configure adds the provider configured client to the resource.

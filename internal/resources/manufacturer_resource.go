@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -61,11 +62,11 @@ func (r *ManufacturerResource) Schema(ctx context.Context, req resource.SchemaRe
 			"slug": nbschema.SlugAttribute("manufacturer"),
 
 			"display_name": nbschema.DisplayNameAttribute("manufacturer"),
-
-			"description": nbschema.DescriptionAttribute("manufacturer"),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("manufacturer"))
 }
 
 // Implement Configure, Create, Read, Update, Delete, ImportState methods here.

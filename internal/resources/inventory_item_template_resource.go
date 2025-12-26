@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -151,13 +152,6 @@ func (r *InventoryItemTemplateResource) Schema(ctx context.Context, req resource
 				Optional: true,
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the inventory item template.",
-
-				Optional: true,
-			},
-
 			"display_name": nbschema.DisplayNameAttribute("inventory item template"),
 
 			"component_type": schema.StringAttribute{
@@ -176,6 +170,8 @@ func (r *InventoryItemTemplateResource) Schema(ctx context.Context, req resource
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("inventory item template"))
 }
 
 // Configure adds the provider configured client to the resource.

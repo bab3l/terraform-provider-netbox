@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -86,14 +87,11 @@ func (r *ConsoleServerPortTemplateResource) Schema(ctx context.Context, req reso
 				MarkdownDescription: "The type of console server port (e.g., de-9, db-25, rj-45, usb-a, usb-b, usb-c, usb-mini-a, usb-mini-b, usb-micro-a, usb-micro-b, usb-micro-ab, other).",
 				Optional:            true,
 			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "A description of the console server port template.",
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
-			},
 		},
 	}
+
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("console server port template"))
 }
 
 // Configure adds the provider configured client to the resource.
