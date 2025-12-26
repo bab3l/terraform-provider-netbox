@@ -150,33 +150,17 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	// Handle tenant relationship
-	if utils.IsSet(data.Tenant) {
-		tenantRef, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	if tenantRef := utils.ResolveOptionalReference(ctx, r.client, data.Tenant, netboxlookup.LookupTenant, &resp.Diagnostics); tenantRef != nil {
 		siteRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
 	}
 
 	// Handle region relationship
-	if utils.IsSet(data.Region) {
-		regionRef, diags := netboxlookup.LookupRegion(ctx, r.client, data.Region.ValueString())
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	if regionRef := utils.ResolveOptionalReference(ctx, r.client, data.Region, netboxlookup.LookupRegion, &resp.Diagnostics); regionRef != nil {
 		siteRequest.Region = *netbox.NewNullableBriefRegionRequest(regionRef)
 	}
 
 	// Handle group relationship
-	if utils.IsSet(data.Group) {
-		groupRef, diags := netboxlookup.LookupSiteGroup(ctx, r.client, data.Group.ValueString())
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	if groupRef := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupSiteGroup, &resp.Diagnostics); groupRef != nil {
 		siteRequest.Group = *netbox.NewNullableBriefSiteGroupRequest(groupRef)
 	}
 
@@ -326,32 +310,17 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	// Handle tenant relationship
-	if utils.IsSet(data.Tenant) {
-		tenantRef, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	if tenantRef := utils.ResolveOptionalReference(ctx, r.client, data.Tenant, netboxlookup.LookupTenant, &resp.Diagnostics); tenantRef != nil {
 		siteRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
 	}
 
 	// Handle region relationship
-	if utils.IsSet(data.Region) {
-		regionRef, diags := netboxlookup.LookupRegion(ctx, r.client, data.Region.ValueString())
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	if regionRef := utils.ResolveOptionalReference(ctx, r.client, data.Region, netboxlookup.LookupRegion, &resp.Diagnostics); regionRef != nil {
 		siteRequest.Region = *netbox.NewNullableBriefRegionRequest(regionRef)
 	}
 
 	// Handle group relationship
-	if utils.IsSet(data.Group) {
-		groupRef, diags := netboxlookup.LookupSiteGroup(ctx, r.client, data.Group.ValueString())
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	if groupRef := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupSiteGroup, &resp.Diagnostics); groupRef != nil {
 		siteRequest.Group = *netbox.NewNullableBriefSiteGroupRequest(groupRef)
 	}
 

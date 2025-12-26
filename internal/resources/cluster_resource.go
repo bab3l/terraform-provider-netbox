@@ -266,9 +266,7 @@ func (r *ClusterResource) buildClusterRequest(ctx context.Context, data *Cluster
 
 	// Lookup cluster type (required)
 
-	clusterType, typeDiags := netboxlookup.LookupClusterType(ctx, r.client, data.Type.ValueString())
-
-	diags.Append(typeDiags...)
+	clusterType := utils.ResolveRequiredReference(ctx, r.client, data.Type, netboxlookup.LookupClusterType, diags)
 
 	if diags.HasError() {
 
@@ -285,17 +283,7 @@ func (r *ClusterResource) buildClusterRequest(ctx context.Context, data *Cluster
 
 	// Group
 
-	if utils.IsSet(data.Group) {
-
-		group, groupDiags := netboxlookup.LookupClusterGroup(ctx, r.client, data.Group.ValueString())
-
-		diags.Append(groupDiags...)
-
-		if diags.HasError() {
-
-			return nil
-
-		}
+	if group := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupClusterGroup, diags); group != nil {
 
 		clusterRequest.Group = *netbox.NewNullableBriefClusterGroupRequest(group)
 
@@ -313,17 +301,7 @@ func (r *ClusterResource) buildClusterRequest(ctx context.Context, data *Cluster
 
 	// Tenant
 
-	if utils.IsSet(data.Tenant) {
-
-		tenant, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
-
-		diags.Append(tenantDiags...)
-
-		if diags.HasError() {
-
-			return nil
-
-		}
+	if tenant := utils.ResolveOptionalReference(ctx, r.client, data.Tenant, netboxlookup.LookupTenant, diags); tenant != nil {
 
 		clusterRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
 
@@ -331,17 +309,7 @@ func (r *ClusterResource) buildClusterRequest(ctx context.Context, data *Cluster
 
 	// Site
 
-	if utils.IsSet(data.Site) {
-
-		site, siteDiags := netboxlookup.LookupSite(ctx, r.client, data.Site.ValueString())
-
-		diags.Append(siteDiags...)
-
-		if diags.HasError() {
-
-			return nil
-
-		}
+	if site := utils.ResolveOptionalReference(ctx, r.client, data.Site, netboxlookup.LookupSite, diags); site != nil {
 
 		clusterRequest.Site = *netbox.NewNullableBriefSiteRequest(site)
 

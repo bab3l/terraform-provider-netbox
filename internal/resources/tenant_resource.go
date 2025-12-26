@@ -168,17 +168,7 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Handle group relationship - lookup the group details by ID
 
-	if utils.IsSet(data.Group) {
-
-		groupRef, diags := netboxlookup.LookupTenantGroup(ctx, r.client, data.Group.ValueString())
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
+	if groupRef := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupTenantGroup, &resp.Diagnostics); groupRef != nil {
 
 		tenantRequest.Group = *netbox.NewNullableBriefTenantGroupRequest(groupRef)
 
@@ -405,17 +395,7 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	// Handle group relationship
 
-	if utils.IsSet(data.Group) {
-
-		groupRef, diags := netboxlookup.LookupTenantGroup(ctx, r.client, data.Group.ValueString())
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
+	if groupRef := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupTenantGroup, &resp.Diagnostics); groupRef != nil {
 
 		tenantRequest.Group = *netbox.NewNullableBriefTenantGroupRequest(groupRef)
 

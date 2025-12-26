@@ -503,254 +503,145 @@ func (r *CableResource) parseTerminations(ctx context.Context, terminations type
 }
 
 // mapResponseToState maps API response to Terraform state.
-
 func (r *CableResource) mapResponseToState(ctx context.Context, result *netbox.Cable, data *CableResourceModel) diag.Diagnostics {
-
 	var diags diag.Diagnostics
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
-
 	data.DisplayName = types.StringValue(result.GetDisplay())
 
 	// Map A terminations
-
 	if result.HasATerminations() {
-
 		aTerms, d := r.mapTerminationsToState(ctx, result.GetATerminations())
-
 		diags.Append(d...)
-
 		data.ATerminations = aTerms
-
 	}
 
 	// Map B terminations
-
 	if result.HasBTerminations() {
-
 		bTerms, d := r.mapTerminationsToState(ctx, result.GetBTerminations())
-
 		diags.Append(d...)
-
 		data.BTerminations = bTerms
-
 	}
 
 	// Type
-
 	if result.HasType() && result.GetType() != "" {
-
 		data.Type = types.StringValue(string(result.GetType()))
-
 	} else {
-
 		data.Type = types.StringNull()
-
 	}
 
 	// Status
-
 	if result.HasStatus() {
-
 		status := result.GetStatus()
-
 		data.Status = types.StringValue(string(status.GetValue()))
-
 	} else {
-
 		data.Status = types.StringNull()
-
 	}
 
 	// Tenant - preserve user's input format
-
 	if result.HasTenant() && result.GetTenant().Id != 0 {
-
 		tenant := result.GetTenant()
-
 		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
-
 	} else {
-
 		data.Tenant = types.StringNull()
-
 	}
 
 	// Label
-
 	if result.HasLabel() && result.GetLabel() != "" {
-
 		data.Label = types.StringValue(result.GetLabel())
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Color
-
 	if result.HasColor() && result.GetColor() != "" {
-
 		data.Color = types.StringValue(result.GetColor())
-
 	} else {
-
 		data.Color = types.StringNull()
-
 	}
 
 	// Length
-
 	if result.HasLength() && result.GetLength() != 0 {
-
 		data.Length = types.Float64Value(result.GetLength())
-
 	} else {
-
 		data.Length = types.Float64Null()
-
 	}
 
 	// Length unit
-
 	if result.HasLengthUnit() {
-
 		lengthUnit := result.GetLengthUnit()
-
 		if lengthUnit.GetValue() != "" {
-
 			data.LengthUnit = types.StringValue(string(lengthUnit.GetValue()))
-
 		} else {
-
 			data.LengthUnit = types.StringNull()
-
 		}
-
 	} else {
-
 		data.LengthUnit = types.StringNull()
-
 	}
 
 	// Description
-
 	if result.HasDescription() && result.GetDescription() != "" {
-
 		data.Description = types.StringValue(result.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Comments
-
 	if result.HasComments() && result.GetComments() != "" {
-
 		data.Comments = types.StringValue(result.GetComments())
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Tags
-
 	if result.HasTags() && len(result.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(result.GetTags())
-
 		tagsValue, d := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
 		diags.Append(d...)
-
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom fields
-
 	if result.HasCustomFields() && len(result.GetCustomFields()) > 0 {
-
 		var existingModels []utils.CustomFieldModel
-
 		if !data.CustomFields.IsNull() {
-
 			diags.Append(data.CustomFields.ElementsAs(ctx, &existingModels, false)...)
-
 		}
-
 		customFields := utils.MapToCustomFieldModels(result.GetCustomFields(), existingModels)
-
 		customFieldsValue, d := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
 		diags.Append(d...)
-
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 	return diags
-
 }
 
 // mapTerminationsToState converts API terminations to Terraform state.
-
 func (r *CableResource) mapTerminationsToState(ctx context.Context, terminations []netbox.GenericObject) (types.List, diag.Diagnostics) {
-
 	var diags diag.Diagnostics
-
 	if len(terminations) == 0 {
-
 		return types.ListNull(getTerminationObjectType()), diags
-
 	}
-
 	models := make([]TerminationModel, len(terminations))
-
 	for i, t := range terminations {
-
 		models[i] = TerminationModel{
-
 			ObjectType: types.StringValue(t.GetObjectType()),
-
-			ObjectID: types.Int64Value(int64(t.GetObjectId())),
+			ObjectID:   types.Int64Value(int64(t.GetObjectId())),
 		}
-
 	}
-
 	result, d := types.ListValueFrom(ctx, getTerminationObjectType(), models)
-
 	diags.Append(d...)
-
 	return result, diags
-
 }
 
 // getTerminationObjectType returns the Terraform object type for terminations.
-
 func getTerminationObjectType() attr.Type {
-
 	return types.ObjectType{
-
 		AttrTypes: map[string]attr.Type{
-
 			"object_type": types.StringType,
-
-			"object_id": types.Int64Type,
+			"object_id":   types.Int64Type,
 		},
 	}
-
 }

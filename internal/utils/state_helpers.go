@@ -1150,3 +1150,115 @@ func CloseResponseBody(resp *http.Response) {
 	}
 
 }
+
+// =====================================================
+
+// REFERENCE RESOLUTION HELPERS (Create/Update operations)
+
+// =====================================================
+
+// These helpers standardize the pattern of looking up related resources by ID,
+
+// name, or slug during Create/Update operations. They reduce boilerplate and
+
+// ensure consistent error handling across all resources.
+
+// LookupFunc is a function that resolves a reference by ID, name, or slug.
+
+// All lookup functions in the netboxlookup package follow this signature.
+
+//
+
+// Example: netboxlookup.LookupClusterType, netboxlookup.LookupTenant, etc.
+
+type LookupFunc[T any] func(ctx context.Context, client *netbox.APIClient, value string) (*T, diag.Diagnostics)
+
+// ResolveRequiredReference resolves a required reference field during Create/Update operations.
+
+// It calls the lookup function and appends any errors to the diagnostics.
+
+// Returns nil if the lookup fails (diagnostics will contain the error).
+
+//
+
+// Example usage in buildRequest:
+
+//
+
+//	clusterType := utils.ResolveRequiredReference(ctx, r.client, data.Type, netboxlookup.LookupClusterType, diags)
+
+//	if diags.HasError() {
+
+//	    return nil
+
+//	}
+
+//	request.Type = *clusterType
+
+func ResolveRequiredReference[T any](
+
+	ctx context.Context,
+
+	client *netbox.APIClient,
+
+	field types.String,
+
+	lookupFunc LookupFunc[T],
+
+	diags *diag.Diagnostics,
+
+) *T {
+
+	result, lookupDiags := lookupFunc(ctx, client, field.ValueString())
+
+	diags.Append(lookupDiags...)
+
+	return result
+
+}
+
+// ResolveOptionalReference resolves an optional reference field during Create/Update operations.
+
+// Returns nil if the field is not set or if the lookup fails.
+
+// Any lookup errors are appended to the diagnostics.
+
+//
+
+// Example usage in buildRequest:
+
+//
+
+//	if group := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupClusterGroup, diags); group != nil {
+
+//	    request.Group = *netbox.NewNullableBriefClusterGroupRequest(group)
+
+//	}
+
+func ResolveOptionalReference[T any](
+
+	ctx context.Context,
+
+	client *netbox.APIClient,
+
+	field types.String,
+
+	lookupFunc LookupFunc[T],
+
+	diags *diag.Diagnostics,
+
+) *T {
+
+	if !IsSet(field) {
+
+		return nil
+
+	}
+
+	result, lookupDiags := lookupFunc(ctx, client, field.ValueString())
+
+	diags.Append(lookupDiags...)
+
+	return result
+
+}
