@@ -179,6 +179,7 @@ data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, cluster.HasCustomFiel
 | 2025-12-26 | c95ab48 | Refactor cluster_group and cluster_type resources |
 | 2025-12-26 | 4a34e7f | Refactor tenant_resource.go |
 | 2025-12-26 | a6ca219 | Refactor vrf_resource.go and ip_range_resource.go |
+| 2025-12-26 | TBD | Complete dual-field migration for tenant and vrf resources |
 
 ---
 
@@ -201,8 +202,8 @@ data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, cluster.HasCustomFiel
 | cluster_resource.go | 148 | ✅ All |
 | cluster_group_resource.go | 59 | ✅ All |
 | cluster_type_resource.go | 73 | ✅ All |
-| tenant_resource.go | 57 | ✅ All |
-| vrf_resource.go | 75 | ✅ All |
+| tenant_resource.go | 60 | ✅ All |
+| vrf_resource.go | 78 | ✅ All |
 | ip_range_resource.go | 100 | ✅ All |
 | rir_resource.go | 60 | ✅ All |
 | tenant_group_resource.go | 95 | ✅ All |
@@ -211,7 +212,7 @@ data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, cluster.HasCustomFiel
 | role_resource.go | 65 | ✅ All |
 | circuit_type_resource.go | 66 | ✅ All |
 | asn_resource.go | 50 | ✅ All |
-| **Total** | **1,064 lines** | ✅ |
+| **Total** | **1,070 lines** | ✅ |
 
 ---
 

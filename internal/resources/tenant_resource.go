@@ -554,14 +554,15 @@ func (r *TenantResource) mapTenantToState(ctx context.Context, tenant *netbox.Te
 	data.DisplayName = types.StringValue(tenant.GetDisplay())
 
 	// Handle group reference
-	if tenant.HasGroup() && tenant.GetGroup().Id != 0 {
-		group := tenant.GetGroup()
-		data.GroupID = types.StringValue(fmt.Sprintf("%d", group.Id))
-		data.Group = utils.PreserveOptionalReferenceFormat(data.Group, true, group.Id, group.Name, group.Slug)
-	} else {
-		data.Group = types.StringNull()
-		data.GroupID = types.StringNull()
-	}
+	groupRef := utils.PreserveOptionalReferenceWithID(
+		data.Group,
+		tenant.HasGroup() && tenant.GetGroup().Id != 0,
+		tenant.GetGroup().Id,
+		tenant.GetGroup().Name,
+		tenant.GetGroup().Slug,
+	)
+	data.Group = groupRef.Reference
+	data.GroupID = groupRef.ID
 
 	// Handle optional string fields using helpers
 	data.Description = utils.StringFromAPI(tenant.HasDescription(), tenant.GetDescription, data.Description)

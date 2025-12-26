@@ -585,14 +585,15 @@ func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *
 	}
 
 	// Tenant
-	if vrf.HasTenant() && vrf.Tenant.Get() != nil {
-		tenant := vrf.Tenant.Get()
-		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
-		data.Tenant = utils.PreserveOptionalReferenceFormat(data.Tenant, true, tenant.GetId(), tenant.GetName(), tenant.GetSlug())
-	} else {
-		data.Tenant = types.StringNull()
-		data.TenantID = types.StringNull()
-	}
+	tenantRef := utils.PreserveOptionalReferenceWithID(
+		data.Tenant,
+		vrf.HasTenant() && vrf.Tenant.Get() != nil,
+		vrf.Tenant.Get().GetId(),
+		vrf.Tenant.Get().GetName(),
+		vrf.Tenant.Get().GetSlug(),
+	)
+	data.Tenant = tenantRef.Reference
+	data.TenantID = tenantRef.ID
 
 	// Enforce unique - default is true
 	data.EnforceUnique = types.BoolValue(vrf.GetEnforceUnique())
