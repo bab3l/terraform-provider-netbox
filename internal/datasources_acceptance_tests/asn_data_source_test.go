@@ -42,6 +42,34 @@ func TestAccASNDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccASNDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	rirName := testutil.RandomName("rir-asn-id")
+	rirSlug := testutil.RandomSlug("rir-asn-id")
+	asnValue := acctest.RandIntRange(65000, 65999)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRIRDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccASNDataSourceConfig(rirName, rirSlug, asnValue),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_asn.by_asn", "id"),
+					resource.TestCheckResourceAttr("data.netbox_asn.by_asn", "asn", fmt.Sprintf("%d", asnValue)),
+					resource.TestCheckResourceAttrSet("data.netbox_asn.by_asn", "rir"),
+				),
+			},
+		},
+	})
+}
+
 func testAccASNDataSourceConfig(rirName, rirSlug string, asn int) string {
 	return fmt.Sprintf(`
 resource "netbox_rir" "test" {

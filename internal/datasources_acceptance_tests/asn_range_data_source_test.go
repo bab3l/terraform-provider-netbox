@@ -73,6 +73,48 @@ func TestAccASNRangeDataSource_basic(t *testing.T) {
 
 }
 
+func TestAccASNRangeDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("asnr-ds-id")
+	slug := testutil.GenerateSlug(name)
+	rirName := testutil.RandomName("rir-asnr")
+	rirSlug := testutil.GenerateSlug(rirName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterASNRangeCleanup(slug)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccASNRangeDataSourceConfig(name, slug, rirName, rirSlug),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("data.netbox_asn_range.test", "id"),
+
+					resource.TestCheckResourceAttr("data.netbox_asn_range.test", "name", name),
+
+					resource.TestCheckResourceAttr("data.netbox_asn_range.test", "slug", slug),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccASNRangeDataSourceConfig(name, slug, rirName, rirSlug string) string {
 
 	return fmt.Sprintf(`

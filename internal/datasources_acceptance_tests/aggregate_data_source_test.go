@@ -41,6 +41,34 @@ func TestAccAggregateDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccAggregateDataSource_IDPreservation(t *testing.T) {
+
+	t.Parallel()
+
+	rirName := testutil.RandomName("rir-agg-id")
+	rirSlug := testutil.RandomSlug("rir-agg-id")
+	prefix := testutil.RandomIPv4Prefix()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRIRDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAggregateDataSourceConfig(rirName, rirSlug, prefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_aggregate.by_prefix", "id"),
+					resource.TestCheckResourceAttr("data.netbox_aggregate.by_prefix", "prefix", prefix),
+					resource.TestCheckResourceAttrSet("data.netbox_aggregate.by_prefix", "rir"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAggregateDataSourceConfig(rirName, rirSlug, prefix string) string {
 	return fmt.Sprintf(`
 resource "netbox_rir" "test" {
