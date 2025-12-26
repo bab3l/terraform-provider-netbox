@@ -8,6 +8,43 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccDeviceBayDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	siteSlug := testutil.RandomSlug("site-bay-id")
+	deviceRoleSlug := testutil.RandomSlug("device-role-bay-id")
+	manufacturerSlug := testutil.RandomSlug("manufacturer-bay-id")
+	deviceTypeModel := testutil.RandomName("device-type-bay-id")
+	deviceTypeSlug := testutil.RandomSlug("device-type-bay-id")
+	deviceName := testutil.RandomName("device-bay-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceBayDataSourceConfig("Bay 1", siteSlug, deviceRoleSlug, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_device_bay.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_device_bay.test", "name", "Bay 1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDeviceBayDataSource_basic(t *testing.T) {
 
 	t.Parallel()

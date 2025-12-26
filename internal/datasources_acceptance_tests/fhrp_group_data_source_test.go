@@ -12,6 +12,34 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccFHRPGroupDataSource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	protocol := "vrrp2"
+	groupID := int32(acctest.RandIntRange(1, 254)) // #nosec G115 -- test value range is 1-254, safe for int32
+	name := testutil.RandomName("tf-test-fhrp-ds-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckFHRPGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFHRPGroupDataSourceConfig_byID(protocol, groupID, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_fhrp_group.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_fhrp_group.test", "protocol", protocol),
+				),
+			},
+		},
+	})
+}
+
 func TestAccFHRPGroupDataSource_byID(t *testing.T) {
 
 	t.Parallel()

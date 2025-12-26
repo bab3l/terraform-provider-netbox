@@ -12,6 +12,43 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+func TestAccFHRPGroupAssignmentDataSource_IDPreservation(t *testing.T) {
+	name := acctest.RandomWithPrefix("test-fhrp-assign-ds-id")
+	siteSlug := acctest.RandomWithPrefix("site-id")
+	deviceRoleSlug := acctest.RandomWithPrefix("role-id")
+	manufacturerSlug := acctest.RandomWithPrefix("mfg-id")
+	deviceSlug := acctest.RandomWithPrefix("device-id")
+	interfaceName := acctest.RandomWithPrefix("eth-id")
+	groupID := acctest.RandIntRange(1, 4094)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceCleanup(deviceSlug)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFHRPGroupAssignmentDataSourceConfig_byID(name, interfaceName, groupID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_fhrp_group_assignment.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_fhrp_group_assignment.test", "interface_type", "dcim.interface"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccFHRPGroupAssignmentDataSource_byID(t *testing.T) {
 
 	name := acctest.RandomWithPrefix("test-fhrp-assign-ds")
