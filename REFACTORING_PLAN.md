@@ -458,11 +458,71 @@ Resources from Batch 3 audit that have description or comments fields:
 **Lines saved: 13 lines**
 **Commit**: e8bc4c9
 
-#### Batch 4: Special Cases
-Resources with inline descriptions or other variations:
-- [ ] Review and handle individually
+#### Batch 5: Remaining Category 1 Resources (Description + Comments + Tags + Custom Fields)
+Resources with full descriptive metadata - organized into sub-batches:
 
-**Total Phase 3 Potential Savings**: 11 (completed) + 91 (estimated) = **~102 lines**
+**Batch 5a - Circuits & Services (4 resources):**
+- [ ] circuit_resource.go
+- [ ] circuit_group_resource.go
+- [ ] service_resource.go
+- [ ] service_template_resource.go
+
+**Batch 5b - Interfaces & Inventory (4 resources):**
+- [ ] interface_resource.go
+- [ ] inventory_item_resource.go
+- [ ] role_resource.go
+- [ ] route_target_resource.go
+
+**Batch 5c - VPN & Wireless (4 resources):**
+- [ ] ike_policy_resource.go
+- [ ] ike_proposal_resource.go
+- [ ] tunnel_resource.go
+- [ ] wireless_lan_resource.go
+
+**Batch 5d - Virtual Resources (2 resources):**
+- [ ] virtual_chassis_resource.go
+- [ ] virtual_device_context_resource.go
+
+**Total Batch 5: 14 resources**
+**Pattern**: Use `CommonDescriptiveAttributes()` + `CommonMetadataAttributes()`
+**Estimated savings**: ~28-42 lines
+
+#### Batch 6: Category 2 Resources (Description Only, No Comments)
+Resources with description + tags + custom_fields but no comments field:
+
+**Batch 6a (5 resources):**
+- [ ] front_port_resource.go
+- [ ] notification_group_resource.go
+- [ ] power_outlet_resource.go
+- [ ] rear_port_resource.go
+- [ ] vm_interface_resource.go
+
+**Batch 6b (3 resources):**
+- [ ] wireless_lan_group_resource.go
+- [ ] wireless_link_resource.go
+- [ ] circuit_group_assignment_resource.go
+
+**Total Batch 6: 8 resources**
+**Pattern**: Use `DescriptionOnlyAttributes()` + `CommonMetadataAttributes()`
+**Estimated savings**: ~8-16 lines
+
+#### Batch 7: Special Cases (Non-Standard Metadata)
+Resources with unique schemas or missing standard metadata support:
+- [ ] config_context_resource.go (description + tags, no custom_fields)
+- [ ] config_template_resource.go (description only, no metadata)
+- [ ] custom_field_resource.go (description + comments, no tags/custom_fields)
+- [ ] custom_field_choice_set_resource.go (description only, no metadata)
+- [ ] custom_link_resource.go (no standard attributes)
+- [ ] event_rule_resource.go (needs verification)
+- [ ] export_template_resource.go (description only, no metadata)
+- [ ] tag_resource.go (description only, can't tag a tag)
+- [ ] webhook_resource.go (description + tags, no custom_fields)
+
+**Total Batch 7: 9 resources**
+**Pattern**: Individual handling required
+**Estimated savings**: ~5-15 lines
+
+**Total Remaining Phase 3 Savings**: ~41-73 lines across 31 resources
 
 ---
 
