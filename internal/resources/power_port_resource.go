@@ -470,12 +470,6 @@ func (r *PowerPortResource) Update(ctx context.Context, req resource.UpdateReque
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
-
 	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
 
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())

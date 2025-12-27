@@ -277,12 +277,6 @@ func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateReque
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
-
 	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
 
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
@@ -503,12 +497,6 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 	if !data.RearPortPosition.IsNull() && !data.RearPortPosition.IsUnknown() {
 
 		apiReq.SetRearPortPosition(data.RearPortPosition.ValueInt32())
-
-	}
-
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
 
 	}
 

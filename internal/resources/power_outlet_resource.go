@@ -261,12 +261,6 @@ func (r *PowerOutletResource) Create(ctx context.Context, req resource.CreateReq
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
-
 	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
 
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
@@ -480,12 +474,6 @@ func (r *PowerOutletResource) Update(ctx context.Context, req resource.UpdateReq
 		feedLeg := netbox.PatchedWritablePowerOutletRequestFeedLeg(data.FeedLeg.ValueString())
 
 		apiReq.SetFeedLeg(feedLeg)
-
-	}
-
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
 
 	}
 
