@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -216,18 +217,15 @@ func (r *WirelessLinkResource) Schema(ctx context.Context, req resource.SchemaRe
 				},
 			},
 
-			"description": nbschema.DescriptionAttribute("wireless link"),
-
-			"comments": nbschema.CommentsAttribute("wireless link"),
-
 			"display_name": nbschema.DisplayNameAttribute("wireless link"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("wireless link"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.

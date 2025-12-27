@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -75,11 +76,12 @@ func (r *CircuitGroupAssignmentResource) Schema(ctx context.Context, req resourc
 					stringvalidator.OneOf("primary", "secondary", "tertiary", "inactive", ""),
 				},
 			},
-			"display_name":  nbschema.DisplayNameAttribute("circuit group assignment"),
-			"tags":          nbschema.TagsAttribute(),
-			"custom_fields": nbschema.CustomFieldsAttribute(),
+			"display_name": nbschema.DisplayNameAttribute("circuit group assignment"),
 		},
 	}
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *CircuitGroupAssignmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

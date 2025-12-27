@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -108,26 +109,20 @@ func (r *WirelessLANGroupResource) Schema(ctx context.Context, req resource.Sche
 				Required: true,
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the wireless LAN group.",
-
-				Optional: true,
-			},
-
 			"parent": schema.StringAttribute{
 
 				MarkdownDescription: "Parent wireless LAN group (ID or slug) for hierarchical organization.",
 
 				Optional: true,
 			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("wireless LAN group"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
