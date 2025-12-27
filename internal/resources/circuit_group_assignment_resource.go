@@ -139,14 +139,9 @@ func (r *CircuitGroupAssignmentResource) Create(ctx context.Context, req resourc
 	}
 
 	// Handle tags
-	if !data.Tags.IsNull() {
-		var tagModels []utils.TagModel
-		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		assignmentRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
+	utils.ApplyTags(ctx, assignmentRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Call the API to create the circuit group assignment
@@ -264,16 +259,9 @@ func (r *CircuitGroupAssignmentResource) Update(ctx context.Context, req resourc
 	}
 
 	// Handle tags
-	if !data.Tags.IsNull() {
-		var tagModels []utils.TagModel
-		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		assignmentRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-	} else {
-		assignmentRequest.Tags = []netbox.NestedTagRequest{}
+	utils.ApplyTags(ctx, assignmentRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Call the API to update the circuit group assignment

@@ -672,19 +672,11 @@ func (r *PrefixResource) setOptionalFields(ctx context.Context, prefixRequest *n
 
 	// Handle tags
 
-	if utils.IsSet(data.Tags) {
+	utils.ApplyTags(ctx, prefixRequest, data.Tags, diags)
 
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+	if diags.HasError() {
 
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		prefixRequest.Tags = tags
+		return
 
 	}
 

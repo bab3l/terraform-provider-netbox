@@ -117,9 +117,9 @@ func (r *ManufacturerResource) Create(ctx context.Context, req resource.CreateRe
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helper for optional string field
+	// Apply description
 
-	manufacturerRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(&manufacturerRequest, data.Description)
 
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersCreate(ctx).ManufacturerRequest(manufacturerRequest).Execute()
 
@@ -251,9 +251,9 @@ func (r *ManufacturerResource) Update(ctx context.Context, req resource.UpdateRe
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helper for optional string field
+	// Apply description
 
-	manufacturerRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(&manufacturerRequest, data.Description)
 
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersUpdate(ctx, manufacturerIDInt).ManufacturerRequest(manufacturerRequest).Execute()
 

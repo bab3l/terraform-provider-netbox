@@ -528,41 +528,9 @@ func (r *VLANGroupResource) setOptionalFields(ctx context.Context, vlanGroupRequ
 
 	}
 
-	// Handle tags
+	// Apply metadata fields (tags, custom_fields)
 
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		vlanGroupRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		vlanGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
-	}
+	utils.ApplyMetadataFields(ctx, vlanGroupRequest, data.Tags, data.CustomFields, diags)
 
 }
 

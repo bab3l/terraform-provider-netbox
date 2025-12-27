@@ -619,19 +619,11 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 
 	// Handle tags
 
-	if utils.IsSet(data.Tags) {
+	utils.ApplyTags(ctx, ipRequest, data.Tags, diags)
 
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+	if diags.HasError() {
 
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		ipRequest.Tags = tags
+		return
 
 	}
 

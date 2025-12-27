@@ -543,45 +543,11 @@ func (r *VirtualDiskResource) ImportState(ctx context.Context, req resource.Impo
 
 func (r *VirtualDiskResource) setOptionalFields(ctx context.Context, vdRequest *netbox.VirtualDiskRequest, data *VirtualDiskResourceModel, diags *diag.Diagnostics) {
 
-	// Description
+	// Apply description and metadata fields
 
-	vdRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(vdRequest, data.Description)
 
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		vdRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		vdRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
-	}
+	utils.ApplyMetadataFields(ctx, vdRequest, data.Tags, data.CustomFields, diags)
 
 }
 

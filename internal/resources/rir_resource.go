@@ -304,28 +304,9 @@ func (r *RIRResource) setOptionalFields(ctx context.Context, rirRequest *netbox.
 		rirRequest.IsPrivate = &isPrivate
 	}
 
-	// Description
-	rirRequest.Description = utils.StringPtr(data.Description)
-
-	// Handle tags
-	if utils.IsSet(data.Tags) {
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		rirRequest.Tags = tags
-	}
-
-	// Handle custom fields
-	if utils.IsSet(data.CustomFields) {
-		var customFields []utils.CustomFieldModel
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-		if diags.HasError() {
-			return
-		}
-		rirRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-	}
+	// Apply description and metadata fields
+	utils.ApplyDescription(rirRequest, data.Description)
+	utils.ApplyMetadataFields(ctx, rirRequest, data.Tags, data.CustomFields, diags)
 }
 
 // mapRIRToState maps a Netbox RIR to the Terraform state model.

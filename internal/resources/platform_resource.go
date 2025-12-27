@@ -142,15 +142,9 @@ func (r *PlatformResource) Create(ctx context.Context, req resource.CreateReques
 
 	}
 
-	if !data.Description.IsNull() {
+	// Apply description
 
-		desc := data.Description.ValueString()
-
-		platformRequest.Description = &desc
-
-	}
-
-	// Tags and custom fields can be added here if needed
+	utils.ApplyDescription(platformRequest, data.Description)
 
 	platform, httpResp, err := r.client.DcimAPI.DcimPlatformsCreate(ctx).PlatformRequest(*platformRequest).Execute()
 
@@ -387,13 +381,9 @@ func (r *PlatformResource) Update(ctx context.Context, req resource.UpdateReques
 
 	}
 
-	if !data.Description.IsNull() {
+	// Apply description
 
-		desc := data.Description.ValueString()
-
-		platformRequest.Description = &desc
-
-	}
+	utils.ApplyDescription(&platformRequest, data.Description)
 
 	platform, httpResp, err := r.client.DcimAPI.DcimPlatformsUpdate(ctx, platformIDInt).PlatformRequest(platformRequest).Execute()
 

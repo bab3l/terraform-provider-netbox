@@ -152,9 +152,17 @@ func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest,
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helper for optional string field
+	// Apply description and metadata fields
 
-	regionRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(&regionRequest, data.Description)
+
+	utils.ApplyMetadataFields(ctx, &regionRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+
+		return
+
+	}
 
 	// Set optional parent
 
@@ -171,44 +179,6 @@ func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest,
 		}
 
 		regionRequest.Parent = *netbox.NewNullableInt32(&parentID)
-
-	}
-
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		regionRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		regionRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
 
 	}
 
@@ -349,9 +319,17 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helper for optional string field
+	// Apply description and metadata fields
 
-	regionRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(&regionRequest, data.Description)
+
+	utils.ApplyMetadataFields(ctx, &regionRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+
+		return
+
+	}
 
 	// Set optional parent
 
@@ -368,44 +346,6 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 		}
 
 		regionRequest.Parent = *netbox.NewNullableInt32(&parentID)
-
-	}
-
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		regionRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		regionRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
 
 	}
 
