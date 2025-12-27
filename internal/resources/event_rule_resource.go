@@ -4,6 +4,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -109,12 +110,15 @@ func (r *EventRuleResource) Schema(ctx context.Context, req resource.SchemaReque
 				MarkdownDescription: "The ID of the action object (webhook, script, or notification group).",
 				Optional:            true,
 			},
-			"description":   nbschema.DescriptionAttribute("event rule"),
-			"display_name":  nbschema.DisplayNameAttribute("event rule"),
-			"tags":          nbschema.TagsAttribute(),
-			"custom_fields": nbschema.CustomFieldsAttribute(),
+			"display_name": nbschema.DisplayNameAttribute("event rule"),
 		},
 	}
+
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("event rule"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.

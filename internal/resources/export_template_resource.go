@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -107,12 +108,6 @@ func (r *ExportTemplateResource) Schema(ctx context.Context, req resource.Schema
 
 			"name": nbschema.NameAttribute("export template", 100),
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the export template.",
-
-				Optional: true,
-			},
 			"display_name": nbschema.DisplayNameAttribute("export template"),
 			"template_code": schema.StringAttribute{
 
@@ -148,6 +143,8 @@ func (r *ExportTemplateResource) Schema(ctx context.Context, req resource.Schema
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("export template"))
 }
 
 // Configure adds the provider configured client to the resource.

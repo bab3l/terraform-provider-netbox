@@ -3,8 +3,10 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -93,13 +95,6 @@ func (r *CustomFieldChoiceSetResource) Schema(ctx context.Context, req resource.
 				Required: true,
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "Description of the choice set.",
-
-				Optional: true,
-			},
-
 			"base_choices": schema.StringAttribute{
 
 				MarkdownDescription: "Base choice set to inherit from. Valid values: `IATA` (Airport codes), `ISO_3166` (Country codes), `UN_LOCODE` (Location codes).",
@@ -154,6 +149,8 @@ func (r *CustomFieldChoiceSetResource) Schema(ctx context.Context, req resource.
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("custom field choice set"))
 }
 
 func (r *CustomFieldChoiceSetResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

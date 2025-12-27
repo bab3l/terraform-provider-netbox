@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -64,12 +64,6 @@ func (r *ConfigTemplateResource) Schema(ctx context.Context, req resource.Schema
 				MarkdownDescription: "The name of the config template.",
 				Required:            true,
 			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "A description of the config template.",
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
-			},
 			"display_name": nbschema.DisplayNameAttribute("config template"),
 			"template_code": schema.StringAttribute{
 				MarkdownDescription: "Jinja2 template code.",
@@ -81,6 +75,9 @@ func (r *ConfigTemplateResource) Schema(ctx context.Context, req resource.Schema
 			},
 		},
 	}
+
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("config template"))
 }
 
 // Configure adds the provider configured client to the resource.
