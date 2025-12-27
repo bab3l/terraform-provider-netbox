@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -235,8 +236,6 @@ func (r *InterfaceResource) Schema(ctx context.Context, req resource.SchemaReque
 				Default: booldefault.StaticBool(false),
 			},
 
-			"description": nbschema.DescriptionAttribute("interface"),
-
 			"mode": schema.StringAttribute{
 
 				MarkdownDescription: "802.1Q mode. Valid values: `access`, `tagged`, `tagged-all`.",
@@ -259,13 +258,14 @@ func (r *InterfaceResource) Schema(ctx context.Context, req resource.SchemaReque
 
 				Default: booldefault.StaticBool(false),
 			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("interface"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.

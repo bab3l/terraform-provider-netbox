@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -181,21 +182,15 @@ func (r *InventoryItemResource) Schema(ctx context.Context, req resource.SchemaR
 				Computed: true,
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the inventory item.",
-
-				Optional: true,
-			},
-
 			"display_name": nbschema.DisplayNameAttribute("inventory item"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("inventory item"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *InventoryItemResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

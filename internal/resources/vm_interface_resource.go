@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/bab3l/go-netbox"
@@ -145,8 +146,6 @@ func (r *VMInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 				Optional: true,
 			},
 
-			"description": nbschema.DescriptionAttribute("VM interface"),
-
 			"display_name": nbschema.DisplayNameAttribute("VM interface"),
 
 			"mode": schema.StringAttribute{
@@ -169,13 +168,14 @@ func (r *VMInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 
 				Optional: true,
 			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("VM interface"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure sets up the resource with the provider client.

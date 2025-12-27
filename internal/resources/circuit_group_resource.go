@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -62,16 +63,19 @@ func (r *CircuitGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 			"name":         nbschema.NameAttribute("circuit group", 100),
 			"display_name": nbschema.DisplayNameAttribute("circuit group"),
 			"slug":         nbschema.SlugAttribute("circuit group"),
-			"description":  nbschema.DescriptionAttribute("circuit group"),
 			"tenant":       nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant."),
 			"tenant_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The numeric ID of the tenant.",
 			},
-			"tags":          nbschema.TagsAttribute(),
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("circuit group"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.

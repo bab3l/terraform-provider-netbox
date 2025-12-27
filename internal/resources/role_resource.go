@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -135,25 +136,14 @@ func (r *RoleResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 				Default: int64default.StaticInt64(1000),
 			},
-
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the role.",
-
-				Optional: true,
-
-				Validators: []validator.String{
-
-					stringvalidator.LengthAtMost(200),
-				},
-			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("role"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
