@@ -472,11 +472,14 @@ Resources with full descriptive metadata - organized into sub-batches:
 
 **Note**: circuit_group_resource.go moved to Batch 6 (lacks comments field - Category 2 pattern)
 
-**Batch 5b - Interfaces & Inventory (4 resources):**
-- [ ] interface_resource.go
-- [ ] inventory_item_resource.go
-- [ ] role_resource.go
-- [ ] route_target_resource.go
+**Batch 5b - Interfaces & Inventory (1 resource):** ✅
+- [x] route_target_resource.go ✅
+
+**Completed: 1/1 ✅**
+**Lines saved: 2 lines**
+**Commit**: ad298d5
+
+**Note**: interface, inventory_item, role lack comments field - moved to Batch 6 (Category 2 pattern)
 
 **Batch 5c - VPN & Wireless (4 resources):**
 - [ ] ike_policy_resource.go
@@ -488,15 +491,18 @@ Resources with full descriptive metadata - organized into sub-batches:
 - [ ] virtual_chassis_resource.go
 - [ ] virtual_device_context_resource.go
 
-**Total Batch 5: 13 resources (3 complete, 10 remaining)**
+**Total Batch 5: 10 resources (4 complete, 6 remaining)**
 **Pattern**: Use `CommonDescriptiveAttributes()` + `CommonMetadataAttributes()`
-**Estimated savings for remaining**: ~20-30 lines
+**Estimated savings for remaining**: ~12-18 lines
 
 #### Batch 6: Category 2 Resources (Description Only, No Comments)
 Resources with description + tags + custom_fields but no comments field:
 
-**Batch 6a (6 resources):**
-- [ ] circuit_group_resource.go
+**Batch 6a (9 resources):**
+- [ ] circuit_group_resource.go (from Batch 5a)
+- [ ] interface_resource.go (from Batch 5b)
+- [ ] inventory_item_resource.go (from Batch 5b)
+- [ ] role_resource.go (from Batch 5b)
 - [ ] front_port_resource.go
 - [ ] notification_group_resource.go
 - [ ] power_outlet_resource.go
@@ -508,9 +514,9 @@ Resources with description + tags + custom_fields but no comments field:
 - [ ] wireless_link_resource.go
 - [ ] circuit_group_assignment_resource.go
 
-**Total Batch 6: 9 resources**
+**Total Batch 6: 12 resources**
 **Pattern**: Use `DescriptionOnlyAttributes()` + `CommonMetadataAttributes()`
-**Estimated savings**: ~9-18 lines
+**Estimated savings**: ~12-24 lines
 
 #### Batch 7: Special Cases (Non-Standard Metadata)
 Resources with unique schemas or missing standard metadata support:
