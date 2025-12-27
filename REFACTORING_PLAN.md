@@ -6,7 +6,7 @@ This document tracks the progress of refactoring resources and datasources to us
 
 **Branch**: `refactor/extract-common-helpers`
 **Start Date**: December 26, 2025
-**Status**: ✅ Phase 3 Batch 3 Complete - 80 resources refactored total
+**Status**: ✅ Phase 3 Batch 4 Complete - 86 resources refactored total
 
 ---
 
@@ -24,7 +24,8 @@ This document tracks the progress of refactoring resources and datasources to us
 | **Phase 3 Batch 2** | **DescriptionOnly Refactor** | **27** | **62** | **3 commits** |
 | **Phase 3 Batch 1+** | **Batch 1 Additions** | **6** | **77** | **afca597** |
 | **Phase 3 Batch 3** | **Metadata-Only Refactor** | **3** | **10** | **be04836** |
-| **TOTAL** | **All Phases** | **80** | **1,391** | **17 commits** |
+| **Phase 3 Batch 4** | **Misc Description/Comments** | **6** | **13** | **e8bc4c9** |
+| **TOTAL** | **All Phases** | **86** | **1,404** | **18 commits** |
 
 ### Phase 3 Batch 1 Details
 - Part 1 (5 resources): 9 lines saved - commit f4612ae
@@ -278,7 +279,7 @@ if group := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlook
 
 ## Phase 3: Schema Composition
 
-**Status**: ✅ Batches 1, 2, 3 Complete (56/71 resources)
+**Status**: ✅ Batches 1-4 Complete (62/~99 resources)
 
 ### 3.1 Common Resource Attributes Helpers
 
@@ -443,6 +444,19 @@ Resources with only metadata, no description or comments:
 - **Moved to other batches**: console_port (has description), console_server_port (has description), device_bay (has description), module_bay (has description), module_bay_template (has description), power_port (has description)
 - **Has comments instead**: journal_entry (has comments field - should be Batch 1)
 - **No metadata support**: l2vpn_termination (no tags/custom_fields), console_port_template, console_server_port_template
+
+#### Batch 4: Miscellaneous Description/Comments Resources
+Resources from Batch 3 audit that have description or comments fields:
+- [x] console_port_resource.go ✅ (description only)
+- [x] console_server_port_resource.go ✅ (description only)
+- [x] device_bay_resource.go ✅ (description only)
+- [x] module_bay_resource.go ✅ (description only)
+- [x] power_port_resource.go ✅ (description only)
+- [x] journal_entry_resource.go ✅ (comments only - no CommentsOnlyAttributes helper, used inline)
+
+**Completed: 6/6 ✅**
+**Lines saved: 13 lines**
+**Commit**: e8bc4c9
 
 #### Batch 4: Special Cases
 Resources with inline descriptions or other variations:
