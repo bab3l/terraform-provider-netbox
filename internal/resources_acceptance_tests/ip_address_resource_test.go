@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -225,6 +226,45 @@ func TestAccConsistency_IPAddress_LiteralNames(t *testing.T) {
 			{
 				Config:   testAccIPAddressConsistencyLiteralNamesConfig(address),
 				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccIPAddressResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	ip := fmt.Sprintf("192.0.%d.%d/24", acctest.RandIntRange(100, 150), acctest.RandIntRange(1, 254))
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPAddressResourceConfig_basic(ip),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.IpamAPI.IpamIpAddressesList(context.Background()).Address([]string{ip}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find IP address for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.IpamAPI.IpamIpAddressesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete IP address: %v", err)
+					}
+					t.Logf("Successfully externally deleted IP address with ID: %d", itemID)
+				},
+				Config: testAccIPAddressResourceConfig_basic(ip),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
 				),

@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -292,4 +293,46 @@ resource "netbox_site" "test" {
   tenant = netbox_tenant.test.name
 }
 `, siteName, siteSlug, regionName, regionSlug, groupName, groupSlug, tenantName, tenantSlug)
+}
+
+func TestAccSiteResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-site-ext-del")
+	slug := testutil.RandomSlug("site")
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`resource "netbox_site" "test" { name = %q; slug = %q; status = "active" }`, name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_site.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimSitesList(context.Background()).SlugIc([]string{slug}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find site for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimSitesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete site: %v", err)
+					}
+					t.Logf("Successfully externally deleted site with ID: %d", itemID)
+				},
+				Config: fmt.Sprintf(`resource "netbox_site" "test" { name = %q; slug = %q; status = "active" }`, name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_site.test", "id"),
+				),
+			},
+		},
+	})
 }

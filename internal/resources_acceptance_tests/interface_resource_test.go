@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -423,4 +424,59 @@ resource "netbox_device" "test" {
 
 `, name+"-site", testutil.RandomSlug("site"), name+"-mfr", testutil.RandomSlug("mfr"), name+"-model", testutil.RandomSlug("device"), name+"-role", testutil.RandomSlug("role"), name+"-device")
 
+}
+
+func TestAccInterfaceResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+	name := testutil.RandomName("tf-test-interface-ext-del")
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_site" "test" { name = "%[1]s-site"; slug = "%[2]s" }
+resource "netbox_manufacturer" "test" { name = "%[1]s-mfr"; slug = "%[3]s" }
+resource "netbox_device_type" "test" { model = "%[1]s-model"; slug = "%[4]s"; manufacturer_id = netbox_manufacturer.test.id }
+resource "netbox_device_role" "test" { name = "%[1]s-role"; slug = "%[5]s" }
+resource "netbox_device" "test" { site_id = netbox_site.test.id; name = "%[1]s-device"; device_type_id = netbox_device_type.test.id; role_id = netbox_device_role.test.id }
+resource "netbox_interface" "test" { name = "%[1]s"; device_id = netbox_device.test.id; type = "1000base-t" }
+`, name, testutil.RandomSlug("site"), testutil.RandomSlug("mfr"), testutil.RandomSlug("device"), testutil.RandomSlug("role")),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_interface.test", "id"),
+					resource.TestCheckResourceAttr("netbox_interface.test", "name", name),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimInterfacesList(context.Background()).NameIc([]string{name}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find interface for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimInterfacesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete interface: %v", err)
+					}
+					t.Logf("Successfully externally deleted interface with ID: %d", itemID)
+				},
+				Config: fmt.Sprintf(`
+resource "netbox_site" "test" { name = "%[1]s-site"; slug = "%[2]s" }
+resource "netbox_manufacturer" "test" { name = "%[1]s-mfr"; slug = "%[3]s" }
+resource "netbox_device_type" "test" { model = "%[1]s-model"; slug = "%[4]s"; manufacturer_id = netbox_manufacturer.test.id }
+resource "netbox_device_role" "test" { name = "%[1]s-role"; slug = "%[5]s" }
+resource "netbox_device" "test" { site_id = netbox_site.test.id; name = "%[1]s-device"; device_type_id = netbox_device_type.test.id; role_id = netbox_device_role.test.id }
+resource "netbox_interface" "test" { name = "%[1]s"; device_id = netbox_device.test.id; type = "1000base-t" }
+`, name, testutil.RandomSlug("site"), testutil.RandomSlug("mfr"), testutil.RandomSlug("device"), testutil.RandomSlug("role")),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_interface.test", "id"),
+				),
+			},
+		},
+	})
 }

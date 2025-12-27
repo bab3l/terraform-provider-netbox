@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -429,4 +430,64 @@ resource "netbox_cable" "test" {
 
 `, siteName, siteSlug, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, deviceName, interfaceNameA, interfaceNameB)
 
+}
+
+func TestAccCableResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	label := testutil.RandomName("tf-test-cable-ext-del")
+	siteName := testutil.RandomName("test-site-cable")
+	siteSlug := testutil.GenerateSlug(siteName)
+	deviceName := testutil.RandomName("test-device-cable")
+	mfgName := testutil.RandomName("tf-test-mfg-cable")
+	mfgSlug := testutil.GenerateSlug(mfgName)
+	deviceRoleName := testutil.RandomName("tf-test-role-cable")
+	deviceRoleSlug := testutil.GenerateSlug(deviceRoleName)
+	deviceTypeModel := testutil.RandomName("tf-test-type-cable")
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+	interfaceNameA := testutil.RandomName("eth")
+	interfaceNameB := testutil.RandomName("eth")
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCableResourceConfig(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cable.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					// List all cables and find one we created (for simplicity, just get first with matching label)
+					items, _, err := client.DcimAPI.DcimCablesList(context.Background()).Limit(10).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to list cables for external deletion: %v", err)
+					}
+					var itemID int32
+					for _, item := range items.Results {
+						if item.Label != nil && *item.Label == label {
+							itemID = item.Id
+							break
+						}
+					}
+					if itemID == 0 {
+						t.Fatalf("Failed to find cable with label %s", label)
+					}
+					_, err = client.DcimAPI.DcimCablesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete cable: %v", err)
+					}
+					t.Logf("Successfully externally deleted cable with ID: %d", itemID)
+				},
+				Config: testAccCableResourceConfig(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cable.test", "id"),
+				),
+			},
+		},
+	})
 }

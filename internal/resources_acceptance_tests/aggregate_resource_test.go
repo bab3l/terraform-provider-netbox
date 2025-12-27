@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -382,4 +383,54 @@ resource "netbox_aggregate" "test" {
 
 `, prefix, rirName, rirSlug, tenantName, tenantSlug)
 
+}
+
+func TestAccAggregateResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+	prefix := "10.0.0.0/8"
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`resource "netbox_aggregate" "test" { prefix = "%s"; rir_id = 1 }`, prefix),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "prefix", prefix),
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.IpamAPI.IpamAggregatesList(context.Background()).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find aggregate for external deletion: %v", err)
+					}
+					var itemID int32
+					for _, item := range items.Results {
+						if item.Prefix == prefix {
+							itemID = item.Id
+							break
+						}
+					}
+					if itemID == 0 {
+						t.Fatalf("Failed to find aggregate %s for external deletion", prefix)
+					}
+					_, err = client.IpamAPI.IpamAggregatesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete aggregate: %v", err)
+					}
+					t.Logf("Successfully externally deleted aggregate with ID: %d", itemID)
+				},
+				Config: fmt.Sprintf(`resource "netbox_aggregate" "test" { prefix = "%s"; rir_id = 1 }`, prefix),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "id"),
+				),
+			},
+		},
+	})
 }

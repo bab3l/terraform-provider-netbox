@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -508,4 +509,63 @@ resource "netbox_cluster" "test" {
 
 `, clusterName, clusterTypeName, clusterTypeSlug, groupName, groupSlug, siteName, siteSlug, tenantName, tenantSlug)
 
+}
+
+func TestAccClusterResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type")
+	clusterName := testutil.RandomName("tf-test-cluster-ext-del")
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_cluster_type" "test" { name = %q; slug = %q }
+resource "netbox_cluster" "test" { name = %q; type = netbox_cluster_type.test.name }
+`, clusterTypeName, clusterTypeSlug, clusterName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					// List all clusters and find the one we created
+					items, _, err := client.VirtualizationAPI.VirtualizationClustersList(context.Background()).Limit(10).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to list clusters for external deletion: %v", err)
+					}
+					var itemID int32
+					for _, item := range items.Results {
+						if item.Name == clusterName {
+							itemID = item.Id
+							break
+						}
+					}
+					if itemID == 0 {
+						t.Fatalf("Failed to find cluster with name %s", clusterName)
+					}
+					_, err = client.VirtualizationAPI.VirtualizationClustersDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete cluster: %v", err)
+					}
+					t.Logf("Successfully externally deleted cluster with ID: %d", itemID)
+				},
+				Config: fmt.Sprintf(`
+resource "netbox_cluster_type" "test" { name = %q; slug = %q }
+resource "netbox_cluster" "test" { name = %q; type = netbox_cluster_type.test.name }
+`, clusterTypeName, clusterTypeSlug, clusterName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),
+				),
+			},
+		},
+	})
 }

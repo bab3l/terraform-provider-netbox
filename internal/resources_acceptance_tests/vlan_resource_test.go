@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -427,4 +428,46 @@ resource "netbox_vlan" "test" {
   description = %q
 }
 `, name, vid, description)
+}
+
+func TestAccVLANResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-vlan-ext-del")
+	vid := testutil.RandomVID()
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVLANResourceConfig_basic(name, vid),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.IpamAPI.IpamVlansList(context.Background()).NameIc([]string{name}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find VLAN for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.IpamAPI.IpamVlansDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete VLAN: %v", err)
+					}
+					t.Logf("Successfully externally deleted VLAN with ID: %d", itemID)
+				},
+				Config: testAccVLANResourceConfig_basic(name, vid),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "id"),
+				),
+			},
+		},
+	})
 }

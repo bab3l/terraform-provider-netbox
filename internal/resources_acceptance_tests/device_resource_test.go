@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -437,4 +438,53 @@ resource "netbox_device" "test" {
   depends_on = [netbox_device_type.test, netbox_device_role.test, netbox_site.test, netbox_tenant.test]
 }
 `, deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, tenantName, tenantSlug)
+}
+func TestAccDeviceResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+	deviceName := testutil.RandomName("tf-test-device-ext-del")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr")
+	deviceTypeModel := testutil.RandomName("tf-test-device-type")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dt")
+	deviceRoleName := testutil.RandomName("tf-test-device-role")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-dr")
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceResourceConfig_basic(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device.test", "id"),
+					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimDevicesList(context.Background()).NameIc([]string{deviceName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find device for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimDevicesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete device: %v", err)
+					}
+					t.Logf("Successfully externally deleted device with ID: %d", itemID)
+				},
+				Config: testAccDeviceResourceConfig_basic(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device.test", "id"),
+				),
+			},
+		},
+	})
 }
