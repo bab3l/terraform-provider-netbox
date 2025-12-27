@@ -6,7 +6,7 @@ This document tracks the progress of refactoring resources and datasources to us
 
 **Branch**: `refactor/extract-common-helpers`
 **Start Date**: December 26, 2025
-**Status**: ✅ Phase 3 Batch 1 Additions Complete - 77 resources refactored total
+**Status**: ✅ Phase 3 Batch 3 Complete - 80 resources refactored total
 
 ---
 
@@ -23,7 +23,8 @@ This document tracks the progress of refactoring resources and datasources to us
 | **Phase 3 Batch 1** | **Full Schema Refactor** | **20** | **81** | **6 commits** |
 | **Phase 3 Batch 2** | **DescriptionOnly Refactor** | **27** | **62** | **3 commits** |
 | **Phase 3 Batch 1+** | **Batch 1 Additions** | **6** | **77** | **afca597** |
-| **TOTAL** | **All Phases** | **77** | **1,381** | **16 commits** |
+| **Phase 3 Batch 3** | **Metadata-Only Refactor** | **3** | **10** | **be04836** |
+| **TOTAL** | **All Phases** | **80** | **1,391** | **17 commits** |
 
 ### Phase 3 Batch 1 Details
 - Part 1 (5 resources): 9 lines saved - commit f4612ae
@@ -277,7 +278,7 @@ if group := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlook
 
 ## Phase 3: Schema Composition
 
-**Status**: ✅ Batch 1 + Batch 2 + Batch 1 Additions Complete (53/71 resources)
+**Status**: ✅ Batches 1, 2, 3 Complete (56/71 resources)
 
 ### 3.1 Common Resource Attributes Helpers
 
@@ -430,17 +431,18 @@ Misclassified resources moved from Batch 2 that actually have comments field:
 
 #### Batch 3: Tags + Custom Fields Only (CommonMetadataAttributes)
 Resources with only metadata, no description or comments:
-- [ ] console_port_resource.go
-- [ ] console_port_template_resource.go
-- [ ] console_server_port_resource.go
-- [ ] console_server_port_template_resource.go
-- [ ] device_bay_resource.go
-- [ ] journal_entry_resource.go
-- [ ] module_bay_resource.go
-- [ ] module_bay_template_resource.go
-- [ ] power_port_resource.go (if no description)
+- [x] contact_assignment_resource.go ✅
+- [x] fhrp_group_assignment_resource.go ✅
+- [x] tunnel_termination_resource.go ✅
 
-**Estimated savings**: ~1 line × 9 resources = **9 lines**
+**Completed: 3/3 ✅**
+**Lines saved: 10 lines**
+**Commit**: be04836
+
+**Note**: Original Batch 3 list was inaccurate - most listed resources actually have description fields:
+- **Moved to other batches**: console_port (has description), console_server_port (has description), device_bay (has description), module_bay (has description), module_bay_template (has description), power_port (has description)
+- **Has comments instead**: journal_entry (has comments field - should be Batch 1)
+- **No metadata support**: l2vpn_termination (no tags/custom_fields), console_port_template, console_server_port_template
 
 #### Batch 4: Special Cases
 Resources with inline descriptions or other variations:
