@@ -481,19 +481,23 @@ Resources with full descriptive metadata - organized into sub-batches:
 
 **Note**: interface, inventory_item, role lack comments field - moved to Batch 6 (Category 2 pattern)
 
-**Batch 5c - VPN & Wireless (4 resources):**
-- [ ] ike_policy_resource.go
-- [ ] ike_proposal_resource.go
-- [ ] tunnel_resource.go
-- [ ] wireless_lan_resource.go
+**Batch 5c - VPN & Wireless (4 resources):** ✅
+- [x] ike_policy_resource.go ✅
+- [x] ike_proposal_resource.go ✅
+- [x] tunnel_resource.go ✅
+- [x] wireless_lan_resource.go ✅
+
+**Completed: 4/4 ✅**
+**Lines saved: 7 lines**
+**Commit**: 0829646
 
 **Batch 5d - Virtual Resources (2 resources):**
 - [ ] virtual_chassis_resource.go
 - [ ] virtual_device_context_resource.go
 
-**Total Batch 5: 10 resources (4 complete, 6 remaining)**
+**Total Batch 5: 10 resources (8 complete, 2 remaining)**
 **Pattern**: Use `CommonDescriptiveAttributes()` + `CommonMetadataAttributes()`
-**Estimated savings for remaining**: ~12-18 lines
+**Estimated savings for remaining**: ~4-6 lines
 
 #### Batch 6: Category 2 Resources (Description Only, No Comments)
 Resources with description + tags + custom_fields but no comments field:
