@@ -472,54 +472,10 @@ func (r *VirtualChassisResource) buildRequest(ctx context.Context, data *Virtual
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		vcRequest.SetDescription(data.Description.ValueString())
-
-	}
-
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-
-		vcRequest.SetComments(data.Comments.ValueString())
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return nil, diags
-
-		}
-
-		vcRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-
-			return nil, diags
-
-		}
-
-		vcRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
-
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, vcRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
+	if diags.HasError() {
+		return nil, diags
 	}
 
 	return vcRequest, diags

@@ -182,27 +182,8 @@ func (r *ContactAssignmentResource) Create(ctx context.Context, req resource.Cre
 		assignmentRequest.Priority = &priority
 	}
 
-	// Handle tags
-	if !data.Tags.IsNull() {
-		var tagModels []utils.TagModel
-		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		assignmentRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() {
-		var customFieldModels []utils.CustomFieldModel
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		assignmentRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, assignmentRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Call the API to create the contact assignment
 	assignment, httpResp, err := r.client.TenancyAPI.TenancyContactAssignmentsCreate(ctx).
@@ -342,27 +323,8 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 		assignmentRequest.Priority = &priority
 	}
 
-	// Handle tags
-	if !data.Tags.IsNull() {
-		var tagModels []utils.TagModel
-		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		assignmentRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() {
-		var customFieldModels []utils.CustomFieldModel
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		assignmentRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, assignmentRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Call the API to update the contact assignment
 	assignment, httpResp, err := r.client.TenancyAPI.TenancyContactAssignmentsUpdate(ctx, id).

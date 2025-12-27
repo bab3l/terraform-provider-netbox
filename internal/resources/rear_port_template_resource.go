@@ -266,11 +266,8 @@ func (r *RearPortTemplateResource) Create(ctx context.Context, req resource.Crea
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Creating rear port template", map[string]interface{}{
 
@@ -440,11 +437,8 @@ func (r *RearPortTemplateResource) Update(ctx context.Context, req resource.Upda
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Updating rear port template", map[string]interface{}{
 

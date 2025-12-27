@@ -519,10 +519,6 @@ func (r *IPSecProposalResource) ImportState(ctx context.Context, req resource.Im
 
 func (r *IPSecProposalResource) setOptionalFields(ctx context.Context, ipsecRequest *netbox.WritableIPSecProposalRequest, data *IPSecProposalResourceModel, diags *diag.Diagnostics) {
 
-	// Description
-
-	ipsecRequest.Description = utils.StringPtr(data.Description)
-
 	// Encryption Algorithm
 
 	if utils.IsSet(data.EncryptionAlgorithm) {
@@ -579,44 +575,10 @@ func (r *IPSecProposalResource) setOptionalFields(ctx context.Context, ipsecRequ
 
 	}
 
-	// Comments
-
-	ipsecRequest.Comments = utils.StringPtr(data.Comments)
-
-	// Tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		ipsecRequest.Tags = tags
-
-	}
-
-	// Custom Fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		ipsecRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, ipsecRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	if diags.HasError() {
+		return
 	}
 
 }

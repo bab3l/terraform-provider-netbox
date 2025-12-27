@@ -517,9 +517,8 @@ func (r *IKEPolicyResource) ImportState(ctx context.Context, req resource.Import
 
 func (r *IKEPolicyResource) setOptionalFields(ctx context.Context, ikeRequest *netbox.WritableIKEPolicyRequest, data *IKEPolicyResourceModel, diags *diag.Diagnostics) {
 
-	// Description
-
-	ikeRequest.Description = utils.StringPtr(data.Description)
+	// Set description
+	utils.ApplyDescription(ikeRequest, data.Description)
 
 	// Version
 
@@ -597,44 +596,12 @@ func (r *IKEPolicyResource) setOptionalFields(ctx context.Context, ikeRequest *n
 
 	}
 
-	// Comments
-
-	ikeRequest.Comments = utils.StringPtr(data.Comments)
-
-	// Tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		ikeRequest.Tags = tags
-
-	}
-
-	// Custom Fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		ikeRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Set comments, tags, and custom fields
+	utils.ApplyComments(ikeRequest, data.Comments)
+	utils.ApplyTags(ctx, ikeRequest, data.Tags, diags)
+	utils.ApplyCustomFields(ctx, ikeRequest, data.CustomFields, diags)
+	if diags.HasError() {
+		return
 	}
 
 }

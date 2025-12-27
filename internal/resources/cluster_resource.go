@@ -220,37 +220,8 @@ func (r *ClusterResource) buildClusterRequest(ctx context.Context, data *Cluster
 		clusterRequest.Site = *netbox.NewNullableBriefSiteRequest(site)
 	}
 
-	// Description
-	if utils.IsSet(data.Description) {
-		description := data.Description.ValueString()
-		clusterRequest.Description = &description
-	}
-
-	// Comments
-	if utils.IsSet(data.Comments) {
-		comments := data.Comments.ValueString()
-		clusterRequest.Comments = &comments
-	}
-
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		var tags []utils.TagModel
-		diags.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-		if diags.HasError() {
-			return nil
-		}
-		clusterRequest.Tags = utils.TagsToNestedTagRequests(tags)
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFields []utils.CustomFieldModel
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-		if diags.HasError() {
-			return nil
-		}
-		clusterRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-	}
+	// Apply common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, clusterRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
 	return clusterRequest
 }
 

@@ -537,61 +537,13 @@ func (r *ProviderNetworkResource) buildProviderNetworkRequest(ctx context.Contex
 
 	}
 
-	// Handle description (optional)
+	// Apply common fields (description, comments, tags, custom_fields)
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+	utils.ApplyCommonFields(ctx, pnRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
 
-		desc := data.Description.ValueString()
+	if diags.HasError() {
 
-		pnRequest.Description = &desc
-
-	}
-
-	// Handle comments (optional)
-
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-
-		comments := data.Comments.ValueString()
-
-		pnRequest.Comments = &comments
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return nil, diags
-
-		}
-
-		pnRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-
-			return nil, diags
-
-		}
-
-		pnRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
+		return nil, diags
 
 	}
 

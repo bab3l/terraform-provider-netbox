@@ -538,41 +538,13 @@ func (r *RoleResource) buildRoleRequest(ctx context.Context, data *RoleResourceM
 
 	}
 
-	// Handle tags
+	// Apply metadata fields (tags, custom_fields)
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	utils.ApplyMetadataFields(ctx, roleRequest, data.Tags, data.CustomFields, &diags)
 
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+	if diags.HasError() {
 
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return nil, diags
-
-		}
-
-		roleRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-
-			return nil, diags
-
-		}
-
-		roleRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
+		return nil, diags
 
 	}
 

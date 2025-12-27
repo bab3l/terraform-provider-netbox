@@ -634,14 +634,6 @@ func (r *IPRangeResource) setOptionalFields(ctx context.Context, ipRangeRequest 
 
 	}
 
-	// Description
-
-	ipRangeRequest.Description = utils.StringPtr(data.Description)
-
-	// Comments
-
-	ipRangeRequest.Comments = utils.StringPtr(data.Comments)
-
 	// Mark Utilized
 
 	if utils.IsSet(data.MarkUtilized) {
@@ -652,40 +644,10 @@ func (r *IPRangeResource) setOptionalFields(ctx context.Context, ipRangeRequest 
 
 	}
 
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		ipRangeRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		ipRangeRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, ipRangeRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	if diags.HasError() {
+		return
 	}
 
 }

@@ -398,35 +398,15 @@ func (r *CircuitTerminationResource) buildCreateRequest(ctx context.Context, dat
 	}
 
 	// Handle description (optional)
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		createReq.SetDescription(data.Description.ValueString())
-	}
+	utils.ApplyDescription(createReq, data.Description)
 
 	// Handle mark_connected (optional)
 	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
 		createReq.SetMarkConnected(data.MarkConnected.ValueBool())
 	}
 
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return nil, diags
-		}
-		createReq.SetTags(tags)
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFields []utils.CustomFieldModel
-		cfDiags := data.CustomFields.ElementsAs(ctx, &customFields, false)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return nil, diags
-		}
-		createReq.SetCustomFields(utils.CustomFieldsToMap(customFields))
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, createReq, data.Tags, data.CustomFields, &diags)
 	return createReq, diags
 }
 

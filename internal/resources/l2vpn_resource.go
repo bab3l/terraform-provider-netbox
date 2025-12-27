@@ -240,16 +240,10 @@ func (r *L2VPNResource) Create(ctx context.Context, req resource.CreateRequest, 
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		l2vpnRequest.SetDescription(data.Description.ValueString())
-
-	}
-
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-
-		l2vpnRequest.SetComments(data.Comments.ValueString())
-
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, l2vpnRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Handle tenant reference
@@ -335,44 +329,6 @@ func (r *L2VPNResource) Create(ctx context.Context, req resource.CreateRequest, 
 		}
 
 		l2vpnRequest.ExportTargets = exportTargets
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		l2vpnRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		l2vpnRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
 
 	}
 
@@ -547,16 +503,10 @@ func (r *L2VPNResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		l2vpnRequest.SetDescription(data.Description.ValueString())
-
-	}
-
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-
-		l2vpnRequest.SetComments(data.Comments.ValueString())
-
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, l2vpnRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Handle tenant reference
@@ -654,48 +604,6 @@ func (r *L2VPNResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	} else {
 
 		l2vpnRequest.ExportTargets = []int32{}
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		l2vpnRequest.Tags = tags
-
-	} else {
-
-		l2vpnRequest.Tags = []netbox.NestedTagRequest{}
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		l2vpnRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
 
 	}
 

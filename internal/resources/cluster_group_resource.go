@@ -92,30 +92,15 @@ func (r *ClusterGroupResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Build the request
 	clusterGroupRequest := netbox.ClusterGroupRequest{
-		Name:        data.Name.ValueString(),
-		Slug:        data.Slug.ValueString(),
-		Description: utils.StringPtr(data.Description),
+		Name: data.Name.ValueString(),
+		Slug: data.Slug.ValueString(),
 	}
 
-	// Handle tags
-	if utils.IsSet(data.Tags) {
-		var tags []utils.TagModel
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		clusterGroupRequest.Tags = utils.TagsToNestedTagRequests(tags)
-	}
+	// Apply description
+	utils.ApplyDescription(&clusterGroupRequest, data.Description)
 
-	// Handle custom fields
-	if utils.IsSet(data.CustomFields) {
-		var customFields []utils.CustomFieldModel
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		clusterGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &clusterGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Create via API
 	clusterGroup, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterGroupsCreate(ctx).ClusterGroupRequest(clusterGroupRequest).Execute()
@@ -224,49 +209,15 @@ func (r *ClusterGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	// Build the request
 
 	clusterGroupRequest := netbox.ClusterGroupRequest{
-
 		Name: data.Name.ValueString(),
-
 		Slug: data.Slug.ValueString(),
-
-		Description: utils.StringPtr(data.Description),
 	}
 
-	// Handle tags
+	// Apply description
+	utils.ApplyDescription(&clusterGroupRequest, data.Description)
 
-	if utils.IsSet(data.Tags) {
-
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		clusterGroupRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		clusterGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &clusterGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Update via API
 

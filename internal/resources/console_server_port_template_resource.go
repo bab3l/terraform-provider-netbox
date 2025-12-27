@@ -149,9 +149,8 @@ func (r *ConsoleServerPortTemplateResource) Create(ctx context.Context, req reso
 		apiReq.SetType(netbox.ConsolePortTypeValue(data.Type.ValueString()))
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		apiReq.SetDescription(data.Description.ValueString())
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Creating console server port template", map[string]interface{}{
 		"name": data.Name.ValueString(),
@@ -248,9 +247,9 @@ func (r *ConsoleServerPortTemplateResource) Update(ctx context.Context, req reso
 		apiReq.SetType(netbox.ConsolePortTypeValue(data.Type.ValueString()))
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		apiReq.SetDescription(data.Description.ValueString())
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
+
 	tflog.Debug(ctx, "Updating console server port template", map[string]interface{}{
 		"id": templateID,
 	})

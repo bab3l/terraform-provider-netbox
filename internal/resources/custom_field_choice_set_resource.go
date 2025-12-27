@@ -212,14 +212,7 @@ func (r *CustomFieldChoiceSetResource) Create(ctx context.Context, req resource.
 	)
 
 	// Set optional fields
-
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		desc := data.Description.ValueString()
-
-		request.Description = &desc
-
-	}
+	utils.ApplyDescription(request, data.Description)
 
 	if !data.BaseChoices.IsNull() && !data.BaseChoices.IsUnknown() {
 
@@ -369,14 +362,7 @@ func (r *CustomFieldChoiceSetResource) Update(ctx context.Context, req resource.
 	)
 
 	// Set optional fields
-
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		desc := data.Description.ValueString()
-
-		request.Description = &desc
-
-	}
+	utils.ApplyDescription(request, data.Description)
 
 	if !data.BaseChoices.IsNull() && !data.BaseChoices.IsUnknown() {
 

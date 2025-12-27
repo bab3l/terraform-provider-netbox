@@ -130,30 +130,10 @@ func (r *ClusterTypeResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// Set optional fields if provided
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		description := data.Description.ValueString()
-		clusterTypeRequest.Description = &description
-	}
+	utils.ApplyDescription(&clusterTypeRequest, data.Description)
 
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		var tags []utils.TagModel
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		clusterTypeRequest.Tags = utils.TagsToNestedTagRequests(tags)
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFields []utils.CustomFieldModel
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		clusterTypeRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &clusterTypeRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Call the API
 	clusterType, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterTypesCreate(ctx).ClusterTypeRequest(clusterTypeRequest).Execute()
@@ -259,30 +239,10 @@ func (r *ClusterTypeResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// Set optional fields if provided
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		description := data.Description.ValueString()
-		clusterTypeRequest.Description = &description
-	}
+	utils.ApplyDescription(&clusterTypeRequest, data.Description)
 
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		var tags []utils.TagModel
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		clusterTypeRequest.Tags = utils.TagsToNestedTagRequests(tags)
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFields []utils.CustomFieldModel
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		clusterTypeRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &clusterTypeRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Call the API
 	clusterType, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterTypesUpdate(ctx, clusterTypeIDInt).ClusterTypeRequest(clusterTypeRequest).Execute()

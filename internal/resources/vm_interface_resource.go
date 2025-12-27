@@ -507,39 +507,13 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, data 
 
 	}
 
-	// Handle tags
+	// Apply metadata fields (tags, custom_fields)
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	utils.ApplyMetadataFields(ctx, ifaceRequest, data.Tags, data.CustomFields, diags)
 
-		var tags []utils.TagModel
+	if diags.HasError() {
 
-		diags.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if diags.HasError() {
-
-			return nil
-
-		}
-
-		ifaceRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return nil
-
-		}
-
-		ifaceRequest.CustomFields = utils.CustomFieldsToMap(customFields)
+		return nil
 
 	}
 

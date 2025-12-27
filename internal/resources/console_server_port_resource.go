@@ -168,24 +168,11 @@ func (r *ConsoleServerPortResource) Create(ctx context.Context, req resource.Cre
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
 	}
 
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		resp.Diagnostics.Append(tagDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		apiReq.SetTags(tags)
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var cfModels []utils.CustomFieldModel
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &cfModels, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
+	// Handle description, tags, and custom fields
+	utils.ApplyDescription(apiReq, data.Description)
+	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 	tflog.Debug(ctx, "Creating console server port", map[string]interface{}{
 		"device": data.Device.ValueString(),
@@ -305,24 +292,11 @@ func (r *ConsoleServerPortResource) Update(ctx context.Context, req resource.Upd
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
 	}
 
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		resp.Diagnostics.Append(tagDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		apiReq.SetTags(tags)
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var cfModels []utils.CustomFieldModel
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &cfModels, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
+	// Handle description, tags, and custom fields
+	utils.ApplyDescription(apiReq, data.Description)
+	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 	tflog.Debug(ctx, "Updating console server port", map[string]interface{}{
 		"id": portID,

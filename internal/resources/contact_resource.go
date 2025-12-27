@@ -143,18 +143,13 @@ func (r *ContactResource) Create(ctx context.Context, req resource.CreateRequest
 	contactRequest.Email = utils.StringPtr(data.Email)
 	contactRequest.Address = utils.StringPtr(data.Address)
 	contactRequest.Link = utils.StringPtr(data.Link)
-	contactRequest.Description = utils.StringPtr(data.Description)
-	contactRequest.Comments = utils.StringPtr(data.Comments)
+
+	// Apply descriptive fields (description + comments)
+	utils.ApplyDescriptiveFields(contactRequest, data.Description, data.Comments)
 
 	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		contactRequest.Tags = tags
-	}
+	utils.ApplyTags(ctx, contactRequest, data.Tags, &resp.Diagnostics)
+
 	contact, httpResp, err := r.client.TenancyAPI.TenancyContactsCreate(ctx).ContactRequest(*contactRequest).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
@@ -237,18 +232,13 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 	contactRequest.Email = utils.StringPtr(data.Email)
 	contactRequest.Address = utils.StringPtr(data.Address)
 	contactRequest.Link = utils.StringPtr(data.Link)
-	contactRequest.Description = utils.StringPtr(data.Description)
-	contactRequest.Comments = utils.StringPtr(data.Comments)
+
+	// Apply descriptive fields (description + comments)
+	utils.ApplyDescriptiveFields(contactRequest, data.Description, data.Comments)
 
 	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		contactRequest.Tags = tags
-	}
+	utils.ApplyTags(ctx, contactRequest, data.Tags, &resp.Diagnostics)
+
 	contact, httpResp, err := r.client.TenancyAPI.TenancyContactsUpdate(ctx, contactID).ContactRequest(*contactRequest).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {

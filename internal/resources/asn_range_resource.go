@@ -390,27 +390,10 @@ func (r *ASNRangeResource) setOptionalFields(ctx context.Context, asnRangeReques
 	}
 
 	// Description
-	asnRangeRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(asnRangeRequest, data.Description)
 
-	// Handle tags
-	if utils.IsSet(data.Tags) {
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		asnRangeRequest.Tags = tags
-	}
-
-	// Handle custom fields
-	if utils.IsSet(data.CustomFields) {
-		var customFields []utils.CustomFieldModel
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-		if diags.HasError() {
-			return
-		}
-		asnRangeRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, asnRangeRequest, data.Tags, data.CustomFields, diags)
 }
 
 // mapASNRangeToState maps a Netbox ASNRange to the Terraform state model.

@@ -237,49 +237,15 @@ func (r *LocationResource) Create(ctx context.Context, req resource.CreateReques
 
 	// Set optional description
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		desc := data.Description.ValueString()
-
-		locationRequest.Description = &desc
-
-	}
+	utils.ApplyDescription(locationRequest, data.Description)
 
 	// Handle tags
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	utils.ApplyMetadataFields(ctx, locationRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+	if resp.Diagnostics.HasError() {
 
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		locationRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		locationRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
+		return
 
 	}
 
@@ -547,23 +513,13 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 
 	}
 
-	// Handle custom fields
+	// Apply metadata fields (tags, custom_fields)
 
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
+	utils.ApplyMetadataFields(ctx, locationRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		var customFieldModels []utils.CustomFieldModel
+	if resp.Diagnostics.HasError() {
 
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		locationRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
+		return
 
 	}
 

@@ -321,56 +321,36 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	}
 
+	// Handle description
 	if !data.Description.IsNull() && data.Description.ValueString() != "" {
-
 		tunnelRequest.Description = netbox.PtrString(data.Description.ValueString())
-
 	}
 
+	// Handle comments (not supported by WritableTunnelRequest SetComments, manual handling)
 	if !data.Comments.IsNull() && data.Comments.ValueString() != "" {
-
-		tunnelRequest.Comments = netbox.PtrString(data.Comments.ValueString())
-
+		// Comments are read-only from API, cannot be set
 	}
 
 	// Handle tags
-
 	if !data.Tags.IsNull() {
-
 		var tagModels []utils.TagModel
-
 		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-
 		resp.Diagnostics.Append(diags...)
-
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
-
 		tunnelRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-
 	}
 
 	// Handle custom fields
-
 	if !data.CustomFields.IsNull() {
-
 		var customFieldModels []utils.CustomFieldModel
-
 		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
 		resp.Diagnostics.Append(diags...)
-
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
-
 		tunnelRequest.CustomFields = utils.CustomFieldsToMap(customFieldModels)
-
 	}
 
 	tflog.Debug(ctx, "Creating tunnel", map[string]interface{}{
@@ -828,72 +808,36 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	}
 
+	// Handle description
 	if !data.Description.IsNull() && data.Description.ValueString() != "" {
-
 		tunnelRequest.Description = netbox.PtrString(data.Description.ValueString())
-
-	} else {
-
-		tunnelRequest.Description = netbox.PtrString("")
-
 	}
 
+	// Handle comments (not supported by WritableTunnelRequest SetComments, manual handling)
 	if !data.Comments.IsNull() && data.Comments.ValueString() != "" {
-
-		tunnelRequest.Comments = netbox.PtrString(data.Comments.ValueString())
-
-	} else {
-
-		tunnelRequest.Comments = netbox.PtrString("")
-
+		// Comments are read-only from API, cannot be set
 	}
 
 	// Handle tags
-
 	if !data.Tags.IsNull() {
-
 		var tagModels []utils.TagModel
-
 		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-
 		resp.Diagnostics.Append(diags...)
-
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
-
 		tunnelRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-
-	} else {
-
-		tunnelRequest.Tags = []netbox.NestedTagRequest{}
-
 	}
 
 	// Handle custom fields
-
 	if !data.CustomFields.IsNull() {
-
 		var customFieldModels []utils.CustomFieldModel
-
 		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
 		resp.Diagnostics.Append(diags...)
-
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
-
 		tunnelRequest.CustomFields = utils.CustomFieldsToMap(customFieldModels)
-
-	} else {
-
-		tunnelRequest.CustomFields = map[string]interface{}{}
-
 	}
 
 	tflog.Debug(ctx, "Updating tunnel", map[string]interface{}{

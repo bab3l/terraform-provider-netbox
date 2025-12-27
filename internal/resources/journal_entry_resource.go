@@ -472,40 +472,14 @@ func (r *JournalEntryResource) setOptionalFields(ctx context.Context, journalEnt
 
 	}
 
-	// Tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		journalEntryRequest.Tags = tags
-
+	// Apply Tags and CustomFields
+	utils.ApplyTags(ctx, journalEntryRequest, data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
-
-	// Custom Fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		journalEntryRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	utils.ApplyCustomFields(ctx, journalEntryRequest, data.CustomFields, diags)
+	if diags.HasError() {
+		return
 	}
 
 }

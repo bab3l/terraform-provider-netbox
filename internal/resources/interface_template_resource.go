@@ -307,11 +307,8 @@ func (r *InterfaceTemplateResource) Create(ctx context.Context, req resource.Cre
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	if !data.Bridge.IsNull() && !data.Bridge.IsUnknown() {
 
@@ -510,11 +507,8 @@ func (r *InterfaceTemplateResource) Update(ctx context.Context, req resource.Upd
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	if !data.Bridge.IsNull() && !data.Bridge.IsUnknown() {
 

@@ -280,49 +280,11 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+	// Apply description
+	utils.ApplyDescription(&deviceRoleRequest, data.Description)
 
-		description := data.Description.ValueString()
-
-		deviceRoleRequest.Description = &description
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		deviceRoleRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		deviceRoleRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &deviceRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Call the API
 
@@ -517,49 +479,11 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+	// Apply description
+	utils.ApplyDescription(&deviceRoleRequest, data.Description)
 
-		description := data.Description.ValueString()
-
-		deviceRoleRequest.Description = &description
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		deviceRoleRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		deviceRoleRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &deviceRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Call the API
 

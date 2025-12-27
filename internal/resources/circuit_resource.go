@@ -386,34 +386,10 @@ func (r *CircuitResource) buildCircuitRequest(ctx context.Context, data *Circuit
 		circuitReq.CommitRate = *netbox.NewNullableInt32(netbox.PtrInt32(commitRate))
 	}
 
-	// Description
-	if utils.IsSet(data.Description) {
-		circuitReq.Description = netbox.PtrString(data.Description.ValueString())
-	}
-
-	// Comments
-	if utils.IsSet(data.Comments) {
-		circuitReq.Comments = netbox.PtrString(data.Comments.ValueString())
-	}
-
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		var tags []utils.TagModel
-		diags.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-		if diags.HasError() {
-			return nil, diags
-		}
-		circuitReq.Tags = utils.TagsToNestedTagRequests(tags)
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFields []utils.CustomFieldModel
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-		if diags.HasError() {
-			return nil, diags
-		}
-		circuitReq.CustomFields = utils.CustomFieldsToMap(customFields)
+	// Apply common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, circuitReq, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
+	if diags.HasError() {
+		return nil, diags
 	}
 	return circuitReq, diags
 }

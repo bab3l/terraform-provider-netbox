@@ -174,14 +174,22 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 		webhookRequest.CaFilePath = *netbox.NewNullableString(utils.StringPtr(data.CAFilePath))
 	}
 
-	// Handle tags
+	// Apply metadata fields (tags only for webhook)
+
 	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+
 		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+
 		resp.Diagnostics.Append(diags...)
+
 		if resp.Diagnostics.HasError() {
+
 			return
+
 		}
+
 		webhookRequest.Tags = tags
+
 	}
 
 	webhook, httpResp, err := r.client.ExtrasAPI.ExtrasWebhooksCreate(ctx).WebhookRequest(*webhookRequest).Execute()
@@ -294,6 +302,9 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 			return
 		}
 		webhookRequest.Tags = tags
+	}
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	webhook, httpResp, err := r.client.ExtrasAPI.ExtrasWebhooksUpdate(ctx, webhookID).WebhookRequest(*webhookRequest).Execute()

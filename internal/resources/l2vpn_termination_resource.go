@@ -211,41 +211,13 @@ func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.Crea
 		data.AssignedObjectID.ValueInt64(),
 	)
 
-	// Handle tags
+	// Apply metadata fields (tags, custom_fields)
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	utils.ApplyMetadataFields(ctx, terminationRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+	if resp.Diagnostics.HasError() {
 
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		terminationRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		terminationRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
+		return
 
 	}
 
@@ -442,45 +414,13 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 		data.AssignedObjectID.ValueInt64(),
 	)
 
-	// Handle tags
+	// Handle tags and custom fields
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	utils.ApplyMetadataFields(ctx, terminationRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+	if resp.Diagnostics.HasError() {
 
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		terminationRequest.Tags = tags
-
-	} else {
-
-		terminationRequest.Tags = []netbox.NestedTagRequest{}
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		terminationRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
+		return
 
 	}
 

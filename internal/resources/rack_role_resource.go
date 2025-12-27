@@ -174,39 +174,13 @@ func (r *RackRoleResource) Create(ctx context.Context, req resource.CreateReques
 
 	}
 
-	// Handle tags
+	// Apply metadata fields (tags, custom_fields)
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	utils.ApplyMetadataFields(ctx, &rackRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		var tags []utils.TagModel
+	if resp.Diagnostics.HasError() {
 
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		rackRoleRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		rackRoleRequest.CustomFields = utils.CustomFieldsToMap(customFields)
+		return
 
 	}
 
@@ -479,21 +453,13 @@ func (r *RackRoleResource) Update(ctx context.Context, req resource.UpdateReques
 
 	}
 
-	// Handle custom fields
+	// Apply metadata fields (tags, custom_fields)
 
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
+	utils.ApplyMetadataFields(ctx, &rackRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		var customFields []utils.CustomFieldModel
+	if resp.Diagnostics.HasError() {
 
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		rackRoleRequest.CustomFields = utils.CustomFieldsToMap(customFields)
+		return
 
 	}
 

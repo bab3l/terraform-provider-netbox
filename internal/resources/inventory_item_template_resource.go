@@ -302,11 +302,8 @@ func (r *InventoryItemTemplateResource) Create(ctx context.Context, req resource
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	if !data.ComponentType.IsNull() && !data.ComponentType.IsUnknown() {
 
@@ -569,11 +566,8 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	if !data.ComponentType.IsNull() && !data.ComponentType.IsUnknown() {
 

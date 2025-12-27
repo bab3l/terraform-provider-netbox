@@ -339,39 +339,13 @@ func (r *InterfaceResource) Create(ctx context.Context, req resource.CreateReque
 
 	}
 
-	// Handle tags
+	// Apply metadata fields (tags, custom_fields)
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	utils.ApplyMetadataFields(ctx, interfaceReq, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		var tags []utils.TagModel
+	if resp.Diagnostics.HasError() {
 
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		interfaceReq.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		interfaceReq.CustomFields = utils.CustomFieldsToMap(customFields)
+		return
 
 	}
 
@@ -547,43 +521,13 @@ func (r *InterfaceResource) Update(ctx context.Context, req resource.UpdateReque
 
 	}
 
-	// Handle tags
+	// Apply metadata fields (tags, custom_fields)
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	utils.ApplyMetadataFields(ctx, interfaceReq, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		var tags []utils.TagModel
+	if resp.Diagnostics.HasError() {
 
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		interfaceReq.Tags = utils.TagsToNestedTagRequests(tags)
-
-	} else {
-
-		interfaceReq.Tags = []netbox.NestedTagRequest{}
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		interfaceReq.CustomFields = utils.CustomFieldsToMap(customFields)
+		return
 
 	}
 

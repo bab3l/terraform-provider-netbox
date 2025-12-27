@@ -446,10 +446,8 @@ func (r *CustomFieldResource) buildCustomFieldRequest(ctx context.Context, data 
 		createReq.SetGroupName(data.GroupName.ValueString())
 	}
 
-	// Handle description (optional)
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		createReq.SetDescription(data.Description.ValueString())
-	}
+	// Apply common descriptive fields (description, comments)
+	utils.ApplyDescriptiveFields(createReq, data.Description, data.Comments)
 
 	// Handle required (optional)
 	if !data.Required.IsNull() && !data.Required.IsUnknown() {
@@ -524,11 +522,6 @@ func (r *CustomFieldResource) buildCustomFieldRequest(ctx context.Context, data 
 	if !data.ChoiceSet.IsNull() && !data.ChoiceSet.IsUnknown() {
 		choiceSetReq := netbox.NewBriefCustomFieldChoiceSetRequest(data.ChoiceSet.ValueString())
 		createReq.SetChoiceSet(*choiceSetReq)
-	}
-
-	// Handle comments (optional)
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-		createReq.SetComments(data.Comments.ValueString())
 	}
 
 	return createReq, diags

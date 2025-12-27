@@ -328,37 +328,10 @@ func (r *ASNResource) buildASNRequest(ctx context.Context, data *ASNResourceMode
 		asnRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
 	}
 
-	// Handle description (optional)
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		desc := data.Description.ValueString()
-		asnRequest.Description = &desc
-	}
-
-	// Handle comments (optional)
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-		comments := data.Comments.ValueString()
-		asnRequest.Comments = &comments
-	}
-
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return nil, diags
-		}
-		asnRequest.Tags = tags
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFieldModels []utils.CustomFieldModel
-		cfDiags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return nil, diags
-		}
-		asnRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
+	// Apply common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, asnRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
+	if diags.HasError() {
+		return nil, diags
 	}
 	return asnRequest, diags
 }

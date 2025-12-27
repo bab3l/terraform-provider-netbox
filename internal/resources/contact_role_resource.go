@@ -134,51 +134,16 @@ func (r *ContactRoleResource) Create(ctx context.Context, req resource.CreateReq
 	})
 
 	// Build the request
-
 	contactRoleRequest := netbox.ContactRoleRequest{
-
 		Name: data.Name.ValueString(),
-
 		Slug: data.Slug.ValueString(),
-
-		Description: utils.StringPtr(data.Description),
 	}
 
-	// Handle tags
+	// Apply description
+	utils.ApplyDescription(&contactRoleRequest, data.Description)
 
-	if utils.IsSet(data.Tags) {
-
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		contactRoleRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		contactRoleRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &contactRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Create via API
 
@@ -341,51 +306,16 @@ func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateReq
 	})
 
 	// Build the request
-
 	contactRoleRequest := netbox.ContactRoleRequest{
-
 		Name: data.Name.ValueString(),
-
 		Slug: data.Slug.ValueString(),
-
-		Description: utils.StringPtr(data.Description),
 	}
 
-	// Handle tags
+	// Apply description
+	utils.ApplyDescription(&contactRoleRequest, data.Description)
 
-	if utils.IsSet(data.Tags) {
-
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		contactRoleRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		contactRoleRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &contactRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Update via API
 

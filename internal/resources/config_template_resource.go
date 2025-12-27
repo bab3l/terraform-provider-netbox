@@ -111,9 +111,8 @@ func (r *ConfigTemplateResource) Create(ctx context.Context, req resource.Create
 	)
 
 	// Set optional fields
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		apiReq.SetDescription(data.Description.ValueString())
-	}
+	utils.ApplyDescription(apiReq, data.Description)
+
 	tflog.Debug(ctx, "Creating config template", map[string]interface{}{
 		"name": data.Name.ValueString(),
 	})
@@ -184,9 +183,8 @@ func (r *ConfigTemplateResource) Update(ctx context.Context, req resource.Update
 	)
 
 	// Set optional fields
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		apiReq.SetDescription(data.Description.ValueString())
-	}
+	utils.ApplyDescription(apiReq, data.Description)
+
 	tflog.Debug(ctx, "Updating config template", map[string]interface{}{
 		"id": templateID,
 	})

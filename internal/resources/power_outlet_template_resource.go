@@ -287,11 +287,8 @@ func (r *PowerOutletTemplateResource) Create(ctx context.Context, req resource.C
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Creating power outlet template", map[string]interface{}{
 
@@ -491,11 +488,8 @@ func (r *PowerOutletTemplateResource) Update(ctx context.Context, req resource.U
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Updating power outlet template", map[string]interface{}{
 

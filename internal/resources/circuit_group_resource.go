@@ -109,47 +109,17 @@ func (r *CircuitGroupResource) Create(ctx context.Context, req resource.CreateRe
 	)
 
 	// Set optional fields
-	if !data.Description.IsNull() && data.Description.ValueString() != "" {
-		groupRequest.Description = netbox.PtrString(data.Description.ValueString())
+	utils.ApplyDescription(groupRequest, data.Description)
+
+	utils.ApplyMetadataFields(ctx, groupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+
+		return
+
 	}
 
 	// Handle tenant
-	if !data.Tenant.IsNull() && data.Tenant.ValueString() != "" {
-		tenant, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
-		resp.Diagnostics.Append(tenantDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		groupRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
-	}
-
-	// Handle tags
-	if !data.Tags.IsNull() {
-		var tagModels []utils.TagModel
-		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		groupRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() {
-		var customFieldModels []utils.CustomFieldModel
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		groupRequest.CustomFields = utils.CustomFieldsToMap(customFieldModels)
-	}
-	tflog.Debug(ctx, "Creating circuit group", map[string]interface{}{
-		"name": data.Name.ValueString(),
-		"slug": data.Slug.ValueString(),
-	})
-
-	// Call the API
 	group, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitGroupsCreate(ctx).CircuitGroupRequest(*groupRequest).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
@@ -255,29 +225,16 @@ func (r *CircuitGroupResource) Update(ctx context.Context, req resource.UpdateRe
 		groupRequest.Tenant = *netbox.NewNullableBriefTenantRequest(nil)
 	}
 
-	// Handle tags
-	if !data.Tags.IsNull() {
-		var tagModels []utils.TagModel
-		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		groupRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-	} else {
-		groupRequest.Tags = []netbox.NestedTagRequest{}
+	// Apply metadata fields (tags, custom_fields)
+
+	utils.ApplyMetadataFields(ctx, groupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+
+		return
+
 	}
 
-	// Handle custom fields
-	if !data.CustomFields.IsNull() {
-		var customFieldModels []utils.CustomFieldModel
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		groupRequest.CustomFields = utils.CustomFieldsToMap(customFieldModels)
-	}
 	tflog.Debug(ctx, "Updating circuit group", map[string]interface{}{
 		"id":   idInt,
 		"name": data.Name.ValueString(),

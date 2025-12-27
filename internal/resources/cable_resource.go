@@ -231,35 +231,10 @@ func (r *CableResource) Create(ctx context.Context, req resource.CreateRequest, 
 		cableRequest.LengthUnit = &lengthUnit
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		desc := data.Description.ValueString()
-		cableRequest.Description = &desc
-	}
-
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-		comments := data.Comments.ValueString()
-		cableRequest.Comments = &comments
-	}
-
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		resp.Diagnostics.Append(tagDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		cableRequest.Tags = tags
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFieldModels []utils.CustomFieldModel
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		cableRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, cableRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Create the cable
@@ -396,35 +371,10 @@ func (r *CableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		cableRequest.LengthUnit = nil
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		desc := data.Description.ValueString()
-		cableRequest.Description = &desc
-	}
-
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-		comments := data.Comments.ValueString()
-		cableRequest.Comments = &comments
-	}
-
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		resp.Diagnostics.Append(tagDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		cableRequest.Tags = tags
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFieldModels []utils.CustomFieldModel
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		cableRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, cableRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Update the cable

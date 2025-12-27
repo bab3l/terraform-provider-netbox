@@ -101,10 +101,12 @@ func (r *ContactGroupResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Build the request
 	contactGroupRequest := netbox.WritableContactGroupRequest{
-		Name:        data.Name.ValueString(),
-		Slug:        data.Slug.ValueString(),
-		Description: utils.StringPtr(data.Description),
+		Name: data.Name.ValueString(),
+		Slug: data.Slug.ValueString(),
 	}
+
+	// Apply description
+	utils.ApplyDescription(&contactGroupRequest, data.Description)
 
 	// Set parent if provided
 	if utils.IsSet(data.Parent) {
@@ -116,25 +118,8 @@ func (r *ContactGroupResource) Create(ctx context.Context, req resource.CreateRe
 		contactGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
 	}
 
-	// Handle tags
-	if utils.IsSet(data.Tags) {
-		var tags []utils.TagModel
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		contactGroupRequest.Tags = utils.TagsToNestedTagRequests(tags)
-	}
-
-	// Handle custom fields
-	if utils.IsSet(data.CustomFields) {
-		var customFields []utils.CustomFieldModel
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		contactGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &contactGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Create via API
 	contactGroup, httpResp, err := r.client.TenancyAPI.TenancyContactGroupsCreate(ctx).WritableContactGroupRequest(contactGroupRequest).Execute()
@@ -229,10 +214,12 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 
 	// Build the request
 	contactGroupRequest := netbox.WritableContactGroupRequest{
-		Name:        data.Name.ValueString(),
-		Slug:        data.Slug.ValueString(),
-		Description: utils.StringPtr(data.Description),
+		Name: data.Name.ValueString(),
+		Slug: data.Slug.ValueString(),
 	}
+
+	// Apply description
+	utils.ApplyDescription(&contactGroupRequest, data.Description)
 
 	// Set parent if provided
 	if utils.IsSet(data.Parent) {
@@ -244,25 +231,8 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 		contactGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
 	}
 
-	// Handle tags
-	if utils.IsSet(data.Tags) {
-		var tags []utils.TagModel
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		contactGroupRequest.Tags = utils.TagsToNestedTagRequests(tags)
-	}
-
-	// Handle custom fields
-	if utils.IsSet(data.CustomFields) {
-		var customFields []utils.CustomFieldModel
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		contactGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &contactGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Update via API
 	contactGroup, httpResp, err := r.client.TenancyAPI.TenancyContactGroupsUpdate(ctx, contactGroupIDInt).WritableContactGroupRequest(contactGroupRequest).Execute()

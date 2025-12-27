@@ -221,7 +221,7 @@ func (r *ExportTemplateResource) Create(ctx context.Context, req resource.Create
 
 	// Set optional fields
 
-	exportTemplateRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(exportTemplateRequest, data.Description)
 
 	exportTemplateRequest.MimeType = utils.StringPtr(data.MimeType)
 
@@ -407,7 +407,7 @@ func (r *ExportTemplateResource) Update(ctx context.Context, req resource.Update
 
 	// Set optional fields
 
-	exportTemplateRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(exportTemplateRequest, data.Description)
 
 	exportTemplateRequest.MimeType = utils.StringPtr(data.MimeType)
 

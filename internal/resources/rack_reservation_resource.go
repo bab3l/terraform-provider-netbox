@@ -266,47 +266,23 @@ func (r *RackReservationResource) Create(ctx context.Context, req resource.Creat
 
 	}
 
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
+	// Apply optional fields (comments, tags, custom_fields)
 
-		apiReq.SetComments(data.Comments.ValueString())
+	utils.ApplyComments(apiReq, data.Comments)
 
-	}
+	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
 
-	// Handle tags
+	if resp.Diagnostics.HasError() {
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(tagDiags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetTags(tags)
+		return
 
 	}
 
-	// Handle custom fields
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
+	if resp.Diagnostics.HasError() {
 
-		var cfModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &cfModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
+		return
 
 	}
 
@@ -539,47 +515,23 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 
 	}
 
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
+	// Apply optional fields (comments, tags, custom_fields)
 
-		apiReq.SetComments(data.Comments.ValueString())
+	utils.ApplyComments(apiReq, data.Comments)
 
-	}
+	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
 
-	// Handle tags
+	if resp.Diagnostics.HasError() {
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(tagDiags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetTags(tags)
+		return
 
 	}
 
-	// Handle custom fields
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
+	if resp.Diagnostics.HasError() {
 
-		var cfModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &cfModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
+		return
 
 	}
 

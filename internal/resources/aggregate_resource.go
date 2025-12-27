@@ -326,35 +326,10 @@ func (r *AggregateResource) buildCreateRequest(ctx context.Context, data *Aggreg
 		createReq.SetDateAdded(data.DateAdded.ValueString())
 	}
 
-	// Handle description (optional)
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		createReq.SetDescription(data.Description.ValueString())
-	}
-
-	// Handle comments (optional)
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-		createReq.SetComments(data.Comments.ValueString())
-	}
-
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return nil, diags
-		}
-		createReq.SetTags(tags)
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFields []utils.CustomFieldModel
-		cfDiags := data.CustomFields.ElementsAs(ctx, &customFields, false)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return nil, diags
-		}
-		createReq.SetCustomFields(utils.CustomFieldsToMap(customFields))
+	// Apply common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, createReq, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
+	if diags.HasError() {
+		return nil, diags
 	}
 
 	return createReq, diags

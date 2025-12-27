@@ -139,33 +139,14 @@ func (r *CircuitTypeResource) Create(ctx context.Context, req resource.CreateReq
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Handle optional fields
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		createReq.SetDescription(data.Description.ValueString())
-	}
+	// Handle description
+	utils.ApplyDescription(&createReq, data.Description)
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
 		createReq.SetColor(data.Color.ValueString())
 	}
 
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		var tags []utils.TagModel
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		createReq.Tags = utils.TagsToNestedTagRequests(tags)
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFields []utils.CustomFieldModel
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		createReq.CustomFields = utils.CustomFieldsToMap(customFields)
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &createReq, data.Tags, data.CustomFields, &resp.Diagnostics)
 	tflog.Debug(ctx, "Creating circuit type", map[string]interface{}{
 		"name": data.Name.ValueString(),
 		"slug": data.Slug.ValueString(),
@@ -252,39 +233,16 @@ func (r *CircuitTypeResource) Update(ctx context.Context, req resource.UpdateReq
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Handle optional fields
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		updateReq.SetDescription(data.Description.ValueString())
-	} else {
-		updateReq.SetDescription("")
-	}
+	// Handle description
+	utils.ApplyDescription(&updateReq, data.Description)
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
 		updateReq.SetColor(data.Color.ValueString())
 	} else {
 		updateReq.SetColor("")
 	}
 
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		var tags []utils.TagModel
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		updateReq.Tags = utils.TagsToNestedTagRequests(tags)
-	} else {
-		updateReq.Tags = []netbox.NestedTagRequest{}
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFields []utils.CustomFieldModel
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		updateReq.CustomFields = utils.CustomFieldsToMap(customFields)
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &updateReq, data.Tags, data.CustomFields, &resp.Diagnostics)
 	tflog.Debug(ctx, "Updating circuit type", map[string]interface{}{
 		"id":   id,
 		"name": data.Name.ValueString(),

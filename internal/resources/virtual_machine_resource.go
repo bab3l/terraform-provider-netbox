@@ -677,60 +677,10 @@ func (r *VirtualMachineResource) buildVirtualMachineRequest(ctx context.Context,
 
 	}
 
-	// Description
-
-	if utils.IsSet(data.Description) {
-
-		description := data.Description.ValueString()
-
-		vmRequest.Description = &description
-
-	}
-
-	// Comments
-
-	if utils.IsSet(data.Comments) {
-
-		comments := data.Comments.ValueString()
-
-		vmRequest.Comments = &comments
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		var tags []utils.TagModel
-
-		diags.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if diags.HasError() {
-
-			return nil
-
-		}
-
-		vmRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return nil
-
-		}
-
-		vmRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, vmRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	if diags.HasError() {
+		return nil
 	}
 
 	return vmRequest

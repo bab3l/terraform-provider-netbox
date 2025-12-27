@@ -578,13 +578,7 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResou
 		formFactor,
 	)
 
-	// Set optional fields
-
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		rackTypeRequest.SetDescription(data.Description.ValueString())
-
-	}
+	utils.ApplyDescription(rackTypeRequest, data.Description)
 
 	// FormFactor is already set in the constructor, but update if explicitly provided
 

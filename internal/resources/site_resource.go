@@ -142,8 +142,6 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	// Use helper for optional string fields
-	siteRequest.Description = utils.StringPtr(data.Description)
-	siteRequest.Comments = utils.StringPtr(data.Comments)
 	siteRequest.Facility = utils.StringPtr(data.Facility)
 
 	// Set status if provided
@@ -167,24 +165,10 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 		siteRequest.Group = *netbox.NewNullableBriefSiteGroupRequest(groupRef)
 	}
 
-	// Handle tags
-	if utils.IsSet(data.Tags) {
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		siteRequest.Tags = tags
-	}
-
-	// Handle custom fields
-	if utils.IsSet(data.CustomFields) {
-		var customFields []utils.CustomFieldModel
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		siteRequest.CustomFields = utils.CustomFieldsToMap(customFields)
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, &siteRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Create the site via API
@@ -302,8 +286,6 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	// Use helper for optional string fields
-	siteRequest.Description = utils.StringPtr(data.Description)
-	siteRequest.Comments = utils.StringPtr(data.Comments)
 	siteRequest.Facility = utils.StringPtr(data.Facility)
 
 	// Set status if provided
@@ -327,24 +309,10 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		siteRequest.Group = *netbox.NewNullableBriefSiteGroupRequest(groupRef)
 	}
 
-	// Handle tags
-	if utils.IsSet(data.Tags) {
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		siteRequest.Tags = tags
-	}
-
-	// Handle custom fields
-	if utils.IsSet(data.CustomFields) {
-		var customFields []utils.CustomFieldModel
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		siteRequest.CustomFields = utils.CustomFieldsToMap(customFields)
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, &siteRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Update the site via API

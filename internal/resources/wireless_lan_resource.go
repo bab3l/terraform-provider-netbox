@@ -320,46 +320,15 @@ func (r *WirelessLANResource) Create(ctx context.Context, req resource.CreateReq
 
 	}
 
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
+	// Handle description and comments
+	utils.ApplyDescription(apiReq, data.Description)
+	utils.ApplyComments(apiReq, data.Comments)
 
-		apiReq.SetComments(data.Comments.ValueString())
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(tagDiags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetTags(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var cfModels []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &cfModels, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
-
+	// Set tags and custom fields
+	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	tflog.Debug(ctx, "Creating wireless LAN", map[string]interface{}{
@@ -605,11 +574,9 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 
 	}
 
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-
-		apiReq.SetComments(data.Comments.ValueString())
-
-	}
+	// Handle description and comments
+	utils.ApplyDescription(apiReq, data.Description)
+	utils.ApplyComments(apiReq, data.Comments)
 
 	// Handle tags
 
