@@ -491,13 +491,17 @@ Resources with full descriptive metadata - organized into sub-batches:
 **Lines saved: 7 lines**
 **Commit**: 0829646
 
-**Batch 5d - Virtual Resources (2 resources):**
-- [ ] virtual_chassis_resource.go
-- [ ] virtual_device_context_resource.go
+**Batch 5d - Virtual Resources (2 resources):** ✅
+- [x] virtual_chassis_resource.go ✅
+- [x] virtual_device_context_resource.go ✅
 
-**Total Batch 5: 10 resources (8 complete, 2 remaining)**
+**Completed: 2/2 ✅**
+**Lines saved: 13 lines**
+**Commit**: 4867b65
+
+**Total Batch 5: 10 resources - ALL COMPLETE ✅**
+**Total lines saved**: 48 lines (26 + 2 + 7 + 13)
 **Pattern**: Use `CommonDescriptiveAttributes()` + `CommonMetadataAttributes()`
-**Estimated savings for remaining**: ~4-6 lines
 
 #### Batch 6: Category 2 Resources (Description Only, No Comments)
 Resources with description + tags + custom_fields but no comments field:
