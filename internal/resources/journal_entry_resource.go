@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -118,20 +119,17 @@ func (r *JournalEntryResource) Schema(ctx context.Context, req resource.SchemaRe
 				Computed: true,
 			},
 
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "The content of the journal entry. Supports markdown formatting.",
-
-				Required: true,
-			},
-
 			"display_name": nbschema.DisplayNameAttribute("journal entry"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add comments attribute
+	maps.Copy(resp.Schema.Attributes, map[string]schema.Attribute{
+		"comments": nbschema.CommentsAttribute("journal entry"),
+	})
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 

@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -146,13 +147,6 @@ func (r *PowerPortResource) Schema(ctx context.Context, req resource.SchemaReque
 				Optional: true,
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the power port.",
-
-				Optional: true,
-			},
-
 			"mark_connected": schema.BoolAttribute{
 
 				MarkdownDescription: "Treat as if a cable is connected.",
@@ -163,12 +157,14 @@ func (r *PowerPortResource) Schema(ctx context.Context, req resource.SchemaReque
 
 				Default: booldefault.StaticBool(false),
 			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("power port"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 

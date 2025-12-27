@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -97,20 +98,20 @@ func (r *DeviceBayResource) Schema(ctx context.Context, req resource.SchemaReque
 
 			"display_name": nbschema.DisplayNameAttribute("device bay"),
 
-			"description": nbschema.DescriptionAttribute("device bay"),
-
 			"installed_device": schema.StringAttribute{
 
 				MarkdownDescription: "The child device installed in this bay. Accepts ID or name.",
 
 				Optional: true,
 			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("device bay"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 
