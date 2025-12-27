@@ -522,14 +522,20 @@ Resources with description + tags + custom_fields but no comments field:
 
 **Note**: notification_group lacks tags/custom_fields - moved to Batch 7 (special cases)
 
-**Batch 6b (3 resources):**
-- [ ] wireless_lan_group_resource.go
-- [ ] wireless_link_resource.go
-- [ ] circuit_group_assignment_resource.go
+**Batch 6b (3 resources):** ✅
+- [x] wireless_lan_group_resource.go ✅ (Category 2: description only)
+- [x] wireless_link_resource.go ✅ (Category 1: has comments - misclassified)
+- [x] circuit_group_assignment_resource.go ✅ (Metadata only: no description/comments)
 
-**Total Batch 6: 11 resources (8 complete, 3 remaining)**
+**Completed: 3/3 ✅**
+**Lines saved: 5 lines**
+**Commit**: cd171ef
+
+**Total Batch 6: 11 resources - ALL COMPLETE ✅**
+**Total lines saved**: 31 lines (26 + 5)
 **Pattern**: Use `DescriptionOnlyAttributes()` + `CommonMetadataAttributes()`
-**Estimated savings for remaining**: ~3-6 lines
+
+**Note**: Discovered wireless_link has comments field (should be Category 1) and circuit_group_assignment has no description (metadata only)
 
 #### Batch 7: Special Cases (Non-Standard Metadata)
 Resources with unique schemas or missing standard metadata support:
