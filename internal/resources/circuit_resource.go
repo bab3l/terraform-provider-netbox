@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 	"regexp"
 
 	"github.com/bab3l/go-netbox"
@@ -128,18 +129,14 @@ func (r *CircuitResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "The committed information rate (CIR) in Kbps for this circuit.",
 				Optional:            true,
 			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "A description of the circuit.",
-				Optional:            true,
-			},
-			"comments": schema.StringAttribute{
-				MarkdownDescription: "Additional comments or notes about the circuit.",
-				Optional:            true,
-			},
-			"tags":          nbschema.TagsAttribute(),
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("circuit"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure sets up the resource with the provider client.

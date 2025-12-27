@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -132,27 +133,15 @@ func (r *ServiceTemplateResource) Schema(ctx context.Context, req resource.Schem
 				ElementType: types.Int64Type,
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the service template.",
-
-				Optional: true,
-			},
-
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "Additional comments or notes about the service template.",
-
-				Optional: true,
-			},
-
 			"display_name": nbschema.DisplayNameAttribute("service template"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("service template"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 
