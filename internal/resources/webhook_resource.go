@@ -146,7 +146,7 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 	)
 
 	// Set optional fields
-	webhookRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(webhookRequest, data.Description)
 	webhookRequest.AdditionalHeaders = utils.StringPtr(data.AdditionalHeaders)
 	webhookRequest.BodyTemplate = utils.StringPtr(data.BodyTemplate)
 	webhookRequest.Secret = utils.StringPtr(data.Secret)
@@ -175,22 +175,7 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Apply metadata fields (tags only for webhook)
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		webhookRequest.Tags = tags
-
-	}
+	utils.ApplyTags(ctx, webhookRequest, data.Tags, &resp.Diagnostics)
 
 	webhook, httpResp, err := r.client.ExtrasAPI.ExtrasWebhooksCreate(ctx).WebhookRequest(*webhookRequest).Execute()
 	defer utils.CloseResponseBody(httpResp)
@@ -266,7 +251,7 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 	)
 
 	// Set optional fields
-	webhookRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(webhookRequest, data.Description)
 	webhookRequest.AdditionalHeaders = utils.StringPtr(data.AdditionalHeaders)
 	webhookRequest.BodyTemplate = utils.StringPtr(data.BodyTemplate)
 	webhookRequest.Secret = utils.StringPtr(data.Secret)
@@ -295,14 +280,7 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		webhookRequest.Tags = tags
-	}
+	utils.ApplyTags(ctx, webhookRequest, data.Tags, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}

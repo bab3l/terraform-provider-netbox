@@ -322,14 +322,7 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Handle description
-	if !data.Description.IsNull() && data.Description.ValueString() != "" {
-		tunnelRequest.Description = netbox.PtrString(data.Description.ValueString())
-	}
-
-	// Handle comments (not supported by WritableTunnelRequest SetComments, manual handling)
-	if !data.Comments.IsNull() && data.Comments.ValueString() != "" {
-		// Comments are read-only from API, cannot be set
-	}
+	tunnelRequest.Description = utils.StringPtr(data.Description)
 
 	// Handle tags
 	if !data.Tags.IsNull() {
@@ -809,14 +802,7 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	// Handle description
-	if !data.Description.IsNull() && data.Description.ValueString() != "" {
-		tunnelRequest.Description = netbox.PtrString(data.Description.ValueString())
-	}
-
-	// Handle comments (not supported by WritableTunnelRequest SetComments, manual handling)
-	if !data.Comments.IsNull() && data.Comments.ValueString() != "" {
-		// Comments are read-only from API, cannot be set
-	}
+	tunnelRequest.Description = utils.StringPtr(data.Description)
 
 	// Handle tags
 	if !data.Tags.IsNull() {

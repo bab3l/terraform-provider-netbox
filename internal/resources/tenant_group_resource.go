@@ -150,9 +150,10 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
-
-		Description: utils.StringPtr(data.Description),
 	}
+
+	// Apply description
+	utils.ApplyDescription(&tenantGroupRequest, data.Description)
 
 	// Set parent if provided
 
@@ -375,9 +376,10 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
-
-		Description: utils.StringPtr(data.Description),
 	}
+
+	// Apply description
+	utils.ApplyDescription(&tenantGroupRequest, data.Description)
 
 	// Set parent if provided
 

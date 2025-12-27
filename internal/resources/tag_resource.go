@@ -89,7 +89,7 @@ func (r *TagResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Set optional fields
 	tagRequest.Color = utils.StringPtr(data.Color)
-	tagRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(tagRequest, data.Description)
 
 	// Handle object_types list
 	if !data.ObjectTypes.IsNull() && !data.ObjectTypes.IsUnknown() {
@@ -189,7 +189,7 @@ func (r *TagResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	// Set optional fields
 	tagRequest.Color = utils.StringPtr(data.Color)
-	tagRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(tagRequest, data.Description)
 
 	// Handle object_types list
 	if !data.ObjectTypes.IsNull() && !data.ObjectTypes.IsUnknown() {
