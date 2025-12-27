@@ -461,11 +461,16 @@ Resources from Batch 3 audit that have description or comments fields:
 #### Batch 5: Remaining Category 1 Resources (Description + Comments + Tags + Custom Fields)
 Resources with full descriptive metadata - organized into sub-batches:
 
-**Batch 5a - Circuits & Services (4 resources):**
-- [ ] circuit_resource.go
-- [ ] circuit_group_resource.go
-- [ ] service_resource.go
-- [ ] service_template_resource.go
+**Batch 5a - Circuits & Services (3 resources):** ✅
+- [x] circuit_resource.go ✅
+- [x] service_resource.go ✅
+- [x] service_template_resource.go ✅
+
+**Completed: 3/3 ✅**
+**Lines saved: 26 lines**
+**Commit**: cc4aaea
+
+**Note**: circuit_group_resource.go moved to Batch 6 (lacks comments field - Category 2 pattern)
 
 **Batch 5b - Interfaces & Inventory (4 resources):**
 - [ ] interface_resource.go
@@ -483,14 +488,15 @@ Resources with full descriptive metadata - organized into sub-batches:
 - [ ] virtual_chassis_resource.go
 - [ ] virtual_device_context_resource.go
 
-**Total Batch 5: 14 resources**
+**Total Batch 5: 13 resources (3 complete, 10 remaining)**
 **Pattern**: Use `CommonDescriptiveAttributes()` + `CommonMetadataAttributes()`
-**Estimated savings**: ~28-42 lines
+**Estimated savings for remaining**: ~20-30 lines
 
 #### Batch 6: Category 2 Resources (Description Only, No Comments)
 Resources with description + tags + custom_fields but no comments field:
 
-**Batch 6a (5 resources):**
+**Batch 6a (6 resources):**
+- [ ] circuit_group_resource.go
 - [ ] front_port_resource.go
 - [ ] notification_group_resource.go
 - [ ] power_outlet_resource.go
@@ -502,9 +508,9 @@ Resources with description + tags + custom_fields but no comments field:
 - [ ] wireless_link_resource.go
 - [ ] circuit_group_assignment_resource.go
 
-**Total Batch 6: 8 resources**
+**Total Batch 6: 9 resources**
 **Pattern**: Use `DescriptionOnlyAttributes()` + `CommonMetadataAttributes()`
-**Estimated savings**: ~8-16 lines
+**Estimated savings**: ~9-18 lines
 
 #### Batch 7: Special Cases (Non-Standard Metadata)
 Resources with unique schemas or missing standard metadata support:
