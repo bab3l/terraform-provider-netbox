@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -107,18 +108,15 @@ func (r *RouteTargetResource) Schema(ctx context.Context, req resource.SchemaReq
 
 			"tenant_id": nbschema.ComputedIDAttribute("tenant"),
 
-			"description": nbschema.DescriptionAttribute("route target"),
-
-			"comments": nbschema.CommentsAttribute("route target"),
-
 			"display_name": nbschema.DisplayNameAttribute("route target"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("route target"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
