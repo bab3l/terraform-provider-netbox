@@ -159,11 +159,8 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helper for optional string fields
-
-	tenantRequest.Description = utils.StringPtr(data.Description)
-
-	tenantRequest.Comments = utils.StringPtr(data.Comments)
+	// Apply common descriptive fields (description, comments)
+	utils.ApplyDescriptiveFields(&tenantRequest, data.Description, data.Comments)
 
 	// Handle group relationship - lookup the group details by ID
 
@@ -173,40 +170,10 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	}
 
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tenantRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tenantRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Apply common metadata fields (tags, custom_fields)
+	utils.ApplyMetadataFields(ctx, &tenantRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Create the tenant via API
@@ -386,11 +353,8 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helpers for optional string fields
-
-	tenantRequest.Description = utils.StringPtr(data.Description)
-
-	tenantRequest.Comments = utils.StringPtr(data.Comments)
+	// Apply common descriptive fields (description, comments)
+	utils.ApplyDescriptiveFields(&tenantRequest, data.Description, data.Comments)
 
 	// Handle group relationship
 
@@ -400,40 +364,10 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	}
 
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tenantRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tenantRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Apply common metadata fields (tags, custom_fields)
+	utils.ApplyMetadataFields(ctx, &tenantRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	tenant, httpResp, err := r.client.TenancyAPI.TenancyTenantsUpdate(ctx, tenantIDInt).TenantRequest(tenantRequest).Execute()
