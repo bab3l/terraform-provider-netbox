@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -155,16 +156,15 @@ func (r *IKEPolicyResource) Schema(ctx context.Context, req resource.SchemaReque
 				Sensitive: true,
 			},
 
-			"comments": nbschema.CommentsAttribute("IKE policy"),
-
 			"display_name": nbschema.DisplayNameAttribute("IKE policy"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("IKE policy"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.

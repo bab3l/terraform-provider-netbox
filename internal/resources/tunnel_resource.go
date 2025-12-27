@@ -11,6 +11,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -169,17 +170,14 @@ func (r *TunnelResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 				Optional: true,
 			},
-
-			"description": nbschema.DescriptionAttribute("tunnel"),
-
-			"comments": nbschema.CommentsAttribute("tunnel"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("tunnel"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *TunnelResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
