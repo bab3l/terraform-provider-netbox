@@ -342,8 +342,7 @@ func (r *ConfigContextResource) Update(ctx context.Context, req resource.UpdateR
 
 	// Set optional fields
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		desc := data.Description.ValueString()
-		request.Description = &desc
+		request.SetDescription(data.Description.ValueString())
 	}
 
 	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
@@ -352,12 +351,12 @@ func (r *ConfigContextResource) Update(ctx context.Context, req resource.UpdateR
 			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Weight value overflow: %s", err))
 			return
 		}
-		request.Weight = &weight
+		request.SetWeight(weight)
 	}
 
 	if !data.IsActive.IsNull() && !data.IsActive.IsUnknown() {
 		isActive := data.IsActive.ValueBool()
-		request.IsActive = &isActive
+		request.SetIsActive(isActive)
 	}
 
 	// Set assignment criteria - for update, always set them (even if empty)

@@ -144,8 +144,9 @@ func (r *ContactResource) Create(ctx context.Context, req resource.CreateRequest
 	contactRequest.Address = utils.StringPtr(data.Address)
 	contactRequest.Link = utils.StringPtr(data.Link)
 
-	// Apply descriptive fields (description + comments)
-	utils.ApplyDescriptiveFields(contactRequest, data.Description, data.Comments)
+	// Apply description and comments
+	utils.ApplyDescription(contactRequest, data.Description)
+	utils.ApplyComments(contactRequest, data.Comments)
 
 	// Handle tags
 	utils.ApplyTags(ctx, contactRequest, data.Tags, &resp.Diagnostics)
@@ -233,8 +234,9 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 	contactRequest.Address = utils.StringPtr(data.Address)
 	contactRequest.Link = utils.StringPtr(data.Link)
 
-	// Apply descriptive fields (description + comments)
-	utils.ApplyDescriptiveFields(contactRequest, data.Description, data.Comments)
+	// Apply description and comments
+	utils.ApplyDescription(contactRequest, data.Description)
+	utils.ApplyComments(contactRequest, data.Comments)
 
 	// Handle tags
 	utils.ApplyTags(ctx, contactRequest, data.Tags, &resp.Diagnostics)

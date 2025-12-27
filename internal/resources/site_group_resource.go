@@ -157,9 +157,12 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helper for optional string field
-
-	siteGroupRequest.Description = utils.StringPtr(data.Description)
+	// Apply description, tags, and custom fields
+	utils.ApplyDescription(&siteGroupRequest, data.Description)
+	utils.ApplyMetadataFields(ctx, &siteGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Handle parent reference
 
@@ -176,42 +179,6 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 		}
 
 		siteGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
-
-	}
-
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		siteGroupRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		siteGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
 
 	}
 
@@ -386,9 +353,12 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helper for optional string field
-
-	siteGroupRequest.Description = utils.StringPtr(data.Description)
+	// Apply description, tags, and custom fields
+	utils.ApplyDescription(&siteGroupRequest, data.Description)
+	utils.ApplyMetadataFields(ctx, &siteGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Handle parent reference
 
@@ -405,42 +375,6 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 		}
 
 		siteGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
-
-	}
-
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		siteGroupRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		siteGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
 
 	}
 
