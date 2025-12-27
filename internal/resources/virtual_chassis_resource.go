@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -103,23 +104,20 @@ func (r *VirtualChassisResource) Schema(ctx context.Context, req resource.Schema
 				Optional: true,
 			},
 
-			"description": nbschema.DescriptionAttribute("virtual chassis"),
-
-			"comments": nbschema.CommentsAttribute("virtual chassis"),
-
 			"member_count": schema.Int64Attribute{
 
 				MarkdownDescription: "Number of member devices in this virtual chassis.",
 
 				Computed: true,
 			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("virtual chassis"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
