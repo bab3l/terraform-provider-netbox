@@ -506,25 +506,30 @@ Resources with full descriptive metadata - organized into sub-batches:
 #### Batch 6: Category 2 Resources (Description Only, No Comments)
 Resources with description + tags + custom_fields but no comments field:
 
-**Batch 6a (9 resources):**
-- [ ] circuit_group_resource.go (from Batch 5a)
-- [ ] interface_resource.go (from Batch 5b)
-- [ ] inventory_item_resource.go (from Batch 5b)
-- [ ] role_resource.go (from Batch 5b)
-- [ ] front_port_resource.go
-- [ ] notification_group_resource.go
-- [ ] power_outlet_resource.go
-- [ ] rear_port_resource.go
-- [ ] vm_interface_resource.go
+**Batch 6a (8 resources):** ✅
+- [x] circuit_group_resource.go (from Batch 5a) ✅
+- [x] interface_resource.go (from Batch 5b) ✅
+- [x] inventory_item_resource.go (from Batch 5b) ✅
+- [x] role_resource.go (from Batch 5b) ✅
+- [x] front_port_resource.go ✅
+- [x] power_outlet_resource.go ✅
+- [x] rear_port_resource.go ✅
+- [x] vm_interface_resource.go ✅
+
+**Completed: 8/8 ✅**
+**Lines saved: 26 lines**
+**Commit**: 0a0d13b
+
+**Note**: notification_group lacks tags/custom_fields - moved to Batch 7 (special cases)
 
 **Batch 6b (3 resources):**
 - [ ] wireless_lan_group_resource.go
 - [ ] wireless_link_resource.go
 - [ ] circuit_group_assignment_resource.go
 
-**Total Batch 6: 12 resources**
+**Total Batch 6: 11 resources (8 complete, 3 remaining)**
 **Pattern**: Use `DescriptionOnlyAttributes()` + `CommonMetadataAttributes()`
-**Estimated savings**: ~12-24 lines
+**Estimated savings for remaining**: ~3-6 lines
 
 #### Batch 7: Special Cases (Non-Standard Metadata)
 Resources with unique schemas or missing standard metadata support:
