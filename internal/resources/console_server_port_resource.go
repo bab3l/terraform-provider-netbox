@@ -159,16 +159,11 @@ func (r *ConsoleServerPortResource) Create(ctx context.Context, req resource.Cre
 		speed := netbox.PatchedWritableConsolePortRequestSpeed(data.Speed.ValueInt32())
 		apiReq.SetSpeed(speed)
 	}
-
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		apiReq.SetDescription(data.Description.ValueString())
-	}
-
 	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
 	}
 
-	// Handle description, tags, and custom fields
+	// Handle description, tags, and custom fields using helpers
 	utils.ApplyDescription(apiReq, data.Description)
 	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
@@ -284,15 +279,11 @@ func (r *ConsoleServerPortResource) Update(ctx context.Context, req resource.Upd
 		apiReq.SetSpeed(speed)
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		apiReq.SetDescription(data.Description.ValueString())
-	}
-
 	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
 	}
 
-	// Handle description, tags, and custom fields
+	// Handle description, tags, and custom fields using helpers
 	utils.ApplyDescription(apiReq, data.Description)
 	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {

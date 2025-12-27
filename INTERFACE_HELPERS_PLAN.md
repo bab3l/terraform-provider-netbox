@@ -422,24 +422,61 @@ Don't change the reference lookup patterns - only replace the common field assig
 
 ---
 
+---
+
+# Phase 2: Request Standardization (NEW!)
+
+## Overview
+
+Following the successful completion of the interface-based helper rollout (102/102 resources ✅), we've identified a secondary standardization opportunity: **Request Field Assignment Standardization**.
+
+**Status**: 📋 **PLANNING PHASE** - Batches defined, ready to execute
+**Target**: ~85 resources requiring standardization
+**Total Effort**: ~190 hours (can be spread over 2-3 months)
+**Expected Impact**: Improved code consistency, better error handling, reduced maintenance burden
+
+### Quick Summary
+Currently, our resources use **3 different patterns** for field assignment:
+- **Pattern A (68%)**: Direct assignment `request.Description = &desc`
+- **Pattern B (15%)**: Setter methods `apiReq.SetDescription(value)`
+- **Pattern C (17%)**: Helper functions `utils.ApplyDescription()` ← Our direction
+
+**Goal**: Standardize all resources to use **Pattern C (helpers)** for consistency.
+
+## Detailed Implementation Plan
+
+👉 **SEE**: [REQUEST_STANDARDIZATION_IMPLEMENTATION_PLAN.md](REQUEST_STANDARDIZATION_IMPLEMENTATION_PLAN.md) for:
+- Detailed batch breakdown (S1-S14)
+- Phase-by-phase roadmap
+- Resource-by-resource migration guide
+- Effort estimates and risk analysis
+
+## Quick Reference: Batch Schedule
+
+| Batch | Phase | Focus | Resources | Effort | Blocker |
+|-------|-------|-------|-----------|--------|---------|
+| **S1** | 1 | Foundation helpers | - | 9 hrs | None |
+| **S2** | 4A | config_context | 1 | 4 hrs | S1 |
+| **S3-S6** | 2 | Port resources | 15 | 24 hrs | S1-S2 |
+| **S7** | 3 | Template resources | 10 | 20 hrs | S1-S6 |
+| **S8-S9** | 4B-D | Assignments, Special | 8 | 15 hrs | S1-S7 |
+| **S10-S12** | 5 | Core Device/Circuit | 10 | 33 hrs | S1-S9 |
+| **S13+** | 6-7 | Medium Priority | 40+ | 90+ hrs | Ongoing |
+
 ## Next Steps
 
-✅ **PHASE 1 COMPLETE**: 39 resources refactored with interface helpers
-🚀 **PHASE 2 READY**: Continue with remaining 63 resources
+✅ **INTERFACE HELPERS PHASE COMPLETE**: 102/102 resources refactored
+🚀 **STANDARDIZATION PHASE READY**: 7 batches planned, prioritized, tracked
 
-### Current Refactor Status:
-**38% Complete** (39/102 resources) - **Excellent progress!**
+### Decision Points:
+1. **Start Phase 1 (Foundation)** - Create helper function suite (9 hours)
+2. **Proceed with Phase 2 (Port Resources)** - Highest impact quick win (24 hours)
+3. **Strategic Pause** - Evaluate other priorities, then resume Phase 3+
 
-The systematic refactoring approach has been highly successful. The interface-based helper system is working well and providing the expected benefits:
-- ✅ **Type safety** through compile-time interface verification
-- ✅ **Code consistency** across resources
-- ✅ **Reduced boilerplate** (~20 lines saved per resource)
-- ✅ **Build verification** successful for all completed batches
+### Recommended Approach:
+1. Complete S1 foundation work (9 hours)
+2. Execute S2-S7 batches sequentially (63 hours) - achieves 33/85 resource target
+3. Pause and evaluate after that milestone
+4. Continue with S10+ as development priorities allow
 
-### Ready to Continue:
-1. **Pick next batch of 5 resources** from Phase 1 high priority list
-2. **Apply systematic refactoring** using proven patterns
-3. **Verify builds** after each batch
-4. **Update progress** in this document
-
-The foundation is solid - ready to process the remaining 63 resources efficiently!
+The foundation is solid from Phase 1! Ready to begin standardization work when you give the go-ahead.
