@@ -351,6 +351,7 @@ Priority: MEDIUM - Physical infrastructure
 - Added context import to all test files
 - Added update test to rack_type (basic to full config transition)
 - Added external deletion tests to all 6 resources using PreConfig pattern with DcimAPI methods
+- Added 404 handling to rack_role Delete method (was missing)
 - All resources filter by name, slug, or description for deletion lookup
 - All tests use t.Parallel() for concurrent execution
 - Fixed API response handling: Check `items == nil || len(items.Results) == 0` instead of Count pointer
@@ -362,22 +363,6 @@ Priority: MEDIUM - Physical infrastructure
 - DcimRackReservationsList/DcimRackReservationsDestroy (filter by description)
 - DcimPowerPanelsList/DcimPowerPanelsDestroy (filter by name)
 - DcimPowerFeedsList/DcimPowerFeedsDestroy (filter by name)
-
----
-
-## Batch 9: Organizational Resources (11 resources)
-**Status**: ⏳ NOT STARTED
-
-Priority: MEDIUM - Physical infrastructure
-
-| Resource | File | Status | Missing Tests |
-|----------|------|--------|---------------|
-| rack | rack_resource_test.go | ⏳ TODO | Update + External Deletion |
-| rack_role | rack_role_resource_test.go | ⏳ TODO | Update + External Deletion |
-| rack_type | rack_type_resource_test.go | ⏳ TODO | Update + External Deletion |
-| rack_reservation | rack_reservation_resource_test.go | ⏳ TODO | Update + External Deletion |
-| power_panel | power_panel_resource_test.go | ⏳ TODO | Update + External Deletion |
-| power_feed | power_feed_resource_test.go | ⏳ TODO | Update + External Deletion |
 
 ---
 
