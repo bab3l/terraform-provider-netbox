@@ -524,8 +524,14 @@ func TestAccClusterResource_externalDeletion(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
-resource "netbox_cluster_type" "test" { name = %q; slug = %q }
-resource "netbox_cluster" "test" { name = %q; type = netbox_cluster_type.test.name }
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+}
 `, clusterTypeName, clusterTypeSlug, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),
@@ -537,21 +543,12 @@ resource "netbox_cluster" "test" { name = %q; type = netbox_cluster_type.test.na
 					if err != nil {
 						t.Fatalf("Failed to get shared client: %v", err)
 					}
-					// List all clusters and find the one we created
-					items, _, err := client.VirtualizationAPI.VirtualizationClustersList(context.Background()).Limit(10).Execute()
+					// List clusters filtered by name
+					items, _, err := client.VirtualizationAPI.VirtualizationClustersList(context.Background()).NameIc([]string{clusterName}).Execute()
 					if err != nil || items == nil || len(items.Results) == 0 {
-						t.Fatalf("Failed to list clusters for external deletion: %v", err)
+						t.Fatalf("Failed to find cluster for external deletion: %v", err)
 					}
-					var itemID int32
-					for _, item := range items.Results {
-						if item.Name == clusterName {
-							itemID = item.Id
-							break
-						}
-					}
-					if itemID == 0 {
-						t.Fatalf("Failed to find cluster with name %s", clusterName)
-					}
+					itemID := items.Results[0].Id
 					_, err = client.VirtualizationAPI.VirtualizationClustersDestroy(context.Background(), itemID).Execute()
 					if err != nil {
 						t.Fatalf("Failed to externally delete cluster: %v", err)
@@ -559,8 +556,14 @@ resource "netbox_cluster" "test" { name = %q; type = netbox_cluster_type.test.na
 					t.Logf("Successfully externally deleted cluster with ID: %d", itemID)
 				},
 				Config: fmt.Sprintf(`
-resource "netbox_cluster_type" "test" { name = %q; slug = %q }
-resource "netbox_cluster" "test" { name = %q; type = netbox_cluster_type.test.name }
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+}
 `, clusterTypeName, clusterTypeSlug, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),

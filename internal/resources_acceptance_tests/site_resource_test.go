@@ -306,7 +306,13 @@ func TestAccSiteResource_externalDeletion(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`resource "netbox_site" "test" { name = %q; slug = %q; status = "active" }`, name, slug),
+				Config: fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+  status = "active"
+}
+`, name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site.test", "id"),
 				),
@@ -328,7 +334,13 @@ func TestAccSiteResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted site with ID: %d", itemID)
 				},
-				Config: fmt.Sprintf(`resource "netbox_site" "test" { name = %q; slug = %q; status = "active" }`, name, slug),
+				Config: fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+  status = "active"
+}
+`, name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site.test", "id"),
 				),

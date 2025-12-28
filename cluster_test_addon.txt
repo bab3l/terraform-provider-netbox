@@ -1,0 +1,75 @@
+
+func TestAccClusterResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+
+	clusterName := testutil.RandomName("tf-test-cluster-ext-del")
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type")
+	clusterTypeSlug := testutil.RandomSlug("cluster-type")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = "%s"
+  slug = "%s"
+}
+
+resource "netbox_cluster" "test" {
+  name = "%s"
+  type = netbox_cluster_type.test.name
+}
+`, clusterTypeName, clusterTypeSlug, clusterName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_cluster.test", "name", clusterName),
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					// Simulate external deletion by directly calling the API
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// Get the cluster by name and delete it
+					clusters, _, err := client.VirtualizationAPI.VirtualizationClustersList(context.Background()).NameIc(clusterName).Execute()
+					if err != nil || clusters == nil || len(clusters.Results) == 0 {
+						t.Fatalf("Failed to find cluster for external deletion: %v", err)
+					}
+
+					// Delete the first matching cluster
+					clusterID := clusters.Results[0].Id
+					_, err = client.VirtualizationAPI.VirtualizationClustersDestroy(context.Background(), clusterID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete cluster: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted cluster with ID: %d", clusterID)
+				},
+				Config: fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = "%s"
+  slug = "%s"
+}
+
+resource "netbox_cluster" "test" {
+  name = "%s"
+  type = netbox_cluster_type.test.name
+}
+`, clusterTypeName, clusterTypeSlug, clusterName),
+				// After applying the config again, Terraform will refresh and detect the 404,
+				// triggering the removal from state. The resource will be recreated.
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),
+				),
+			},
+		},
+	})
+}

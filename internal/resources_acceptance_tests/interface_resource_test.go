@@ -436,12 +436,34 @@ func TestAccInterfaceResource_externalDeletion(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
-resource "netbox_site" "test" { name = "%[1]s-site"; slug = "%[2]s" }
-resource "netbox_manufacturer" "test" { name = "%[1]s-mfr"; slug = "%[3]s" }
-resource "netbox_device_type" "test" { model = "%[1]s-model"; slug = "%[4]s"; manufacturer_id = netbox_manufacturer.test.id }
-resource "netbox_device_role" "test" { name = "%[1]s-role"; slug = "%[5]s" }
-resource "netbox_device" "test" { site_id = netbox_site.test.id; name = "%[1]s-device"; device_type_id = netbox_device_type.test.id; role_id = netbox_device_role.test.id }
-resource "netbox_interface" "test" { name = "%[1]s"; device_id = netbox_device.test.id; type = "1000base-t" }
+resource "netbox_site" "test" {
+  name = "%[1]s-site"
+  slug = "%[2]s"
+}
+resource "netbox_manufacturer" "test" {
+  name = "%[1]s-mfr"
+  slug = "%[3]s"
+}
+resource "netbox_device_type" "test" {
+  model = "%[1]s-model"
+  slug = "%[4]s"
+  manufacturer = netbox_manufacturer.test.id
+}
+resource "netbox_device_role" "test" {
+  name = "%[1]s-role"
+  slug = "%[5]s"
+}
+resource "netbox_device" "test" {
+  site = netbox_site.test.id
+  name = "%[1]s-device"
+  device_type = netbox_device_type.test.id
+  role = netbox_device_role.test.id
+}
+resource "netbox_interface" "test" {
+  name = "%[1]s"
+  device = netbox_device.test.id
+  type = "1000base-t"
+}
 `, name, testutil.RandomSlug("site"), testutil.RandomSlug("mfr"), testutil.RandomSlug("device"), testutil.RandomSlug("role")),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_interface.test", "id"),
@@ -466,12 +488,34 @@ resource "netbox_interface" "test" { name = "%[1]s"; device_id = netbox_device.t
 					t.Logf("Successfully externally deleted interface with ID: %d", itemID)
 				},
 				Config: fmt.Sprintf(`
-resource "netbox_site" "test" { name = "%[1]s-site"; slug = "%[2]s" }
-resource "netbox_manufacturer" "test" { name = "%[1]s-mfr"; slug = "%[3]s" }
-resource "netbox_device_type" "test" { model = "%[1]s-model"; slug = "%[4]s"; manufacturer_id = netbox_manufacturer.test.id }
-resource "netbox_device_role" "test" { name = "%[1]s-role"; slug = "%[5]s" }
-resource "netbox_device" "test" { site_id = netbox_site.test.id; name = "%[1]s-device"; device_type_id = netbox_device_type.test.id; role_id = netbox_device_role.test.id }
-resource "netbox_interface" "test" { name = "%[1]s"; device_id = netbox_device.test.id; type = "1000base-t" }
+resource "netbox_site" "test" {
+  name = "%[1]s-site"
+  slug = "%[2]s"
+}
+resource "netbox_manufacturer" "test" {
+  name = "%[1]s-mfr"
+  slug = "%[3]s"
+}
+resource "netbox_device_type" "test" {
+  model = "%[1]s-model"
+  slug = "%[4]s"
+  manufacturer = netbox_manufacturer.test.id
+}
+resource "netbox_device_role" "test" {
+  name = "%[1]s-role"
+  slug = "%[5]s"
+}
+resource "netbox_device" "test" {
+  site = netbox_site.test.id
+  name = "%[1]s-device"
+  device_type = netbox_device_type.test.id
+  role = netbox_device_role.test.id
+}
+resource "netbox_interface" "test" {
+  name = "%[1]s"
+  device = netbox_device.test.id
+  type = "1000base-t"
+}
 `, name, testutil.RandomSlug("site"), testutil.RandomSlug("mfr"), testutil.RandomSlug("device"), testutil.RandomSlug("role")),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_interface.test", "id"),

@@ -1,0 +1,41 @@
+
+func TestAccConsolePortTemplateResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+	templateName := testutil.RandomName("tf-test-cpt-ext-del")
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`resource "netbox_console_port_template" "test" { name = "%s" }`, templateName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_console_port_template.test", "name", templateName),
+					resource.TestCheckResourceAttrSet("netbox_console_port_template.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					ports, _, err := client.DcimAPI.DcimConsolePortTemplatesList(context.Background()).NameIc(templateName).Execute()
+					if err != nil || ports == nil || len(ports.Results) == 0 {
+						t.Fatalf("Failed to find console port template for external deletion: %v", err)
+					}
+					portID := ports.Results[0].Id
+					_, err = client.DcimAPI.DcimConsolePortTemplatesDestroy(context.Background(), portID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete console port template: %v", err)
+					}
+					t.Logf("Successfully externally deleted console port template with ID: %d", portID)
+				},
+				Config: fmt.Sprintf(`resource "netbox_console_port_template" "test" { name = "%s" }`, templateName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_console_port_template.test", "id"),
+				),
+			},
+		},
+	})
+}

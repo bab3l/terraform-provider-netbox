@@ -645,9 +645,20 @@ func TestAccCircuitResource_externalDeletion(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
-resource "netbox_provider" "test" { name = %q; slug = %q }
-resource "netbox_circuit_type" "test" { name = %q; slug = %q }
-resource "netbox_circuit" "test" { cid = %q; provider = netbox_provider.test.name; type = netbox_circuit_type.test.name; status = "active" }
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_circuit" "test" {
+  cid                = %q
+  circuit_provider   = netbox_provider.test.id
+  type               = netbox_circuit_type.test.id
+  status             = "active"
+}
 `, providerName, providerSlug, typeName, typeSlug, cid),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
@@ -659,21 +670,12 @@ resource "netbox_circuit" "test" { cid = %q; provider = netbox_provider.test.nam
 					if err != nil {
 						t.Fatalf("Failed to get shared client: %v", err)
 					}
-					// List all circuits and find the one we created
-					items, _, err := client.CircuitsAPI.CircuitsCircuitsList(context.Background()).Limit(10).Execute()
+					// List circuits filtered by CID
+					items, _, err := client.CircuitsAPI.CircuitsCircuitsList(context.Background()).CidIc([]string{cid}).Execute()
 					if err != nil || items == nil || len(items.Results) == 0 {
-						t.Fatalf("Failed to list circuits for external deletion: %v", err)
+						t.Fatalf("Failed to find circuit for external deletion: %v", err)
 					}
-					var itemID int32
-					for _, item := range items.Results {
-						if item.Cid == cid {
-							itemID = item.Id
-							break
-						}
-					}
-					if itemID == 0 {
-						t.Fatalf("Failed to find circuit with CID %s", cid)
-					}
+					itemID := items.Results[0].Id
 					_, err = client.CircuitsAPI.CircuitsCircuitsDestroy(context.Background(), itemID).Execute()
 					if err != nil {
 						t.Fatalf("Failed to externally delete circuit: %v", err)
@@ -681,9 +683,20 @@ resource "netbox_circuit" "test" { cid = %q; provider = netbox_provider.test.nam
 					t.Logf("Successfully externally deleted circuit with ID: %d", itemID)
 				},
 				Config: fmt.Sprintf(`
-resource "netbox_provider" "test" { name = %q; slug = %q }
-resource "netbox_circuit_type" "test" { name = %q; slug = %q }
-resource "netbox_circuit" "test" { cid = %q; provider = netbox_provider.test.name; type = netbox_circuit_type.test.name; status = "active" }
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_circuit" "test" {
+  cid                = %q
+  circuit_provider   = netbox_provider.test.id
+  type               = netbox_circuit_type.test.id
+  status             = "active"
+}
 `, providerName, providerSlug, typeName, typeSlug, cid),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
