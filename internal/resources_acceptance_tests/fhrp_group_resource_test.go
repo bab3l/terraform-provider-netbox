@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -150,6 +151,50 @@ func TestAccFHRPGroupResource_update(t *testing.T) {
 		},
 	})
 
+}
+
+func TestAccFHRPGroupResource_external_deletion(t *testing.T) {
+	t.Parallel()
+
+	protocol := fhrpGroupProtocol
+	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFHRPGroupResourceConfig_basic(protocol, groupID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_fhrp_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "protocol", protocol),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "group_id", fmt.Sprintf("%d", groupID)),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.IpamAPI.IpamFhrpGroupsList(context.Background()).Protocol([]string{protocol}).GroupId([]int32{groupID}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find fhrp_group for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.IpamAPI.IpamFhrpGroupsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete fhrp_group: %v", err)
+					}
+					t.Logf("Successfully externally deleted fhrp_group with ID: %d", itemID)
+				},
+				Config: testAccFHRPGroupResourceConfig_basic(protocol, groupID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_fhrp_group.test", "id"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccFHRPGroupResource_import(t *testing.T) {

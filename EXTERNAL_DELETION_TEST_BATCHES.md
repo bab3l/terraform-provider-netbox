@@ -1,7 +1,7 @@
 3
 ## Current Status
-- **Overall Progress**: 29/99 resources (29.3%) - Batch 3 Complete
-- **Last Update**: December 28, 2025 - Batch 3 Complete (30/30 tests PASS)
+- **Overall Progress**: 37/99 resources (37.4%) - Batch 4 Complete
+- **Last Update**: December 28, 2025 - Batch 4 Complete (42/42 tests PASS)
 - **Strategy**: Sub-batch implementation with commits after each sub-batch
 
 ---
@@ -173,6 +173,45 @@ Priority: MEDIUM - Device bay and module management
 - DcimModuleBayTemplatesList/DcimModuleBayTemplatesDestroy
 - DcimModulesList/DcimModulesDestroy
 - DcimModuleTypesList/DcimModuleTypesDestroy
+
+---
+
+## Batch 4: Interface & Network Resources (8 resources)
+**Status**: ✅ COMPLETE
+
+Priority: HIGH - Network infrastructure
+
+**Test Results**: All 42 tests passing (42/42 - 100%)
+
+| Resource | File | Status | Test Coverage | Notes |
+|----------|------|--------|---------------|-------|
+| interface_template | interface_template_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del | description field tested |
+| vm_interface | vm_interface_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del | Complete coverage |
+| fhrp_group | fhrp_group_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del | Complete coverage |
+| fhrp_group_assignment | fhrp_group_assignment_resource_test.go | ✅ DONE | CRUD + Import + Full + Update + Ext Del | priority field tested |
+| service | service_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del | description field tested |
+| service_template | service_template_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del | description field tested |
+| l2vpn | l2vpn_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del | description field tested |
+| l2vpn_termination | l2vpn_termination_resource_test.go | ✅ DONE | CRUD + Import + Full + Update + Ext Del | Fixed duplicate L2VPN issue |
+
+**Implementation Notes**:
+- Added context import to all test files
+- Update tests using testutil.Description1/Description2 constants and priority changes
+- External deletion tests using PreConfig pattern with appropriate API methods
+- Fixed l2vpn_termination update test to avoid duplicate L2VPN names
+- fhrp_group_assignment had full and update tests added (was missing both)
+- l2vpn_termination had full and update tests added (was missing both)
+- All tests use t.Parallel() for concurrent execution
+
+**API Methods Used**:
+- DcimInterfaceTemplatesList/DcimInterfaceTemplatesDestroy
+- VirtualizationInterfacesList/VirtualizationInterfacesDestroy
+- IpamFhrpGroupsList/IpamFhrpGroupsDestroy
+- IpamFhrpGroupAssignmentsList/IpamFhrpGroupAssignmentsDestroy
+- IpamServicesList/IpamServicesDestroy
+- IpamServiceTemplatesList/IpamServiceTemplatesDestroy
+- VpnL2vpnsList/VpnL2vpnsDestroy
+- VpnL2vpnTerminationsList/VpnL2vpnTerminationsDestroy
 
 ---
 

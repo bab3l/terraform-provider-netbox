@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -193,6 +194,112 @@ func TestAccServiceResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_service.test", "id"),
 					resource.TestCheckResourceAttr("netbox_service.test", "name", serviceName),
 					resource.TestCheckResourceAttr("netbox_service.test", "protocol", "tcp"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccServiceResource_update(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-upd")
+	siteSlug := testutil.RandomSlug("tf-test-site-upd")
+	mfgName := testutil.RandomName("tf-test-mfg-upd")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-upd")
+	dtModel := testutil.RandomName("tf-test-dt-upd")
+	dtSlug := testutil.RandomSlug("tf-test-dt-upd")
+	roleName := testutil.RandomName("tf-test-role-upd")
+	roleSlug := testutil.RandomSlug("tf-test-role-upd")
+	deviceName := testutil.RandomName("tf-test-device-upd")
+	serviceName := testutil.RandomName("tf-test-svc-upd")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccServiceResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_service.test", "id"),
+					resource.TestCheckResourceAttr("netbox_service.test", "name", serviceName),
+					resource.TestCheckResourceAttr("netbox_service.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccServiceResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_service.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccServiceResource_external_deletion(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-ext")
+	siteSlug := testutil.RandomSlug("tf-test-site-ext")
+	mfgName := testutil.RandomName("tf-test-mfg-ext")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-ext")
+	dtModel := testutil.RandomName("tf-test-dt-ext")
+	dtSlug := testutil.RandomSlug("tf-test-dt-ext")
+	roleName := testutil.RandomName("tf-test-role-ext")
+	roleSlug := testutil.RandomSlug("tf-test-role-ext")
+	deviceName := testutil.RandomName("tf-test-device-ext")
+	serviceName := testutil.RandomName("tf-test-svc-ext")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccServiceResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_service.test", "id"),
+					resource.TestCheckResourceAttr("netbox_service.test", "name", serviceName),
+					resource.TestCheckResourceAttr("netbox_service.test", "protocol", "tcp"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.IpamAPI.IpamServicesList(context.Background()).Name([]string{serviceName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find service for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.IpamAPI.IpamServicesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete service: %v", err)
+					}
+					t.Logf("Successfully externally deleted service with ID: %d", itemID)
+				},
+				Config: testAccServiceResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_service.test", "id"),
 				),
 			},
 		},

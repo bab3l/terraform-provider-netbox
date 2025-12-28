@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -177,6 +178,52 @@ func TestAccVMInterfaceResource_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", updatedIfaceName),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "description", "Updated description"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccVMInterfaceResource_external_deletion(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-ext-del")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-ext-del")
+	clusterName := testutil.RandomName("tf-test-cluster-ext-del")
+	vmName := testutil.RandomName("tf-test-vm-ext-del")
+	ifaceName := testutil.RandomName("eth-ext-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.VirtualizationAPI.VirtualizationInterfacesList(context.Background()).NameIc([]string{ifaceName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find vm_interface for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.VirtualizationAPI.VirtualizationInterfacesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete vm_interface: %v", err)
+					}
+					t.Logf("Successfully externally deleted vm_interface with ID: %d", itemID)
+				},
+				Config: testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
 				),
 			},
 		},

@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -259,4 +260,118 @@ resource "netbox_fhrp_group_assignment" "test" {
   priority       = 100
 }
 `, name, interfaceName)
+}
+
+func TestAccFHRPGroupAssignmentResource_full(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("test-fhrp-assign-full")
+	interfaceName := testutil.RandomName("eth")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "interface_type", "dcim.interface"),
+					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "priority", "100"),
+					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "id"),
+					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "group_id"),
+					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "interface_id"),
+				),
+			},
+			{
+				ResourceName:            "netbox_fhrp_group_assignment.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"group_id", "interface_id", "display_name"},
+			},
+		},
+	})
+}
+
+func TestAccFHRPGroupAssignmentResource_update(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("test-fhrp-assign-upd")
+	interfaceName := testutil.RandomName("eth")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "priority", "100"),
+				),
+			},
+			{
+				Config: testAccFHRPGroupAssignmentResourceConfig_updated(name, interfaceName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "priority", "200"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccFHRPGroupAssignmentResource_external_deletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("test-fhrp-assign-extdel")
+	interfaceName := testutil.RandomName("eth")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// List FHRP group assignments to find the one we created
+					items, _, err := client.IpamAPI.IpamFhrpGroupAssignmentsList(context.Background()).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find FHRP group assignment for external deletion: %v", err)
+					}
+
+					// Find the assignment by checking the interface - we need to match by priority
+					// since we can't easily filter by device name here
+					var assignmentID int32
+					found := false
+					for _, assignment := range items.Results {
+						if assignment.Priority == 100 {
+							assignmentID = assignment.Id
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						t.Fatal("FHRP group assignment not found")
+					}
+
+					_, err = client.IpamAPI.IpamFhrpGroupAssignmentsDestroy(context.Background(), assignmentID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete FHRP group assignment: %v", err)
+					}
+					t.Logf("Successfully externally deleted FHRP group assignment with ID: %d", assignmentID)
+				},
+				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "id"),
+				),
+			},
+		},
+	})
 }
