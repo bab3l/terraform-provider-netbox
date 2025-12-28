@@ -1,7 +1,7 @@
 3
 ## Current Status
-- **Overall Progress**: 11/99 resources (11.1%) - Batch 2A Complete
-- **Last Update**: December 28, 2025 - Batch 2A Completed
+- **Overall Progress**: 15/99 resources (15.2%) - Batch 2B Complete
+- **Last Update**: December 28, 2025 - Batch 2B Completed
 - **Strategy**: Sub-batch implementation with commits after each sub-batch
 
 ---
@@ -48,16 +48,22 @@ Priority: HIGH - Already have complete CRUD coverage, only need external deletio
 ---
 
 ## Batch 2B: Console Port Resources (4 resources)
-**Status**: ⏳ NOT STARTED
+**Status**: ✅ COMPLETE
 
 Priority: HIGH - Most commonly used port types
 
-| Resource | File | Status | Missing Tests |
-|----------|------|--------|---------------|
-| console_port | console_port_resource_test.go | ⏳ TODO | Update + External Deletion |
-| console_port_template | console_port_template_resource_test.go | ⏳ TODO | Update + External Deletion |
-| console_server_port | console_server_port_resource_test.go | ⏳ TODO | Update + External Deletion |
-| console_server_port_template | console_server_port_template_resource_test.go | ⏳ TODO | Update + External Deletion |
+| Resource | File | Status | Test Coverage | Notes |
+|----------|------|--------|---------------|-------|
+| console_port | console_port_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del ✅ | All tests complete |
+| console_port_template | console_port_template_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del ✅ | All tests complete |
+| console_server_port | console_server_port_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del ✅ | All tests complete |
+| console_server_port_template | console_server_port_template_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del ✅ | All tests complete |
+
+**Implementation Notes**:
+- Added context import to all test files
+- Added update tests for description/label field changes
+- Added external deletion tests following Batch 1 pattern
+- Uses DcimAPI methods: DcimConsolePorts*/DcimConsoleServerPorts* List/Destroy and Templates variants
 
 ---
 
@@ -146,7 +152,7 @@ func TestAcc{ResourceName}Resource_externalDeletion(t *testing.T) {
    - Run `go build .` to verify no compilation errors
    - Verify test syntax is correct
 
----
+---x] Batch 2B (4) - ✅ COMPLETE
 
 ## Batch Completion Tracking
 
@@ -159,8 +165,8 @@ func TestAcc{ResourceName}Resource_externalDeletion(t *testing.T) {
 - [ ] Batch 4 (10)
 - [ ] Batch 5 (8)
 - [ ] Batch 6 (8)
-- [ ] Batch 7 (6)
-- [ ] Batch 8 (8)
+- [ ] Batch 7 5/99 (15.2%)
+**Next Milestone**: 19/99 (19.2%) after Batch 2C
 - [ ] Batch 9 (8)
 - [ ] Batch 10 (17)
 
