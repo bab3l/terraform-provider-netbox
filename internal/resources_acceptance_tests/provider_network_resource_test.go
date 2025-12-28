@@ -150,6 +150,69 @@ func TestAccProviderNetworkResource_IDPreservation(t *testing.T) {
 	})
 }
 
+func TestAccProviderNetworkResource_update(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-upd")
+	providerSlug := testutil.RandomSlug("tf-test-provider-upd")
+	networkName := testutil.RandomName("tf-test-network-upd")
+	serviceID := "svc-12345"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, networkName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "name", networkName),
+				),
+			},
+			{
+				Config: testAccProviderNetworkResourceConfig_full(providerName, providerSlug, networkName, serviceID, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "name", networkName),
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "service_id", serviceID),
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccProviderNetworkResource_import(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-imp")
+	providerSlug := testutil.RandomSlug("tf-test-provider-imp")
+	networkName := testutil.RandomName("tf-test-network-imp")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, networkName),
+			},
+			{
+				ResourceName:      "netbox_provider_network.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, networkName string) string {
 
 	return fmt.Sprintf(`

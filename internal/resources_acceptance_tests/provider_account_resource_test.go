@@ -150,6 +150,69 @@ func TestAccProviderAccountResource_IDPreservation(t *testing.T) {
 	})
 }
 
+func TestAccProviderAccountResource_update(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-upd")
+	providerSlug := testutil.RandomSlug("tf-test-provider-upd")
+	accountID := testutil.RandomName("tf-test-acct-upd")
+	accountName := testutil.RandomName("Account Name")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderAccountResourceConfig_basic(providerName, providerSlug, accountID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_account.test", "account", accountID),
+				),
+			},
+			{
+				Config: testAccProviderAccountResourceConfig_full(providerName, providerSlug, accountID, accountName, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_account.test", "account", accountID),
+					resource.TestCheckResourceAttr("netbox_provider_account.test", "name", accountName),
+					resource.TestCheckResourceAttr("netbox_provider_account.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccProviderAccountResource_import(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-imp")
+	providerSlug := testutil.RandomSlug("tf-test-provider-imp")
+	accountID := testutil.RandomName("tf-test-acct-imp")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderAccountResourceConfig_basic(providerName, providerSlug, accountID),
+			},
+			{
+				ResourceName:      "netbox_provider_account.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccProviderAccountResourceConfig_basic(providerName, providerSlug, accountID string) string {
 
 	return fmt.Sprintf(`
