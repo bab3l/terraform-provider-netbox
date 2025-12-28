@@ -408,32 +408,8 @@ resource "netbox_circuit_termination" "test" {
 					}
 					t.Logf("Successfully externally deleted circuit termination with ID: %d", itemID)
 				},
-				Config: fmt.Sprintf(`
-resource "netbox_provider" "test" {
-  name = %q
-  slug = %q
-}
-resource "netbox_circuit_type" "test" {
-  name = %q
-  slug = %q
-}
-resource "netbox_circuit" "test" {
-  cid              = %q
-  circuit_provider = netbox_provider.test.id
-  type             = netbox_circuit_type.test.id
-}
-resource "netbox_site" "test" {
-  name = %q
-  slug = %q
-}
-resource "netbox_circuit_termination" "test" {
-  circuit   = netbox_circuit.test.cid
-  term_side = "A"
-  site      = netbox_site.test.slug
-}
-`, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug),
-				ExpectNonEmptyPlan: true,
 				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

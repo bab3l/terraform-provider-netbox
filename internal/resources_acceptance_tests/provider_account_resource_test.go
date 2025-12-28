@@ -358,18 +358,8 @@ resource "netbox_provider_account" "test" {
 					}
 					t.Logf("Successfully externally deleted provider account with ID: %d", itemID)
 				},
-				Config: fmt.Sprintf(`
-resource "netbox_provider" "test" {
-  name = %q
-  slug = %q
-}
-resource "netbox_provider_account" "test" {
-  circuit_provider = netbox_provider.test.id
-  account          = %q
-}
-`, providerName, providerSlug, accountID),
-				ExpectNonEmptyPlan: true,
 				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

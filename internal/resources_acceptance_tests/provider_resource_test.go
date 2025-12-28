@@ -350,14 +350,8 @@ resource "netbox_provider" "test" {
 					}
 					t.Logf("Successfully externally deleted provider with ID: %d", itemID)
 				},
-				Config: fmt.Sprintf(`
-resource "netbox_provider" "test" {
-  name = %q
-  slug = %q
-}
-`, name, slug),
-				ExpectNonEmptyPlan: true,
 				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

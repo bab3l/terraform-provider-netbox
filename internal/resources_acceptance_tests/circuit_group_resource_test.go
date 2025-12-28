@@ -389,14 +389,8 @@ resource "netbox_circuit_group" "test" {
 					}
 					t.Logf("Successfully externally deleted circuit group with ID: %d", itemID)
 				},
-				Config: fmt.Sprintf(`
-resource "netbox_circuit_group" "test" {
-  name = %q
-  slug = %q
-}
-`, name, slug),
-				ExpectNonEmptyPlan: true,
 				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

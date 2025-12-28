@@ -681,31 +681,8 @@ resource "netbox_circuit_group_assignment" "test" {
 					}
 					t.Logf("Successfully externally deleted circuit group assignment with ID: %d", itemID)
 				},
-				Config: fmt.Sprintf(`
-resource "netbox_circuit_group" "test" {
-  name = %q
-  slug = %q
-}
-resource "netbox_provider" "test" {
-  name = %q
-  slug = %q
-}
-resource "netbox_circuit_type" "test" {
-  name = %q
-  slug = %q
-}
-resource "netbox_circuit" "test" {
-  cid              = %q
-  circuit_provider = netbox_provider.test.id
-  type             = netbox_circuit_type.test.id
-}
-resource "netbox_circuit_group_assignment" "test" {
-  group_id   = netbox_circuit_group.test.name
-  circuit_id = netbox_circuit.test.cid
-}
-`, groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid),
-				ExpectNonEmptyPlan: true,
 				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

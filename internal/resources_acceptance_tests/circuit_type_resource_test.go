@@ -344,14 +344,8 @@ resource "netbox_circuit_type" "test" {
 					}
 					t.Logf("Successfully externally deleted circuit type with ID: %d", itemID)
 				},
-				Config: fmt.Sprintf(`
-resource "netbox_circuit_type" "test" {
-  name = %q
-  slug = %q
-}
-`, name, slug),
-				ExpectNonEmptyPlan: true,
 				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
