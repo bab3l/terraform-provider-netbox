@@ -436,7 +436,7 @@ resource "netbox_aggregate" "test" {
 
 func TestAccAggregateResource_externalDeletion(t *testing.T) {
 	t.Parallel()
-	prefix := "203.0.113.0/24"
+	prefix := testutil.RandomIPv4Prefix()
 	rirName := testutil.RandomName("tf-test-rir-ext-del")
 	rirSlug := testutil.RandomSlug("tf-test-rir-ext-del")
 

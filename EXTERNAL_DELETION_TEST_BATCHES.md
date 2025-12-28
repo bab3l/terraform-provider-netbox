@@ -255,7 +255,7 @@ Priority: HIGH - IP address management extensions
 - External deletion tests using PreConfig pattern with IpamAPI methods
 - Fixed asn_resource_test.go type issue: API methods use int32 for ASN filters, not int64
 - Fixed aggregate_resource_test.go Terraform syntax: Changed from inline semicolon format to proper multi-line config
-- Fixed aggregate_resource_test.go prefix conflict: Changed from 10.0.0.0/8 to 203.0.113.0/24 (TEST-NET-3)
+- Fixed aggregate_resource_test.go to use testutil.RandomIPv4Prefix() for random prefix generation
 - All tests use t.Parallel() for concurrent execution
 
 **API Methods Used**:
