@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -311,4 +312,65 @@ resource "netbox_provider_account" "test" {
   account          = %q
 }
 `, providerName, providerSlug, accountID)
+}
+
+func TestAccProviderAccountResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	providerName := testutil.RandomName("tf-test-provider-ext-del")
+	providerSlug := testutil.RandomSlug("provider-ext-del")
+	accountID := testutil.RandomName("tf-test-account-ext-del")
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_provider_account" "test" {
+  circuit_provider = netbox_provider.test.id
+  account          = %q
+}
+`, providerName, providerSlug, accountID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_provider_account.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					// List provider accounts filtered by account ID
+					items, _, err := client.CircuitsAPI.CircuitsProviderAccountsList(context.Background()).AccountIc([]string{accountID}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find provider account for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.CircuitsAPI.CircuitsProviderAccountsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete provider account: %v", err)
+					}
+					t.Logf("Successfully externally deleted provider account with ID: %d", itemID)
+				},
+				Config: fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_provider_account" "test" {
+  circuit_provider = netbox_provider.test.id
+  account          = %q
+}
+`, providerName, providerSlug, accountID),
+				ExpectNonEmptyPlan: true,
+				RefreshState:       true,
+			},
+		},
+	})
 }
