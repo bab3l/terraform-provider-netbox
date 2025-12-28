@@ -215,24 +215,6 @@ Priority: HIGH - Network infrastructure
 
 ---
 
-## Batch 4: Interface & Network Resources (8 resources)
-**Status**: ⏳ NOT STARTED
-
-Priority: HIGH - Network infrastructure
-
-| Resource | File | Status | Missing Tests |
-|----------|------|--------|---------------|
-| interface_template | interface_template_resource_test.go | ⏳ TODO | Update + External Deletion |
-| vm_interface | vm_interface_resource_test.go | ⏳ TODO | Update + External Deletion |
-| fhrp_group | fhrp_group_resource_test.go | ⏳ TODO | Update + External Deletion |
-| fhrp_group_assignment | fhrp_group_assignment_resource_test.go | ⏳ TODO | Update + External Deletion |
-| service | service_resource_test.go | ⏳ TODO | Update + External Deletion |
-| service_template | service_template_resource_test.go | ⏳ TODO | Update + External Deletion |
-| l2vpn | l2vpn_resource_test.go | ⏳ TODO | Update + External Deletion |
-| l2vpn_termination | l2vpn_termination_resource_test.go | ⏳ TODO | Update + External Deletion |
-
----
-
 ## Batch 5: IPAM Additional Resources (6 resources)
 **Status**: ✅ COMPLETE
 
@@ -463,9 +445,9 @@ func TestAcc{ResourceName}Resource_externalDeletion(t *testing.T) {
 - [x] Batch 2B (4) - ✅ COMPLETE - Console Ports
 - [x] Batch 2C (4) - ✅ COMPLETE - Power Infrastructure
 - [x] Batch 2D (4) - ✅ COMPLETE - Patch Panel Ports
-- [ ] Batch 3 (6) - Module & Device Bay Resources
-- [ ] Batch 4 (8) - Interface & Network Resources
-- [ ] Batch 5 (6) - IPAM Additional Resources
+- [x] Batch 3 (6) - ✅ COMPLETE - Module & Device Bay Resources
+- [x] Batch 4 (8) - ✅ COMPLETE - Interface & Network Resources
+- [x] Batch 5 (6) - ✅ COMPLETE - IPAM Additional Resources
 - [ ] Batch 6 (9) - VPN & Tunnel Resources
 - [ ] Batch 7 (7) - Circuit & Provider Resources
 - [ ] Batch 8 (6) - Rack & Power Resources
@@ -476,5 +458,5 @@ func TestAcc{ResourceName}Resource_externalDeletion(t *testing.T) {
 - [ ] Batch 13 (2) - VLAN & VRF Resources
 
 **Target**: 99/99 resources with external deletion tests
-**Current**: 23/99 (23.2%)
-**Next Milestone**: 29/99 (29.3%) after Batch 3
+**Current**: 43/99 (43.4%)
+**Next Milestone**: 52/99 (52.5%) after Batch 6
