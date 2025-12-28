@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -412,4 +413,53 @@ resource "netbox_rack_role" "test" {
 
 `, name, slug)
 
+}
+
+func TestAccRackRoleResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	rackRoleName := testutil.RandomName("tf-test-rack-role-extdel")
+	rackRoleSlug := testutil.RandomSlug("tf-test-rr-ed")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackRoleCleanup(rackRoleSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckRackRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackRoleResourceConfig_basic(rackRoleName, rackRoleSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rack_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "name", rackRoleName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					roles, _, err := client.DcimAPI.DcimRackRolesList(context.Background()).Slug([]string{rackRoleSlug}).Execute()
+					if err != nil || roles == nil || len(roles.Results) == 0 {
+						t.Fatalf("Failed to find rack role for external deletion: %v", err)
+					}
+					roleID := roles.Results[0].Id
+					_, err = client.DcimAPI.DcimRackRolesDestroy(context.Background(), roleID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete rack role: %v", err)
+					}
+					t.Logf("Successfully externally deleted rack role with ID: %d", roleID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

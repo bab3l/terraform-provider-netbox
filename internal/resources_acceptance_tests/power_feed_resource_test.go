@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -293,4 +294,54 @@ resource "netbox_power_feed" "test" {
   depends_on = [netbox_rack.test]
 }
 `, siteName, siteSlug, rackName, locationName, locationSlug, powerPanelName, feedName)
+}
+
+func TestAccPowerFeedResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	siteName := testutil.RandomName("tf-test-site-extdel")
+	siteSlug := testutil.RandomSlug("tf-test-site-ed")
+	panelName := testutil.RandomName("tf-test-panel-extdel")
+	feedName := testutil.RandomName("tf-test-feed-extdel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerFeedResourceConfig_basic(siteName, siteSlug, panelName, feedName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_feed.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "name", feedName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					feeds, _, err := client.DcimAPI.DcimPowerFeedsList(context.Background()).Name([]string{feedName}).Execute()
+					if err != nil || feeds == nil || len(feeds.Results) == 0 {
+						t.Fatalf("Failed to find power feed for external deletion: %v", err)
+					}
+					feedID := feeds.Results[0].Id
+					_, err = client.DcimAPI.DcimPowerFeedsDestroy(context.Background(), feedID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete power feed: %v", err)
+					}
+					t.Logf("Successfully externally deleted power feed with ID: %d", feedID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }
