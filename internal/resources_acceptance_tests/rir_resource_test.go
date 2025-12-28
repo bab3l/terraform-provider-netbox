@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -187,6 +188,87 @@ resource "netbox_rir" "test" {
   slug = %q
 }
 `, name, slug)
+}
+
+func TestAccRIRResource_update(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-rir-update")
+	slug := testutil.RandomSlug("tf-test-rir-update")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRIRResourceConfig_update(name, slug, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rir.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_rir.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccRIRResourceConfig_update(name, slug, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rir.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_rir.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccRIRResource_external_deletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-rir-ext-del")
+	slug := testutil.RandomSlug("tf-test-rir-ext-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRIRResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rir.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rir.test", "name", name),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.IpamAPI.IpamRirsList(context.Background()).Name([]string{name}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find rir for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.IpamAPI.IpamRirsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete rir: %v", err)
+					}
+					t.Logf("Successfully externally deleted rir with ID: %d", itemID)
+				},
+				Config: testAccRIRResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rir.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccRIRResourceConfig_update(name, slug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name        = %q
+  slug        = %q
+  description = %q
+}
+`, name, slug, description)
 }
 
 func testAccRIRResourceConfig_full(name, slug, description string, isPrivate bool) string {

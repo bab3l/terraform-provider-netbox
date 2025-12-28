@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -155,6 +156,90 @@ func TestAccASNResource_IDPreservation(t *testing.T) {
 
 }
 
+func TestAccASNResource_update(t *testing.T) {
+	t.Parallel()
+
+	rirName := testutil.RandomName("tf-test-rir-update")
+	rirSlug := testutil.RandomSlug("tf-test-rir-update")
+	asn := int64(acctest.RandIntRange(64512, 65534))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccASNResourceConfig_update(rirName, rirSlug, asn, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
+					resource.TestCheckResourceAttr("netbox_asn.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccASNResourceConfig_update(rirName, rirSlug, asn, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
+					resource.TestCheckResourceAttr("netbox_asn.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccASNResource_external_deletion(t *testing.T) {
+	t.Parallel()
+
+	rirName := testutil.RandomName("tf-test-rir-ext-del")
+	rirSlug := testutil.RandomSlug("tf-test-rir-ext-del")
+	asn := int64(acctest.RandIntRange(64512, 65534))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccASNResourceConfig_basic(rirName, rirSlug, asn),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_asn.test", "id"),
+					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					// Safe conversion with bounds check
+					if asn < 0 || asn > 4294967295 { // Max ASN value (32-bit)
+						t.Fatalf("ASN value %d out of valid range", asn)
+					}
+					//nolint:gosec // Safe conversion - bounds checked above
+					items, _, err := client.IpamAPI.IpamAsnsList(context.Background()).Asn([]int32{int32(asn)}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find asn for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.IpamAPI.IpamAsnsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete asn: %v", err)
+					}
+					t.Logf("Successfully externally deleted asn with ID: %d", itemID)
+				},
+				Config: testAccASNResourceConfig_basic(rirName, rirSlug, asn),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_asn.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccASNResourceConfig_basic(rirName, rirSlug string, asn int64) string {
 
 	return fmt.Sprintf(`
@@ -204,6 +289,32 @@ resource "netbox_asn" "test" {
 }
 
 `, rirName, rirSlug, asn, description, comments)
+
+}
+
+func testAccASNResourceConfig_update(rirName, rirSlug string, asn int64, description string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_rir" "test" {
+
+  name = %q
+
+  slug = %q
+
+}
+
+resource "netbox_asn" "test" {
+
+  asn         = %d
+
+  rir         = netbox_rir.test.id
+
+  description = %q
+
+}
+
+`, rirName, rirSlug, asn, description)
 
 }
 

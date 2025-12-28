@@ -64,6 +64,40 @@ func TestAccAggregateResource_basic(t *testing.T) {
 
 }
 
+func TestAccAggregateResource_update(t *testing.T) {
+	t.Parallel()
+
+	rirName := testutil.RandomName("tf-test-rir-update")
+	rirSlug := testutil.RandomSlug("tf-test-rir-update")
+	prefix := fmt.Sprintf("172.16.%d.0/24", acctest.RandIntRange(0, 255))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAggregateResourceConfig_withDescription(rirName, rirSlug, prefix, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "id"),
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "prefix", prefix),
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccAggregateResourceConfig_withDescription(rirName, rirSlug, prefix, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAggregateResource_full(t *testing.T) {
 
 	t.Parallel()
@@ -173,6 +207,21 @@ resource "netbox_aggregate" "test" {
 
 `, rirName, rirSlug, prefix)
 
+}
+
+func testAccAggregateResourceConfig_withDescription(rirName, rirSlug, prefix, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_aggregate" "test" {
+  prefix      = %q
+  rir         = netbox_rir.test.id
+  description = %q
+}
+`, rirName, rirSlug, prefix, description)
 }
 
 func testAccAggregateResourceConfig_full(rirName, rirSlug, prefix, description, comments string) string {
@@ -387,14 +436,19 @@ resource "netbox_aggregate" "test" {
 
 func TestAccAggregateResource_externalDeletion(t *testing.T) {
 	t.Parallel()
-	testutil.TestAccPreCheck(t)
-	prefix := "10.0.0.0/8"
+	prefix := "203.0.113.0/24"
+	rirName := testutil.RandomName("tf-test-rir-ext-del")
+	rirSlug := testutil.RandomSlug("tf-test-rir-ext-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`resource "netbox_aggregate" "test" { prefix = "%s"; rir_id = 1 }`, prefix),
+				Config: testAccAggregateResourceConfig_basic(rirName, rirSlug, prefix),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_aggregate.test", "prefix", prefix),
 					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "id"),
@@ -406,27 +460,18 @@ func TestAccAggregateResource_externalDeletion(t *testing.T) {
 					if err != nil {
 						t.Fatalf("Failed to get shared client: %v", err)
 					}
-					items, _, err := client.IpamAPI.IpamAggregatesList(context.Background()).Execute()
+					items, _, err := client.IpamAPI.IpamAggregatesList(context.Background()).Prefix(prefix).Execute()
 					if err != nil || items == nil || len(items.Results) == 0 {
 						t.Fatalf("Failed to find aggregate for external deletion: %v", err)
 					}
-					var itemID int32
-					for _, item := range items.Results {
-						if item.Prefix == prefix {
-							itemID = item.Id
-							break
-						}
-					}
-					if itemID == 0 {
-						t.Fatalf("Failed to find aggregate %s for external deletion", prefix)
-					}
+					itemID := items.Results[0].Id
 					_, err = client.IpamAPI.IpamAggregatesDestroy(context.Background(), itemID).Execute()
 					if err != nil {
 						t.Fatalf("Failed to externally delete aggregate: %v", err)
 					}
 					t.Logf("Successfully externally deleted aggregate with ID: %d", itemID)
 				},
-				Config: fmt.Sprintf(`resource "netbox_aggregate" "test" { prefix = "%s"; rir_id = 1 }`, prefix),
+				Config: testAccAggregateResourceConfig_basic(rirName, rirSlug, prefix),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "id"),
 				),
