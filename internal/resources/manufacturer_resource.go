@@ -195,6 +195,10 @@ func (r *ManufacturerResource) Read(ctx context.Context, req resource.ReadReques
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 
 		resp.Diagnostics.AddError("Error reading manufacturer", utils.FormatAPIError(fmt.Sprintf("read manufacturer ID %s", manufacturerID), err, httpResp))
 
@@ -314,6 +318,9 @@ func (r *ManufacturerResource) Delete(ctx context.Context, req resource.DeleteRe
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return // Already deleted
+		}
 
 		resp.Diagnostics.AddError("Error deleting manufacturer", utils.FormatAPIError(fmt.Sprintf("delete manufacturer ID %s", manufacturerID), err, httpResp))
 

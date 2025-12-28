@@ -287,16 +287,12 @@ func (r *SiteGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 
 		resp.Diagnostics.AddError("Error reading site group", utils.FormatAPIError(fmt.Sprintf("read site group ID %s", siteGroupID), err, httpResp))
-
-		return
-
-	}
-
-	if httpResp.StatusCode == 404 {
-
-		resp.State.RemoveResource(ctx)
 
 		return
 
@@ -437,6 +433,9 @@ func (r *SiteGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return
+		}
 
 		resp.Diagnostics.AddError("Error deleting site group", utils.FormatAPIError(fmt.Sprintf("delete site group ID %s", siteGroupID), err, httpResp))
 

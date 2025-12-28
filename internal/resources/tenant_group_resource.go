@@ -303,16 +303,12 @@ func (r *TenantGroupResource) Read(ctx context.Context, req resource.ReadRequest
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 
 		resp.Diagnostics.AddError("Error reading tenant group", utils.FormatAPIError(fmt.Sprintf("read tenant group ID %s", tenantGroupID), err, httpResp))
-
-		return
-
-	}
-
-	if httpResp.StatusCode == 404 {
-
-		resp.State.RemoveResource(ctx)
 
 		return
 
@@ -500,6 +496,9 @@ func (r *TenantGroupResource) Delete(ctx context.Context, req resource.DeleteReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return
+		}
 
 		resp.Diagnostics.AddError("Error deleting tenant group", utils.FormatAPIError(fmt.Sprintf("delete tenant group ID %s", tenantGroupID), err, httpResp))
 

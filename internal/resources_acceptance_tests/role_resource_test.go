@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -211,4 +212,46 @@ resource "netbox_role" "test" {
   description = %q
 }
 `, name, slug, description)
+}
+
+func TestAccRoleResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-role-del")
+	slug := testutil.RandomSlug("tf-test-role-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoleResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_role.test", "slug", slug),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.IpamAPI.IpamRolesList(context.Background()).Slug([]string{slug}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find role for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.IpamAPI.IpamRolesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete role: %v", err)
+					}
+					t.Logf("Successfully externally deleted role with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

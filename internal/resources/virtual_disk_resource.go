@@ -514,6 +514,9 @@ func (r *VirtualDiskResource) Delete(ctx context.Context, req resource.DeleteReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return // Already deleted
+		}
 
 		resp.Diagnostics.AddError(
 

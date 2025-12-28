@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -308,4 +309,51 @@ resource "netbox_platform" "test" {
   manufacturer = netbox_manufacturer.test.slug
 }
 `, manufacturerName, manufacturerSlug, platformName, platformSlug)
+}
+
+func TestAccPlatformResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	platformName := testutil.RandomName("test-platform-del")
+	platformSlug := testutil.GenerateSlug(platformName)
+	manufacturerName := testutil.RandomName("test-manufacturer")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPlatformResourceConfig_basic(platformName, platformSlug, manufacturerName, manufacturerSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_platform.test", "id"),
+					resource.TestCheckResourceAttr("netbox_platform.test", "name", platformName),
+					resource.TestCheckResourceAttr("netbox_platform.test", "slug", platformSlug),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimPlatformsList(context.Background()).Slug([]string{platformSlug}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find platform for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimPlatformsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete platform: %v", err)
+					}
+					t.Logf("Successfully externally deleted platform with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

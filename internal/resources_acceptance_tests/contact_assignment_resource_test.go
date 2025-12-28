@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -368,4 +369,58 @@ resource "netbox_contact_assignment" "test" {
   role_id     = netbox_contact_role.test.id
 }
 `, name, slug)
+}
+
+func TestAccContactAssignmentResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-site-del")
+	slug := testutil.RandomSlug("tf-test-site-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(slug)
+	cleanup.RegisterContactCleanup("test@example.com")
+	cleanup.RegisterContactRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactAssignmentResourceBasic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "id"),
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "object_type", "dcim.site"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					// Get site ID to filter assignments
+					sites, _, err := client.DcimAPI.DcimSitesList(context.Background()).Slug([]string{slug}).Execute()
+					if err != nil || sites == nil || len(sites.Results) == 0 {
+						t.Fatalf("Failed to find site for external deletion: %v", err)
+					}
+					siteID := sites.Results[0].Id
+
+					items, _, err := client.TenancyAPI.TenancyContactAssignmentsList(context.Background()).ObjectId([]int32{siteID}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find contact_assignment for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.TenancyAPI.TenancyContactAssignmentsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete contact_assignment: %v", err)
+					}
+					t.Logf("Successfully externally deleted contact_assignment with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		}})
 }

@@ -253,6 +253,10 @@ func (r *RegionResource) Read(ctx context.Context, req resource.ReadRequest, res
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 
 		resp.Diagnostics.AddError("Error reading region", utils.FormatAPIError(fmt.Sprintf("read region ID %s", regionID), err, httpResp))
 
@@ -420,6 +424,9 @@ func (r *RegionResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return
+		}
 
 		resp.Diagnostics.AddError("Error deleting region", utils.FormatAPIError(fmt.Sprintf("delete region ID %s", regionID), err, httpResp))
 

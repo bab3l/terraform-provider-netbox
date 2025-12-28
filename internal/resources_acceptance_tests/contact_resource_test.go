@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -207,6 +208,38 @@ func TestAccConsistency_Contact_LiteralNames(t *testing.T) {
 
 }
 
+func TestAccContactResource_update(t *testing.T) {
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+
+	contactName := testutil.RandomName("tf-test-contact-update")
+	updatedName := testutil.RandomName("tf-test-contact-updated")
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactCleanup("test@example.com")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactResource(contactName, "test@example.com", "+1-555-0100"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_contact.test", "id"),
+					resource.TestCheckResourceAttr("netbox_contact.test", "name", contactName),
+				),
+			},
+			{
+				Config: testAccContactResource(updatedName, "test@example.com", "+1-555-0100"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_contact.test", "id"),
+					resource.TestCheckResourceAttr("netbox_contact.test", "name", updatedName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccContactResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
@@ -327,4 +360,49 @@ resource "netbox_contact" "test" {
 
 `, contactName, contactGroupName, contactGroupSlug)
 
+}
+
+func TestAccContactResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+
+	contactName := testutil.RandomName("tf-test-contact-del")
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactCleanup("test@example.com")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactResource(contactName, "test@example.com", "+1-555-0100"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_contact.test", "id"),
+					resource.TestCheckResourceAttr("netbox_contact.test", "name", contactName),
+					resource.TestCheckResourceAttr("netbox_contact.test", "email", "test@example.com"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.TenancyAPI.TenancyContactsList(context.Background()).Email([]string{"test@example.com"}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find contact for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.TenancyAPI.TenancyContactsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete contact: %v", err)
+					}
+					t.Logf("Successfully externally deleted contact with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

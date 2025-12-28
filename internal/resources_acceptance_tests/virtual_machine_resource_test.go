@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -440,4 +441,53 @@ resource "netbox_virtual_machine" "test" {
   cluster = netbox_cluster.test.name
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName)
+}
+
+func TestAccVirtualMachineResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	vmName := testutil.RandomName("test-vm-del")
+	clusterName := testutil.RandomName("test-cluster")
+	clusterTypeName := testutil.RandomName("test-cluster-type")
+	clusterTypeSlug := testutil.GenerateSlug(clusterTypeName)
+	siteName := testutil.RandomName("test-site")
+	siteSlug := testutil.GenerateSlug(siteName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualMachineResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.VirtualizationAPI.VirtualizationVirtualMachinesList(context.Background()).Name([]string{vmName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find virtual_machine for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.VirtualizationAPI.VirtualizationVirtualMachinesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete virtual_machine: %v", err)
+					}
+					t.Logf("Successfully externally deleted virtual_machine with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

@@ -173,12 +173,11 @@ func (r *ContactGroupResource) Read(ctx context.Context, req resource.ReadReques
 	contactGroup, httpResp, err := r.client.TenancyAPI.TenancyContactGroupsRetrieve(ctx, contactGroupIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error reading contact group", utils.FormatAPIError(fmt.Sprintf("read contact group ID %s", contactGroupID), err, httpResp))
-		return
-	}
-
-	if httpResp.StatusCode == 404 {
-		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -271,6 +270,9 @@ func (r *ContactGroupResource) Delete(ctx context.Context, req resource.DeleteRe
 	httpResp, err := r.client.TenancyAPI.TenancyContactGroupsDestroy(ctx, contactGroupIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return
+		}
 		resp.Diagnostics.AddError("Error deleting contact group", utils.FormatAPIError(fmt.Sprintf("delete contact group ID %s", contactGroupID), err, httpResp))
 		return
 	}

@@ -284,6 +284,9 @@ func (r *ClusterGroupResource) Delete(ctx context.Context, req resource.DeleteRe
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return // Already deleted
+		}
 
 		resp.Diagnostics.AddError("Error deleting cluster group", utils.FormatAPIError(fmt.Sprintf("delete cluster group ID %s", clusterGroupID), err, httpResp))
 

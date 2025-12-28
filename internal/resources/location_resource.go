@@ -338,6 +338,10 @@ func (r *LocationResource) Read(ctx context.Context, req resource.ReadRequest, r
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 
 		resp.Diagnostics.AddError(
 
@@ -612,6 +616,9 @@ func (r *LocationResource) Delete(ctx context.Context, req resource.DeleteReques
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return
+		}
 
 		resp.Diagnostics.AddError(
 

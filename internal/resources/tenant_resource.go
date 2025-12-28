@@ -285,16 +285,12 @@ func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, res
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 
 		resp.Diagnostics.AddError("Error reading tenant", utils.FormatAPIError(fmt.Sprintf("read tenant ID %s", tenantID), err, httpResp))
-
-		return
-
-	}
-
-	if httpResp.StatusCode == 404 {
-
-		resp.State.RemoveResource(ctx)
 
 		return
 
@@ -431,6 +427,9 @@ func (r *TenantResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return
+		}
 
 		resp.Diagnostics.AddError("Error deleting tenant", utils.FormatAPIError(fmt.Sprintf("delete tenant ID %s", tenantID), err, httpResp))
 

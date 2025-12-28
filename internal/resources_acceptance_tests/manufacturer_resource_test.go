@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -350,4 +351,46 @@ resource "netbox_manufacturer" "test" {
   slug = %q
 }
 `, name, slug)
+}
+
+func TestAccManufacturerResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("test-manufacturer-del")
+	slug := testutil.GenerateSlug(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccManufacturerResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_manufacturer.test", "id"),
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "slug", slug),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimManufacturersList(context.Background()).Slug([]string{slug}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find manufacturer for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimManufacturersDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete manufacturer: %v", err)
+					}
+					t.Logf("Successfully externally deleted manufacturer with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }
