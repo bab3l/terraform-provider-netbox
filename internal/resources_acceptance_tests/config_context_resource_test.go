@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -143,6 +144,80 @@ func TestAccConfigContextResource_IDPreservation(t *testing.T) {
 	})
 }
 
+func TestAccConfigContextResource_update(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-ctx-upd")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigContextResourceConfig_withDescription(name, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_config_context.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccConfigContextResourceConfig_withDescription(name, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_config_context.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccConfigContextResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-ctx-extdel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigContextResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_config_context.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// Find config context by name
+					items, _, err := client.ExtrasAPI.ExtrasConfigContextsList(context.Background()).Name([]string{name}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list config contexts: %v", err)
+					}
+					if items == nil || len(items.Results) == 0 {
+						t.Fatalf("Config context not found with name: %s", name)
+					}
+
+					// Delete the config context
+					itemID := items.Results[0].Id
+					_, err = client.ExtrasAPI.ExtrasConfigContextsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete config context: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted config context with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccConfigContextResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`
@@ -157,4 +232,14 @@ resource "netbox_config_context" "test" {
 
 `, name)
 
+}
+
+func testAccConfigContextResourceConfig_withDescription(name string, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_config_context" "test" {
+  name        = %[1]q
+  data        = "{\"key\": \"value\"}"
+  description = %[2]q
+}
+`, name, description)
 }

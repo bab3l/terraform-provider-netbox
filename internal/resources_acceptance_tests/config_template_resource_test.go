@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -223,6 +224,80 @@ func TestAccConsistency_ConfigTemplate_LiteralNames(t *testing.T) {
 
 }
 
+func TestAccConfigTemplateResource_update(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-tmpl-upd")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigTemplateResourceConfig_withDescription(name, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_config_template.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccConfigTemplateResourceConfig_withDescription(name, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_config_template.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccConfigTemplateResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-tmpl-extdel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigTemplateResourceConfig_basic(name, defaultTemplateCode),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_config_template.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// Find config template by name
+					items, _, err := client.ExtrasAPI.ExtrasConfigTemplatesList(context.Background()).Name([]string{name}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list config templates: %v", err)
+					}
+					if items == nil || len(items.Results) == 0 {
+						t.Fatalf("Config template not found with name: %s", name)
+					}
+
+					// Delete the config template
+					itemID := items.Results[0].Id
+					_, err = client.ExtrasAPI.ExtrasConfigTemplatesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete config template: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted config template with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccConfigTemplateConsistencyLiteralNamesConfig(name, templateCode, description string) string {
 
 	return fmt.Sprintf(`
@@ -273,4 +348,14 @@ resource "netbox_config_template" "test" {
 
 `, name, templateCode, description)
 
+}
+
+func testAccConfigTemplateResourceConfig_withDescription(name string, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_config_template" "test" {
+  name          = %[1]q
+  template_code = "{{ device.name }}"
+  description   = %[2]q
+}
+`, name, description)
 }

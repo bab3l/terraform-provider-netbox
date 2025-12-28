@@ -438,6 +438,11 @@ func (r *CustomFieldChoiceSetResource) Delete(ctx context.Context, req resource.
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		// If the resource was already deleted (404), consider it a success
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			tflog.Debug(ctx, "Custom field choice set already deleted", map[string]interface{}{"id": id})
+			return
+		}
 
 		resp.Diagnostics.AddError("Error deleting custom field choice set",
 

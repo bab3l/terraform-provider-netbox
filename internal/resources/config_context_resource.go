@@ -418,6 +418,11 @@ func (r *ConfigContextResource) Delete(ctx context.Context, req resource.DeleteR
 	httpResp, err := r.client.ExtrasAPI.ExtrasConfigContextsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
+		// If the resource was already deleted (404), consider it a success
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			tflog.Debug(ctx, "Config context already deleted", map[string]interface{}{"id": id})
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Error deleting config context",
 			utils.FormatAPIError("delete config context", err, httpResp),

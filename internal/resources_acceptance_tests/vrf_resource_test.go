@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -110,6 +111,54 @@ func TestAccVRFResource_update(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_vrf.test", "rd", "65000:200"),
 					resource.TestCheckResourceAttr("netbox_vrf.test", "description", "Updated description"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccVRFResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-vrf-extdel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVRFResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// Find VRF by name
+					items, _, err := client.IpamAPI.IpamVrfsList(context.Background()).Name([]string{name}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list VRFs: %v", err)
+					}
+					if items == nil || len(items.Results) == 0 {
+						t.Fatalf("VRF not found with name: %s", name)
+					}
+
+					// Delete the VRF
+					itemID := items.Results[0].Id
+					_, err = client.IpamAPI.IpamVrfsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete VRF: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted VRF with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

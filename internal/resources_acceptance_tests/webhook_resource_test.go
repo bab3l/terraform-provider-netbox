@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -165,4 +166,88 @@ resource "netbox_webhook" "test" {
   http_method = "POST"
 }
 `, name)
+}
+
+func TestAccWebhookResource_update(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-webhook-upd")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWebhookResourceConfig_withDescription(name, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_webhook.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccWebhookResourceConfig_withDescription(name, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_webhook.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func testAccWebhookResourceConfig_withDescription(name string, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_webhook" "test" {
+  name        = %[1]q
+  payload_url = "http://example.com/webhook"
+  description = %[2]q
+}
+`, name, description)
+}
+
+func TestAccWebhookResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-webhook-extdel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWebhookResource(name, "http://example.com/webhook"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_webhook.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// Find webhook by name
+					items, _, err := client.ExtrasAPI.ExtrasWebhooksList(context.Background()).Name([]string{name}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list webhooks: %v", err)
+					}
+					if items == nil || len(items.Results) == 0 {
+						t.Fatalf("Webhook not found with name: %s", name)
+					}
+
+					// Delete the webhook
+					itemID := items.Results[0].Id
+					_, err = client.ExtrasAPI.ExtrasWebhooksDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete webhook: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted webhook with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

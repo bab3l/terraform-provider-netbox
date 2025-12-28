@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -298,4 +299,52 @@ resource "netbox_custom_link" "test" {
 
 `, name)
 
+}
+
+func TestAccCustomLinkResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-cl-extdel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomLinkResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_custom_link.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// Find custom link by name
+					items, _, err := client.ExtrasAPI.ExtrasCustomLinksList(context.Background()).Name([]string{name}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list custom links: %v", err)
+					}
+					if items == nil || len(items.Results) == 0 {
+						t.Fatalf("Custom link not found with name: %s", name)
+					}
+
+					// Delete the custom link
+					itemID := items.Results[0].Id
+					_, err = client.ExtrasAPI.ExtrasCustomLinksDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete custom link: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted custom link with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

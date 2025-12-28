@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -119,4 +120,90 @@ resource "netbox_wireless_lan_group" "test" {
   description = %q
 }
 `, name, slug, description)
+}
+
+func TestAccWirelessLANGroupResource_update(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-wlan-group-upd")
+	slug := testutil.RandomSlug("tf-test-wlan-group-upd")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLANGroupResourceConfig_withDescription(name, slug, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_wireless_lan_group.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccWirelessLANGroupResourceConfig_withDescription(name, slug, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_wireless_lan_group.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func testAccWirelessLANGroupResourceConfig_withDescription(name string, slug string, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_wireless_lan_group" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  description = %[3]q
+}
+`, name, slug, description)
+}
+
+func TestAccWirelessLANGroupResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-wlan-group-extdel")
+	slug := testutil.RandomSlug("tf-test-wlan-group-extdel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLANGroupResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_wireless_lan_group.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// Find wireless LAN group by slug
+					items, _, err := client.WirelessAPI.WirelessWirelessLanGroupsList(context.Background()).Slug([]string{slug}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list wireless LAN groups: %v", err)
+					}
+					if items == nil || len(items.Results) == 0 {
+						t.Fatalf("Wireless LAN group not found with slug: %s", slug)
+					}
+
+					// Delete the wireless LAN group
+					itemID := items.Results[0].Id
+					_, err = client.WirelessAPI.WirelessWirelessLanGroupsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete wireless LAN group: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted wireless LAN group with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }
