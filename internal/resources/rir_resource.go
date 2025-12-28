@@ -281,6 +281,10 @@ func (r *RIRResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	httpResp, err := r.client.IpamAPI.IpamRirsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			// Resource already deleted
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Error deleting RIR",
 			utils.FormatAPIError(fmt.Sprintf("delete RIR ID %d", id), err, httpResp),

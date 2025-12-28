@@ -362,6 +362,10 @@ func (r *ASNRangeResource) Delete(ctx context.Context, req resource.DeleteReques
 	httpResp, err := r.client.IpamAPI.IpamAsnRangesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			// Resource already deleted
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Error deleting ASNRange",
 			utils.FormatAPIError(fmt.Sprintf("delete ASNRange ID %d", id), err, httpResp),

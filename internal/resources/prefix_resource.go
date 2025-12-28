@@ -513,6 +513,10 @@ func (r *PrefixResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			// Resource already deleted
+			return
+		}
 
 		resp.Diagnostics.AddError(
 
