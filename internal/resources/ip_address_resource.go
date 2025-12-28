@@ -494,6 +494,13 @@ func (r *IPAddressResource) Delete(ctx context.Context, req resource.DeleteReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		// Ignore 404 errors (resource already deleted)
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			tflog.Debug(ctx, "IP address already deleted", map[string]interface{}{
+				"id": id,
+			})
+			return
+		}
 
 		resp.Diagnostics.AddError(
 

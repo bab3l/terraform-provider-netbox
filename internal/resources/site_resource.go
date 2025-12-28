@@ -356,6 +356,13 @@ func (r *SiteResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	httpResp, err := r.client.DcimAPI.DcimSitesDestroy(ctx, siteIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
+		// Ignore 404 errors (resource already deleted)
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			tflog.Debug(ctx, "Site already deleted", map[string]interface{}{
+				"id": siteID,
+			})
+			return
+		}
 		resp.Diagnostics.AddError("Error deleting site", utils.FormatAPIError(fmt.Sprintf("delete site ID %s", siteID), err, httpResp))
 		return
 	}

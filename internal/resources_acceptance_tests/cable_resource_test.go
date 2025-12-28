@@ -380,7 +380,7 @@ resource "netbox_interface" "test_a" {
 
   name      = %[10]q
 
-  device    = netbox_device.test_a.name
+  device    = netbox_device.test_a.id
 
   type      = "1000base-t"
 
@@ -390,7 +390,7 @@ resource "netbox_interface" "test_b" {
 
   name      = %[11]q
 
-  device    = netbox_device.test_b.name
+  device    = netbox_device.test_b.id
 
   type      = "1000base-t"
 

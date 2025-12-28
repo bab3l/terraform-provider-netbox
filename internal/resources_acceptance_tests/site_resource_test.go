@@ -3,6 +3,7 @@ package resources_acceptance_tests
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
@@ -341,9 +342,8 @@ resource "netbox_site" "test" {
   status = "active"
 }
 `, name, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_site.test", "id"),
-				),
+				ExpectError: regexp.MustCompile("(?i)(404|not found|no site)"),
+				Check:       resource.ComposeTestCheckFunc(),
 			},
 		},
 	})
