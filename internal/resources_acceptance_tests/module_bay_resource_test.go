@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -399,4 +400,140 @@ resource "netbox_module_bay" "test" {
   name   = %q
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName)
+}
+
+func TestAccModuleBayResource_update(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-upd")
+	siteSlug := testutil.RandomSlug("tf-test-site-upd")
+	mfgName := testutil.RandomName("tf-test-mfg-upd")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-upd")
+	dtModel := testutil.RandomName("tf-test-dt-upd")
+	dtSlug := testutil.RandomSlug("tf-test-dt-upd")
+	roleName := testutil.RandomName("tf-test-role-upd")
+	roleSlug := testutil.RandomSlug("tf-test-role-upd")
+	deviceName := testutil.RandomName("tf-test-device-upd")
+	bayName := testutil.RandomName("tf-test-mbay-upd")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleBayResourceConfig_update(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_bay.test", "id"),
+					resource.TestCheckResourceAttr("netbox_module_bay.test", "name", bayName),
+					resource.TestCheckResourceAttr("netbox_module_bay.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccModuleBayResourceConfig_update(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module_bay.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func testAccModuleBayResourceConfig_update(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %q
+  slug   = %q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_device_role" "test" {
+  name  = %q
+  slug  = %q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_module_bay" "test" {
+  device      = netbox_device.test.id
+  name        = %q
+  description = %q
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, description)
+}
+
+func TestAccModuleBayResource_external_deletion(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-ext")
+	siteSlug := testutil.RandomSlug("tf-test-site-ext")
+	mfgName := testutil.RandomName("tf-test-mfg-ext")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-ext")
+	dtModel := testutil.RandomName("tf-test-dt-ext")
+	dtSlug := testutil.RandomSlug("tf-test-dt-ext")
+	roleName := testutil.RandomName("tf-test-role-ext")
+	roleSlug := testutil.RandomSlug("tf-test-role-ext")
+	deviceName := testutil.RandomName("tf-test-device-ext")
+	bayName := testutil.RandomName("tf-test-mbay-ext")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleBayResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_bay.test", "id"),
+					resource.TestCheckResourceAttr("netbox_module_bay.test", "name", bayName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimModuleBaysList(context.Background()).NameIc([]string{bayName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find module_bay for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimModuleBaysDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete module_bay: %v", err)
+					}
+					t.Logf("Successfully externally deleted module_bay with ID: %d", itemID)
+				},
+				Config: testAccModuleBayResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_bay.test", "id"),
+				),
+			},
+		},
+	})
 }
