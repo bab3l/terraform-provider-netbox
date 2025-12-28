@@ -561,6 +561,12 @@ func (r *RackRoleResource) Delete(ctx context.Context, req resource.DeleteReques
 
 	if err != nil {
 
+		if httpResp != nil && httpResp.StatusCode == 404 {
+
+			return
+
+		}
+
 		resp.Diagnostics.AddError(
 
 			"Error deleting rack role",
