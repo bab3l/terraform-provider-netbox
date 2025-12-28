@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -277,6 +278,47 @@ func TestAccConsistency_InventoryItemTemplate_LiteralNames(t *testing.T) {
 			{
 				Config:   testAccInventoryItemTemplateConsistencyLiteralNamesConfig(name),
 				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccInventoryItemTemplateResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-inv-template-ext-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemTemplateResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "name", name),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimInventoryItemTemplatesList(context.Background()).NameIc([]string{name}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find inventory_item_template for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimInventoryItemTemplatesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete inventory_item_template: %v", err)
+					}
+					t.Logf("Successfully externally deleted inventory_item_template with ID: %d", itemID)
+				},
+				Config: testAccInventoryItemTemplateResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "id"),
 				),

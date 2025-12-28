@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -123,8 +122,6 @@ func (r *PowerPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 				Optional: true,
 
 				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"type": schema.StringAttribute{
@@ -135,20 +132,6 @@ func (r *PowerPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 			},
 
 			"display_name": nbschema.DisplayNameAttribute("power port template"),
-
-			"maximum_draw": schema.Int32Attribute{
-
-				MarkdownDescription: "Maximum power draw in watts.",
-
-				Optional: true,
-			},
-
-			"allocated_draw": schema.Int32Attribute{
-
-				MarkdownDescription: "Allocated power draw in watts.",
-
-				Optional: true,
-			},
 		},
 	}
 
@@ -641,14 +624,6 @@ func (r *PowerPortTemplateResource) mapResponseToModel(template *netbox.PowerPor
 
 	// Map description
 
-	if desc, ok := template.GetDescriptionOk(); ok && desc != nil {
-
-		data.Description = types.StringValue(*desc)
-
-	} else {
-
-		data.Description = types.StringValue("")
-
-	}
+	data.Description = utils.StringFromAPI(template.HasDescription(), template.GetDescription, data.Description)
 
 }

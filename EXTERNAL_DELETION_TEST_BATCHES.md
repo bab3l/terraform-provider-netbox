@@ -1,8 +1,8 @@
 3
 ## Current Status
-- **Overall Progress**: 8/99 resources (8.1%) - Batch 1 Complete
-- **Last Update**: December 28, 2025 - Batch 1 Committed
-- **Strategy**: Batch-by-batch implementation with commits after each batch
+- **Overall Progress**: 11/99 resources (11.1%) - Batch 2A Complete
+- **Last Update**: December 28, 2025 - Batch 2A Completed
+- **Strategy**: Sub-batch implementation with commits after each sub-batch
 
 ---
 
@@ -11,41 +11,81 @@
 
 Priority: CRITICAL - Most frequently used resources
 
-| Resource | File | Status | Notes |
-|----------|------|--------|-------|
-| device | device_resource_test.go | ✅ DONE | Core infrastructure |
-| interface | interface_resource_test.go | ✅ DONE | Critical for networking |
-| ip_address | ip_address_resource_test.go | ✅ DONE | Core IPAM resource |
-| site | site_resource_test.go | ✅ DONE | Top-level organizational |
-| vlan | vlan_resource_test.go | ✅ DONE | Network configuration |
-| circuit | circuit_resource_test.go | ✅ DONE | Core interconnect |
-| cable | cable_resource_test.go | ✅ DONE | Physical layer |
-| cluster | cluster_resource_test.go | ✅ DONE | Virtualization core |
+| Resource | File | Status | Test Coverage | Notes |
+|----------|------|--------|---------------|-------|
+| device | device_resource_test.go | ✅ DONE | CRUD + Import | Core infrastructure |
+| interface | interface_resource_test.go | ✅ DONE | CRUD + Import | Critical for networking |
+| ip_address | ip_address_resource_test.go | ✅ DONE | CRUD + Import | Core IPAM resource |
+| site | site_resource_test.go | ✅ DONE | CRUD + Import | Top-level organizational |
+| vlan | vlan_resource_test.go | ✅ DONE | CRUD + Import | Network configuration |
+| circuit | circuit_resource_test.go | ✅ DONE | CRUD + Import | Core interconnect |
+| cable | cable_resource_test.go | ✅ DONE | CRUD + Import | Physical layer |
+| cluster | cluster_resource_test.go | ✅ DONE | CRUD + Import | Virtualization core |
+
+**Recent Improvements**:
+- Added 404 handling to Delete methods for site and ip_address resources
+- Added full, update, and import tests to cable resource for complete CRUD coverage
+- All external deletion tests now pass (including cleanup phase)
 
 ---
 
-## Batch 2: Port Resources (15 resources)
+## Batch 2A: Inventory Resources - Quick Wins (3 resources)
+**Status**: ✅ COMPLETE
+
+Priority: HIGH - Already have complete CRUD coverage, only need external deletion tests
+
+| Resource | File | Status | Test Coverage | Notes |
+|----------|------|--------|---------------|-------|
+| inventory_item | inventory_item_resource_test.go | ✅ DONE | CRUD + Import + Ext Del ✅ | All tests complete |
+| inventory_item_template | inventory_item_template_resource_test.go | ✅ DONE | CRUD + Import + Ext Del ✅ | All tests complete |
+| inventory_item_role | inventory_item_role_resource_test.go | ✅ DONE | CRUD + Import + Ext Del ✅ | All tests complete |
+
+**Implementation Notes**:
+- Added context import to all test files
+- All external deletion tests follow the standard pattern from Batch 1
+- Uses DcimAPI methods: DcimInventoryItemsList/Destroy, DcimInventoryItemTemplatesList/Destroy, DcimInventoryItemRolesList/Destroy
+
+---
+
+## Batch 2B: Console Port Resources (4 resources)
 **Status**: ⏳ NOT STARTED
 
-Similar implementation patterns, can be templated.
+Priority: HIGH - Most commonly used port types
 
-| Resource | File | Status |
-|----------|------|--------|
-| console_port | console_port_resource_test.go | ⏳ TODO |
-| console_port_template | console_port_template_resource_test.go | ⏳ TODO |
-| console_server_port | console_server_port_resource_test.go | ⏳ TODO |
-| console_server_port_template | console_server_port_template_resource_test.go | ⏳ TODO |
-| front_port | front_port_resource_test.go | ⏳ TODO |
-| front_port_template | front_port_template_resource_test.go | ⏳ TODO |
-| rear_port | rear_port_resource_test.go | ⏳ TODO |
-| rear_port_template | rear_port_template_resource_test.go | ⏳ TODO |
-| power_port | power_port_resource_test.go | ⏳ TODO |
-| power_port_template | power_port_template_resource_test.go | ⏳ TODO |
-| power_outlet | power_outlet_resource_test.go | ⏳ TODO |
-| power_outlet_template | power_outlet_template_resource_test.go | ⏳ TODO |
-| inventory_item | inventory_item_resource_test.go | ⏳ TODO |
-| inventory_item_template | inventory_item_template_resource_test.go | ⏳ TODO |
-| inventory_item_role | inventory_item_role_resource_test.go | ⏳ TODO |
+| Resource | File | Status | Missing Tests |
+|----------|------|--------|---------------|
+| console_port | console_port_resource_test.go | ⏳ TODO | Update + External Deletion |
+| console_port_template | console_port_template_resource_test.go | ⏳ TODO | Update + External Deletion |
+| console_server_port | console_server_port_resource_test.go | ⏳ TODO | Update + External Deletion |
+| console_server_port_template | console_server_port_template_resource_test.go | ⏳ TODO | Update + External Deletion |
+
+---
+
+## Batch 2C: Power Infrastructure Resources (4 resources)
+**Status**: ⏳ NOT STARTED
+
+Priority: MEDIUM - Critical for power management
+
+| Resource | File | Status | Missing Tests |
+|----------|------|--------|---------------|
+| power_port | power_port_resource_test.go | ⏳ TODO | Update + External Deletion |
+| power_port_template | power_port_template_resource_test.go | ⏳ TODO | Update + External Deletion |
+| power_outlet | power_outlet_resource_test.go | ⏳ TODO | Update + External Deletion |
+| power_outlet_template | power_outlet_template_resource_test.go | ⏳ TODO | Update + External Deletion |
+
+---
+
+## Batch 2D: Patch Panel Port Resources (4 resources)
+**Status**: ⏳ NOT STARTED
+
+Priority: MEDIUM - Structured cabling
+
+| Resource | File | Status | Missing Tests |
+|----------|------|--------|---------------|
+| front_port | front_port_resource_test.go | ⏳ TODO | Update + External Deletion |
+| front_port_template | front_port_template_resource_test.go | ⏳ TODO | Update + External Deletion |
+| rear_port | rear_port_resource_test.go | ⏳ TODO | Update + External Deletion |
+| rear_port_template | rear_port_template_resource_test.go | ⏳ TODO | Update + External Deletion |
 
 ---
 
@@ -56,6 +96,22 @@ Will be organized by category and added after Batches 1-2 are complete.
 
 ---
 
+## Test Pattern
+
+All external deletion tests follow this structure:
+```go
+func TestAcc{ResourceName}Resource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	tex] Batch 1 (8) - ✅ COMPLETE
+- [ ] Batch 2A (3) - 🔄 IN PROGRESS
+- [ ] Batch 2B (4) - Console Ports
+- [ ] Batch 2C (4) - Power Infrastructure
+- [ ] Batch 2D (4) - Patch Panel Ports
+- [ ] Batch 3 (10)
+- [ ] Batch 4 (10)
+- [ ] Batch 5 (8)
+- [ ] Batch 6 (8)
+- [ ] Batch 7 (6)
 ## Test Pattern
 
 All external deletion tests follow this structure:
@@ -94,8 +150,11 @@ func TestAcc{ResourceName}Resource_externalDeletion(t *testing.T) {
 
 ## Batch Completion Tracking
 
-- [ ] Batch 1 (8) - CURRENT
-- [ ] Batch 2 (15)
+- [x] Batch 1 (8) - ✅ COMPLETE
+- [x] Batch 2A (3) - ✅ COMPLETE
+- [ ] Batch 2B (4) - Console Ports
+- [ ] Batch 2C (4) - Power Infrastructure
+- [ ] Batch 2D (4) - Patch Panel Ports
 - [ ] Batch 3 (10)
 - [ ] Batch 4 (10)
 - [ ] Batch 5 (8)
@@ -106,3 +165,5 @@ func TestAcc{ResourceName}Resource_externalDeletion(t *testing.T) {
 - [ ] Batch 10 (17)
 
 **Target**: 99/99 resources with external deletion tests
+**Current**: 11/99 (11.1%)
+**Next Milestone**: 15/99 (15.2%) after Batch 2B

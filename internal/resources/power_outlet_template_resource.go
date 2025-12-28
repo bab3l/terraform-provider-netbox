@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -123,8 +122,6 @@ func (r *PowerOutletTemplateResource) Schema(ctx context.Context, req resource.S
 				Optional: true,
 
 				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"type": schema.StringAttribute{
@@ -136,18 +133,9 @@ func (r *PowerOutletTemplateResource) Schema(ctx context.Context, req resource.S
 
 			"display_name": nbschema.DisplayNameAttribute("power outlet template"),
 
-			"power_port": schema.Int32Attribute{
-
-				MarkdownDescription: "The power port template ID that feeds this outlet.",
-
-				Optional: true,
-			},
-
-			"feed_leg": schema.StringAttribute{
-
-				MarkdownDescription: "Phase leg for three-phase power (A, B, or C).",
-
-				Optional: true,
+			"power_port": schema.StringAttribute{
+				MarkdownDescription: "The power port template that feeds this power outlet.",
+				Optional:            true,
 			},
 		},
 	}
@@ -689,14 +677,6 @@ func (r *PowerOutletTemplateResource) mapResponseToModel(template *netbox.PowerO
 
 	// Map description
 
-	if desc, ok := template.GetDescriptionOk(); ok && desc != nil {
-
-		data.Description = types.StringValue(*desc)
-
-	} else {
-
-		data.Description = types.StringValue("")
-
-	}
+	data.Description = utils.StringFromAPI(template.HasDescription(), template.GetDescription, data.Description)
 
 }

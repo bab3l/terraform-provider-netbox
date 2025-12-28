@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -232,6 +233,47 @@ func TestAccConsistency_InventoryItemRole_LiteralNames(t *testing.T) {
 			{
 				Config:   testAccInventoryItemRoleConsistencyLiteralNamesConfig(name, slug),
 				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_inventory_item_role.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccInventoryItemRoleResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-inv-role-ext-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemRoleResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_inventory_item_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_inventory_item_role.test", "name", name),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimInventoryItemRolesList(context.Background()).NameIc([]string{name}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find inventory_item_role for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimInventoryItemRolesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete inventory_item_role: %v", err)
+					}
+					t.Logf("Successfully externally deleted inventory_item_role with ID: %d", itemID)
+				},
+				Config: testAccInventoryItemRoleResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_role.test", "id"),
 				),
