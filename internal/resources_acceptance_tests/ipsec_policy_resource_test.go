@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -151,6 +152,48 @@ func TestAccIPSECPolicyResource_import(t *testing.T) {
 		},
 	})
 
+}
+
+func TestAccIPSECPolicyResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ipsec-policy-extdel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSECPolicyResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "name", name),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.VpnAPI.VpnIpsecPoliciesList(context.Background()).Name([]string{name}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find IPSec policy for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.VpnAPI.VpnIpsecPoliciesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete IPSec policy: %v", err)
+					}
+					t.Logf("Successfully externally deleted IPSec policy with ID: %d", itemID)
+				},
+				Config: testAccIPSECPolicyResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
+				),
+			},
+		},
+	})
 }
 func TestAccIPSecPolicyResource_IDPreservation(t *testing.T) {
 	t.Parallel()

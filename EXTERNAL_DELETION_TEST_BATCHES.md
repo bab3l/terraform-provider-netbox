@@ -1,7 +1,7 @@
 3
 ## Current Status
-- **Overall Progress**: 43/99 resources (43.4%) - Batch 5 Complete
-- **Last Update**: December 28, 2025 - Batch 5 Complete (33/33 tests PASS)
+- **Overall Progress**: 52/99 resources (52.5%) - Batch 6 Complete
+- **Last Update**: December 28, 2025 - Batch 6 Complete (53/53 tests PASS)
 - **Strategy**: Sub-batch implementation with commits after each sub-batch
 
 ---
@@ -251,21 +251,43 @@ Priority: HIGH - IP address management extensions
 ---
 
 ## Batch 6: VPN & Tunnel Resources (9 resources)
-**Status**: ⏳ NOT STARTED
+**Status**: ✅ COMPLETE
 
 Priority: MEDIUM - VPN infrastructure
 
-| Resource | File | Status | Missing Tests |
-|----------|------|--------|---------------|
-| tunnel | tunnel_resource_test.go | ⏳ TODO | Update + External Deletion |
-| tunnel_group | tunnel_group_resource_test.go | ⏳ TODO | Update + External Deletion |
-| tunnel_termination | tunnel_termination_resource_test.go | ⏳ TODO | Update + External Deletion |
-| ike_policy | ike_policy_resource_test.go | ⏳ TODO | Update + External Deletion |
-| ike_proposal | ike_proposal_resource_test.go | ⏳ TODO | Update + External Deletion |
-| ipsec_policy | ipsec_policy_resource_test.go | ⏳ TODO | Update + External Deletion |
-| ipsec_profile | ipsec_profile_resource_test.go | ⏳ TODO | Update + External Deletion |
-| ipsec_proposal | ipsec_proposal_resource_test.go | ⏳ TODO | Update + External Deletion |
-| route_target | route_target_resource_test.go | ⏳ TODO | Update + External Deletion |
+**Test Results**: All 53 tests passing (53/53 - 100%)
+
+| Resource | File | Status | Test Coverage | Notes |
+|----------|------|--------|---------------|-------|
+| tunnel | tunnel_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + Ext Del | description field tested (6 tests) |
+| tunnel_group | tunnel_group_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + Ext Del | description field tested, uses slug filter (6 tests) |
+| tunnel_termination | tunnel_termination_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del | role field tested, filters by tunnel name (5 tests) |
+| ike_policy | ike_policy_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + Ext Del | description field tested (6 tests) |
+| ike_proposal | ike_proposal_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + Ext Del | description field tested (6 tests) |
+| ipsec_policy | ipsec_policy_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + Ext Del | description field tested (6 tests) |
+| ipsec_profile | ipsec_profile_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + Ext Del | description field tested (6 tests) |
+| ipsec_proposal | ipsec_proposal_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + Ext Del | description field tested (6 tests) |
+| route_target | route_target_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + Ext Del | name field tested (6 tests) |
+
+**Implementation Notes**:
+- Added context import to all test files
+- Update tests already existed for all resources
+- Added external deletion tests using PreConfig pattern with VpnAPI/IpamAPI methods
+- tunnel_group uses Slug filter instead of Name (only resource in batch with slug)
+- tunnel_termination uses Tunnel filter (filters by parent tunnel name, not own name)
+- route_target uses IpamAPI (all others use VpnAPI)
+- All tests use t.Parallel() for concurrent execution
+
+**API Methods Used**:
+- VpnTunnelsList/VpnTunnelsDestroy (filter by name)
+- VpnTunnelGroupsList/VpnTunnelGroupsDestroy (filter by slug)
+- VpnTunnelTerminationsList/VpnTunnelTerminationsDestroy (filter by tunnel name)
+- VpnIkePoliciesList/VpnIkePoliciesDestroy (filter by name)
+- VpnIkeProposalsList/VpnIkeProposalsDestroy (filter by name)
+- VpnIpsecPoliciesList/VpnIpsecPoliciesDestroy (filter by name)
+- VpnIpsecProfilesList/VpnIpsecProfilesDestroy (filter by name)
+- VpnIpsecProposalsList/VpnIpsecProposalsDestroy (filter by name)
+- IpamRouteTargetsList/IpamRouteTargetsDestroy (filter by name)
 
 ---
 
@@ -448,7 +470,7 @@ func TestAcc{ResourceName}Resource_externalDeletion(t *testing.T) {
 - [x] Batch 3 (6) - ✅ COMPLETE - Module & Device Bay Resources
 - [x] Batch 4 (8) - ✅ COMPLETE - Interface & Network Resources
 - [x] Batch 5 (6) - ✅ COMPLETE - IPAM Additional Resources
-- [ ] Batch 6 (9) - VPN & Tunnel Resources
+- [x] Batch 6 (9) - ✅ COMPLETE - VPN & Tunnel Resources
 - [ ] Batch 7 (7) - Circuit & Provider Resources
 - [ ] Batch 8 (6) - Rack & Power Resources
 - [ ] Batch 9 (11) - Organizational Resources
@@ -458,5 +480,5 @@ func TestAcc{ResourceName}Resource_externalDeletion(t *testing.T) {
 - [ ] Batch 13 (2) - VLAN & VRF Resources
 
 **Target**: 99/99 resources with external deletion tests
-**Current**: 43/99 (43.4%)
-**Next Milestone**: 52/99 (52.5%) after Batch 6
+**Current**: 52/99 (52.5%)
+**Next Milestone**: 59/99 (59.6%) after Batch 7

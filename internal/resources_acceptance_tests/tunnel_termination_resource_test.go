@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -125,6 +126,48 @@ func TestAccTunnelTerminationResource_import(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"tunnel"},
+			},
+		},
+	})
+}
+
+func TestAccTunnelTerminationResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	tunnelName := testutil.RandomName("tf-test-tunnel-for-term-extdel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTunnelTerminationResourceConfig_basic(tunnelName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tunnel_termination.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					// Find tunnel termination by filtering for tunnel name
+					items, _, err := client.VpnAPI.VpnTunnelTerminationsList(context.Background()).Tunnel([]string{tunnelName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find tunnel termination for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.VpnAPI.VpnTunnelTerminationsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete tunnel termination: %v", err)
+					}
+					t.Logf("Successfully externally deleted tunnel termination with ID: %d", itemID)
+				},
+				Config: testAccTunnelTerminationResourceConfig_basic(tunnelName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tunnel_termination.test", "id"),
+				),
 			},
 		},
 	})
