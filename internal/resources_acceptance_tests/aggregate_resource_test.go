@@ -9,7 +9,6 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -18,8 +17,7 @@ func TestAccAggregateResource_basic(t *testing.T) {
 	t.Parallel()
 	rirName := testutil.RandomName("tf-test-rir")
 	rirSlug := testutil.RandomSlug("tf-test-rir")
-	// Use a random third octet to ensure uniqueness across test runs
-	prefix := fmt.Sprintf("192.0.%d.0/24", acctest.RandIntRange(0, 255))
+	prefix := testutil.RandomIPv4Prefix()
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
@@ -69,7 +67,7 @@ func TestAccAggregateResource_update(t *testing.T) {
 
 	rirName := testutil.RandomName("tf-test-rir-update")
 	rirSlug := testutil.RandomSlug("tf-test-rir-update")
-	prefix := fmt.Sprintf("172.16.%d.0/24", acctest.RandIntRange(0, 255))
+	prefix := testutil.RandomIPv4Prefix()
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
@@ -106,8 +104,7 @@ func TestAccAggregateResource_full(t *testing.T) {
 
 	rirSlug := testutil.RandomSlug("tf-test-rir-full")
 
-	// Use a random third octet to ensure uniqueness across test runs
-	prefix := fmt.Sprintf("198.51.%d.0/24", acctest.RandIntRange(0, 255))
+	prefix := testutil.RandomIPv4Prefix()
 
 	description := testutil.RandomName("description")
 
@@ -162,7 +159,7 @@ func TestAccAggregateResource_IDPreservation(t *testing.T) {
 
 	rirName := testutil.RandomName("tf-test-rir-id")
 	rirSlug := testutil.RandomSlug("tf-test-rir-id")
-	prefix := fmt.Sprintf("203.0.%d.0/24", acctest.RandIntRange(0, 255))
+	prefix := testutil.RandomIPv4Prefix()
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
@@ -255,9 +252,7 @@ resource "netbox_aggregate" "test" {
 func TestAccConsistency_Aggregate(t *testing.T) {
 
 	t.Parallel()
-	// Use random second octet to ensure uniqueness across test runs
-	// /16 requires the last two octets to be 0
-	prefix := fmt.Sprintf("10.%d.0.0/16", acctest.RandIntRange(0, 255))
+	prefix := testutil.RandomIPv4Prefix()
 
 	rirName := testutil.RandomName("rir")
 
@@ -345,9 +340,7 @@ resource "netbox_aggregate" "test" {
 func TestAccConsistency_Aggregate_LiteralNames(t *testing.T) {
 
 	t.Parallel()
-	// Use random second octet to ensure uniqueness across test runs
-	// /16 requires the last two octets to be 0
-	prefix := fmt.Sprintf("10.%d.0.0/16", acctest.RandIntRange(0, 255))
+	prefix := testutil.RandomIPv4Prefix()
 
 	rirName := testutil.RandomName("rir")
 
