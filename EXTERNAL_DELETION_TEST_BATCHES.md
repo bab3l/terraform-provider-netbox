@@ -113,10 +113,189 @@ Priority: MEDIUM - Structured cabling
 
 ---
 
-## Batch 3-10: Other Resources (76 resources)
+## Batch 3: Module & Device Bay Resources (6 resources)
 **Status**: ⏳ NOT STARTED
 
-Will be organized by category and added after Batches 1-2 are complete.
+Priority: MEDIUM - Device component management
+
+| Resource | File | Status | Missing Tests |
+|----------|------|--------|---------------|
+| device_bay | device_bay_resource_test.go | ⏳ TODO | Update + External Deletion |
+| device_bay_template | device_bay_template_resource_test.go | ⏳ TODO | Update + External Deletion |
+| module_bay | module_bay_resource_test.go | ⏳ TODO | Update + External Deletion |
+| module_bay_template | module_bay_template_resource_test.go | ⏳ TODO | Update + External Deletion |
+| module | module_resource_test.go | ⏳ TODO | Update + External Deletion |
+| module_type | module_type_resource_test.go | ⏳ TODO | Update + External Deletion |
+
+---
+
+## Batch 4: Interface & Network Resources (8 resources)
+**Status**: ⏳ NOT STARTED
+
+Priority: HIGH - Network infrastructure
+
+| Resource | File | Status | Missing Tests |
+|----------|------|--------|---------------|
+| interface_template | interface_template_resource_test.go | ⏳ TODO | Update + External Deletion |
+| vm_interface | vm_interface_resource_test.go | ⏳ TODO | Update + External Deletion |
+| fhrp_group | fhrp_group_resource_test.go | ⏳ TODO | Update + External Deletion |
+| fhrp_group_assignment | fhrp_group_assignment_resource_test.go | ⏳ TODO | Update + External Deletion |
+| service | service_resource_test.go | ⏳ TODO | Update + External Deletion |
+| service_template | service_template_resource_test.go | ⏳ TODO | Update + External Deletion |
+| l2vpn | l2vpn_resource_test.go | ⏳ TODO | Update + External Deletion |
+| l2vpn_termination | l2vpn_termination_resource_test.go | ⏳ TODO | Update + External Deletion |
+
+---
+
+## Batch 5: IPAM Additional Resources (6 resources)
+**Status**: ⏳ NOT STARTED
+
+Priority: HIGH - IP address management extensions
+
+| Resource | File | Status | Missing Tests |
+|----------|------|--------|---------------|
+| prefix | prefix_resource_test.go | ⏳ TODO | Update + External Deletion |
+| ip_range | ip_range_resource_test.go | ⏳ TODO | Update + External Deletion |
+| aggregate | aggregate_resource_test.go | ⏳ TODO | Update + External Deletion |
+| rir | rir_resource_test.go | ⏳ TODO | Update + External Deletion |
+| asn | asn_resource_test.go | ⏳ TODO | Update + External Deletion |
+| asn_range | asn_range_resource_test.go | ⏳ TODO | Update + External Deletion |
+
+---
+
+## Batch 6: VPN & Tunnel Resources (9 resources)
+**Status**: ⏳ NOT STARTED
+
+Priority: MEDIUM - VPN infrastructure
+
+| Resource | File | Status | Missing Tests |
+|----------|------|--------|---------------|
+| tunnel | tunnel_resource_test.go | ⏳ TODO | Update + External Deletion |
+| tunnel_group | tunnel_group_resource_test.go | ⏳ TODO | Update + External Deletion |
+| tunnel_termination | tunnel_termination_resource_test.go | ⏳ TODO | Update + External Deletion |
+| ike_policy | ike_policy_resource_test.go | ⏳ TODO | Update + External Deletion |
+| ike_proposal | ike_proposal_resource_test.go | ⏳ TODO | Update + External Deletion |
+| ipsec_policy | ipsec_policy_resource_test.go | ⏳ TODO | Update + External Deletion |
+| ipsec_profile | ipsec_profile_resource_test.go | ⏳ TODO | Update + External Deletion |
+| ipsec_proposal | ipsec_proposal_resource_test.go | ⏳ TODO | Update + External Deletion |
+| route_target | route_target_resource_test.go | ⏳ TODO | Update + External Deletion |
+
+---
+
+## Batch 7: Circuit & Provider Resources (7 resources)
+**Status**: ⏳ NOT STARTED
+
+Priority: MEDIUM - Service provider management
+
+| Resource | File | Status | Missing Tests |
+|----------|------|--------|---------------|
+| provider | provider_resource_test.go | ⏳ TODO | Update + External Deletion |
+| provider_account | provider_account_resource_test.go | ⏳ TODO | Update + External Deletion |
+| provider_network | provider_network_resource_test.go | ⏳ TODO | Update + External Deletion |
+| circuit_type | circuit_type_resource_test.go | ⏳ TODO | Update + External Deletion |
+| circuit_group | circuit_group_resource_test.go | ⏳ TODO | Update + External Deletion |
+| circuit_group_assignment | circuit_group_assignment_resource_test.go | ⏳ TODO | Update + External Deletion |
+| circuit_termination | circuit_termination_resource_test.go | ⏳ TODO | Update + External Deletion |
+
+---
+
+## Batch 8: Rack & Power Resources (6 resources)
+**Status**: ⏳ NOT STARTED
+
+Priority: MEDIUM - Physical infrastructure
+
+| Resource | File | Status | Missing Tests |
+|----------|------|--------|---------------|
+| rack | rack_resource_test.go | ⏳ TODO | Update + External Deletion |
+| rack_role | rack_role_resource_test.go | ⏳ TODO | Update + External Deletion |
+| rack_type | rack_type_resource_test.go | ⏳ TODO | Update + External Deletion |
+| rack_reservation | rack_reservation_resource_test.go | ⏳ TODO | Update + External Deletion |
+| power_panel | power_panel_resource_test.go | ⏳ TODO | Update + External Deletion |
+| power_feed | power_feed_resource_test.go | ⏳ TODO | Update + External Deletion |
+
+---
+
+## Batch 9: Organizational Resources (11 resources)
+**Status**: ⏳ NOT STARTED
+
+Priority: HIGH - Organizational structure
+
+| Resource | File | Status | Missing Tests |
+|----------|------|--------|---------------|
+| location | location_resource_test.go | ⏳ TODO | Update + External Deletion |
+| region | region_resource_test.go | ⏳ TODO | Update + External Deletion |
+| site_group | site_group_resource_test.go | ⏳ TODO | Update + External Deletion |
+| tenant | tenant_resource_test.go | ⏳ TODO | Update + External Deletion |
+| tenant_group | tenant_group_resource_test.go | ⏳ TODO | Update + External Deletion |
+| contact | contact_resource_test.go | ⏳ TODO | Update + External Deletion |
+| contact_group | contact_group_resource_test.go | ⏳ TODO | Update + External Deletion |
+| contact_role | contact_role_resource_test.go | ⏳ TODO | Update + External Deletion |
+| contact_assignment | contact_assignment_resource_test.go | ⏳ TODO | Update + External Deletion |
+| tag | tag_resource_test.go | ⏳ TODO | Update + External Deletion |
+| role | role_resource_test.go | ⏳ TODO | Update + External Deletion |
+
+---
+
+## Batch 10: Device & Virtualization Metadata (10 resources)
+**Status**: ⏳ NOT STARTED
+
+Priority: MEDIUM - Device and VM type definitions
+
+| Resource | File | Status | Missing Tests |
+|----------|------|--------|---------------|
+| device_role | device_role_resource_test.go | ⏳ TODO | Update + External Deletion |
+| device_type | device_type_resource_test.go | ⏳ TODO | Update + External Deletion |
+| manufacturer | manufacturer_resource_test.go | ⏳ TODO | Update + External Deletion |
+| platform | platform_resource_test.go | ⏳ TODO | Update + External Deletion |
+| cluster_type | cluster_type_resource_test.go | ⏳ TODO | Update + External Deletion |
+| cluster_group | cluster_group_resource_test.go | ⏳ TODO | Update + External Deletion |
+| virtual_machine | virtual_machine_resource_test.go | ⏳ TODO | Update + External Deletion |
+| virtual_chassis | virtual_chassis_resource_test.go | ⏳ TODO | Update + External Deletion |
+| virtual_device_context | virtual_device_context_resource_test.go | ⏳ TODO | Update + External Deletion |
+| virtual_disk | virtual_disk_resource_test.go | ⏳ TODO | Update + External Deletion |
+
+---
+
+## Batch 11: Wireless Resources (3 resources)
+**Status**: ⏳ NOT STARTED
+
+Priority: LOW - Wireless network management
+
+| Resource | File | Status | Missing Tests |
+|----------|------|--------|---------------|
+| wireless_lan | wireless_lan_resource_test.go | ⏳ TODO | Update + External Deletion |
+| wireless_lan_group | wireless_lan_group_resource_test.go | ⏳ TODO | Update + External Deletion |
+| wireless_link | wireless_link_resource_test.go | ⏳ TODO | Update + External Deletion |
+
+---
+
+## Batch 12: Configuration & Customization Resources (8 resources)
+**Status**: ⏳ NOT STARTED
+
+Priority: LOW - Configuration management and customization
+
+| Resource | File | Status | Missing Tests |
+|----------|------|--------|---------------|
+| config_context | config_context_resource_test.go | ⏳ TODO | Update + External Deletion |
+| config_template | config_template_resource_test.go | ⏳ TODO | Update + External Deletion |
+| custom_field | custom_field_resource_test.go | ⏳ TODO | Update + External Deletion |
+| custom_field_choice_set | custom_field_choice_set_resource_test.go | ⏳ TODO | Update + External Deletion |
+| custom_link | custom_link_resource_test.go | ⏳ TODO | Update + External Deletion |
+| export_template | export_template_resource_test.go | ⏳ TODO | Update + External Deletion |
+| webhook | webhook_resource_test.go | ⏳ TODO | Update + External Deletion |
+| journal_entry | journal_entry_resource_test.go | ⏳ TODO | Update + External Deletion |
+
+---
+
+## Batch 13: VLAN & VRF Resources (3 resources)
+**Status**: ⏳ NOT STARTED
+
+Priority: HIGH - Network segmentation
+
+| Resource | File | Status | Missing Tests |
+|----------|------|--------|---------------|
+| vlan_group | vlan_group_resource_test.go | ⏳ TODO | Update + External Deletion |
+| vrf | vrf_resource_test.go | ⏳ TODO | Update + External Deletion |
 
 ---
 
@@ -174,20 +353,23 @@ func TestAcc{ResourceName}Resource_externalDeletion(t *testing.T) {
 
 ## Batch Completion Tracking
 
-- [x] Batch 1 (8) - ✅ COMPLETE
-- [x] Batch 2A (3) - ✅ COMPLETE
-- [ ] Batch 2B (4) - Console Ports
-- [ ] Batch 2C (4) - Power Infrastructure
-- [ ] Batch 2D (4) - Patch Panel Ports
-- [ ] Batch 3 (10)
-- [ ] Batch 4 (10)
-- [ ] Batch 5 (8)
-- [ ] Batch 6 (8)
-- [ ] Batch 7 5/99 (15.2%)
-**Next Milestone**: 19/99 (19.2%) after Batch 2C
-- [ ] Batch 9 (8)
-- [ ] Batch 10 (17)
+- [x] Batch 1 (8) - ✅ COMPLETE - Core Infrastructure
+- [x] Batch 2A (3) - ✅ COMPLETE - Inventory Resources
+- [x] Batch 2B (4) - ✅ COMPLETE - Console Ports
+- [x] Batch 2C (4) - ✅ COMPLETE - Power Infrastructure
+- [x] Batch 2D (4) - ✅ COMPLETE - Patch Panel Ports
+- [ ] Batch 3 (6) - Module & Device Bay Resources
+- [ ] Batch 4 (8) - Interface & Network Resources
+- [ ] Batch 5 (6) - IPAM Additional Resources
+- [ ] Batch 6 (9) - VPN & Tunnel Resources
+- [ ] Batch 7 (7) - Circuit & Provider Resources
+- [ ] Batch 8 (6) - Rack & Power Resources
+- [ ] Batch 9 (11) - Organizational Resources
+- [ ] Batch 10 (10) - Device & Virtualization Metadata
+- [ ] Batch 11 (3) - Wireless Resources
+- [ ] Batch 12 (8) - Configuration & Customization
+- [ ] Batch 13 (2) - VLAN & VRF Resources
 
 **Target**: 99/99 resources with external deletion tests
-**Current**: 11/99 (11.1%)
-**Next Milestone**: 15/99 (15.2%) after Batch 2B
+**Current**: 23/99 (23.2%)
+**Next Milestone**: 29/99 (29.3%) after Batch 3
