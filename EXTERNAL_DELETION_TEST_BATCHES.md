@@ -1,7 +1,7 @@
 3
 ## Current Status
-- **Overall Progress**: 52/99 resources (52.5%) - Batch 6 Complete
-- **Last Update**: December 28, 2025 - Batch 6 Complete (53/53 tests PASS)
+- **Overall Progress**: 59/99 resources (59.6%) - Batch 7 Complete
+- **Last Update**: December 28, 2025 - Batch 7 Complete (42/42 tests PASS)
 - **Strategy**: Sub-batch implementation with commits after each sub-batch
 
 ---
@@ -292,19 +292,41 @@ Priority: MEDIUM - VPN infrastructure
 ---
 
 ## Batch 7: Circuit & Provider Resources (7 resources)
-**Status**: ⏳ NOT STARTED
+**Status**: ✅ COMPLETE
 
 Priority: MEDIUM - Service provider management
 
-| Resource | File | Status | Missing Tests |
-|----------|------|--------|---------------|
-| provider | provider_resource_test.go | ⏳ TODO | Update + External Deletion |
-| provider_account | provider_account_resource_test.go | ⏳ TODO | Update + External Deletion |
-| provider_network | provider_network_resource_test.go | ⏳ TODO | Update + External Deletion |
-| circuit_type | circuit_type_resource_test.go | ⏳ TODO | Update + External Deletion |
-| circuit_group | circuit_group_resource_test.go | ⏳ TODO | Update + External Deletion |
-| circuit_group_assignment | circuit_group_assignment_resource_test.go | ⏳ TODO | Update + External Deletion |
-| circuit_termination | circuit_termination_resource_test.go | ⏳ TODO | Update + External Deletion |
+**Test Results**: All 42 tests passing (42/42 - 100%)
+
+| Resource | File | Status | Test Coverage | Notes |
+|----------|------|--------|---------------|-------|
+| provider | provider_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + IDPres + Ext Del | name/slug fields tested, uses slug filter (6 tests) |
+| provider_account | provider_account_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + IDPres + Ext Del | account/name/description fields tested (6 tests) |
+| provider_network | provider_network_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + IDPres + Ext Del | name/service_id/description fields tested (6 tests) |
+| circuit_type | circuit_type_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + IDPres + Ext Del | description/color fields tested, uses slug filter (6 tests) |
+| circuit_group | circuit_group_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + IDPres + Ext Del | description field tested, uses slug filter (6 tests) |
+| circuit_group_assignment | circuit_group_assignment_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + IDPres + Ext Del + withPriority | priority field tested, filters by circuit CID (7 tests) |
+| circuit_termination | circuit_termination_resource_test.go | ✅ DONE | CRUD + Import + Update + Full + IDPres + Ext Del | description/port_speed fields tested, filters by site slug (6 tests) |
+
+**Implementation Notes**:
+- Added context import to all test files
+- Added update tests to provider_account and provider_network (basic to full config transitions)
+- Added full test to circuit_group_assignment (tests priority field)
+- Added update test to circuit_termination (basic to full config transition)
+- Added external deletion tests to all 7 resources using PreConfig pattern with CircuitsAPI methods
+- Most resources filter by slug or name for deletion lookup
+- circuit_group_assignment filters by Circuit CID (uses Circuit filter)
+- circuit_termination filters by Site slug (uses Site filter)
+- All tests use t.Parallel() for concurrent execution
+
+**API Methods Used**:
+- CircuitsProvidersList/CircuitsProvidersDestroy (filter by slug)
+- CircuitsProviderAccountsList/CircuitsProviderAccountsDestroy (filter by account ID)
+- CircuitsProviderNetworksList/CircuitsProviderNetworksDestroy (filter by name)
+- CircuitsCircuitTypesList/CircuitsCircuitTypesDestroy (filter by slug)
+- CircuitsCircuitGroupsList/CircuitsCircuitGroupsDestroy (filter by slug)
+- CircuitsCircuitGroupAssignmentsList/CircuitsCircuitGroupAssignmentsDestroy (filter by circuit CID)
+- CircuitsCircuitTerminationsList/CircuitsCircuitTerminationsDestroy (filter by site slug)
 
 ---
 
