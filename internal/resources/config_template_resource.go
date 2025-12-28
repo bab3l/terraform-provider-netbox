@@ -259,11 +259,7 @@ func (r *ConfigTemplateResource) mapResponseToModel(template *netbox.ConfigTempl
 	data.TemplateCode = types.StringValue(template.GetTemplateCode())
 
 	// Map description
-	if desc, ok := template.GetDescriptionOk(); ok && desc != nil {
-		data.Description = types.StringValue(*desc)
-	} else {
-		data.Description = types.StringValue("")
-	}
+	data.Description = utils.StringFromAPI(template.HasDescription(), template.GetDescription, data.Description)
 
 	// Map data path (read-only)
 	data.DataPath = types.StringValue(template.GetDataPath())
