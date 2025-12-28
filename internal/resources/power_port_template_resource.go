@@ -131,6 +131,20 @@ func (r *PowerPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 				Optional: true,
 			},
 
+			"maximum_draw": schema.Int32Attribute{
+
+				MarkdownDescription: "Maximum power draw (watts) for this power port.",
+
+				Optional: true,
+			},
+
+			"allocated_draw": schema.Int32Attribute{
+
+				MarkdownDescription: "Allocated power draw (watts) for this power port.",
+
+				Optional: true,
+			},
+
 			"display_name": nbschema.DisplayNameAttribute("power port template"),
 		},
 	}

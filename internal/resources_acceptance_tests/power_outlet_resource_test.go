@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -97,6 +98,97 @@ func TestAccPowerOutletResource_full(t *testing.T) {
 				Config: testAccPowerOutletResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, updatedDescription),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_outlet.test", "description", updatedDescription),
+				),
+			},
+		},
+	})
+}
+
+func TestAccPowerOutletResource_update(t *testing.T) {
+	t.Parallel()
+	siteName := testutil.RandomName("tf-test-site-update")
+	siteSlug := testutil.RandomSlug("tf-test-site-update")
+	mfgName := testutil.RandomName("tf-test-mfg-update")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-update")
+	dtModel := testutil.RandomName("tf-test-dt-update")
+	dtSlug := testutil.RandomSlug("tf-test-dt-update")
+	roleName := testutil.RandomName("tf-test-role-update")
+	roleSlug := testutil.RandomSlug("tf-test-role-update")
+	deviceName := testutil.RandomName("tf-test-device-update")
+	powerOutletName := testutil.RandomName("tf-test-po-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerOutletResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_outlet.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_outlet.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccPowerOutletResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_outlet.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccPowerOutletResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	siteName := testutil.RandomName("tf-test-site-ext-del")
+	siteSlug := testutil.RandomSlug("tf-test-site-ext-del")
+	mfgName := testutil.RandomName("tf-test-mfg-ext-del")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-ext-del")
+	dtModel := testutil.RandomName("tf-test-dt-ext-del")
+	dtSlug := testutil.RandomSlug("tf-test-dt-ext-del")
+	roleName := testutil.RandomName("tf-test-role-ext-del")
+	roleSlug := testutil.RandomSlug("tf-test-role-ext-del")
+	deviceName := testutil.RandomName("tf-test-device-ext-del")
+	powerOutletName := testutil.RandomName("tf-test-po-ext-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerOutletResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_outlet.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_outlet.test", "name", powerOutletName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimPowerOutletsList(context.Background()).NameIc([]string{powerOutletName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find power_outlet for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimPowerOutletsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete power_outlet: %v", err)
+					}
+					t.Logf("Successfully externally deleted power_outlet with ID: %d", itemID)
+				},
+				Config: testAccPowerOutletResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_outlet.test", "id"),
 				),
 			},
 		},

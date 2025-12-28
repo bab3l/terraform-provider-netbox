@@ -1,7 +1,7 @@
 3
 ## Current Status
-- **Overall Progress**: 15/99 resources (15.2%) - Batch 2B Complete
-- **Last Update**: December 28, 2025 - Batch 2B Completed
+- **Overall Progress**: 19/99 resources (19.2%) - Batch 2C Complete
+- **Last Update**: December 28, 2025 - Batch 2C Complete (20/20 tests PASS)
 - **Strategy**: Sub-batch implementation with commits after each sub-batch
 
 ---
@@ -68,16 +68,26 @@ Priority: HIGH - Most commonly used port types
 ---
 
 ## Batch 2C: Power Infrastructure Resources (4 resources)
-**Status**: ⏳ NOT STARTED
+**Status**: ✅ COMPLETE
 
 Priority: MEDIUM - Critical for power management
 
-| Resource | File | Status | Missing Tests |
-|----------|------|--------|---------------|
-| power_port | power_port_resource_test.go | ⏳ TODO | Update + External Deletion |
-| power_port_template | power_port_template_resource_test.go | ⏳ TODO | Update + External Deletion |
-| power_outlet | power_outlet_resource_test.go | ⏳ TODO | Update + External Deletion |
-| power_outlet_template | power_outlet_template_resource_test.go | ⏳ TODO | Update + External Deletion |
+| Resource | File | Status | Test Coverage | Notes |
+|----------|------|--------|---------------|-------|
+| power_port | power_port_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del ✅ | All tests PASS |
+| power_port_template | power_port_template_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del ✅ | Schema bugs fixed, all tests PASS |
+| power_outlet | power_outlet_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del ✅ | All tests PASS |
+| power_outlet_template | power_outlet_template_resource_test.go | ✅ DONE | CRUD + Import + Update + Ext Del ✅ | Schema bugs fixed, all tests PASS |
+
+**Implementation Notes**:
+- Added context import to all test files
+- Added update tests for description and related field changes
+- Added external deletion tests following Batch 2B pattern
+- Uses DcimAPI methods: DcimPowerPorts*/DcimPowerOutlets* List/Destroy and Templates variants
+- **Test Results**: 20/20 tests PASS (100%)
+- **Schema Fixes Applied**:
+  * power_port_template: Added missing `maximum_draw` and `allocated_draw` schema attributes
+  * power_outlet_template: Added missing `feed_leg` schema attribute and fixed `power_port` type (Int32 vs String mismatch)
 
 ---
 

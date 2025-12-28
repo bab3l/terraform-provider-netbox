@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -174,6 +175,86 @@ func TestAccConsistency_PowerPortTemplate(t *testing.T) {
 		},
 	})
 }
+func TestAccPowerPortTemplateResource_update(t *testing.T) {
+	t.Parallel()
+	manufacturerName := testutil.RandomName("mfr-update")
+	manufacturerSlug := testutil.RandomSlug("mfr-update")
+	deviceTypeName := testutil.RandomName("dt-update")
+	deviceTypeSlug := testutil.RandomSlug("dt-update")
+	name := testutil.RandomName("power-port-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerPortTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, "Label1", "iec-60320-c14", testutil.Description1, 500, 250),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_port_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "description", testutil.Description1),
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "maximum_draw", "500"),
+				),
+			},
+			{
+				Config: testAccPowerPortTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, "Label2", "iec-60320-c14", testutil.Description2, 600, 300),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "description", testutil.Description2),
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "maximum_draw", "600"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccPowerPortTemplateResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	manufacturerName := testutil.RandomName("mfr-ext-del")
+	manufacturerSlug := testutil.RandomSlug("mfr-ext-del")
+	deviceTypeName := testutil.RandomName("dt-ext-del")
+	deviceTypeSlug := testutil.RandomSlug("dt-ext-del")
+	name := testutil.RandomName("power-port-ext-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_port_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "name", name),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimPowerPortTemplatesList(context.Background()).NameIc([]string{name}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find power_port_template for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimPowerPortTemplatesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete power_port_template: %v", err)
+					}
+					t.Logf("Successfully externally deleted power_port_template with ID: %d", itemID)
+				},
+				Config: testAccPowerPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_port_template.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccPowerPortTemplateResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 	manufacturerName := testutil.RandomName("mfr-id")

@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -100,6 +101,101 @@ func TestAccPowerPortResource_full(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_port.test", "description", updatedDescription),
 					resource.TestCheckResourceAttr("netbox_power_port.test", "maximum_draw", "600"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccPowerPortResource_update(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-update")
+	siteSlug := testutil.RandomSlug("tf-test-site-update")
+	mfgName := testutil.RandomName("tf-test-mfg-update")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-update")
+	dtModel := testutil.RandomName("tf-test-dt-update")
+	dtSlug := testutil.RandomSlug("tf-test-dt-update")
+	roleName := testutil.RandomName("tf-test-role-update")
+	roleSlug := testutil.RandomSlug("tf-test-role-update")
+	deviceName := testutil.RandomName("tf-test-device-update")
+	powerPortName := testutil.RandomName("tf-test-pp-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerPortResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerPortName, testutil.Description1, 500, 250),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_port.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_port.test", "description", testutil.Description1),
+					resource.TestCheckResourceAttr("netbox_power_port.test", "maximum_draw", "500"),
+				),
+			},
+			{
+				Config: testAccPowerPortResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerPortName, testutil.Description2, 600, 300),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_port.test", "description", testutil.Description2),
+					resource.TestCheckResourceAttr("netbox_power_port.test", "maximum_draw", "600"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccPowerPortResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-ext-del")
+	siteSlug := testutil.RandomSlug("tf-test-site-ext-del")
+	mfgName := testutil.RandomName("tf-test-mfg-ext-del")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-ext-del")
+	dtModel := testutil.RandomName("tf-test-dt-ext-del")
+	dtSlug := testutil.RandomSlug("tf-test-dt-ext-del")
+	roleName := testutil.RandomName("tf-test-role-ext-del")
+	roleSlug := testutil.RandomSlug("tf-test-role-ext-del")
+	deviceName := testutil.RandomName("tf-test-device-ext-del")
+	powerPortName := testutil.RandomName("tf-test-pp-ext-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerPortName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_port.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_port.test", "name", powerPortName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimPowerPortsList(context.Background()).NameIc([]string{powerPortName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find power_port for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimPowerPortsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete power_port: %v", err)
+					}
+					t.Logf("Successfully externally deleted power_port with ID: %d", itemID)
+				},
+				Config: testAccPowerPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerPortName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_port.test", "id"),
 				),
 			},
 		},

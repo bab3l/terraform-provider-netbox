@@ -133,8 +133,13 @@ func (r *PowerOutletTemplateResource) Schema(ctx context.Context, req resource.S
 
 			"display_name": nbschema.DisplayNameAttribute("power outlet template"),
 
-			"power_port": schema.StringAttribute{
+			"power_port": schema.Int32Attribute{
 				MarkdownDescription: "The power port template that feeds this power outlet.",
+				Optional:            true,
+			},
+
+			"feed_leg": schema.StringAttribute{
+				MarkdownDescription: "Feed leg for three-phase power (A, B, or C).",
 				Optional:            true,
 			},
 		},
