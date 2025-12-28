@@ -292,11 +292,12 @@ Priority: MEDIUM - VPN infrastructure
 ---
 
 ## Batch 7: Circuit & Provider Resources (7 resources)
-**Status**: ✅ COMPLETE
+**Status**: ✅ COMPLETE - All tests verified passing on 2024-12-27
 
 Priority: MEDIUM - Service provider management
 
-**Test Results**: All 42 tests passing (42/42 - 100%)
+**Test Results**: All 42 tests passing (42/42 - 100%) - **Execution Time: 317.7s**
+**External Deletion Fix**: Removed Config from second TestStep (Config + RefreshState incompatible)
 
 | Resource | File | Status | Test Coverage | Notes |
 |----------|------|--------|---------------|-------|
@@ -493,7 +494,7 @@ func TestAcc{ResourceName}Resource_externalDeletion(t *testing.T) {
 - [x] Batch 4 (8) - ✅ COMPLETE - Interface & Network Resources
 - [x] Batch 5 (6) - ✅ COMPLETE - IPAM Additional Resources
 - [x] Batch 6 (9) - ✅ COMPLETE - VPN & Tunnel Resources
-- [ ] Batch 7 (7) - Circuit & Provider Resources
+- [x] Batch 7 (7) - ✅ COMPLETE - Circuit & Provider Resources (42 tests verified passing)
 - [ ] Batch 8 (6) - Rack & Power Resources
 - [ ] Batch 9 (11) - Organizational Resources
 - [ ] Batch 10 (10) - Device & Virtualization Metadata
@@ -502,5 +503,5 @@ func TestAcc{ResourceName}Resource_externalDeletion(t *testing.T) {
 - [ ] Batch 13 (2) - VLAN & VRF Resources
 
 **Target**: 99/99 resources with external deletion tests
-**Current**: 52/99 (52.5%)
-**Next Milestone**: 59/99 (59.6%) after Batch 7
+**Current**: 59/99 (59.6%)
+**Next Milestone**: 65/99 (65.7%) after Batch 8
