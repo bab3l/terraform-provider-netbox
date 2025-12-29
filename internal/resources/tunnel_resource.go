@@ -46,8 +46,6 @@ type TunnelResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Status types.String `tfsdk:"status"`
 
 	Group types.String `tfsdk:"group"`
@@ -81,8 +79,6 @@ func (r *TunnelResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"id": nbschema.IDAttribute("tunnel"),
 
 			"name": nbschema.NameAttribute("tunnel", 100),
-
-			"display_name": nbschema.DisplayNameAttribute("tunnel"),
 
 			"status": schema.StringAttribute{
 				MarkdownDescription: "Operational status of the tunnel. Valid values: `planned`, `active`, `disabled`.",
@@ -336,9 +332,7 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 	// Handle display_name
 
 	if tunnel.Display != "" {
-		data.DisplayName = types.StringValue(tunnel.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Handle group reference from response
@@ -425,9 +419,7 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	// DisplayName
 	if tunnel.Display != "" {
-		data.DisplayName = types.StringValue(tunnel.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
@@ -718,9 +710,7 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 	// Update display_name from response
 
 	if tunnel.Display != "" {
-		data.DisplayName = types.StringValue(tunnel.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Handle group reference from response - preserve user's input format

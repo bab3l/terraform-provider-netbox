@@ -58,8 +58,6 @@ type ProviderAccountResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -105,8 +103,6 @@ func (r *ProviderAccountResource) Schema(ctx context.Context, req resource.Schem
 
 				Required: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("provider account"),
 		},
 	}
 
@@ -458,9 +454,7 @@ func (r *ProviderAccountResource) mapResponseToModel(ctx context.Context, provid
 	data.Comments = utils.StringFromAPI(providerAccount.HasComments(), providerAccount.GetComments, data.Comments)
 	// Map display_name
 	if providerAccount.Display != "" {
-		data.DisplayName = types.StringValue(providerAccount.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Tags

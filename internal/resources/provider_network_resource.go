@@ -60,8 +60,6 @@ type ProviderNetworkResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -125,8 +123,6 @@ func (r *ProviderNetworkResource) Schema(ctx context.Context, req resource.Schem
 					stringvalidator.LengthAtMost(200),
 				},
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("provider network"),
 		},
 	}
 
@@ -492,9 +488,7 @@ func (r *ProviderNetworkResource) mapResponseToModel(ctx context.Context, pn *ne
 
 	// Map display_name
 	if pn.Display != "" {
-		data.DisplayName = types.StringValue(pn.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Handle tags

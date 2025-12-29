@@ -48,8 +48,6 @@ type L2VPNTerminationResourceModel struct {
 
 	AssignedObjectID types.Int64 `tfsdk:"assigned_object_id"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -103,8 +101,6 @@ func (r *L2VPNTerminationResource) Schema(ctx context.Context, req resource.Sche
 
 				Required: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("L2VPN termination"),
 		},
 	}
 
@@ -463,9 +459,7 @@ func (r *L2VPNTerminationResource) mapResponseToState(ctx context.Context, termi
 
 	// DisplayName
 	if termination.Display != "" {
-		data.DisplayName = types.StringValue(termination.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// L2VPN

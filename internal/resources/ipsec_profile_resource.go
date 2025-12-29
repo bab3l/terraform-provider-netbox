@@ -62,8 +62,6 @@ type IPSecProfileResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -121,8 +119,6 @@ func (r *IPSecProfileResource) Schema(ctx context.Context, req resource.SchemaRe
 
 				Required: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("IPSec profile"),
 		},
 	}
 
@@ -539,8 +535,6 @@ func (r *IPSecProfileResource) mapIPSecProfileToState(ctx context.Context, ipsec
 	}
 
 	// Display Name
-
-	data.DisplayName = types.StringValue(ipsec.Display)
 
 	// Tags
 
