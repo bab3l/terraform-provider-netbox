@@ -37,7 +37,7 @@ func TestAccCircuitTypeDataSource_IDPreservation(t *testing.T) {
 	})
 }
 
-func TestAccCircuitTypeDataSource_basic(t *testing.T) {
+func TestAccCircuitTypeDataSource_byID(t *testing.T) {
 
 	t.Parallel()
 
@@ -58,18 +58,69 @@ func TestAccCircuitTypeDataSource_basic(t *testing.T) {
 			{
 				Config: testAccCircuitTypeDataSourceConfig(name, slug),
 				Check: resource.ComposeTestCheckFunc(
-					// Check by_id lookup
 					resource.TestCheckResourceAttr("data.netbox_circuit_type.by_id", "name", name),
 					resource.TestCheckResourceAttr("data.netbox_circuit_type.by_id", "slug", slug),
-					// Check by_name lookup
+					resource.TestCheckResourceAttrSet("data.netbox_circuit_type.by_id", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCircuitTypeDataSource_byName(t *testing.T) {
+
+	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	name := testutil.RandomName("circuit-type")
+	slug := testutil.RandomSlug("circuit-type")
+
+	cleanup.RegisterCircuitTypeCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckCircuitTypeDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitTypeDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_circuit_type.by_name", "name", name),
 					resource.TestCheckResourceAttr("data.netbox_circuit_type.by_name", "slug", slug),
-					// Check by_slug lookup
+					resource.TestCheckResourceAttrSet("data.netbox_circuit_type.by_name", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCircuitTypeDataSource_bySlug(t *testing.T) {
+
+	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	name := testutil.RandomName("circuit-type")
+	slug := testutil.RandomSlug("circuit-type")
+
+	cleanup.RegisterCircuitTypeCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckCircuitTypeDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitTypeDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_circuit_type.by_slug", "name", name),
 					resource.TestCheckResourceAttr("data.netbox_circuit_type.by_slug", "slug", slug),
-					// Verify all lookups return same circuit type
-					resource.TestCheckResourceAttrPair("data.netbox_circuit_type.by_id", "id", "data.netbox_circuit_type.by_name", "id"),
-					resource.TestCheckResourceAttrPair("data.netbox_circuit_type.by_id", "id", "data.netbox_circuit_type.by_slug", "id"),
+					resource.TestCheckResourceAttrSet("data.netbox_circuit_type.by_slug", "id"),
 				),
 			},
 		},
