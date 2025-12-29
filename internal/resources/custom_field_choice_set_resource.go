@@ -122,18 +122,12 @@ func (r *CustomFieldChoiceSetResource) Schema(ctx context.Context, req resource.
 				Optional: true,
 
 				Computed: true,
-			},
-			"display_name": schema.StringAttribute{
-				MarkdownDescription: "Display name of the custom field choice set.",
-				Computed:            true,
-			},
-		},
+			}},
 	}
 
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("custom field choice set"))
 }
-
 func (r *CustomFieldChoiceSetResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return

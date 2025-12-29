@@ -109,6 +109,16 @@ func (r *CircuitGroupResource) Create(ctx context.Context, req resource.CreateRe
 	// Set optional fields
 	utils.ApplyDescription(groupRequest, data.Description)
 
+	// Handle tenant
+	if !data.Tenant.IsNull() && data.Tenant.ValueString() != "" {
+		tenant, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
+		resp.Diagnostics.Append(tenantDiags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		groupRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
+	}
+
 	utils.ApplyMetadataFields(ctx, groupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
@@ -313,12 +323,7 @@ func (r *CircuitGroupResource) mapResponseToState(ctx context.Context, group *ne
 	if group.HasTenant() && group.Tenant.IsSet() && group.Tenant.Get() != nil {
 		tenant := group.Tenant.Get()
 		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
-		userTenant := data.Tenant.ValueString()
-		if userTenant == tenant.GetName() || userTenant == tenant.GetSlug() || userTenant == tenant.GetDisplay() || userTenant == fmt.Sprintf("%d", tenant.GetId()) {
-			// Keep user's original value
-		} else {
-			data.Tenant = types.StringValue(tenant.GetName())
-		}
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 	} else {
 		data.Tenant = types.StringNull()
 		data.TenantID = types.StringNull()

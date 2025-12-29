@@ -153,10 +153,6 @@ func (r *CustomLinkResource) Schema(ctx context.Context, req resource.SchemaRequ
 
 				Computed: true,
 			},
-			"display_name": schema.StringAttribute{
-				MarkdownDescription: "Display name of the custom link.",
-				Computed:            true,
-			},
 		},
 	}
 }

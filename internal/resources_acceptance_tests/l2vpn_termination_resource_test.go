@@ -175,7 +175,6 @@ func TestAccL2VPNTerminationResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "assigned_object_type", "ipam.vlan"),
 					resource.TestCheckResourceAttrSet("netbox_l2vpn_termination.test", "l2vpn"),
 					resource.TestCheckResourceAttrSet("netbox_l2vpn_termination.test", "assigned_object_id"),
-					resource.TestCheckResourceAttrSet("netbox_l2vpn_termination.test", "display_name"),
 				),
 			},
 		},

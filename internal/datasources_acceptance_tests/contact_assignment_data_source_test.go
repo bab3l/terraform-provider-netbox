@@ -21,9 +21,11 @@ func TestAccContactAssignmentDataSource_IDPreservation(t *testing.T) {
 	randomName := testutil.RandomName("test-contact-ds-id")
 	randomSlug := testutil.RandomSlug("test-ca-ds-id")
 	siteSlug := testutil.RandomSlug("site-id")
+	contactEmail := fmt.Sprintf("%s@example.com", testutil.RandomSlug("ca-ds-id"))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterContactCleanup(contactEmail)
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -34,7 +36,7 @@ func TestAccContactAssignmentDataSource_IDPreservation(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccContactAssignmentDataSourceConfig(randomName, randomSlug, siteSlug),
+				Config: testAccContactAssignmentDataSourceConfigWithEmail(randomName, randomSlug, siteSlug, contactEmail),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.netbox_contact_assignment.test", "id"),
 				),
@@ -53,9 +55,11 @@ func TestAccContactAssignmentDataSource_byID(t *testing.T) {
 	randomName := testutil.RandomName("test-contact-ds")
 	randomSlug := testutil.RandomSlug("test-ca-ds")
 	siteSlug := testutil.RandomSlug("site")
+	contactEmail := fmt.Sprintf("%s@example.com", testutil.RandomSlug("ca-ds"))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterContactCleanup(contactEmail)
 
 	resource.Test(t, resource.TestCase{
 
@@ -75,7 +79,7 @@ func TestAccContactAssignmentDataSource_byID(t *testing.T) {
 
 			{
 
-				Config: testAccContactAssignmentDataSourceConfig(randomName, randomSlug, siteSlug),
+				Config: testAccContactAssignmentDataSourceConfigWithEmail(randomName, randomSlug, siteSlug, contactEmail),
 
 				Check: resource.ComposeAggregateTestCheckFunc(
 
@@ -101,7 +105,7 @@ func TestAccContactAssignmentDataSource_byID(t *testing.T) {
 
 }
 
-func testAccContactAssignmentDataSourceConfig(name, slug, siteSlug string) string {
+func testAccContactAssignmentDataSourceConfigWithEmail(name, slug, siteSlug, email string) string {
 
 	return fmt.Sprintf(`
 
@@ -119,7 +123,7 @@ resource "netbox_contact" "test" {
 
   name  = "%s-contact"
 
-  email = "test@example.com"
+  email = "%s"
 
 }
 
@@ -149,6 +153,6 @@ data "netbox_contact_assignment" "test" {
 
 }
 
-`, siteSlug, siteSlug, name, name, slug)
+`, siteSlug, siteSlug, name, email, name, slug)
 
 }

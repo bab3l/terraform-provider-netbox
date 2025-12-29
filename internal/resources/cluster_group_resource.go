@@ -152,17 +152,11 @@ func (r *ClusterGroupResource) Read(ctx context.Context, req resource.ReadReques
 	clusterGroup, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterGroupsRetrieve(ctx, clusterGroupIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error reading cluster group", utils.FormatAPIError(fmt.Sprintf("read cluster group ID %s", clusterGroupID), err, httpResp))
-		return
-	}
-
-	if httpResp.StatusCode == 404 {
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError("Error reading cluster group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
 
