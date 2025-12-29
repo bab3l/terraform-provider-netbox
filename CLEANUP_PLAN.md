@@ -641,13 +641,24 @@ Ensure all example Terraform configurations in `examples/` directory are:
 - [ ] netbox_circuit_termination
 - [ ] netbox_service
 
-#### Batch 7.8: VPN & Tunnels (10 resources)
-- [ ] netbox_service_template
-- [ ] netbox_l2vpn
-- [ ] netbox_l2vpn_termination
-- [ ] netbox_tunnel
-- [ ] netbox_tunnel_group
-- [ ] netbox_tunnel_termination
+#### Batch 7.8: VPN & Tunnels (10 resources) ✅ COMPLETE
+- [x] netbox_service_template - Clean, simple example
+- [x] netbox_l2vpn - Clean, simple example
+- [x] netbox_l2vpn_termination - Clean, uses polymorphic assigned_object pattern
+- [x] netbox_tunnel - Clean, simple example
+- [x] netbox_tunnel_group - Clean, simple example
+- [x] netbox_tunnel_termination - Clean, uses polymorphic termination pattern
+- [x] netbox_ike_policy - Clean, uses proposal.id reference
+- [x] netbox_ike_proposal - Clean, simple example
+- [x] netbox_ipsec_policy - Clean, uses proposal.id reference
+- [x] netbox_ipsec_profile - Clean, uses policy name references
+
+**Review Notes**:
+- All examples verified as correct
+- No removed `_id` fields referenced
+- L2VPN and tunnel terminations show proper polymorphic object references
+- IKE/IPSec examples show proper policy and proposal relationships
+- All examples use current schemas correctly
 - [ ] netbox_ike_policy
 - [ ] netbox_ike_proposal
 - [ ] netbox_ipsec_policy
