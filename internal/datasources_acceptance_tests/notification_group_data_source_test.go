@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccNotificationGroupDataSource_basic(t *testing.T) {
-
+func TestAccNotificationGroupDataSource_byID(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-notif-grp")

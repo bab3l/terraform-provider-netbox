@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -82,15 +83,14 @@ func (r *DeviceRoleResource) Schema(ctx context.Context, req resource.SchemaRequ
 			"display_name": nbschema.DisplayNameAttribute("device role"),
 
 			"vm_role": nbschema.BoolAttributeWithDefault("Whether virtual machines may be assigned to this role. Set to true to allow VMs to use this role, false otherwise. Defaults to true.", true),
-
-			"description": nbschema.DescriptionAttribute("device role"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("device role"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *DeviceRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -280,49 +280,11 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+	// Apply description
+	utils.ApplyDescription(&deviceRoleRequest, data.Description)
 
-		description := data.Description.ValueString()
-
-		deviceRoleRequest.Description = &description
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		deviceRoleRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		deviceRoleRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &deviceRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Call the API
 
@@ -517,49 +479,11 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+	// Apply description
+	utils.ApplyDescription(&deviceRoleRequest, data.Description)
 
-		description := data.Description.ValueString()
-
-		deviceRoleRequest.Description = &description
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		deviceRoleRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		deviceRoleRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &deviceRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Call the API
 

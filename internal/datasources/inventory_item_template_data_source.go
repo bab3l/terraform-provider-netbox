@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
@@ -274,6 +275,16 @@ func (d *InventoryItemTemplateDataSource) Read(ctx context.Context, req datasour
 	// Read from API
 
 	result, httpResp, err := d.client.DcimAPI.DcimInventoryItemTemplatesRetrieve(ctx, id).Execute()
+
+	defer utils.CloseResponseBody(httpResp)
+
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		resp.Diagnostics.AddError(
+			"Inventory Item Template Not Found",
+			fmt.Sprintf("No inventory item template found with ID: %d", id),
+		)
+		return
+	}
 
 	if err != nil {
 

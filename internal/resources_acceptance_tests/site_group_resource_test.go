@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -236,4 +237,52 @@ resource "netbox_site_group" "test" {
   slug = %q
 }
 `, name, slug)
+}
+
+func TestAccSiteGroupResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-site-group-del")
+	slug := testutil.RandomSlug("tf-test-site-group-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckSiteGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSiteGroupResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_site_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_site_group.test", "slug", slug),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimSiteGroupsList(context.Background()).Slug([]string{slug}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find site_group for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimSiteGroupsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete site_group: %v", err)
+					}
+					t.Logf("Successfully externally deleted site_group with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

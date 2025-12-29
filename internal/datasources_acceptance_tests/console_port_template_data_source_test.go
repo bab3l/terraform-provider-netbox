@@ -32,7 +32,7 @@ func TestAccConsolePortTemplateDataSource_IDPreservation(t *testing.T) {
 	})
 }
 
-func TestAccConsolePortTemplateDataSource_basic(t *testing.T) {
+func TestAccConsolePortTemplateDataSource_byID(t *testing.T) {
 
 	t.Parallel()
 
@@ -53,16 +53,41 @@ func TestAccConsolePortTemplateDataSource_basic(t *testing.T) {
 			{
 				Config: testAccConsolePortTemplateDataSourceConfig(mfgName, mfgSlug, deviceTypeModel, deviceTypeSlug, portTemplateName),
 				Check: resource.ComposeTestCheckFunc(
-					// Check by_id lookup
 					resource.TestCheckResourceAttr("data.netbox_console_port_template.by_id", "name", portTemplateName),
 					resource.TestCheckResourceAttr("data.netbox_console_port_template.by_id", "type", "de-9"),
+					resource.TestCheckResourceAttrSet("data.netbox_console_port_template.by_id", "id"),
 					resource.TestCheckResourceAttrSet("data.netbox_console_port_template.by_id", "device_type"),
-					// Check by_device_type_and_name lookup
+				),
+			},
+		},
+	})
+}
+
+func TestAccConsolePortTemplateDataSource_byDeviceTypeAndName(t *testing.T) {
+
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg")
+
+	mfgSlug := testutil.GenerateSlug(mfgName)
+
+	deviceTypeModel := testutil.RandomName("tf-test-dt")
+
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+
+	portTemplateName := testutil.RandomName("console-port")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConsolePortTemplateDataSourceConfig(mfgName, mfgSlug, deviceTypeModel, deviceTypeSlug, portTemplateName),
+				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_console_port_template.by_device_type_and_name", "name", portTemplateName),
 					resource.TestCheckResourceAttr("data.netbox_console_port_template.by_device_type_and_name", "type", "de-9"),
+					resource.TestCheckResourceAttrSet("data.netbox_console_port_template.by_device_type_and_name", "id"),
 					resource.TestCheckResourceAttrSet("data.netbox_console_port_template.by_device_type_and_name", "device_type"),
-					// Verify both lookups return same console port template
-					resource.TestCheckResourceAttrPair("data.netbox_console_port_template.by_id", "id", "data.netbox_console_port_template.by_device_type_and_name", "id"),
 				),
 			},
 		},

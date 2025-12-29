@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -181,21 +182,15 @@ func (r *InventoryItemResource) Schema(ctx context.Context, req resource.SchemaR
 				Computed: true,
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the inventory item.",
-
-				Optional: true,
-			},
-
 			"display_name": nbschema.DisplayNameAttribute("inventory item"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("inventory item"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *InventoryItemResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -340,45 +335,12 @@ func (r *InventoryItemResource) Create(ctx context.Context, req resource.CreateR
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+	// Handle description, tags, and custom fields
+	utils.ApplyDescription(apiReq, data.Description)
+	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(tagDiags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetTags(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var cfModels []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &cfModels, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
+		return
 
 	}
 
@@ -630,45 +592,12 @@ func (r *InventoryItemResource) Update(ctx context.Context, req resource.UpdateR
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+	// Handle description, tags, and custom fields
+	utils.ApplyDescription(apiReq, data.Description)
+	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(tagDiags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetTags(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var cfModels []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &cfModels, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
+		return
 
 	}
 

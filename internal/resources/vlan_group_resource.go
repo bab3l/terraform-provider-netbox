@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -94,13 +95,14 @@ func (r *VLANGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 
 				Optional: true,
 			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("VLAN Group"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *VLANGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -526,41 +528,9 @@ func (r *VLANGroupResource) setOptionalFields(ctx context.Context, vlanGroupRequ
 
 	}
 
-	// Handle tags
+	// Apply metadata fields (tags, custom_fields)
 
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		vlanGroupRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		vlanGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
-	}
+	utils.ApplyMetadataFields(ctx, vlanGroupRequest, data.Tags, data.CustomFields, diags)
 
 }
 

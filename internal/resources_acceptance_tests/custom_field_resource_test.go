@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -205,6 +206,80 @@ func TestAccCustomFieldResource_IDPreservation(t *testing.T) {
 	})
 }
 
+func TestAccCustomFieldResource_update(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomFieldResourceConfig_withDescription(name, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccCustomFieldResourceConfig_withDescription(name, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCustomFieldResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomFieldResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_custom_field.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// Find custom field by name
+					items, _, err := client.ExtrasAPI.ExtrasCustomFieldsList(context.Background()).Name([]string{name}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list custom fields: %v", err)
+					}
+					if items == nil || len(items.Results) == 0 {
+						t.Fatalf("Custom field not found with name: %s", name)
+					}
+
+					// Delete the custom field
+					itemID := items.Results[0].Id
+					_, err = client.ExtrasAPI.ExtrasCustomFieldsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete custom field: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted custom field with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCustomFieldResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`
@@ -300,4 +375,15 @@ resource "netbox_custom_field" "test" {
 
 `, name)
 
+}
+
+func testAccCustomFieldResourceConfig_withDescription(name string, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "test" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["dcim.site"]
+  description  = %[2]q
+}
+`, name, description)
 }

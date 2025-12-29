@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -144,6 +145,39 @@ func TestAccClusterGroupResource_IDPreservation(t *testing.T) {
 	})
 
 }
+
+func TestAccClusterGroupResource_update(t *testing.T) {
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-cluster-group")
+	slug := testutil.RandomSlug("tf-test-cluster-group")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccClusterGroupResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cluster_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "slug", slug),
+				),
+			},
+			{
+				Config: testAccClusterGroupResourceConfig_basic(name+"-updated", slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cluster_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "name", name+"-updated"),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func testAccClusterGroupConsistencyLiteralNamesConfig(name, slug string) string {
 
 	return fmt.Sprintf(`
@@ -174,4 +208,46 @@ resource "netbox_cluster_group" "test" {
 
 `, name, slug)
 
+}
+
+func TestAccClusterGroupResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("test-cluster-group-del")
+	slug := testutil.GenerateSlug(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccClusterGroupResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cluster_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "slug", slug),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.VirtualizationAPI.VirtualizationClusterGroupsList(context.Background()).Slug([]string{slug}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find cluster_group for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.VirtualizationAPI.VirtualizationClusterGroupsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete cluster_group: %v", err)
+					}
+					t.Logf("Successfully externally deleted cluster_group with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

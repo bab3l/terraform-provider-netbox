@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -164,6 +165,84 @@ func TestAccConsistency_PowerOutletTemplate_LiteralNames(t *testing.T) {
 		},
 	})
 }
+func TestAccPowerOutletTemplateResource_update(t *testing.T) {
+	t.Parallel()
+	manufacturerName := testutil.RandomName("mfr-update")
+	manufacturerSlug := testutil.RandomSlug("mfr-update")
+	deviceTypeName := testutil.RandomName("dt-update")
+	deviceTypeSlug := testutil.RandomSlug("dt-update")
+	name := testutil.RandomName("power-outlet-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerOutletTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, "Label1", "iec-60320-c13", testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_outlet_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_outlet_template.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccPowerOutletTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, "Label2", "iec-60320-c13", testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_outlet_template.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccPowerOutletTemplateResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	manufacturerName := testutil.RandomName("mfr-ext-del")
+	manufacturerSlug := testutil.RandomSlug("mfr-ext-del")
+	deviceTypeName := testutil.RandomName("dt-ext-del")
+	deviceTypeSlug := testutil.RandomSlug("dt-ext-del")
+	name := testutil.RandomName("power-outlet-ext-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerOutletTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_outlet_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_outlet_template.test", "name", name),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimPowerOutletTemplatesList(context.Background()).NameIc([]string{name}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find power_outlet_template for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimPowerOutletTemplatesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete power_outlet_template: %v", err)
+					}
+					t.Logf("Successfully externally deleted power_outlet_template with ID: %d", itemID)
+				},
+				Config: testAccPowerOutletTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_outlet_template.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccPowerOutletTemplateResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 	manufacturerName := testutil.RandomName("mfr-id")

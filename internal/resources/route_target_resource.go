@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -107,18 +108,15 @@ func (r *RouteTargetResource) Schema(ctx context.Context, req resource.SchemaReq
 
 			"tenant_id": nbschema.ComputedIDAttribute("tenant"),
 
-			"description": nbschema.DescriptionAttribute("route target"),
-
-			"comments": nbschema.CommentsAttribute("route target"),
-
 			"display_name": nbschema.DisplayNameAttribute("route target"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("route target"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
@@ -485,48 +483,10 @@ func (r *RouteTargetResource) setOptionalFields(ctx context.Context, rtRequest *
 
 	}
 
-	// Description
-
-	rtRequest.Description = utils.StringPtr(data.Description)
-
-	// Comments
-
-	rtRequest.Comments = utils.StringPtr(data.Comments)
-
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		rtRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		rtRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, rtRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	if diags.HasError() {
+		return
 	}
 
 }

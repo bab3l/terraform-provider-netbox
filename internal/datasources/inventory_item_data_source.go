@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
@@ -301,6 +302,14 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 		response, httpResp, err := d.client.DcimAPI.DcimInventoryItemsRetrieve(ctx, itemID).Execute()
 
 		defer utils.CloseResponseBody(httpResp)
+
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+			resp.Diagnostics.AddError(
+				"Inventory Item Not Found",
+				fmt.Sprintf("No inventory item found with ID: %d", itemID),
+			)
+			return
+		}
 
 		if err != nil {
 

@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -211,6 +212,100 @@ func TestAccDeviceBayResource_IDPreservation(t *testing.T) {
 	})
 }
 
+func TestAccDeviceBayResource_update(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-update")
+	siteSlug := testutil.RandomSlug("tf-test-site-update")
+	mfgName := testutil.RandomName("tf-test-mfg-update")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-update")
+	dtModel := testutil.RandomName("tf-test-dt-update")
+	dtSlug := testutil.RandomSlug("tf-test-dt-update")
+	roleName := testutil.RandomName("tf-test-role-update")
+	roleSlug := testutil.RandomSlug("tf-test-role-update")
+	deviceName := testutil.RandomName("tf-test-device-update")
+	bayName := testutil.RandomName("tf-test-bay-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceBayResourceConfig_withDescription(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device_bay.test", "id"),
+					resource.TestCheckResourceAttr("netbox_device_bay.test", "name", bayName),
+					resource.TestCheckResourceAttr("netbox_device_bay.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccDeviceBayResourceConfig_withDescription(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_device_bay.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDeviceBayResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-ext-del")
+	siteSlug := testutil.RandomSlug("tf-test-site-ext-del")
+	mfgName := testutil.RandomName("tf-test-mfg-ext-del")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-ext-del")
+	dtModel := testutil.RandomName("tf-test-dt-ext-del")
+	dtSlug := testutil.RandomSlug("tf-test-dt-ext-del")
+	roleName := testutil.RandomName("tf-test-role-ext-del")
+	roleSlug := testutil.RandomSlug("tf-test-role-ext-del")
+	deviceName := testutil.RandomName("tf-test-device-ext-del")
+	bayName := testutil.RandomName("tf-test-bay-ext-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceBayResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device_bay.test", "id"),
+					resource.TestCheckResourceAttr("netbox_device_bay.test", "name", bayName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimDeviceBaysList(context.Background()).NameIc([]string{bayName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find device_bay for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimDeviceBaysDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete device_bay: %v", err)
+					}
+					t.Logf("Successfully externally deleted device_bay with ID: %d", itemID)
+				},
+				Config: testAccDeviceBayResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device_bay.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDeviceBayResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
@@ -249,6 +344,47 @@ resource "netbox_device_bay" "test" {
   name   = %q
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName)
+}
+
+func testAccDeviceBayResourceConfig_withDescription(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %q
+  slug   = %q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer    = netbox_manufacturer.test.id
+  model           = %q
+  slug            = %q
+  subdevice_role  = "parent"
+}
+
+resource "netbox_device_role" "test" {
+  name  = %q
+  slug  = %q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_device_bay" "test" {
+  device      = netbox_device.test.id
+  name        = %q
+  description = %q
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, description)
 }
 
 func testAccDeviceBayResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, description string) string {

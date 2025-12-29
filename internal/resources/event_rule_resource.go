@@ -4,6 +4,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -109,12 +110,15 @@ func (r *EventRuleResource) Schema(ctx context.Context, req resource.SchemaReque
 				MarkdownDescription: "The ID of the action object (webhook, script, or notification group).",
 				Optional:            true,
 			},
-			"description":   nbschema.DescriptionAttribute("event rule"),
-			"display_name":  nbschema.DisplayNameAttribute("event rule"),
-			"tags":          nbschema.TagsAttribute(),
-			"custom_fields": nbschema.CustomFieldsAttribute(),
+			"display_name": nbschema.DisplayNameAttribute("event rule"),
 		},
 	}
+
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("event rule"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
@@ -204,30 +208,12 @@ func (r *EventRuleResource) Create(ctx context.Context, req resource.CreateReque
 		request.ActionObjectId = *netbox.NewNullableInt64(&actionObjectID)
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		desc := data.Description.ValueString()
-		request.Description = &desc
-	}
-
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		resp.Diagnostics.Append(tagDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		request.Tags = tags
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFieldModels []utils.CustomFieldModel
-		cfDiags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-		resp.Diagnostics.Append(cfDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		request.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
+	// Apply common fields (description, tags, custom_fields)
+	utils.ApplyDescription(request, data.Description)
+	utils.ApplyTags(ctx, request, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, request, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Create the event rule
@@ -363,30 +349,12 @@ func (r *EventRuleResource) Update(ctx context.Context, req resource.UpdateReque
 		request.ActionObjectId = *netbox.NewNullableInt64(&actionObjectID)
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		desc := data.Description.ValueString()
-		request.Description = &desc
-	}
-
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		resp.Diagnostics.Append(tagDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		request.Tags = tags
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFieldModels []utils.CustomFieldModel
-		cfDiags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-		resp.Diagnostics.Append(cfDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		request.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
+	// Apply common fields (description, tags, custom_fields)
+	utils.ApplyDescription(request, data.Description)
+	utils.ApplyTags(ctx, request, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, request, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Update the event rule

@@ -519,60 +519,10 @@ func (r *FHRPGroupResource) setOptionalFields(ctx context.Context, fhrpGroupRequ
 
 	}
 
-	// Description
-
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		description := data.Description.ValueString()
-
-		fhrpGroupRequest.Description = &description
-
-	}
-
-	// Comments
-
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-
-		comments := data.Comments.ValueString()
-
-		fhrpGroupRequest.Comments = &comments
-
-	}
-
-	// Tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		fhrpGroupRequest.Tags = tags
-
-	}
-
-	// Custom Fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		fhrpGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, fhrpGroupRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	if diags.HasError() {
+		return
 	}
 
 }

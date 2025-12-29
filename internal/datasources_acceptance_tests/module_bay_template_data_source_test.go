@@ -40,8 +40,7 @@ func TestAccModuleBayTemplateDataSource_IDPreservation(t *testing.T) {
 	})
 }
 
-func TestAccModuleBayTemplateDataSource_basic(t *testing.T) {
-
+func TestAccModuleBayTemplateDataSource_byID(t *testing.T) {
 	t.Parallel()
 
 	cleanup := testutil.NewCleanupResource(t)

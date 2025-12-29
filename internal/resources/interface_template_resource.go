@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -131,8 +131,6 @@ func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.Sch
 				Optional: true,
 
 				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"type": schema.StringAttribute{
@@ -166,17 +164,6 @@ func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.Sch
 
 			"display_name": nbschema.DisplayNameAttribute("interface template"),
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the interface template.",
-
-				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(""),
-			},
-
 			"bridge": schema.Int32Attribute{
 
 				MarkdownDescription: "The ID of the bridge interface template this interface belongs to.",
@@ -207,6 +194,8 @@ func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.Sch
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("interface template"))
 }
 
 // Configure adds the provider configured client to the resource.
@@ -315,11 +304,8 @@ func (r *InterfaceTemplateResource) Create(ctx context.Context, req resource.Cre
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	if !data.Bridge.IsNull() && !data.Bridge.IsUnknown() {
 
@@ -518,11 +504,8 @@ func (r *InterfaceTemplateResource) Update(ctx context.Context, req resource.Upd
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	if !data.Bridge.IsNull() && !data.Bridge.IsUnknown() {
 
@@ -736,15 +719,7 @@ func (r *InterfaceTemplateResource) mapResponseToModel(template *netbox.Interfac
 
 	// Map description
 
-	if desc, ok := template.GetDescriptionOk(); ok && desc != nil {
-
-		data.Description = types.StringValue(*desc)
-
-	} else {
-
-		data.Description = types.StringValue("")
-
-	}
+	data.Description = utils.StringFromAPI(template.HasDescription(), template.GetDescription, data.Description)
 
 	// Map bridge
 

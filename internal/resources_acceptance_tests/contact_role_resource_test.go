@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -60,6 +61,38 @@ func TestAccContactRoleResource_basic(t *testing.T) {
 		},
 	})
 
+}
+
+func TestAccContactRoleResource_update(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("test-contact-role-update")
+	slug := testutil.GenerateSlug(name)
+	updatedName := testutil.RandomName("test-contact-role-updated")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactRoleResourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_contact_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "name", name),
+				),
+			},
+			{
+				Config: testAccContactRoleResourceConfig(updatedName, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_contact_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "name", updatedName),
+				),
+			},
+		},
+	})
 }
 
 func TestAccContactRoleResource_IDPreservation(t *testing.T) {
@@ -177,4 +210,49 @@ resource "netbox_contact_role" "test" {
 
 `, name, slug)
 
+}
+
+func TestAccContactRoleResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("test-contact-role-del")
+	slug := testutil.GenerateSlug(name)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactRoleResourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_contact_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "slug", slug),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.TenancyAPI.TenancyContactRolesList(context.Background()).Slug([]string{slug}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find contact_role for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.TenancyAPI.TenancyContactRolesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete contact_role: %v", err)
+					}
+					t.Logf("Successfully externally deleted contact_role with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

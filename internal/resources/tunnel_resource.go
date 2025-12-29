@@ -11,6 +11,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -169,17 +170,14 @@ func (r *TunnelResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 				Optional: true,
 			},
-
-			"description": nbschema.DescriptionAttribute("tunnel"),
-
-			"comments": nbschema.CommentsAttribute("tunnel"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("tunnel"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *TunnelResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -323,56 +321,29 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	}
 
-	if !data.Description.IsNull() && data.Description.ValueString() != "" {
-
-		tunnelRequest.Description = netbox.PtrString(data.Description.ValueString())
-
-	}
-
-	if !data.Comments.IsNull() && data.Comments.ValueString() != "" {
-
-		tunnelRequest.Comments = netbox.PtrString(data.Comments.ValueString())
-
-	}
+	// Handle description
+	tunnelRequest.Description = utils.StringPtr(data.Description)
 
 	// Handle tags
-
 	if !data.Tags.IsNull() {
-
 		var tagModels []utils.TagModel
-
 		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-
 		resp.Diagnostics.Append(diags...)
-
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
-
 		tunnelRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-
 	}
 
 	// Handle custom fields
-
 	if !data.CustomFields.IsNull() {
-
 		var customFieldModels []utils.CustomFieldModel
-
 		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
 		resp.Diagnostics.Append(diags...)
-
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
-
 		tunnelRequest.CustomFields = utils.CustomFieldsToMap(customFieldModels)
-
 	}
 
 	tflog.Debug(ctx, "Creating tunnel", map[string]interface{}{
@@ -830,72 +801,29 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	}
 
-	if !data.Description.IsNull() && data.Description.ValueString() != "" {
-
-		tunnelRequest.Description = netbox.PtrString(data.Description.ValueString())
-
-	} else {
-
-		tunnelRequest.Description = netbox.PtrString("")
-
-	}
-
-	if !data.Comments.IsNull() && data.Comments.ValueString() != "" {
-
-		tunnelRequest.Comments = netbox.PtrString(data.Comments.ValueString())
-
-	} else {
-
-		tunnelRequest.Comments = netbox.PtrString("")
-
-	}
+	// Handle description
+	tunnelRequest.Description = utils.StringPtr(data.Description)
 
 	// Handle tags
-
 	if !data.Tags.IsNull() {
-
 		var tagModels []utils.TagModel
-
 		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-
 		resp.Diagnostics.Append(diags...)
-
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
-
 		tunnelRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-
-	} else {
-
-		tunnelRequest.Tags = []netbox.NestedTagRequest{}
-
 	}
 
 	// Handle custom fields
-
 	if !data.CustomFields.IsNull() {
-
 		var customFieldModels []utils.CustomFieldModel
-
 		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
 		resp.Diagnostics.Append(diags...)
-
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
-
 		tunnelRequest.CustomFields = utils.CustomFieldsToMap(customFieldModels)
-
-	} else {
-
-		tunnelRequest.CustomFields = map[string]interface{}{}
-
 	}
 
 	tflog.Debug(ctx, "Updating tunnel", map[string]interface{}{

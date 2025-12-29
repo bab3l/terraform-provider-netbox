@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -122,8 +122,6 @@ func (r *PowerPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 				Optional: true,
 
 				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"type": schema.StringAttribute{
@@ -133,35 +131,26 @@ func (r *PowerPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 				Optional: true,
 			},
 
-			"display_name": nbschema.DisplayNameAttribute("power port template"),
-
 			"maximum_draw": schema.Int32Attribute{
 
-				MarkdownDescription: "Maximum power draw in watts.",
+				MarkdownDescription: "Maximum power draw (watts) for this power port.",
 
 				Optional: true,
 			},
 
 			"allocated_draw": schema.Int32Attribute{
 
-				MarkdownDescription: "Allocated power draw in watts.",
+				MarkdownDescription: "Allocated power draw (watts) for this power port.",
 
 				Optional: true,
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the power port template.",
-
-				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(""),
-			},
+			"display_name": nbschema.DisplayNameAttribute("power port template"),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("power port template"))
 }
 
 // Configure adds the provider configured client to the resource.
@@ -271,11 +260,8 @@ func (r *PowerPortTemplateResource) Create(ctx context.Context, req resource.Cre
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Creating power port template", map[string]interface{}{
 
@@ -451,11 +437,8 @@ func (r *PowerPortTemplateResource) Update(ctx context.Context, req resource.Upd
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Updating power port template", map[string]interface{}{
 
@@ -655,14 +638,6 @@ func (r *PowerPortTemplateResource) mapResponseToModel(template *netbox.PowerPor
 
 	// Map description
 
-	if desc, ok := template.GetDescriptionOk(); ok && desc != nil {
-
-		data.Description = types.StringValue(*desc)
-
-	} else {
-
-		data.Description = types.StringValue("")
-
-	}
+	data.Description = utils.StringFromAPI(template.HasDescription(), template.GetDescription, data.Description)
 
 }

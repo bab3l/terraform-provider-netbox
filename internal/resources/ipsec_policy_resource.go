@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -127,19 +128,16 @@ func (r *IPSecPolicyResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 
-			"comments": nbschema.CommentsAttribute("IPSec policy"),
-
 			"display_name": nbschema.DisplayNameAttribute("IPSec policy"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
-}
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("IPSec policy"))
 
-// Configure adds the provider configured client to the resource.
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+}
 
 func (r *IPSecPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
@@ -489,10 +487,6 @@ func (r *IPSecPolicyResource) ImportState(ctx context.Context, req resource.Impo
 
 func (r *IPSecPolicyResource) setOptionalFields(ctx context.Context, ipsecRequest *netbox.WritableIPSecPolicyRequest, data *IPSecPolicyResourceModel, diags *diag.Diagnostics) {
 
-	// Description
-
-	ipsecRequest.Description = utils.StringPtr(data.Description)
-
 	// Proposals
 
 	if utils.IsSet(data.Proposals) {
@@ -549,44 +543,10 @@ func (r *IPSecPolicyResource) setOptionalFields(ctx context.Context, ipsecReques
 
 	}
 
-	// Comments
-
-	ipsecRequest.Comments = utils.StringPtr(data.Comments)
-
-	// Tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		ipsecRequest.Tags = tags
-
-	}
-
-	// Custom Fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		ipsecRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, ipsecRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	if diags.HasError() {
+		return
 	}
 
 }

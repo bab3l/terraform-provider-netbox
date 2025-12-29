@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -508,4 +509,66 @@ resource "netbox_cluster" "test" {
 
 `, clusterName, clusterTypeName, clusterTypeSlug, groupName, groupSlug, siteName, siteSlug, tenantName, tenantSlug)
 
+}
+
+func TestAccClusterResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type")
+	clusterName := testutil.RandomName("tf-test-cluster-ext-del")
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+}
+`, clusterTypeName, clusterTypeSlug, clusterName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					// List clusters filtered by name
+					items, _, err := client.VirtualizationAPI.VirtualizationClustersList(context.Background()).NameIc([]string{clusterName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find cluster for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.VirtualizationAPI.VirtualizationClustersDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete cluster: %v", err)
+					}
+					t.Logf("Successfully externally deleted cluster with ID: %d", itemID)
+				},
+				Config: fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+}
+`, clusterTypeName, clusterTypeSlug, clusterName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),
+				),
+			},
+		},
+	})
 }

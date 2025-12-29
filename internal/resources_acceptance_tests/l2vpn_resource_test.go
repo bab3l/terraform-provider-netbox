@@ -1,10 +1,12 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -163,4 +165,102 @@ resource "netbox_l2vpn" "test" {
   type = "vxlan"
 }
 `, name, name)
+}
+
+func TestAccL2VPNResource_update(t *testing.T) {
+	t.Parallel()
+	name := acctest.RandomWithPrefix("test-l2vpn")
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccL2VPNResourceConfig_updateInitial(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "slug", name),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "type", "vxlan"),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "description", testutil.Description1),
+					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
+				),
+			},
+			{
+				Config: testAccL2VPNResourceConfig_updateModified(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "slug", name),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "type", "vxlan"),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "description", testutil.Description2),
+					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccL2VPNResourceConfig_updateInitial(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_l2vpn" "test" {
+  name        = %q
+  slug        = %q
+  type        = "vxlan"
+  description = %q
+}
+`, name, name, testutil.Description1)
+}
+
+func testAccL2VPNResourceConfig_updateModified(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_l2vpn" "test" {
+  name        = %q
+  slug        = %q
+  type        = "vxlan"
+  description = %q
+}
+`, name, name, testutil.Description2)
+}
+
+func TestAccL2VPNResource_external_deletion(t *testing.T) {
+	t.Parallel()
+	name := acctest.RandomWithPrefix("test-l2vpn")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccL2VPNResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "slug", name),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "type", "vxlan"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.VpnAPI.VpnL2vpnsList(context.Background()).Name([]string{name}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find l2vpn for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.VpnAPI.VpnL2vpnsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete l2vpn: %v", err)
+					}
+					t.Logf("Successfully externally deleted l2vpn with ID: %d", itemID)
+				},
+				Config: testAccL2VPNResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
+				),
+			},
+		},
+	})
 }

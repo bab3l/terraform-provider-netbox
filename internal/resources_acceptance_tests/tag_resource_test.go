@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -198,4 +199,48 @@ resource "netbox_tag" "test" {
   object_types = ["dcim.device", "dcim.site"]
 }
 `, name, slug)
+}
+
+func TestAccTagResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tag-del")
+	slug := testutil.RandomSlug("tag-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTagResourceBasic(name, slug),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tag.test", "id"),
+					resource.TestCheckResourceAttr("netbox_tag.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_tag.test", "slug", slug),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.ExtrasAPI.ExtrasTagsList(context.Background()).Slug([]string{slug}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find tag for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.ExtrasAPI.ExtrasTagsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete tag: %v", err)
+					}
+					t.Logf("Successfully externally deleted tag with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

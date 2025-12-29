@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -253,6 +254,86 @@ func TestAccConsistency_RearPortTemplate_LiteralNames(t *testing.T) {
 
 }
 
+func TestAccRearPortTemplateResource_update(t *testing.T) {
+	t.Parallel()
+	manufacturerName := testutil.RandomName("mfr-update")
+	manufacturerSlug := testutil.RandomSlug("mfr-update")
+	deviceTypeName := testutil.RandomName("dt-update")
+	deviceTypeSlug := testutil.RandomSlug("dt-update")
+	rearPortName := testutil.RandomName("rear-port-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRearPortTemplateResourceFullSimple(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, "Label1", testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rear_port_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "label", "Label1"),
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccRearPortTemplateResourceFullSimple(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, "Label2", testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "label", "Label2"),
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccRearPortTemplateResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	manufacturerName := testutil.RandomName("mfr-ext-del")
+	manufacturerSlug := testutil.RandomSlug("mfr-ext-del")
+	deviceTypeName := testutil.RandomName("dt-ext-del")
+	deviceTypeSlug := testutil.RandomSlug("dt-ext-del")
+	rearPortName := testutil.RandomName("rear-port-ext-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRearPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, "8p8c"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rear_port_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "name", rearPortName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimRearPortTemplatesList(context.Background()).NameIc([]string{rearPortName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find rear_port_template for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimRearPortTemplatesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete rear_port_template: %v", err)
+					}
+					t.Logf("Successfully externally deleted rear_port_template with ID: %d", itemID)
+				},
+				Config: testAccRearPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, "8p8c"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rear_port_template.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccRearPortTemplateResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
@@ -438,4 +519,28 @@ resource "netbox_rear_port_template" "test" {
 
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceTypeSlug, resourceName)
 
+}
+
+func testAccRearPortTemplateResourceFullSimple(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, label, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_rear_port_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %q
+  type        = "lc"
+  positions   = 4
+  label       = %q
+  description = %q
+}
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, label, description)
 }

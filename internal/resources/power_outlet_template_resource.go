@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -122,8 +122,6 @@ func (r *PowerOutletTemplateResource) Schema(ctx context.Context, req resource.S
 				Optional: true,
 
 				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"type": schema.StringAttribute{
@@ -136,32 +134,19 @@ func (r *PowerOutletTemplateResource) Schema(ctx context.Context, req resource.S
 			"display_name": nbschema.DisplayNameAttribute("power outlet template"),
 
 			"power_port": schema.Int32Attribute{
-
-				MarkdownDescription: "The power port template ID that feeds this outlet.",
-
-				Optional: true,
+				MarkdownDescription: "The power port template that feeds this power outlet.",
+				Optional:            true,
 			},
 
 			"feed_leg": schema.StringAttribute{
-
-				MarkdownDescription: "Phase leg for three-phase power (A, B, or C).",
-
-				Optional: true,
-			},
-
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the power outlet template.",
-
-				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(""),
+				MarkdownDescription: "Feed leg for three-phase power (A, B, or C).",
+				Optional:            true,
 			},
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("power outlet template"))
 }
 
 // Configure adds the provider configured client to the resource.
@@ -295,11 +280,8 @@ func (r *PowerOutletTemplateResource) Create(ctx context.Context, req resource.C
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Creating power outlet template", map[string]interface{}{
 
@@ -499,11 +481,8 @@ func (r *PowerOutletTemplateResource) Update(ctx context.Context, req resource.U
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Updating power outlet template", map[string]interface{}{
 
@@ -703,14 +682,6 @@ func (r *PowerOutletTemplateResource) mapResponseToModel(template *netbox.PowerO
 
 	// Map description
 
-	if desc, ok := template.GetDescriptionOk(); ok && desc != nil {
-
-		data.Description = types.StringValue(*desc)
-
-	} else {
-
-		data.Description = types.StringValue("")
-
-	}
+	data.Description = utils.StringFromAPI(template.HasDescription(), template.GetDescription, data.Description)
 
 }

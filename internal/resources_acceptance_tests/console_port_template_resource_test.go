@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -270,6 +271,87 @@ func TestAccConsistency_ConsolePortTemplate_LiteralNames(t *testing.T) {
 		},
 	})
 
+}
+
+func TestAccConsolePortTemplateResource_update(t *testing.T) {
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("mfr-update")
+	manufacturerSlug := testutil.RandomSlug("mfr-update")
+	deviceTypeName := testutil.RandomName("dt-update")
+	deviceTypeSlug := testutil.RandomSlug("dt-update")
+	name := testutil.RandomName("console-update")
+	label1 := "Initial Label"
+	label2 := "Updated Label"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConsolePortTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label1, "rj-45", testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_console_port_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_console_port_template.test", "label", label1),
+					resource.TestCheckResourceAttr("netbox_console_port_template.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccConsolePortTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label2, "rj-45", testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_console_port_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_console_port_template.test", "label", label2),
+					resource.TestCheckResourceAttr("netbox_console_port_template.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccConsolePortTemplateResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("mfr-ext-del")
+	manufacturerSlug := testutil.RandomSlug("mfr-ext-del")
+	deviceTypeName := testutil.RandomName("dt-ext-del")
+	deviceTypeSlug := testutil.RandomSlug("dt-ext-del")
+	name := testutil.RandomName("console-ext-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConsolePortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_console_port_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_console_port_template.test", "name", name),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimConsolePortTemplatesList(context.Background()).NameIc([]string{name}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find console_port_template for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimConsolePortTemplatesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete console_port_template: %v", err)
+					}
+					t.Logf("Successfully externally deleted console_port_template with ID: %d", itemID)
+				},
+				Config: testAccConsolePortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_console_port_template.test", "id"),
+				),
+			},
+		},
+	})
 }
 
 func testAccConsolePortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name string) string {

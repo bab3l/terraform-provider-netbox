@@ -1,6 +1,8 @@
 package resources_acceptance_tests
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -154,6 +156,80 @@ func TestAccConsistency_ExportTemplate_LiteralNames(t *testing.T) {
 	})
 }
 
+func TestAccExportTemplateResource_update(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-expt-upd")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccExportTemplateResourceConfig_withDescription(name, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_export_template.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccExportTemplateResourceConfig_withDescription(name, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_export_template.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccExportTemplateResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-expt-extdel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccExportTemplateResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_export_template.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// Find export template by name
+					items, _, err := client.ExtrasAPI.ExtrasExportTemplatesList(context.Background()).Name([]string{name}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list export templates: %v", err)
+					}
+					if items == nil || len(items.Results) == 0 {
+						t.Fatalf("Export template not found with name: %s", name)
+					}
+
+					// Delete the export template
+					itemID := items.Results[0].Id
+					_, err = client.ExtrasAPI.ExtrasExportTemplatesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete export template: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted export template with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccExportTemplateConsistencyLiteralNamesConfig(name, description string) string {
 	return `
 resource "netbox_export_template" "test" {
@@ -163,4 +239,15 @@ resource "netbox_export_template" "test" {
   description    = "` + description + `"
 }
 `
+}
+
+func testAccExportTemplateResourceConfig_withDescription(name string, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_export_template" "test" {
+  name           = %q
+  object_types   = ["dcim.site"]
+  template_code  = "name,slug\n{%% for site in queryset %%}{{ site.name }},{{ site.id }}\n{%% endfor %%}"
+  description    = %q
+}
+`, name, description)
 }

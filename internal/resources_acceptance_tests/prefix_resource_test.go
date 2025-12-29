@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -154,6 +155,48 @@ func TestAccPrefixResource_update(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
 					resource.TestCheckResourceAttr("netbox_prefix.test", "description", "Updated description"),
 					resource.TestCheckResourceAttr("netbox_prefix.test", "status", "active"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccPrefixResource_external_deletion(t *testing.T) {
+	t.Parallel()
+
+	prefix := testutil.RandomIPv4Prefix()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPrefixResourceConfig_basic(prefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.IpamAPI.IpamPrefixesList(context.Background()).Prefix([]string{prefix}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find prefix for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.IpamAPI.IpamPrefixesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete prefix: %v", err)
+					}
+					t.Logf("Successfully externally deleted prefix with ID: %d", itemID)
+				},
+				Config: testAccPrefixResourceConfig_basic(prefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
 				),
 			},
 		},

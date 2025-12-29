@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -157,6 +158,48 @@ func TestAccIPSECProposalResource_import(t *testing.T) {
 		},
 	})
 
+}
+
+func TestAccIPSECProposalResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ipsec-prop-extdel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSECProposalResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ipsec_proposal.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "name", name),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.VpnAPI.VpnIpsecProposalsList(context.Background()).Name([]string{name}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find IPSec proposal for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.VpnAPI.VpnIpsecProposalsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete IPSec proposal: %v", err)
+					}
+					t.Logf("Successfully externally deleted IPSec proposal with ID: %d", itemID)
+				},
+				Config: testAccIPSECProposalResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ipsec_proposal.test", "id"),
+				),
+			},
+		},
+	})
 }
 func TestAccIPSecProposalResource_IDPreservation(t *testing.T) {
 	t.Parallel()

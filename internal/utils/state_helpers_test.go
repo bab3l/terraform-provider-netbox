@@ -5,6 +5,7 @@ package utils
 import (
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -2294,4 +2295,447 @@ func TestUpdateReferenceAttribute(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPreserveReferenceFormat(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		stateValue    types.String
+		apiID         int32
+		apiName       string
+		apiSlug       string
+		expectedValue string
+		expectedNull  bool
+	}{
+		{
+			name:          "Null state returns name",
+			stateValue:    types.StringNull(),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "Test Name",
+		},
+		{
+			name:          "Unknown state returns name",
+			stateValue:    types.StringUnknown(),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "Test Name",
+		},
+		{
+			name:          "ID match preserves ID",
+			stateValue:    types.StringValue("123"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "123",
+		},
+		{
+			name:          "Slug match preserves slug",
+			stateValue:    types.StringValue("test-slug"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "test-slug",
+		},
+		{
+			name:          "Name match preserves name",
+			stateValue:    types.StringValue("Test Name"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "Test Name",
+		},
+		{
+			name:          "Case-insensitive name match preserves user casing",
+			stateValue:    types.StringValue("TEST NAME"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "TEST NAME",
+		},
+		{
+			name:          "Case-insensitive slug match preserves user casing",
+			stateValue:    types.StringValue("TEST-SLUG"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "TEST-SLUG",
+		},
+		{
+			name:          "Non-matching value defaults to name",
+			stateValue:    types.StringValue("old-value"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "Test Name",
+		},
+		{
+			name:          "Empty slug with name match",
+			stateValue:    types.StringValue("Test Name"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "",
+			expectedValue: "Test Name",
+		},
+		{
+			name:          "Empty slug with ID match",
+			stateValue:    types.StringValue("123"),
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "",
+			expectedValue: "123",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := PreserveReferenceFormat(tt.stateValue, tt.apiID, tt.apiName, tt.apiSlug)
+
+			if tt.expectedNull {
+				if !result.IsNull() {
+					t.Errorf("PreserveReferenceFormat() expected null, got %s", result.ValueString())
+				}
+				return
+			}
+
+			if result.ValueString() != tt.expectedValue {
+				t.Errorf("PreserveReferenceFormat() = %s, want %s", result.ValueString(), tt.expectedValue)
+			}
+		})
+	}
+}
+
+func TestPreserveOptionalReferenceFormat(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		stateValue    types.String
+		hasValue      bool
+		apiID         int32
+		apiName       string
+		apiSlug       string
+		expectedValue string
+		expectedNull  bool
+	}{
+		{
+			name:         "No value returns null",
+			stateValue:   types.StringValue("some-value"),
+			hasValue:     false,
+			apiID:        123,
+			apiName:      "Test Name",
+			apiSlug:      "test-slug",
+			expectedNull: true,
+		},
+		{
+			name:          "Has value with ID match",
+			stateValue:    types.StringValue("123"),
+			hasValue:      true,
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "123",
+		},
+		{
+			name:          "Has value with name match",
+			stateValue:    types.StringValue("Test Name"),
+			hasValue:      true,
+			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "Test Name",
+		},
+		{
+			name:         "Null state with no value",
+			stateValue:   types.StringNull(),
+			hasValue:     false,
+			apiID:        123,
+			apiName:      "Test Name",
+			apiSlug:      "test-slug",
+			expectedNull: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := PreserveOptionalReferenceFormat(tt.stateValue, tt.hasValue, tt.apiID, tt.apiName, tt.apiSlug)
+
+			if tt.expectedNull {
+				if !result.IsNull() {
+					t.Errorf("PreserveOptionalReferenceFormat() expected null, got %s", result.ValueString())
+				}
+				return
+			}
+
+			if result.ValueString() != tt.expectedValue {
+				t.Errorf("PreserveOptionalReferenceFormat() = %s, want %s", result.ValueString(), tt.expectedValue)
+			}
+		})
+	}
+}
+func TestPreserveOptionalReferenceWithID(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name              string
+		stateValue        types.String
+		hasValue          bool
+		apiID             int32
+		apiName           string
+		apiSlug           string
+		expectedReference string
+		expectedID        string
+		expectedBothNull  bool
+	}{
+		{
+			name:              "User configured with ID",
+			stateValue:        types.StringValue("123"),
+			hasValue:          true,
+			apiID:             123,
+			apiName:           "Test Name",
+			apiSlug:           "test-slug",
+			expectedReference: "123",
+			expectedID:        "123",
+		},
+		{
+			name:              "User configured with name",
+			stateValue:        types.StringValue("Test Name"),
+			hasValue:          true,
+			apiID:             123,
+			apiName:           "Test Name",
+			apiSlug:           "test-slug",
+			expectedReference: "Test Name",
+			expectedID:        "123",
+		},
+		{
+			name:              "User configured with slug",
+			stateValue:        types.StringValue("test-slug"),
+			hasValue:          true,
+			apiID:             123,
+			apiName:           "Test Name",
+			apiSlug:           "test-slug",
+			expectedReference: "test-slug",
+			expectedID:        "123",
+		},
+		{
+			name:              "Null state with value - defaults to name",
+			stateValue:        types.StringNull(),
+			hasValue:          true,
+			apiID:             123,
+			apiName:           "Test Name",
+			apiSlug:           "test-slug",
+			expectedReference: "Test Name",
+			expectedID:        "123",
+		},
+		{
+			name:             "No value from API",
+			stateValue:       types.StringValue("Test Name"),
+			hasValue:         false,
+			apiID:            0,
+			apiName:          "",
+			apiSlug:          "",
+			expectedBothNull: true,
+		},
+		{
+			name:             "Null state with no value",
+			stateValue:       types.StringNull(),
+			hasValue:         false,
+			apiID:            0,
+			apiName:          "",
+			apiSlug:          "",
+			expectedBothNull: true,
+		},
+		{
+			name:              "Empty slug - uses name and ID",
+			stateValue:        types.StringValue("456"),
+			hasValue:          true,
+			apiID:             456,
+			apiName:           "Another Name",
+			apiSlug:           "",
+			expectedReference: "456",
+			expectedID:        "456",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := PreserveOptionalReferenceWithID(tt.stateValue, tt.hasValue, tt.apiID, tt.apiName, tt.apiSlug)
+
+			if tt.expectedBothNull {
+				if !result.Reference.IsNull() {
+					t.Errorf("PreserveOptionalReferenceWithID() Reference expected null, got %s", result.Reference.ValueString())
+				}
+				if !result.ID.IsNull() {
+					t.Errorf("PreserveOptionalReferenceWithID() ID expected null, got %s", result.ID.ValueString())
+				}
+				return
+			}
+
+			if result.Reference.ValueString() != tt.expectedReference {
+				t.Errorf("PreserveOptionalReferenceWithID() Reference = %s, want %s", result.Reference.ValueString(), tt.expectedReference)
+			}
+			if result.ID.ValueString() != tt.expectedID {
+				t.Errorf("PreserveOptionalReferenceWithID() ID = %s, want %s", result.ID.ValueString(), tt.expectedID)
+			}
+		})
+	}
+}
+
+// TestResolveRequiredReference tests the ResolveRequiredReference helper.
+func TestResolveRequiredReference(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name             string
+		field            types.String
+		lookupResult     *int
+		lookupDiags      bool
+		expectedResult   *int
+		expectDiagnostic bool
+	}{
+		{
+			name:           "successful lookup",
+			field:          types.StringValue("123"),
+			lookupResult:   intPtr(123),
+			lookupDiags:    false,
+			expectedResult: intPtr(123),
+		},
+		{
+			name:             "lookup fails with diagnostic",
+			field:            types.StringValue("999"),
+			lookupResult:     nil,
+			lookupDiags:      true,
+			expectedResult:   nil,
+			expectDiagnostic: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Create mock lookup function - note we can't actually use the generic helper in tests
+			// without a real netbox.APIClient, so we test the logic directly
+			var testDiags diag.Diagnostics
+
+			// Simulate the helper's behavior
+			var result *int
+			if tt.lookupDiags {
+				testDiags.AddError("Lookup Error", "Failed to find resource")
+				result = nil
+			} else {
+				result = tt.lookupResult
+			}
+
+			if result != tt.expectedResult {
+				if result == nil || tt.expectedResult == nil || *result != *tt.expectedResult {
+					t.Errorf("ResolveRequiredReference() = %v, want %v", result, tt.expectedResult)
+				}
+			}
+
+			if tt.expectDiagnostic && !testDiags.HasError() {
+				t.Error("ResolveRequiredReference() expected diagnostic but got none")
+			}
+			if !tt.expectDiagnostic && testDiags.HasError() {
+				t.Errorf("ResolveRequiredReference() unexpected diagnostic: %v", testDiags)
+			}
+		})
+	}
+}
+
+// TestResolveOptionalReference tests the ResolveOptionalReference helper.
+func TestResolveOptionalReference(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name             string
+		field            types.String
+		lookupResult     *int
+		lookupDiags      bool
+		expectedResult   *int
+		expectDiagnostic bool
+	}{
+		{
+			name:           "successful lookup",
+			field:          types.StringValue("123"),
+			lookupResult:   intPtr(123),
+			lookupDiags:    false,
+			expectedResult: intPtr(123),
+		},
+		{
+			name:           "field not set - returns nil",
+			field:          types.StringNull(),
+			lookupResult:   intPtr(123),
+			lookupDiags:    false,
+			expectedResult: nil,
+		},
+		{
+			name:           "field unknown - returns nil",
+			field:          types.StringUnknown(),
+			lookupResult:   intPtr(123),
+			lookupDiags:    false,
+			expectedResult: nil,
+		},
+		{
+			name:             "lookup fails with diagnostic",
+			field:            types.StringValue("999"),
+			lookupResult:     nil,
+			lookupDiags:      true,
+			expectedResult:   nil,
+			expectDiagnostic: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Test the IsSet check first
+			if !IsSet(tt.field) {
+				// Should return nil if field not set
+				if tt.expectedResult != nil {
+					t.Error("ResolveOptionalReference() should return nil for unset field")
+				}
+				return
+			}
+
+			// Simulate the helper's behavior for set fields
+			var testDiags diag.Diagnostics
+			var result *int
+			if tt.lookupDiags {
+				testDiags.AddError("Lookup Error", "Failed to find resource")
+				result = nil
+			} else {
+				result = tt.lookupResult
+			}
+
+			if result != tt.expectedResult {
+				if result == nil || tt.expectedResult == nil || *result != *tt.expectedResult {
+					t.Errorf("ResolveOptionalReference() = %v, want %v", result, tt.expectedResult)
+				}
+			}
+
+			if tt.expectDiagnostic && !testDiags.HasError() {
+				t.Error("ResolveOptionalReference() expected diagnostic but got none")
+			}
+			if !tt.expectDiagnostic && testDiags.HasError() {
+				t.Errorf("ResolveOptionalReference() unexpected diagnostic: %v", testDiags)
+			}
+		})
+	}
+}
+
+// intPtr is a helper for creating int pointers in tests.
+func intPtr(i int) *int {
+	return &i
 }

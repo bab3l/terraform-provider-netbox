@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -180,6 +181,14 @@ func (d *ConfigTemplateDataSource) Read(ctx context.Context, req datasource.Read
 		result, httpResp, err := d.client.ExtrasAPI.ExtrasConfigTemplatesRetrieve(ctx, templateID).Execute()
 
 		defer utils.CloseResponseBody(httpResp)
+
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+			resp.Diagnostics.AddError(
+				"Config Template Not Found",
+				fmt.Sprintf("No config template found with ID: %d", templateID),
+			)
+			return
+		}
 
 		if err != nil {
 

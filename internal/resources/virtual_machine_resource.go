@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -237,21 +238,14 @@ func (r *VirtualMachineResource) Schema(ctx context.Context, req resource.Schema
 					int64planmodifier.UseStateForUnknown(),
 				},
 			},
-
-			"description": nbschema.DescriptionAttribute("virtual machine"),
-
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "Additional comments or notes about the virtual machine.",
-
-				Optional: true,
-			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("virtual machine"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 
@@ -683,60 +677,10 @@ func (r *VirtualMachineResource) buildVirtualMachineRequest(ctx context.Context,
 
 	}
 
-	// Description
-
-	if utils.IsSet(data.Description) {
-
-		description := data.Description.ValueString()
-
-		vmRequest.Description = &description
-
-	}
-
-	// Comments
-
-	if utils.IsSet(data.Comments) {
-
-		comments := data.Comments.ValueString()
-
-		vmRequest.Comments = &comments
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		var tags []utils.TagModel
-
-		diags.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if diags.HasError() {
-
-			return nil
-
-		}
-
-		vmRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return nil
-
-		}
-
-		vmRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, vmRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	if diags.HasError() {
+		return nil
 	}
 
 	return vmRequest

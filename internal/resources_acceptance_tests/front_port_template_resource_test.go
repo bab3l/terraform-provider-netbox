@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -131,6 +132,88 @@ func TestAccConsistency_FrontPortTemplate_LiteralNames(t *testing.T) {
 	})
 }
 
+func TestAccFrontPortTemplateResource_update(t *testing.T) {
+	t.Parallel()
+	manufacturerName := testutil.RandomName("mfr-update")
+	manufacturerSlug := testutil.RandomSlug("mfr-update")
+	deviceTypeName := testutil.RandomName("dt-update")
+	deviceTypeSlug := testutil.RandomSlug("dt-update")
+	frontPortName := testutil.RandomName("front-port-update")
+	rearPortName := testutil.RandomName("rear-port-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFrontPortTemplateResourceFullSimple(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, "Label1", testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_front_port_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "label", "Label1"),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccFrontPortTemplateResourceFullSimple(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, "Label2", testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "label", "Label2"),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccFrontPortTemplateResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	manufacturerName := testutil.RandomName("mfr-ext-del")
+	manufacturerSlug := testutil.RandomSlug("mfr-ext-del")
+	deviceTypeName := testutil.RandomName("dt-ext-del")
+	deviceTypeSlug := testutil.RandomSlug("dt-ext-del")
+	frontPortName := testutil.RandomName("front-port-ext-del")
+	rearPortName := testutil.RandomName("rear-port-ext-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFrontPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, frontPortTypeStandard),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_front_port_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "name", frontPortName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimFrontPortTemplatesList(context.Background()).NameIc([]string{frontPortName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find front_port_template for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimFrontPortTemplatesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete front_port_template: %v", err)
+					}
+					t.Logf("Successfully externally deleted front_port_template with ID: %d", itemID)
+				},
+				Config: testAccFrontPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, frontPortTypeStandard),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_front_port_template.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccFrontPortTemplateResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
@@ -222,6 +305,38 @@ resource "netbox_front_port_template" "test" {
   description        = %q
 }
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, portType, frontPortName, portType, rearPortPosition, label, color, description)
+}
+
+func testAccFrontPortTemplateResourceFullSimple(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, label, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_rear_port_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %q
+  type        = "lc"
+  positions   = 4
+}
+
+resource "netbox_front_port_template" "test" {
+  device_type        = netbox_device_type.test.id
+  name               = %q
+  type               = "lc"
+  rear_port          = netbox_rear_port_template.test.name
+  rear_port_position = 1
+  label              = %q
+  description        = %q
+}
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, label, description)
 }
 
 func testAccFrontPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName, rearPortTemplateName string) string {

@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -151,13 +152,6 @@ func (r *InventoryItemTemplateResource) Schema(ctx context.Context, req resource
 				Optional: true,
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the inventory item template.",
-
-				Optional: true,
-			},
-
 			"display_name": nbschema.DisplayNameAttribute("inventory item template"),
 
 			"component_type": schema.StringAttribute{
@@ -176,6 +170,8 @@ func (r *InventoryItemTemplateResource) Schema(ctx context.Context, req resource
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("inventory item template"))
 }
 
 // Configure adds the provider configured client to the resource.
@@ -306,11 +302,8 @@ func (r *InventoryItemTemplateResource) Create(ctx context.Context, req resource
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	if !data.ComponentType.IsNull() && !data.ComponentType.IsUnknown() {
 
@@ -573,11 +566,8 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	if !data.ComponentType.IsNull() && !data.ComponentType.IsUnknown() {
 

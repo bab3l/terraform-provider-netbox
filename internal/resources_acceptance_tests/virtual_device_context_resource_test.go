@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -606,4 +607,56 @@ resource "netbox_virtual_device_context" "test" {
 
 `, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, vdcName, tenantName, tenantSlug)
 
+}
+
+func TestAccVirtualDeviceContextResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("test-site")
+	siteSlug := testutil.GenerateSlug(siteName)
+	mfgName := testutil.RandomName("test-mfg")
+	mfgSlug := testutil.GenerateSlug(mfgName)
+	dtModel := testutil.RandomName("test-dt")
+	dtSlug := testutil.GenerateSlug(dtModel)
+	roleName := testutil.RandomName("test-role")
+	roleSlug := testutil.GenerateSlug(roleName)
+	deviceName := testutil.RandomName("test-device")
+	vdcName := testutil.RandomName("test-vdc-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualDeviceContextResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_device_context.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "name", vdcName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimVirtualDeviceContextsList(context.Background()).Name([]string{vdcName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find virtual_device_context for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimVirtualDeviceContextsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete virtual_device_context: %v", err)
+					}
+					t.Logf("Successfully externally deleted virtual_device_context with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

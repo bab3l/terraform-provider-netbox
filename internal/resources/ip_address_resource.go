@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -166,25 +167,14 @@ func (r *IPAddressResource) Schema(ctx context.Context, req resource.SchemaReque
 
 				Optional: true,
 			},
-
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description for the IP address.",
-
-				Optional: true,
-			},
-
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "Comments for the IP address.",
-
-				Optional: true,
-			},
-
-			"tags": nbschema.TagsAttribute(),
 		},
 	}
 
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("IP address"))
+
+	// Add tags attribute (no custom_fields for IP address)
+	resp.Schema.Attributes["tags"] = nbschema.TagsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -504,6 +494,13 @@ func (r *IPAddressResource) Delete(ctx context.Context, req resource.DeleteReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		// Ignore 404 errors (resource already deleted)
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			tflog.Debug(ctx, "IP address already deleted", map[string]interface{}{
+				"id": id,
+			})
+			return
+		}
 
 		resp.Diagnostics.AddError(
 
@@ -629,19 +626,11 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 
 	// Handle tags
 
-	if utils.IsSet(data.Tags) {
+	utils.ApplyTags(ctx, ipRequest, data.Tags, diags)
 
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+	if diags.HasError() {
 
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		ipRequest.Tags = tags
+		return
 
 	}
 

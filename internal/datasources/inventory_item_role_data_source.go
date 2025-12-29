@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
@@ -209,6 +210,14 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 		response, httpResp, err := d.client.DcimAPI.DcimInventoryItemRolesRetrieve(ctx, roleID).Execute()
 
 		defer utils.CloseResponseBody(httpResp)
+
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+			resp.Diagnostics.AddError(
+				"Inventory Item Role Not Found",
+				fmt.Sprintf("No inventory item role found with ID: %d", roleID),
+			)
+			return
+		}
 
 		if err != nil {
 

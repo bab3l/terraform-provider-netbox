@@ -516,48 +516,10 @@ func (r *VRFResource) setOptionalFields(ctx context.Context, vrfRequest *netbox.
 
 	}
 
-	// Description
-
-	vrfRequest.Description = utils.StringPtr(data.Description)
-
-	// Comments
-
-	vrfRequest.Comments = utils.StringPtr(data.Comments)
-
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		vrfRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		vrfRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, vrfRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	if diags.HasError() {
+		return
 	}
 
 }
@@ -578,120 +540,46 @@ func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *
 	}
 
 	// Route distinguisher
-
 	if rd, ok := vrf.GetRdOk(); ok && rd != nil && *rd != "" {
-
 		data.RD = types.StringValue(*rd)
-
 	} else {
-
 		data.RD = types.StringNull()
-
 	}
 
 	// Tenant
-
-	if vrf.HasTenant() && vrf.Tenant.Get() != nil {
-		tenant := vrf.Tenant.Get()
-		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
-
-		userTenant := data.Tenant.ValueString()
-		if userTenant == tenant.GetName() || userTenant == tenant.GetSlug() || userTenant == fmt.Sprintf("%d", tenant.GetId()) {
-			// Keep user's original value
-		} else {
-			data.Tenant = types.StringValue(tenant.GetName())
-		}
-	} else {
-		data.Tenant = types.StringNull()
-		data.TenantID = types.StringNull()
-	}
+	tenantRef := utils.PreserveOptionalReferenceWithID(
+		data.Tenant,
+		vrf.HasTenant() && vrf.Tenant.Get() != nil,
+		vrf.Tenant.Get().GetId(),
+		vrf.Tenant.Get().GetName(),
+		vrf.Tenant.Get().GetSlug(),
+	)
+	data.Tenant = tenantRef.Reference
+	data.TenantID = tenantRef.ID
 
 	// Enforce unique - default is true
-
 	data.EnforceUnique = types.BoolValue(vrf.GetEnforceUnique())
 
 	// Description
-
-	if desc, ok := vrf.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
-		data.Description = types.StringValue(*desc)
-
-	} else {
-
-		data.Description = types.StringNull()
-
-	}
+	data.Description = utils.NullableStringFromAPI(
+		vrf.HasDescription() && vrf.GetDescription() != "",
+		vrf.GetDescription,
+		data.Description,
+	)
 
 	// Comments
-
-	if comments, ok := vrf.GetCommentsOk(); ok && comments != nil && *comments != "" {
-
-		data.Comments = types.StringValue(*comments)
-
-	} else {
-
-		data.Comments = types.StringNull()
-
-	}
+	data.Comments = utils.NullableStringFromAPI(
+		vrf.HasComments() && vrf.GetComments() != "",
+		vrf.GetComments,
+		data.Comments,
+	)
 
 	// Tags
-
-	if vrf.HasTags() {
-
-		tags := utils.NestedTagsToTagModels(vrf.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		data.Tags = tagsValue
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, vrf.HasTags(), vrf.GetTags(), diags)
+	if diags.HasError() {
+		return
 	}
 
 	// Custom fields
-
-	if vrf.HasCustomFields() && !data.CustomFields.IsNull() {
-
-		var stateCustomFields []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		customFields := utils.MapToCustomFieldModels(vrf.GetCustomFields(), stateCustomFields)
-
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfValueDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		data.CustomFields = customFieldsValue
-
-	} else if data.CustomFields.IsNull() {
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
-
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, vrf.HasCustomFields(), vrf.GetCustomFields(), data.CustomFields, diags)
 }

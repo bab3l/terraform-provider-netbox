@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -244,4 +245,52 @@ resource "netbox_tenant_group" "test" {
   slug = %q
 }
 `, name, slug)
+}
+
+func TestAccTenantGroupResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-tenant-group-del")
+	slug := testutil.RandomSlug("tf-test-tenant-group-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTenantGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckTenantGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTenantGroupResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tenant_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_tenant_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_tenant_group.test", "slug", slug),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.TenancyAPI.TenancyTenantGroupsList(context.Background()).Slug([]string{slug}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find tenant_group for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.TenancyAPI.TenancyTenantGroupsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete tenant_group: %v", err)
+					}
+					t.Logf("Successfully externally deleted tenant_group with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

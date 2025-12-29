@@ -115,10 +115,7 @@ func (r *NotificationGroupResource) Create(ctx context.Context, req resource.Cre
 	request := netbox.NewNotificationGroupRequest(data.Name.ValueString())
 
 	// Set optional fields
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		desc := data.Description.ValueString()
-		request.Description = &desc
-	}
+	utils.ApplyDescription(request, data.Description)
 
 	if !data.GroupIDs.IsNull() && !data.GroupIDs.IsUnknown() {
 		var groupIDs []int32
@@ -220,10 +217,7 @@ func (r *NotificationGroupResource) Update(ctx context.Context, req resource.Upd
 	request := netbox.NewNotificationGroupRequest(data.Name.ValueString())
 
 	// Set optional fields (same as Create)
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		desc := data.Description.ValueString()
-		request.Description = &desc
-	}
+	utils.ApplyDescription(request, data.Description)
 
 	if !data.GroupIDs.IsNull() && !data.GroupIDs.IsUnknown() {
 		var groupIDs []int32

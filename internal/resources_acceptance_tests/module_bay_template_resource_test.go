@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -146,6 +147,52 @@ func TestAccModuleBayTemplateResource_update(t *testing.T) {
 				Config: testAccModuleBayTemplateResourceConfig_full(mfgName, mfgSlug, dtModel, dtSlug, templateName, "", "", description2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_module_bay_template.test", "description", description2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccModuleBayTemplateResource_external_deletion(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("mfg-ext-del")
+	mfgSlug := testutil.RandomSlug("mfg-ext-del")
+	dtModel := testutil.RandomName("dt-ext-del")
+	dtSlug := testutil.RandomSlug("dt-ext-del")
+	templateName := testutil.RandomName("mbt-ext-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleBayTemplateResourceConfig_basic(mfgName, mfgSlug, dtModel, dtSlug, templateName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_bay_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_module_bay_template.test", "name", templateName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimModuleBayTemplatesList(context.Background()).NameIc([]string{templateName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find module_bay_template for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimModuleBayTemplatesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete module_bay_template: %v", err)
+					}
+					t.Logf("Successfully externally deleted module_bay_template with ID: %d", itemID)
+				},
+				Config: testAccModuleBayTemplateResourceConfig_basic(mfgName, mfgSlug, dtModel, dtSlug, templateName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_bay_template.test", "id"),
 				),
 			},
 		},

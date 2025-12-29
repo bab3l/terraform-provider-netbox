@@ -11,6 +11,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -139,12 +140,11 @@ func (r *TunnelTerminationResource) Schema(ctx context.Context, req resource.Sch
 			},
 
 			"display_name": nbschema.DisplayNameAttribute("tunnel termination"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 
@@ -276,43 +276,13 @@ func (r *TunnelTerminationResource) Create(ctx context.Context, req resource.Cre
 
 	}
 
-	// Handle tags
+	// Handle tags and custom fields
 
-	if !data.Tags.IsNull() {
+	utils.ApplyMetadataFields(ctx, tunnelTerminationRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		var tagModels []utils.TagModel
+	if resp.Diagnostics.HasError() {
 
-		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tunnelTerminationRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tunnelTerminationRequest.CustomFields = utils.CustomFieldsToMap(customFieldModels)
+		return
 
 	}
 
@@ -543,51 +513,13 @@ func (r *TunnelTerminationResource) Update(ctx context.Context, req resource.Upd
 
 	}
 
-	// Handle tags
+	// Handle tags and custom fields
 
-	if !data.Tags.IsNull() {
+	utils.ApplyMetadataFields(ctx, tunnelTerminationRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		var tagModels []utils.TagModel
+	if resp.Diagnostics.HasError() {
 
-		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tunnelTerminationRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-
-	} else {
-
-		tunnelTerminationRequest.Tags = []netbox.NestedTagRequest{}
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tunnelTerminationRequest.CustomFields = utils.CustomFieldsToMap(customFieldModels)
-
-	} else {
-
-		tunnelTerminationRequest.CustomFields = map[string]interface{}{}
+		return
 
 	}
 

@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -86,22 +87,14 @@ func (r *ProviderResource) Schema(ctx context.Context, req resource.SchemaReques
 			"slug": nbschema.SlugAttribute("circuit provider"),
 
 			"display_name": nbschema.DisplayNameAttribute("circuit provider"),
-
-			"description": nbschema.DescriptionAttribute("circuit provider"),
-
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "Additional comments or notes about the circuit provider.",
-
-				Optional: true,
-			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("circuit provider"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure sets up the resource with the provider client.
@@ -261,57 +254,13 @@ func (r *ProviderResource) Create(ctx context.Context, req resource.CreateReques
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Set optional fields if provided
+	// Apply common fields (description, comments, tags, custom_fields)
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+	utils.ApplyCommonFields(ctx, &providerRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		description := data.Description.ValueString()
+	if resp.Diagnostics.HasError() {
 
-		providerRequest.Description = &description
-
-	}
-
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-
-		comments := data.Comments.ValueString()
-
-		providerRequest.Comments = &comments
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		providerRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		providerRequest.CustomFields = utils.CustomFieldsToMap(customFields)
+		return
 
 	}
 
@@ -468,57 +417,13 @@ func (r *ProviderResource) Update(ctx context.Context, req resource.UpdateReques
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Set optional fields if provided
+	// Apply common fields (description, comments, tags, custom_fields)
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+	utils.ApplyCommonFields(ctx, &providerRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		description := data.Description.ValueString()
+	if resp.Diagnostics.HasError() {
 
-		providerRequest.Description = &description
-
-	}
-
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-
-		comments := data.Comments.ValueString()
-
-		providerRequest.Comments = &comments
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		providerRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		providerRequest.CustomFields = utils.CustomFieldsToMap(customFields)
+		return
 
 	}
 

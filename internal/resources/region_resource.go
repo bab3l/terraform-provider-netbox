@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -86,15 +87,14 @@ func (r *RegionResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Computed:            true,
 				MarkdownDescription: "The numeric ID of the parent region.",
 			},
-
-			"description": nbschema.DescriptionAttribute("region"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("region"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *RegionResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -152,9 +152,17 @@ func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest,
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helper for optional string field
+	// Apply description and metadata fields
 
-	regionRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(&regionRequest, data.Description)
+
+	utils.ApplyMetadataFields(ctx, &regionRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+
+		return
+
+	}
 
 	// Set optional parent
 
@@ -171,44 +179,6 @@ func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest,
 		}
 
 		regionRequest.Parent = *netbox.NewNullableInt32(&parentID)
-
-	}
-
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		regionRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		regionRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
 
 	}
 
@@ -283,6 +253,10 @@ func (r *RegionResource) Read(ctx context.Context, req resource.ReadRequest, res
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 
 		resp.Diagnostics.AddError("Error reading region", utils.FormatAPIError(fmt.Sprintf("read region ID %s", regionID), err, httpResp))
 
@@ -349,9 +323,17 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helper for optional string field
+	// Apply description and metadata fields
 
-	regionRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(&regionRequest, data.Description)
+
+	utils.ApplyMetadataFields(ctx, &regionRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+
+		return
+
+	}
 
 	// Set optional parent
 
@@ -368,44 +350,6 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 		}
 
 		regionRequest.Parent = *netbox.NewNullableInt32(&parentID)
-
-	}
-
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		regionRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		regionRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
 
 	}
 
@@ -480,6 +424,9 @@ func (r *RegionResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return
+		}
 
 		resp.Diagnostics.AddError("Error deleting region", utils.FormatAPIError(fmt.Sprintf("delete region ID %s", regionID), err, httpResp))
 
@@ -518,92 +465,23 @@ func (r *RegionResource) mapRegionToState(ctx context.Context, region *netbox.Re
 	data.DisplayName = types.StringValue(region.GetDisplay())
 
 	// Handle parent
-
+	var parentResult utils.ReferenceWithID
 	if region.HasParent() && region.GetParent().Id != 0 {
-
 		parent := region.GetParent()
-
-		data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
-
-		userParent := data.Parent.ValueString()
-
-		if userParent == parent.GetName() || userParent == parent.GetSlug() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
-
-			// Keep user's original value
-
-		} else {
-
-			data.Parent = types.StringValue(parent.GetName())
-
-		}
-
+		parentResult = utils.PreserveOptionalReferenceWithID(data.Parent, true, parent.GetId(), parent.GetName(), parent.GetSlug())
 	} else {
-
-		data.Parent = types.StringNull()
-		data.ParentID = types.StringNull()
-
+		parentResult = utils.PreserveOptionalReferenceWithID(data.Parent, false, 0, "", "")
 	}
+	data.Parent = parentResult.Reference
+	data.ParentID = parentResult.ID
 
 	// Handle description - use StringFromAPI to treat empty string as null
-
 	data.Description = utils.StringFromAPI(region.HasDescription(), region.GetDescription, data.Description)
 
 	// Handle tags
-
-	if region.HasTags() {
-
-		tags := utils.NestedTagsToTagModels(region.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if !diags.HasError() {
-
-			data.Tags = tagsValue
-
-		}
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
-	}
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, region.HasTags(), region.GetTags(), diags)
 
 	// Handle custom fields
-
-	if region.HasCustomFields() {
-
-		var existingModels []utils.CustomFieldModel
-
-		if !data.CustomFields.IsNull() {
-
-			cfDiags := data.CustomFields.ElementsAs(ctx, &existingModels, false)
-
-			diags.Append(cfDiags...)
-
-		}
-
-		if !diags.HasError() {
-
-			customFields := utils.MapToCustomFieldModels(region.GetCustomFields(), existingModels)
-
-			customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-			diags.Append(cfDiags...)
-
-			if !cfDiags.HasError() {
-
-				data.CustomFields = customFieldsValue
-
-			}
-
-		}
-
-	} else {
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, region.HasCustomFields(), region.GetCustomFields(), data.CustomFields, diags)
 
 }

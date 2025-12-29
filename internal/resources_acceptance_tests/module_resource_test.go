@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -290,6 +291,179 @@ resource "netbox_module" "test" {
   description = %q
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description)
+}
+
+func TestAccModuleResource_update(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-upd")
+	siteSlug := testutil.RandomSlug("tf-test-site-upd")
+	mfgName := testutil.RandomName("tf-test-mfg-upd")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-upd")
+	dtModel := testutil.RandomName("tf-test-dt-upd")
+	dtSlug := testutil.RandomSlug("tf-test-dt-upd")
+	roleName := testutil.RandomName("tf-test-role-upd")
+	roleSlug := testutil.RandomSlug("tf-test-role-upd")
+	deviceName := testutil.RandomName("tf-test-device-upd")
+	bayName := testutil.RandomName("tf-test-mbay-upd")
+	mtModel := testutil.RandomName("tf-test-mt-upd")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleResourceConfig_serial(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, "SERIAL1"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module.test", "id"),
+					resource.TestCheckResourceAttr("netbox_module.test", "serial", "SERIAL1"),
+				),
+			},
+			{
+				Config: testAccModuleResourceConfig_serial(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, "SERIAL2"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module.test", "serial", "SERIAL2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccModuleResource_external_deletion(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-extdel")
+	siteSlug := testutil.RandomSlug("tf-test-site-extdel")
+	mfgName := testutil.RandomName("tf-test-mfg-extdel")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-extdel")
+	dtModel := testutil.RandomName("tf-test-dt-extdel")
+	dtSlug := testutil.RandomSlug("tf-test-dt-extdel")
+	roleName := testutil.RandomName("tf-test-role-extdel")
+	roleSlug := testutil.RandomSlug("tf-test-role-extdel")
+	deviceName := testutil.RandomName("tf-test-device-extdel")
+	bayName := testutil.RandomName("tf-test-mbay-extdel")
+	mtModel := testutil.RandomName("tf-test-mt-extdel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// List modules to find the one we created
+					items, _, err := client.DcimAPI.DcimModulesList(context.Background()).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find module for external deletion: %v", err)
+					}
+
+					// Find the module by checking if it belongs to our test device
+					var moduleID int32
+					found := false
+					for _, module := range items.Results {
+						if module.Device.Name.IsSet() && *module.Device.Name.Get() == deviceName {
+							moduleID = module.Id
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						t.Fatalf("Module not found for device %s", deviceName)
+					}
+
+					_, err = client.DcimAPI.DcimModulesDestroy(context.Background(), moduleID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete module: %v", err)
+					}
+					t.Logf("Successfully externally deleted module with ID: %d", moduleID)
+				},
+				Config: testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccModuleResourceConfig_serial(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, serial string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %q
+  slug   = %q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_device_role" "test" {
+  name  = %q
+  slug  = %q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_module_bay" "test" {
+  device = netbox_device.test.id
+  name   = %q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+}
+
+resource "netbox_module" "test" {
+  device      = netbox_device.test.id
+  module_bay  = netbox_module_bay.test.id
+  module_type = netbox_module_type.test.id
+  serial      = %q
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, serial)
 }
 
 func testAccModuleConsistencyLiteralNamesConfig(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel string) string {

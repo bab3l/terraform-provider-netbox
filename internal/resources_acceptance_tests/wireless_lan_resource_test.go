@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -108,6 +109,89 @@ resource "netbox_wireless_lan" "test" {
   ssid = %q
 }
 `, ssid)
+}
+
+func TestAccWirelessLANResource_update(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	ssid := testutil.RandomName("tf-test-ssid-upd")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLANResourceConfig_withDescription(ssid, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccWirelessLANResourceConfig_withDescription(ssid, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func testAccWirelessLANResourceConfig_withDescription(ssid string, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_wireless_lan" "test" {
+  ssid        = %[1]q
+  description = %[2]q
+}
+`, ssid, description)
+}
+
+func TestAccWirelessLANResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	ssid := testutil.RandomName("tf-test-ssid-extdel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLANResourceConfig_basic(ssid),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_wireless_lan.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// Find wireless LAN by SSID
+					items, _, err := client.WirelessAPI.WirelessWirelessLansList(context.Background()).Ssid([]string{ssid}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list wireless LANs: %v", err)
+					}
+					if items == nil || len(items.Results) == 0 {
+						t.Fatalf("Wireless LAN not found with SSID: %s", ssid)
+					}
+
+					// Delete the wireless LAN
+					itemID := items.Results[0].Id
+					_, err = client.WirelessAPI.WirelessWirelessLansDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete wireless LAN: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted wireless LAN with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }
 
 func testAccWirelessLANResourceConfig_full(ssid, groupName, groupSlug, description, status string) string {

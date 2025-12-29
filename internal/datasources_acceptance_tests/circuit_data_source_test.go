@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccCircuitDataSource_basic(t *testing.T) {
+func TestAccCircuitDataSource_byID(t *testing.T) {
 
 	t.Parallel()
 
@@ -33,19 +33,45 @@ func TestAccCircuitDataSource_basic(t *testing.T) {
 			{
 				Config: testAccCircuitDataSourceConfig(providerName, providerSlug, circuitTypeName, circuitTypeSlug, cid),
 				Check: resource.ComposeTestCheckFunc(
-					// Check by_cid lookup
-					resource.TestCheckResourceAttr("data.netbox_circuit.by_cid", "cid", cid),
-					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_cid", "id"),
-					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_cid", "circuit_provider"),
-					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_cid", "type"),
-					// Check by_id lookup
 					resource.TestCheckResourceAttr("data.netbox_circuit.by_id", "cid", cid),
 					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_id", "id"),
 					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_id", "circuit_provider"),
 					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_id", "type"),
-					// Verify both lookups return same circuit
-					resource.TestCheckResourceAttrPair("data.netbox_circuit.by_cid", "id", "data.netbox_circuit.by_id", "id"),
-					resource.TestCheckResourceAttrPair("data.netbox_circuit.by_cid", "cid", "data.netbox_circuit.by_id", "cid"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCircuitDataSource_byCID(t *testing.T) {
+
+	t.Parallel()
+
+	providerName := testutil.RandomName("provider")
+	providerSlug := testutil.RandomSlug("provider")
+	circuitTypeName := testutil.RandomName("circuit-type")
+	circuitTypeSlug := testutil.RandomSlug("circuit-type")
+	cid := testutil.RandomName("circuit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckProviderDestroy,
+			testutil.CheckCircuitTypeDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitDataSourceConfig(providerName, providerSlug, circuitTypeName, circuitTypeSlug, cid),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_circuit.by_cid", "cid", cid),
+					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_cid", "id"),
+					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_cid", "circuit_provider"),
+					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_cid", "type"),
 				),
 			},
 		},

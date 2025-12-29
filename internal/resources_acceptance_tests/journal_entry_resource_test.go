@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -293,4 +294,63 @@ resource "netbox_journal_entry" "test" {
   comments             = "Test journal entry"
 }
 `, siteName, siteSlug)
+}
+
+func TestAccJournalEntryResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	siteName := testutil.RandomName("tf-test-site-je-extdel")
+	siteSlug := testutil.GenerateSlug(siteName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccJournalEntryResourceConfig_basic(siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_journal_entry.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// Find site by name to get its ID
+					siteItems, _, err := client.DcimAPI.DcimSitesList(context.Background()).Name([]string{siteName}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list sites: %v", err)
+					}
+					if siteItems == nil || len(siteItems.Results) == 0 {
+						t.Fatalf("Site not found with name: %s", siteName)
+					}
+					siteID := siteItems.Results[0].Id
+
+					// Find journal entry by assigned_object_id (site ID)
+					journalItems, _, err := client.ExtrasAPI.ExtrasJournalEntriesList(context.Background()).AssignedObjectId([]int32{siteID}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list journal entries: %v", err)
+					}
+					if journalItems == nil || len(journalItems.Results) == 0 {
+						t.Fatalf("Journal entry not found for site ID: %d", siteID)
+					}
+
+					// Delete the journal entry
+					itemID := journalItems.Results[0].Id
+					_, err = client.ExtrasAPI.ExtrasJournalEntriesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete journal entry: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted journal entry with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

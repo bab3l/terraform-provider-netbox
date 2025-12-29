@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -174,16 +175,15 @@ func (r *IKEProposalResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 
-			"comments": nbschema.CommentsAttribute("IKE proposal"),
-
 			"display_name": nbschema.DisplayNameAttribute("IKE proposal"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("IKE proposal"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
@@ -586,9 +586,8 @@ func (r *IKEProposalResource) ImportState(ctx context.Context, req resource.Impo
 
 func (r *IKEProposalResource) setOptionalFields(ctx context.Context, ikeRequest *netbox.WritableIKEProposalRequest, data *IKEProposalResourceModel, diags *diag.Diagnostics) {
 
-	// Description
-
-	ikeRequest.Description = utils.StringPtr(data.Description)
+	// Set description
+	utils.ApplyDescription(ikeRequest, data.Description)
 
 	// Authentication Algorithm
 
@@ -618,44 +617,12 @@ func (r *IKEProposalResource) setOptionalFields(ctx context.Context, ikeRequest 
 
 	}
 
-	// Comments
-
-	ikeRequest.Comments = utils.StringPtr(data.Comments)
-
-	// Tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		ikeRequest.Tags = tags
-
-	}
-
-	// Custom Fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		ikeRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Set comments, tags, and custom fields
+	utils.ApplyComments(ikeRequest, data.Comments)
+	utils.ApplyTags(ctx, ikeRequest, data.Tags, diags)
+	utils.ApplyCustomFields(ctx, ikeRequest, data.CustomFields, diags)
+	if diags.HasError() {
+		return
 	}
 
 }

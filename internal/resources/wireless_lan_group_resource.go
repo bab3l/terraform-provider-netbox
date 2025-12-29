@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -108,26 +109,20 @@ func (r *WirelessLANGroupResource) Schema(ctx context.Context, req resource.Sche
 				Required: true,
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the wireless LAN group.",
-
-				Optional: true,
-			},
-
 			"parent": schema.StringAttribute{
 
 				MarkdownDescription: "Parent wireless LAN group (ID or slug) for hierarchical organization.",
 
 				Optional: true,
 			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("wireless LAN group"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
@@ -206,39 +201,13 @@ func (r *WirelessLANGroupResource) Create(ctx context.Context, req resource.Crea
 
 	}
 
-	// Handle tags
+	// Handle description and metadata fields
+	utils.ApplyDescription(apiReq, data.Description)
+	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	if resp.Diagnostics.HasError() {
 
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(tagDiags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetTags(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var cfModels []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &cfModels, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
+		return
 
 	}
 
@@ -422,39 +391,13 @@ func (r *WirelessLANGroupResource) Update(ctx context.Context, req resource.Upda
 
 	}
 
-	// Handle tags
+	// Handle description and metadata fields
+	utils.ApplyDescription(apiReq, data.Description)
+	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	if resp.Diagnostics.HasError() {
 
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(tagDiags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetTags(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var cfModels []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &cfModels, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
+		return
 
 	}
 

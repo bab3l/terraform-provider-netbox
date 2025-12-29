@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
@@ -218,6 +219,14 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 		response, httpResp, err := d.client.WirelessAPI.WirelessWirelessLanGroupsRetrieve(ctx, groupID).Execute()
 
 		defer utils.CloseResponseBody(httpResp)
+
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+			resp.Diagnostics.AddError(
+				"Wireless LAN Group Not Found",
+				fmt.Sprintf("No wireless LAN group found with ID: %d", groupID),
+			)
+			return
+		}
 
 		if err != nil {
 

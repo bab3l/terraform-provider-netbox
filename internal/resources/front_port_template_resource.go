@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -125,8 +125,6 @@ func (r *FrontPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 				Optional: true,
 
 				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"type": schema.StringAttribute{
@@ -143,8 +141,6 @@ func (r *FrontPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 				Optional: true,
 
 				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"display_name": nbschema.DisplayNameAttribute("front port template"),
@@ -166,20 +162,11 @@ func (r *FrontPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 
 				Default: int32default.StaticInt32(1),
 			},
-
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the front port template.",
-
-				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(""),
-			},
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("front port template"))
 }
 
 // Configure adds the provider configured client to the resource.
@@ -294,11 +281,8 @@ func (r *FrontPortTemplateResource) Create(ctx context.Context, req resource.Cre
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Creating front port template", map[string]interface{}{
 
@@ -481,11 +465,8 @@ func (r *FrontPortTemplateResource) Update(ctx context.Context, req resource.Upd
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Updating front port template", map[string]interface{}{
 
@@ -676,19 +657,9 @@ func (r *FrontPortTemplateResource) mapResponseToModel(template *netbox.FrontPor
 	} else {
 
 		data.RearPortPosition = types.Int32Value(1)
-
 	}
 
 	// Map description
-
-	if desc, ok := template.GetDescriptionOk(); ok && desc != nil {
-
-		data.Description = types.StringValue(*desc)
-
-	} else {
-
-		data.Description = types.StringValue("")
-
-	}
+	data.Description = utils.StringFromAPI(template.HasDescription(), template.GetDescription, data.Description)
 
 }

@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -185,24 +186,14 @@ func (r *PrefixResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Default: booldefault.StaticBool(false),
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description for the prefix.",
-
-				Optional: true,
-			},
-
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "Comments for the prefix.",
-
-				Optional: true,
-			},
-
 			"tags": nbschema.TagsAttribute(),
 		},
 	}
 
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("prefix"))
+
+	// Note: This resource does not have custom_fields
 }
 
 // Configure adds the provider configured client to the resource.
@@ -522,6 +513,10 @@ func (r *PrefixResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			// Resource already deleted
+			return
+		}
 
 		resp.Diagnostics.AddError(
 
@@ -681,19 +676,11 @@ func (r *PrefixResource) setOptionalFields(ctx context.Context, prefixRequest *n
 
 	// Handle tags
 
-	if utils.IsSet(data.Tags) {
+	utils.ApplyTags(ctx, prefixRequest, data.Tags, diags)
 
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+	if diags.HasError() {
 
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		prefixRequest.Tags = tags
+		return
 
 	}
 

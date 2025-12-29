@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -237,6 +238,14 @@ func (d *RackReservationDataSource) Read(ctx context.Context, req datasource.Rea
 	result, httpResp, err := d.client.DcimAPI.DcimRackReservationsRetrieve(ctx, id).Execute()
 
 	defer utils.CloseResponseBody(httpResp)
+
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		resp.Diagnostics.AddError(
+			"Rack Reservation Not Found",
+			fmt.Sprintf("No rack reservation found with ID: %d", id),
+		)
+		return
+	}
 
 	if err != nil {
 

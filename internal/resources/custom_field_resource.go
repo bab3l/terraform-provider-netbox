@@ -4,6 +4,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -114,10 +115,6 @@ func (r *CustomFieldResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Custom fields within the same group will be displayed together.",
 				Optional:            true,
 			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "A description of the custom field.",
-				Optional:            true,
-			},
 			"required": schema.BoolAttribute{
 				MarkdownDescription: "If true, this field is required when creating new objects or editing an existing object.",
 				Optional:            true,
@@ -189,13 +186,12 @@ func (r *CustomFieldResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The choice set name for select and multiselect custom fields.",
 				Optional:            true,
 			},
-			"comments": schema.StringAttribute{
-				MarkdownDescription: "Comments or notes about the custom field.",
-				Optional:            true,
-			},
 			"display_name": nbschema.DisplayNameAttribute("custom field"),
 		},
 	}
+
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("custom field"))
 }
 
 // Configure adds the provider configured client to the resource.
@@ -450,10 +446,8 @@ func (r *CustomFieldResource) buildCustomFieldRequest(ctx context.Context, data 
 		createReq.SetGroupName(data.GroupName.ValueString())
 	}
 
-	// Handle description (optional)
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		createReq.SetDescription(data.Description.ValueString())
-	}
+	// Apply common descriptive fields (description, comments)
+	utils.ApplyDescriptiveFields(createReq, data.Description, data.Comments)
 
 	// Handle required (optional)
 	if !data.Required.IsNull() && !data.Required.IsUnknown() {
@@ -528,11 +522,6 @@ func (r *CustomFieldResource) buildCustomFieldRequest(ctx context.Context, data 
 	if !data.ChoiceSet.IsNull() && !data.ChoiceSet.IsUnknown() {
 		choiceSetReq := netbox.NewBriefCustomFieldChoiceSetRequest(data.ChoiceSet.ValueString())
 		createReq.SetChoiceSet(*choiceSetReq)
-	}
-
-	// Handle comments (optional)
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-		createReq.SetComments(data.Comments.ValueString())
 	}
 
 	return createReq, diags

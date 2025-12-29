@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -70,11 +71,11 @@ func (r *PlatformResource) Schema(ctx context.Context, req resource.SchemaReques
 			"manufacturer": nbschema.ReferenceAttribute("manufacturer", "Reference to the manufacturer (ID or slug)."),
 
 			"manufacturer_id": nbschema.ComputedIDAttribute("manufacturer"),
-
-			"description": nbschema.DescriptionAttribute("platform"),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("platform"))
 }
 
 // Implement Create, Read, Update, Delete, and ImportState methods here.
@@ -141,15 +142,9 @@ func (r *PlatformResource) Create(ctx context.Context, req resource.CreateReques
 
 	}
 
-	if !data.Description.IsNull() {
+	// Apply description
 
-		desc := data.Description.ValueString()
-
-		platformRequest.Description = &desc
-
-	}
-
-	// Tags and custom fields can be added here if needed
+	utils.ApplyDescription(platformRequest, data.Description)
 
 	platform, httpResp, err := r.client.DcimAPI.DcimPlatformsCreate(ctx).PlatformRequest(*platformRequest).Execute()
 
@@ -262,6 +257,10 @@ func (r *PlatformResource) Read(ctx context.Context, req resource.ReadRequest, r
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 
 		resp.Diagnostics.AddError("Error reading platform", utils.FormatAPIError(fmt.Sprintf("read platform ID %s", platformID), err, httpResp))
 
@@ -386,13 +385,9 @@ func (r *PlatformResource) Update(ctx context.Context, req resource.UpdateReques
 
 	}
 
-	if !data.Description.IsNull() {
+	// Apply description
 
-		desc := data.Description.ValueString()
-
-		platformRequest.Description = &desc
-
-	}
+	utils.ApplyDescription(&platformRequest, data.Description)
 
 	platform, httpResp, err := r.client.DcimAPI.DcimPlatformsUpdate(ctx, platformIDInt).PlatformRequest(platformRequest).Execute()
 
@@ -505,6 +500,9 @@ func (r *PlatformResource) Delete(ctx context.Context, req resource.DeleteReques
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return // Already deleted
+		}
 
 		resp.Diagnostics.AddError("Error deleting platform", utils.FormatAPIError(fmt.Sprintf("delete platform ID %s", platformID), err, httpResp))
 

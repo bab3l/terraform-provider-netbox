@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -357,4 +358,46 @@ resource "netbox_cluster_type" "test" {
 
 `, name, slug, description)
 
+}
+
+func TestAccClusterTypeResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("test-cluster-type-del")
+	slug := testutil.GenerateSlug(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccClusterTypeResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cluster_type.test", "id"),
+					resource.TestCheckResourceAttr("netbox_cluster_type.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_cluster_type.test", "slug", slug),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.VirtualizationAPI.VirtualizationClusterTypesList(context.Background()).Slug([]string{slug}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find cluster_type for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.VirtualizationAPI.VirtualizationClusterTypesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete cluster_type: %v", err)
+					}
+					t.Logf("Successfully externally deleted cluster_type with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -132,27 +133,15 @@ func (r *ServiceTemplateResource) Schema(ctx context.Context, req resource.Schem
 				ElementType: types.Int64Type,
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the service template.",
-
-				Optional: true,
-			},
-
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "Additional comments or notes about the service template.",
-
-				Optional: true,
-			},
-
 			"display_name": nbschema.DisplayNameAttribute("service template"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("service template"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 
@@ -247,48 +236,10 @@ func (r *ServiceTemplateResource) Create(ctx context.Context, req resource.Creat
 
 	serviceTemplateRequest := netbox.NewWritableServiceTemplateRequest(data.Name.ValueString(), protocol, ports)
 
-	serviceTemplateRequest.Description = utils.StringPtr(data.Description)
-
-	serviceTemplateRequest.Comments = utils.StringPtr(data.Comments)
-
-	// Handle tags
-
-	if !data.Tags.IsNull() {
-
-		var tagModels []utils.TagModel
-
-		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		serviceTemplateRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		serviceTemplateRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
-
+	// Apply common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, serviceTemplateRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	tflog.Debug(ctx, "Creating service template", map[string]interface{}{
@@ -480,48 +431,10 @@ func (r *ServiceTemplateResource) Update(ctx context.Context, req resource.Updat
 
 	serviceTemplateRequest := netbox.NewWritableServiceTemplateRequest(data.Name.ValueString(), protocol, ports)
 
-	serviceTemplateRequest.Description = utils.StringPtr(data.Description)
-
-	serviceTemplateRequest.Comments = utils.StringPtr(data.Comments)
-
-	// Handle tags
-
-	if !data.Tags.IsNull() {
-
-		var tagModels []utils.TagModel
-
-		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		serviceTemplateRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		serviceTemplateRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
-
+	// Apply common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, serviceTemplateRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	tflog.Debug(ctx, "Updating service template", map[string]interface{}{

@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -277,4 +278,56 @@ resource "netbox_rack_reservation" "test" {
   description = %[4]q
 }
 `, siteName, siteSlug, rackName, description)
+}
+
+func TestAccRackReservationResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	siteName := testutil.RandomName("tf-test-site-extdel")
+	siteSlug := testutil.RandomSlug("tf-test-site-ed")
+	rackName := testutil.RandomName("tf-test-rack-extdel")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterRackCleanup(rackName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckRackReservationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rack_reservation.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "description", description),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					results, _, err := client.DcimAPI.DcimRackReservationsList(context.Background()).Description([]string{description}).Execute()
+					if err != nil || results == nil || len(results.Results) == 0 {
+						t.Fatalf("Failed to find rack reservation for external deletion: %v", err)
+					}
+					reservationID := results.Results[0].Id
+					_, err = client.DcimAPI.DcimRackReservationsDestroy(context.Background(), reservationID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete rack reservation: %v", err)
+					}
+					t.Logf("Successfully externally deleted rack reservation with ID: %d", reservationID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

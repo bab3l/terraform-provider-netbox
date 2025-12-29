@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 	"strconv"
 
 	"github.com/bab3l/go-netbox"
@@ -117,16 +118,11 @@ func (r *DeviceBayTemplateResource) Schema(ctx context.Context, req resource.Sch
 			},
 
 			"display_name": nbschema.DisplayNameAttribute("device bay template"),
-
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "Description of the device bay template.",
-
-				Optional: true,
-			},
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("device bay template"))
 }
 
 // Configure adds the provider configured client to the resource.
@@ -200,13 +196,8 @@ func (r *DeviceBayTemplateResource) Create(ctx context.Context, req resource.Cre
 
 	}
 
-	if utils.IsSet(data.Description) {
-
-		desc := data.Description.ValueString()
-
-		createReq.Description = &desc
-
-	}
+	// Apply description
+	utils.ApplyDescription(&createReq, data.Description)
 
 	tflog.Debug(ctx, "Creating DeviceBayTemplate", map[string]interface{}{
 
@@ -407,16 +398,10 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 
 	}
 
-	if utils.IsSet(data.Description) {
-
-		desc := data.Description.ValueString()
-
-		updateReq.Description = &desc
-
-	}
+	// Apply description
+	utils.ApplyDescription(&updateReq, data.Description)
 
 	tflog.Debug(ctx, "Updating DeviceBayTemplate", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -454,7 +439,6 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 	r.mapTemplateToModel(template, &data)
 
 	tflog.Debug(ctx, "Updated DeviceBayTemplate", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 	})
 

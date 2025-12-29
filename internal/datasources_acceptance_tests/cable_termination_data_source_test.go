@@ -13,7 +13,7 @@ func TestAccCableTerminationDataSource_IDPreservation(t *testing.T) {
 	t.Skip("Skipping cable_termination data source test because netbox_cable resource does not export termination IDs")
 }
 
-func TestAccCableTerminationDataSource_basic(t *testing.T) {
+func TestAccCableTerminationDataSource_byID(t *testing.T) {
 
 	t.Parallel()
 	t.Skip("Skipping cable_termination data source test because netbox_cable resource does not export termination IDs")

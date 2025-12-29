@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -146,13 +147,6 @@ func (r *PowerPortResource) Schema(ctx context.Context, req resource.SchemaReque
 				Optional: true,
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the power port.",
-
-				Optional: true,
-			},
-
 			"mark_connected": schema.BoolAttribute{
 
 				MarkdownDescription: "Treat as if a cable is connected.",
@@ -163,12 +157,14 @@ func (r *PowerPortResource) Schema(ctx context.Context, req resource.SchemaReque
 
 				Default: booldefault.StaticBool(false),
 			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("power port"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 
@@ -271,39 +267,15 @@ func (r *PowerPortResource) Create(ctx context.Context, req resource.CreateReque
 
 	}
 
-	// Handle tags
+	// Handle description, tags, and custom fields
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	utils.ApplyDescription(apiReq, data.Description)
 
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		resp.Diagnostics.Append(tagDiags...)
+	if resp.Diagnostics.HasError() {
 
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetTags(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var cfModels []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &cfModels, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
+		return
 
 	}
 
@@ -498,51 +470,21 @@ func (r *PowerPortResource) Update(ctx context.Context, req resource.UpdateReque
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
-
 	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
 
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
 
 	}
 
-	// Handle tags
+	// Handle description, tags, and custom fields
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	utils.ApplyDescription(apiReq, data.Description)
 
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		resp.Diagnostics.Append(tagDiags...)
+	if resp.Diagnostics.HasError() {
 
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetTags(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var cfModels []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &cfModels, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
+		return
 
 	}
 

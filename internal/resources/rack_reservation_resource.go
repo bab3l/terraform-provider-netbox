@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -135,22 +136,16 @@ func (r *RackReservationResource) Schema(ctx context.Context, req resource.Schem
 				Required: true,
 			},
 
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "Additional comments about the reservation.",
-
-				Optional: true,
-			},
 			"display_name": nbschema.DisplayNameAttribute("rack reservation"),
-			"tags":         nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
-}
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("rack reservation"))
 
-// Configure adds the provider configured client to the resource.
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+}
 
 func (r *RackReservationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
@@ -271,47 +266,23 @@ func (r *RackReservationResource) Create(ctx context.Context, req resource.Creat
 
 	}
 
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
+	// Apply optional fields (comments, tags, custom_fields)
 
-		apiReq.SetComments(data.Comments.ValueString())
+	utils.ApplyComments(apiReq, data.Comments)
 
-	}
+	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
 
-	// Handle tags
+	if resp.Diagnostics.HasError() {
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(tagDiags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetTags(tags)
+		return
 
 	}
 
-	// Handle custom fields
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
+	if resp.Diagnostics.HasError() {
 
-		var cfModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &cfModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
+		return
 
 	}
 
@@ -544,47 +515,23 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 
 	}
 
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
+	// Apply optional fields (comments, tags, custom_fields)
 
-		apiReq.SetComments(data.Comments.ValueString())
+	utils.ApplyComments(apiReq, data.Comments)
 
-	}
+	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
 
-	// Handle tags
+	if resp.Diagnostics.HasError() {
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(tagDiags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetTags(tags)
+		return
 
 	}
 
-	// Handle custom fields
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
+	if resp.Diagnostics.HasError() {
 
-		var cfModels []utils.CustomFieldModel
-
-		diags := data.CustomFields.ElementsAs(ctx, &cfModels, false)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
+		return
 
 	}
 

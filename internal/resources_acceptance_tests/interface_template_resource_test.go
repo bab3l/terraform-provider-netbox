@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -168,6 +169,90 @@ func TestAccInterfaceTemplateResource_IDPreservation(t *testing.T) {
 
 }
 
+func TestAccInterfaceTemplateResource_update(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-interface-template-update")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccInterfaceTemplateResourceConfig_update(name, testutil.Description1),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_interface_template.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "description", testutil.Description1),
+				),
+			},
+
+			{
+
+				Config: testAccInterfaceTemplateResourceConfig_update(name, testutil.Description2),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+
+}
+
+func TestAccInterfaceTemplateResource_external_deletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-interface-template-ext-del")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceTemplateResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_interface_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "name", name),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimInterfaceTemplatesList(context.Background()).NameIc([]string{name}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find interface_template for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimInterfaceTemplatesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete interface_template: %v", err)
+					}
+					t.Logf("Successfully externally deleted interface_template with ID: %d", itemID)
+				},
+				Config: testAccInterfaceTemplateResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_interface_template.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccInterfaceTemplateResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`
@@ -281,5 +366,27 @@ resource "netbox_device_type" "test" {
 }
 
 `, name+"-mfr", testutil.RandomSlug("mfr"), name+"-model", testutil.RandomSlug("device"))
+
+}
+
+func testAccInterfaceTemplateResourceConfig_update(name string, description string) string {
+
+	return fmt.Sprintf(`
+
+%s
+
+resource "netbox_interface_template" "test" {
+
+  device_type = netbox_device_type.test.id
+
+  name        = %q
+
+  type        = "1000base-t"
+
+  description = %q
+
+}
+
+`, testAccInterfaceTemplateResourcePrereqs(name), name, description)
 
 }

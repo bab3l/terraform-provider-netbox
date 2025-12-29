@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccRackReservationDataSource_basic(t *testing.T) {
-
+func TestAccRackReservationDataSource_byID(t *testing.T) {
 	t.Parallel()
 
 	cleanup := testutil.NewCleanupResource(t)

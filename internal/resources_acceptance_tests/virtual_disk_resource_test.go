@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -671,4 +672,51 @@ resource "netbox_virtual_disk" "test" {
 
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, diskName)
 
+}
+
+func TestAccVirtualDiskResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	diskName := testutil.RandomName("test-disk-del")
+	vmName := testutil.RandomName("test-vm")
+	clusterName := testutil.RandomName("test-cluster")
+	clusterTypeName := testutil.RandomName("test-cluster-type")
+	clusterTypeSlug := testutil.GenerateSlug(clusterTypeName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualDiskResourceConfig_basic(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_disk.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_disk.test", "name", diskName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.VirtualizationAPI.VirtualizationVirtualDisksList(context.Background()).Name([]string{diskName}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find virtual_disk for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.VirtualizationAPI.VirtualizationVirtualDisksDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete virtual_disk: %v", err)
+					}
+					t.Logf("Successfully externally deleted virtual_disk with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

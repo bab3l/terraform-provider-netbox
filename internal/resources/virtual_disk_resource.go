@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -123,16 +124,15 @@ func (r *VirtualDiskResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 
-			"description": nbschema.DescriptionAttribute("virtual disk"),
-
 			"display_name": nbschema.DisplayNameAttribute("virtual disk"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("virtual disk"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
@@ -514,6 +514,9 @@ func (r *VirtualDiskResource) Delete(ctx context.Context, req resource.DeleteReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return // Already deleted
+		}
 
 		resp.Diagnostics.AddError(
 
@@ -543,45 +546,11 @@ func (r *VirtualDiskResource) ImportState(ctx context.Context, req resource.Impo
 
 func (r *VirtualDiskResource) setOptionalFields(ctx context.Context, vdRequest *netbox.VirtualDiskRequest, data *VirtualDiskResourceModel, diags *diag.Diagnostics) {
 
-	// Description
+	// Apply description and metadata fields
 
-	vdRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(vdRequest, data.Description)
 
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		vdRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		vdRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
-	}
+	utils.ApplyMetadataFields(ctx, vdRequest, data.Tags, data.CustomFields, diags)
 
 }
 

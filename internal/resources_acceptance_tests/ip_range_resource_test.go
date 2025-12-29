@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -176,6 +177,54 @@ func TestAccIPRangeResource_import(t *testing.T) {
 		},
 	})
 
+}
+
+func TestAccIPRangeResource_external_deletion(t *testing.T) {
+	t.Parallel()
+
+	secondOctet := acctest.RandIntRange(201, 250)
+	thirdOctet := acctest.RandIntRange(1, 50)
+	startOctet := 10 + acctest.RandIntRange(1, 200)
+	endOctet := startOctet + 10
+	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
+	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPRangeResourceConfig_basic(startAddress, endAddress),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", startAddress),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "end_address", endAddress),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.IpamAPI.IpamIpRangesList(context.Background()).StartAddress([]string{startAddress}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find IP range for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.IpamAPI.IpamIpRangesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete IP range: %v", err)
+					}
+					t.Logf("Successfully externally deleted IP range with ID: %d", itemID)
+				},
+				Config: testAccIPRangeResourceConfig_basic(startAddress, endAddress),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccIPRangeResource_IDPreservation(t *testing.T) {

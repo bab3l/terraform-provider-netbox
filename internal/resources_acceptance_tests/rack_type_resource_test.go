@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -306,4 +307,88 @@ resource "netbox_rack_type" "test" {
 
 `, mfgName, mfgSlug, mfgName, model, slug)
 
+}
+
+func TestAccRackTypeResource_update(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg-upd")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-upd")
+	model := testutil.RandomName("tf-test-rack-type-upd")
+	slug := testutil.RandomSlug("tf-test-rt-upd")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackTypeResourceConfig_basic(mfgName, mfgSlug, model, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "model", model),
+				),
+			},
+			{
+				Config: testAccRackTypeResourceConfig_full(mfgName, mfgSlug, model, slug, testutil.Description2, 48, 19),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "description", testutil.Description2),
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "u_height", "48"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccRackTypeResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	mfgName := testutil.RandomName("tf-test-mfg-extdel")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-ed")
+	model := testutil.RandomName("tf-test-rack-type-extdel")
+	slug := testutil.RandomSlug("tf-test-rt-ed")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackTypeResourceConfig_basic(mfgName, mfgSlug, model, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rack_type.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "model", model),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					types, _, err := client.DcimAPI.DcimRackTypesList(context.Background()).Slug([]string{slug}).Execute()
+					if err != nil || types == nil || len(types.Results) == 0 {
+						t.Fatalf("Failed to find rack type for external deletion: %v", err)
+					}
+					typeID := types.Results[0].Id
+					_, err = client.DcimAPI.DcimRackTypesDestroy(context.Background(), typeID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete rack type: %v", err)
+					}
+					t.Logf("Successfully externally deleted rack type with ID: %d", typeID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

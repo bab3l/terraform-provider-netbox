@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -61,11 +62,11 @@ func (r *ManufacturerResource) Schema(ctx context.Context, req resource.SchemaRe
 			"slug": nbschema.SlugAttribute("manufacturer"),
 
 			"display_name": nbschema.DisplayNameAttribute("manufacturer"),
-
-			"description": nbschema.DescriptionAttribute("manufacturer"),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("manufacturer"))
 }
 
 // Implement Configure, Create, Read, Update, Delete, ImportState methods here.
@@ -116,9 +117,9 @@ func (r *ManufacturerResource) Create(ctx context.Context, req resource.CreateRe
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helper for optional string field
+	// Apply description
 
-	manufacturerRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(&manufacturerRequest, data.Description)
 
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersCreate(ctx).ManufacturerRequest(manufacturerRequest).Execute()
 
@@ -194,6 +195,10 @@ func (r *ManufacturerResource) Read(ctx context.Context, req resource.ReadReques
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 
 		resp.Diagnostics.AddError("Error reading manufacturer", utils.FormatAPIError(fmt.Sprintf("read manufacturer ID %s", manufacturerID), err, httpResp))
 
@@ -250,9 +255,9 @@ func (r *ManufacturerResource) Update(ctx context.Context, req resource.UpdateRe
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helper for optional string field
+	// Apply description
 
-	manufacturerRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(&manufacturerRequest, data.Description)
 
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersUpdate(ctx, manufacturerIDInt).ManufacturerRequest(manufacturerRequest).Execute()
 
@@ -313,6 +318,9 @@ func (r *ManufacturerResource) Delete(ctx context.Context, req resource.DeleteRe
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return // Already deleted
+		}
 
 		resp.Diagnostics.AddError("Error deleting manufacturer", utils.FormatAPIError(fmt.Sprintf("delete manufacturer ID %s", manufacturerID), err, httpResp))
 

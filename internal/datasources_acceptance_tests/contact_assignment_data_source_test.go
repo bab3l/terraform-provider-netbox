@@ -45,16 +45,13 @@ func TestAccContactAssignmentDataSource_IDPreservation(t *testing.T) {
 
 // Acceptance tests require NETBOX_URL and NETBOX_API_TOKEN environment variables.
 
-func TestAccContactAssignmentDataSource_basic(t *testing.T) {
-
+func TestAccContactAssignmentDataSource_byID(t *testing.T) {
 	t.Parallel()
 
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("test-contact-ds")
-
 	randomSlug := testutil.RandomSlug("test-ca-ds")
-
 	siteSlug := testutil.RandomSlug("site")
 
 	cleanup := testutil.NewCleanupResource(t)

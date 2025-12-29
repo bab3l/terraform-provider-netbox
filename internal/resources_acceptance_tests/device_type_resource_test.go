@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -350,4 +351,51 @@ resource "netbox_device_type" "test" {
   description  = %q
 }
 `, manufacturerName, manufacturerSlug, model, slug, description)
+}
+
+func TestAccDeviceTypeResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	model := testutil.RandomName("test-device-type-del")
+	slug := testutil.GenerateSlug(model)
+	manufacturerName := testutil.RandomName("test-manufacturer")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceTypeResourceConfig_basic(model, slug, manufacturerName, manufacturerSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device_type.test", "id"),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "model", model),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "slug", slug),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimDeviceTypesList(context.Background()).Slug([]string{slug}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find device_type for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimDeviceTypesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete device_type: %v", err)
+					}
+					t.Logf("Successfully externally deleted device_type with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

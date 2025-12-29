@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -654,4 +655,54 @@ resource "netbox_rack" "test" {
 
 `, rackName, siteName, siteSlug, tenantName, tenantSlug, roleName, roleSlug)
 
+}
+
+func TestAccRackResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	siteName := testutil.RandomName("tf-test-rack-site-extdel")
+	siteSlug := testutil.RandomSlug("tf-test-rack-site-ed")
+	rackName := testutil.RandomName("tf-test-rack-extdel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackCleanup(rackName)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackResourceConfig_basic(siteName, siteSlug, rackName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					racks, _, err := client.DcimAPI.DcimRacksList(context.Background()).Name([]string{rackName}).Execute()
+					if err != nil || racks == nil || len(racks.Results) == 0 {
+						t.Fatalf("Failed to find rack for external deletion: %v", err)
+					}
+					rackID := racks.Results[0].Id
+					_, err = client.DcimAPI.DcimRacksDestroy(context.Background(), rackID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete rack: %v", err)
+					}
+					t.Logf("Successfully externally deleted rack with ID: %d", rackID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,7 +9,6 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -17,8 +17,7 @@ func TestAccAggregateResource_basic(t *testing.T) {
 	t.Parallel()
 	rirName := testutil.RandomName("tf-test-rir")
 	rirSlug := testutil.RandomSlug("tf-test-rir")
-	// Use a random third octet to ensure uniqueness across test runs
-	prefix := fmt.Sprintf("192.0.%d.0/24", acctest.RandIntRange(0, 255))
+	prefix := testutil.RandomIPv4Prefix()
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
@@ -63,6 +62,40 @@ func TestAccAggregateResource_basic(t *testing.T) {
 
 }
 
+func TestAccAggregateResource_update(t *testing.T) {
+	t.Parallel()
+
+	rirName := testutil.RandomName("tf-test-rir-update")
+	rirSlug := testutil.RandomSlug("tf-test-rir-update")
+	prefix := testutil.RandomIPv4Prefix()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAggregateResourceConfig_withDescription(rirName, rirSlug, prefix, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "id"),
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "prefix", prefix),
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccAggregateResourceConfig_withDescription(rirName, rirSlug, prefix, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAggregateResource_full(t *testing.T) {
 
 	t.Parallel()
@@ -71,8 +104,7 @@ func TestAccAggregateResource_full(t *testing.T) {
 
 	rirSlug := testutil.RandomSlug("tf-test-rir-full")
 
-	// Use a random third octet to ensure uniqueness across test runs
-	prefix := fmt.Sprintf("198.51.%d.0/24", acctest.RandIntRange(0, 255))
+	prefix := testutil.RandomIPv4Prefix()
 
 	description := testutil.RandomName("description")
 
@@ -127,7 +159,7 @@ func TestAccAggregateResource_IDPreservation(t *testing.T) {
 
 	rirName := testutil.RandomName("tf-test-rir-id")
 	rirSlug := testutil.RandomSlug("tf-test-rir-id")
-	prefix := fmt.Sprintf("203.0.%d.0/24", acctest.RandIntRange(0, 255))
+	prefix := testutil.RandomIPv4Prefix()
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
@@ -174,6 +206,21 @@ resource "netbox_aggregate" "test" {
 
 }
 
+func testAccAggregateResourceConfig_withDescription(rirName, rirSlug, prefix, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_aggregate" "test" {
+  prefix      = %q
+  rir         = netbox_rir.test.id
+  description = %q
+}
+`, rirName, rirSlug, prefix, description)
+}
+
 func testAccAggregateResourceConfig_full(rirName, rirSlug, prefix, description, comments string) string {
 
 	return fmt.Sprintf(`
@@ -205,9 +252,7 @@ resource "netbox_aggregate" "test" {
 func TestAccConsistency_Aggregate(t *testing.T) {
 
 	t.Parallel()
-	// Use random second octet to ensure uniqueness across test runs
-	// /16 requires the last two octets to be 0
-	prefix := fmt.Sprintf("10.%d.0.0/16", acctest.RandIntRange(0, 255))
+	prefix := testutil.RandomIPv4Prefix()
 
 	rirName := testutil.RandomName("rir")
 
@@ -295,9 +340,7 @@ resource "netbox_aggregate" "test" {
 func TestAccConsistency_Aggregate_LiteralNames(t *testing.T) {
 
 	t.Parallel()
-	// Use random second octet to ensure uniqueness across test runs
-	// /16 requires the last two octets to be 0
-	prefix := fmt.Sprintf("10.%d.0.0/16", acctest.RandIntRange(0, 255))
+	prefix := testutil.RandomIPv4Prefix()
 
 	rirName := testutil.RandomName("rir")
 
@@ -382,4 +425,50 @@ resource "netbox_aggregate" "test" {
 
 `, prefix, rirName, rirSlug, tenantName, tenantSlug)
 
+}
+
+func TestAccAggregateResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	prefix := testutil.RandomIPv4Prefix()
+	rirName := testutil.RandomName("tf-test-rir-ext-del")
+	rirSlug := testutil.RandomSlug("tf-test-rir-ext-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAggregateResourceConfig_basic(rirName, rirSlug, prefix),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "prefix", prefix),
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.IpamAPI.IpamAggregatesList(context.Background()).Prefix(prefix).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find aggregate for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.IpamAPI.IpamAggregatesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete aggregate: %v", err)
+					}
+					t.Logf("Successfully externally deleted aggregate with ID: %d", itemID)
+				},
+				Config: testAccAggregateResourceConfig_basic(rirName, rirSlug, prefix),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "id"),
+				),
+			},
+		},
+	})
 }

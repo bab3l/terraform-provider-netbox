@@ -251,9 +251,7 @@ func (r *CustomLinkResource) Create(ctx context.Context, req resource.CreateRequ
 
 	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
 
-		enabled := data.Enabled.ValueBool()
-
-		request.Enabled = &enabled
+		request.SetEnabled(data.Enabled.ValueBool())
 
 	}
 
@@ -269,15 +267,13 @@ func (r *CustomLinkResource) Create(ctx context.Context, req resource.CreateRequ
 
 		}
 
-		request.Weight = &weight
+		request.SetWeight(weight)
 
 	}
 
 	if !data.GroupName.IsNull() && !data.GroupName.IsUnknown() {
 
-		groupName := data.GroupName.ValueString()
-
-		request.GroupName = &groupName
+		request.SetGroupName(data.GroupName.ValueString())
 
 	}
 
@@ -285,15 +281,13 @@ func (r *CustomLinkResource) Create(ctx context.Context, req resource.CreateRequ
 
 		buttonClass := netbox.CustomLinkButtonClass(data.ButtonClass.ValueString())
 
-		request.ButtonClass = &buttonClass
+		request.SetButtonClass(buttonClass)
 
 	}
 
 	if !data.NewWindow.IsNull() && !data.NewWindow.IsUnknown() {
 
-		newWindow := data.NewWindow.ValueBool()
-
-		request.NewWindow = &newWindow
+		request.SetNewWindow(data.NewWindow.ValueBool())
 
 	}
 
@@ -472,15 +466,13 @@ func (r *CustomLinkResource) Update(ctx context.Context, req resource.UpdateRequ
 
 		buttonClass := netbox.CustomLinkButtonClass(data.ButtonClass.ValueString())
 
-		request.ButtonClass = &buttonClass
+		request.SetButtonClass(buttonClass)
 
 	}
 
 	if !data.NewWindow.IsNull() && !data.NewWindow.IsUnknown() {
 
-		newWindow := data.NewWindow.ValueBool()
-
-		request.NewWindow = &newWindow
+		request.SetNewWindow(data.NewWindow.ValueBool())
 
 	}
 
@@ -542,6 +534,11 @@ func (r *CustomLinkResource) Delete(ctx context.Context, req resource.DeleteRequ
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		// If the resource was already deleted (404), consider it a success
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			tflog.Debug(ctx, "Custom link already deleted", map[string]interface{}{"id": id})
+			return
+		}
 
 		resp.Diagnostics.AddError("Error deleting custom link",
 

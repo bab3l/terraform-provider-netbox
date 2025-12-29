@@ -38,7 +38,7 @@ func TestAccClusterGroupDataSource_IDPreservation(t *testing.T) {
 	})
 }
 
-func TestAccClusterGroupDataSource_basic(t *testing.T) {
+func TestAccClusterGroupDataSource_byID(t *testing.T) {
 
 	t.Parallel()
 

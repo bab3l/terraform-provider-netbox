@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -86,18 +87,14 @@ func (r *AggregateResource) Schema(ctx context.Context, req resource.SchemaReque
 				MarkdownDescription: "The date this aggregate was added (YYYY-MM-DD format).",
 				Optional:            true,
 			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "A description of the aggregate.",
-				Optional:            true,
-			},
-			"comments": schema.StringAttribute{
-				MarkdownDescription: "Additional comments about the aggregate.",
-				Optional:            true,
-			},
-			"tags":          nbschema.TagsAttribute(),
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("aggregate"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure sets the client for the resource.
@@ -329,35 +326,10 @@ func (r *AggregateResource) buildCreateRequest(ctx context.Context, data *Aggreg
 		createReq.SetDateAdded(data.DateAdded.ValueString())
 	}
 
-	// Handle description (optional)
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		createReq.SetDescription(data.Description.ValueString())
-	}
-
-	// Handle comments (optional)
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-		createReq.SetComments(data.Comments.ValueString())
-	}
-
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return nil, diags
-		}
-		createReq.SetTags(tags)
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFields []utils.CustomFieldModel
-		cfDiags := data.CustomFields.ElementsAs(ctx, &customFields, false)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return nil, diags
-		}
-		createReq.SetCustomFields(utils.CustomFieldsToMap(customFields))
+	// Apply common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, createReq, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
+	if diags.HasError() {
+		return nil, diags
 	}
 
 	return createReq, diags

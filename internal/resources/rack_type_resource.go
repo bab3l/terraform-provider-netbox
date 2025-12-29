@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -213,15 +214,14 @@ func (r *RackTypeResource) Schema(ctx context.Context, req resource.SchemaReques
 
 				Optional: true,
 			},
-
-			"comments": nbschema.CommentsAttribute("rack type"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("rack type"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
@@ -578,13 +578,7 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResou
 		formFactor,
 	)
 
-	// Set optional fields
-
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		rackTypeRequest.SetDescription(data.Description.ValueString())
-
-	}
+	utils.ApplyDescription(rackTypeRequest, data.Description)
 
 	// FormFactor is already set in the constructor, but update if explicitly provided
 

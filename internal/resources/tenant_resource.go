@@ -11,11 +11,13 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -89,16 +91,14 @@ func (r *TenantResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 			"group":    nbschema.ReferenceAttribute("tenant group", "Name, Slug, or ID of the tenant group that this tenant belongs to."),
 			"group_id": nbschema.ComputedIDAttribute("tenant group"),
-
-			"description": nbschema.DescriptionAttribute("tenant"),
-
-			"comments": nbschema.CommentsAttributeWithLimit("tenant", 1000),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("tenant"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 
@@ -159,64 +159,21 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helper for optional string fields
-
-	tenantRequest.Description = utils.StringPtr(data.Description)
-
-	tenantRequest.Comments = utils.StringPtr(data.Comments)
+	// Apply common descriptive fields (description, comments)
+	utils.ApplyDescriptiveFields(&tenantRequest, data.Description, data.Comments)
 
 	// Handle group relationship - lookup the group details by ID
 
-	if utils.IsSet(data.Group) {
-
-		groupRef, diags := netboxlookup.LookupTenantGroup(ctx, r.client, data.Group.ValueString())
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
+	if groupRef := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupTenantGroup, &resp.Diagnostics); groupRef != nil {
 
 		tenantRequest.Group = *netbox.NewNullableBriefTenantGroupRequest(groupRef)
 
 	}
 
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tenantRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tenantRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Apply common metadata fields (tags, custom_fields)
+	utils.ApplyMetadataFields(ctx, &tenantRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Create the tenant via API
@@ -281,8 +238,10 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Map response to state using helper
-
-	r.mapTenantToState(ctx, tenant, &data)
+	r.mapTenantToState(ctx, tenant, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, "Created tenant", map[string]interface{}{
 
@@ -326,16 +285,12 @@ func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, res
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 
 		resp.Diagnostics.AddError("Error reading tenant", utils.FormatAPIError(fmt.Sprintf("read tenant ID %s", tenantID), err, httpResp))
-
-		return
-
-	}
-
-	if httpResp.StatusCode == 404 {
-
-		resp.State.RemoveResource(ctx)
 
 		return
 
@@ -350,8 +305,10 @@ func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Map response to state using helper
-
-	r.mapTenantToState(ctx, tenant, &data)
+	r.mapTenantToState(ctx, tenant, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -392,64 +349,21 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helpers for optional string fields
-
-	tenantRequest.Description = utils.StringPtr(data.Description)
-
-	tenantRequest.Comments = utils.StringPtr(data.Comments)
+	// Apply common descriptive fields (description, comments)
+	utils.ApplyDescriptiveFields(&tenantRequest, data.Description, data.Comments)
 
 	// Handle group relationship
 
-	if utils.IsSet(data.Group) {
-
-		groupRef, diags := netboxlookup.LookupTenantGroup(ctx, r.client, data.Group.ValueString())
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
+	if groupRef := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupTenantGroup, &resp.Diagnostics); groupRef != nil {
 
 		tenantRequest.Group = *netbox.NewNullableBriefTenantGroupRequest(groupRef)
 
 	}
 
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tenantRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tenantRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Apply common metadata fields (tags, custom_fields)
+	utils.ApplyMetadataFields(ctx, &tenantRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	tenant, httpResp, err := r.client.TenancyAPI.TenancyTenantsUpdate(ctx, tenantIDInt).TenantRequest(tenantRequest).Execute()
@@ -473,8 +387,10 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	// Map response to state using helper
-
-	r.mapTenantToState(ctx, tenant, &data)
+	r.mapTenantToState(ctx, tenant, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -511,6 +427,9 @@ func (r *TenantResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return
+		}
 
 		resp.Diagnostics.AddError("Error deleting tenant", utils.FormatAPIError(fmt.Sprintf("delete tenant ID %s", tenantID), err, httpResp))
 
@@ -536,7 +455,7 @@ func (r *TenantResource) ImportState(ctx context.Context, req resource.ImportSta
 
 // mapTenantToState maps API response to Terraform state using state helpers.
 
-func (r *TenantResource) mapTenantToState(ctx context.Context, tenant *netbox.Tenant, data *TenantResourceModel) {
+func (r *TenantResource) mapTenantToState(ctx context.Context, tenant *netbox.Tenant, data *TenantResourceModel, diags *diag.Diagnostics) {
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 
@@ -547,89 +466,26 @@ func (r *TenantResource) mapTenantToState(ctx context.Context, tenant *netbox.Te
 	data.DisplayName = types.StringValue(tenant.GetDisplay())
 
 	// Handle group reference
-
-	if tenant.HasGroup() {
-
-		group := tenant.GetGroup()
-
-		if group.Id != 0 {
-
-			data.GroupID = types.StringValue(fmt.Sprintf("%d", group.Id))
-
-			userGroup := data.Group.ValueString()
-			// Check if the current state value matches the API value (Name, Slug, or ID)
-			if userGroup == group.Name || userGroup == group.Slug || userGroup == fmt.Sprintf("%d", group.Id) {
-				// Keep user's original value
-			} else {
-				data.Group = types.StringValue(group.Name)
-			}
-
-		} else {
-
-			data.Group = types.StringNull()
-			data.GroupID = types.StringNull()
-
-		}
-
-	} else {
-
-		data.Group = types.StringNull()
-		data.GroupID = types.StringNull()
-
-	}
+	groupRef := utils.PreserveOptionalReferenceWithID(
+		data.Group,
+		tenant.HasGroup() && tenant.GetGroup().Id != 0,
+		tenant.GetGroup().Id,
+		tenant.GetGroup().Name,
+		tenant.GetGroup().Slug,
+	)
+	data.Group = groupRef.Reference
+	data.GroupID = groupRef.ID
 
 	// Handle optional string fields using helpers
-
 	data.Description = utils.StringFromAPI(tenant.HasDescription(), tenant.GetDescription, data.Description)
-
 	data.Comments = utils.StringFromAPI(tenant.HasComments(), tenant.GetComments, data.Comments)
 
 	// Handle tags
-
-	if tenant.HasTags() {
-
-		tags := utils.NestedTagsToTagModels(tenant.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		if !tagDiags.HasError() {
-
-			data.Tags = tagsValue
-
-		}
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, tenant.HasTags(), tenant.GetTags(), diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Handle custom fields - preserve state structure
-
-	if tenant.HasCustomFields() && !data.CustomFields.IsNull() {
-
-		var stateCustomFields []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		if !cfDiags.HasError() {
-
-			customFields := utils.MapToCustomFieldModels(tenant.GetCustomFields(), stateCustomFields)
-
-			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-			if !cfValueDiags.HasError() {
-
-				data.CustomFields = customFieldsValue
-
-			}
-
-		}
-
-	} else if data.CustomFields.IsNull() {
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
-
+	// Handle custom fields
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, tenant.HasCustomFields(), tenant.GetCustomFields(), data.CustomFields, diags)
 }

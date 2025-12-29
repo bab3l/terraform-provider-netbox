@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -165,6 +166,48 @@ func TestAccTunnelResource_import(t *testing.T) {
 				ResourceName:      "netbox_tunnel.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccTunnelResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-tunnel-extdel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTunnelResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tunnel.test", "id"),
+					resource.TestCheckResourceAttr("netbox_tunnel.test", "name", name),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.VpnAPI.VpnTunnelsList(context.Background()).Name([]string{name}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find tunnel for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.VpnAPI.VpnTunnelsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete tunnel: %v", err)
+					}
+					t.Logf("Successfully externally deleted tunnel with ID: %d", itemID)
+				},
+				Config: testAccTunnelResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tunnel.test", "id"),
+				),
 			},
 		},
 	})

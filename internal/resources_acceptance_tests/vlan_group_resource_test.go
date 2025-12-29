@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -112,6 +113,55 @@ func TestAccVLANGroupResource_update(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_vlan_group.test", "slug", slug),
 					resource.TestCheckResourceAttr("netbox_vlan_group.test", "description", "Updated description"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccVLANGroupResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-vlang-extdel")
+	slug := testutil.GenerateSlug(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVLANGroupResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vlan_group.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// Find VLAN group by slug
+					items, _, err := client.IpamAPI.IpamVlanGroupsList(context.Background()).Slug([]string{slug}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list VLAN groups: %v", err)
+					}
+					if items == nil || len(items.Results) == 0 {
+						t.Fatalf("VLAN group not found with slug: %s", slug)
+					}
+
+					// Delete the VLAN group
+					itemID := items.Results[0].Id
+					_, err = client.IpamAPI.IpamVlanGroupsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete VLAN group: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted VLAN group with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

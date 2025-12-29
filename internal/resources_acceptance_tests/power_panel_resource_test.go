@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -177,4 +178,53 @@ resource "netbox_power_panel" "test" {
   depends_on = [netbox_site.test]
 }
 `, siteName, siteSlug, panelName)
+}
+
+func TestAccPowerPanelResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	siteName := testutil.RandomName("tf-test-site-extdel")
+	siteSlug := testutil.RandomSlug("tf-test-site-ed")
+	panelName := testutil.RandomName("tf-test-panel-extdel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerPanelResourceConfig_basic(siteName, siteSlug, panelName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_panel.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_panel.test", "name", panelName),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					panels, _, err := client.DcimAPI.DcimPowerPanelsList(context.Background()).Name([]string{panelName}).Execute()
+					if err != nil || panels == nil || len(panels.Results) == 0 {
+						t.Fatalf("Failed to find power panel for external deletion: %v", err)
+					}
+					panelID := panels.Results[0].Id
+					_, err = client.DcimAPI.DcimPowerPanelsDestroy(context.Background(), panelID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete power panel: %v", err)
+					}
+					t.Logf("Successfully externally deleted power panel with ID: %d", panelID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -67,6 +68,67 @@ func TestAccCircuitGroupAssignmentResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "group_id"),
 
 					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "circuit_id"),
+				),
+			},
+		},
+	})
+
+}
+
+func TestAccCircuitGroupAssignmentResource_full(t *testing.T) {
+
+	t.Parallel()
+
+	groupName := testutil.RandomName("tf-test-cga-grp-full")
+
+	groupSlug := testutil.RandomSlug("tf-test-cga-grp-full")
+
+	providerName := testutil.RandomName("tf-test-cga-prov-full")
+
+	providerSlug := testutil.RandomSlug("tf-test-cga-prov-full")
+
+	circuitTypeName := testutil.RandomName("tf-test-cga-type-full")
+
+	circuitTypeSlug := testutil.RandomSlug("tf-test-cga-type-full")
+
+	circuitCid := testutil.RandomSlug("tf-test-cga-ckt-full")
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	cleanup.RegisterCircuitGroupAssignmentCleanup(groupName)
+
+	cleanup.RegisterCircuitGroupCleanup(groupName)
+
+	cleanup.RegisterCircuitCleanup(circuitCid)
+
+	cleanup.RegisterProviderCleanup(providerName)
+
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeName)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+
+		CheckDestroy: testutil.CheckCircuitGroupAssignmentDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCircuitGroupAssignmentResourceConfig_withPriority(
+
+					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, "primary"),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_circuit_group_assignment.test", "priority", "primary"),
 				),
 			},
 		},
@@ -556,4 +618,72 @@ resource "netbox_circuit_group_assignment" "test" {
 
 `, groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid)
 
+}
+
+func TestAccCircuitGroupAssignmentResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	groupName := testutil.RandomName("tf-test-cga-group-ext-del")
+	groupSlug := testutil.RandomSlug("tf-test-cga-grp-ext-del")
+	providerName := testutil.RandomName("tf-test-cga-provider-ext-del")
+	providerSlug := testutil.RandomSlug("tf-test-cga-prov-ext-del")
+	circuitTypeName := testutil.RandomName("tf-test-cga-type-ext-del")
+	circuitTypeSlug := testutil.RandomSlug("tf-test-cga-type-ext-del")
+	circuitCid := testutil.RandomSlug("tf-test-cga-ckt-ext-del")
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_circuit_group" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_circuit" "test" {
+  cid              = %q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+}
+resource "netbox_circuit_group_assignment" "test" {
+  group_id   = netbox_circuit_group.test.name
+  circuit_id = netbox_circuit.test.cid
+}
+`, groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					// List assignments filtered by circuit CID
+					items, _, err := client.CircuitsAPI.CircuitsCircuitGroupAssignmentsList(context.Background()).Circuit([]string{circuitCid}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find circuit group assignment for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.CircuitsAPI.CircuitsCircuitGroupAssignmentsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete circuit group assignment: %v", err)
+					}
+					t.Logf("Successfully externally deleted circuit group assignment with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

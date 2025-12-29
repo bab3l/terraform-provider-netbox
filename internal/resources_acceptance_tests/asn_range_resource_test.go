@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -229,6 +230,59 @@ func TestAccASNRangeResource_update(t *testing.T) {
 		},
 	})
 
+}
+
+func TestAccASNRangeResource_external_deletion(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-asn-range-ext-del")
+	slug := testutil.RandomSlug("tf-test-asn-range-ext-del")
+	rirName := testutil.RandomName("tf-test-rir-ext-del")
+	rirSlug := testutil.RandomSlug("tf-test-rir-ext-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterASNRangeCleanup(name)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckASNRangeDestroy,
+			testutil.CheckRIRDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccASNRangeResourceConfig_basic(name, slug, rirName, rirSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "id"),
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "name", name),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.IpamAPI.IpamAsnRangesList(context.Background()).Name([]string{name}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find ASN range for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.IpamAPI.IpamAsnRangesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete ASN range: %v", err)
+					}
+					t.Logf("Successfully externally deleted ASN range with ID: %d", itemID)
+				},
+				Config: testAccASNRangeResourceConfig_basic(name, slug, rirName, rirSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "id"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccASNRangeResource_IDPreservation(t *testing.T) {

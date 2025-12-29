@@ -89,7 +89,7 @@ func (r *TagResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Set optional fields
 	tagRequest.Color = utils.StringPtr(data.Color)
-	tagRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(tagRequest, data.Description)
 
 	// Handle object_types list
 	if !data.ObjectTypes.IsNull() && !data.ObjectTypes.IsUnknown() {
@@ -155,6 +155,10 @@ func (r *TagResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	tag, httpResp, err := r.client.ExtrasAPI.ExtrasTagsRetrieve(ctx, tagID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error reading tag", utils.FormatAPIError(fmt.Sprintf("read tag ID %s", data.ID.ValueString()), err, httpResp))
 		return
 	}
@@ -189,7 +193,7 @@ func (r *TagResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	// Set optional fields
 	tagRequest.Color = utils.StringPtr(data.Color)
-	tagRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(tagRequest, data.Description)
 
 	// Handle object_types list
 	if !data.ObjectTypes.IsNull() && !data.ObjectTypes.IsUnknown() {
@@ -235,6 +239,9 @@ func (r *TagResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	httpResp, err := r.client.ExtrasAPI.ExtrasTagsDestroy(ctx, tagID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return
+		}
 		resp.Diagnostics.AddError("Error deleting tag", utils.FormatAPIError(fmt.Sprintf("delete tag ID %s", data.ID.ValueString()), err, httpResp))
 		return
 	}

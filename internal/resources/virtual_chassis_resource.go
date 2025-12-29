@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -103,23 +104,20 @@ func (r *VirtualChassisResource) Schema(ctx context.Context, req resource.Schema
 				Optional: true,
 			},
 
-			"description": nbschema.DescriptionAttribute("virtual chassis"),
-
-			"comments": nbschema.CommentsAttribute("virtual chassis"),
-
 			"member_count": schema.Int64Attribute{
 
 				MarkdownDescription: "Number of member devices in this virtual chassis.",
 
 				Computed: true,
 			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("virtual chassis"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
@@ -474,54 +472,10 @@ func (r *VirtualChassisResource) buildRequest(ctx context.Context, data *Virtual
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		vcRequest.SetDescription(data.Description.ValueString())
-
-	}
-
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-
-		vcRequest.SetComments(data.Comments.ValueString())
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return nil, diags
-
-		}
-
-		vcRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-
-			return nil, diags
-
-		}
-
-		vcRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
-
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, vcRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
+	if diags.HasError() {
+		return nil, diags
 	}
 
 	return vcRequest, diags

@@ -822,3 +822,93 @@ func DSCustomFieldsAttribute() dsschema.SetNestedAttribute {
 	}
 
 }
+
+// =====================================================
+
+// SCHEMA COMPOSITION HELPERS
+
+// =====================================================
+
+// These helpers provide pre-composed attribute sets that are commonly used
+
+// together across many resources, reducing schema definition boilerplate.
+
+// DescriptionOnlyAttributes returns just the description attribute.
+// Use this for resources that have description but not comments.
+//
+// Usage:
+//
+//	attrs := map[string]schema.Attribute{
+//	    "id": IDAttribute("resource"),
+//	    "name": NameAttribute("resource", 100),
+//	}
+//	maps.Copy(attrs, DescriptionOnlyAttributes("resource"))
+func DescriptionOnlyAttributes(resourceName string) map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"description": DescriptionAttribute(resourceName),
+	}
+}
+
+// CommonDescriptiveAttributes returns the standard description and comments attributes.
+
+// These are optional text fields that appear on most Netbox resources.
+
+//
+
+// Usage:
+
+//
+
+//	attrs := map[string]schema.Attribute{
+
+//	    "id": IDAttribute("resource"),
+
+//	    "name": NameAttribute("resource", 100),
+
+//	}
+
+//	maps.Copy(attrs, CommonDescriptiveAttributes("resource"))
+
+func CommonDescriptiveAttributes(resourceName string) map[string]schema.Attribute {
+
+	return map[string]schema.Attribute{
+
+		"description": DescriptionAttribute(resourceName),
+
+		"comments": CommentsAttribute(resourceName),
+	}
+
+}
+
+// CommonMetadataAttributes returns the standard tags and custom_fields attributes.
+
+// These are optional sets that appear on most Netbox resources for categorization
+
+// and custom data storage.
+
+//
+
+// Usage:
+
+//
+
+//	attrs := map[string]schema.Attribute{
+
+//	    "id": IDAttribute("resource"),
+
+//	    "name": NameAttribute("resource", 100),
+
+//	}
+
+//	maps.Copy(attrs, CommonMetadataAttributes())
+
+func CommonMetadataAttributes() map[string]schema.Attribute {
+
+	return map[string]schema.Attribute{
+
+		"tags": TagsAttribute(),
+
+		"custom_fields": CustomFieldsAttribute(),
+	}
+
+}

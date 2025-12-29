@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -354,16 +355,14 @@ func (r *RackResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 					stringvalidator.OneOf("front-to-rear", "rear-to-front", "passive", "mixed"),
 				},
 			},
-
-			"description": nbschema.DescriptionAttribute("rack"),
-
-			"comments": nbschema.CommentsAttribute("rack"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("rack"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 
@@ -695,59 +694,13 @@ func (r *RackResource) buildRackRequest(ctx context.Context, data *RackResourceM
 
 	}
 
-	// Set description
+	// Apply common fields (description, comments, tags, custom_fields)
 
-	if !data.Description.IsNull() {
+	utils.ApplyCommonFields(ctx, &rackRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		description := data.Description.ValueString()
+	if resp.Diagnostics.HasError() {
 
-		rackRequest.Description = &description
-
-	}
-
-	// Set comments
-
-	if !data.Comments.IsNull() {
-
-		comments := data.Comments.ValueString()
-
-		rackRequest.Comments = &comments
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return nil
-
-		}
-
-		rackRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return nil
-
-		}
-
-		rackRequest.CustomFields = utils.CustomFieldsToMap(customFields)
+		return nil
 
 	}
 
@@ -1254,59 +1207,13 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 
 	}
 
-	// Set description
+	// Apply common fields (description, comments, tags, custom_fields)
 
-	if !data.Description.IsNull() {
+	utils.ApplyCommonFields(ctx, &rackRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		description := data.Description.ValueString()
+	if resp.Diagnostics.HasError() {
 
-		rackRequest.Description = &description
-
-	}
-
-	// Set comments
-
-	if !data.Comments.IsNull() {
-
-		comments := data.Comments.ValueString()
-
-		rackRequest.Comments = &comments
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return nil
-
-		}
-
-		rackRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return nil
-
-		}
-
-		rackRequest.CustomFields = utils.CustomFieldsToMap(customFields)
+		return nil
 
 	}
 

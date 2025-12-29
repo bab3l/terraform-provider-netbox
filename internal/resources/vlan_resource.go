@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -112,10 +113,6 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 			"tenant_id": nbschema.ComputedIDAttribute("tenant"),
 
-			"description": nbschema.DescriptionAttribute("VLAN"),
-
-			"comments": nbschema.CommentsAttribute("VLAN"),
-
 			"status": schema.StringAttribute{
 
 				MarkdownDescription: "Operational status of the VLAN. Valid values: `active`, `reserved`, `deprecated`. Defaults to `active`.",
@@ -131,12 +128,14 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 				Optional: true,
 			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("VLAN"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 
@@ -629,48 +628,10 @@ func (r *VLANResource) setOptionalFields(ctx context.Context, vlanRequest *netbo
 
 	}
 
-	// Description
-
-	vlanRequest.Description = utils.StringPtr(data.Description)
-
-	// Comments
-
-	vlanRequest.Comments = utils.StringPtr(data.Comments)
-
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		vlanRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		vlanRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, vlanRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	if diags.HasError() {
+		return
 	}
 
 }

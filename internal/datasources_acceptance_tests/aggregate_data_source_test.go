@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccAggregateDataSource_basic(t *testing.T) {
+func TestAccAggregateDataSource_byID(t *testing.T) {
 
 	t.Parallel()
 
@@ -27,14 +27,37 @@ func TestAccAggregateDataSource_basic(t *testing.T) {
 			{
 				Config: testAccAggregateDataSourceConfig(rirName, rirSlug, prefix),
 				Check: resource.ComposeTestCheckFunc(
-					// Test lookup by prefix
-					resource.TestCheckResourceAttr("data.netbox_aggregate.by_prefix", "prefix", prefix),
-					resource.TestCheckResourceAttrSet("data.netbox_aggregate.by_prefix", "rir"),
-					resource.TestCheckResourceAttrSet("data.netbox_aggregate.by_prefix", "id"),
-					// Test lookup by id
 					resource.TestCheckResourceAttr("data.netbox_aggregate.by_id", "prefix", prefix),
 					resource.TestCheckResourceAttrSet("data.netbox_aggregate.by_id", "rir"),
 					resource.TestCheckResourceAttrSet("data.netbox_aggregate.by_id", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAggregateDataSource_byPrefix(t *testing.T) {
+
+	t.Parallel()
+
+	rirName := testutil.RandomName("rir")
+	rirSlug := testutil.RandomSlug("rir")
+	prefix := testutil.RandomIPv4Prefix()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRIRDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAggregateDataSourceConfig(rirName, rirSlug, prefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_aggregate.by_prefix", "prefix", prefix),
+					resource.TestCheckResourceAttrSet("data.netbox_aggregate.by_prefix", "rir"),
+					resource.TestCheckResourceAttrSet("data.netbox_aggregate.by_prefix", "id"),
 				),
 			},
 		},

@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -222,13 +223,6 @@ func (r *PowerFeedResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed: true,
 			},
 
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the power feed.",
-
-				Optional: true,
-			},
-
 			"tenant": schema.StringAttribute{
 
 				MarkdownDescription: "The tenant this power feed belongs to (ID or slug).",
@@ -236,20 +230,15 @@ func (r *PowerFeedResource) Schema(ctx context.Context, req resource.SchemaReque
 				Optional: true,
 			},
 
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "Additional comments or notes about the power feed.",
-
-				Optional: true,
-			},
-
 			"display_name": nbschema.DisplayNameAttribute("power feed"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description and comments attributes
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("power feed"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 
@@ -416,11 +405,8 @@ func (r *PowerFeedResource) Create(ctx context.Context, req resource.CreateReque
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
 
@@ -438,46 +424,15 @@ func (r *PowerFeedResource) Create(ctx context.Context, req resource.CreateReque
 
 	}
 
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-
-		apiReq.SetComments(data.Comments.ValueString())
-
+	// Apply common fields (comments, tags, custom_fields)
+	utils.ApplyComments(apiReq, data.Comments)
+	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(tagDiags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetTags(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var cfModels []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &cfModels, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
-
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	tflog.Debug(ctx, "Creating power feed", map[string]interface{}{
@@ -745,11 +700,7 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	utils.ApplyDescription(apiReq, data.Description)
 
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
 
@@ -767,46 +718,15 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 
 	}
 
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-
-		apiReq.SetComments(data.Comments.ValueString())
-
+	// Apply common fields (comments, tags, custom_fields)
+	utils.ApplyComments(apiReq, data.Comments)
+	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(tagDiags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetTags(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var cfModels []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &cfModels, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
-
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	tflog.Debug(ctx, "Updating power feed", map[string]interface{}{

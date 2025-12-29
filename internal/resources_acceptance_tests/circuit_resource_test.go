@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -627,4 +628,80 @@ resource "netbox_circuit" "test" {
 
 `, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
 
+}
+
+func TestAccCircuitResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	cid := testutil.RandomName("tf-test-circuit-ext-del")
+	providerName := testutil.RandomName("tf-test-provider")
+	providerSlug := testutil.RandomSlug("provider")
+	typeName := testutil.RandomName("tf-test-circuit-type")
+	typeSlug := testutil.RandomSlug("circuit-type")
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_circuit" "test" {
+  cid                = %q
+  circuit_provider   = netbox_provider.test.id
+  type               = netbox_circuit_type.test.id
+  status             = "active"
+}
+`, providerName, providerSlug, typeName, typeSlug, cid),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					// List circuits filtered by CID
+					items, _, err := client.CircuitsAPI.CircuitsCircuitsList(context.Background()).CidIc([]string{cid}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find circuit for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.CircuitsAPI.CircuitsCircuitsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete circuit: %v", err)
+					}
+					t.Logf("Successfully externally deleted circuit with ID: %d", itemID)
+				},
+				Config: fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+resource "netbox_circuit" "test" {
+  cid                = %q
+  circuit_provider   = netbox_provider.test.id
+  type               = netbox_circuit_type.test.id
+  status             = "active"
+}
+`, providerName, providerSlug, typeName, typeSlug, cid),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
+				),
+			},
+		},
+	})
 }

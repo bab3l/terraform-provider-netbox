@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -280,4 +281,52 @@ resource "netbox_custom_field_choice_set" "test" {
 
 `, name)
 
+}
+
+func TestAccCustomFieldChoiceSetResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-cfcs-extdel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomFieldChoiceSetResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_custom_field_choice_set.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// Find custom field choice set by name
+					items, _, err := client.ExtrasAPI.ExtrasCustomFieldChoiceSetsList(context.Background()).Name([]string{name}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list custom field choice sets: %v", err)
+					}
+					if items == nil || len(items.Results) == 0 {
+						t.Fatalf("Custom field choice set not found with name: %s", name)
+					}
+
+					// Delete the custom field choice set
+					itemID := items.Results[0].Id
+					_, err = client.ExtrasAPI.ExtrasCustomFieldChoiceSetsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete custom field choice set: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted custom field choice set with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

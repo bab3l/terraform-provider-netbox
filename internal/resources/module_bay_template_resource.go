@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -141,13 +142,14 @@ func (r *ModuleBayTemplateResource) Schema(ctx context.Context, req resource.Sch
 			},
 
 			"display_name": nbschema.DisplayNameAttribute("module bay template"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("module bay template"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
@@ -260,11 +262,8 @@ func (r *ModuleBayTemplateResource) Create(ctx context.Context, req resource.Cre
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Creating module bay template", map[string]interface{}{
 
@@ -482,11 +481,8 @@ func (r *ModuleBayTemplateResource) Update(ctx context.Context, req resource.Upd
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Updating module bay template", map[string]interface{}{
 

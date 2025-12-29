@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -159,19 +160,16 @@ func (r *IPSecProposalResource) Schema(ctx context.Context, req resource.SchemaR
 				},
 			},
 
-			"comments": nbschema.CommentsAttribute("IPSec proposal"),
-
 			"display_name": nbschema.DisplayNameAttribute("IPSec proposal"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
-}
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("IPSec proposal"))
 
-// Configure adds the provider configured client to the resource.
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+}
 
 func (r *IPSecProposalResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
@@ -521,10 +519,6 @@ func (r *IPSecProposalResource) ImportState(ctx context.Context, req resource.Im
 
 func (r *IPSecProposalResource) setOptionalFields(ctx context.Context, ipsecRequest *netbox.WritableIPSecProposalRequest, data *IPSecProposalResourceModel, diags *diag.Diagnostics) {
 
-	// Description
-
-	ipsecRequest.Description = utils.StringPtr(data.Description)
-
 	// Encryption Algorithm
 
 	if utils.IsSet(data.EncryptionAlgorithm) {
@@ -581,44 +575,10 @@ func (r *IPSecProposalResource) setOptionalFields(ctx context.Context, ipsecRequ
 
 	}
 
-	// Comments
-
-	ipsecRequest.Comments = utils.StringPtr(data.Comments)
-
-	// Tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		ipsecRequest.Tags = tags
-
-	}
-
-	// Custom Fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		diags.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		ipsecRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
+	// Set common fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFields(ctx, ipsecRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	if diags.HasError() {
+		return
 	}
 
 }

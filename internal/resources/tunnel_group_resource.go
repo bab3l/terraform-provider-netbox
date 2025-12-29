@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -79,16 +80,15 @@ func (r *TunnelGroupResource) Schema(ctx context.Context, req resource.SchemaReq
 
 			"slug": nbschema.SlugAttribute("tunnel group"),
 
-			"description": nbschema.DescriptionAttribute("tunnel group"),
-
 			"display_name": nbschema.DisplayNameAttribute("tunnel group"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("tunnel group"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure configures the resource with the provider client.
@@ -154,47 +154,13 @@ func (r *TunnelGroupResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Set optional fields
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+	utils.ApplyDescription(&tunnelGroupRequest, data.Description)
 
-		description := data.Description.ValueString()
+	utils.ApplyMetadataFields(ctx, &tunnelGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		tunnelGroupRequest.Description = &description
+	if resp.Diagnostics.HasError() {
 
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tunnelGroupRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tunnelGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
+		return
 
 	}
 
@@ -406,21 +372,13 @@ func (r *TunnelGroupResource) Update(ctx context.Context, req resource.UpdateReq
 
 	}
 
-	// Handle custom fields
+	// Apply metadata fields (tags, custom_fields)
 
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
+	utils.ApplyMetadataFields(ctx, &tunnelGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		var customFields []utils.CustomFieldModel
+	if resp.Diagnostics.HasError() {
 
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		tunnelGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
+		return
 
 	}
 

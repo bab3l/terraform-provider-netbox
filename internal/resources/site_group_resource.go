@@ -11,6 +11,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -90,16 +91,15 @@ func (r *SiteGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 				MarkdownDescription: "The numeric ID of the parent site group.",
 			},
 
-			"description": nbschema.DescriptionAttribute("site group"),
-
 			"display_name": nbschema.DisplayNameAttribute("site group"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("site group"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *SiteGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -157,9 +157,12 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helper for optional string field
-
-	siteGroupRequest.Description = utils.StringPtr(data.Description)
+	// Apply description, tags, and custom fields
+	utils.ApplyDescription(&siteGroupRequest, data.Description)
+	utils.ApplyMetadataFields(ctx, &siteGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Handle parent reference
 
@@ -176,42 +179,6 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 		}
 
 		siteGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
-
-	}
-
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		siteGroupRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		siteGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
 
 	}
 
@@ -320,16 +287,12 @@ func (r *SiteGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 
 		resp.Diagnostics.AddError("Error reading site group", utils.FormatAPIError(fmt.Sprintf("read site group ID %s", siteGroupID), err, httpResp))
-
-		return
-
-	}
-
-	if httpResp.StatusCode == 404 {
-
-		resp.State.RemoveResource(ctx)
 
 		return
 
@@ -386,9 +349,12 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Use helper for optional string field
-
-	siteGroupRequest.Description = utils.StringPtr(data.Description)
+	// Apply description, tags, and custom fields
+	utils.ApplyDescription(&siteGroupRequest, data.Description)
+	utils.ApplyMetadataFields(ctx, &siteGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Handle parent reference
 
@@ -405,42 +371,6 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 		}
 
 		siteGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
-
-	}
-
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		siteGroupRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		siteGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
 
 	}
 
@@ -503,6 +433,9 @@ func (r *SiteGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return
+		}
 
 		resp.Diagnostics.AddError("Error deleting site group", utils.FormatAPIError(fmt.Sprintf("delete site group ID %s", siteGroupID), err, httpResp))
 

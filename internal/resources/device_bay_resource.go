@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -97,20 +98,20 @@ func (r *DeviceBayResource) Schema(ctx context.Context, req resource.SchemaReque
 
 			"display_name": nbschema.DisplayNameAttribute("device bay"),
 
-			"description": nbschema.DescriptionAttribute("device bay"),
-
 			"installed_device": schema.StringAttribute{
 
 				MarkdownDescription: "The child device installed in this bay. Accepts ID or name.",
 
 				Optional: true,
 			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("device bay"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 
 }
 
@@ -459,12 +460,6 @@ func (r *DeviceBayResource) buildRequest(ctx context.Context, data *DeviceBayRes
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		dbRequest.SetDescription(data.Description.ValueString())
-
-	}
-
 	if !data.InstalledDevice.IsNull() && !data.InstalledDevice.IsUnknown() {
 
 		installedDeviceRef, lookupDiags := netboxlookup.LookupDevice(ctx, r.client, data.InstalledDevice.ValueString())
@@ -481,41 +476,15 @@ func (r *DeviceBayResource) buildRequest(ctx context.Context, data *DeviceBayRes
 
 	}
 
-	// Handle tags
+	// Handle description, tags, and custom fields
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	utils.ApplyDescription(dbRequest, data.Description)
 
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+	utils.ApplyMetadataFields(ctx, dbRequest, data.Tags, data.CustomFields, &diags)
 
-		diags.Append(tagDiags...)
+	if diags.HasError() {
 
-		if diags.HasError() {
-
-			return nil, diags
-
-		}
-
-		dbRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-
-			return nil, diags
-
-		}
-
-		dbRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
+		return nil, diags
 
 	}
 

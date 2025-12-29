@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -181,6 +182,44 @@ func TestAccLocationResource_import(t *testing.T) {
 		},
 	})
 
+}
+
+func TestAccLocationResource_update(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-loc-site")
+	siteSlug := testutil.RandomSlug("tf-test-loc-site")
+	name := testutil.RandomName("tf-test-location")
+	slug := testutil.RandomSlug("tf-test-location")
+	updatedName := testutil.RandomName("tf-test-location-updated")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterLocationCleanup(slug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckLocationDestroy, testutil.CheckSiteDestroy),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccLocationResourceConfig_basic(siteName, siteSlug, name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_location.test", "id"),
+					resource.TestCheckResourceAttr("netbox_location.test", "name", name),
+				),
+			},
+			{
+				Config: testAccLocationResourceConfig_basic(siteName, siteSlug, updatedName, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_location.test", "id"),
+					resource.TestCheckResourceAttr("netbox_location.test", "name", updatedName),
+				),
+			},
+		},
+	})
 }
 
 func TestAccConsistency_Location_LiteralNames(t *testing.T) {
@@ -380,4 +419,55 @@ resource "netbox_location" "test" {
   site = netbox_site.test.id
 }
 `, siteName, siteSlug, name, slug)
+}
+
+func TestAccLocationResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-loc-site-del")
+	siteSlug := testutil.RandomSlug("tf-test-loc-site-del")
+	name := testutil.RandomName("tf-test-location-del")
+	slug := testutil.RandomSlug("tf-test-location-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterLocationCleanup(slug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckLocationDestroy, testutil.CheckSiteDestroy),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccLocationResourceConfig_basic(siteName, siteSlug, name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_location.test", "id"),
+					resource.TestCheckResourceAttr("netbox_location.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_location.test", "slug", slug),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					items, _, err := client.DcimAPI.DcimLocationsList(context.Background()).Slug([]string{slug}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find location for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.DcimAPI.DcimLocationsDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete location: %v", err)
+					}
+					t.Logf("Successfully externally deleted location with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }

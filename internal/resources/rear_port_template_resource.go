@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -123,8 +123,6 @@ func (r *RearPortTemplateResource) Schema(ctx context.Context, req resource.Sche
 				Optional: true,
 
 				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"type": schema.StringAttribute{
@@ -141,8 +139,6 @@ func (r *RearPortTemplateResource) Schema(ctx context.Context, req resource.Sche
 				Optional: true,
 
 				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"display_name": nbschema.DisplayNameAttribute("rear port template"),
@@ -157,20 +153,11 @@ func (r *RearPortTemplateResource) Schema(ctx context.Context, req resource.Sche
 
 				Default: int32default.StaticInt32(1),
 			},
-
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the rear port template.",
-
-				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(""),
-			},
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("rear port template"))
 }
 
 // Configure adds the provider configured client to the resource.
@@ -274,11 +261,8 @@ func (r *RearPortTemplateResource) Create(ctx context.Context, req resource.Crea
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Creating rear port template", map[string]interface{}{
 
@@ -448,11 +432,8 @@ func (r *RearPortTemplateResource) Update(ctx context.Context, req resource.Upda
 
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
-		apiReq.SetDescription(data.Description.ValueString())
-
-	}
+	// Apply description
+	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Updating rear port template", map[string]interface{}{
 
@@ -643,15 +624,6 @@ func (r *RearPortTemplateResource) mapResponseToModel(template *netbox.RearPortT
 	}
 
 	// Map description
-
-	if desc, ok := template.GetDescriptionOk(); ok && desc != nil {
-
-		data.Description = types.StringValue(*desc)
-
-	} else {
-
-		data.Description = types.StringValue("")
-
-	}
+	data.Description = utils.StringFromAPI(template.HasDescription(), template.GetDescription, data.Description)
 
 }

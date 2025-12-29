@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -141,24 +142,16 @@ func (r *ProviderNetworkResource) Schema(ctx context.Context, req resource.Schem
 				},
 			},
 
-			"comments": schema.StringAttribute{
-
-				MarkdownDescription: "Additional comments or notes about this provider network.",
-
-				Optional: true,
-			},
-
 			"display_name": nbschema.DisplayNameAttribute("provider network"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
-}
+	// Add common descriptive attributes (description, comments)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("provider network"))
 
-// Configure adds the provider configured client to the resource.
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+}
 
 func (r *ProviderNetworkResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
@@ -544,61 +537,13 @@ func (r *ProviderNetworkResource) buildProviderNetworkRequest(ctx context.Contex
 
 	}
 
-	// Handle description (optional)
+	// Apply common fields (description, comments, tags, custom_fields)
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+	utils.ApplyCommonFields(ctx, pnRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
 
-		desc := data.Description.ValueString()
+	if diags.HasError() {
 
-		pnRequest.Description = &desc
-
-	}
-
-	// Handle comments (optional)
-
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-
-		comments := data.Comments.ValueString()
-
-		pnRequest.Comments = &comments
-
-	}
-
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return nil, diags
-
-		}
-
-		pnRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-
-			return nil, diags
-
-		}
-
-		pnRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
+		return nil, diags
 
 	}
 

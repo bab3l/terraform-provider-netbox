@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -76,13 +77,14 @@ func (r *ContactRoleResource) Schema(ctx context.Context, req resource.SchemaReq
 			"description": nbschema.DescriptionAttribute("contact role"),
 
 			"display_name": nbschema.DisplayNameAttribute("contact role"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("contact role"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *ContactRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -132,51 +134,16 @@ func (r *ContactRoleResource) Create(ctx context.Context, req resource.CreateReq
 	})
 
 	// Build the request
-
 	contactRoleRequest := netbox.ContactRoleRequest{
-
 		Name: data.Name.ValueString(),
-
 		Slug: data.Slug.ValueString(),
-
-		Description: utils.StringPtr(data.Description),
 	}
 
-	// Handle tags
+	// Apply description
+	utils.ApplyDescription(&contactRoleRequest, data.Description)
 
-	if utils.IsSet(data.Tags) {
-
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		contactRoleRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		contactRoleRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &contactRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Create via API
 
@@ -272,16 +239,12 @@ func (r *ContactRoleResource) Read(ctx context.Context, req resource.ReadRequest
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 
 		resp.Diagnostics.AddError("Error reading contact role", utils.FormatAPIError(fmt.Sprintf("read contact role ID %s", contactRoleID), err, httpResp))
-
-		return
-
-	}
-
-	if httpResp.StatusCode == 404 {
-
-		resp.State.RemoveResource(ctx)
 
 		return
 
@@ -339,51 +302,16 @@ func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateReq
 	})
 
 	// Build the request
-
 	contactRoleRequest := netbox.ContactRoleRequest{
-
 		Name: data.Name.ValueString(),
-
 		Slug: data.Slug.ValueString(),
-
-		Description: utils.StringPtr(data.Description),
 	}
 
-	// Handle tags
+	// Apply description
+	utils.ApplyDescription(&contactRoleRequest, data.Description)
 
-	if utils.IsSet(data.Tags) {
-
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		contactRoleRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		contactRoleRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-
-	}
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &contactRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	// Update via API
 
@@ -450,6 +378,9 @@ func (r *ContactRoleResource) Delete(ctx context.Context, req resource.DeleteReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return
+		}
 
 		resp.Diagnostics.AddError("Error deleting contact role", utils.FormatAPIError(fmt.Sprintf("delete contact role ID %s", contactRoleID), err, httpResp))
 

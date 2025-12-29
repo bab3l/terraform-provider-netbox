@@ -11,6 +11,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -84,15 +85,14 @@ func (r *RackRoleResource) Schema(ctx context.Context, req resource.SchemaReques
 			"slug": nbschema.SlugAttribute("rack role"),
 
 			"color": nbschema.ComputedColorAttribute("rack role"),
-
-			"description": nbschema.DescriptionAttribute("rack role"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("rack role"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *RackRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -174,39 +174,13 @@ func (r *RackRoleResource) Create(ctx context.Context, req resource.CreateReques
 
 	}
 
-	// Handle tags
+	// Apply metadata fields (tags, custom_fields)
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	utils.ApplyMetadataFields(ctx, &rackRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		var tags []utils.TagModel
+	if resp.Diagnostics.HasError() {
 
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		rackRoleRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		rackRoleRequest.CustomFields = utils.CustomFieldsToMap(customFields)
+		return
 
 	}
 
@@ -479,21 +453,13 @@ func (r *RackRoleResource) Update(ctx context.Context, req resource.UpdateReques
 
 	}
 
-	// Handle custom fields
+	// Apply metadata fields (tags, custom_fields)
 
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
+	utils.ApplyMetadataFields(ctx, &rackRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
-		var customFields []utils.CustomFieldModel
+	if resp.Diagnostics.HasError() {
 
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-
-			return
-
-		}
-
-		rackRoleRequest.CustomFields = utils.CustomFieldsToMap(customFields)
+		return
 
 	}
 
@@ -594,6 +560,12 @@ func (r *RackRoleResource) Delete(ctx context.Context, req resource.DeleteReques
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+
+		if httpResp != nil && httpResp.StatusCode == 404 {
+
+			return
+
+		}
 
 		resp.Diagnostics.AddError(
 

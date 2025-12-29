@@ -51,7 +51,7 @@ func TestAccConsolePortDataSource_IDPreservation(t *testing.T) {
 	})
 }
 
-func TestAccConsolePortDataSource_basic(t *testing.T) {
+func TestAccConsolePortDataSource_byID(t *testing.T) {
 
 	t.Parallel()
 
@@ -85,16 +85,54 @@ func TestAccConsolePortDataSource_basic(t *testing.T) {
 			{
 				Config: testAccConsolePortDataSourceConfig(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName, portName),
 				Check: resource.ComposeTestCheckFunc(
-					// Check by_id lookup
 					resource.TestCheckResourceAttr("data.netbox_console_port.by_id", "name", portName),
 					resource.TestCheckResourceAttr("data.netbox_console_port.by_id", "type", "de-9"),
+					resource.TestCheckResourceAttrSet("data.netbox_console_port.by_id", "id"),
 					resource.TestCheckResourceAttrSet("data.netbox_console_port.by_id", "device"),
-					// Check by_device_and_name lookup
+				),
+			},
+		},
+	})
+}
+
+func TestAccConsolePortDataSource_byDeviceAndName(t *testing.T) {
+
+	t.Parallel()
+
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	roleName := testutil.RandomName("device-role")
+	roleSlug := testutil.RandomSlug("device-role")
+	mfgName := testutil.RandomName("mfg")
+	mfgSlug := testutil.RandomSlug("mfg")
+	deviceTypeName := testutil.RandomName("device-type")
+	deviceTypeSlug := testutil.RandomSlug("device-type")
+	deviceName := testutil.RandomName("device")
+	portName := testutil.RandomName("console")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckSiteDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConsolePortDataSourceConfig(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName, portName),
+				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_console_port.by_device_and_name", "name", portName),
 					resource.TestCheckResourceAttr("data.netbox_console_port.by_device_and_name", "type", "de-9"),
+					resource.TestCheckResourceAttrSet("data.netbox_console_port.by_device_and_name", "id"),
 					resource.TestCheckResourceAttrSet("data.netbox_console_port.by_device_and_name", "device"),
-					// Verify both lookups return same console port
-					resource.TestCheckResourceAttrPair("data.netbox_console_port.by_id", "id", "data.netbox_console_port.by_device_and_name", "id"),
 				),
 			},
 		},

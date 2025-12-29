@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -135,25 +136,14 @@ func (r *RoleResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 				Default: int64default.StaticInt64(1000),
 			},
-
-			"description": schema.StringAttribute{
-
-				MarkdownDescription: "A description of the role.",
-
-				Optional: true,
-
-				Validators: []validator.String{
-
-					stringvalidator.LengthAtMost(200),
-				},
-			},
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("role"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
@@ -548,41 +538,13 @@ func (r *RoleResource) buildRoleRequest(ctx context.Context, data *RoleResourceM
 
 	}
 
-	// Handle tags
+	// Apply metadata fields (tags, custom_fields)
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	utils.ApplyMetadataFields(ctx, roleRequest, data.Tags, data.CustomFields, &diags)
 
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
+	if diags.HasError() {
 
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return nil, diags
-
-		}
-
-		roleRequest.Tags = tags
-
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
-		var customFieldModels []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-
-			return nil, diags
-
-		}
-
-		roleRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
+		return nil, diags
 
 	}
 
@@ -615,73 +577,16 @@ func (r *RoleResource) mapResponseToModel(ctx context.Context, role *netbox.Role
 	}
 
 	// Map description
-
 	if desc, ok := role.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle tags
-
-	if role.HasTags() {
-
-		tags := utils.NestedTagsToTagModels(role.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		data.Tags = tagsValue
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
-	}
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, role.HasTags(), role.GetTags(), diags)
 
 	// Handle custom fields
-
-	if role.HasCustomFields() {
-
-		apiCustomFields := role.GetCustomFields()
-
-		var stateCustomFieldModels []utils.CustomFieldModel
-
-		if !data.CustomFields.IsNull() {
-
-			data.CustomFields.ElementsAs(ctx, &stateCustomFieldModels, false)
-
-		}
-
-		customFields := utils.MapToCustomFieldModels(apiCustomFields, stateCustomFieldModels)
-
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		data.CustomFields = customFieldsValue
-
-	} else {
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, role.HasCustomFields(), role.GetCustomFields(), data.CustomFields, diags)
 
 }

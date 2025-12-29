@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -188,4 +189,113 @@ resource "netbox_module_type" "test" {
   description  = %q
 }
 `, mfgName, mfgSlug, model, description)
+}
+
+func TestAccModuleTypeResource_update(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg-update")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-update")
+	model := testutil.RandomName("tf-test-module-type-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleTypeResourceConfig_update(mfgName, mfgSlug, model, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_type.test", "id"),
+					resource.TestCheckResourceAttr("netbox_module_type.test", "model", model),
+					resource.TestCheckResourceAttr("netbox_module_type.test", "comments", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccModuleTypeResourceConfig_update(mfgName, mfgSlug, model, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module_type.test", "comments", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
+func testAccModuleTypeResourceConfig_update(mfgName, mfgSlug, model, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  comments     = %q
+}
+`, mfgName, mfgSlug, model, comments)
+}
+
+func TestAccModuleTypeResource_external_deletion(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg-ext-del")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-ext-del")
+	model := testutil.RandomName("tf-test-module-type-ext-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleTypeResourceConfig_basic(mfgName, mfgSlug, model),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_type.test", "id"),
+					resource.TestCheckResourceAttr("netbox_module_type.test", "model", model),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					ctx := context.Background()
+
+					// Find the module type by model name
+					listResp, _, err := client.DcimAPI.DcimModuleTypesList(ctx).Model([]string{model}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list module types: %v", err)
+					}
+
+					if listResp.Count == 0 {
+						t.Fatalf("Module type with model %q not found", model)
+					}
+
+					moduleTypeID := listResp.Results[0].Id
+
+					// Delete the module type via API
+					_, err = client.DcimAPI.DcimModuleTypesDestroy(ctx, moduleTypeID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete module type: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted module type with ID: %d", moduleTypeID)
+				},
+				Config: testAccModuleTypeResourceConfig_basic(mfgName, mfgSlug, model),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module_type.test", "id"),
+				),
+			},
+		},
+	})
 }

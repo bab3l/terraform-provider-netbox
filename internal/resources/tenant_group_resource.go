@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -85,16 +86,15 @@ func (r *TenantGroupResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The numeric ID of the parent tenant group.",
 			},
 
-			"description": nbschema.DescriptionAttribute("tenant group"),
-
 			"display_name": nbschema.DisplayNameAttribute("tenant group"),
-
-			"tags": nbschema.TagsAttribute(),
-
-			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
+	// Add description attribute
+	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("tenant group"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *TenantGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -150,9 +150,10 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
-
-		Description: utils.StringPtr(data.Description),
 	}
+
+	// Apply description
+	utils.ApplyDescription(&tenantGroupRequest, data.Description)
 
 	// Set parent if provided
 
@@ -302,16 +303,12 @@ func (r *TenantGroupResource) Read(ctx context.Context, req resource.ReadRequest
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 
 		resp.Diagnostics.AddError("Error reading tenant group", utils.FormatAPIError(fmt.Sprintf("read tenant group ID %s", tenantGroupID), err, httpResp))
-
-		return
-
-	}
-
-	if httpResp.StatusCode == 404 {
-
-		resp.State.RemoveResource(ctx)
 
 		return
 
@@ -375,9 +372,10 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
-
-		Description: utils.StringPtr(data.Description),
 	}
+
+	// Apply description
+	utils.ApplyDescription(&tenantGroupRequest, data.Description)
 
 	// Set parent if provided
 
@@ -498,6 +496,9 @@ func (r *TenantGroupResource) Delete(ctx context.Context, req resource.DeleteReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
+		if httpResp != nil && httpResp.StatusCode == 404 {
+			return
+		}
 
 		resp.Diagnostics.AddError("Error deleting tenant group", utils.FormatAPIError(fmt.Sprintf("delete tenant group ID %s", tenantGroupID), err, httpResp))
 
@@ -548,109 +549,20 @@ func (r *TenantGroupResource) mapTenantGroupToState(ctx context.Context, tenantG
 	}
 
 	// Handle parent reference
-
+	var parentResult utils.ReferenceWithID
 	if tenantGroup.HasParent() {
-
 		parent := tenantGroup.GetParent()
-
-		if parent.GetId() != 0 {
-
-			data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
-
-			userParent := data.Parent.ValueString()
-
-			if userParent == parent.GetName() || userParent == parent.GetSlug() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
-
-				// Keep user's original value
-
-			} else {
-
-				data.Parent = types.StringValue(parent.GetName())
-
-			}
-
-		} else {
-
-			data.Parent = types.StringNull()
-			data.ParentID = types.StringNull()
-
-		}
-
+		parentResult = utils.PreserveOptionalReferenceWithID(data.Parent, parent.GetId() != 0, parent.GetId(), parent.GetName(), parent.GetSlug())
 	} else {
-
-		data.Parent = types.StringNull()
-		data.ParentID = types.StringNull()
-
+		parentResult = utils.PreserveOptionalReferenceWithID(data.Parent, false, 0, "", "")
 	}
+	data.Parent = parentResult.Reference
+	data.ParentID = parentResult.ID
 
 	// Handle tags
-
-	if tenantGroup.HasTags() {
-
-		tags := utils.NestedTagsToTagModels(tenantGroup.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if !diags.HasError() {
-
-			data.Tags = tagsValue
-
-		}
-
-	} else {
-
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
-	}
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), diags)
 
 	// Handle custom fields
-
-	switch {
-
-	case tenantGroup.HasCustomFields() && !data.CustomFields.IsNull():
-
-		var stateCustomFields []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		diags.Append(cfDiags...)
-
-		if !diags.HasError() {
-
-			customFields := utils.MapToCustomFieldModels(tenantGroup.GetCustomFields(), stateCustomFields)
-
-			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-			diags.Append(cfValueDiags...)
-
-			if !diags.HasError() {
-
-				data.CustomFields = customFieldsValue
-
-			}
-
-		}
-
-	case tenantGroup.HasCustomFields():
-
-		customFields := utils.MapToCustomFieldModels(tenantGroup.GetCustomFields(), []utils.CustomFieldModel{})
-
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfValueDiags...)
-
-		if !diags.HasError() {
-
-			data.CustomFields = customFieldsValue
-
-		}
-
-	default:
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, tenantGroup.HasCustomFields(), tenantGroup.GetCustomFields(), data.CustomFields, diags)
 
 }

@@ -1,6 +1,7 @@
 package resources_acceptance_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -302,4 +303,50 @@ resource "netbox_circuit_type" "test" {
   color       = %q
 }
 `, name, slug, description, color)
+}
+
+func TestAccCircuitTypeResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("tf-test-circuit-type-ext-del")
+	slug := testutil.RandomSlug("circuit-type-ext-del")
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+`, name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit_type.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+					// List circuit types filtered by slug
+					items, _, err := client.CircuitsAPI.CircuitsCircuitTypesList(context.Background()).SlugIc([]string{slug}).Execute()
+					if err != nil || items == nil || len(items.Results) == 0 {
+						t.Fatalf("Failed to find circuit type for external deletion: %v", err)
+					}
+					itemID := items.Results[0].Id
+					_, err = client.CircuitsAPI.CircuitsCircuitTypesDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to externally delete circuit type: %v", err)
+					}
+					t.Logf("Successfully externally deleted circuit type with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }
