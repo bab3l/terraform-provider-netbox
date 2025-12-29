@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
@@ -253,6 +254,14 @@ func (d *InterfaceTemplateDataSource) Read(ctx context.Context, req datasource.R
 		result, httpResp, err := d.client.DcimAPI.DcimInterfaceTemplatesRetrieve(ctx, templateID).Execute()
 
 		defer utils.CloseResponseBody(httpResp)
+
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+			resp.Diagnostics.AddError(
+				"Interface Template Not Found",
+				fmt.Sprintf("No interface template found with ID: %d", templateID),
+			)
+			return
+		}
 
 		if err != nil {
 
