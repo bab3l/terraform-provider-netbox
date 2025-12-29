@@ -50,8 +50,6 @@ type TenantResourceModel struct {
 
 	Group types.String `tfsdk:"group"`
 
-	GroupID types.String `tfsdk:"group_id"`
-
 	Description types.String `tfsdk:"description"`
 
 	Comments types.String `tfsdk:"comments"`
@@ -76,8 +74,7 @@ func (r *TenantResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 			"slug": nbschema.SlugAttribute("tenant"),
 
-			"group":    nbschema.ReferenceAttribute("tenant group", "Name, Slug, or ID of the tenant group that this tenant belongs to."),
-			"group_id": nbschema.ComputedIDAttribute("tenant group"),
+			"group": nbschema.ReferenceAttribute("tenant group", "Name, Slug, or ID of the tenant group that this tenant belongs to."),
 		},
 	}
 
@@ -396,7 +393,6 @@ func (r *TenantResource) mapTenantToState(ctx context.Context, tenant *netbox.Te
 		tenant.GetGroup().Slug,
 	)
 	data.Group = groupRef.Reference
-	data.GroupID = groupRef.ID
 
 	// Handle optional string fields using helpers
 	data.Description = utils.StringFromAPI(tenant.HasDescription(), tenant.GetDescription, data.Description)

@@ -49,8 +49,6 @@ type SiteGroupResourceModel struct {
 
 	Parent types.String `tfsdk:"parent"`
 
-	ParentID types.String `tfsdk:"parent_id"`
-
 	Description types.String `tfsdk:"description"`
 
 	Tags types.Set `tfsdk:"tags"`
@@ -74,11 +72,6 @@ func (r *SiteGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 			"slug": nbschema.SlugAttribute("site group"),
 
 			"parent": nbschema.ReferenceAttribute("parent site group", "ID or slug of the parent site group. Leave empty for top-level site groups."),
-
-			"parent_id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The numeric ID of the parent site group.",
-			},
 		},
 	}
 
@@ -396,8 +389,6 @@ func (r *SiteGroupResource) mapSiteGroupToState(ctx context.Context, siteGroup *
 		parent := siteGroup.GetParent()
 
 		if parent.GetId() != 0 {
-			data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
-
 			userParent := data.Parent.ValueString()
 
 			if userParent == parent.GetName() || userParent == parent.GetSlug() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
@@ -407,11 +398,9 @@ func (r *SiteGroupResource) mapSiteGroupToState(ctx context.Context, siteGroup *
 			}
 		} else {
 			data.Parent = types.StringNull()
-			data.ParentID = types.StringNull()
 		}
 	} else {
 		data.Parent = types.StringNull()
-		data.ParentID = types.StringNull()
 	}
 
 	// Handle optional string fields using helpers

@@ -44,8 +44,6 @@ type TenantGroupResourceModel struct {
 
 	Parent types.String `tfsdk:"parent"`
 
-	ParentID types.String `tfsdk:"parent_id"`
-
 	Description types.String `tfsdk:"description"`
 
 	Tags types.Set `tfsdk:"tags"`
@@ -69,11 +67,6 @@ func (r *TenantGroupResource) Schema(ctx context.Context, req resource.SchemaReq
 			"slug": nbschema.SlugAttribute("tenant group"),
 
 			"parent": nbschema.ReferenceAttribute("tenant group", "ID or slug of the parent tenant group. Leave empty for top-level groups."),
-
-			"parent_id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The numeric ID of the parent tenant group.",
-			},
 		},
 	}
 
@@ -447,7 +440,6 @@ func (r *TenantGroupResource) mapTenantGroupToState(ctx context.Context, tenantG
 		parentResult = utils.PreserveOptionalReferenceWithID(data.Parent, false, 0, "", "")
 	}
 	data.Parent = parentResult.Reference
-	data.ParentID = parentResult.ID
 
 	// Handle tags
 	data.Tags = utils.PopulateTagsFromNestedTags(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), diags)
