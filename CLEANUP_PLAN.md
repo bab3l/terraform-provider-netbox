@@ -612,12 +612,29 @@ Ensure all example Terraform configurations in `examples/` directory are:
 - Virtual disk shows good variety with multiple disks and descriptions
 - FHRP assignment shows proper polymorphic interface reference pattern
 
-#### Batch 7.7: Circuits & Providers (10 resources)
-- [ ] netbox_cable
-- [ ] netbox_provider
-- [ ] netbox_provider_account
-- [ ] netbox_provider_network
-- [ ] netbox_circuit
+#### Batch 7.7: Circuits & Providers (10 resources) ✅ COMPLETE
+- [x] netbox_cable - Clean, comprehensive examples with comments
+- [x] netbox_provider - Clean, simple example
+- [x] netbox_provider_account - Clean, uses provider name reference
+- [x] netbox_provider_network - Clean, uses provider name reference
+- [x] netbox_circuit - Clean, uses provider/type name references
+- [x] netbox_circuit_type - Clean, simple example
+- [x] netbox_circuit_group - Clean, simple example
+- [x] netbox_circuit_group_assignment - Clean, uses circuit.id and group.name
+- [x] netbox_circuit_termination - Clean, uses circuit.id and site.name
+- [x] netbox_service - **FIXED**: Updated device_type reference and reordered resources
+
+**Changes Made**:
+- Fixed `netbox_service/resource.tf`:
+  - Changed `device_type = netbox_device_type.test.slug` → `device_type = netbox_device_type.test.model`
+  - Reordered manufacturer resource before device_type (dependency order)
+
+**Review Notes**:
+- 1 file fixed (service)
+- All examples now use current schemas
+- No removed `_id` fields referenced after fix
+- Cable example shows comprehensive documentation
+- Circuit examples show proper provider and type relationships
 - [ ] netbox_circuit_type
 - [ ] netbox_circuit_group
 - [ ] netbox_circuit_group_assignment
