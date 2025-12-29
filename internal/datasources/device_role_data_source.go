@@ -1,9 +1,7 @@
 // Package datasources contains Terraform data source implementations for the Netbox provider.
-
 //
 
 // This package integrates with the go-netbox OpenAPI client to provide
-
 // read-only access to Netbox resources via Terraform data sources.
 
 package datasources
@@ -27,9 +25,7 @@ import (
 var _ datasource.DataSource = &DeviceRoleDataSource{}
 
 func NewDeviceRoleDataSource() datasource.DataSource {
-
 	return &DeviceRoleDataSource{}
-
 }
 
 // DeviceRoleDataSource defines the data source implementation.
@@ -61,15 +57,11 @@ type DeviceRoleDataSourceModel struct {
 }
 
 func (d *DeviceRoleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_device_role"
-
 }
 
 func (d *DeviceRoleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a device role in Netbox. Device roles categorize devices by their function (e.g., Router, Switch, Server, Firewall). You can identify the device role using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
@@ -84,23 +76,18 @@ func (d *DeviceRoleDataSource) Schema(ctx context.Context, req datasource.Schema
 			"display_name":  nbschema.DSComputedStringAttribute("The display name of the device role."),
 		},
 	}
-
 }
 
 func (d *DeviceRoleDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	// Prevent panic if the provider has not been configured.
 
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -109,15 +96,12 @@ func (d *DeviceRoleDataSource) Configure(ctx context.Context, req datasource.Con
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data DeviceRoleDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -125,9 +109,7 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var deviceRole *netbox.DeviceRole
@@ -139,7 +121,6 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	// Determine if we're searching by ID, slug, or name
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		// Search by ID
@@ -147,7 +128,6 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		deviceRoleID := data.ID.ValueString()
 
 		tflog.Debug(ctx, "Reading device role by ID", map[string]interface{}{
-
 			"id": deviceRoleID,
 		})
 
@@ -156,7 +136,6 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		var deviceRoleIDInt int32
 
 		if _, parseErr := fmt.Sscanf(deviceRoleID, "%d", &deviceRoleIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Device Role ID",
@@ -165,7 +144,6 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		// Retrieve the device role via API
@@ -181,7 +159,6 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		deviceRoleSlug := data.Slug.ValueString()
 
 		tflog.Debug(ctx, "Reading device role by slug", map[string]interface{}{
-
 			"slug": deviceRoleSlug,
 		})
 
@@ -194,7 +171,6 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading device role",
@@ -203,11 +179,9 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		if len(deviceRoles.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Device Role Not Found",
@@ -216,11 +190,9 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		if len(deviceRoles.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Device Roles Found",
@@ -229,7 +201,6 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		deviceRole = &deviceRoles.GetResults()[0]
@@ -241,7 +212,6 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		deviceRoleName := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading device role by name", map[string]interface{}{
-
 			"name": deviceRoleName,
 		})
 
@@ -254,7 +224,6 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading device role",
@@ -263,11 +232,9 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		if len(deviceRoles.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Device Role Not Found",
@@ -276,11 +243,9 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		if len(deviceRoles.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Device Roles Found",
@@ -289,7 +254,6 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		deviceRole = &deviceRoles.GetResults()[0]
@@ -304,11 +268,9 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading device role",
@@ -317,11 +279,9 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		)
 
 		return
-
 	}
 
 	if httpResp.StatusCode == 404 {
-
 		resp.Diagnostics.AddError(
 
 			"Device Role Not Found",
@@ -330,11 +290,9 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		)
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading device role",
@@ -343,7 +301,6 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		)
 
 		return
-
 	}
 
 	// Update the model with the response from the API
@@ -357,43 +314,30 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	// Handle color
 
 	if deviceRole.HasColor() && deviceRole.GetColor() != "" {
-
 		data.Color = types.StringValue(deviceRole.GetColor())
-
 	} else {
-
 		data.Color = types.StringNull()
-
 	}
 
 	// Handle vm_role
 
 	if deviceRole.HasVmRole() {
-
 		data.VMRole = types.BoolValue(deviceRole.GetVmRole())
-
 	} else {
-
 		data.VMRole = types.BoolValue(true) // Default to true per Netbox API
-
 	}
 
 	// Handle description
 
 	if deviceRole.HasDescription() && deviceRole.GetDescription() != "" {
-
 		data.Description = types.StringValue(deviceRole.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if deviceRole.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(deviceRole.GetTags())
 
 		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -401,23 +345,17 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if deviceRole.HasCustomFields() {
-
 		// For data sources, we extract all available custom fields
 
 		customFields := utils.MapToCustomFieldModels(deviceRole.GetCustomFields(), nil)
@@ -427,17 +365,12 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Map display_name
@@ -450,5 +383,4 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

@@ -12,7 +12,6 @@ import (
 // =====================================================
 // REQUEST BUILDER INTERFACES
 // =====================================================
-
 // These interfaces match the generated go-netbox request types.
 // All request types that have these fields implement these interfaces,
 // allowing us to write generic helpers that work across all resources.
@@ -60,7 +59,6 @@ type FullCommonFieldsSetter interface {
 // =====================================================
 // REQUEST BUILDER HELPERS
 // =====================================================
-
 // ApplyDescription sets the Description field on a request if the value is set.
 // Works with any request type that implements DescriptionSetter.
 func ApplyDescription[T DescriptionSetter](request T, description types.String) {

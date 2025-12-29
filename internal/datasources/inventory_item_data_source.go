@@ -26,9 +26,7 @@ var (
 // NewInventoryItemDataSource returns a new data source implementing the inventory item data source.
 
 func NewInventoryItemDataSource() datasource.DataSource {
-
 	return &InventoryItemDataSource{}
-
 }
 
 // InventoryItemDataSource defines the data source implementation.
@@ -78,27 +76,21 @@ type InventoryItemDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *InventoryItemDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_inventory_item"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *InventoryItemDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: `Retrieves information about an inventory item in NetBox. Inventory items represent hardware components installed within a device.
 
 ~> **Deprecation Warning:** Beginning in NetBox v4.3, inventory items are deprecated and planned for removal in a future release. Users are strongly encouraged to use modules and module types instead.`,
 
 		Attributes: map[string]schema.Attribute{
-
 			// Filter attributes
 
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the inventory item. Use this to filter by ID.",
 
 				Optional: true,
@@ -107,7 +99,6 @@ func (d *InventoryItemDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the inventory item. Use this to filter by name.",
 
 				Optional: true,
@@ -116,7 +107,6 @@ func (d *InventoryItemDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"device_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the device. Use this to filter by device.",
 
 				Optional: true,
@@ -127,98 +117,84 @@ func (d *InventoryItemDataSource) Schema(ctx context.Context, req datasource.Sch
 			// Computed attributes
 
 			"device_name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the device.",
 
 				Computed: true,
 			},
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label on the inventory item.",
 
 				Computed: true,
 			},
 
 			"parent_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the parent inventory item.",
 
 				Computed: true,
 			},
 
 			"role_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the inventory item role.",
 
 				Computed: true,
 			},
 
 			"role_name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the inventory item role.",
 
 				Computed: true,
 			},
 
 			"manufacturer_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the manufacturer.",
 
 				Computed: true,
 			},
 
 			"manufacturer_name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the manufacturer.",
 
 				Computed: true,
 			},
 
 			"part_id": schema.StringAttribute{
-
 				MarkdownDescription: "Manufacturer-assigned part identifier.",
 
 				Computed: true,
 			},
 
 			"serial": schema.StringAttribute{
-
 				MarkdownDescription: "Serial number of the inventory item.",
 
 				Computed: true,
 			},
 
 			"asset_tag": schema.StringAttribute{
-
 				MarkdownDescription: "A unique tag used to identify this inventory item.",
 
 				Computed: true,
 			},
 
 			"discovered": schema.BoolAttribute{
-
 				MarkdownDescription: "Whether this item was automatically discovered.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the inventory item.",
 
 				Computed: true,
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the inventory item.",
 
 				Computed: true,
 			},
 
 			"tags": schema.SetAttribute{
-
 				MarkdownDescription: "Tags associated with this inventory item.",
 
 				Computed: true,
@@ -227,23 +203,18 @@ func (d *InventoryItemDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *InventoryItemDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -252,25 +223,20 @@ func (d *InventoryItemDataSource) Configure(ctx context.Context, req datasource.
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the data source data.
 
 func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data InventoryItemDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var item *netbox.InventoryItem
@@ -278,11 +244,9 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 	// If ID is provided, look up directly
 
 	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-
 		itemID, err := utils.ParseID(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Inventory Item ID",
@@ -291,11 +255,9 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Looking up inventory item by ID", map[string]interface{}{
-
 			"id": itemID,
 		})
 
@@ -312,7 +274,6 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 		}
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading inventory item",
@@ -321,17 +282,13 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 			)
 
 			return
-
 		}
 
 		item = response
-
 	} else {
-
 		// Search by filters
 
 		tflog.Debug(ctx, "Searching for inventory item", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 
 			"device_id": data.DeviceID.ValueInt64(),
@@ -340,25 +297,19 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 		listReq := d.client.DcimAPI.DcimInventoryItemsList(ctx)
 
 		if !data.Name.IsNull() && !data.Name.IsUnknown() {
-
 			listReq = listReq.Name([]string{data.Name.ValueString()})
-
 		}
 
 		if !data.DeviceID.IsNull() && !data.DeviceID.IsUnknown() {
-
 			deviceID32, err := utils.SafeInt32FromValue(data.DeviceID)
 
 			if err != nil {
-
 				resp.Diagnostics.AddError("Invalid Device ID", fmt.Sprintf("Device ID value overflow: %s", err))
 
 				return
-
 			}
 
 			listReq = listReq.DeviceId([]int32{deviceID32})
-
 		}
 
 		response, httpResp, err := listReq.Execute()
@@ -366,7 +317,6 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading inventory items",
@@ -375,11 +325,9 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 			)
 
 			return
-
 		}
 
 		if response.GetCount() == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"No inventory item found",
@@ -388,11 +336,9 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 			)
 
 			return
-
 		}
 
 		if response.GetCount() > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple inventory items found",
@@ -401,11 +347,9 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 			)
 
 			return
-
 		}
 
 		item = &response.GetResults()[0]
-
 	}
 
 	// Map response to model
@@ -425,133 +369,94 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 	// Map label
 
 	if label, ok := item.GetLabelOk(); ok && label != nil && *label != "" {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Map parent
 
 	if item.Parent.IsSet() && item.Parent.Get() != nil {
-
 		data.ParentID = types.Int64Value(int64(*item.Parent.Get()))
-
 	} else {
-
 		data.ParentID = types.Int64Null()
-
 	}
 
 	// Map role
 
 	if item.Role.IsSet() && item.Role.Get() != nil {
-
 		role := item.Role.Get()
 
 		data.RoleID = types.Int64Value(int64(role.GetId()))
 
 		data.RoleName = types.StringValue(role.GetName())
-
 	} else {
-
 		data.RoleID = types.Int64Null()
 
 		data.RoleName = types.StringNull()
-
 	}
 
 	// Map manufacturer
 
 	if item.Manufacturer.IsSet() && item.Manufacturer.Get() != nil {
-
 		mfr := item.Manufacturer.Get()
 
 		data.ManufacturerID = types.Int64Value(int64(mfr.GetId()))
 
 		data.ManufacturerName = types.StringValue(mfr.GetName())
-
 	} else {
-
 		data.ManufacturerID = types.Int64Null()
 
 		data.ManufacturerName = types.StringNull()
-
 	}
 
 	// Map part_id
 
 	if partID, ok := item.GetPartIdOk(); ok && partID != nil && *partID != "" {
-
 		data.PartID = types.StringValue(*partID)
-
 	} else {
-
 		data.PartID = types.StringNull()
-
 	}
 
 	// Map serial
 
 	if serial, ok := item.GetSerialOk(); ok && serial != nil && *serial != "" {
-
 		data.Serial = types.StringValue(*serial)
-
 	} else {
-
 		data.Serial = types.StringNull()
-
 	}
 
 	// Map asset_tag
 
 	if item.AssetTag.IsSet() && item.AssetTag.Get() != nil && *item.AssetTag.Get() != "" {
-
 		data.AssetTag = types.StringValue(*item.AssetTag.Get())
-
 	} else {
-
 		data.AssetTag = types.StringNull()
-
 	}
 
 	// Map discovered
 
 	if discovered, ok := item.GetDiscoveredOk(); ok && discovered != nil {
-
 		data.Discovered = types.BoolValue(*discovered)
-
 	} else {
-
 		data.Discovered = types.BoolNull()
-
 	}
 
 	// Map description
 
 	if desc, ok := item.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle tags (simplified - just names)
 
 	if item.HasTags() && len(item.GetTags()) > 0 {
-
 		tagNames := make([]string, 0, len(item.GetTags()))
 
 		for _, tag := range item.GetTags() {
-
 			tagNames = append(tagNames, tag.GetName())
-
 		}
 
 		tagsValue, diags := types.SetValueFrom(ctx, types.StringType, tagNames)
@@ -559,17 +464,12 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(types.StringType)
-
 	}
 
 	// Map display_name
@@ -580,5 +480,4 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

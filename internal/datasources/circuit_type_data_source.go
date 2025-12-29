@@ -23,9 +23,7 @@ var _ datasource.DataSource = &CircuitTypeDataSource{}
 // NewCircuitTypeDataSource returns a new Circuit Type data source.
 
 func NewCircuitTypeDataSource() datasource.DataSource {
-
 	return &CircuitTypeDataSource{}
-
 }
 
 // CircuitTypeDataSource defines the data source implementation for circuit types.
@@ -57,17 +55,13 @@ type CircuitTypeDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *CircuitTypeDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_circuit_type"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *CircuitTypeDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a circuit type in Netbox. Circuit types categorize the various types of circuits used by your organization (e.g., Internet Transit, MPLS, Point-to-Point, etc.). You can identify the circuit type using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
@@ -81,23 +75,18 @@ func (d *CircuitTypeDataSource) Schema(ctx context.Context, req datasource.Schem
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 // Configure sets up the data source with the provider client.
 
 func (d *CircuitTypeDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -106,25 +95,20 @@ func (d *CircuitTypeDataSource) Configure(ctx context.Context, req datasource.Co
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read reads the data source.
 
 func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data CircuitTypeDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var circuitType *netbox.CircuitType
@@ -136,7 +120,6 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Determine if we're searching by ID, slug, or name
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		// Search by ID
@@ -144,14 +127,12 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		circuitTypeID := data.ID.ValueString()
 
 		tflog.Debug(ctx, "Reading circuit type by ID", map[string]interface{}{
-
 			"id": circuitTypeID,
 		})
 
 		var circuitTypeIDInt int32
 
 		if _, parseErr := fmt.Sscanf(circuitTypeID, "%d", &circuitTypeIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Circuit Type ID",
@@ -160,7 +141,6 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		circuitType, httpResp, err = d.client.CircuitsAPI.CircuitsCircuitTypesRetrieve(ctx, circuitTypeIDInt).Execute()
@@ -174,7 +154,6 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		circuitTypeSlug := data.Slug.ValueString()
 
 		tflog.Debug(ctx, "Reading circuit type by slug", map[string]interface{}{
-
 			"slug": circuitTypeSlug,
 		})
 
@@ -185,7 +164,6 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading circuit type",
@@ -194,11 +172,9 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if len(circuitTypes.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Circuit Type Not Found",
@@ -207,7 +183,6 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		circuitType = &circuitTypes.GetResults()[0]
@@ -219,7 +194,6 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		circuitTypeName := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading circuit type by name", map[string]interface{}{
-
 			"name": circuitTypeName,
 		})
 
@@ -230,7 +204,6 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading circuit type",
@@ -239,11 +212,9 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if len(circuitTypes.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Circuit Type Not Found",
@@ -252,7 +223,6 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		circuitType = &circuitTypes.GetResults()[0]
@@ -267,11 +237,9 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading circuit type",
@@ -280,7 +248,6 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	// Map the circuit type to state
@@ -294,31 +261,22 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Handle description
 
 	if circuitType.HasDescription() && circuitType.GetDescription() != "" {
-
 		data.Description = types.StringValue(circuitType.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle color
 
 	if circuitType.HasColor() && circuitType.GetColor() != "" {
-
 		data.Color = types.StringValue(circuitType.GetColor())
-
 	} else {
-
 		data.Color = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if circuitType.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(circuitType.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -326,23 +284,17 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		resp.Diagnostics.Append(tagDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if circuitType.HasCustomFields() {
-
 		customFields := utils.MapToCustomFieldModels(circuitType.GetCustomFields(), nil)
 
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
@@ -350,17 +302,12 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		resp.Diagnostics.Append(cfDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Map display name
@@ -372,12 +319,10 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	tflog.Debug(ctx, "Read circuit type", map[string]interface{}{
-
 		"id": circuitType.GetId(),
 
 		"name": circuitType.GetName(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

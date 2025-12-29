@@ -38,7 +38,6 @@ type ConfigTemplateResourceModel struct {
 	ID           types.Int32  `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
 	Description  types.String `tfsdk:"description"`
-	DisplayName  types.String `tfsdk:"display_name"`
 	TemplateCode types.String `tfsdk:"template_code"`
 	DataPath     types.String `tfsdk:"data_path"`
 }
@@ -64,7 +63,6 @@ func (r *ConfigTemplateResource) Schema(ctx context.Context, req resource.Schema
 				MarkdownDescription: "The name of the config template.",
 				Required:            true,
 			},
-			"display_name": nbschema.DisplayNameAttribute("config template"),
 			"template_code": schema.StringAttribute{
 				MarkdownDescription: "Jinja2 template code.",
 				Required:            true,
@@ -250,12 +248,6 @@ func (r *ConfigTemplateResource) mapResponseToModel(template *netbox.ConfigTempl
 	data.ID = types.Int32Value(template.GetId())
 	data.Name = types.StringValue(template.GetName())
 
-	// DisplayName
-	if template.Display != "" {
-		data.DisplayName = types.StringValue(template.Display)
-	} else {
-		data.DisplayName = types.StringNull()
-	}
 	data.TemplateCode = types.StringValue(template.GetTemplateCode())
 
 	// Map description

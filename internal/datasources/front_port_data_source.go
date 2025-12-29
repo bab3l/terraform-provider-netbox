@@ -21,9 +21,7 @@ var _ datasource.DataSource = &FrontPortDataSource{}
 // NewFrontPortDataSource returns a new data source implementing the front port data source.
 
 func NewFrontPortDataSource() datasource.DataSource {
-
 	return &FrontPortDataSource{}
-
 }
 
 // FrontPortDataSource defines the data source implementation.
@@ -65,23 +63,17 @@ type FrontPortDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *FrontPortDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_front_port"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *FrontPortDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a front port in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the front port.",
 
 				Optional: true,
@@ -90,7 +82,6 @@ func (d *FrontPortDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"device_id": schema.Int32Attribute{
-
 				MarkdownDescription: "The numeric ID of the device. Used with name for lookup when ID is not provided.",
 
 				Optional: true,
@@ -99,14 +90,12 @@ func (d *FrontPortDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"device": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the device.",
 
 				Computed: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the front port. Used with device_id for lookup when ID is not provided.",
 
 				Optional: true,
@@ -115,86 +104,72 @@ func (d *FrontPortDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label of the front port.",
 
 				Computed: true,
 			},
 
 			"type": schema.StringAttribute{
-
 				MarkdownDescription: "The type of front port.",
 
 				Computed: true,
 			},
 
 			"color": schema.StringAttribute{
-
 				MarkdownDescription: "Color of the front port in hex format.",
 
 				Computed: true,
 			},
 
 			"rear_port_id": schema.Int32Attribute{
-
 				MarkdownDescription: "The ID of the rear port this front port maps to.",
 
 				Computed: true,
 			},
 
 			"rear_port_name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the rear port this front port maps to.",
 
 				Computed: true,
 			},
 
 			"rear_port_position": schema.Int32Attribute{
-
 				MarkdownDescription: "Position on the rear port that this front port maps to.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the front port.",
 
 				Computed: true,
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the front port.",
 
 				Computed: true,
 			},
 
 			"mark_connected": schema.BoolAttribute{
-
 				MarkdownDescription: "Whether the port is marked as connected.",
 
 				Computed: true,
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *FrontPortDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -203,31 +178,25 @@ func (d *FrontPortDataSource) Configure(ctx context.Context, req datasource.Conf
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves the data source data.
 
 func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data FrontPortDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var port *netbox.FrontPort
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		// Lookup by ID
@@ -235,7 +204,6 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		portID := data.ID.ValueInt32()
 
 		tflog.Debug(ctx, "Reading front port by ID", map[string]interface{}{
-
 			"id": portID,
 		})
 
@@ -244,7 +212,6 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading front port",
@@ -253,7 +220,6 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		port = response
@@ -267,7 +233,6 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		name := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading front port by device and name", map[string]interface{}{
-
 			"device_id": deviceID,
 
 			"name": name,
@@ -278,7 +243,6 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading front port",
@@ -287,13 +251,11 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		count := int(response.GetCount())
 
 		if count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Front Port Not Found",
@@ -302,11 +264,9 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		if count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Front Ports Found",
@@ -315,7 +275,6 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		port = &response.GetResults()[0]
@@ -330,7 +289,6 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -338,13 +296,11 @@ func (d *FrontPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 	d.mapResponseToModel(port, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *FrontPortDataSource) mapResponseToModel(port *netbox.FrontPort, data *FrontPortDataSourceModel) {
-
 	data.ID = types.Int32Value(port.GetId())
 
 	data.Name = types.StringValue(port.GetName())
@@ -352,11 +308,9 @@ func (d *FrontPortDataSource) mapResponseToModel(port *netbox.FrontPort, data *F
 	// Map device
 
 	if device := port.GetDevice(); device.Id != 0 {
-
 		data.DeviceID = types.Int32Value(device.Id)
 
 		data.Device = types.StringValue(device.GetName())
-
 	}
 
 	// Map type
@@ -366,59 +320,41 @@ func (d *FrontPortDataSource) mapResponseToModel(port *netbox.FrontPort, data *F
 	// Map label
 
 	if label, ok := port.GetLabelOk(); ok && label != nil && *label != "" {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Map color
 
 	if color, ok := port.GetColorOk(); ok && color != nil && *color != "" {
-
 		data.Color = types.StringValue(*color)
-
 	} else {
-
 		data.Color = types.StringNull()
-
 	}
 
 	// Map rear port
 
 	if rearPort := port.GetRearPort(); rearPort.Id != 0 {
-
 		data.RearPortID = types.Int32Value(rearPort.GetId())
 
 		data.RearPortName = types.StringValue(rearPort.GetName())
-
 	}
 
 	// Map rear port position
 
 	if pos, ok := port.GetRearPortPositionOk(); ok && pos != nil {
-
 		data.RearPortPosition = types.Int32Value(*pos)
-
 	} else {
-
 		data.RearPortPosition = types.Int32Null()
-
 	}
 
 	// Map description
 
 	if desc, ok := port.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map display_name
@@ -431,13 +367,8 @@ func (d *FrontPortDataSource) mapResponseToModel(port *netbox.FrontPort, data *F
 	// Map mark_connected
 
 	if mc, ok := port.GetMarkConnectedOk(); ok && mc != nil {
-
 		data.MarkConnected = types.BoolValue(*mc)
-
 	} else {
-
 		data.MarkConnected = types.BoolValue(false)
-
 	}
-
 }

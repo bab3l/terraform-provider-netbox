@@ -22,9 +22,7 @@ var _ datasource.DataSource = &ConsolePortDataSource{}
 // NewConsolePortDataSource returns a new data source implementing the console port data source.
 
 func NewConsolePortDataSource() datasource.DataSource {
-
 	return &ConsolePortDataSource{}
-
 }
 
 // ConsolePortDataSource defines the data source implementation.
@@ -60,23 +58,17 @@ type ConsolePortDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *ConsolePortDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_console_port"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *ConsolePortDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a console port in NetBox. You can identify the console port using `id` or the combination of `device_id` and `name`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the console port.",
 
 				Optional: true,
@@ -85,7 +77,6 @@ func (d *ConsolePortDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"device_id": schema.Int32Attribute{
-
 				MarkdownDescription: "The numeric ID of the device. Used with name for lookup when ID is not provided.",
 
 				Optional: true,
@@ -94,14 +85,12 @@ func (d *ConsolePortDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"device": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the device.",
 
 				Computed: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the console port. Used with device_id for lookup when ID is not provided.",
 
 				Optional: true,
@@ -110,28 +99,24 @@ func (d *ConsolePortDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label of the console port.",
 
 				Computed: true,
 			},
 
 			"type": schema.StringAttribute{
-
 				MarkdownDescription: "Console port type.",
 
 				Computed: true,
 			},
 
 			"speed": schema.Int32Attribute{
-
 				MarkdownDescription: "Console port speed in bps.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the console port.",
 
 				Computed: true,
@@ -140,30 +125,24 @@ func (d *ConsolePortDataSource) Schema(ctx context.Context, req datasource.Schem
 			"display_name": nbschema.DSComputedStringAttribute("The display name of the console port."),
 
 			"mark_connected": schema.BoolAttribute{
-
 				MarkdownDescription: "Treat as if a cable is connected.",
 
 				Computed: true,
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *ConsolePortDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -172,31 +151,25 @@ func (d *ConsolePortDataSource) Configure(ctx context.Context, req datasource.Co
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves the data source data.
 
 func (d *ConsolePortDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ConsolePortDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var consolePort *netbox.ConsolePort
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		// Lookup by ID
@@ -204,7 +177,6 @@ func (d *ConsolePortDataSource) Read(ctx context.Context, req datasource.ReadReq
 		portID := data.ID.ValueInt32()
 
 		tflog.Debug(ctx, "Reading console port by ID", map[string]interface{}{
-
 			"id": portID,
 		})
 
@@ -213,7 +185,6 @@ func (d *ConsolePortDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading console port",
@@ -222,7 +193,6 @@ func (d *ConsolePortDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		consolePort = response
@@ -236,7 +206,6 @@ func (d *ConsolePortDataSource) Read(ctx context.Context, req datasource.ReadReq
 		name := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading console port by device and name", map[string]interface{}{
-
 			"device_id": deviceID,
 
 			"name": name,
@@ -247,7 +216,6 @@ func (d *ConsolePortDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading console port",
@@ -256,13 +224,11 @@ func (d *ConsolePortDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		count := int(response.GetCount())
 
 		if count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Console Port Not Found",
@@ -271,11 +237,9 @@ func (d *ConsolePortDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Console Ports Found",
@@ -284,7 +248,6 @@ func (d *ConsolePortDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		consolePort = &response.GetResults()[0]
@@ -299,7 +262,6 @@ func (d *ConsolePortDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -307,13 +269,11 @@ func (d *ConsolePortDataSource) Read(ctx context.Context, req datasource.ReadReq
 	d.mapResponseToModel(consolePort, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *ConsolePortDataSource) mapResponseToModel(consolePort *netbox.ConsolePort, data *ConsolePortDataSourceModel) {
-
 	data.ID = types.Int32Value(consolePort.GetId())
 
 	data.Name = types.StringValue(consolePort.GetName())
@@ -321,71 +281,49 @@ func (d *ConsolePortDataSource) mapResponseToModel(consolePort *netbox.ConsolePo
 	// Map device
 
 	if device := consolePort.GetDevice(); device.Id != 0 {
-
 		data.DeviceID = types.Int32Value(device.Id)
 
 		data.Device = types.StringValue(device.GetName())
-
 	}
 
 	// Map label
 
 	if label, ok := consolePort.GetLabelOk(); ok && label != nil && *label != "" {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Map type
 
 	if consolePort.Type != nil {
-
 		data.Type = types.StringValue(string(consolePort.Type.GetValue()))
-
 	} else {
-
 		data.Type = types.StringNull()
-
 	}
 
 	// Map speed
 
 	if consolePort.Speed.IsSet() && consolePort.Speed.Get() != nil {
-
 		data.Speed = types.Int32Value(int32(consolePort.Speed.Get().GetValue()))
-
 	} else {
-
 		data.Speed = types.Int32Null()
-
 	}
 
 	// Map description
 
 	if desc, ok := consolePort.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map mark_connected
 
 	if mc, ok := consolePort.GetMarkConnectedOk(); ok && mc != nil {
-
 		data.MarkConnected = types.BoolValue(*mc)
-
 	} else {
-
 		data.MarkConnected = types.BoolValue(false)
-
 	}
 
 	// Map display name
@@ -394,5 +332,4 @@ func (d *ConsolePortDataSource) mapResponseToModel(consolePort *netbox.ConsolePo
 	} else {
 		data.DisplayName = types.StringNull()
 	}
-
 }

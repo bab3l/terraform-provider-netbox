@@ -21,9 +21,7 @@ var _ datasource.DataSource = &ConsoleServerPortTemplateDataSource{}
 // NewConsoleServerPortTemplateDataSource returns a new data source implementing the console server port template data source.
 
 func NewConsoleServerPortTemplateDataSource() datasource.DataSource {
-
 	return &ConsoleServerPortTemplateDataSource{}
-
 }
 
 // ConsoleServerPortTemplateDataSource defines the data source implementation.
@@ -53,23 +51,17 @@ type ConsoleServerPortTemplateDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *ConsoleServerPortTemplateDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_console_server_port_template"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *ConsoleServerPortTemplateDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a console server port template in NetBox. You can identify the template using `id` or the combination of `name` with `device_type` or `module_type`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the console server port template.",
 
 				Optional: true,
@@ -78,7 +70,6 @@ func (d *ConsoleServerPortTemplateDataSource) Schema(ctx context.Context, req da
 			},
 
 			"device_type": schema.Int32Attribute{
-
 				MarkdownDescription: "The numeric ID of the device type. Used with name for lookup when ID is not provided.",
 
 				Optional: true,
@@ -87,7 +78,6 @@ func (d *ConsoleServerPortTemplateDataSource) Schema(ctx context.Context, req da
 			},
 
 			"module_type": schema.Int32Attribute{
-
 				MarkdownDescription: "The numeric ID of the module type. Used with name for lookup when ID is not provided.",
 
 				Optional: true,
@@ -96,7 +86,6 @@ func (d *ConsoleServerPortTemplateDataSource) Schema(ctx context.Context, req da
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the console server port template. Used with device_type or module_type for lookup when ID is not provided.",
 
 				Optional: true,
@@ -105,44 +94,36 @@ func (d *ConsoleServerPortTemplateDataSource) Schema(ctx context.Context, req da
 			},
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label of the console server port template.",
 
 				Computed: true,
 			},
 
 			"type": schema.StringAttribute{
-
 				MarkdownDescription: "The type of console server port.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the console server port template.",
 
 				Computed: true,
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *ConsoleServerPortTemplateDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -151,31 +132,25 @@ func (d *ConsoleServerPortTemplateDataSource) Configure(ctx context.Context, req
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves the data source data.
 
 func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ConsoleServerPortTemplateDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var template *netbox.ConsoleServerPortTemplate
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		// Lookup by ID
@@ -183,7 +158,6 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 		templateID := data.ID.ValueInt32()
 
 		tflog.Debug(ctx, "Reading console server port template by ID", map[string]interface{}{
-
 			"id": templateID,
 		})
 
@@ -192,7 +166,6 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading console server port template",
@@ -201,7 +174,6 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 			)
 
 			return
-
 		}
 
 		template = response
@@ -213,26 +185,21 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 		name := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading console server port template by name", map[string]interface{}{
-
 			"name": name,
 		})
 
 		listReq := d.client.DcimAPI.DcimConsoleServerPortTemplatesList(ctx).Name([]string{name})
 
 		if !data.DeviceType.IsNull() && !data.DeviceType.IsUnknown() {
-
 			deviceTypeID := data.DeviceType.ValueInt32()
 
 			listReq = listReq.DeviceTypeId([]*int32{&deviceTypeID})
-
 		}
 
 		if !data.ModuleType.IsNull() && !data.ModuleType.IsUnknown() {
-
 			moduleTypeID := data.ModuleType.ValueInt32()
 
 			listReq = listReq.ModuleTypeId([]*int32{&moduleTypeID})
-
 		}
 
 		response, httpResp, err := listReq.Execute()
@@ -240,7 +207,6 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading console server port template",
@@ -249,13 +215,11 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 			)
 
 			return
-
 		}
 
 		count := int(response.GetCount())
 
 		if count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Console Server Port Template Not Found",
@@ -264,11 +228,9 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 			)
 
 			return
-
 		}
 
 		if count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Console Server Port Templates Found",
@@ -277,7 +239,6 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 			)
 
 			return
-
 		}
 
 		template = &response.GetResults()[0]
@@ -292,7 +253,6 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -300,13 +260,11 @@ func (d *ConsoleServerPortTemplateDataSource) Read(ctx context.Context, req data
 	d.mapResponseToModel(template, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *ConsoleServerPortTemplateDataSource) mapResponseToModel(template *netbox.ConsoleServerPortTemplate, data *ConsoleServerPortTemplateDataSourceModel) {
-
 	data.ID = types.Int32Value(template.GetId())
 
 	data.Name = types.StringValue(template.GetName())
@@ -314,61 +272,40 @@ func (d *ConsoleServerPortTemplateDataSource) mapResponseToModel(template *netbo
 	// Map device type
 
 	if template.DeviceType.IsSet() && template.DeviceType.Get() != nil {
-
 		data.DeviceType = types.Int32Value(template.DeviceType.Get().Id)
-
 	} else {
-
 		data.DeviceType = types.Int32Null()
-
 	}
 
 	// Map module type
 
 	if template.ModuleType.IsSet() && template.ModuleType.Get() != nil {
-
 		data.ModuleType = types.Int32Value(template.ModuleType.Get().Id)
-
 	} else {
-
 		data.ModuleType = types.Int32Null()
-
 	}
 
 	// Map label
 
 	if label, ok := template.GetLabelOk(); ok && label != nil && *label != "" {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Map type
 
 	if template.Type != nil {
-
 		data.Type = types.StringValue(string(template.Type.GetValue()))
-
 	} else {
-
 		data.Type = types.StringNull()
-
 	}
 
 	// Map description
 
 	if desc, ok := template.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
-
 }

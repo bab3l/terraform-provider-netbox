@@ -26,9 +26,7 @@ var (
 // NewInventoryItemRoleDataSource returns a new data source implementing the inventory item role data source.
 
 func NewInventoryItemRoleDataSource() datasource.DataSource {
-
 	return &InventoryItemRoleDataSource{}
-
 }
 
 // InventoryItemRoleDataSource defines the data source implementation.
@@ -58,25 +56,19 @@ type InventoryItemRoleDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *InventoryItemRoleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_inventory_item_role"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *InventoryItemRoleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about an inventory item role in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			// Filter attributes
 
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the inventory item role. Use this to filter by ID.",
 
 				Optional: true,
@@ -85,7 +77,6 @@ func (d *InventoryItemRoleDataSource) Schema(ctx context.Context, req datasource
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the inventory item role. Use this to filter by name.",
 
 				Optional: true,
@@ -94,7 +85,6 @@ func (d *InventoryItemRoleDataSource) Schema(ctx context.Context, req datasource
 			},
 
 			"slug": schema.StringAttribute{
-
 				MarkdownDescription: "The slug of the inventory item role. Use this to filter by slug.",
 
 				Optional: true,
@@ -105,28 +95,24 @@ func (d *InventoryItemRoleDataSource) Schema(ctx context.Context, req datasource
 			// Computed attributes
 
 			"color": schema.StringAttribute{
-
 				MarkdownDescription: "The color associated with this role (6-character hex code).",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the inventory item role.",
 
 				Computed: true,
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the inventory item role.",
 
 				Computed: true,
 			},
 
 			"tags": schema.SetAttribute{
-
 				MarkdownDescription: "Tags associated with this inventory item role.",
 
 				Computed: true,
@@ -135,23 +121,18 @@ func (d *InventoryItemRoleDataSource) Schema(ctx context.Context, req datasource
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *InventoryItemRoleDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -160,25 +141,20 @@ func (d *InventoryItemRoleDataSource) Configure(ctx context.Context, req datasou
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the data source data.
 
 func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data InventoryItemRoleDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var role *netbox.InventoryItemRole
@@ -186,11 +162,9 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 	// If ID is provided, look up directly
 
 	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-
 		roleID, err := utils.ParseID(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Inventory Item Role ID",
@@ -199,11 +173,9 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Looking up inventory item role by ID", map[string]interface{}{
-
 			"id": roleID,
 		})
 
@@ -220,7 +192,6 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 		}
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading inventory item role",
@@ -229,17 +200,13 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 			)
 
 			return
-
 		}
 
 		role = response
-
 	} else {
-
 		// Search by filters
 
 		tflog.Debug(ctx, "Searching for inventory item role", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 
 			"slug": data.Slug.ValueString(),
@@ -248,15 +215,11 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 		listReq := d.client.DcimAPI.DcimInventoryItemRolesList(ctx)
 
 		if !data.Name.IsNull() && !data.Name.IsUnknown() {
-
 			listReq = listReq.Name([]string{data.Name.ValueString()})
-
 		}
 
 		if !data.Slug.IsNull() && !data.Slug.IsUnknown() {
-
 			listReq = listReq.Slug([]string{data.Slug.ValueString()})
-
 		}
 
 		response, httpResp, err := listReq.Execute()
@@ -264,7 +227,6 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading inventory item roles",
@@ -273,11 +235,9 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 			)
 
 			return
-
 		}
 
 		if response.GetCount() == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"No inventory item role found",
@@ -286,11 +246,9 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 			)
 
 			return
-
 		}
 
 		if response.GetCount() > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple inventory item roles found",
@@ -299,11 +257,9 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 			)
 
 			return
-
 		}
 
 		role = &response.GetResults()[0]
-
 	}
 
 	// Map response to model
@@ -317,37 +273,26 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 	// Map color
 
 	if color, ok := role.GetColorOk(); ok && color != nil && *color != "" {
-
 		data.Color = types.StringValue(*color)
-
 	} else {
-
 		data.Color = types.StringNull()
-
 	}
 
 	// Map description
 
 	if desc, ok := role.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle tags (simplified - just names)
 
 	if role.HasTags() && len(role.GetTags()) > 0 {
-
 		tagNames := make([]string, 0, len(role.GetTags()))
 
 		for _, tag := range role.GetTags() {
-
 			tagNames = append(tagNames, tag.GetName())
-
 		}
 
 		tagsValue, diags := types.SetValueFrom(ctx, types.StringType, tagNames)
@@ -355,17 +300,12 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(types.StringType)
-
 	}
 
 	// Map display_name
@@ -376,5 +316,4 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

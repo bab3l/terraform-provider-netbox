@@ -36,9 +36,7 @@ var (
 // NewIPSecProfileResource returns a new IPSecProfile resource.
 
 func NewIPSecProfileResource() resource.Resource {
-
 	return &IPSecProfileResource{}
-
 }
 
 // IPSecProfileResource defines the resource implementation.
@@ -64,8 +62,6 @@ type IPSecProfileResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -74,35 +70,27 @@ type IPSecProfileResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *IPSecProfileResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_ipsec_profile"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *IPSecProfileResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages an IPSec Profile in Netbox. IPSec profiles combine IKE and IPSec policies to define complete VPN configurations.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the IPSec profile.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the IPSec profile. Required.",
 
 				Required: true,
@@ -111,32 +99,26 @@ func (r *IPSecProfileResource) Schema(ctx context.Context, req resource.SchemaRe
 			"description": nbschema.DescriptionAttribute("IPSec profile"),
 
 			"mode": schema.StringAttribute{
-
 				MarkdownDescription: "The IPSec mode. Required. Valid values: `esp` (Encapsulating Security Payload), `ah` (Authentication Header).",
 
 				Required: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.OneOf("esp", "ah"),
 				},
 			},
 
 			"ike_policy": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the IKE policy to use. Required.",
 
 				Required: true,
 			},
 
 			"ipsec_policy": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the IPSec policy to use. Required.",
 
 				Required: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("IPSec profile"),
 		},
 	}
 
@@ -148,17 +130,13 @@ func (r *IPSecProfileResource) Schema(ctx context.Context, req resource.SchemaRe
 }
 
 func (r *IPSecProfileResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -167,17 +145,14 @@ func (r *IPSecProfileResource) Configure(ctx context.Context, req resource.Confi
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates the resource and sets the initial Terraform state.
 
 func (r *IPSecProfileResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data IPSecProfileResourceModel
 
 	// Read Terraform plan data into the model
@@ -185,9 +160,7 @@ func (r *IPSecProfileResource) Create(ctx context.Context, req resource.CreateRe
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Create the IPSecProfile request
@@ -218,11 +191,9 @@ func (r *IPSecProfileResource) Create(ctx context.Context, req resource.CreateRe
 	)
 
 	// Override the policy fields with integer IDs using AdditionalProperties
-
 	// This replaces the nested objects with simple integer IDs that Netbox API accepts
 
 	ipsecRequest.AdditionalProperties = map[string]interface{}{
-
 		"ike_policy": ikePolicyID,
 
 		"ipsec_policy": ipsecPolicyID,
@@ -233,13 +204,10 @@ func (r *IPSecProfileResource) Create(ctx context.Context, req resource.CreateRe
 	r.setOptionalFields(ctx, ipsecRequest, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating IPSecProfile", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 	})
 
@@ -250,7 +218,6 @@ func (r *IPSecProfileResource) Create(ctx context.Context, req resource.CreateRe
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating IPSecProfile",
@@ -259,7 +226,6 @@ func (r *IPSecProfileResource) Create(ctx context.Context, req resource.CreateRe
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -267,7 +233,6 @@ func (r *IPSecProfileResource) Create(ctx context.Context, req resource.CreateRe
 	r.mapIPSecProfileToState(ctx, ipsec, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Created IPSecProfile", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -276,13 +241,11 @@ func (r *IPSecProfileResource) Create(ctx context.Context, req resource.CreateRe
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (r *IPSecProfileResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data IPSecProfileResourceModel
 
 	// Read Terraform prior state data into the model
@@ -290,15 +253,12 @@ func (r *IPSecProfileResource) Read(ctx context.Context, req resource.ReadReques
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing ID",
@@ -307,11 +267,9 @@ func (r *IPSecProfileResource) Read(ctx context.Context, req resource.ReadReques
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading IPSecProfile", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -322,18 +280,14 @@ func (r *IPSecProfileResource) Read(ctx context.Context, req resource.ReadReques
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "IPSecProfile not found, removing from state", map[string]interface{}{
-
 				"id": id,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -344,7 +298,6 @@ func (r *IPSecProfileResource) Read(ctx context.Context, req resource.ReadReques
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -354,13 +307,11 @@ func (r *IPSecProfileResource) Read(ctx context.Context, req resource.ReadReques
 	// Save updated data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 
 func (r *IPSecProfileResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data IPSecProfileResourceModel
 
 	// Read Terraform plan data into the model
@@ -368,15 +319,12 @@ func (r *IPSecProfileResource) Update(ctx context.Context, req resource.UpdateRe
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing ID",
@@ -385,7 +333,6 @@ func (r *IPSecProfileResource) Update(ctx context.Context, req resource.UpdateRe
 		)
 
 		return
-
 	}
 
 	// Create the IPSecProfile request
@@ -416,11 +363,9 @@ func (r *IPSecProfileResource) Update(ctx context.Context, req resource.UpdateRe
 	)
 
 	// Override the policy fields with integer IDs using AdditionalProperties
-
 	// This replaces the nested objects with simple integer IDs that Netbox API accepts
 
 	ipsecRequest.AdditionalProperties = map[string]interface{}{
-
 		"ike_policy": ikePolicyID,
 
 		"ipsec_policy": ipsecPolicyID,
@@ -431,13 +376,10 @@ func (r *IPSecProfileResource) Update(ctx context.Context, req resource.UpdateRe
 	r.setOptionalFields(ctx, ipsecRequest, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating IPSecProfile", map[string]interface{}{
-
 		"id": id,
 
 		"name": data.Name.ValueString(),
@@ -450,7 +392,6 @@ func (r *IPSecProfileResource) Update(ctx context.Context, req resource.UpdateRe
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating IPSecProfile",
@@ -459,7 +400,6 @@ func (r *IPSecProfileResource) Update(ctx context.Context, req resource.UpdateRe
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -467,7 +407,6 @@ func (r *IPSecProfileResource) Update(ctx context.Context, req resource.UpdateRe
 	r.mapIPSecProfileToState(ctx, ipsec, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Updated IPSecProfile", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -476,13 +415,11 @@ func (r *IPSecProfileResource) Update(ctx context.Context, req resource.UpdateRe
 	// Save updated data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 
 func (r *IPSecProfileResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data IPSecProfileResourceModel
 
 	// Read Terraform prior state data into the model
@@ -490,15 +427,12 @@ func (r *IPSecProfileResource) Delete(ctx context.Context, req resource.DeleteRe
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing ID",
@@ -507,11 +441,9 @@ func (r *IPSecProfileResource) Delete(ctx context.Context, req resource.DeleteRe
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting IPSecProfile", map[string]interface{}{
-
 		"id": id,
 
 		"name": data.Name.ValueString(),
@@ -524,13 +456,10 @@ func (r *IPSecProfileResource) Delete(ctx context.Context, req resource.DeleteRe
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			// Already deleted
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -541,40 +470,32 @@ func (r *IPSecProfileResource) Delete(ctx context.Context, req resource.DeleteRe
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted IPSecProfile", map[string]interface{}{
-
 		"id": id,
 	})
-
 }
 
 // ImportState imports the resource state from an existing resource.
 
 func (r *IPSecProfileResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // setOptionalFields sets optional fields on the WritableIPSecProfileRequest.
 
 func (r *IPSecProfileResource) setOptionalFields(ctx context.Context, ipsecRequest *netbox.WritableIPSecProfileRequest, data *IPSecProfileResourceModel, diags *diag.Diagnostics) {
-
 	// Set common fields (description, comments, tags, custom_fields)
 	utils.ApplyCommonFields(ctx, ipsecRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
 	if diags.HasError() {
 		return
 	}
-
 }
 
 // mapIPSecProfileToState maps an IPSecProfile API response to the Terraform state model.
 
 func (r *IPSecProfileResource) mapIPSecProfileToState(ctx context.Context, ipsec *netbox.IPSecProfile, data *IPSecProfileResourceModel, diags *diag.Diagnostics) {
-
 	// ID
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipsec.Id))
@@ -586,21 +507,15 @@ func (r *IPSecProfileResource) mapIPSecProfileToState(ctx context.Context, ipsec
 	// Description
 
 	if ipsec.Description != nil && *ipsec.Description != "" {
-
 		data.Description = types.StringValue(*ipsec.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Mode
 
 	if ipsec.Mode.Value != nil {
-
 		data.Mode = types.StringValue(string(*ipsec.Mode.Value))
-
 	}
 
 	// IKE Policy (store ID as string)
@@ -614,39 +529,28 @@ func (r *IPSecProfileResource) mapIPSecProfileToState(ctx context.Context, ipsec
 	// Comments
 
 	if ipsec.Comments != nil && *ipsec.Comments != "" {
-
 		data.Comments = types.StringValue(*ipsec.Comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Display Name
 
-	data.DisplayName = types.StringValue(ipsec.Display)
-
 	// Tags
 
 	if len(ipsec.Tags) > 0 {
-
 		tags := utils.NestedTagsToTagModels(ipsec.Tags)
 
 		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom Fields
 
 	switch {
-
 	case len(ipsec.CustomFields) > 0 && !data.CustomFields.IsNull():
 
 		var stateCustomFields []utils.CustomFieldModel
@@ -670,7 +574,5 @@ func (r *IPSecProfileResource) mapIPSecProfileToState(ctx context.Context, ipsec
 	default:
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

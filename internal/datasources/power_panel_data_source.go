@@ -27,9 +27,7 @@ var (
 // NewPowerPanelDataSource returns a new data source implementing the PowerPanel data source.
 
 func NewPowerPanelDataSource() datasource.DataSource {
-
 	return &PowerPanelDataSource{}
-
 }
 
 // PowerPanelDataSource defines the data source implementation.
@@ -63,23 +61,17 @@ type PowerPanelDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *PowerPanelDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_power_panel"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *PowerPanelDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a power panel in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the power panel. Use this to look up by ID.",
 
 				Optional: true,
@@ -88,14 +80,12 @@ func (d *PowerPanelDataSource) Schema(ctx context.Context, req datasource.Schema
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the power panel.",
 
 				Computed: true,
 			},
 
 			"site": schema.StringAttribute{
-
 				MarkdownDescription: "The site this power panel belongs to (ID).",
 
 				Optional: true,
@@ -104,14 +94,12 @@ func (d *PowerPanelDataSource) Schema(ctx context.Context, req datasource.Schema
 			},
 
 			"location": schema.StringAttribute{
-
 				MarkdownDescription: "The location within the site (ID).",
 
 				Computed: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the power panel. Use with site for lookup.",
 
 				Optional: true,
@@ -120,14 +108,12 @@ func (d *PowerPanelDataSource) Schema(ctx context.Context, req datasource.Schema
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the power panel.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Additional comments or notes about the power panel.",
 
 				Computed: true,
@@ -138,23 +124,18 @@ func (d *PowerPanelDataSource) Schema(ctx context.Context, req datasource.Schema
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *PowerPanelDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -163,25 +144,20 @@ func (d *PowerPanelDataSource) Configure(ctx context.Context, req datasource.Con
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the data source data.
 
 func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data PowerPanelDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var pp *netbox.PowerPanel
@@ -189,13 +165,11 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	// Look up by ID if provided
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		ppID, err := utils.ParseID(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Power Panel ID",
@@ -204,11 +178,9 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading power panel by ID", map[string]interface{}{
-
 			"id": ppID,
 		})
 
@@ -217,7 +189,6 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading power panel",
@@ -226,7 +197,6 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		pp = result
@@ -236,7 +206,6 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		// Look up by name (optionally filtered by site)
 
 		tflog.Debug(ctx, "Reading power panel by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -245,11 +214,9 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		// Filter by site if provided
 
 		if !data.Site.IsNull() && !data.Site.IsUnknown() {
-
 			siteID, err := utils.ParseID(data.Site.ValueString())
 
 			if err != nil {
-
 				resp.Diagnostics.AddError(
 
 					"Invalid Site ID",
@@ -258,11 +225,9 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 				)
 
 				return
-
 			}
 
 			listReq = listReq.SiteId([]int32{siteID})
-
 		}
 
 		listResp, httpResp, err := listReq.Execute()
@@ -270,7 +235,6 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading power panel",
@@ -279,11 +243,9 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		if listResp.GetCount() == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Power panel not found",
@@ -292,11 +254,9 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		if listResp.GetCount() > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple power panels found",
@@ -305,7 +265,6 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		pp = &listResp.GetResults()[0]
@@ -320,7 +279,6 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -328,31 +286,23 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	d.mapResponseToModel(ctx, pp, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *PowerPanelDataSource) mapResponseToModel(ctx context.Context, pp *netbox.PowerPanel, data *PowerPanelDataSourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", pp.GetId()))
 
 	// Display Name
 
 	if pp.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(pp.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	data.Name = types.StringValue(pp.GetName())
@@ -364,43 +314,30 @@ func (d *PowerPanelDataSource) mapResponseToModel(ctx context.Context, pp *netbo
 	// Map location
 
 	if pp.Location.IsSet() && pp.Location.Get() != nil {
-
 		data.Location = types.StringValue(fmt.Sprintf("%d", pp.Location.Get().GetId()))
-
 	} else {
-
 		data.Location = types.StringNull()
-
 	}
 
 	// Map description
 
 	if desc, ok := pp.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map comments
 
 	if comments, ok := pp.GetCommentsOk(); ok && comments != nil && *comments != "" {
-
 		data.Comments = types.StringValue(*comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if pp.HasTags() && len(pp.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(pp.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -408,23 +345,17 @@ func (d *PowerPanelDataSource) mapResponseToModel(ctx context.Context, pp *netbo
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if pp.HasCustomFields() {
-
 		apiCustomFields := pp.GetCustomFields()
 
 		customFields := utils.MapToCustomFieldModels(apiCustomFields, nil)
@@ -434,17 +365,11 @@ func (d *PowerPanelDataSource) mapResponseToModel(ctx context.Context, pp *netbo
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

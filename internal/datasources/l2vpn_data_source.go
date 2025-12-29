@@ -20,9 +20,7 @@ import (
 var _ datasource.DataSource = &L2VPNDataSource{}
 
 func NewL2VPNDataSource() datasource.DataSource {
-
 	return &L2VPNDataSource{}
-
 }
 
 // L2VPNDataSource defines the data source implementation.
@@ -64,19 +62,14 @@ type L2VPNDataSourceModel struct {
 }
 
 func (d *L2VPNDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_l2vpn"
-
 }
 
 func (d *L2VPNDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a Layer 2 VPN in Netbox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("L2VPN"),
 
 			"display_name": nbschema.DSComputedStringAttribute("The display name of the L2VPN."),
@@ -88,14 +81,12 @@ func (d *L2VPNDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 			"type": nbschema.DSComputedStringAttribute("L2VPN type."),
 
 			"identifier": schema.Int64Attribute{
-
 				MarkdownDescription: "Numeric identifier unique to the parent L2VPN.",
 
 				Computed: true,
 			},
 
 			"import_targets": schema.SetAttribute{
-
 				MarkdownDescription: "Set of route target IDs to import.",
 
 				Computed: true,
@@ -104,7 +95,6 @@ func (d *L2VPNDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 			},
 
 			"export_targets": schema.SetAttribute{
-
 				MarkdownDescription: "Set of route target IDs to export.",
 
 				Computed: true,
@@ -125,21 +115,16 @@ func (d *L2VPNDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 func (d *L2VPNDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -148,23 +133,18 @@ func (d *L2VPNDataSource) Configure(ctx context.Context, req datasource.Configur
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data L2VPNDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var l2vpn *netbox.L2VPN
@@ -172,13 +152,11 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 	// Lookup by ID
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		var idInt int32
 
 		if _, parseErr := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid ID format",
@@ -187,11 +165,9 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Looking up L2VPN by ID", map[string]interface{}{
-
 			"id": idInt,
 		})
 
@@ -200,7 +176,6 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading L2VPN",
@@ -209,7 +184,6 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 			)
 
 			return
-
 		}
 
 		l2vpn = result
@@ -219,7 +193,6 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		// Lookup by slug
 
 		tflog.Debug(ctx, "Looking up L2VPN by slug", map[string]interface{}{
-
 			"slug": data.Slug.ValueString(),
 		})
 
@@ -229,7 +202,6 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading L2VPN",
@@ -238,11 +210,9 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 			)
 
 			return
-
 		}
 
 		if list == nil || len(list.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"L2VPN not found",
@@ -251,7 +221,6 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 			)
 
 			return
-
 		}
 
 		result := list.GetResults()[0]
@@ -263,7 +232,6 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		// Lookup by name
 
 		tflog.Debug(ctx, "Looking up L2VPN by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -273,7 +241,6 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading L2VPN",
@@ -282,11 +249,9 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 			)
 
 			return
-
 		}
 
 		if list == nil || len(list.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"L2VPN not found",
@@ -295,11 +260,9 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 			)
 
 			return
-
 		}
 
 		if len(list.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple L2VPNs found",
@@ -310,7 +273,6 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 			)
 
 			return
-
 		}
 
 		result := list.GetResults()[0]
@@ -327,7 +289,6 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -335,25 +296,19 @@ func (d *L2VPNDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 	d.mapResponseToState(ctx, l2vpn, &data, resp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToState maps an L2VPN API response to the Terraform state model.
 
 func (d *L2VPNDataSource) mapResponseToState(ctx context.Context, l2vpn *netbox.L2VPN, data *L2VPNDataSourceModel, resp *datasource.ReadResponse) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", l2vpn.GetId()))
 
 	// Display Name
 
 	if l2vpn.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(l2vpn.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	data.Name = types.StringValue(l2vpn.GetName())
@@ -363,81 +318,58 @@ func (d *L2VPNDataSource) mapResponseToState(ctx context.Context, l2vpn *netbox.
 	// Type
 
 	if l2vpn.HasType() {
-
 		typeObj := l2vpn.GetType()
 
 		data.Type = types.StringValue(string(typeObj.GetValue()))
-
 	} else {
-
 		data.Type = types.StringNull()
-
 	}
 
 	// Identifier
 
 	if l2vpn.HasIdentifier() && l2vpn.GetIdentifier() != 0 {
-
 		data.Identifier = types.Int64Value(l2vpn.GetIdentifier())
-
 	} else {
-
 		data.Identifier = types.Int64Null()
-
 	}
 
 	// Description
 
 	if l2vpn.HasDescription() && l2vpn.GetDescription() != "" {
-
 		data.Description = types.StringValue(l2vpn.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Comments
 
 	if l2vpn.HasComments() && l2vpn.GetComments() != "" {
-
 		data.Comments = types.StringValue(l2vpn.GetComments())
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Tenant
 
 	if l2vpn.HasTenant() && l2vpn.GetTenant().Id != 0 {
-
 		tenant := l2vpn.GetTenant()
 
 		data.Tenant = types.StringValue(tenant.GetName())
 
 		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
-
 	} else {
-
 		data.Tenant = types.StringNull()
 
 		data.TenantID = types.StringNull()
-
 	}
 
 	// Import targets
 
 	if l2vpn.HasImportTargets() && len(l2vpn.GetImportTargets()) > 0 {
-
 		var targetIDs []string
 
 		for _, target := range l2vpn.GetImportTargets() {
-
 			targetIDs = append(targetIDs, fmt.Sprintf("%d", target.GetId()))
-
 		}
 
 		targetSet, diags := types.SetValueFrom(ctx, types.StringType, targetIDs)
@@ -445,23 +377,17 @@ func (d *L2VPNDataSource) mapResponseToState(ctx context.Context, l2vpn *netbox.
 		resp.Diagnostics.Append(diags...)
 
 		data.ImportTargets = targetSet
-
 	} else {
-
 		data.ImportTargets = types.SetNull(types.StringType)
-
 	}
 
 	// Export targets
 
 	if l2vpn.HasExportTargets() && len(l2vpn.GetExportTargets()) > 0 {
-
 		var targetIDs []string
 
 		for _, target := range l2vpn.GetExportTargets() {
-
 			targetIDs = append(targetIDs, fmt.Sprintf("%d", target.GetId()))
-
 		}
 
 		targetSet, diags := types.SetValueFrom(ctx, types.StringType, targetIDs)
@@ -469,17 +395,13 @@ func (d *L2VPNDataSource) mapResponseToState(ctx context.Context, l2vpn *netbox.
 		resp.Diagnostics.Append(diags...)
 
 		data.ExportTargets = targetSet
-
 	} else {
-
 		data.ExportTargets = types.SetNull(types.StringType)
-
 	}
 
 	// Tags
 
 	if l2vpn.HasTags() && len(l2vpn.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(l2vpn.GetTags())
 
 		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -487,25 +409,19 @@ func (d *L2VPNDataSource) mapResponseToState(ctx context.Context, l2vpn *netbox.
 		resp.Diagnostics.Append(diags...)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom fields
 
 	if l2vpn.HasCustomFields() && len(l2vpn.GetCustomFields()) > 0 {
-
 		var existingModels []utils.CustomFieldModel
 
 		if !data.CustomFields.IsNull() {
-
 			diags := data.CustomFields.ElementsAs(ctx, &existingModels, false)
 
 			resp.Diagnostics.Append(diags...)
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(l2vpn.GetCustomFields(), existingModels)
@@ -515,11 +431,7 @@ func (d *L2VPNDataSource) mapResponseToState(ctx context.Context, l2vpn *netbox.
 		resp.Diagnostics.Append(diags...)
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

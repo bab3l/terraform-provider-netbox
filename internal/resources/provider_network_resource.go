@@ -36,9 +36,7 @@ var (
 // NewProviderNetworkResource returns a new ProviderNetwork resource.
 
 func NewProviderNetworkResource() resource.Resource {
-
 	return &ProviderNetworkResource{}
-
 }
 
 // ProviderNetworkResource defines the resource implementation.
@@ -62,8 +60,6 @@ type ProviderNetworkResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -72,77 +68,61 @@ type ProviderNetworkResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *ProviderNetworkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_provider_network"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *ProviderNetworkResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a provider network in NetBox. Provider networks represent the network infrastructure of circuit providers.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the provider network.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"circuit_provider": schema.StringAttribute{
-
 				MarkdownDescription: "The circuit provider that owns this network. Can be specified by name, slug, or ID.",
 
 				Required: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the provider network.",
 
 				Required: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.LengthBetween(1, 100),
 				},
 			},
 
 			"service_id": schema.StringAttribute{
-
 				MarkdownDescription: "A unique identifier for this network provided by the circuit provider.",
 
 				Optional: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.LengthAtMost(100),
 				},
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the provider network.",
 
 				Optional: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.LengthAtMost(200),
 				},
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("provider network"),
 		},
 	}
 
@@ -154,17 +134,13 @@ func (r *ProviderNetworkResource) Schema(ctx context.Context, req resource.Schem
 }
 
 func (r *ProviderNetworkResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -173,29 +149,23 @@ func (r *ProviderNetworkResource) Configure(ctx context.Context, req resource.Co
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates the resource and sets the initial Terraform state.
 
 func (r *ProviderNetworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data ProviderNetworkResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating provider network", map[string]interface{}{
-
 		"circuit_provider": data.CircuitProvider.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -208,9 +178,7 @@ func (r *ProviderNetworkResource) Create(ctx context.Context, req resource.Creat
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Call the API
@@ -220,7 +188,6 @@ func (r *ProviderNetworkResource) Create(ctx context.Context, req resource.Creat
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating provider network",
@@ -229,11 +196,9 @@ func (r *ProviderNetworkResource) Create(ctx context.Context, req resource.Creat
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Created provider network", map[string]interface{}{
-
 		"id": pn.GetId(),
 
 		"name": pn.GetName(),
@@ -244,27 +209,21 @@ func (r *ProviderNetworkResource) Create(ctx context.Context, req resource.Creat
 	r.mapResponseToModel(ctx, pn, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (r *ProviderNetworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data ProviderNetworkResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -272,7 +231,6 @@ func (r *ProviderNetworkResource) Read(ctx context.Context, req resource.ReadReq
 	pnID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Provider Network ID",
@@ -281,11 +239,9 @@ func (r *ProviderNetworkResource) Read(ctx context.Context, req resource.ReadReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading provider network", map[string]interface{}{
-
 		"id": pnID,
 	})
 
@@ -296,18 +252,14 @@ func (r *ProviderNetworkResource) Read(ctx context.Context, req resource.ReadReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "Provider network not found, removing from state", map[string]interface{}{
-
 				"id": pnID,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -318,7 +270,6 @@ func (r *ProviderNetworkResource) Read(ctx context.Context, req resource.ReadReq
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -326,27 +277,21 @@ func (r *ProviderNetworkResource) Read(ctx context.Context, req resource.ReadReq
 	r.mapResponseToModel(ctx, pn, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the resource and sets the updated Terraform state.
 
 func (r *ProviderNetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data ProviderNetworkResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -354,7 +299,6 @@ func (r *ProviderNetworkResource) Update(ctx context.Context, req resource.Updat
 	pnID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Provider Network ID",
@@ -363,11 +307,9 @@ func (r *ProviderNetworkResource) Update(ctx context.Context, req resource.Updat
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating provider network", map[string]interface{}{
-
 		"id": pnID,
 
 		"name": data.Name.ValueString(),
@@ -380,9 +322,7 @@ func (r *ProviderNetworkResource) Update(ctx context.Context, req resource.Updat
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Call the API
@@ -392,7 +332,6 @@ func (r *ProviderNetworkResource) Update(ctx context.Context, req resource.Updat
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating provider network",
@@ -401,11 +340,9 @@ func (r *ProviderNetworkResource) Update(ctx context.Context, req resource.Updat
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updated provider network", map[string]interface{}{
-
 		"id": pn.GetId(),
 
 		"name": pn.GetName(),
@@ -416,27 +353,21 @@ func (r *ProviderNetworkResource) Update(ctx context.Context, req resource.Updat
 	r.mapResponseToModel(ctx, pn, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the resource and removes the Terraform state.
 
 func (r *ProviderNetworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data ProviderNetworkResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -444,7 +375,6 @@ func (r *ProviderNetworkResource) Delete(ctx context.Context, req resource.Delet
 	pnID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Provider Network ID",
@@ -453,11 +383,9 @@ func (r *ProviderNetworkResource) Delete(ctx context.Context, req resource.Delet
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting provider network", map[string]interface{}{
-
 		"id": pnID,
 
 		"name": data.Name.ValueString(),
@@ -470,13 +398,10 @@ func (r *ProviderNetworkResource) Delete(ctx context.Context, req resource.Delet
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			// Resource already deleted
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -487,28 +412,22 @@ func (r *ProviderNetworkResource) Delete(ctx context.Context, req resource.Delet
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted provider network", map[string]interface{}{
-
 		"id": pnID,
 	})
-
 }
 
 // ImportState imports the resource state.
 
 func (r *ProviderNetworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // buildProviderNetworkRequest builds a ProviderNetworkRequest from the Terraform model.
 
 func (r *ProviderNetworkResource) buildProviderNetworkRequest(ctx context.Context, data *ProviderNetworkResourceModel) (*netbox.ProviderNetworkRequest, diag.Diagnostics) {
-
 	var diags diag.Diagnostics
 
 	// Lookup provider (required)
@@ -518,9 +437,7 @@ func (r *ProviderNetworkResource) buildProviderNetworkRequest(ctx context.Contex
 	diags.Append(providerDiags...)
 
 	if diags.HasError() {
-
 		return nil, diags
-
 	}
 
 	// Create the request with required fields
@@ -530,11 +447,9 @@ func (r *ProviderNetworkResource) buildProviderNetworkRequest(ctx context.Contex
 	// Handle service_id (optional)
 
 	if !data.ServiceID.IsNull() && !data.ServiceID.IsUnknown() {
-
 		serviceID := data.ServiceID.ValueString()
 
 		pnRequest.ServiceId = &serviceID
-
 	}
 
 	// Apply common fields (description, comments, tags, custom_fields)
@@ -542,19 +457,15 @@ func (r *ProviderNetworkResource) buildProviderNetworkRequest(ctx context.Contex
 	utils.ApplyCommonFields(ctx, pnRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
 
 	if diags.HasError() {
-
 		return nil, diags
-
 	}
 
 	return pnRequest, diags
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (r *ProviderNetworkResource) mapResponseToModel(ctx context.Context, pn *netbox.ProviderNetwork, data *ProviderNetworkResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", pn.GetId()))
 
 	data.Name = types.StringValue(pn.GetName())
@@ -575,17 +486,9 @@ func (r *ProviderNetworkResource) mapResponseToModel(ctx context.Context, pn *ne
 
 	data.Comments = utils.StringFromAPI(pn.HasComments(), pn.GetComments, data.Comments)
 
-	// Map display_name
-	if pn.Display != "" {
-		data.DisplayName = types.StringValue(pn.Display)
-	} else {
-		data.DisplayName = types.StringNull()
-	}
-
 	// Handle tags
 
 	if pn.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(pn.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -593,31 +496,23 @@ func (r *ProviderNetworkResource) mapResponseToModel(ctx context.Context, pn *ne
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if pn.HasCustomFields() {
-
 		apiCustomFields := pn.GetCustomFields()
 
 		var stateCustomFieldModels []utils.CustomFieldModel
 
 		if !data.CustomFields.IsNull() {
-
 			data.CustomFields.ElementsAs(ctx, &stateCustomFieldModels, false)
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(apiCustomFields, stateCustomFieldModels)
@@ -627,17 +522,11 @@ func (r *ProviderNetworkResource) mapResponseToModel(ctx context.Context, pn *ne
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

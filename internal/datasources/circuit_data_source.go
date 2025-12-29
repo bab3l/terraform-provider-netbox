@@ -23,9 +23,7 @@ var _ datasource.DataSource = &CircuitDataSource{}
 // NewCircuitDataSource returns a new Circuit data source.
 
 func NewCircuitDataSource() datasource.DataSource {
-
 	return &CircuitDataSource{}
-
 }
 
 // CircuitDataSource defines the data source implementation for circuits.
@@ -69,21 +67,16 @@ type CircuitDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *CircuitDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_circuit"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *CircuitDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a circuit in Netbox. Circuits represent physical or logical network connections provided by external carriers or service providers. You can identify the circuit using `id` or `cid`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("circuit"),
 
 			"cid": nbschema.DSNameAttribute("circuit"), // Using DSNameAttribute since cid is similar to name
@@ -113,23 +106,18 @@ func (d *CircuitDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 // Configure sets up the data source with the provider client.
 
 func (d *CircuitDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -138,25 +126,20 @@ func (d *CircuitDataSource) Configure(ctx context.Context, req datasource.Config
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read reads the data source.
 
 func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data CircuitDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var circuit *netbox.Circuit
@@ -168,7 +151,6 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	// Determine if we're searching by ID or cid
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		// Search by ID
@@ -176,14 +158,12 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		circuitID := data.ID.ValueString()
 
 		tflog.Debug(ctx, "Reading circuit by ID", map[string]interface{}{
-
 			"id": circuitID,
 		})
 
 		var circuitIDInt int32
 
 		if _, parseErr := fmt.Sscanf(circuitID, "%d", &circuitIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Circuit ID",
@@ -192,7 +172,6 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 
 			return
-
 		}
 
 		circuit, httpResp, err = d.client.CircuitsAPI.CircuitsCircuitsRetrieve(ctx, circuitIDInt).Execute()
@@ -206,7 +185,6 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		circuitCid := data.Cid.ValueString()
 
 		tflog.Debug(ctx, "Reading circuit by cid", map[string]interface{}{
-
 			"cid": circuitCid,
 		})
 
@@ -217,7 +195,6 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading circuit",
@@ -226,11 +203,9 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 
 			return
-
 		}
 
 		if len(circuits.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Circuit Not Found",
@@ -239,11 +214,9 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 
 			return
-
 		}
 
 		if len(circuits.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Circuits Found",
@@ -252,7 +225,6 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 
 			return
-
 		}
 
 		circuit = &circuits.GetResults()[0]
@@ -267,11 +239,9 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading circuit",
@@ -280,7 +250,6 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		)
 
 		return
-
 	}
 
 	// Map the circuit to state
@@ -296,91 +265,62 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	// Handle status
 
 	if circuit.HasStatus() {
-
 		data.Status = types.StringValue(string(circuit.Status.GetValue()))
-
 	} else {
-
 		data.Status = types.StringValue("active")
-
 	}
 
 	// Handle tenant
 
 	if circuit.Tenant.IsSet() && circuit.Tenant.Get() != nil {
-
 		data.Tenant = types.StringValue(circuit.Tenant.Get().GetName())
-
 	} else {
-
 		data.Tenant = types.StringNull()
-
 	}
 
 	// Handle install date
 
 	if circuit.InstallDate.IsSet() && circuit.InstallDate.Get() != nil {
-
 		data.InstallDate = types.StringValue(*circuit.InstallDate.Get())
-
 	} else {
-
 		data.InstallDate = types.StringNull()
-
 	}
 
 	// Handle termination date
 
 	if circuit.TerminationDate.IsSet() && circuit.TerminationDate.Get() != nil {
-
 		data.TerminationDate = types.StringValue(*circuit.TerminationDate.Get())
-
 	} else {
-
 		data.TerminationDate = types.StringNull()
-
 	}
 
 	// Handle commit rate
 
 	if circuit.CommitRate.IsSet() && circuit.CommitRate.Get() != nil {
-
 		data.CommitRate = types.Int64Value(int64(*circuit.CommitRate.Get()))
-
 	} else {
-
 		data.CommitRate = types.Int64Null()
-
 	}
 
 	// Handle description
 
 	if circuit.HasDescription() && circuit.GetDescription() != "" {
-
 		data.Description = types.StringValue(circuit.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle comments
 
 	if circuit.HasComments() && circuit.GetComments() != "" {
-
 		data.Comments = types.StringValue(circuit.GetComments())
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if circuit.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(circuit.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -388,23 +328,17 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		resp.Diagnostics.Append(tagDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if circuit.HasCustomFields() {
-
 		customFields := utils.MapToCustomFieldModels(circuit.GetCustomFields(), nil)
 
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
@@ -412,17 +346,12 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		resp.Diagnostics.Append(cfDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Map display name
@@ -434,12 +363,10 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	tflog.Debug(ctx, "Read circuit", map[string]interface{}{
-
 		"id": circuit.GetId(),
 
 		"cid": circuit.GetCid(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

@@ -46,7 +46,6 @@ type CircuitResource struct {
 type CircuitResourceModel struct {
 	ID              types.String `tfsdk:"id"`
 	Cid             types.String `tfsdk:"cid"`
-	DisplayName     types.String `tfsdk:"display_name"`
 	CircuitProvider types.String `tfsdk:"circuit_provider"`
 	Type            types.String `tfsdk:"type"`
 	Status          types.String `tfsdk:"status"`
@@ -84,7 +83,6 @@ func (r *CircuitResource) Schema(ctx context.Context, req resource.SchemaRequest
 					stringvalidator.LengthAtLeast(1),
 				},
 			},
-			"display_name": nbschema.DisplayNameAttribute("circuit"),
 			"circuit_provider": schema.StringAttribute{
 				MarkdownDescription: "The circuit provider (carrier or ISP) supplying this circuit. Can be specified by name, slug, or ID.",
 				Required:            true,
@@ -209,7 +207,6 @@ func (r *CircuitResource) Read(ctx context.Context, req resource.ReadRequest, re
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("Could not parse circuit ID: %s", err))
 		return
-
 	}
 	tflog.Debug(ctx, "Reading circuit", map[string]interface{}{
 		"id": id,
@@ -398,13 +395,6 @@ func (r *CircuitResource) buildCircuitRequest(ctx context.Context, data *Circuit
 func (r *CircuitResource) mapCircuitToState(ctx context.Context, circuit *netbox.Circuit, data *CircuitResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", circuit.GetId()))
 	data.Cid = types.StringValue(circuit.GetCid())
-
-	// DisplayName
-	if circuit.Display != "" {
-		data.DisplayName = types.StringValue(circuit.Display)
-	} else {
-		data.DisplayName = types.StringNull()
-	}
 
 	// Provider - preserve user input if it matches, otherwise normalize to slug/name
 	providerObj := circuit.GetProvider()

@@ -202,13 +202,9 @@ func (d *NotificationGroupDataSource) mapToDataSourceModel(ctx context.Context, 
 	// Display Name
 
 	if result.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(result.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Map description

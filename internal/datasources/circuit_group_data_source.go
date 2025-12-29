@@ -20,9 +20,7 @@ import (
 var _ datasource.DataSource = &CircuitGroupDataSource{}
 
 func NewCircuitGroupDataSource() datasource.DataSource {
-
 	return &CircuitGroupDataSource{}
-
 }
 
 // CircuitGroupDataSource defines the data source implementation.
@@ -56,19 +54,14 @@ type CircuitGroupDataSourceModel struct {
 }
 
 func (d *CircuitGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_circuit_group"
-
 }
 
 func (d *CircuitGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a circuit group in Netbox. You can identify the circuit group using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("circuit group"),
 
 			"name": nbschema.DSNameAttribute("circuit group"),
@@ -90,21 +83,16 @@ func (d *CircuitGroupDataSource) Schema(ctx context.Context, req datasource.Sche
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 func (d *CircuitGroupDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -113,23 +101,18 @@ func (d *CircuitGroupDataSource) Configure(ctx context.Context, req datasource.C
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data CircuitGroupDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var group *netbox.CircuitGroup
@@ -137,13 +120,11 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 	// Lookup by ID
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		var idInt int32
 
 		if _, parseErr := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid ID format",
@@ -152,11 +133,9 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Looking up circuit group by ID", map[string]interface{}{
-
 			"id": idInt,
 		})
 
@@ -165,7 +144,6 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading circuit group",
@@ -174,7 +152,6 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 			)
 
 			return
-
 		}
 
 		group = result
@@ -184,7 +161,6 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		// Lookup by slug
 
 		tflog.Debug(ctx, "Looking up circuit group by slug", map[string]interface{}{
-
 			"slug": data.Slug.ValueString(),
 		})
 
@@ -194,7 +170,6 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading circuit group",
@@ -203,11 +178,9 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 			)
 
 			return
-
 		}
 
 		if list == nil || len(list.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Circuit group not found",
@@ -216,7 +189,6 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 			)
 
 			return
-
 		}
 
 		result := list.GetResults()[0]
@@ -228,7 +200,6 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		// Lookup by name
 
 		tflog.Debug(ctx, "Looking up circuit group by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -238,7 +209,6 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading circuit group",
@@ -247,11 +217,9 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 			)
 
 			return
-
 		}
 
 		if list == nil || len(list.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Circuit group not found",
@@ -260,11 +228,9 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 			)
 
 			return
-
 		}
 
 		if len(list.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple circuit groups found",
@@ -275,7 +241,6 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 			)
 
 			return
-
 		}
 
 		result := list.GetResults()[0]
@@ -292,7 +257,6 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -300,13 +264,11 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 	d.mapResponseToState(ctx, group, &data, resp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToState maps a CircuitGroup API response to the Terraform state model.
 
 func (d *CircuitGroupDataSource) mapResponseToState(ctx context.Context, group *netbox.CircuitGroup, data *CircuitGroupDataSourceModel, resp *datasource.ReadResponse) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", group.GetId()))
 
 	data.Name = types.StringValue(group.GetName())
@@ -316,31 +278,23 @@ func (d *CircuitGroupDataSource) mapResponseToState(ctx context.Context, group *
 	// Description
 
 	if group.HasDescription() && group.GetDescription() != "" {
-
 		data.Description = types.StringValue(group.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Tenant
 
 	if group.HasTenant() && group.Tenant.IsSet() && group.Tenant.Get() != nil {
-
 		tenant := group.Tenant.Get()
 
 		data.Tenant = types.StringValue(tenant.GetName())
 
 		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
-
 	} else {
-
 		data.Tenant = types.StringNull()
 
 		data.TenantID = types.StringNull()
-
 	}
 
 	// Circuit count
@@ -350,7 +304,6 @@ func (d *CircuitGroupDataSource) mapResponseToState(ctx context.Context, group *
 	// Tags
 
 	if group.HasTags() && len(group.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(group.GetTags())
 
 		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -358,17 +311,13 @@ func (d *CircuitGroupDataSource) mapResponseToState(ctx context.Context, group *
 		resp.Diagnostics.Append(diags...)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom fields
 
 	if group.HasCustomFields() && len(group.GetCustomFields()) > 0 {
-
 		customFields := utils.MapToCustomFieldModels(group.GetCustomFields(), nil)
 
 		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
@@ -376,11 +325,8 @@ func (d *CircuitGroupDataSource) mapResponseToState(ctx context.Context, group *
 		resp.Diagnostics.Append(diags...)
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Map display name
@@ -390,5 +336,4 @@ func (d *CircuitGroupDataSource) mapResponseToState(ctx context.Context, group *
 	} else {
 		data.DisplayName = types.StringNull()
 	}
-
 }

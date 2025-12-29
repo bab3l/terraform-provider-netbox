@@ -44,7 +44,6 @@ type ClusterResource struct {
 type ClusterResourceModel struct {
 	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
-	DisplayName  types.String `tfsdk:"display_name"`
 	Type         types.String `tfsdk:"type"`
 	Group        types.String `tfsdk:"group"`
 	Status       types.String `tfsdk:"status"`
@@ -73,8 +72,7 @@ func (r *ClusterResource) Schema(ctx context.Context, req resource.SchemaRequest
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"name":         nbschema.NameAttribute("cluster", 100),
-			"display_name": nbschema.DisplayNameAttribute("cluster"),
+			"name": nbschema.NameAttribute("cluster", 100),
 			"type": schema.StringAttribute{
 				MarkdownDescription: "The name or ID of the cluster type (e.g., 'VMware vSphere', 'Proxmox').",
 				Required:            true,
@@ -127,7 +125,6 @@ func (r *ClusterResource) Configure(ctx context.Context, req resource.ConfigureR
 func (r *ClusterResource) mapClusterToState(ctx context.Context, cluster *netbox.Cluster, data *ClusterResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", cluster.GetId()))
 	data.Name = types.StringValue(cluster.GetName())
-	data.DisplayName = types.StringValue(cluster.GetDisplay())
 
 	// Type (required field) - preserve user's input format (ID, name, or slug)
 	data.Type = utils.PreserveReferenceFormat(data.Type, cluster.Type.GetId(), cluster.Type.GetName(), cluster.Type.GetSlug())

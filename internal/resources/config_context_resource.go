@@ -54,6 +54,23 @@ type ConfigContextResourceModel struct {
 	Tags          types.Set    `tfsdk:"tags"`
 }
 
+// normalizeJSON normalizes a JSON string by unmarshaling and remarshaling it
+// to ensure consistent formatting regardless of input whitespace.
+func normalizeJSON(jsonStr string) string {
+	if jsonStr == "" {
+		return ""
+	}
+	var data interface{}
+	if err := json.Unmarshal([]byte(jsonStr), &data); err != nil {
+		return jsonStr // Return as-is if invalid
+	}
+	normalized, err := json.Marshal(data)
+	if err != nil {
+		return jsonStr // Return as-is if can't marshal
+	}
+	return string(normalized)
+}
+
 func (r *ConfigContextResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_config_context"
 }
@@ -492,10 +509,23 @@ func mapConfigContextResponseToModel(ctx context.Context, result *netbox.ConfigC
 	}
 
 	// Data field - serialize JSON back to string
+	// We need to normalize the JSON to match what the API returns (compact format)
+	// to avoid drift when user provides formatted JSON
 	if result.Data != nil {
 		jsonBytes, err := json.Marshal(result.GetData())
 		if err == nil {
-			data.Data = types.StringValue(string(jsonBytes))
+			// Check if the user's current value, when normalized, matches the API value
+			currentNormalized := normalizeJSON(data.Data.ValueString())
+			apiNormalized := string(jsonBytes)
+
+			// If they're semantically equal, preserve user's original formatting
+			if currentNormalized == apiNormalized {
+				// Keep the user's original value (with their formatting)
+				// data.Data stays as-is
+			} else {
+				// Values differ, use the API's version
+				data.Data = types.StringValue(apiNormalized)
+			}
 		}
 	}
 

@@ -31,9 +31,7 @@ var _ resource.Resource = &DeviceResource{}
 var _ resource.ResourceWithImportState = &DeviceResource{}
 
 func NewDeviceResource() resource.Resource {
-
 	return &DeviceResource{}
-
 }
 
 // DeviceResource defines the resource implementation.
@@ -48,8 +46,6 @@ type DeviceResourceModel struct {
 	ID types.String `tfsdk:"id"`
 
 	Name types.String `tfsdk:"name"`
-
-	DisplayName types.String `tfsdk:"display_name"`
 
 	DeviceType types.String `tfsdk:"device_type"`
 
@@ -109,24 +105,17 @@ type DeviceResourceModel struct {
 }
 
 func (r *DeviceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_device"
-
 }
 
 func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a device in Netbox. Devices represent physical or virtual hardware in your infrastructure, such as servers, switches, routers, and other network equipment.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.IDAttribute("device"),
 
 			"name": nbschema.OptionalNameAttribute("device", 64),
-
-			"display_name": nbschema.DisplayNameAttribute("device"),
 
 			"device_type": nbschema.RequiredReferenceAttribute("device type", "ID or slug of the device type for this device. Required."),
 
@@ -182,55 +171,46 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 
 			"position": schema.Float64Attribute{
-
 				MarkdownDescription: "Position in the rack (in rack units from the bottom). Must be a positive number.",
 
 				Optional: true,
 
 				Validators: []validator.Float64{
-
 					float64validator.AtLeast(0),
 				},
 			},
 
 			"face": schema.StringAttribute{
-
 				MarkdownDescription: "Which face of the rack the device is mounted on. Valid values: 'front', 'rear'.",
 
 				Optional: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.OneOf("front", "rear", ""),
 				},
 			},
 
 			"latitude": schema.Float64Attribute{
-
 				MarkdownDescription: "GPS latitude coordinate in decimal format (xx.yyyyyy).",
 
 				Optional: true,
 
 				Validators: []validator.Float64{
-
 					float64validator.Between(-90, 90),
 				},
 			},
 
 			"longitude": schema.Float64Attribute{
-
 				MarkdownDescription: "GPS longitude coordinate in decimal format (xx.yyyyyy).",
 
 				Optional: true,
 
 				Validators: []validator.Float64{
-
 					float64validator.Between(-180, 180),
 				},
 			},
 
 			"status": schema.StringAttribute{
-
 				MarkdownDescription: "Operational status of the device. Valid values: 'offline', 'active', 'planned', 'staged', 'failed', 'inventory', 'decommissioning'.",
 
 				Optional: true,
@@ -240,43 +220,36 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Default: stringdefault.StaticString("active"),
 
 				Validators: []validator.String{
-
 					stringvalidator.OneOf("offline", "active", "planned", "staged", "failed", "inventory", "decommissioning"),
 				},
 			},
 
 			"airflow": schema.StringAttribute{
-
 				MarkdownDescription: "Direction of airflow through the device. Valid values: 'front-to-rear', 'rear-to-front', 'left-to-right', 'right-to-left', 'side-to-rear', 'passive', 'mixed'.",
 
 				Optional: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.OneOf("front-to-rear", "rear-to-front", "left-to-right", "right-to-left", "side-to-rear", "passive", "mixed", ""),
 				},
 			},
 
 			"vc_position": schema.Int64Attribute{
-
 				MarkdownDescription: "Position within a virtual chassis (0-255).",
 
 				Optional: true,
 
 				Validators: []validator.Int64{
-
 					int64validator.Between(0, 255),
 				},
 			},
 
 			"vc_priority": schema.Int64Attribute{
-
 				MarkdownDescription: "Virtual chassis master election priority (0-255).",
 
 				Optional: true,
 
 				Validators: []validator.Int64{
-
 					int64validator.Between(0, 255),
 				},
 			},
@@ -291,17 +264,13 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 }
 
 func (r *DeviceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -310,27 +279,21 @@ func (r *DeviceResource) Configure(ctx context.Context, req resource.ConfigureRe
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data DeviceResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating device", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"device_type": data.DeviceType.ValueString(),
@@ -347,9 +310,7 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	role, diags := netboxlookup.LookupDeviceRole(ctx, r.client, data.Role.ValueString())
@@ -357,9 +318,7 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	site, diags := netboxlookup.LookupSite(ctx, r.client, data.Site.ValueString())
@@ -367,15 +326,12 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Build the device request with required fields
 
 	deviceRequest := netbox.WritableDeviceWithConfigContextRequest{
-
 		DeviceType: *deviceType,
 
 		Role: *role,
@@ -386,167 +342,125 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	// Set optional fields
 
 	if !data.Name.IsNull() && !data.Name.IsUnknown() {
-
 		deviceRequest.SetName(data.Name.ValueString())
-
 	}
 
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-
 		tenant, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		deviceRequest.SetTenant(*tenant)
-
 	}
 
 	if !data.Platform.IsNull() && !data.Platform.IsUnknown() {
-
 		platform, diags := netboxlookup.LookupPlatform(ctx, r.client, data.Platform.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		deviceRequest.SetPlatform(*platform)
-
 	}
 
 	if !data.Serial.IsNull() && !data.Serial.IsUnknown() {
-
 		serial := data.Serial.ValueString()
 
 		deviceRequest.Serial = &serial
-
 	}
 
 	if !data.AssetTag.IsNull() && !data.AssetTag.IsUnknown() {
-
 		deviceRequest.SetAssetTag(data.AssetTag.ValueString())
-
 	}
 
 	if !data.Location.IsNull() && !data.Location.IsUnknown() {
-
 		location, diags := netboxlookup.LookupLocation(ctx, r.client, data.Location.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		deviceRequest.SetLocation(*location)
-
 	}
 
 	if !data.Rack.IsNull() && !data.Rack.IsUnknown() {
-
 		rack, diags := netboxlookup.LookupRack(ctx, r.client, data.Rack.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		deviceRequest.SetRack(*rack)
-
 	}
 
 	if !data.Position.IsNull() && !data.Position.IsUnknown() {
-
 		position := data.Position.ValueFloat64()
 
 		deviceRequest.SetPosition(position)
-
 	}
 
 	if !data.Face.IsNull() && !data.Face.IsUnknown() && data.Face.ValueString() != "" {
-
 		face := netbox.RackFace1(data.Face.ValueString())
 
 		deviceRequest.Face = &face
-
 	}
 
 	if !data.Latitude.IsNull() && !data.Latitude.IsUnknown() {
-
 		latitude := data.Latitude.ValueFloat64()
 
 		deviceRequest.SetLatitude(latitude)
-
 	}
 
 	if !data.Longitude.IsNull() && !data.Longitude.IsUnknown() {
-
 		longitude := data.Longitude.ValueFloat64()
 
 		deviceRequest.SetLongitude(longitude)
-
 	}
 
 	if !data.Status.IsNull() && !data.Status.IsUnknown() {
-
 		status := netbox.DeviceStatusValue(data.Status.ValueString())
 
 		deviceRequest.Status = &status
-
 	}
 
 	if !data.Airflow.IsNull() && !data.Airflow.IsUnknown() && data.Airflow.ValueString() != "" {
-
 		airflow := netbox.DeviceAirflowValue(data.Airflow.ValueString())
 
 		deviceRequest.Airflow = &airflow
-
 	}
 
 	if !data.VcPosition.IsNull() && !data.VcPosition.IsUnknown() {
-
 		vcPosition, err := utils.SafeInt32FromValue(data.VcPosition)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("VcPosition value overflow: %s", err))
 
 			return
-
 		}
 
 		deviceRequest.SetVcPosition(vcPosition)
-
 	}
 
 	if !data.VcPriority.IsNull() && !data.VcPriority.IsUnknown() {
-
 		vcPriority, err := utils.SafeInt32FromValue(data.VcPriority)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("VcPriority value overflow: %s", err))
 
 			return
-
 		}
 
 		deviceRequest.SetVcPriority(vcPriority)
-
 	}
 
 	// Set common fields (description, comments, tags, custom_fields)
@@ -562,7 +476,6 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating device",
@@ -571,11 +484,9 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Created device", map[string]interface{}{
-
 		"id": device.GetId(),
 
 		"name": device.GetName(),
@@ -586,25 +497,19 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	r.mapDeviceToState(ctx, device, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data DeviceResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -616,7 +521,6 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 	deviceIDInt, err := utils.ParseID(deviceID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Device ID",
@@ -625,11 +529,9 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading device", map[string]interface{}{
-
 		"id": deviceID,
 	})
 
@@ -640,18 +542,14 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "Device not found, removing from state", map[string]interface{}{
-
 				"id": deviceID,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -662,7 +560,6 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -670,25 +567,19 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 	r.mapDeviceToState(ctx, device, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data DeviceResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -700,7 +591,6 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	deviceIDInt, err := utils.ParseID(deviceID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Device ID",
@@ -709,11 +599,9 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating device", map[string]interface{}{
-
 		"id": deviceID,
 
 		"name": data.Name.ValueString(),
@@ -726,9 +614,7 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	role, diags := netboxlookup.LookupDeviceRole(ctx, r.client, data.Role.ValueString())
@@ -736,9 +622,7 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	site, diags := netboxlookup.LookupSite(ctx, r.client, data.Site.ValueString())
@@ -746,15 +630,12 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Build the device request with required fields
 
 	deviceRequest := netbox.WritableDeviceWithConfigContextRequest{
-
 		DeviceType: *deviceType,
 
 		Role: *role,
@@ -765,167 +646,125 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	// Set optional fields (same as Create)
 
 	if !data.Name.IsNull() && !data.Name.IsUnknown() {
-
 		deviceRequest.SetName(data.Name.ValueString())
-
 	}
 
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-
 		tenant, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		deviceRequest.SetTenant(*tenant)
-
 	}
 
 	if !data.Platform.IsNull() && !data.Platform.IsUnknown() {
-
 		platform, diags := netboxlookup.LookupPlatform(ctx, r.client, data.Platform.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		deviceRequest.SetPlatform(*platform)
-
 	}
 
 	if !data.Serial.IsNull() && !data.Serial.IsUnknown() {
-
 		serial := data.Serial.ValueString()
 
 		deviceRequest.Serial = &serial
-
 	}
 
 	if !data.AssetTag.IsNull() && !data.AssetTag.IsUnknown() {
-
 		deviceRequest.SetAssetTag(data.AssetTag.ValueString())
-
 	}
 
 	if !data.Location.IsNull() && !data.Location.IsUnknown() {
-
 		location, diags := netboxlookup.LookupLocation(ctx, r.client, data.Location.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		deviceRequest.SetLocation(*location)
-
 	}
 
 	if !data.Rack.IsNull() && !data.Rack.IsUnknown() {
-
 		rack, diags := netboxlookup.LookupRack(ctx, r.client, data.Rack.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		deviceRequest.SetRack(*rack)
-
 	}
 
 	if !data.Position.IsNull() && !data.Position.IsUnknown() {
-
 		position := data.Position.ValueFloat64()
 
 		deviceRequest.SetPosition(position)
-
 	}
 
 	if !data.Face.IsNull() && !data.Face.IsUnknown() && data.Face.ValueString() != "" {
-
 		face := netbox.RackFace1(data.Face.ValueString())
 
 		deviceRequest.Face = &face
-
 	}
 
 	if !data.Latitude.IsNull() && !data.Latitude.IsUnknown() {
-
 		latitude := data.Latitude.ValueFloat64()
 
 		deviceRequest.SetLatitude(latitude)
-
 	}
 
 	if !data.Longitude.IsNull() && !data.Longitude.IsUnknown() {
-
 		longitude := data.Longitude.ValueFloat64()
 
 		deviceRequest.SetLongitude(longitude)
-
 	}
 
 	if !data.Status.IsNull() && !data.Status.IsUnknown() {
-
 		status := netbox.DeviceStatusValue(data.Status.ValueString())
 
 		deviceRequest.Status = &status
-
 	}
 
 	if !data.Airflow.IsNull() && !data.Airflow.IsUnknown() && data.Airflow.ValueString() != "" {
-
 		airflow := netbox.DeviceAirflowValue(data.Airflow.ValueString())
 
 		deviceRequest.Airflow = &airflow
-
 	}
 
 	if !data.VcPosition.IsNull() && !data.VcPosition.IsUnknown() {
-
 		vcPosition, err := utils.SafeInt32FromValue(data.VcPosition)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("VcPosition value overflow: %s", err))
 
 			return
-
 		}
 
 		deviceRequest.SetVcPosition(vcPosition)
-
 	}
 
 	if !data.VcPriority.IsNull() && !data.VcPriority.IsUnknown() {
-
 		vcPriority, err := utils.SafeInt32FromValue(data.VcPriority)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("VcPriority value overflow: %s", err))
 
 			return
-
 		}
 
 		deviceRequest.SetVcPriority(vcPriority)
-
 	}
 
 	// Set common fields (description, comments, tags, custom_fields)
@@ -941,7 +780,6 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating device",
@@ -950,11 +788,9 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updated device", map[string]interface{}{
-
 		"id": device.GetId(),
 
 		"name": device.GetName(),
@@ -965,25 +801,19 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	r.mapDeviceToState(ctx, device, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *DeviceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data DeviceResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -995,7 +825,6 @@ func (r *DeviceResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	deviceIDInt, err := utils.ParseID(deviceID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Device ID",
@@ -1004,11 +833,9 @@ func (r *DeviceResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting device", map[string]interface{}{
-
 		"id": deviceID,
 	})
 
@@ -1019,18 +846,14 @@ func (r *DeviceResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			// Already deleted
 
 			tflog.Debug(ctx, "Device already deleted", map[string]interface{}{
-
 				"id": deviceID,
 			})
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -1041,50 +864,28 @@ func (r *DeviceResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted device", map[string]interface{}{
-
 		"id": deviceID,
 	})
-
 }
 
 func (r *DeviceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // mapDeviceToState maps a Device from the API to the Terraform state model.
 
 func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.Device, data *DeviceResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", device.GetId()))
 
 	// Handle name
 
 	if device.HasName() && device.Name.Get() != nil && *device.Name.Get() != "" {
-
 		data.Name = types.StringValue(*device.Name.Get())
-
 	} else if !data.Name.IsNull() {
-
 		data.Name = types.StringNull()
-
-	}
-
-	// Handle display_name
-
-	if device.Display != "" {
-
-		data.DisplayName = types.StringValue(device.Display)
-
-	} else {
-
-		data.DisplayName = types.StringNull()
-
 	}
 
 	// Handle device_type - preserve the original input value (slug or ID)
@@ -1092,37 +893,28 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	data.DeviceTypeID = types.StringValue(fmt.Sprintf("%d", device.DeviceType.GetId()))
 
 	if data.DeviceType.IsNull() || data.DeviceType.IsUnknown() {
-
 		data.DeviceType = types.StringValue(device.DeviceType.GetModel())
-
 	}
 
 	// Otherwise keep the original value the user provided
-
 	// Handle role - preserve the original input value (slug or ID)
 
 	data.RoleID = types.StringValue(fmt.Sprintf("%d", device.Role.GetId()))
 
 	if data.Role.IsNull() || data.Role.IsUnknown() {
-
 		data.Role = types.StringValue(device.Role.GetName())
-
 	}
 
 	// Otherwise keep the original value the user provided
-
 	// Handle tenant - preserve the original input value
 
 	switch {
-
 	case device.HasTenant() && device.Tenant.Get() != nil:
 
 		data.TenantID = types.StringValue(fmt.Sprintf("%d", device.Tenant.Get().GetId()))
 
 		if data.Tenant.IsNull() || data.Tenant.IsUnknown() {
-
 			data.Tenant = types.StringValue(device.Tenant.Get().GetName())
-
 		}
 
 	case !data.Tenant.IsNull() && !data.Tenant.IsUnknown():
@@ -1134,21 +926,17 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 		data.Tenant = types.StringNull()
 		data.TenantID = types.StringNull()
-
 	}
 
 	// Handle platform - preserve the original input value
 
 	switch {
-
 	case device.HasPlatform() && device.Platform.Get() != nil:
 
 		data.PlatformID = types.StringValue(fmt.Sprintf("%d", device.Platform.Get().GetId()))
 
 		if data.Platform.IsNull() || data.Platform.IsUnknown() {
-
 			data.Platform = types.StringValue(device.Platform.Get().GetName())
-
 		}
 
 	case !data.Platform.IsNull() && !data.Platform.IsUnknown():
@@ -1160,31 +948,22 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 		data.Platform = types.StringNull()
 		data.PlatformID = types.StringNull()
-
 	}
 
 	// Handle serial
 
 	if device.HasSerial() && device.GetSerial() != "" {
-
 		data.Serial = types.StringValue(device.GetSerial())
-
 	} else if !data.Serial.IsNull() {
-
 		data.Serial = types.StringNull()
-
 	}
 
 	// Handle asset_tag
 
 	if device.HasAssetTag() && device.AssetTag.Get() != nil && *device.AssetTag.Get() != "" {
-
 		data.AssetTag = types.StringValue(*device.AssetTag.Get())
-
 	} else if !data.AssetTag.IsNull() {
-
 		data.AssetTag = types.StringNull()
-
 	}
 
 	// Handle site - preserve the original input value
@@ -1192,25 +971,19 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	data.SiteID = types.StringValue(fmt.Sprintf("%d", device.Site.GetId()))
 
 	if data.Site.IsNull() || data.Site.IsUnknown() {
-
 		data.Site = types.StringValue(device.Site.GetName())
-
 	}
 
 	// Otherwise keep the original value the user provided
-
 	// Handle location - preserve the original input value
 
 	switch {
-
 	case device.HasLocation() && device.Location.Get() != nil:
 
 		data.LocationID = types.StringValue(fmt.Sprintf("%d", device.Location.Get().GetId()))
 
 		if data.Location.IsNull() || data.Location.IsUnknown() {
-
 			data.Location = types.StringValue(device.Location.Get().GetName())
-
 		}
 
 	case !data.Location.IsNull() && !data.Location.IsUnknown():
@@ -1222,21 +995,17 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 		data.Location = types.StringNull()
 		data.LocationID = types.StringNull()
-
 	}
 
 	// Handle rack - preserve the original input value
 
 	switch {
-
 	case device.HasRack() && device.Rack.Get() != nil:
 
 		data.RackID = types.StringValue(fmt.Sprintf("%d", device.Rack.Get().GetId()))
 
 		if data.Rack.IsNull() || data.Rack.IsUnknown() {
-
 			data.Rack = types.StringValue(device.Rack.Get().GetName())
-
 		}
 
 	case !data.Rack.IsNull() && !data.Rack.IsUnknown():
@@ -1248,129 +1017,89 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 		data.Rack = types.StringNull()
 		data.RackID = types.StringNull()
-
 	}
 
 	// Handle position
 
 	if device.HasPosition() && device.Position.Get() != nil {
-
 		data.Position = types.Float64Value(*device.Position.Get())
-
 	} else if !data.Position.IsNull() {
-
 		data.Position = types.Float64Null()
-
 	}
 
 	// Handle face
 
 	if device.HasFace() && device.Face != nil {
-
 		data.Face = types.StringValue(string(device.Face.GetValue()))
-
 	} else if !data.Face.IsNull() {
-
 		data.Face = types.StringNull()
-
 	}
 
 	// Handle latitude
 
 	if device.HasLatitude() && device.Latitude.Get() != nil {
-
 		data.Latitude = types.Float64Value(*device.Latitude.Get())
-
 	} else if !data.Latitude.IsNull() {
-
 		data.Latitude = types.Float64Null()
-
 	}
 
 	// Handle longitude
 
 	if device.HasLongitude() && device.Longitude.Get() != nil {
-
 		data.Longitude = types.Float64Value(*device.Longitude.Get())
-
 	} else if !data.Longitude.IsNull() {
-
 		data.Longitude = types.Float64Null()
-
 	}
 
 	// Handle status
 
 	if device.HasStatus() && device.Status != nil {
-
 		data.Status = types.StringValue(string(device.Status.GetValue()))
-
 	}
 
 	// Handle airflow
 
 	if device.HasAirflow() && device.Airflow != nil {
-
 		data.Airflow = types.StringValue(string(device.Airflow.GetValue()))
-
 	} else if !data.Airflow.IsNull() {
-
 		data.Airflow = types.StringNull()
-
 	}
 
 	// Handle vc_position
 
 	if device.HasVcPosition() && device.VcPosition.Get() != nil {
-
 		data.VcPosition = types.Int64Value(int64(*device.VcPosition.Get()))
-
 	} else if !data.VcPosition.IsNull() {
-
 		data.VcPosition = types.Int64Null()
-
 	}
 
 	// Handle vc_priority
 
 	if device.HasVcPriority() && device.VcPriority.Get() != nil {
-
 		data.VcPriority = types.Int64Value(int64(*device.VcPriority.Get()))
-
 	} else if !data.VcPriority.IsNull() {
-
 		data.VcPriority = types.Int64Null()
-
 	}
 
 	// Handle description
 
 	if device.HasDescription() && device.GetDescription() != "" {
-
 		data.Description = types.StringValue(device.GetDescription())
-
 	} else if !data.Description.IsNull() {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle comments
 
 	if device.HasComments() && device.GetComments() != "" {
-
 		data.Comments = types.StringValue(device.GetComments())
-
 	} else if !data.Comments.IsNull() {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if device.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(device.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -1378,23 +1107,17 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if device.HasCustomFields() && !data.CustomFields.IsNull() {
-
 		var stateCustomFields []utils.CustomFieldModel
 
 		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
@@ -1402,9 +1125,7 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(device.GetCustomFields(), stateCustomFields)
@@ -1414,17 +1135,11 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		diags.Append(cfValueDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else if data.CustomFields.IsNull() {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

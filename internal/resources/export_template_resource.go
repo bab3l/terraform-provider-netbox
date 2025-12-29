@@ -34,9 +34,7 @@ var (
 // NewExportTemplateResource returns a new resource implementing the export template resource.
 
 func NewExportTemplateResource() resource.Resource {
-
 	return &ExportTemplateResource{}
-
 }
 
 // ExportTemplateResource defines the resource implementation.
@@ -56,8 +54,6 @@ type ExportTemplateResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	TemplateCode types.String `tfsdk:"template_code"`
 
 	MimeType types.String `tfsdk:"mime_type"`
@@ -70,35 +66,27 @@ type ExportTemplateResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *ExportTemplateResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_export_template"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *ExportTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages an export template in NetBox. Export templates define Jinja2 templates for exporting data from NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the export template.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"object_types": schema.SetAttribute{
-
 				MarkdownDescription: "Set of object types this template applies to (e.g., 'dcim.device', 'dcim.site').",
 
 				Required: true,
@@ -107,31 +95,25 @@ func (r *ExportTemplateResource) Schema(ctx context.Context, req resource.Schema
 			},
 
 			"name": nbschema.NameAttribute("export template", 100),
-
-			"display_name": nbschema.DisplayNameAttribute("export template"),
 			"template_code": schema.StringAttribute{
-
 				MarkdownDescription: "Jinja2 template code. The list of objects being exported is passed as a context variable named `queryset`.",
 
 				Required: true,
 			},
 
 			"mime_type": schema.StringAttribute{
-
 				MarkdownDescription: "MIME type for the rendered output. Defaults to `text/plain; charset=utf-8`.",
 
 				Optional: true,
 			},
 
 			"file_extension": schema.StringAttribute{
-
 				MarkdownDescription: "Extension to append to the rendered filename.",
 
 				Optional: true,
 			},
 
 			"as_attachment": schema.BoolAttribute{
-
 				MarkdownDescription: "Download file as attachment. Defaults to `true`.",
 
 				Optional: true,
@@ -150,17 +132,13 @@ func (r *ExportTemplateResource) Schema(ctx context.Context, req resource.Schema
 // Configure adds the provider configured client to the resource.
 
 func (r *ExportTemplateResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -169,25 +147,20 @@ func (r *ExportTemplateResource) Configure(ctx context.Context, req resource.Con
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates a new export template.
 
 func (r *ExportTemplateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data ExportTemplateResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Convert object types to string slice
@@ -195,17 +168,13 @@ func (r *ExportTemplateResource) Create(ctx context.Context, req resource.Create
 	var objectTypes []string
 
 	if !data.ObjectTypes.IsNull() && !data.ObjectTypes.IsUnknown() {
-
 		diags := data.ObjectTypes.ElementsAs(ctx, &objectTypes, false)
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
-
 	}
 
 	// Build the API request
@@ -228,15 +197,12 @@ func (r *ExportTemplateResource) Create(ctx context.Context, req resource.Create
 	exportTemplateRequest.FileExtension = utils.StringPtr(data.FileExtension)
 
 	if !data.AsAttachment.IsNull() && !data.AsAttachment.IsUnknown() {
-
 		asAttachment := data.AsAttachment.ValueBool()
 
 		exportTemplateRequest.AsAttachment = &asAttachment
-
 	}
 
 	tflog.Debug(ctx, "Creating export template", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"object_types": objectTypes,
@@ -249,7 +215,6 @@ func (r *ExportTemplateResource) Create(ctx context.Context, req resource.Create
 		Execute()
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating export template",
@@ -258,7 +223,6 @@ func (r *ExportTemplateResource) Create(ctx context.Context, req resource.Create
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -266,26 +230,21 @@ func (r *ExportTemplateResource) Create(ctx context.Context, req resource.Create
 	r.mapResponseToState(ctx, exportTemplate, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Created export template", map[string]interface{}{
-
 		"id": exportTemplate.GetId(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read reads the export template.
 
 func (r *ExportTemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data ExportTemplateResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -293,7 +252,6 @@ func (r *ExportTemplateResource) Read(ctx context.Context, req resource.ReadRequ
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID format",
@@ -302,11 +260,9 @@ func (r *ExportTemplateResource) Read(ctx context.Context, req resource.ReadRequ
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading export template", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -317,13 +273,10 @@ func (r *ExportTemplateResource) Read(ctx context.Context, req resource.ReadRequ
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -334,7 +287,6 @@ func (r *ExportTemplateResource) Read(ctx context.Context, req resource.ReadRequ
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -342,21 +294,17 @@ func (r *ExportTemplateResource) Read(ctx context.Context, req resource.ReadRequ
 	r.mapResponseToState(ctx, exportTemplate, &data, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the export template.
 
 func (r *ExportTemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data ExportTemplateResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -364,7 +312,6 @@ func (r *ExportTemplateResource) Update(ctx context.Context, req resource.Update
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID format",
@@ -373,7 +320,6 @@ func (r *ExportTemplateResource) Update(ctx context.Context, req resource.Update
 		)
 
 		return
-
 	}
 
 	// Convert object types to string slice
@@ -381,17 +327,13 @@ func (r *ExportTemplateResource) Update(ctx context.Context, req resource.Update
 	var objectTypes []string
 
 	if !data.ObjectTypes.IsNull() && !data.ObjectTypes.IsUnknown() {
-
 		diags := data.ObjectTypes.ElementsAs(ctx, &objectTypes, false)
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
-
 	}
 
 	// Build the API request
@@ -414,15 +356,12 @@ func (r *ExportTemplateResource) Update(ctx context.Context, req resource.Update
 	exportTemplateRequest.FileExtension = utils.StringPtr(data.FileExtension)
 
 	if !data.AsAttachment.IsNull() && !data.AsAttachment.IsUnknown() {
-
 		asAttachment := data.AsAttachment.ValueBool()
 
 		exportTemplateRequest.AsAttachment = &asAttachment
-
 	}
 
 	tflog.Debug(ctx, "Updating export template", map[string]interface{}{
-
 		"id": id,
 
 		"name": data.Name.ValueString(),
@@ -435,7 +374,6 @@ func (r *ExportTemplateResource) Update(ctx context.Context, req resource.Update
 		Execute()
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating export template",
@@ -444,7 +382,6 @@ func (r *ExportTemplateResource) Update(ctx context.Context, req resource.Update
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -452,26 +389,21 @@ func (r *ExportTemplateResource) Update(ctx context.Context, req resource.Update
 	r.mapResponseToState(ctx, exportTemplate, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Updated export template", map[string]interface{}{
-
 		"id": exportTemplate.GetId(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the export template.
 
 func (r *ExportTemplateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data ExportTemplateResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -479,7 +411,6 @@ func (r *ExportTemplateResource) Delete(ctx context.Context, req resource.Delete
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID format",
@@ -488,11 +419,9 @@ func (r *ExportTemplateResource) Delete(ctx context.Context, req resource.Delete
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting export template", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -501,11 +430,8 @@ func (r *ExportTemplateResource) Delete(ctx context.Context, req resource.Delete
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -516,28 +442,22 @@ func (r *ExportTemplateResource) Delete(ctx context.Context, req resource.Delete
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted export template", map[string]interface{}{
-
 		"id": id,
 	})
-
 }
 
 // ImportState imports an existing export template.
 
 func (r *ExportTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // mapResponseToState maps the API response to the Terraform state.
 
 func (r *ExportTemplateResource) mapResponseToState(ctx context.Context, exportTemplate *netbox.ExportTemplate, data *ExportTemplateResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", exportTemplate.GetId()))
 
 	data.Name = types.StringValue(exportTemplate.GetName())
@@ -547,73 +467,44 @@ func (r *ExportTemplateResource) mapResponseToState(ctx context.Context, exportT
 	// Handle object types
 
 	if exportTemplate.ObjectTypes != nil && len(exportTemplate.ObjectTypes) > 0 {
-
 		objectTypesSet, d := types.SetValueFrom(ctx, types.StringType, exportTemplate.ObjectTypes)
 
 		diags.Append(d...)
 
 		data.ObjectTypes = objectTypesSet
-
 	} else {
-
 		data.ObjectTypes = types.SetNull(types.StringType)
-
 	}
 
 	// Handle description
 
 	if exportTemplate.HasDescription() && exportTemplate.GetDescription() != "" {
-
 		data.Description = types.StringValue(exportTemplate.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle mime type
 
 	if exportTemplate.HasMimeType() && exportTemplate.GetMimeType() != "" {
-
 		data.MimeType = types.StringValue(exportTemplate.GetMimeType())
-
 	} else {
-
 		data.MimeType = types.StringNull()
-
 	}
 
 	// Handle file extension
 
 	if exportTemplate.HasFileExtension() && exportTemplate.GetFileExtension() != "" {
-
 		data.FileExtension = types.StringValue(exportTemplate.GetFileExtension())
-
 	} else {
-
 		data.FileExtension = types.StringNull()
-
 	}
 
 	// Handle as_attachment
 
 	if exportTemplate.HasAsAttachment() {
-
 		data.AsAttachment = types.BoolValue(exportTemplate.GetAsAttachment())
-
 	} else {
-
 		data.AsAttachment = types.BoolValue(true) // Default
-
 	}
-
-	// Handle display_name (computed field, always set a value)
-	display := exportTemplate.GetDisplay()
-	if display != "" {
-		data.DisplayName = types.StringValue(display)
-	} else {
-		data.DisplayName = types.StringValue("")
-	}
-
 }

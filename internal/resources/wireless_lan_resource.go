@@ -34,9 +34,7 @@ var (
 // NewWirelessLANResource returns a new resource implementing the wireless LAN resource.
 
 func NewWirelessLANResource() resource.Resource {
-
 	return &WirelessLANResource{}
-
 }
 
 // WirelessLANResource defines the resource implementation.
@@ -51,8 +49,6 @@ type WirelessLANResourceModel struct {
 	ID types.String `tfsdk:"id"`
 
 	SSID types.String `tfsdk:"ssid"`
-
-	DisplayName types.String `tfsdk:"display_name"`
 
 	Description types.String `tfsdk:"description"`
 
@@ -80,58 +76,45 @@ type WirelessLANResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *WirelessLANResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_wireless_lan"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *WirelessLANResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a wireless LAN (WiFi network) in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the wireless LAN.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"ssid": schema.StringAttribute{
-
 				MarkdownDescription: "The SSID (network name) of the wireless LAN.",
 
 				Required: true,
 			},
 
-			"display_name": nbschema.DisplayNameAttribute("wireless LAN"),
-
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the wireless LAN.",
 
 				Optional: true,
 			},
 
 			"group": schema.StringAttribute{
-
 				MarkdownDescription: "The wireless LAN group this network belongs to (ID or slug).",
 
 				Optional: true,
 			},
 
 			"status": schema.StringAttribute{
-
 				MarkdownDescription: "Status of the wireless LAN. Valid values: `active`, `reserved`, `disabled`, `deprecated`. Default: `active`.",
 
 				Optional: true,
@@ -142,35 +125,30 @@ func (r *WirelessLANResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 
 			"vlan": schema.StringAttribute{
-
 				MarkdownDescription: "The VLAN associated with this wireless LAN (ID or name).",
 
 				Optional: true,
 			},
 
 			"tenant": schema.StringAttribute{
-
 				MarkdownDescription: "The tenant this wireless LAN belongs to (ID or slug).",
 
 				Optional: true,
 			},
 
 			"auth_type": schema.StringAttribute{
-
 				MarkdownDescription: "Authentication type. Valid values: `open`, `wep`, `wpa-personal`, `wpa-enterprise`.",
 
 				Optional: true,
 			},
 
 			"auth_cipher": schema.StringAttribute{
-
 				MarkdownDescription: "Authentication cipher. Valid values: `auto`, `tkip`, `aes`.",
 
 				Optional: true,
 			},
 
 			"auth_psk": schema.StringAttribute{
-
 				MarkdownDescription: "Pre-shared key for authentication.",
 
 				Optional: true,
@@ -190,17 +168,13 @@ func (r *WirelessLANResource) Schema(ctx context.Context, req resource.SchemaReq
 // Configure adds the provider configured client to the resource.
 
 func (r *WirelessLANResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -209,25 +183,20 @@ func (r *WirelessLANResource) Configure(ctx context.Context, req resource.Config
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates the resource.
 
 func (r *WirelessLANResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data WirelessLANResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Build request
@@ -237,87 +206,65 @@ func (r *WirelessLANResource) Create(ctx context.Context, req resource.CreateReq
 	// Set optional fields
 
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
 		apiReq.SetDescription(data.Description.ValueString())
-
 	}
 
 	if !data.Group.IsNull() && !data.Group.IsUnknown() {
-
 		group, diags := lookup.LookupWirelessLANGroup(ctx, r.client, data.Group.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetGroup(*group)
-
 	}
 
 	if !data.Status.IsNull() && !data.Status.IsUnknown() {
-
 		status := netbox.PatchedWritableWirelessLANRequestStatus(data.Status.ValueString())
 
 		apiReq.SetStatus(status)
-
 	}
 
 	if !data.VLAN.IsNull() && !data.VLAN.IsUnknown() {
-
 		vlan, diags := lookup.LookupVLAN(ctx, r.client, data.VLAN.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetVlan(*vlan)
-
 	}
 
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-
 		tenant, diags := lookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetTenant(*tenant)
-
 	}
 
 	if !data.AuthType.IsNull() && !data.AuthType.IsUnknown() {
-
 		authType := netbox.AuthenticationType1(data.AuthType.ValueString())
 
 		apiReq.SetAuthType(authType)
-
 	}
 
 	if !data.AuthCipher.IsNull() && !data.AuthCipher.IsUnknown() {
-
 		authCipher := netbox.AuthenticationCipher(data.AuthCipher.ValueString())
 
 		apiReq.SetAuthCipher(authCipher)
-
 	}
 
 	if !data.AuthPSK.IsNull() && !data.AuthPSK.IsUnknown() {
-
 		apiReq.SetAuthPsk(data.AuthPSK.ValueString())
-
 	}
 
 	// Handle description and comments
@@ -332,7 +279,6 @@ func (r *WirelessLANResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	tflog.Debug(ctx, "Creating wireless LAN", map[string]interface{}{
-
 		"ssid": data.SSID.ValueString(),
 	})
 
@@ -341,7 +287,6 @@ func (r *WirelessLANResource) Create(ctx context.Context, req resource.CreateReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating wireless LAN",
@@ -350,7 +295,6 @@ func (r *WirelessLANResource) Create(ctx context.Context, req resource.CreateReq
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -358,40 +302,32 @@ func (r *WirelessLANResource) Create(ctx context.Context, req resource.CreateReq
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Trace(ctx, "Created wireless LAN", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"ssid": data.SSID.ValueString(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read refreshes the resource state.
 
 func (r *WirelessLANResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data WirelessLANResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	wlanID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Wireless LAN ID",
@@ -400,11 +336,9 @@ func (r *WirelessLANResource) Read(ctx context.Context, req resource.ReadRequest
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading wireless LAN", map[string]interface{}{
-
 		"id": wlanID,
 	})
 
@@ -413,13 +347,10 @@ func (r *WirelessLANResource) Read(ctx context.Context, req resource.ReadRequest
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -430,7 +361,6 @@ func (r *WirelessLANResource) Read(ctx context.Context, req resource.ReadRequest
 		)
 
 		return
-
 	}
 
 	// Preserve sensitive field from state since API doesn't return it
@@ -442,9 +372,7 @@ func (r *WirelessLANResource) Read(ctx context.Context, req resource.ReadRequest
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Restore sensitive field
@@ -452,27 +380,22 @@ func (r *WirelessLANResource) Read(ctx context.Context, req resource.ReadRequest
 	data.AuthPSK = existingPSK
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the resource.
 
 func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data WirelessLANResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	wlanID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Wireless LAN ID",
@@ -481,7 +404,6 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 
 		return
-
 	}
 
 	// Build request
@@ -491,87 +413,65 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 	// Set optional fields
 
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
 		apiReq.SetDescription(data.Description.ValueString())
-
 	}
 
 	if !data.Group.IsNull() && !data.Group.IsUnknown() {
-
 		group, diags := lookup.LookupWirelessLANGroup(ctx, r.client, data.Group.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetGroup(*group)
-
 	}
 
 	if !data.Status.IsNull() && !data.Status.IsUnknown() {
-
 		status := netbox.PatchedWritableWirelessLANRequestStatus(data.Status.ValueString())
 
 		apiReq.SetStatus(status)
-
 	}
 
 	if !data.VLAN.IsNull() && !data.VLAN.IsUnknown() {
-
 		vlan, diags := lookup.LookupVLAN(ctx, r.client, data.VLAN.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetVlan(*vlan)
-
 	}
 
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-
 		tenant, diags := lookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetTenant(*tenant)
-
 	}
 
 	if !data.AuthType.IsNull() && !data.AuthType.IsUnknown() {
-
 		authType := netbox.AuthenticationType1(data.AuthType.ValueString())
 
 		apiReq.SetAuthType(authType)
-
 	}
 
 	if !data.AuthCipher.IsNull() && !data.AuthCipher.IsUnknown() {
-
 		authCipher := netbox.AuthenticationCipher(data.AuthCipher.ValueString())
 
 		apiReq.SetAuthCipher(authCipher)
-
 	}
 
 	if !data.AuthPSK.IsNull() && !data.AuthPSK.IsUnknown() {
-
 		apiReq.SetAuthPsk(data.AuthPSK.ValueString())
-
 	}
 
 	// Handle description and comments
@@ -581,41 +481,32 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 	// Handle tags
 
 	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
 		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
 
 		resp.Diagnostics.Append(tagDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetTags(tags)
-
 	}
 
 	// Handle custom fields
 
 	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
 		var cfModels []utils.CustomFieldModel
 
 		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &cfModels, false)...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
-
 	}
 
 	tflog.Debug(ctx, "Updating wireless LAN", map[string]interface{}{
-
 		"id": wlanID,
 	})
 
@@ -624,7 +515,6 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating wireless LAN",
@@ -633,7 +523,6 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 
 		return
-
 	}
 
 	// Preserve sensitive field
@@ -645,9 +534,7 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Restore sensitive field
@@ -655,27 +542,22 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 	data.AuthPSK = existingPSK
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the resource.
 
 func (r *WirelessLANResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data WirelessLANResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	wlanID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Wireless LAN ID",
@@ -684,11 +566,9 @@ func (r *WirelessLANResource) Delete(ctx context.Context, req resource.DeleteReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting wireless LAN", map[string]interface{}{
-
 		"id": wlanID,
 	})
 
@@ -697,11 +577,8 @@ func (r *WirelessLANResource) Delete(ctx context.Context, req resource.DeleteReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -712,19 +589,15 @@ func (r *WirelessLANResource) Delete(ctx context.Context, req resource.DeleteReq
 		)
 
 		return
-
 	}
-
 }
 
 // ImportState imports an existing resource.
 
 func (r *WirelessLANResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	wlanID, err := utils.ParseID(req.ID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Import ID",
@@ -733,7 +606,6 @@ func (r *WirelessLANResource) ImportState(ctx context.Context, req resource.Impo
 		)
 
 		return
-
 	}
 
 	response, httpResp, err := r.client.WirelessAPI.WirelessWirelessLansRetrieve(ctx, wlanID).Execute()
@@ -741,7 +613,6 @@ func (r *WirelessLANResource) ImportState(ctx context.Context, req resource.Impo
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error importing wireless LAN",
@@ -750,7 +621,6 @@ func (r *WirelessLANResource) ImportState(ctx context.Context, req resource.Impo
 		)
 
 		return
-
 	}
 
 	var data WirelessLANResourceModel
@@ -758,143 +628,99 @@ func (r *WirelessLANResource) ImportState(ctx context.Context, req resource.Impo
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (r *WirelessLANResource) mapResponseToModel(ctx context.Context, wlan *netbox.WirelessLAN, data *WirelessLANResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", wlan.GetId()))
 
 	data.SSID = types.StringValue(wlan.GetSsid())
 
-	data.DisplayName = types.StringValue(wlan.GetDisplay())
-
 	// Map description
 
 	if desc, ok := wlan.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map group
 
 	if wlan.Group.IsSet() && wlan.Group.Get() != nil {
-
 		group := wlan.Group.Get()
 
 		userGroup := data.Group.ValueString()
 
 		if userGroup == group.GetName() || userGroup == group.GetSlug() || userGroup == group.GetDisplay() || userGroup == fmt.Sprintf("%d", group.GetId()) {
-
 			// Keep user's original value
-
 		} else {
-
 			data.Group = types.StringValue(group.GetName())
-
 		}
-
 	} else {
-
 		data.Group = types.StringNull()
-
 	}
 
 	// Map status
 
 	if status, ok := wlan.GetStatusOk(); ok && status != nil {
-
 		data.Status = types.StringValue(string(status.GetValue()))
-
 	} else {
-
 		data.Status = types.StringNull()
-
 	}
 
 	// Map VLAN - preserve user's input format
 
 	if wlan.Vlan.IsSet() && wlan.Vlan.Get() != nil {
-
 		vlan := wlan.Vlan.Get()
 
 		data.VLAN = utils.UpdateReferenceAttribute(data.VLAN, vlan.GetName(), "", vlan.GetId())
-
 	} else {
-
 		data.VLAN = types.StringNull()
-
 	}
 
 	// Map tenant - preserve user's input format
 
 	if wlan.Tenant.IsSet() && wlan.Tenant.Get() != nil {
-
 		tenant := wlan.Tenant.Get()
 
 		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
-
 	} else {
-
 		data.Tenant = types.StringNull()
-
 	}
 
 	// Map auth_type
 
 	if authType, ok := wlan.GetAuthTypeOk(); ok && authType != nil {
-
 		data.AuthType = types.StringValue(string(authType.GetValue()))
-
 	} else {
-
 		data.AuthType = types.StringNull()
-
 	}
 
 	// Map auth_cipher
 
 	if authCipher, ok := wlan.GetAuthCipherOk(); ok && authCipher != nil {
-
 		data.AuthCipher = types.StringValue(string(authCipher.GetValue()))
-
 	} else {
-
 		data.AuthCipher = types.StringNull()
-
 	}
 
 	// Note: auth_psk is not returned by API, handled separately in Read/Update
-
 	// Map comments
 
 	if comments, ok := wlan.GetCommentsOk(); ok && comments != nil && *comments != "" {
-
 		data.Comments = types.StringValue(*comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if wlan.HasTags() && len(wlan.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(wlan.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -902,31 +728,23 @@ func (r *WirelessLANResource) mapResponseToModel(ctx context.Context, wlan *netb
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if wlan.HasCustomFields() {
-
 		apiCustomFields := wlan.GetCustomFields()
 
 		var stateCustomFieldModels []utils.CustomFieldModel
 
 		if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
 			data.CustomFields.ElementsAs(ctx, &stateCustomFieldModels, false)
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(apiCustomFields, stateCustomFieldModels)
@@ -936,17 +754,11 @@ func (r *WirelessLANResource) mapResponseToModel(ctx context.Context, wlan *netb
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

@@ -43,7 +43,6 @@ type WebhookResourceModel struct {
 	Secret            types.String `tfsdk:"secret"`
 	SSLVerification   types.Bool   `tfsdk:"ssl_verification"`
 	CAFilePath        types.String `tfsdk:"ca_file_path"`
-	DisplayName       types.String `tfsdk:"display_name"`
 	Tags              types.Set    `tfsdk:"tags"`
 }
 
@@ -113,7 +112,6 @@ func (r *WebhookResource) Schema(ctx context.Context, req resource.SchemaRequest
 					stringvalidator.LengthAtMost(4096),
 				},
 			},
-			"display_name": nbschema.DisplayNameAttribute("webhook"),
 		},
 	}
 }
@@ -402,12 +400,6 @@ func (r *WebhookResource) mapWebhookToState(ctx context.Context, webhook *netbox
 	}
 
 	// Map display_name
-	if webhook.GetDisplay() != "" {
-		data.DisplayName = types.StringValue(webhook.GetDisplay())
-	} else {
-		data.DisplayName = types.StringNull()
-	}
-
 	// Handle tags
 	if webhook.HasTags() {
 		tags := utils.NestedTagsToTagModels(webhook.GetTags())

@@ -22,9 +22,7 @@ import (
 var _ datasource.DataSource = &L2VPNTerminationDataSource{}
 
 func NewL2VPNTerminationDataSource() datasource.DataSource {
-
 	return &L2VPNTerminationDataSource{}
-
 }
 
 // L2VPNTerminationDataSource defines the data source implementation.
@@ -52,49 +50,39 @@ type L2VPNTerminationDataSourceModel struct {
 }
 
 func (d *L2VPNTerminationDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_l2vpn_termination"
-
 }
 
 func (d *L2VPNTerminationDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a Layer 2 VPN termination in Netbox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "ID of the L2VPN termination. Required for lookup.",
 
 				Required: true,
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the L2VPN termination.",
 
 				Computed: true,
 			},
 
 			"l2vpn": schema.StringAttribute{
-
 				MarkdownDescription: "ID of the L2VPN this termination belongs to.",
 
 				Computed: true,
 			},
 
 			"assigned_object_type": schema.StringAttribute{
-
 				MarkdownDescription: "Content type of the assigned object. Valid values: `dcim.interface`, `ipam.vlan`, `virtualization.vminterface`.",
 
 				Computed: true,
 			},
 
 			"assigned_object_id": schema.Int64Attribute{
-
 				MarkdownDescription: "ID of the assigned object (interface or VLAN).",
 
 				Computed: true,
@@ -105,21 +93,16 @@ func (d *L2VPNTerminationDataSource) Schema(ctx context.Context, req datasource.
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 func (d *L2VPNTerminationDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -128,23 +111,18 @@ func (d *L2VPNTerminationDataSource) Configure(ctx context.Context, req datasour
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *L2VPNTerminationDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data L2VPNTerminationDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -152,7 +130,6 @@ func (d *L2VPNTerminationDataSource) Read(ctx context.Context, req datasource.Re
 	var idInt int32
 
 	if _, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt); err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID format",
@@ -161,11 +138,9 @@ func (d *L2VPNTerminationDataSource) Read(ctx context.Context, req datasource.Re
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading L2VPN termination", map[string]interface{}{
-
 		"id": idInt,
 	})
 
@@ -184,7 +159,6 @@ func (d *L2VPNTerminationDataSource) Read(ctx context.Context, req datasource.Re
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading L2VPN termination",
@@ -193,7 +167,6 @@ func (d *L2VPNTerminationDataSource) Read(ctx context.Context, req datasource.Re
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -201,31 +174,23 @@ func (d *L2VPNTerminationDataSource) Read(ctx context.Context, req datasource.Re
 	d.mapResponseToState(ctx, termination, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToState maps an L2VPNTermination API response to the Terraform state model.
 
 func (d *L2VPNTerminationDataSource) mapResponseToState(ctx context.Context, termination *netbox.L2VPNTermination, data *L2VPNTerminationDataSourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", termination.GetId()))
 
 	// Display Name
 
 	if termination.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(termination.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// L2VPN
@@ -243,7 +208,6 @@ func (d *L2VPNTerminationDataSource) mapResponseToState(ctx context.Context, ter
 	// Tags
 
 	if termination.HasTags() && len(termination.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(termination.GetTags())
 
 		tagsValue, d := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -251,17 +215,13 @@ func (d *L2VPNTerminationDataSource) mapResponseToState(ctx context.Context, ter
 		diags.Append(d...)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom fields
 
 	if termination.HasCustomFields() && len(termination.GetCustomFields()) > 0 {
-
 		customFields := utils.MapToCustomFieldModels(termination.GetCustomFields(), nil)
 
 		customFieldsValue, d := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
@@ -269,11 +229,7 @@ func (d *L2VPNTerminationDataSource) mapResponseToState(ctx context.Context, ter
 		diags.Append(d...)
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

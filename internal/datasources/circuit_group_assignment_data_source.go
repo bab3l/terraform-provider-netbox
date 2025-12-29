@@ -21,9 +21,7 @@ import (
 var _ datasource.DataSource = &CircuitGroupAssignmentDataSource{}
 
 func NewCircuitGroupAssignmentDataSource() datasource.DataSource {
-
 	return &CircuitGroupAssignmentDataSource{}
-
 }
 
 // CircuitGroupAssignmentDataSource defines the data source implementation.
@@ -55,19 +53,14 @@ type CircuitGroupAssignmentDataSourceModel struct {
 }
 
 func (d *CircuitGroupAssignmentDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_circuit_group_assignment"
-
 }
 
 func (d *CircuitGroupAssignmentDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a circuit group assignment in Netbox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("circuit group assignment"),
 
 			"group_id": nbschema.DSComputedStringAttribute("ID of the circuit group."),
@@ -87,21 +80,16 @@ func (d *CircuitGroupAssignmentDataSource) Schema(ctx context.Context, req datas
 			"tags": nbschema.DSTagsAttribute(),
 		},
 	}
-
 }
 
 func (d *CircuitGroupAssignmentDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -110,29 +98,23 @@ func (d *CircuitGroupAssignmentDataSource) Configure(ctx context.Context, req da
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *CircuitGroupAssignmentDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data CircuitGroupAssignmentDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// ID is required for lookup
 
 	if data.ID.IsNull() || data.ID.IsUnknown() {
-
 		resp.Diagnostics.AddError(
 
 			"Missing required identifier",
@@ -141,13 +123,11 @@ func (d *CircuitGroupAssignmentDataSource) Read(ctx context.Context, req datasou
 		)
 
 		return
-
 	}
 
 	var idInt int32
 
 	if _, parseErr := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt); parseErr != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID format",
@@ -156,11 +136,9 @@ func (d *CircuitGroupAssignmentDataSource) Read(ctx context.Context, req datasou
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Looking up circuit group assignment by ID", map[string]interface{}{
-
 		"id": idInt,
 	})
 
@@ -177,7 +155,6 @@ func (d *CircuitGroupAssignmentDataSource) Read(ctx context.Context, req datasou
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading circuit group assignment",
@@ -186,7 +163,6 @@ func (d *CircuitGroupAssignmentDataSource) Read(ctx context.Context, req datasou
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -194,13 +170,11 @@ func (d *CircuitGroupAssignmentDataSource) Read(ctx context.Context, req datasou
 	d.mapResponseToState(ctx, result, &data, resp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToState maps a CircuitGroupAssignment API response to the Terraform state model.
 
 func (d *CircuitGroupAssignmentDataSource) mapResponseToState(ctx context.Context, assignment *netbox.CircuitGroupAssignment, data *CircuitGroupAssignmentDataSourceModel, resp *datasource.ReadResponse) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", assignment.GetId()))
 
 	// Group (required field)
@@ -222,41 +196,28 @@ func (d *CircuitGroupAssignmentDataSource) mapResponseToState(ctx context.Contex
 	// Priority
 
 	if assignment.HasPriority() && assignment.Priority != nil {
-
 		priority := assignment.GetPriority()
 
 		if priority.Value != nil && string(*priority.Value) != "" {
-
 			data.Priority = types.StringValue(string(*priority.Value))
-
 		} else {
-
 			data.Priority = types.StringNull()
-
 		}
 
 		if priority.Label != nil && string(*priority.Label) != "" {
-
 			data.PriorityName = types.StringValue(string(*priority.Label))
-
 		} else {
-
 			data.PriorityName = types.StringNull()
-
 		}
-
 	} else {
-
 		data.Priority = types.StringNull()
 
 		data.PriorityName = types.StringNull()
-
 	}
 
 	// Tags
 
 	if assignment.HasTags() && len(assignment.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(assignment.GetTags())
 
 		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -264,11 +225,8 @@ func (d *CircuitGroupAssignmentDataSource) mapResponseToState(ctx context.Contex
 		resp.Diagnostics.Append(diags...)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Map display name
@@ -278,5 +236,4 @@ func (d *CircuitGroupAssignmentDataSource) mapResponseToState(ctx context.Contex
 	} else {
 		data.DisplayName = types.StringNull()
 	}
-
 }

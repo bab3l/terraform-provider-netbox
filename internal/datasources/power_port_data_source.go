@@ -21,9 +21,7 @@ var _ datasource.DataSource = &PowerPortDataSource{}
 // NewPowerPortDataSource returns a new data source implementing the power port data source.
 
 func NewPowerPortDataSource() datasource.DataSource {
-
 	return &PowerPortDataSource{}
-
 }
 
 // PowerPortDataSource defines the data source implementation.
@@ -61,23 +59,17 @@ type PowerPortDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *PowerPortDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_power_port"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *PowerPortDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a power port in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the power port.",
 
 				Optional: true,
@@ -86,7 +78,6 @@ func (d *PowerPortDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"device_id": schema.Int32Attribute{
-
 				MarkdownDescription: "The numeric ID of the device. Used with name for lookup when ID is not provided.",
 
 				Optional: true,
@@ -95,14 +86,12 @@ func (d *PowerPortDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"device": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the device.",
 
 				Computed: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the power port. Used with device_id for lookup when ID is not provided.",
 
 				Optional: true,
@@ -111,72 +100,60 @@ func (d *PowerPortDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label of the power port.",
 
 				Computed: true,
 			},
 
 			"type": schema.StringAttribute{
-
 				MarkdownDescription: "Power port type.",
 
 				Computed: true,
 			},
 
 			"maximum_draw": schema.Int32Attribute{
-
 				MarkdownDescription: "Maximum power draw in watts.",
 
 				Computed: true,
 			},
 
 			"allocated_draw": schema.Int32Attribute{
-
 				MarkdownDescription: "Allocated power draw in watts.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the power port.",
 
 				Computed: true,
 			},
 
 			"mark_connected": schema.BoolAttribute{
-
 				MarkdownDescription: "Treat as if a cable is connected.",
 
 				Computed: true,
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the power port.",
 
 				Computed: true,
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *PowerPortDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -185,31 +162,25 @@ func (d *PowerPortDataSource) Configure(ctx context.Context, req datasource.Conf
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves the data source data.
 
 func (d *PowerPortDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data PowerPortDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var powerPort *netbox.PowerPort
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		// Lookup by ID
@@ -217,7 +188,6 @@ func (d *PowerPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		portID := data.ID.ValueInt32()
 
 		tflog.Debug(ctx, "Reading power port by ID", map[string]interface{}{
-
 			"id": portID,
 		})
 
@@ -226,7 +196,6 @@ func (d *PowerPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading power port",
@@ -235,7 +204,6 @@ func (d *PowerPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		powerPort = response
@@ -249,7 +217,6 @@ func (d *PowerPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		name := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading power port by device and name", map[string]interface{}{
-
 			"device_id": deviceID,
 
 			"name": name,
@@ -260,7 +227,6 @@ func (d *PowerPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading power port",
@@ -269,13 +235,11 @@ func (d *PowerPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		count := int(response.GetCount())
 
 		if count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Power Port Not Found",
@@ -284,11 +248,9 @@ func (d *PowerPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		if count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Power Ports Found",
@@ -297,7 +259,6 @@ func (d *PowerPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		powerPort = &response.GetResults()[0]
@@ -312,7 +273,6 @@ func (d *PowerPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -320,13 +280,11 @@ func (d *PowerPortDataSource) Read(ctx context.Context, req datasource.ReadReque
 	d.mapResponseToModel(powerPort, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *PowerPortDataSource) mapResponseToModel(powerPort *netbox.PowerPort, data *PowerPortDataSourceModel) {
-
 	data.ID = types.Int32Value(powerPort.GetId())
 
 	data.Name = types.StringValue(powerPort.GetName())
@@ -334,93 +292,63 @@ func (d *PowerPortDataSource) mapResponseToModel(powerPort *netbox.PowerPort, da
 	// Map device
 
 	if device := powerPort.GetDevice(); device.Id != 0 {
-
 		data.DeviceID = types.Int32Value(device.Id)
 
 		data.Device = types.StringValue(device.GetName())
-
 	}
 
 	// Map label
 
 	if label, ok := powerPort.GetLabelOk(); ok && label != nil && *label != "" {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Map type
 
 	if powerPort.Type.IsSet() && powerPort.Type.Get() != nil {
-
 		data.Type = types.StringValue(string(powerPort.Type.Get().GetValue()))
-
 	} else {
-
 		data.Type = types.StringNull()
-
 	}
 
 	// Map maximum_draw
 
 	if powerPort.MaximumDraw.IsSet() && powerPort.MaximumDraw.Get() != nil {
-
 		data.MaximumDraw = types.Int32Value(*powerPort.MaximumDraw.Get())
-
 	} else {
-
 		data.MaximumDraw = types.Int32Null()
-
 	}
 
 	// Map allocated_draw
 
 	if powerPort.AllocatedDraw.IsSet() && powerPort.AllocatedDraw.Get() != nil {
-
 		data.AllocatedDraw = types.Int32Value(*powerPort.AllocatedDraw.Get())
-
 	} else {
-
 		data.AllocatedDraw = types.Int32Null()
-
 	}
 
 	// Map description
 
 	if desc, ok := powerPort.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map mark_connected
 
 	if mc, ok := powerPort.GetMarkConnectedOk(); ok && mc != nil {
-
 		data.MarkConnected = types.BoolValue(*mc)
-
 	} else {
-
 		data.MarkConnected = types.BoolValue(false)
-
 	}
 	// Map display_name
 
 	if powerPort.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(powerPort.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 }

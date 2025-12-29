@@ -34,7 +34,6 @@ type ContactResource struct {
 type ContactResourceModel struct {
 	ID          types.String `tfsdk:"id"`
 	Name        types.String `tfsdk:"name"`
-	DisplayName types.String `tfsdk:"display_name"`
 	Group       types.String `tfsdk:"group"`
 	Title       types.String `tfsdk:"title"`
 	Phone       types.String `tfsdk:"phone"`
@@ -54,10 +53,9 @@ func (r *ContactResource) Schema(ctx context.Context, req resource.SchemaRequest
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a contact in Netbox. Contacts represent people or organizations that can be assigned to various resources.",
 		Attributes: map[string]schema.Attribute{
-			"id":           nbschema.IDAttribute("contact"),
-			"name":         nbschema.NameAttribute("contact", 100),
-			"display_name": nbschema.DisplayNameAttribute("contact"),
-			"group":        nbschema.ReferenceAttribute("contact group", "ID or slug of the contact group this contact belongs to."),
+			"id":    nbschema.IDAttribute("contact"),
+			"name":  nbschema.NameAttribute("contact", 100),
+			"group": nbschema.ReferenceAttribute("contact group", "ID or slug of the contact group this contact belongs to."),
 
 			"tags": nbschema.TagsAttribute(),
 			"title": schema.StringAttribute{
@@ -296,13 +294,6 @@ func (r *ContactResource) mapContactToState(ctx context.Context, contact *netbox
 	data.ID = types.StringValue(fmt.Sprintf("%d", contact.GetId()))
 	data.Name = types.StringValue(contact.GetName())
 
-	// DisplayName
-	if contact.Display != "" {
-		data.DisplayName = types.StringValue(contact.Display)
-	} else {
-		data.DisplayName = types.StringNull()
-	}
-
 	// Handle optional group - preserve user's input format
 	if contact.HasGroup() && contact.GetGroup().Id != 0 {
 		group := contact.GetGroup()
@@ -325,7 +316,6 @@ func (r *ContactResource) mapContactToState(ctx context.Context, contact *netbox
 	}
 
 	if email := contact.GetEmail(); email != "" {
-
 		data.Email = types.StringValue(email)
 	} else {
 		data.Email = types.StringNull()

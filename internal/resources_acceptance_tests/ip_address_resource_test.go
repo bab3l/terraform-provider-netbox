@@ -279,3 +279,58 @@ func testAccIPAddressConsistencyLiteralNamesConfig(address string) string {
 }
 `, address)
 }
+
+func TestAccReferenceNamePersistence_IPAddress_TenantVRF(t *testing.T) {
+	t.Parallel()
+
+	tenantName := testutil.RandomName("tf-test-tenant-ip")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-ip")
+	vrfName := testutil.RandomName("tf-test-vrf")
+	vrfRD := testutil.RandomSlug("tf-test-vrf")
+	address := fmt.Sprintf("10.200.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
+	cleanup.RegisterVRFCleanup(vrfName)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPAddressReferenceConfig_tenantVRF(tenantName, tenantSlug, vrfName, vrfRD, address),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tenant", tenantName),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "vrf", vrfName),
+				),
+			},
+			{
+				PlanOnly: true,
+				Config:   testAccIPAddressReferenceConfig_tenantVRF(tenantName, tenantSlug, vrfName, vrfRD, address),
+			},
+		},
+	})
+}
+
+func testAccIPAddressReferenceConfig_tenantVRF(tenantName, tenantSlug, vrfName, vrfRD, address string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_vrf" "test" {
+  name   = %[3]q
+  rd     = %[4]q
+  tenant = netbox_tenant.test.id
+}
+
+resource "netbox_ip_address" "test" {
+  address = %[5]q
+  tenant  = netbox_tenant.test.name
+  vrf     = netbox_vrf.test.name
+}
+`, tenantName, tenantSlug, vrfName, vrfRD, address)
+}

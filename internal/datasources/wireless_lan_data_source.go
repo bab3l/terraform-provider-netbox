@@ -26,9 +26,7 @@ var (
 // NewWirelessLANDataSource returns a new data source implementing the wireless LAN data source.
 
 func NewWirelessLANDataSource() datasource.DataSource {
-
 	return &WirelessLANDataSource{}
-
 }
 
 // WirelessLANDataSource defines the data source implementation.
@@ -74,25 +72,19 @@ type WirelessLANDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *WirelessLANDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_wireless_lan"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *WirelessLANDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a wireless LAN (WiFi network) in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			// Filter attributes
 
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the wireless LAN. Use this to filter by ID.",
 
 				Optional: true,
@@ -101,7 +93,6 @@ func (d *WirelessLANDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"ssid": schema.StringAttribute{
-
 				MarkdownDescription: "The SSID (network name) of the wireless LAN. Use this to filter by SSID.",
 
 				Optional: true,
@@ -112,21 +103,18 @@ func (d *WirelessLANDataSource) Schema(ctx context.Context, req datasource.Schem
 			// Computed attributes
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the wireless LAN.",
 
 				Computed: true,
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "Display name for the wireless LAN.",
 
 				Computed: true,
 			},
 
 			"group_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the wireless LAN group. Use this to filter by group.",
 
 				Optional: true,
@@ -135,70 +123,60 @@ func (d *WirelessLANDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"group_name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the wireless LAN group.",
 
 				Computed: true,
 			},
 
 			"status": schema.StringAttribute{
-
 				MarkdownDescription: "Status of the wireless LAN (active, reserved, disabled, deprecated).",
 
 				Computed: true,
 			},
 
 			"vlan_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the associated VLAN.",
 
 				Computed: true,
 			},
 
 			"vlan_name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the associated VLAN.",
 
 				Computed: true,
 			},
 
 			"tenant_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the tenant this wireless LAN belongs to.",
 
 				Computed: true,
 			},
 
 			"tenant_name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the tenant this wireless LAN belongs to.",
 
 				Computed: true,
 			},
 
 			"auth_type": schema.StringAttribute{
-
 				MarkdownDescription: "Authentication type (open, wep, wpa-personal, wpa-enterprise).",
 
 				Computed: true,
 			},
 
 			"auth_cipher": schema.StringAttribute{
-
 				MarkdownDescription: "Authentication cipher (auto, tkip, aes).",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Additional comments or notes about the wireless LAN.",
 
 				Computed: true,
 			},
 
 			"tags": schema.SetAttribute{
-
 				MarkdownDescription: "Tags associated with this wireless LAN.",
 
 				Computed: true,
@@ -207,23 +185,18 @@ func (d *WirelessLANDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *WirelessLANDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -232,25 +205,20 @@ func (d *WirelessLANDataSource) Configure(ctx context.Context, req datasource.Co
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the data source data.
 
 func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data WirelessLANDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var wlan *netbox.WirelessLAN
@@ -258,11 +226,9 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// If ID is provided, look up directly
 
 	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-
 		wlanID, err := utils.ParseID(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Wireless LAN ID",
@@ -271,11 +237,9 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Looking up wireless LAN by ID", map[string]interface{}{
-
 			"id": wlanID,
 		})
 
@@ -292,7 +256,6 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading wireless LAN",
@@ -301,17 +264,13 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		wlan = response
-
 	} else {
-
 		// Search by filters
 
 		tflog.Debug(ctx, "Searching for wireless LAN", map[string]interface{}{
-
 			"ssid": data.SSID.ValueString(),
 
 			"group_id": data.GroupID.ValueInt64(),
@@ -320,15 +279,11 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 		listReq := d.client.WirelessAPI.WirelessWirelessLansList(ctx)
 
 		if !data.SSID.IsNull() && !data.SSID.IsUnknown() {
-
 			listReq = listReq.Ssid([]string{data.SSID.ValueString()})
-
 		}
 
 		if !data.GroupID.IsNull() && !data.GroupID.IsUnknown() {
-
 			listReq = listReq.GroupId([]string{fmt.Sprintf("%d", data.GroupID.ValueInt64())})
-
 		}
 
 		response, httpResp, err := listReq.Execute()
@@ -336,7 +291,6 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading wireless LANs",
@@ -345,11 +299,9 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if response.GetCount() == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"No wireless LAN found",
@@ -358,11 +310,9 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if response.GetCount() > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple wireless LANs found",
@@ -371,11 +321,9 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		wlan = &response.GetResults()[0]
-
 	}
 
 	// Map response to model
@@ -387,139 +335,100 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Map description
 
 	if desc, ok := wlan.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map group
 
 	if wlan.Group.IsSet() && wlan.Group.Get() != nil {
-
 		group := wlan.Group.Get()
 
 		data.GroupID = types.Int64Value(int64(group.GetId()))
 
 		data.GroupName = types.StringValue(group.GetName())
-
 	} else {
-
 		data.GroupID = types.Int64Null()
 
 		data.GroupName = types.StringNull()
-
 	}
 
 	// Map status
 
 	if status, ok := wlan.GetStatusOk(); ok && status != nil {
-
 		data.Status = types.StringValue(string(status.GetValue()))
-
 	} else {
-
 		data.Status = types.StringNull()
-
 	}
 
 	// Map VLAN
 
 	if wlan.Vlan.IsSet() && wlan.Vlan.Get() != nil {
-
 		vlan := wlan.Vlan.Get()
 
 		data.VLANID = types.Int64Value(int64(vlan.GetId()))
 
 		data.VLANName = types.StringValue(vlan.GetName())
-
 	} else {
-
 		data.VLANID = types.Int64Null()
 
 		data.VLANName = types.StringNull()
-
 	}
 
 	// Map tenant
 
 	if wlan.Tenant.IsSet() && wlan.Tenant.Get() != nil {
-
 		tenant := wlan.Tenant.Get()
 
 		data.TenantID = types.Int64Value(int64(tenant.GetId()))
 
 		data.TenantName = types.StringValue(tenant.GetName())
-
 	} else {
-
 		data.TenantID = types.Int64Null()
 
 		data.TenantName = types.StringNull()
-
 	}
 
 	// Map auth_type
 
 	if authType, ok := wlan.GetAuthTypeOk(); ok && authType != nil {
-
 		data.AuthType = types.StringValue(string(authType.GetValue()))
-
 	} else {
-
 		data.AuthType = types.StringNull()
-
 	}
 
 	// Map auth_cipher
 
 	if authCipher, ok := wlan.GetAuthCipherOk(); ok && authCipher != nil {
-
 		data.AuthCipher = types.StringValue(string(authCipher.GetValue()))
-
 	} else {
-
 		data.AuthCipher = types.StringNull()
-
 	}
 
 	// Map comments
 
 	if comments, ok := wlan.GetCommentsOk(); ok && comments != nil && *comments != "" {
-
 		data.Comments = types.StringValue(*comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Map display name
 
 	if displayName := wlan.GetDisplay(); displayName != "" {
-
 		data.DisplayName = types.StringValue(displayName)
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Handle tags (simplified - just names)
 
 	if wlan.HasTags() && len(wlan.GetTags()) > 0 {
-
 		tagNames := make([]string, 0, len(wlan.GetTags()))
 
 		for _, tag := range wlan.GetTags() {
-
 			tagNames = append(tagNames, tag.GetName())
-
 		}
 
 		tagsValue, diags := types.SetValueFrom(ctx, types.StringType, tagNames)
@@ -527,19 +436,13 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(types.StringType)
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

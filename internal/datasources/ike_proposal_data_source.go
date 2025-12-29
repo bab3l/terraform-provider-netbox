@@ -25,9 +25,7 @@ var (
 // NewIKEProposalDataSource returns a new IKEProposal data source.
 
 func NewIKEProposalDataSource() datasource.DataSource {
-
 	return &IKEProposalDataSource{}
-
 }
 
 // IKEProposalDataSource defines the data source implementation.
@@ -65,23 +63,17 @@ type IKEProposalDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *IKEProposalDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_ike_proposal"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *IKEProposalDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about an IKE (Internet Key Exchange) Proposal in Netbox. IKE proposals define the security parameters for the IKE phase 1 negotiation in IPSec VPN connections.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the IKE proposal. Either `id` or `name` must be specified.",
 
 				Optional: true,
@@ -90,7 +82,6 @@ func (d *IKEProposalDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the IKE proposal. Either `id` or `name` must be specified.",
 
 				Optional: true,
@@ -99,63 +90,54 @@ func (d *IKEProposalDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "The description of the IKE proposal.",
 
 				Computed: true,
 			},
 
 			"authentication_method": schema.StringAttribute{
-
 				MarkdownDescription: "The authentication method for the IKE proposal. Values: `preshared-keys`, `certificates`, `rsa-signatures`, `dsa-signatures`.",
 
 				Computed: true,
 			},
 
 			"encryption_algorithm": schema.StringAttribute{
-
 				MarkdownDescription: "The encryption algorithm for the IKE proposal. Values: `aes-128-cbc`, `aes-128-gcm`, `aes-192-cbc`, `aes-192-gcm`, `aes-256-cbc`, `aes-256-gcm`, `3des-cbc`, `des-cbc`.",
 
 				Computed: true,
 			},
 
 			"authentication_algorithm": schema.StringAttribute{
-
 				MarkdownDescription: "The authentication algorithm (hash) for the IKE proposal. Values: `hmac-sha1`, `hmac-sha256`, `hmac-sha384`, `hmac-sha512`, `hmac-md5`.",
 
 				Computed: true,
 			},
 
 			"group": schema.Int64Attribute{
-
 				MarkdownDescription: "The Diffie-Hellman group for the IKE proposal.",
 
 				Computed: true,
 			},
 
 			"sa_lifetime": schema.Int64Attribute{
-
 				MarkdownDescription: "Security association lifetime in seconds.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Comments about the IKE proposal.",
 
 				Computed: true,
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the IKE proposal.",
 
 				Computed: true,
 			},
 
 			"tags": schema.ListAttribute{
-
 				MarkdownDescription: "The tags assigned to this IKE proposal.",
 
 				Computed: true,
@@ -164,23 +146,18 @@ func (d *IKEProposalDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *IKEProposalDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -189,17 +166,14 @@ func (d *IKEProposalDataSource) Configure(ctx context.Context, req datasource.Co
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data IKEProposalDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -207,9 +181,7 @@ func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadReq
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var ike *netbox.IKEProposal
@@ -217,13 +189,11 @@ func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Check if we're looking up by ID
 
 	switch {
-
 	case utils.IsSet(data.ID):
 
 		id, err := utils.ParseID(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid ID",
@@ -232,11 +202,9 @@ func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading IKEProposal by ID", map[string]interface{}{
-
 			"id": id,
 		})
 
@@ -245,7 +213,6 @@ func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading IKEProposal",
@@ -254,7 +221,6 @@ func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		ike = result
@@ -264,7 +230,6 @@ func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadReq
 		// Looking up by name
 
 		tflog.Debug(ctx, "Reading IKEProposal by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -277,7 +242,6 @@ func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error listing IKEProposals",
@@ -286,11 +250,9 @@ func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if results.Count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"IKEProposal not found",
@@ -299,11 +261,9 @@ func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if results.Count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple IKEProposals found",
@@ -312,7 +272,6 @@ func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		ike = &results.Results[0]
@@ -327,7 +286,6 @@ func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	// Map the result to state
@@ -337,13 +295,11 @@ func (d *IKEProposalDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapIKEProposalToState maps an IKEProposal API response to the Terraform state model.
 
 func (d *IKEProposalDataSource) mapIKEProposalToState(ike *netbox.IKEProposal, data *IKEProposalDataSourceModel) {
-
 	// ID
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", ike.Id))
@@ -355,73 +311,51 @@ func (d *IKEProposalDataSource) mapIKEProposalToState(ike *netbox.IKEProposal, d
 	// Description
 
 	if ike.Description != nil && *ike.Description != "" {
-
 		data.Description = types.StringValue(*ike.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Authentication Method
 
 	if ike.AuthenticationMethod.Value != nil {
-
 		data.AuthenticationMethod = types.StringValue(string(*ike.AuthenticationMethod.Value))
-
 	}
 
 	// Encryption Algorithm
 
 	if ike.EncryptionAlgorithm.Value != nil {
-
 		data.EncryptionAlgorithm = types.StringValue(string(*ike.EncryptionAlgorithm.Value))
-
 	}
 
 	// Authentication Algorithm
 
 	if ike.AuthenticationAlgorithm != nil && ike.AuthenticationAlgorithm.Value != nil {
-
 		data.AuthenticationAlgorithm = types.StringValue(string(*ike.AuthenticationAlgorithm.Value))
-
 	} else {
-
 		data.AuthenticationAlgorithm = types.StringNull()
-
 	}
 
 	// Group
 
 	if ike.Group.Value != nil {
-
 		data.Group = types.Int64Value(int64(*ike.Group.Value))
-
 	}
 
 	// SA Lifetime
 
 	if ike.SaLifetime.IsSet() && ike.SaLifetime.Get() != nil {
-
 		data.SALifetime = types.Int64Value(int64(*ike.SaLifetime.Get()))
-
 	} else {
-
 		data.SALifetime = types.Int64Null()
-
 	}
 
 	// Comments
 
 	if ike.Comments != nil && *ike.Comments != "" {
-
 		data.Comments = types.StringValue(*ike.Comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Display name
@@ -434,23 +368,16 @@ func (d *IKEProposalDataSource) mapIKEProposalToState(ike *netbox.IKEProposal, d
 	// Tags
 
 	if len(ike.Tags) > 0 {
-
 		tags := make([]string, len(ike.Tags))
 
 		for i, tag := range ike.Tags {
-
 			tags[i] = tag.Name
-
 		}
 
 		tagsValue, _ := types.ListValueFrom(context.Background(), types.StringType, tags)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.ListNull(types.StringType)
-
 	}
-
 }

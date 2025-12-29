@@ -24,9 +24,7 @@ var _ datasource.DataSource = &ServiceTemplateDataSource{}
 // NewServiceTemplateDataSource returns a new data source implementing the service template data source.
 
 func NewServiceTemplateDataSource() datasource.DataSource {
-
 	return &ServiceTemplateDataSource{}
-
 }
 
 // ServiceTemplateDataSource defines the data source implementation.
@@ -60,21 +58,16 @@ type ServiceTemplateDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *ServiceTemplateDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_service_template"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *ServiceTemplateDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a service template in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("service template"),
 
 			"name": nbschema.DSNameAttribute("service template"),
@@ -82,7 +75,6 @@ func (d *ServiceTemplateDataSource) Schema(ctx context.Context, req datasource.S
 			"protocol": nbschema.DSComputedStringAttribute("Protocol used by the service template (tcp, udp, sctp)."),
 
 			"ports": schema.ListAttribute{
-
 				MarkdownDescription: "List of port numbers the service template listens on.",
 
 				Computed: true,
@@ -99,31 +91,25 @@ func (d *ServiceTemplateDataSource) Schema(ctx context.Context, req datasource.S
 			"tags": nbschema.DSTagsAttribute(),
 
 			"custom_fields": schema.SetNestedAttribute{
-
 				MarkdownDescription: "Custom fields assigned to this service template.",
 
 				Computed: true,
 
 				NestedObject: schema.NestedAttributeObject{
-
 					Attributes: map[string]schema.Attribute{
-
 						"name": schema.StringAttribute{
-
 							MarkdownDescription: "Name of the custom field.",
 
 							Computed: true,
 						},
 
 						"type": schema.StringAttribute{
-
 							MarkdownDescription: "Type of the custom field.",
 
 							Computed: true,
 						},
 
 						"value": schema.StringAttribute{
-
 							MarkdownDescription: "Value of the custom field.",
 
 							Computed: true,
@@ -133,23 +119,18 @@ func (d *ServiceTemplateDataSource) Schema(ctx context.Context, req datasource.S
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *ServiceTemplateDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -158,25 +139,20 @@ func (d *ServiceTemplateDataSource) Configure(ctx context.Context, req datasourc
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read reads the service template data.
 
 func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ServiceTemplateDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var serviceTemplate *netbox.ServiceTemplate
@@ -188,13 +164,11 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 	// Lookup by ID or name
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		id, parseErr := utils.ParseID(data.ID.ValueString())
 
 		if parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid ID",
@@ -203,11 +177,9 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading service template by ID", map[string]interface{}{
-
 			"id": id,
 		})
 
@@ -220,7 +192,6 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 		// Lookup by name
 
 		tflog.Debug(ctx, "Reading service template by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -235,11 +206,9 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 		err = listErr
 
 		if err == nil {
-
 			results := list.GetResults()
 
 			if len(results) == 0 {
-
 				resp.Diagnostics.AddError(
 
 					"Not Found",
@@ -248,11 +217,9 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 				)
 
 				return
-
 			}
 
 			if len(results) > 1 {
-
 				resp.Diagnostics.AddError(
 
 					"Multiple Found",
@@ -261,11 +228,9 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 				)
 
 				return
-
 			}
 
 			serviceTemplate = &results[0]
-
 		}
 
 	default:
@@ -278,11 +243,9 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading service template",
@@ -291,7 +254,6 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -299,13 +261,11 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 	d.mapResponseToState(ctx, serviceTemplate, &data, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToState maps the API response to the Terraform state.
 
 func (d *ServiceTemplateDataSource) mapResponseToState(ctx context.Context, serviceTemplate *netbox.ServiceTemplate, data *ServiceTemplateDataSourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", serviceTemplate.GetId()))
 
 	data.Name = types.StringValue(serviceTemplate.GetName())
@@ -313,27 +273,20 @@ func (d *ServiceTemplateDataSource) mapResponseToState(ctx context.Context, serv
 	// Handle protocol
 
 	if serviceTemplate.HasProtocol() {
-
 		protocol := serviceTemplate.GetProtocol()
 
 		data.Protocol = types.StringValue(string(protocol.GetValue()))
-
 	} else {
-
 		data.Protocol = types.StringNull()
-
 	}
 
 	// Handle ports
 
 	if serviceTemplate.Ports != nil {
-
 		var ports []int64
 
 		for _, p := range serviceTemplate.Ports {
-
 			ports = append(ports, int64(p))
-
 		}
 
 		portsList, diagErr := types.ListValueFrom(ctx, types.Int64Type, ports)
@@ -341,53 +294,37 @@ func (d *ServiceTemplateDataSource) mapResponseToState(ctx context.Context, serv
 		diags.Append(diagErr...)
 
 		data.Ports = portsList
-
 	} else {
-
 		data.Ports = types.ListNull(types.Int64Type)
-
 	}
 
 	// Handle description
 
 	if serviceTemplate.HasDescription() && serviceTemplate.GetDescription() != "" {
-
 		data.Description = types.StringValue(serviceTemplate.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle comments
 
 	if serviceTemplate.HasComments() && serviceTemplate.GetComments() != "" {
-
 		data.Comments = types.StringValue(serviceTemplate.GetComments())
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Handle display_name
 
 	if serviceTemplate.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(serviceTemplate.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if serviceTemplate.HasTags() && len(serviceTemplate.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(serviceTemplate.GetTags())
 
 		tagsValue, diagErr := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -395,47 +332,33 @@ func (d *ServiceTemplateDataSource) mapResponseToState(ctx context.Context, serv
 		diags.Append(diagErr...)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if serviceTemplate.HasCustomFields() {
-
 		var existingModels []utils.CustomFieldModel
 
 		if !data.CustomFields.IsNull() {
-
 			diagErr := data.CustomFields.ElementsAs(ctx, &existingModels, false)
 
 			diags.Append(diagErr...)
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(serviceTemplate.GetCustomFields(), existingModels)
 
 		if len(customFields) > 0 {
-
 			customFieldsValue, diagErr := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 
 			diags.Append(diagErr...)
 
 			data.CustomFields = customFieldsValue
-
 		} else {
-
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 		}
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

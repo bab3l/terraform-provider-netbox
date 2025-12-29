@@ -25,9 +25,7 @@ var _ resource.Resource = &VLANGroupResource{}
 var _ resource.ResourceWithImportState = &VLANGroupResource{}
 
 func NewVLANGroupResource() resource.Resource {
-
 	return &VLANGroupResource{}
-
 }
 
 // VLANGroupResource defines the resource implementation.
@@ -45,8 +43,6 @@ type VLANGroupResourceModel struct {
 
 	Slug types.String `tfsdk:"slug"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	ScopeType types.String `tfsdk:"scope_type"`
 
 	ScopeID types.String `tfsdk:"scope_id"`
@@ -59,38 +55,29 @@ type VLANGroupResourceModel struct {
 }
 
 func (r *VLANGroupResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_vlan_group"
-
 }
 
 func (r *VLANGroupResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a VLAN Group in Netbox. VLAN Groups are used to organize VLANs and ensure VLAN ID uniqueness within a specific scope such as a site, location, or region.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.IDAttribute("VLAN Group"),
 
 			"name": nbschema.NameAttribute("VLAN Group", 100),
 
 			"slug": nbschema.SlugAttribute("VLAN Group"),
 
-			"display_name": nbschema.DisplayNameAttribute("VLAN Group"),
-
 			"description": nbschema.DescriptionAttribute("VLAN Group"),
 
 			"scope_type": schema.StringAttribute{
-
 				MarkdownDescription: "The type of object to scope this VLAN Group to. Valid values: `dcim.site`, `dcim.sitegroup`, `dcim.region`, `dcim.location`, `dcim.rack`, `virtualization.clustergroup`, `virtualization.cluster`.",
 
 				Optional: true,
 			},
 
 			"scope_id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the object to scope this VLAN Group to. Must be used together with `scope_type`.",
 
 				Optional: true,
@@ -106,17 +93,13 @@ func (r *VLANGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 }
 
 func (r *VLANGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -125,27 +108,21 @@ func (r *VLANGroupResource) Configure(ctx context.Context, req resource.Configur
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 func (r *VLANGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data VLANGroupResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating VLAN Group", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"slug": data.Slug.ValueString(),
@@ -154,7 +131,6 @@ func (r *VLANGroupResource) Create(ctx context.Context, req resource.CreateReque
 	// Prepare the VLAN Group request
 
 	vlanGroupRequest := netbox.VLANGroupRequest{
-
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
@@ -165,9 +141,7 @@ func (r *VLANGroupResource) Create(ctx context.Context, req resource.CreateReque
 	r.setOptionalFields(ctx, &vlanGroupRequest, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Create the VLAN Group via API
@@ -177,9 +151,7 @@ func (r *VLANGroupResource) Create(ctx context.Context, req resource.CreateReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		handler := utils.CreateErrorHandler{
-
 			ResourceType: "netbox_vlan_group",
 
 			ResourceName: "this.vlan_group",
@@ -187,34 +159,26 @@ func (r *VLANGroupResource) Create(ctx context.Context, req resource.CreateReque
 			SlugValue: data.Slug.ValueString(),
 
 			LookupFunc: func(lookupCtx context.Context, slug string) (string, error) {
-
 				list, _, lookupErr := r.client.IpamAPI.IpamVlanGroupsList(lookupCtx).Slug([]string{slug}).Execute()
 
 				if lookupErr != nil {
-
 					return "", lookupErr
-
 				}
 
 				if list != nil && len(list.Results) > 0 {
-
 					return fmt.Sprintf("%d", list.Results[0].GetId()), nil
-
 				}
 
 				return "", nil
-
 			},
 		}
 
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Created VLAN Group", map[string]interface{}{
-
 		"id": vlanGroup.GetId(),
 
 		"name": vlanGroup.GetName(),
@@ -225,25 +189,19 @@ func (r *VLANGroupResource) Create(ctx context.Context, req resource.CreateReque
 	r.mapVLANGroupToState(ctx, vlanGroup, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *VLANGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data VLANGroupResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -255,15 +213,12 @@ func (r *VLANGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	id, err := utils.ParseID(vlanGroupID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid VLAN Group ID", fmt.Sprintf("VLAN Group ID must be a number, got: %s", vlanGroupID))
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading VLAN Group", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -274,18 +229,14 @@ func (r *VLANGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "VLAN Group not found, removing from state", map[string]interface{}{
-
 				"id": id,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -296,11 +247,9 @@ func (r *VLANGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Read VLAN Group", map[string]interface{}{
-
 		"id": vlanGroup.GetId(),
 
 		"name": vlanGroup.GetName(),
@@ -311,25 +260,19 @@ func (r *VLANGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	r.mapVLANGroupToState(ctx, vlanGroup, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data VLANGroupResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -341,15 +284,12 @@ func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	id, err := utils.ParseID(vlanGroupID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid VLAN Group ID", fmt.Sprintf("VLAN Group ID must be a number, got: %s", vlanGroupID))
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating VLAN Group", map[string]interface{}{
-
 		"id": id,
 
 		"name": data.Name.ValueString(),
@@ -358,7 +298,6 @@ func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	// Prepare the VLAN Group request
 
 	vlanGroupRequest := netbox.VLANGroupRequest{
-
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
@@ -369,9 +308,7 @@ func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	r.setOptionalFields(ctx, &vlanGroupRequest, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Update the VLAN Group via API
@@ -381,7 +318,6 @@ func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating VLAN Group",
@@ -390,11 +326,9 @@ func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updated VLAN Group", map[string]interface{}{
-
 		"id": vlanGroup.GetId(),
 
 		"name": vlanGroup.GetName(),
@@ -405,25 +339,19 @@ func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	r.mapVLANGroupToState(ctx, vlanGroup, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *VLANGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data VLANGroupResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -435,15 +363,12 @@ func (r *VLANGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 	id, err := utils.ParseID(vlanGroupID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid VLAN Group ID", fmt.Sprintf("VLAN Group ID must be a number, got: %s", vlanGroupID))
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting VLAN Group", map[string]interface{}{
-
 		"id": id,
 
 		"name": data.Name.ValueString(),
@@ -456,16 +381,12 @@ func (r *VLANGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "VLAN Group already deleted", map[string]interface{}{
-
 				"id": id,
 			})
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -476,26 +397,20 @@ func (r *VLANGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted VLAN Group", map[string]interface{}{
-
 		"id": id,
 	})
-
 }
 
 func (r *VLANGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // setOptionalFields sets optional fields on the VLAN Group request from the resource model.
 
 func (r *VLANGroupResource) setOptionalFields(ctx context.Context, vlanGroupRequest *netbox.VLANGroupRequest, data *VLANGroupResourceModel, diags *diag.Diagnostics) {
-
 	// Description
 
 	vlanGroupRequest.Description = utils.StringPtr(data.Description)
@@ -503,89 +418,66 @@ func (r *VLANGroupResource) setOptionalFields(ctx context.Context, vlanGroupRequ
 	// Scope type
 
 	if utils.IsSet(data.ScopeType) {
-
 		scopeType := data.ScopeType.ValueString()
 
 		vlanGroupRequest.ScopeType = *netbox.NewNullableString(&scopeType)
-
 	}
 
 	// Scope ID
 
 	if utils.IsSet(data.ScopeID) {
-
 		scopeID, err := utils.ParseID(data.ScopeID.ValueString())
 
 		if err != nil {
-
 			diags.AddError("Invalid Scope ID", fmt.Sprintf("Scope ID must be a number, got: %s", data.ScopeID.ValueString()))
 
 			return
-
 		}
 
 		vlanGroupRequest.ScopeId = *netbox.NewNullableInt32(&scopeID)
-
 	}
 
 	// Apply metadata fields (tags, custom_fields)
 
 	utils.ApplyMetadataFields(ctx, vlanGroupRequest, data.Tags, data.CustomFields, diags)
-
 }
 
 // mapVLANGroupToState maps a VLANGroup API response to the resource model.
 
 func (r *VLANGroupResource) mapVLANGroupToState(ctx context.Context, vlanGroup *netbox.VLANGroup, data *VLANGroupResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", vlanGroup.GetId()))
 
 	data.Name = types.StringValue(vlanGroup.GetName())
 
 	data.Slug = types.StringValue(vlanGroup.GetSlug())
 
-	data.DisplayName = types.StringValue(vlanGroup.GetDisplay())
-
 	// Scope type
 
 	if scopeType, ok := vlanGroup.GetScopeTypeOk(); ok && scopeType != nil && *scopeType != "" {
-
 		data.ScopeType = types.StringValue(*scopeType)
-
 	} else {
-
 		data.ScopeType = types.StringNull()
-
 	}
 
 	// Scope ID
 
 	if vlanGroup.HasScopeId() && vlanGroup.ScopeId.Get() != nil {
-
 		data.ScopeID = types.StringValue(fmt.Sprintf("%d", *vlanGroup.ScopeId.Get()))
-
 	} else {
-
 		data.ScopeID = types.StringNull()
-
 	}
 
 	// Description
 
 	if desc, ok := vlanGroup.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Tags
 
 	if vlanGroup.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(vlanGroup.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -593,23 +485,17 @@ func (r *VLANGroupResource) mapVLANGroupToState(ctx context.Context, vlanGroup *
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom fields
 
 	if vlanGroup.HasCustomFields() && !data.CustomFields.IsNull() {
-
 		var stateCustomFields []utils.CustomFieldModel
 
 		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
@@ -617,9 +503,7 @@ func (r *VLANGroupResource) mapVLANGroupToState(ctx context.Context, vlanGroup *
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(vlanGroup.GetCustomFields(), stateCustomFields)
@@ -629,17 +513,11 @@ func (r *VLANGroupResource) mapVLANGroupToState(ctx context.Context, vlanGroup *
 		diags.Append(cfValueDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else if data.CustomFields.IsNull() {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

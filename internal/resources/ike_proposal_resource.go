@@ -37,9 +37,7 @@ var (
 // NewIKEProposalResource returns a new IKEProposal resource.
 
 func NewIKEProposalResource() resource.Resource {
-
 	return &IKEProposalResource{}
-
 }
 
 // IKEProposalResource defines the resource implementation.
@@ -69,8 +67,6 @@ type IKEProposalResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -79,35 +75,27 @@ type IKEProposalResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *IKEProposalResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_ike_proposal"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *IKEProposalResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages an IKE (Internet Key Exchange) Proposal in Netbox. IKE proposals define the security parameters for the IKE phase 1 negotiation in IPSec VPN connections.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the IKE proposal.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the IKE proposal. Required.",
 
 				Required: true,
@@ -116,66 +104,54 @@ func (r *IKEProposalResource) Schema(ctx context.Context, req resource.SchemaReq
 			"description": nbschema.DescriptionAttribute("IKE proposal"),
 
 			"authentication_method": schema.StringAttribute{
-
 				MarkdownDescription: "The authentication method for the IKE proposal. Required. Valid values: `preshared-keys`, `certificates`, `rsa-signatures`, `dsa-signatures`.",
 
 				Required: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.OneOf("preshared-keys", "certificates", "rsa-signatures", "dsa-signatures"),
 				},
 			},
 
 			"encryption_algorithm": schema.StringAttribute{
-
 				MarkdownDescription: "The encryption algorithm for the IKE proposal. Required. Valid values: `aes-128-cbc`, `aes-128-gcm`, `aes-192-cbc`, `aes-192-gcm`, `aes-256-cbc`, `aes-256-gcm`, `3des-cbc`, `des-cbc`.",
 
 				Required: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.OneOf("aes-128-cbc", "aes-128-gcm", "aes-192-cbc", "aes-192-gcm", "aes-256-cbc", "aes-256-gcm", "3des-cbc", "des-cbc"),
 				},
 			},
 
 			"authentication_algorithm": schema.StringAttribute{
-
 				MarkdownDescription: "The authentication algorithm (hash) for the IKE proposal. Optional. Valid values: `hmac-sha1`, `hmac-sha256`, `hmac-sha384`, `hmac-sha512`, `hmac-md5`.",
 
 				Optional: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.OneOf("hmac-sha1", "hmac-sha256", "hmac-sha384", "hmac-sha512", "hmac-md5"),
 				},
 			},
 
 			"group": schema.Int64Attribute{
-
 				MarkdownDescription: "The Diffie-Hellman group for the IKE proposal. Required. Valid values: 1, 2, 5, 14-34.",
 
 				Required: true,
 
 				Validators: []validator.Int64{
-
 					int64validator.OneOf(1, 2, 5, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34),
 				},
 			},
 
 			"sa_lifetime": schema.Int64Attribute{
-
 				MarkdownDescription: "Security association lifetime in seconds. Optional.",
 
 				Optional: true,
 
 				PlanModifiers: []planmodifier.Int64{
-
 					int64planmodifier.UseStateForUnknown(),
 				},
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("IKE proposal"),
 		},
 	}
 
@@ -189,17 +165,13 @@ func (r *IKEProposalResource) Schema(ctx context.Context, req resource.SchemaReq
 // Configure adds the provider configured client to the resource.
 
 func (r *IKEProposalResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -208,17 +180,14 @@ func (r *IKEProposalResource) Configure(ctx context.Context, req resource.Config
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates the resource and sets the initial Terraform state.
 
 func (r *IKEProposalResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data IKEProposalResourceModel
 
 	// Read Terraform plan data into the model
@@ -226,9 +195,7 @@ func (r *IKEProposalResource) Create(ctx context.Context, req resource.CreateReq
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Create the IKEProposal request
@@ -240,11 +207,9 @@ func (r *IKEProposalResource) Create(ctx context.Context, req resource.CreateReq
 	groupVal, err := utils.SafeInt32FromValue(data.Group)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Group value overflow: %s", err))
 
 		return
-
 	}
 
 	group := netbox.PatchedWritableIKEProposalRequestGroup(groupVal)
@@ -265,13 +230,10 @@ func (r *IKEProposalResource) Create(ctx context.Context, req resource.CreateReq
 	r.setOptionalFields(ctx, ikeRequest, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating IKEProposal", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 	})
 
@@ -282,7 +244,6 @@ func (r *IKEProposalResource) Create(ctx context.Context, req resource.CreateReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating IKEProposal",
@@ -291,7 +252,6 @@ func (r *IKEProposalResource) Create(ctx context.Context, req resource.CreateReq
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -299,7 +259,6 @@ func (r *IKEProposalResource) Create(ctx context.Context, req resource.CreateReq
 	r.mapIKEProposalToState(ctx, ike, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Created IKEProposal", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -308,13 +267,11 @@ func (r *IKEProposalResource) Create(ctx context.Context, req resource.CreateReq
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (r *IKEProposalResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data IKEProposalResourceModel
 
 	// Read Terraform prior state data into the model
@@ -322,15 +279,12 @@ func (r *IKEProposalResource) Read(ctx context.Context, req resource.ReadRequest
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing ID",
@@ -339,11 +293,9 @@ func (r *IKEProposalResource) Read(ctx context.Context, req resource.ReadRequest
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading IKEProposal", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -354,18 +306,14 @@ func (r *IKEProposalResource) Read(ctx context.Context, req resource.ReadRequest
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "IKEProposal not found, removing from state", map[string]interface{}{
-
 				"id": id,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -376,7 +324,6 @@ func (r *IKEProposalResource) Read(ctx context.Context, req resource.ReadRequest
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -386,13 +333,11 @@ func (r *IKEProposalResource) Read(ctx context.Context, req resource.ReadRequest
 	// Save updated data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 
 func (r *IKEProposalResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data IKEProposalResourceModel
 
 	// Read Terraform plan data into the model
@@ -400,15 +345,12 @@ func (r *IKEProposalResource) Update(ctx context.Context, req resource.UpdateReq
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing ID",
@@ -417,7 +359,6 @@ func (r *IKEProposalResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 
 		return
-
 	}
 
 	// Create the IKEProposal request
@@ -429,11 +370,9 @@ func (r *IKEProposalResource) Update(ctx context.Context, req resource.UpdateReq
 	groupVal, err := utils.SafeInt32FromValue(data.Group)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Group value overflow: %s", err))
 
 		return
-
 	}
 
 	group := netbox.PatchedWritableIKEProposalRequestGroup(groupVal)
@@ -454,13 +393,10 @@ func (r *IKEProposalResource) Update(ctx context.Context, req resource.UpdateReq
 	r.setOptionalFields(ctx, ikeRequest, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating IKEProposal", map[string]interface{}{
-
 		"id": id,
 
 		"name": data.Name.ValueString(),
@@ -473,7 +409,6 @@ func (r *IKEProposalResource) Update(ctx context.Context, req resource.UpdateReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating IKEProposal",
@@ -482,7 +417,6 @@ func (r *IKEProposalResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -490,7 +424,6 @@ func (r *IKEProposalResource) Update(ctx context.Context, req resource.UpdateReq
 	r.mapIKEProposalToState(ctx, ike, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Updated IKEProposal", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -499,13 +432,11 @@ func (r *IKEProposalResource) Update(ctx context.Context, req resource.UpdateReq
 	// Save updated data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 
 func (r *IKEProposalResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data IKEProposalResourceModel
 
 	// Read Terraform prior state data into the model
@@ -513,15 +444,12 @@ func (r *IKEProposalResource) Delete(ctx context.Context, req resource.DeleteReq
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing ID",
@@ -530,11 +458,9 @@ func (r *IKEProposalResource) Delete(ctx context.Context, req resource.DeleteReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting IKEProposal", map[string]interface{}{
-
 		"id": id,
 
 		"name": data.Name.ValueString(),
@@ -547,13 +473,10 @@ func (r *IKEProposalResource) Delete(ctx context.Context, req resource.DeleteReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			// Already deleted
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -564,57 +487,45 @@ func (r *IKEProposalResource) Delete(ctx context.Context, req resource.DeleteReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted IKEProposal", map[string]interface{}{
-
 		"id": id,
 	})
-
 }
 
 // ImportState imports the resource state from an existing resource.
 
 func (r *IKEProposalResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // setOptionalFields sets optional fields on the WritableIKEProposalRequest.
 
 func (r *IKEProposalResource) setOptionalFields(ctx context.Context, ikeRequest *netbox.WritableIKEProposalRequest, data *IKEProposalResourceModel, diags *diag.Diagnostics) {
-
 	// Set description
 	utils.ApplyDescription(ikeRequest, data.Description)
 
 	// Authentication Algorithm
 
 	if utils.IsSet(data.AuthenticationAlgorithm) {
-
 		authAlg := netbox.PatchedWritableIKEProposalRequestAuthenticationAlgorithm(data.AuthenticationAlgorithm.ValueString())
 
 		ikeRequest.AuthenticationAlgorithm = &authAlg
-
 	}
 
 	// SA Lifetime
 
 	if utils.IsSet(data.SALifetime) {
-
 		lifetime, err := utils.SafeInt32FromValue(data.SALifetime)
 
 		if err != nil {
-
 			diags.AddError("Invalid value", fmt.Sprintf("SALifetime value overflow: %s", err))
 
 			return
-
 		}
 
 		ikeRequest.SaLifetime = *netbox.NewNullableInt32(&lifetime)
-
 	}
 
 	// Set comments, tags, and custom fields
@@ -624,13 +535,11 @@ func (r *IKEProposalResource) setOptionalFields(ctx context.Context, ikeRequest 
 	if diags.HasError() {
 		return
 	}
-
 }
 
 // mapIKEProposalToState maps an IKEProposal API response to the Terraform state model.
 
 func (r *IKEProposalResource) mapIKEProposalToState(ctx context.Context, ike *netbox.IKEProposal, data *IKEProposalResourceModel, diags *diag.Diagnostics) {
-
 	// ID
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", ike.Id))
@@ -642,107 +551,68 @@ func (r *IKEProposalResource) mapIKEProposalToState(ctx context.Context, ike *ne
 	// Description
 
 	if ike.Description != nil && *ike.Description != "" {
-
 		data.Description = types.StringValue(*ike.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Authentication Method
 
 	if ike.AuthenticationMethod.Value != nil {
-
 		data.AuthenticationMethod = types.StringValue(string(*ike.AuthenticationMethod.Value))
-
 	}
 
 	// Encryption Algorithm
 
 	if ike.EncryptionAlgorithm.Value != nil {
-
 		data.EncryptionAlgorithm = types.StringValue(string(*ike.EncryptionAlgorithm.Value))
-
 	}
 
 	// Authentication Algorithm
 
 	if ike.AuthenticationAlgorithm != nil && ike.AuthenticationAlgorithm.Value != nil {
-
 		data.AuthenticationAlgorithm = types.StringValue(string(*ike.AuthenticationAlgorithm.Value))
-
 	} else {
-
 		data.AuthenticationAlgorithm = types.StringNull()
-
 	}
 
 	// Group
 
 	if ike.Group.Value != nil {
-
 		data.Group = types.Int64Value(int64(*ike.Group.Value))
-
 	}
 
 	// SA Lifetime
 
 	if ike.SaLifetime.IsSet() && ike.SaLifetime.Get() != nil {
-
 		data.SALifetime = types.Int64Value(int64(*ike.SaLifetime.Get()))
-
 	} else {
-
 		data.SALifetime = types.Int64Null()
-
 	}
 
 	// Comments
 
 	if ike.Comments != nil && *ike.Comments != "" {
-
 		data.Comments = types.StringValue(*ike.Comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
-	}
-
-	// Display Name
-
-	if ike.Display != "" {
-
-		data.DisplayName = types.StringValue(ike.Display)
-
-	} else {
-
-		data.DisplayName = types.StringNull()
-
 	}
 
 	// Tags
 
 	if len(ike.Tags) > 0 {
-
 		tags := utils.NestedTagsToTagModels(ike.Tags)
 
 		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom Fields
 
 	switch {
-
 	case len(ike.CustomFields) > 0 && !data.CustomFields.IsNull():
 
 		var stateCustomFields []utils.CustomFieldModel
@@ -766,7 +636,5 @@ func (r *IKEProposalResource) mapIKEProposalToState(ctx context.Context, ike *ne
 	default:
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

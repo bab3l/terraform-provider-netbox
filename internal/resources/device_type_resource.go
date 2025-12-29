@@ -29,9 +29,7 @@ var _ resource.Resource = &DeviceTypeResource{}
 var _ resource.ResourceWithImportState = &DeviceTypeResource{}
 
 func NewDeviceTypeResource() resource.Resource {
-
 	return &DeviceTypeResource{}
-
 }
 
 // DeviceTypeResource defines the resource implementation.
@@ -50,8 +48,6 @@ type DeviceTypeResourceModel struct {
 	Model types.String `tfsdk:"model"`
 
 	Slug types.String `tfsdk:"slug"`
-
-	DisplayName types.String `tfsdk:"display_name"`
 
 	DefaultPlatform types.String `tfsdk:"default_platform"`
 
@@ -81,19 +77,14 @@ type DeviceTypeResourceModel struct {
 }
 
 func (r *DeviceTypeResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_device_type"
-
 }
 
 func (r *DeviceTypeResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a device type in Netbox. Device types define the make and model of physical hardware, including specifications like rack height, airflow direction, and weight. Device types serve as templates when creating new devices.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.IDAttribute("device type"),
 
 			"manufacturer": nbschema.RequiredReferenceAttribute("manufacturer", "ID or slug of the manufacturer of this device type. Required."),
@@ -102,24 +93,19 @@ func (r *DeviceTypeResource) Schema(ctx context.Context, req resource.SchemaRequ
 
 			"slug": nbschema.SlugAttribute("device type"),
 
-			"display_name": nbschema.DisplayNameAttribute("device type"),
-
 			"default_platform": nbschema.ReferenceAttribute("platform", "ID or slug of the default platform for devices of this type."),
 
 			"part_number": schema.StringAttribute{
-
 				MarkdownDescription: "Discrete manufacturer part number for ordering/inventory purposes.",
 
 				Optional: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.LengthAtMost(50),
 				},
 			},
 
 			"u_height": schema.Float64Attribute{
-
 				MarkdownDescription: "Height of the device in rack units (U). Defaults to 1.0. Use 0 for devices that don't consume rack space.",
 
 				Optional: true,
@@ -129,7 +115,6 @@ func (r *DeviceTypeResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Default: float64default.StaticFloat64(1.0),
 
 				Validators: []validator.Float64{
-
 					float64validator.AtLeast(0),
 
 					float64validator.AtMost(32767),
@@ -141,49 +126,41 @@ func (r *DeviceTypeResource) Schema(ctx context.Context, req resource.SchemaRequ
 			"is_full_depth": nbschema.BoolAttributeWithDefault("If true, device consumes both front and rear rack faces. Defaults to true.", true),
 
 			"subdevice_role": schema.StringAttribute{
-
 				MarkdownDescription: "Role of this device type as a subdevice. Valid values: 'parent' or 'child'. Leave empty if not a subdevice.",
 
 				Optional: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.OneOf("parent", "child", ""),
 				},
 			},
 
 			"airflow": schema.StringAttribute{
-
 				MarkdownDescription: "Direction of airflow through the device. Valid values: 'front-to-rear', 'rear-to-front', 'left-to-right', 'right-to-left', 'side-to-rear', 'passive', 'mixed'.",
 
 				Optional: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.OneOf("front-to-rear", "rear-to-front", "left-to-right", "right-to-left", "side-to-rear", "passive", "mixed", ""),
 				},
 			},
 
 			"weight": schema.Float64Attribute{
-
 				MarkdownDescription: "Weight of the device (use with weight_unit).",
 
 				Optional: true,
 
 				Validators: []validator.Float64{
-
 					float64validator.AtLeast(0),
 				},
 			},
 
 			"weight_unit": schema.StringAttribute{
-
 				MarkdownDescription: "Unit for weight measurement. Valid values: 'kg', 'g', 'lb', 'oz'.",
 
 				Optional: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.OneOf("kg", "g", "lb", "oz", ""),
 				},
 			},
@@ -197,21 +174,16 @@ func (r *DeviceTypeResource) Schema(ctx context.Context, req resource.SchemaRequ
 			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
-
 }
 
 func (r *DeviceTypeResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -220,27 +192,21 @@ func (r *DeviceTypeResource) Configure(ctx context.Context, req resource.Configu
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data DeviceTypeResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating device type", map[string]interface{}{
-
 		"model": data.Model.ValueString(),
 
 		"slug": data.Slug.ValueString(),
@@ -253,15 +219,12 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Build the device type request
 
 	deviceTypeRequest := netbox.WritableDeviceTypeRequest{
-
 		Manufacturer: *manufacturer,
 
 		Model: data.Model.ValueString(),
@@ -272,83 +235,63 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 	// Set optional fields
 
 	if !data.DefaultPlatform.IsNull() && !data.DefaultPlatform.IsUnknown() {
-
 		platform, diags := netboxlookup.LookupPlatform(ctx, r.client, data.DefaultPlatform.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		deviceTypeRequest.SetDefaultPlatform(*platform)
-
 	}
 
 	if !data.PartNumber.IsNull() && !data.PartNumber.IsUnknown() {
-
 		partNumber := data.PartNumber.ValueString()
 
 		deviceTypeRequest.PartNumber = &partNumber
-
 	}
 
 	if !data.UHeight.IsNull() && !data.UHeight.IsUnknown() {
-
 		uHeight := data.UHeight.ValueFloat64()
 
 		deviceTypeRequest.UHeight = &uHeight
-
 	}
 
 	if !data.ExcludeFromUtilization.IsNull() && !data.ExcludeFromUtilization.IsUnknown() {
-
 		excludeFromUtilization := data.ExcludeFromUtilization.ValueBool()
 
 		deviceTypeRequest.ExcludeFromUtilization = &excludeFromUtilization
-
 	}
 
 	if !data.IsFullDepth.IsNull() && !data.IsFullDepth.IsUnknown() {
-
 		isFullDepth := data.IsFullDepth.ValueBool()
 
 		deviceTypeRequest.IsFullDepth = &isFullDepth
-
 	}
 
 	if !data.SubdeviceRole.IsNull() && !data.SubdeviceRole.IsUnknown() && data.SubdeviceRole.ValueString() != "" {
-
 		subdeviceRole := netbox.ParentChildStatus1(data.SubdeviceRole.ValueString())
 
 		deviceTypeRequest.SubdeviceRole = &subdeviceRole
-
 	}
 
 	if !data.Airflow.IsNull() && !data.Airflow.IsUnknown() && data.Airflow.ValueString() != "" {
-
 		airflow := netbox.DeviceAirflowValue(data.Airflow.ValueString())
 
 		deviceTypeRequest.Airflow = &airflow
-
 	}
 
 	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
-
 		weight := data.Weight.ValueFloat64()
 
 		deviceTypeRequest.Weight = *netbox.NewNullableFloat64(&weight)
-
 	}
 
 	if !data.WeightUnit.IsNull() && !data.WeightUnit.IsUnknown() && data.WeightUnit.ValueString() != "" {
-
 		weightUnit := netbox.DeviceTypeWeightUnitValue(data.WeightUnit.ValueString())
 
 		deviceTypeRequest.WeightUnit = &weightUnit
-
 	}
 
 	// Set common fields (description, comments, tags, custom_fields)
@@ -364,7 +307,6 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating device type",
@@ -373,11 +315,9 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Created device type", map[string]interface{}{
-
 		"id": deviceType.GetId(),
 
 		"model": deviceType.GetModel(),
@@ -388,25 +328,19 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 	r.mapDeviceTypeToState(ctx, deviceType, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *DeviceTypeResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data DeviceTypeResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -418,7 +352,6 @@ func (r *DeviceTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 	deviceTypeIDInt, err := utils.ParseID(deviceTypeID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Device Type ID",
@@ -427,11 +360,9 @@ func (r *DeviceTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading device type", map[string]interface{}{
-
 		"id": deviceTypeID,
 	})
 
@@ -442,18 +373,14 @@ func (r *DeviceTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "Device type not found, removing from state", map[string]interface{}{
-
 				"id": deviceTypeID,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -464,7 +391,6 @@ func (r *DeviceTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -472,25 +398,19 @@ func (r *DeviceTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 	r.mapDeviceTypeToState(ctx, deviceType, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data DeviceTypeResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -502,7 +422,6 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 	deviceTypeIDInt, err := utils.ParseID(deviceTypeID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Device Type ID",
@@ -511,11 +430,9 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating device type", map[string]interface{}{
-
 		"id": deviceTypeID,
 
 		"model": data.Model.ValueString(),
@@ -530,15 +447,12 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Build the device type request
 
 	deviceTypeRequest := netbox.WritableDeviceTypeRequest{
-
 		Manufacturer: *manufacturer,
 
 		Model: data.Model.ValueString(),
@@ -549,83 +463,63 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 	// Set optional fields (same as Create)
 
 	if !data.DefaultPlatform.IsNull() && !data.DefaultPlatform.IsUnknown() {
-
 		platform, diags := netboxlookup.LookupPlatform(ctx, r.client, data.DefaultPlatform.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		deviceTypeRequest.SetDefaultPlatform(*platform)
-
 	}
 
 	if !data.PartNumber.IsNull() && !data.PartNumber.IsUnknown() {
-
 		partNumber := data.PartNumber.ValueString()
 
 		deviceTypeRequest.PartNumber = &partNumber
-
 	}
 
 	if !data.UHeight.IsNull() && !data.UHeight.IsUnknown() {
-
 		uHeight := data.UHeight.ValueFloat64()
 
 		deviceTypeRequest.UHeight = &uHeight
-
 	}
 
 	if !data.ExcludeFromUtilization.IsNull() && !data.ExcludeFromUtilization.IsUnknown() {
-
 		excludeFromUtilization := data.ExcludeFromUtilization.ValueBool()
 
 		deviceTypeRequest.ExcludeFromUtilization = &excludeFromUtilization
-
 	}
 
 	if !data.IsFullDepth.IsNull() && !data.IsFullDepth.IsUnknown() {
-
 		isFullDepth := data.IsFullDepth.ValueBool()
 
 		deviceTypeRequest.IsFullDepth = &isFullDepth
-
 	}
 
 	if !data.SubdeviceRole.IsNull() && !data.SubdeviceRole.IsUnknown() && data.SubdeviceRole.ValueString() != "" {
-
 		subdeviceRole := netbox.ParentChildStatus1(data.SubdeviceRole.ValueString())
 
 		deviceTypeRequest.SubdeviceRole = &subdeviceRole
-
 	}
 
 	if !data.Airflow.IsNull() && !data.Airflow.IsUnknown() && data.Airflow.ValueString() != "" {
-
 		airflow := netbox.DeviceAirflowValue(data.Airflow.ValueString())
 
 		deviceTypeRequest.Airflow = &airflow
-
 	}
 
 	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
-
 		weight := data.Weight.ValueFloat64()
 
 		deviceTypeRequest.Weight = *netbox.NewNullableFloat64(&weight)
-
 	}
 
 	if !data.WeightUnit.IsNull() && !data.WeightUnit.IsUnknown() && data.WeightUnit.ValueString() != "" {
-
 		weightUnit := netbox.DeviceTypeWeightUnitValue(data.WeightUnit.ValueString())
 
 		deviceTypeRequest.WeightUnit = &weightUnit
-
 	}
 
 	// Set common fields (description, comments, tags, custom_fields)
@@ -641,7 +535,6 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating device type",
@@ -650,11 +543,9 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updated device type", map[string]interface{}{
-
 		"id": deviceType.GetId(),
 
 		"model": deviceType.GetModel(),
@@ -665,25 +556,19 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 	r.mapDeviceTypeToState(ctx, deviceType, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *DeviceTypeResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data DeviceTypeResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -695,7 +580,6 @@ func (r *DeviceTypeResource) Delete(ctx context.Context, req resource.DeleteRequ
 	deviceTypeIDInt, err := utils.ParseID(deviceTypeID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Device Type ID",
@@ -704,11 +588,9 @@ func (r *DeviceTypeResource) Delete(ctx context.Context, req resource.DeleteRequ
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting device type", map[string]interface{}{
-
 		"id": deviceTypeID,
 	})
 
@@ -719,18 +601,14 @@ func (r *DeviceTypeResource) Delete(ctx context.Context, req resource.DeleteRequ
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			// Already deleted
 
 			tflog.Debug(ctx, "Device type already deleted", map[string]interface{}{
-
 				"id": deviceTypeID,
 			})
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -741,33 +619,25 @@ func (r *DeviceTypeResource) Delete(ctx context.Context, req resource.DeleteRequ
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted device type", map[string]interface{}{
-
 		"id": deviceTypeID,
 	})
-
 }
 
 func (r *DeviceTypeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // mapDeviceTypeToState maps a DeviceType from the API to the Terraform state model.
 
 func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceType *netbox.DeviceType, data *DeviceTypeResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", deviceType.GetId()))
 
 	data.Model = types.StringValue(deviceType.GetModel())
 
 	data.Slug = types.StringValue(deviceType.GetSlug())
-
-	data.DisplayName = types.StringValue(deviceType.GetDisplay())
 
 	// Handle manufacturer - preserve the original input value (slug, name, or ID)
 
@@ -778,7 +648,6 @@ func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceTyp
 	// Handle default platform - preserve the original input value
 
 	switch {
-
 	case deviceType.HasDefaultPlatform() && deviceType.DefaultPlatform.Get() != nil:
 
 		platform := deviceType.DefaultPlatform.Get()
@@ -788,127 +657,90 @@ func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceTyp
 	case !data.DefaultPlatform.IsNull() && !data.DefaultPlatform.IsUnknown():
 
 		// API says no platform but user had one configured - keep user's value
-
 		// This shouldn't happen in normal operation
 
 	default:
 
 		data.DefaultPlatform = types.StringNull()
-
 	}
 
 	// Handle part number
 
 	if deviceType.HasPartNumber() && deviceType.GetPartNumber() != "" {
-
 		data.PartNumber = types.StringValue(deviceType.GetPartNumber())
-
 	} else if !data.PartNumber.IsNull() {
-
 		data.PartNumber = types.StringNull()
-
 	}
 
 	// Handle u_height
 
 	if deviceType.HasUHeight() {
-
 		data.UHeight = types.Float64Value(*deviceType.UHeight)
-
 	}
 
 	// Handle exclude_from_utilization
 
 	if deviceType.HasExcludeFromUtilization() {
-
 		data.ExcludeFromUtilization = types.BoolValue(deviceType.GetExcludeFromUtilization())
-
 	}
 
 	// Handle is_full_depth
 
 	if deviceType.HasIsFullDepth() {
-
 		data.IsFullDepth = types.BoolValue(deviceType.GetIsFullDepth())
-
 	}
 
 	// Handle subdevice_role
 
 	if deviceType.HasSubdeviceRole() && deviceType.SubdeviceRole.Get() != nil {
-
 		data.SubdeviceRole = types.StringValue(string(deviceType.SubdeviceRole.Get().GetValue()))
-
 	} else if !data.SubdeviceRole.IsNull() {
-
 		data.SubdeviceRole = types.StringNull()
-
 	}
 
 	// Handle airflow
 
 	if deviceType.HasAirflow() && deviceType.Airflow.Get() != nil {
-
 		data.Airflow = types.StringValue(string(deviceType.Airflow.Get().GetValue()))
-
 	} else if !data.Airflow.IsNull() {
-
 		data.Airflow = types.StringNull()
-
 	}
 
 	// Handle weight
 
 	if deviceType.HasWeight() && deviceType.Weight.Get() != nil {
-
 		data.Weight = types.Float64Value(*deviceType.Weight.Get())
-
 	} else if !data.Weight.IsNull() {
-
 		data.Weight = types.Float64Null()
-
 	}
 
 	// Handle weight_unit
 
 	if deviceType.HasWeightUnit() && deviceType.WeightUnit.Get() != nil {
-
 		data.WeightUnit = types.StringValue(string(deviceType.WeightUnit.Get().GetValue()))
-
 	} else if !data.WeightUnit.IsNull() {
-
 		data.WeightUnit = types.StringNull()
-
 	}
 
 	// Handle description
 
 	if deviceType.HasDescription() && deviceType.GetDescription() != "" {
-
 		data.Description = types.StringValue(deviceType.GetDescription())
-
 	} else if !data.Description.IsNull() {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle comments
 
 	if deviceType.HasComments() && deviceType.GetComments() != "" {
-
 		data.Comments = types.StringValue(deviceType.GetComments())
-
 	} else if !data.Comments.IsNull() {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if deviceType.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(deviceType.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -916,23 +748,17 @@ func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceTyp
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if deviceType.HasCustomFields() && !data.CustomFields.IsNull() {
-
 		var stateCustomFields []utils.CustomFieldModel
 
 		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
@@ -940,9 +766,7 @@ func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceTyp
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(deviceType.GetCustomFields(), stateCustomFields)
@@ -952,17 +776,11 @@ func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceTyp
 		diags.Append(cfValueDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else if data.CustomFields.IsNull() {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

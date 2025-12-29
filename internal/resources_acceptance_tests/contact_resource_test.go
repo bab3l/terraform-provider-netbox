@@ -215,22 +215,23 @@ func TestAccContactResource_update(t *testing.T) {
 
 	contactName := testutil.RandomName("tf-test-contact-update")
 	updatedName := testutil.RandomName("tf-test-contact-updated")
+	contactEmail := fmt.Sprintf("%s@example.com", testutil.RandomSlug("contact-upd"))
 	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterContactCleanup("test@example.com")
+	cleanup.RegisterContactCleanup(contactEmail)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccContactResource(contactName, "test@example.com", "+1-555-0100"),
+				Config: testAccContactResource(contactName, contactEmail, "+1-555-0100"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_contact.test", "id"),
 					resource.TestCheckResourceAttr("netbox_contact.test", "name", contactName),
 				),
 			},
 			{
-				Config: testAccContactResource(updatedName, "test@example.com", "+1-555-0100"),
+				Config: testAccContactResource(updatedName, contactEmail, "+1-555-0100"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_contact.test", "id"),
 					resource.TestCheckResourceAttr("netbox_contact.test", "name", updatedName),
@@ -246,19 +247,20 @@ func TestAccContactResource_IDPreservation(t *testing.T) {
 	testutil.TestAccPreCheck(t)
 
 	contactName := testutil.RandomName("tf-test-contact-id")
+	contactEmail := fmt.Sprintf("%s@example.com", testutil.RandomSlug("contact-id"))
 	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterContactCleanup("test@example.com")
+	cleanup.RegisterContactCleanup(contactEmail)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccContactResource(contactName, "test@example.com", "+1-555-0100"),
+				Config: testAccContactResource(contactName, contactEmail, "+1-555-0100"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_contact.test", "id"),
 					resource.TestCheckResourceAttr("netbox_contact.test", "name", contactName),
-					resource.TestCheckResourceAttr("netbox_contact.test", "email", "test@example.com"),
+					resource.TestCheckResourceAttr("netbox_contact.test", "email", contactEmail),
 					resource.TestCheckResourceAttr("netbox_contact.test", "phone", "+1-555-0100"),
 				),
 			},
@@ -368,19 +370,20 @@ func TestAccContactResource_externalDeletion(t *testing.T) {
 	testutil.TestAccPreCheck(t)
 
 	contactName := testutil.RandomName("tf-test-contact-del")
+	contactEmail := fmt.Sprintf("%s@example.com", testutil.RandomSlug("contact-del"))
 	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterContactCleanup("test@example.com")
+	cleanup.RegisterContactCleanup(contactEmail)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccContactResource(contactName, "test@example.com", "+1-555-0100"),
+				Config: testAccContactResource(contactName, contactEmail, "+1-555-0100"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_contact.test", "id"),
 					resource.TestCheckResourceAttr("netbox_contact.test", "name", contactName),
-					resource.TestCheckResourceAttr("netbox_contact.test", "email", "test@example.com"),
+					resource.TestCheckResourceAttr("netbox_contact.test", "email", contactEmail),
 				),
 			},
 			{
@@ -389,7 +392,7 @@ func TestAccContactResource_externalDeletion(t *testing.T) {
 					if err != nil {
 						t.Fatalf("Failed to get shared client: %v", err)
 					}
-					items, _, err := client.TenancyAPI.TenancyContactsList(context.Background()).Email([]string{"test@example.com"}).Execute()
+					items, _, err := client.TenancyAPI.TenancyContactsList(context.Background()).Email([]string{contactEmail}).Execute()
 					if err != nil || items == nil || len(items.Results) == 0 {
 						t.Fatalf("Failed to find contact for external deletion: %v", err)
 					}

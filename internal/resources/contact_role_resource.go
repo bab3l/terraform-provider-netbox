@@ -21,9 +21,7 @@ var _ resource.Resource = &ContactRoleResource{}
 var _ resource.ResourceWithImportState = &ContactRoleResource{}
 
 func NewContactRoleResource() resource.Resource {
-
 	return &ContactRoleResource{}
-
 }
 
 type ContactRoleResource struct {
@@ -33,9 +31,7 @@ type ContactRoleResource struct {
 // GetClient returns the API client for testing purposes.
 
 func (r *ContactRoleResource) GetClient() *netbox.APIClient {
-
 	return r.client
-
 }
 
 type ContactRoleResourceModel struct {
@@ -47,27 +43,20 @@ type ContactRoleResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
 }
 
 func (r *ContactRoleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_contact_role"
-
 }
 
 func (r *ContactRoleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a contact role in Netbox. Contact roles define the function or responsibility of a contact within an organization (e.g., Technical, Administrative, Billing).",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.IDAttribute("contact role"),
 
 			"name": nbschema.NameAttribute("contact role", 100),
@@ -75,8 +64,6 @@ func (r *ContactRoleResource) Schema(ctx context.Context, req resource.SchemaReq
 			"slug": nbschema.SlugAttribute("contact role"),
 
 			"description": nbschema.DescriptionAttribute("contact role"),
-
-			"display_name": nbschema.DisplayNameAttribute("contact role"),
 		},
 	}
 
@@ -88,17 +75,13 @@ func (r *ContactRoleResource) Schema(ctx context.Context, req resource.SchemaReq
 }
 
 func (r *ContactRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -107,27 +90,21 @@ func (r *ContactRoleResource) Configure(ctx context.Context, req resource.Config
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 func (r *ContactRoleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data ContactRoleResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating contact role", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"slug": data.Slug.ValueString(),
@@ -152,9 +129,7 @@ func (r *ContactRoleResource) Create(ctx context.Context, req resource.CreateReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		handler := utils.CreateErrorHandler{
-
 			ResourceType: "netbox_contact_role",
 
 			ResourceName: "this.contact_role",
@@ -162,64 +137,49 @@ func (r *ContactRoleResource) Create(ctx context.Context, req resource.CreateReq
 			SlugValue: data.Slug.ValueString(),
 
 			LookupFunc: func(lookupCtx context.Context, slug string) (string, error) {
-
 				list, _, lookupErr := r.client.TenancyAPI.TenancyContactRolesList(lookupCtx).Slug([]string{slug}).Execute()
 
 				if lookupErr != nil {
-
 					return "", lookupErr
-
 				}
 
 				if list != nil && len(list.Results) > 0 {
-
 					return fmt.Sprintf("%d", list.Results[0].GetId()), nil
-
 				}
 
 				return "", nil
-
 			},
 		}
 
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 201 {
-
 		resp.Diagnostics.AddError("Error creating contact role", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	r.mapContactRoleToState(ctx, contactRole, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Trace(ctx, "created a contact role resource")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *ContactRoleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data ContactRoleResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	contactRoleID := data.ID.ValueString()
@@ -227,11 +187,9 @@ func (r *ContactRoleResource) Read(ctx context.Context, req resource.ReadRequest
 	contactRoleIDInt := utils.ParseInt32FromString(contactRoleID)
 
 	if contactRoleIDInt == 0 {
-
 		resp.Diagnostics.AddError("Invalid Contact Role ID", fmt.Sprintf("Contact Role ID must be a number, got: %s", contactRoleID))
 
 		return
-
 	}
 
 	contactRole, httpResp, err := r.client.TenancyAPI.TenancyContactRolesRetrieve(ctx, contactRoleIDInt).Execute()
@@ -247,39 +205,30 @@ func (r *ContactRoleResource) Read(ctx context.Context, req resource.ReadRequest
 		resp.Diagnostics.AddError("Error reading contact role", utils.FormatAPIError(fmt.Sprintf("read contact role ID %s", contactRoleID), err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError("Error reading contact role", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	r.mapContactRoleToState(ctx, contactRole, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data ContactRoleResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	contactRoleID := data.ID.ValueString()
@@ -287,15 +236,12 @@ func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateReq
 	contactRoleIDInt := utils.ParseInt32FromString(contactRoleID)
 
 	if contactRoleIDInt == 0 {
-
 		resp.Diagnostics.AddError("Invalid Contact Role ID", fmt.Sprintf("Contact Role ID must be a number, got: %s", contactRoleID))
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating contact role", map[string]interface{}{
-
 		"id": contactRoleID,
 
 		"name": data.Name.ValueString(),
@@ -320,43 +266,33 @@ func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Error updating contact role", utils.FormatAPIError(fmt.Sprintf("update contact role ID %s", contactRoleID), err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError("Error updating contact role", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	r.mapContactRoleToState(ctx, contactRole, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *ContactRoleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data ContactRoleResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	contactRoleID := data.ID.ValueString()
@@ -364,11 +300,9 @@ func (r *ContactRoleResource) Delete(ctx context.Context, req resource.DeleteReq
 	contactRoleIDInt := utils.ParseInt32FromString(contactRoleID)
 
 	if contactRoleIDInt == 0 {
-
 		resp.Diagnostics.AddError("Invalid Contact Role ID", fmt.Sprintf("Contact Role ID must be a number, got: %s", contactRoleID))
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting contact role", map[string]interface{}{"id": contactRoleID})
@@ -385,31 +319,24 @@ func (r *ContactRoleResource) Delete(ctx context.Context, req resource.DeleteReq
 		resp.Diagnostics.AddError("Error deleting contact role", utils.FormatAPIError(fmt.Sprintf("delete contact role ID %s", contactRoleID), err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 204 {
-
 		resp.Diagnostics.AddError("Error deleting contact role", fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	tflog.Trace(ctx, "deleted a contact role resource")
-
 }
 
 func (r *ContactRoleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // mapContactRoleToState maps API response to Terraform state.
 
 func (r *ContactRoleResource) mapContactRoleToState(ctx context.Context, contactRole *netbox.ContactRole, data *ContactRoleResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", contactRole.GetId()))
 
 	data.Name = types.StringValue(contactRole.GetName())
@@ -419,16 +346,9 @@ func (r *ContactRoleResource) mapContactRoleToState(ctx context.Context, contact
 	data.Description = utils.StringFromAPI(contactRole.HasDescription(), contactRole.GetDescription, data.Description)
 
 	// Handle display_name
-	if contactRole.GetDisplay() != "" {
-		data.DisplayName = types.StringValue(contactRole.GetDisplay())
-	} else {
-		data.DisplayName = types.StringNull()
-	}
-
 	// Handle tags
 
 	if contactRole.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(contactRole.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -436,21 +356,15 @@ func (r *ContactRoleResource) mapContactRoleToState(ctx context.Context, contact
 		diags.Append(tagDiags...)
 
 		if !diags.HasError() {
-
 			data.Tags = tagsValue
-
 		}
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	switch {
-
 	case contactRole.HasCustomFields() && !data.CustomFields.IsNull():
 
 		var stateCustomFields []utils.CustomFieldModel
@@ -460,7 +374,6 @@ func (r *ContactRoleResource) mapContactRoleToState(ctx context.Context, contact
 		diags.Append(cfDiags...)
 
 		if !diags.HasError() {
-
 			customFields := utils.MapToCustomFieldModels(contactRole.GetCustomFields(), stateCustomFields)
 
 			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
@@ -468,11 +381,8 @@ func (r *ContactRoleResource) mapContactRoleToState(ctx context.Context, contact
 			diags.Append(cfValueDiags...)
 
 			if !diags.HasError() {
-
 				data.CustomFields = customFieldsValue
-
 			}
-
 		}
 
 	case contactRole.HasCustomFields():
@@ -484,15 +394,11 @@ func (r *ContactRoleResource) mapContactRoleToState(ctx context.Context, contact
 		diags.Append(cfValueDiags...)
 
 		if !diags.HasError() {
-
 			data.CustomFields = customFieldsValue
-
 		}
 
 	default:
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

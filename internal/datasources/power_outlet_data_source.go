@@ -21,9 +21,7 @@ var _ datasource.DataSource = &PowerOutletDataSource{}
 // NewPowerOutletDataSource returns a new data source implementing the power outlet data source.
 
 func NewPowerOutletDataSource() datasource.DataSource {
-
 	return &PowerOutletDataSource{}
-
 }
 
 // PowerOutletDataSource defines the data source implementation.
@@ -61,23 +59,17 @@ type PowerOutletDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *PowerOutletDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_power_outlet"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *PowerOutletDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a power outlet in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the power outlet.",
 
 				Optional: true,
@@ -86,14 +78,12 @@ func (d *PowerOutletDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the power outlet.",
 
 				Computed: true,
 			},
 
 			"device_id": schema.Int32Attribute{
-
 				MarkdownDescription: "The numeric ID of the device. Used with name for lookup when ID is not provided.",
 
 				Optional: true,
@@ -102,14 +92,12 @@ func (d *PowerOutletDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"device": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the device.",
 
 				Computed: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the power outlet. Used with device_id for lookup when ID is not provided.",
 
 				Optional: true,
@@ -118,65 +106,54 @@ func (d *PowerOutletDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label of the power outlet.",
 
 				Computed: true,
 			},
 
 			"type": schema.StringAttribute{
-
 				MarkdownDescription: "Power outlet type.",
 
 				Computed: true,
 			},
 
 			"power_port": schema.Int32Attribute{
-
 				MarkdownDescription: "The power port ID that feeds this outlet.",
 
 				Computed: true,
 			},
 
 			"feed_leg": schema.StringAttribute{
-
 				MarkdownDescription: "Phase leg for three-phase power.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the power outlet.",
 
 				Computed: true,
 			},
 
 			"mark_connected": schema.BoolAttribute{
-
 				MarkdownDescription: "Treat as if a cable is connected.",
 
 				Computed: true,
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *PowerOutletDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -185,31 +162,25 @@ func (d *PowerOutletDataSource) Configure(ctx context.Context, req datasource.Co
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves the data source data.
 
 func (d *PowerOutletDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data PowerOutletDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var powerOutlet *netbox.PowerOutlet
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		// Lookup by ID
@@ -217,7 +188,6 @@ func (d *PowerOutletDataSource) Read(ctx context.Context, req datasource.ReadReq
 		outletID := data.ID.ValueInt32()
 
 		tflog.Debug(ctx, "Reading power outlet by ID", map[string]interface{}{
-
 			"id": outletID,
 		})
 
@@ -226,7 +196,6 @@ func (d *PowerOutletDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading power outlet",
@@ -235,7 +204,6 @@ func (d *PowerOutletDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		powerOutlet = response
@@ -249,7 +217,6 @@ func (d *PowerOutletDataSource) Read(ctx context.Context, req datasource.ReadReq
 		name := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading power outlet by device and name", map[string]interface{}{
-
 			"device_id": deviceID,
 
 			"name": name,
@@ -260,7 +227,6 @@ func (d *PowerOutletDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading power outlet",
@@ -269,13 +235,11 @@ func (d *PowerOutletDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		count := int(response.GetCount())
 
 		if count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Power Outlet Not Found",
@@ -284,11 +248,9 @@ func (d *PowerOutletDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Power Outlets Found",
@@ -297,7 +259,6 @@ func (d *PowerOutletDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		powerOutlet = &response.GetResults()[0]
@@ -312,7 +273,6 @@ func (d *PowerOutletDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -320,25 +280,19 @@ func (d *PowerOutletDataSource) Read(ctx context.Context, req datasource.ReadReq
 	d.mapResponseToModel(powerOutlet, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *PowerOutletDataSource) mapResponseToModel(powerOutlet *netbox.PowerOutlet, data *PowerOutletDataSourceModel) {
-
 	data.ID = types.Int32Value(powerOutlet.GetId())
 
 	// Display Name
 
 	if powerOutlet.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(powerOutlet.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	data.Name = types.StringValue(powerOutlet.GetName())
@@ -346,83 +300,56 @@ func (d *PowerOutletDataSource) mapResponseToModel(powerOutlet *netbox.PowerOutl
 	// Map device
 
 	if device := powerOutlet.GetDevice(); device.Id != 0 {
-
 		data.DeviceID = types.Int32Value(device.Id)
 
 		data.Device = types.StringValue(device.GetName())
-
 	}
 
 	// Map label
 
 	if label, ok := powerOutlet.GetLabelOk(); ok && label != nil && *label != "" {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Map type
 
 	if powerOutlet.Type.IsSet() && powerOutlet.Type.Get() != nil {
-
 		data.Type = types.StringValue(string(powerOutlet.Type.Get().GetValue()))
-
 	} else {
-
 		data.Type = types.StringNull()
-
 	}
 
 	// Map power_port
 
 	if powerOutlet.PowerPort.IsSet() && powerOutlet.PowerPort.Get() != nil {
-
 		data.PowerPort = types.Int32Value(powerOutlet.PowerPort.Get().Id)
-
 	} else {
-
 		data.PowerPort = types.Int32Null()
-
 	}
 
 	// Map feed_leg
 
 	if powerOutlet.FeedLeg.IsSet() && powerOutlet.FeedLeg.Get() != nil {
-
 		data.FeedLeg = types.StringValue(string(powerOutlet.FeedLeg.Get().GetValue()))
-
 	} else {
-
 		data.FeedLeg = types.StringNull()
-
 	}
 
 	// Map description
 
 	if desc, ok := powerOutlet.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map mark_connected
 
 	if mc, ok := powerOutlet.GetMarkConnectedOk(); ok && mc != nil {
-
 		data.MarkConnected = types.BoolValue(*mc)
-
 	} else {
-
 		data.MarkConnected = types.BoolValue(false)
-
 	}
-
 }

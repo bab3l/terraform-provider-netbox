@@ -64,7 +64,6 @@ type CustomFieldResourceModel struct {
 	ValidationRegex   types.String `tfsdk:"validation_regex"`
 	ChoiceSet         types.String `tfsdk:"choice_set"`
 	Comments          types.String `tfsdk:"comments"`
-	DisplayName       types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the resource type name.
@@ -186,7 +185,6 @@ func (r *CustomFieldResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The choice set name for select and multiselect custom fields.",
 				Optional:            true,
 			},
-			"display_name": nbschema.DisplayNameAttribute("custom field"),
 		},
 	}
 
@@ -666,12 +664,5 @@ func (r *CustomFieldResource) mapResponseToModel(ctx context.Context, customFiel
 		data.Comments = types.StringValue(*comments)
 	} else {
 		data.Comments = types.StringNull()
-	}
-
-	// Map display_name
-	if customField.Display != "" {
-		data.DisplayName = types.StringValue(customField.Display)
-	} else {
-		data.DisplayName = types.StringNull()
 	}
 }

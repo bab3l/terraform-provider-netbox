@@ -34,9 +34,7 @@ var (
 // NewProviderAccountResource returns a new Provider Account resource.
 
 func NewProviderAccountResource() resource.Resource {
-
 	return &ProviderAccountResource{}
-
 }
 
 // ProviderAccountResource defines the resource implementation.
@@ -60,8 +58,6 @@ type ProviderAccountResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -70,55 +66,43 @@ type ProviderAccountResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *ProviderAccountResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_provider_account"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *ProviderAccountResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a provider account in Netbox. Provider accounts represent accounts with circuit providers.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the provider account.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"circuit_provider": schema.StringAttribute{
-
 				MarkdownDescription: "The name, slug, or ID of the circuit provider this account belongs to.",
 
 				Required: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "An optional name for this provider account.",
 
 				Optional: true,
 			},
 
 			"account": schema.StringAttribute{
-
 				MarkdownDescription: "The account identifier (e.g., account number or ID).",
 
 				Required: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("provider account"),
 		},
 	}
 
@@ -130,19 +114,15 @@ func (r *ProviderAccountResource) Schema(ctx context.Context, req resource.Schem
 }
 
 func (r *ProviderAccountResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	// Prevent panic if the provider has not been configured.
 
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -151,17 +131,14 @@ func (r *ProviderAccountResource) Configure(ctx context.Context, req resource.Co
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates a new provider account resource.
 
 func (r *ProviderAccountResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data ProviderAccountResourceModel
 
 	// Read Terraform plan data into the model
@@ -169,9 +146,7 @@ func (r *ProviderAccountResource) Create(ctx context.Context, req resource.Creat
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Build the create request
@@ -181,13 +156,10 @@ func (r *ProviderAccountResource) Create(ctx context.Context, req resource.Creat
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating provider account", map[string]interface{}{
-
 		"account": data.Account.ValueString(),
 	})
 
@@ -198,7 +170,6 @@ func (r *ProviderAccountResource) Create(ctx context.Context, req resource.Creat
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating provider account",
@@ -207,7 +178,6 @@ func (r *ProviderAccountResource) Create(ctx context.Context, req resource.Creat
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -215,20 +185,17 @@ func (r *ProviderAccountResource) Create(ctx context.Context, req resource.Creat
 	r.mapResponseToModel(ctx, providerAccount, &data)
 
 	tflog.Debug(ctx, "Created provider account", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 	})
 
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read reads the provider account resource.
 
 func (r *ProviderAccountResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data ProviderAccountResourceModel
 
 	// Read Terraform prior state data into the model
@@ -236,15 +203,12 @@ func (r *ProviderAccountResource) Read(ctx context.Context, req resource.ReadReq
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID",
@@ -253,11 +217,9 @@ func (r *ProviderAccountResource) Read(ctx context.Context, req resource.ReadReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading provider account", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -268,18 +230,14 @@ func (r *ProviderAccountResource) Read(ctx context.Context, req resource.ReadReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "Provider account not found, removing from state", map[string]interface{}{
-
 				"id": id,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -290,7 +248,6 @@ func (r *ProviderAccountResource) Read(ctx context.Context, req resource.ReadReq
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -300,13 +257,11 @@ func (r *ProviderAccountResource) Read(ctx context.Context, req resource.ReadReq
 	// Save updated data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the provider account resource.
 
 func (r *ProviderAccountResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data ProviderAccountResourceModel
 
 	// Read Terraform plan data into the model
@@ -314,15 +269,12 @@ func (r *ProviderAccountResource) Update(ctx context.Context, req resource.Updat
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID",
@@ -331,7 +283,6 @@ func (r *ProviderAccountResource) Update(ctx context.Context, req resource.Updat
 		)
 
 		return
-
 	}
 
 	// Build the update request
@@ -341,13 +292,10 @@ func (r *ProviderAccountResource) Update(ctx context.Context, req resource.Updat
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating provider account", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -358,7 +306,6 @@ func (r *ProviderAccountResource) Update(ctx context.Context, req resource.Updat
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating provider account",
@@ -367,7 +314,6 @@ func (r *ProviderAccountResource) Update(ctx context.Context, req resource.Updat
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -375,20 +321,17 @@ func (r *ProviderAccountResource) Update(ctx context.Context, req resource.Updat
 	r.mapResponseToModel(ctx, providerAccount, &data)
 
 	tflog.Debug(ctx, "Updated provider account", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 	})
 
 	// Save updated data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the provider account resource.
 
 func (r *ProviderAccountResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data ProviderAccountResourceModel
 
 	// Read Terraform prior state data into the model
@@ -396,15 +339,12 @@ func (r *ProviderAccountResource) Delete(ctx context.Context, req resource.Delet
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID",
@@ -413,11 +353,9 @@ func (r *ProviderAccountResource) Delete(ctx context.Context, req resource.Delet
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting provider account", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -428,16 +366,12 @@ func (r *ProviderAccountResource) Delete(ctx context.Context, req resource.Delet
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "Provider account already deleted", map[string]interface{}{
-
 				"id": id,
 			})
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -448,28 +382,22 @@ func (r *ProviderAccountResource) Delete(ctx context.Context, req resource.Delet
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted provider account", map[string]interface{}{
-
 		"id": id,
 	})
-
 }
 
 // ImportState imports an existing provider account.
 
 func (r *ProviderAccountResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // buildCreateRequest builds a ProviderAccountRequest from the model.
 
 func (r *ProviderAccountResource) buildCreateRequest(ctx context.Context, data *ProviderAccountResourceModel) (*netbox.ProviderAccountRequest, diag.Diagnostics) {
-
 	var diags diag.Diagnostics
 
 	// Look up Provider (required)
@@ -479,9 +407,7 @@ func (r *ProviderAccountResource) buildCreateRequest(ctx context.Context, data *
 	diags.Append(providerDiags...)
 
 	if diags.HasError() {
-
 		return nil, diags
-
 	}
 
 	createReq := netbox.NewProviderAccountRequest(*provider, data.Account.ValueString())
@@ -489,28 +415,22 @@ func (r *ProviderAccountResource) buildCreateRequest(ctx context.Context, data *
 	// Handle name (optional)
 
 	if !data.Name.IsNull() && !data.Name.IsUnknown() {
-
 		createReq.SetName(data.Name.ValueString())
-
 	}
 
 	// Handle description and comments, tags and custom fields
 	utils.ApplyCommonFields(ctx, createReq, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
 
 	if diags.HasError() {
-
 		return nil, diags
-
 	}
 
 	return createReq, diags
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (r *ProviderAccountResource) mapResponseToModel(ctx context.Context, providerAccount *netbox.ProviderAccount, data *ProviderAccountResourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", providerAccount.GetId()))
 
 	data.Account = types.StringValue(providerAccount.GetAccount())
@@ -518,9 +438,7 @@ func (r *ProviderAccountResource) mapResponseToModel(ctx context.Context, provid
 	// Map Provider
 
 	if provider := providerAccount.GetProvider(); provider.Id != 0 {
-
 		data.CircuitProvider = types.StringValue(fmt.Sprintf("%d", provider.Id))
-
 	}
 
 	// Map name
@@ -534,33 +452,22 @@ func (r *ProviderAccountResource) mapResponseToModel(ctx context.Context, provid
 	// Map comments
 
 	data.Comments = utils.StringFromAPI(providerAccount.HasComments(), providerAccount.GetComments, data.Comments)
-	// Map display_name
-	if providerAccount.Display != "" {
-		data.DisplayName = types.StringValue(providerAccount.Display)
-	} else {
-		data.DisplayName = types.StringNull()
-	}
 
 	// Tags
 
 	if len(providerAccount.Tags) > 0 {
-
 		tags := utils.NestedTagsToTagModels(providerAccount.Tags)
 
 		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom Fields
 
 	switch {
-
 	case len(providerAccount.CustomFields) > 0 && !data.CustomFields.IsNull():
 
 		var stateCustomFields []utils.CustomFieldModel
@@ -584,7 +491,5 @@ func (r *ProviderAccountResource) mapResponseToModel(ctx context.Context, provid
 	default:
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

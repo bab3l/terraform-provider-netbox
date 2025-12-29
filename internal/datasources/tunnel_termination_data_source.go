@@ -1,9 +1,7 @@
 // Package datasources provides Terraform data source implementations for Netbox resources.
-
 //
 
 // Data sources allow Terraform configurations to read existing Netbox resources
-
 // by their unique identifiers or names.
 
 package datasources
@@ -27,9 +25,7 @@ import (
 var _ datasource.DataSource = &TunnelTerminationDataSource{}
 
 func NewTunnelTerminationDataSource() datasource.DataSource {
-
 	return &TunnelTerminationDataSource{}
-
 }
 
 // TunnelTerminationDataSource defines the data source implementation.
@@ -63,23 +59,17 @@ type TunnelTerminationDataSourceModel struct {
 }
 
 func (d *TunnelTerminationDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_tunnel_termination"
-
 }
 
 func (d *TunnelTerminationDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to retrieve information about a VPN tunnel termination in Netbox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("tunnel termination"),
 
 			"tunnel": schema.StringAttribute{
-
 				MarkdownDescription: "ID of the tunnel. Use this to filter tunnel terminations by tunnel.",
 
 				Optional: true,
@@ -88,7 +78,6 @@ func (d *TunnelTerminationDataSource) Schema(ctx context.Context, req datasource
 			},
 
 			"tunnel_name": schema.StringAttribute{
-
 				MarkdownDescription: "Name of the tunnel. Use this to filter tunnel terminations by tunnel name.",
 
 				Optional: true,
@@ -99,14 +88,12 @@ func (d *TunnelTerminationDataSource) Schema(ctx context.Context, req datasource
 			"role": nbschema.DSComputedStringAttribute("Role of the tunnel termination (peer, hub)."),
 
 			"termination_type": schema.StringAttribute{
-
 				MarkdownDescription: "Content type of the termination object.",
 
 				Computed: true,
 			},
 
 			"termination_id": schema.Int64Attribute{
-
 				MarkdownDescription: "ID of the termination object (device or virtual machine).",
 
 				Computed: true,
@@ -121,21 +108,16 @@ func (d *TunnelTerminationDataSource) Schema(ctx context.Context, req datasource
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 func (d *TunnelTerminationDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -144,23 +126,18 @@ func (d *TunnelTerminationDataSource) Configure(ctx context.Context, req datasou
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data TunnelTerminationDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var tunnelTermination *netbox.TunnelTermination
@@ -170,13 +147,11 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 	// Look up by ID or tunnel reference
 
 	switch {
-
 	case !data.ID.IsNull() && data.ID.ValueString() != "":
 
 		id, parseErr := utils.ParseID(data.ID.ValueString())
 
 		if parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error parsing ID",
@@ -185,11 +160,9 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading tunnel termination by ID", map[string]interface{}{
-
 			"id": id,
 		})
 
@@ -200,7 +173,6 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading tunnel termination",
@@ -209,7 +181,6 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 			)
 
 			return
-
 		}
 
 	case !data.Tunnel.IsNull() || !data.TunnelName.IsNull():
@@ -219,11 +190,9 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 		var tunnelID int32
 
 		if !data.Tunnel.IsNull() && data.Tunnel.ValueString() != "" {
-
 			id, parseErr := utils.ParseID(data.Tunnel.ValueString())
 
 			if parseErr != nil {
-
 				resp.Diagnostics.AddError(
 
 					"Error parsing Tunnel ID",
@@ -232,13 +201,10 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 				)
 
 				return
-
 			}
 
 			tunnelID = id
-
 		} else if !data.TunnelName.IsNull() && data.TunnelName.ValueString() != "" {
-
 			// Look up tunnel by name
 
 			tunnelList, httpResp, lookupErr := d.client.VpnAPI.VpnTunnelsList(ctx).Name([]string{data.TunnelName.ValueString()}).Execute()
@@ -246,7 +212,6 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 			defer utils.CloseResponseBody(httpResp)
 
 			if lookupErr != nil {
-
 				resp.Diagnostics.AddError(
 
 					"Error looking up tunnel",
@@ -255,11 +220,9 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 				)
 
 				return
-
 			}
 
 			if len(tunnelList.Results) == 0 {
-
 				resp.Diagnostics.AddError(
 
 					"Tunnel not found",
@@ -268,15 +231,12 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 				)
 
 				return
-
 			}
 
 			tunnelID = tunnelList.Results[0].GetId()
-
 		}
 
 		tflog.Debug(ctx, "Reading tunnel termination by tunnel ID", map[string]interface{}{
-
 			"tunnel_id": tunnelID,
 		})
 
@@ -287,7 +247,6 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 		defer utils.CloseResponseBody(httpResp)
 
 		if listErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error listing tunnel terminations",
@@ -296,11 +255,9 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 			)
 
 			return
-
 		}
 
 		if len(list.Results) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Tunnel termination not found",
@@ -309,7 +266,6 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 			)
 
 			return
-
 		}
 
 		// Return the first termination found
@@ -326,7 +282,6 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -342,63 +297,42 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 	// Handle role - check if value is set before accessing
 
 	if tunnelTermination.Role.HasValue() {
-
 		data.Role = types.StringValue(string(tunnelTermination.Role.GetValue()))
-
 	} else {
-
 		data.Role = types.StringNull()
-
 	}
 
 	// Handle termination_id
 
 	if tunnelTermination.HasTerminationId() && tunnelTermination.TerminationId.IsSet() {
-
 		if val := tunnelTermination.TerminationId.Get(); val != nil {
-
 			data.TerminationID = types.Int64Value(*val)
-
 		} else {
-
 			data.TerminationID = types.Int64Null()
-
 		}
-
 	} else {
-
 		data.TerminationID = types.Int64Null()
-
 	}
 
 	// Handle outside_ip reference
 
 	if tunnelTermination.HasOutsideIp() && tunnelTermination.OutsideIp.IsSet() && tunnelTermination.OutsideIp.Get() != nil {
-
 		data.OutsideIP = types.StringValue(tunnelTermination.OutsideIp.Get().GetDisplay())
-
 	} else {
-
 		data.OutsideIP = types.StringNull()
-
 	}
 
 	// Handle display_name
 
 	if tunnelTermination.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(tunnelTermination.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if tunnelTermination.HasTags() && len(tunnelTermination.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(tunnelTermination.GetTags())
 
 		tagsValue, tagsDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -406,23 +340,17 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 		resp.Diagnostics.Append(tagsDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if tunnelTermination.HasCustomFields() && len(tunnelTermination.GetCustomFields()) > 0 {
-
 		var existingCustomFields []utils.CustomFieldModel
 
 		customFields := utils.MapToCustomFieldModels(tunnelTermination.GetCustomFields(), existingCustomFields)
@@ -432,19 +360,13 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 		resp.Diagnostics.Append(cfDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

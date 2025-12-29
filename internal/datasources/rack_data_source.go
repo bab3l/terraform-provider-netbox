@@ -21,9 +21,7 @@ import (
 var _ datasource.DataSource = &RackDataSource{}
 
 func NewRackDataSource() datasource.DataSource {
-
 	return &RackDataSource{}
-
 }
 
 // RackDataSource defines the data source implementation.
@@ -35,7 +33,6 @@ type RackDataSource struct {
 // RackDataSourceModel describes the data source data model.
 
 type RackDataSourceModel struct {
-
 	// Lookup fields (one required)
 
 	ID types.String `tfsdk:"id"`
@@ -108,19 +105,14 @@ type RackDataSourceModel struct {
 }
 
 func (d *RackDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_rack"
-
 }
 
 func (d *RackDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a rack in Netbox. Racks represent physical equipment enclosures used to organize network infrastructure within a site or location. You can identify the rack using `id` or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			// Lookup fields
 
 			"id": nbschema.DSIDAttribute("rack"),
@@ -198,23 +190,18 @@ func (d *RackDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 			"display_name": nbschema.DSComputedStringAttribute("The display name of the rack."),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *RackDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -223,25 +210,20 @@ func (d *RackDataSource) Configure(ctx context.Context, req datasource.Configure
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves data from the Netbox API.
 
 func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data RackDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var rack *netbox.Rack
@@ -253,20 +235,17 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	// Determine if we're searching by ID or name
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		rackID := data.ID.ValueString()
 
 		tflog.Debug(ctx, "Reading rack by ID", map[string]interface{}{
-
 			"id": rackID,
 		})
 
 		var rackIDInt int32
 
 		if _, parseErr := fmt.Sscanf(rackID, "%d", &rackIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Rack ID",
@@ -275,7 +254,6 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		rack, httpResp, err = d.client.DcimAPI.DcimRacksRetrieve(ctx, rackIDInt).Execute()
@@ -287,7 +265,6 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		rackName := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading rack by name", map[string]interface{}{
-
 			"name": rackName,
 		})
 
@@ -298,7 +275,6 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading rack",
@@ -307,11 +283,9 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		if len(racks.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Rack Not Found",
@@ -320,11 +294,9 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		if len(racks.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Racks Found",
@@ -333,7 +305,6 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		rack = &racks.GetResults()[0]
@@ -348,11 +319,9 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading rack",
@@ -361,11 +330,9 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		)
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading rack",
@@ -374,7 +341,6 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -382,20 +348,17 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	mapRackDataSourceToState(ctx, rack, &data)
 
 	tflog.Debug(ctx, "Read rack", map[string]interface{}{
-
 		"id": rack.GetId(),
 
 		"name": rack.GetName(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapRackDataSourceToState maps a Netbox Rack to the data source model.
 
 func mapRackDataSourceToState(ctx context.Context, rack *netbox.Rack, data *RackDataSourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", rack.GetId()))
 
 	data.Name = types.StringValue(rack.GetName())
@@ -411,409 +374,276 @@ func mapRackDataSourceToState(ctx context.Context, rack *netbox.Rack, data *Rack
 	// Map location (optional)
 
 	if rack.HasLocation() && rack.GetLocation().Id != 0 {
-
 		location := rack.GetLocation()
 
 		data.Location = types.StringValue(location.GetName())
 
 		data.LocationID = types.StringValue(fmt.Sprintf("%d", location.GetId()))
-
 	} else {
-
 		data.Location = types.StringNull()
 
 		data.LocationID = types.StringNull()
-
 	}
 
 	// Map tenant (optional)
 
 	if rack.HasTenant() && rack.GetTenant().Id != 0 {
-
 		tenant := rack.GetTenant()
 
 		data.Tenant = types.StringValue(tenant.GetName())
 
 		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
-
 	} else {
-
 		data.Tenant = types.StringNull()
 
 		data.TenantID = types.StringNull()
-
 	}
 
 	// Map status
 
 	if rack.HasStatus() {
-
 		status := rack.GetStatus()
 
 		if value, ok := status.GetValueOk(); ok && value != nil {
-
 			data.Status = types.StringValue(string(*value))
-
 		} else {
-
 			data.Status = types.StringNull()
-
 		}
-
 	} else {
-
 		data.Status = types.StringNull()
-
 	}
 
 	// Map role (optional)
 
 	if rack.HasRole() && rack.GetRole().Id != 0 {
-
 		role := rack.GetRole()
 
 		data.Role = types.StringValue(role.GetName())
 
 		data.RoleID = types.StringValue(fmt.Sprintf("%d", role.GetId()))
-
 	} else {
-
 		data.Role = types.StringNull()
 
 		data.RoleID = types.StringNull()
-
 	}
 
 	// Map serial
 
 	if serial := rack.GetSerial(); serial != "" {
-
 		data.Serial = types.StringValue(serial)
-
 	} else {
-
 		data.Serial = types.StringNull()
-
 	}
 
 	// Map asset_tag
 
 	if assetTag, ok := rack.GetAssetTagOk(); ok && assetTag != nil && *assetTag != "" {
-
 		data.AssetTag = types.StringValue(*assetTag)
-
 	} else {
-
 		data.AssetTag = types.StringNull()
-
 	}
 
 	// Map rack_type (optional)
 
 	if rack.HasRackType() && rack.GetRackType().Id != 0 {
-
 		rackType := rack.GetRackType()
 
 		data.RackType = types.StringValue(rackType.GetModel())
 
 		data.RackTypeID = types.StringValue(fmt.Sprintf("%d", rackType.GetId()))
-
 	} else {
-
 		data.RackType = types.StringNull()
 
 		data.RackTypeID = types.StringNull()
-
 	}
 
 	// Map form_factor
 
 	if rack.HasFormFactor() {
-
 		formFactor := rack.GetFormFactor()
 
 		if value, ok := formFactor.GetValueOk(); ok && value != nil {
-
 			data.FormFactor = types.StringValue(string(*value))
-
 		} else {
-
 			data.FormFactor = types.StringNull()
-
 		}
-
 	} else {
-
 		data.FormFactor = types.StringNull()
-
 	}
 
 	// Map width
 
 	if rack.HasWidth() {
-
 		width := rack.GetWidth()
 
 		if value, ok := width.GetValueOk(); ok && value != nil {
-
 			data.Width = types.StringValue(fmt.Sprintf("%d", *value))
-
 		} else {
-
 			data.Width = types.StringNull()
-
 		}
-
 	} else {
-
 		data.Width = types.StringNull()
-
 	}
 
 	// Map u_height
 
 	if uHeight, ok := rack.GetUHeightOk(); ok && uHeight != nil {
-
 		data.UHeight = types.StringValue(fmt.Sprintf("%d", *uHeight))
-
 	} else {
-
 		data.UHeight = types.StringNull()
-
 	}
 
 	// Map starting_unit
 
 	if startingUnit, ok := rack.GetStartingUnitOk(); ok && startingUnit != nil {
-
 		data.StartingUnit = types.StringValue(fmt.Sprintf("%d", *startingUnit))
-
 	} else {
-
 		data.StartingUnit = types.StringNull()
-
 	}
 
 	// Map weight
 
 	if weight, ok := rack.GetWeightOk(); ok && weight != nil {
-
 		data.Weight = types.StringValue(fmt.Sprintf("%g", *weight))
-
 	} else {
-
 		data.Weight = types.StringNull()
-
 	}
 
 	// Map max_weight
 
 	if maxWeight, ok := rack.GetMaxWeightOk(); ok && maxWeight != nil {
-
 		data.MaxWeight = types.StringValue(fmt.Sprintf("%d", *maxWeight))
-
 	} else {
-
 		data.MaxWeight = types.StringNull()
-
 	}
 
 	// Map weight_unit
 
 	if rack.HasWeightUnit() {
-
 		weightUnit := rack.GetWeightUnit()
 
 		if value, ok := weightUnit.GetValueOk(); ok && value != nil {
-
 			data.WeightUnit = types.StringValue(string(*value))
-
 		} else {
-
 			data.WeightUnit = types.StringNull()
-
 		}
-
 	} else {
-
 		data.WeightUnit = types.StringNull()
-
 	}
 
 	// Map desc_units
 
 	if descUnits, ok := rack.GetDescUnitsOk(); ok && descUnits != nil {
-
 		data.DescUnits = types.BoolValue(*descUnits)
-
 	} else {
-
 		data.DescUnits = types.BoolNull()
-
 	}
 
 	// Map outer_width
 
 	if outerWidth, ok := rack.GetOuterWidthOk(); ok && outerWidth != nil {
-
 		data.OuterWidth = types.StringValue(fmt.Sprintf("%d", *outerWidth))
-
 	} else {
-
 		data.OuterWidth = types.StringNull()
-
 	}
 
 	// Map outer_depth
 
 	if outerDepth, ok := rack.GetOuterDepthOk(); ok && outerDepth != nil {
-
 		data.OuterDepth = types.StringValue(fmt.Sprintf("%d", *outerDepth))
-
 	} else {
-
 		data.OuterDepth = types.StringNull()
-
 	}
 
 	// Map outer_unit
 
 	if rack.HasOuterUnit() {
-
 		outerUnit := rack.GetOuterUnit()
 
 		if value, ok := outerUnit.GetValueOk(); ok && value != nil {
-
 			data.OuterUnit = types.StringValue(string(*value))
-
 		} else {
-
 			data.OuterUnit = types.StringNull()
-
 		}
-
 	} else {
-
 		data.OuterUnit = types.StringNull()
-
 	}
 
 	// Map mounting_depth
 
 	if mountingDepth, ok := rack.GetMountingDepthOk(); ok && mountingDepth != nil {
-
 		data.MountingDepth = types.StringValue(fmt.Sprintf("%d", *mountingDepth))
-
 	} else {
-
 		data.MountingDepth = types.StringNull()
-
 	}
 
 	// Map airflow
 
 	if rack.HasAirflow() {
-
 		airflow := rack.GetAirflow()
 
 		if value, ok := airflow.GetValueOk(); ok && value != nil {
-
 			data.Airflow = types.StringValue(string(*value))
-
 		} else {
-
 			data.Airflow = types.StringNull()
-
 		}
-
 	} else {
-
 		data.Airflow = types.StringNull()
-
 	}
 
 	// Map description
 
 	if description := rack.GetDescription(); description != "" {
-
 		data.Description = types.StringValue(description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map comments
 
 	if comments := rack.GetComments(); comments != "" {
-
 		data.Comments = types.StringValue(comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if rack.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(rack.GetTags())
 
 		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
 
 		if !diags.HasError() {
-
 			data.Tags = tagsValue
-
 		} else {
-
 			data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 		}
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if rack.HasCustomFields() {
-
 		customFields := utils.MapToCustomFieldModels(rack.GetCustomFields(), []utils.CustomFieldModel{})
 
 		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 
 		if !diags.HasError() {
-
 			data.CustomFields = customFieldsValue
-
 		} else {
-
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 		}
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Map display_name
 
 	if rack.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(rack.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
-
 }

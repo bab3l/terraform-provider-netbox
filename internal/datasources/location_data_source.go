@@ -1,9 +1,7 @@
 // Package datasources contains Terraform data source implementations for the Netbox provider.
-
 //
 
 // This package integrates with the go-netbox OpenAPI client to provide
-
 // read-only access to Netbox resources via Terraform data sources.
 
 package datasources
@@ -27,9 +25,7 @@ import (
 var _ datasource.DataSource = &LocationDataSource{}
 
 func NewLocationDataSource() datasource.DataSource {
-
 	return &LocationDataSource{}
-
 }
 
 // LocationDataSource defines the data source implementation.
@@ -73,19 +69,14 @@ type LocationDataSourceModel struct {
 }
 
 func (d *LocationDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_location"
-
 }
 
 func (d *LocationDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a location in Netbox. Locations represent physical areas within a site, such as buildings, floors, or rooms. Locations can be nested hierarchically to model complex site layouts. You can identify the location using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("location"),
 
 			"display_name": nbschema.DSComputedStringAttribute("The display name of the location."),
@@ -117,23 +108,18 @@ func (d *LocationDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *LocationDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -142,25 +128,20 @@ func (d *LocationDataSource) Configure(ctx context.Context, req datasource.Confi
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves data from the Netbox API.
 
 func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data LocationDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var location *netbox.Location
@@ -172,20 +153,17 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 	// Determine if we're searching by ID, slug, or name
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		locationID := data.ID.ValueString()
 
 		tflog.Debug(ctx, "Reading location by ID", map[string]interface{}{
-
 			"id": locationID,
 		})
 
 		var locationIDInt int32
 
 		if _, parseErr := fmt.Sscanf(locationID, "%d", &locationIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Location ID",
@@ -194,7 +172,6 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		location, httpResp, err = d.client.DcimAPI.DcimLocationsRetrieve(ctx, locationIDInt).Execute()
@@ -206,7 +183,6 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 		locationSlug := data.Slug.ValueString()
 
 		tflog.Debug(ctx, "Reading location by slug", map[string]interface{}{
-
 			"slug": locationSlug,
 		})
 
@@ -217,7 +193,6 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading location",
@@ -226,11 +201,9 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		if len(locations.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Location Not Found",
@@ -239,11 +212,9 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		if len(locations.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Locations Found",
@@ -252,7 +223,6 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		location = &locations.GetResults()[0]
@@ -262,7 +232,6 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 		locationName := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading location by name", map[string]interface{}{
-
 			"name": locationName,
 		})
 
@@ -273,7 +242,6 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading location",
@@ -282,11 +250,9 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		if len(locations.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Location Not Found",
@@ -295,11 +261,9 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		if len(locations.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Locations Found",
@@ -308,7 +272,6 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		location = &locations.GetResults()[0]
@@ -323,11 +286,9 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading location",
@@ -336,11 +297,9 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 		)
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading location",
@@ -349,7 +308,6 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -359,13 +317,9 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 	// Display Name
 
 	if location.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(location.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	data.Name = types.StringValue(location.GetName())
@@ -383,81 +337,60 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 	// Map parent (optional, hierarchical)
 
 	if location.HasParent() && location.GetParent().Id != 0 {
-
 		parent := location.GetParent()
 
 		data.Parent = types.StringValue(parent.GetName())
 
 		data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
-
 	} else {
-
 		data.Parent = types.StringNull()
 
 		data.ParentID = types.StringNull()
-
 	}
 
 	// Map status
 
 	if location.HasStatus() {
-
 		status := location.GetStatus()
 
 		data.Status = types.StringValue(string(status.GetValue()))
-
 	} else {
-
 		data.Status = types.StringNull()
-
 	}
 
 	// Map tenant
 
 	if location.HasTenant() && location.GetTenant().Id != 0 {
-
 		tenant := location.GetTenant()
 
 		data.Tenant = types.StringValue(tenant.GetName())
 
 		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
-
 	} else {
-
 		data.Tenant = types.StringNull()
 
 		data.TenantID = types.StringNull()
-
 	}
 
 	// Map facility
 
 	if location.HasFacility() && location.GetFacility() != "" {
-
 		data.Facility = types.StringValue(location.GetFacility())
-
 	} else {
-
 		data.Facility = types.StringNull()
-
 	}
 
 	// Map description
 
 	if location.HasDescription() {
-
 		data.Description = types.StringValue(location.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if location.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(location.GetTags())
 
 		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -465,23 +398,17 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if location.HasCustomFields() {
-
 		customFields := utils.MapToCustomFieldModels(location.GetCustomFields(), []utils.CustomFieldModel{})
 
 		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
@@ -489,21 +416,15 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	tflog.Debug(ctx, "Read location", map[string]interface{}{
-
 		"id": location.GetId(),
 
 		"name": location.GetName(),
@@ -512,5 +433,4 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

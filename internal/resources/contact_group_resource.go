@@ -40,7 +40,6 @@ type ContactGroupResourceModel struct {
 	Parent       types.String `tfsdk:"parent"`
 	ParentID     types.String `tfsdk:"parent_id"`
 	Description  types.String `tfsdk:"description"`
-	DisplayName  types.String `tfsdk:"display_name"`
 	Tags         types.Set    `tfsdk:"tags"`
 	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
@@ -61,7 +60,6 @@ func (r *ContactGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 				Computed:            true,
 				MarkdownDescription: "The numeric ID of the parent contact group.",
 			},
-			"display_name": nbschema.DisplayNameAttribute("contact group"),
 		},
 	}
 
@@ -294,13 +292,6 @@ func (r *ContactGroupResource) mapContactGroupToState(ctx context.Context, conta
 	data.Name = types.StringValue(contactGroup.GetName())
 	data.Slug = types.StringValue(contactGroup.GetSlug())
 	data.Description = utils.StringFromAPI(contactGroup.HasDescription(), contactGroup.GetDescription, data.Description)
-
-	if contactGroup.GetDisplay() != "" {
-		data.DisplayName = types.StringValue(contactGroup.GetDisplay())
-	} else {
-		data.DisplayName = types.StringNull()
-	}
-
 	// Handle parent reference
 	if contactGroup.HasParent() {
 		parent := contactGroup.GetParent()

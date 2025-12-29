@@ -23,9 +23,7 @@ var _ datasource.DataSource = &VirtualMachineDataSource{}
 // NewVirtualMachineDataSource returns a new Virtual Machine data source.
 
 func NewVirtualMachineDataSource() datasource.DataSource {
-
 	return &VirtualMachineDataSource{}
-
 }
 
 // VirtualMachineDataSource defines the data source implementation.
@@ -73,21 +71,16 @@ type VirtualMachineDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *VirtualMachineDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_virtual_machine"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *VirtualMachineDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a virtual machine in Netbox. Virtual machines represent virtualized compute instances. You can identify the virtual machine using `id` or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("virtual machine"),
 
 			"name": nbschema.DSNameAttribute("virtual machine"),
@@ -121,23 +114,18 @@ func (d *VirtualMachineDataSource) Schema(ctx context.Context, req datasource.Sc
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 // Configure sets up the data source with the provider client.
 
 func (d *VirtualMachineDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -146,25 +134,20 @@ func (d *VirtualMachineDataSource) Configure(ctx context.Context, req datasource
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves data from the API.
 
 func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data VirtualMachineDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var vm *netbox.VirtualMachineWithConfigContext
@@ -176,7 +159,6 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 	// Determine if we're searching by ID or name
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		// Search by ID
@@ -184,14 +166,12 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 		vmID := data.ID.ValueString()
 
 		tflog.Debug(ctx, "Reading virtual machine by ID", map[string]interface{}{
-
 			"id": vmID,
 		})
 
 		var vmIDInt int32
 
 		if _, parseErr := fmt.Sscanf(vmID, "%d", &vmIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Virtual Machine ID",
@@ -200,7 +180,6 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 			)
 
 			return
-
 		}
 
 		vm, httpResp, err = d.client.VirtualizationAPI.VirtualizationVirtualMachinesRetrieve(ctx, vmIDInt).Execute()
@@ -214,7 +193,6 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 		vmName := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading virtual machine by name", map[string]interface{}{
-
 			"name": vmName,
 		})
 
@@ -225,7 +203,6 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading virtual machine",
@@ -234,11 +211,9 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 			)
 
 			return
-
 		}
 
 		if len(vms.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Virtual Machine Not Found",
@@ -247,11 +222,9 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 			)
 
 			return
-
 		}
 
 		if len(vms.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Virtual Machines Found",
@@ -260,7 +233,6 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 			)
 
 			return
-
 		}
 
 		vm = &vms.GetResults()[0]
@@ -275,11 +247,9 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading virtual machine",
@@ -288,11 +258,9 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 		)
 
 		return
-
 	}
 
 	if httpResp != nil && httpResp.StatusCode == 404 {
-
 		resp.Diagnostics.AddError(
 
 			"Virtual Machine Not Found",
@@ -301,7 +269,6 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -313,151 +280,102 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 	// Status
 
 	if vm.HasStatus() {
-
 		data.Status = types.StringValue(string(vm.Status.GetValue()))
-
 	} else {
-
 		data.Status = types.StringNull()
-
 	}
 
 	// Site
 
 	if vm.Site.IsSet() && vm.Site.Get() != nil {
-
 		data.Site = types.StringValue(vm.Site.Get().GetName())
-
 	} else {
-
 		data.Site = types.StringNull()
-
 	}
 
 	// Cluster
 
 	if vm.Cluster.IsSet() && vm.Cluster.Get() != nil {
-
 		data.Cluster = types.StringValue(vm.Cluster.Get().GetName())
-
 	} else {
-
 		data.Cluster = types.StringNull()
-
 	}
 
 	// Role
 
 	if vm.Role.IsSet() && vm.Role.Get() != nil {
-
 		data.Role = types.StringValue(vm.Role.Get().GetName())
-
 	} else {
-
 		data.Role = types.StringNull()
-
 	}
 
 	// Tenant
 
 	if vm.Tenant.IsSet() && vm.Tenant.Get() != nil {
-
 		data.Tenant = types.StringValue(vm.Tenant.Get().GetName())
-
 	} else {
-
 		data.Tenant = types.StringNull()
-
 	}
 
 	// Platform
 
 	if vm.Platform.IsSet() && vm.Platform.Get() != nil {
-
 		data.Platform = types.StringValue(vm.Platform.Get().GetName())
-
 	} else {
-
 		data.Platform = types.StringNull()
-
 	}
 
 	// Vcpus
 
 	if vm.Vcpus.IsSet() && vm.Vcpus.Get() != nil {
-
 		data.Vcpus = types.Float64Value(*vm.Vcpus.Get())
-
 	} else {
-
 		data.Vcpus = types.Float64Null()
-
 	}
 
 	// Memory
 
 	if vm.Memory.IsSet() && vm.Memory.Get() != nil {
-
 		data.Memory = types.Int64Value(int64(*vm.Memory.Get()))
-
 	} else {
-
 		data.Memory = types.Int64Null()
-
 	}
 
 	// Disk
 
 	if vm.Disk.IsSet() && vm.Disk.Get() != nil {
-
 		data.Disk = types.Int64Value(int64(*vm.Disk.Get()))
-
 	} else {
-
 		data.Disk = types.Int64Null()
-
 	}
 
 	// Description
 
 	if vm.HasDescription() && vm.GetDescription() != "" {
-
 		data.Description = types.StringValue(vm.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Comments
 
 	if vm.HasComments() && vm.GetComments() != "" {
-
 		data.Comments = types.StringValue(vm.GetComments())
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Handle display_name
 
 	if vm.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(vm.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if vm.HasTags() && len(vm.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(vm.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -465,23 +383,17 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 		resp.Diagnostics.Append(tagDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if vm.HasCustomFields() {
-
 		customFields := utils.MapToCustomFieldModels(vm.GetCustomFields(), nil)
 
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
@@ -489,26 +401,19 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 		resp.Diagnostics.Append(cfDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	tflog.Debug(ctx, "Read virtual machine", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

@@ -30,9 +30,7 @@ var _ resource.ResourceWithImportState = &InterfaceTemplateResource{}
 // NewInterfaceTemplateResource returns a new resource implementing the interface template resource.
 
 func NewInterfaceTemplateResource() resource.Resource {
-
 	return &InterfaceTemplateResource{}
-
 }
 
 // InterfaceTemplateResource defines the resource implementation.
@@ -60,8 +58,6 @@ type InterfaceTemplateResourceModel struct {
 
 	MgmtOnly types.Bool `tfsdk:"mgmt_only"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Description types.String `tfsdk:"description"`
 
 	Bridge types.Int32 `tfsdk:"bridge"`
@@ -76,56 +72,45 @@ type InterfaceTemplateResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *InterfaceTemplateResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_interface_template"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages an interface template in NetBox. Interface templates define the default interfaces that will be created on new devices of a specific device type or modules of a module type.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the interface template.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.Int32{
-
 					int32planmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"device_type": schema.StringAttribute{
-
 				MarkdownDescription: "The device type ID or slug. Either device_type or module_type must be specified.",
 
 				Optional: true,
 			},
 
 			"module_type": schema.StringAttribute{
-
 				MarkdownDescription: "The module type ID or model name. Either device_type or module_type must be specified.",
 
 				Optional: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the interface template. Use {module} as a substitution for the module bay position when attached to a module type.",
 
 				Required: true,
 			},
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label of the interface template.",
 
 				Optional: true,
@@ -134,14 +119,12 @@ func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.Sch
 			},
 
 			"type": schema.StringAttribute{
-
 				MarkdownDescription: "The type of interface (e.g., 1000base-t, 10gbase-x-sfpp, 25gbase-x-sfp28, 40gbase-x-qsfpp, 100gbase-x-qsfp28, virtual, lag, etc.).",
 
 				Required: true,
 			},
 
 			"enabled": schema.BoolAttribute{
-
 				MarkdownDescription: "Whether the interface is enabled by default.",
 
 				Optional: true,
@@ -152,7 +135,6 @@ func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.Sch
 			},
 
 			"mgmt_only": schema.BoolAttribute{
-
 				MarkdownDescription: "Whether the interface is for management only.",
 
 				Optional: true,
@@ -162,31 +144,25 @@ func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.Sch
 				Default: booldefault.StaticBool(false),
 			},
 
-			"display_name": nbschema.DisplayNameAttribute("interface template"),
-
 			"bridge": schema.Int32Attribute{
-
 				MarkdownDescription: "The ID of the bridge interface template this interface belongs to.",
 
 				Optional: true,
 			},
 
 			"poe_mode": schema.StringAttribute{
-
 				MarkdownDescription: "PoE mode (pd or pse).",
 
 				Optional: true,
 			},
 
 			"poe_type": schema.StringAttribute{
-
 				MarkdownDescription: "PoE type (type1-ieee802.3af, type2-ieee802.3at, type3-ieee802.3bt, type4-ieee802.3bt, passive-24v-2pair, passive-24v-4pair, passive-48v-2pair, passive-48v-4pair).",
 
 				Optional: true,
 			},
 
 			"rf_role": schema.StringAttribute{
-
 				MarkdownDescription: "Wireless role (ap or station).",
 
 				Optional: true,
@@ -201,17 +177,13 @@ func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.Sch
 // Configure adds the provider configured client to the resource.
 
 func (r *InterfaceTemplateResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -220,25 +192,20 @@ func (r *InterfaceTemplateResource) Configure(ctx context.Context, req resource.
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates the resource and sets the initial Terraform state.
 
 func (r *InterfaceTemplateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data InterfaceTemplateResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Build the API request
@@ -253,86 +220,63 @@ func (r *InterfaceTemplateResource) Create(ctx context.Context, req resource.Cre
 	// Set device type or module type
 
 	if !data.DeviceType.IsNull() && !data.DeviceType.IsUnknown() {
-
 		deviceType, diags := netboxlookup.LookupDeviceType(ctx, r.client, data.DeviceType.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetDeviceType(*deviceType)
-
 	}
 
 	if !data.ModuleType.IsNull() && !data.ModuleType.IsUnknown() {
-
 		moduleType, diags := netboxlookup.LookupModuleType(ctx, r.client, data.ModuleType.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetModuleType(*moduleType)
-
 	}
 
 	// Set optional fields
 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-
 		apiReq.SetLabel(data.Label.ValueString())
-
 	}
 
 	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
-
 		apiReq.SetEnabled(data.Enabled.ValueBool())
-
 	}
 
 	if !data.MgmtOnly.IsNull() && !data.MgmtOnly.IsUnknown() {
-
 		apiReq.SetMgmtOnly(data.MgmtOnly.ValueBool())
-
 	}
 
 	// Apply description
 	utils.ApplyDescription(apiReq, data.Description)
 
 	if !data.Bridge.IsNull() && !data.Bridge.IsUnknown() {
-
 		apiReq.SetBridge(data.Bridge.ValueInt32())
-
 	}
 
 	if !data.PoeMode.IsNull() && !data.PoeMode.IsUnknown() {
-
 		apiReq.SetPoeMode(netbox.InterfacePoeModeValue(data.PoeMode.ValueString()))
-
 	}
 
 	if !data.PoeType.IsNull() && !data.PoeType.IsUnknown() {
-
 		apiReq.SetPoeType(netbox.InterfacePoeTypeValue(data.PoeType.ValueString()))
-
 	}
 
 	if !data.RfRole.IsNull() && !data.RfRole.IsUnknown() {
-
 		apiReq.SetRfRole(netbox.WirelessRole(data.RfRole.ValueString()))
-
 	}
 
 	tflog.Debug(ctx, "Creating interface template", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 	})
 
@@ -341,7 +285,6 @@ func (r *InterfaceTemplateResource) Create(ctx context.Context, req resource.Cre
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating interface template",
@@ -350,7 +293,6 @@ func (r *InterfaceTemplateResource) Create(ctx context.Context, req resource.Cre
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -358,32 +300,26 @@ func (r *InterfaceTemplateResource) Create(ctx context.Context, req resource.Cre
 	r.mapResponseToModel(response, &data)
 
 	tflog.Trace(ctx, "Created interface template", map[string]interface{}{
-
 		"id": data.ID.ValueInt32(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (r *InterfaceTemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data InterfaceTemplateResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	templateID := data.ID.ValueInt32()
 
 	tflog.Debug(ctx, "Reading interface template", map[string]interface{}{
-
 		"id": templateID,
 	})
 
@@ -392,18 +328,14 @@ func (r *InterfaceTemplateResource) Read(ctx context.Context, req resource.ReadR
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "Interface template not found, removing from state", map[string]interface{}{
-
 				"id": templateID,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -414,7 +346,6 @@ func (r *InterfaceTemplateResource) Read(ctx context.Context, req resource.ReadR
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -422,21 +353,17 @@ func (r *InterfaceTemplateResource) Read(ctx context.Context, req resource.ReadR
 	r.mapResponseToModel(response, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 
 func (r *InterfaceTemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data InterfaceTemplateResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	templateID := data.ID.ValueInt32()
@@ -453,86 +380,63 @@ func (r *InterfaceTemplateResource) Update(ctx context.Context, req resource.Upd
 	// Set device type or module type
 
 	if !data.DeviceType.IsNull() && !data.DeviceType.IsUnknown() {
-
 		deviceType, diags := netboxlookup.LookupDeviceType(ctx, r.client, data.DeviceType.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetDeviceType(*deviceType)
-
 	}
 
 	if !data.ModuleType.IsNull() && !data.ModuleType.IsUnknown() {
-
 		moduleType, diags := netboxlookup.LookupModuleType(ctx, r.client, data.ModuleType.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetModuleType(*moduleType)
-
 	}
 
 	// Set optional fields
 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-
 		apiReq.SetLabel(data.Label.ValueString())
-
 	}
 
 	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
-
 		apiReq.SetEnabled(data.Enabled.ValueBool())
-
 	}
 
 	if !data.MgmtOnly.IsNull() && !data.MgmtOnly.IsUnknown() {
-
 		apiReq.SetMgmtOnly(data.MgmtOnly.ValueBool())
-
 	}
 
 	// Apply description
 	utils.ApplyDescription(apiReq, data.Description)
 
 	if !data.Bridge.IsNull() && !data.Bridge.IsUnknown() {
-
 		apiReq.SetBridge(data.Bridge.ValueInt32())
-
 	}
 
 	if !data.PoeMode.IsNull() && !data.PoeMode.IsUnknown() {
-
 		apiReq.SetPoeMode(netbox.InterfacePoeModeValue(data.PoeMode.ValueString()))
-
 	}
 
 	if !data.PoeType.IsNull() && !data.PoeType.IsUnknown() {
-
 		apiReq.SetPoeType(netbox.InterfacePoeTypeValue(data.PoeType.ValueString()))
-
 	}
 
 	if !data.RfRole.IsNull() && !data.RfRole.IsUnknown() {
-
 		apiReq.SetRfRole(netbox.WirelessRole(data.RfRole.ValueString()))
-
 	}
 
 	tflog.Debug(ctx, "Updating interface template", map[string]interface{}{
-
 		"id": templateID,
 	})
 
@@ -541,7 +445,6 @@ func (r *InterfaceTemplateResource) Update(ctx context.Context, req resource.Upd
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating interface template",
@@ -550,7 +453,6 @@ func (r *InterfaceTemplateResource) Update(ctx context.Context, req resource.Upd
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -558,27 +460,22 @@ func (r *InterfaceTemplateResource) Update(ctx context.Context, req resource.Upd
 	r.mapResponseToModel(response, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 
 func (r *InterfaceTemplateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data InterfaceTemplateResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	templateID := data.ID.ValueInt32()
 
 	tflog.Debug(ctx, "Deleting interface template", map[string]interface{}{
-
 		"id": templateID,
 	})
 
@@ -587,13 +484,10 @@ func (r *InterfaceTemplateResource) Delete(ctx context.Context, req resource.Del
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			// Resource already deleted
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -604,21 +498,17 @@ func (r *InterfaceTemplateResource) Delete(ctx context.Context, req resource.Del
 		)
 
 		return
-
 	}
-
 }
 
 // ImportState imports the resource state from Terraform.
 
 func (r *InterfaceTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	// Parse the import ID as an integer
 
 	id, err := utils.ParseInt32ID(req.ID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Import ID",
@@ -627,94 +517,64 @@ func (r *InterfaceTemplateResource) ImportState(ctx context.Context, req resourc
 		)
 
 		return
-
 	}
 
 	// Set the ID in state
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (r *InterfaceTemplateResource) mapResponseToModel(template *netbox.InterfaceTemplate, data *InterfaceTemplateResourceModel) {
-
 	data.ID = types.Int32Value(template.GetId())
 
 	data.Name = types.StringValue(template.GetName())
 
 	data.Type = types.StringValue(string(template.Type.GetValue()))
 
-	// DisplayName
-	if template.Display != "" {
-		data.DisplayName = types.StringValue(template.Display)
-	} else {
-		data.DisplayName = types.StringNull()
-	}
-
 	// Map device type - preserve user's input format
 
 	if template.DeviceType.IsSet() && template.DeviceType.Get() != nil {
-
 		dt := template.DeviceType.Get()
 
 		data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, dt.GetModel(), dt.GetSlug(), dt.Id)
-
 	} else {
-
 		data.DeviceType = types.StringNull()
-
 	}
 
 	// Map module type - preserve user's input format
 
 	if template.ModuleType.IsSet() && template.ModuleType.Get() != nil {
-
 		mt := template.ModuleType.Get()
 
 		data.ModuleType = utils.UpdateReferenceAttribute(data.ModuleType, mt.GetModel(), "", mt.Id)
-
 	} else {
-
 		data.ModuleType = types.StringNull()
-
 	}
 
 	// Map label
 
 	if label, ok := template.GetLabelOk(); ok && label != nil {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringValue("")
-
 	}
 
 	// Map enabled
 
 	if enabled, ok := template.GetEnabledOk(); ok && enabled != nil {
-
 		data.Enabled = types.BoolValue(*enabled)
-
 	} else {
-
 		data.Enabled = types.BoolValue(true)
-
 	}
 
 	// Map mgmt_only
 
 	if mgmtOnly, ok := template.GetMgmtOnlyOk(); ok && mgmtOnly != nil {
-
 		data.MgmtOnly = types.BoolValue(*mgmtOnly)
-
 	} else {
-
 		data.MgmtOnly = types.BoolValue(false)
-
 	}
 
 	// Map description
@@ -724,49 +584,32 @@ func (r *InterfaceTemplateResource) mapResponseToModel(template *netbox.Interfac
 	// Map bridge
 
 	if template.Bridge.IsSet() && template.Bridge.Get() != nil {
-
 		data.Bridge = types.Int32Value(template.Bridge.Get().Id)
-
 	} else {
-
 		data.Bridge = types.Int32Null()
-
 	}
 
 	// Map poe_mode
 
 	if poeMode, ok := template.GetPoeModeOk(); ok && poeMode != nil && poeMode.Value != nil {
-
 		data.PoeMode = types.StringValue(string(*poeMode.Value))
-
 	} else {
-
 		data.PoeMode = types.StringNull()
-
 	}
 
 	// Map poe_type
 
 	if poeType, ok := template.GetPoeTypeOk(); ok && poeType != nil && poeType.Value != nil {
-
 		data.PoeType = types.StringValue(string(*poeType.Value))
-
 	} else {
-
 		data.PoeType = types.StringNull()
-
 	}
 
 	// Map rf_role
 
 	if rfRole, ok := template.GetRfRoleOk(); ok && rfRole != nil && rfRole.Value != nil {
-
 		data.RfRole = types.StringValue(string(*rfRole.Value))
-
 	} else {
-
 		data.RfRole = types.StringNull()
-
 	}
-
 }

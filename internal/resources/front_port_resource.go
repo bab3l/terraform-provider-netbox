@@ -35,9 +35,7 @@ var (
 // NewFrontPortResource returns a new resource implementing the front port resource.
 
 func NewFrontPortResource() resource.Resource {
-
 	return &FrontPortResource{}
-
 }
 
 // FrontPortResource defines the resource implementation.
@@ -61,8 +59,6 @@ type FrontPortResourceModel struct {
 
 	Color types.String `tfsdk:"color"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	RearPort types.String `tfsdk:"rear_port"`
 
 	RearPortPosition types.Int32 `tfsdk:"rear_port_position"`
@@ -79,79 +75,63 @@ type FrontPortResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *FrontPortResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_front_port"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *FrontPortResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a front port in NetBox. Front ports represent physical ports on the front of a device, typically used for patch panels and fiber distribution. They are mapped to rear ports.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the front port.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"device": schema.StringAttribute{
-
 				MarkdownDescription: "The device this front port belongs to (ID or name).",
 
 				Required: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the front port.",
 
 				Required: true,
 			},
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label of the front port.",
 
 				Optional: true,
 			},
 
 			"type": schema.StringAttribute{
-
 				MarkdownDescription: "The type of front port (e.g., `8p8c`, `8p6c`, `110-punch`, `bnc`, `f`, `n`, `mrj21`, `fc`, `lc`, `lc-pc`, `lc-upc`, `lc-apc`, `lsh`, `mpo`, `mtrj`, `sc`, `sc-pc`, `sc-upc`, `sc-apc`, `st`, `cs`, `sn`, `splice`, `other`).",
 
 				Required: true,
 			},
 
 			"color": schema.StringAttribute{
-
 				MarkdownDescription: "Color of the front port in hex format (e.g., `aa1409`).",
 
 				Optional: true,
 			},
 
-			"display_name": nbschema.DisplayNameAttribute("front port"),
-
 			"rear_port": schema.StringAttribute{
-
 				MarkdownDescription: "The rear port that this front port maps to (ID).",
 
 				Required: true,
 			},
 
 			"rear_port_position": schema.Int32Attribute{
-
 				MarkdownDescription: "Position on the rear port (1-1024). Default is 1.",
 
 				Optional: true,
@@ -162,7 +142,6 @@ func (r *FrontPortResource) Schema(ctx context.Context, req resource.SchemaReque
 			},
 
 			"mark_connected": schema.BoolAttribute{
-
 				MarkdownDescription: "Treat as if a cable is connected.",
 
 				Optional: true,
@@ -184,17 +163,13 @@ func (r *FrontPortResource) Schema(ctx context.Context, req resource.SchemaReque
 // Configure adds the provider configured client to the resource.
 
 func (r *FrontPortResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -203,25 +178,20 @@ func (r *FrontPortResource) Configure(ctx context.Context, req resource.Configur
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates the resource.
 
 func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data FrontPortResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Lookup device
@@ -231,9 +201,7 @@ func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateReque
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse rear port ID
@@ -241,7 +209,6 @@ func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateReque
 	rearPortID, err := utils.ParseID(data.RearPort.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Rear Port ID",
@@ -250,7 +217,6 @@ func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateReque
 		)
 
 		return
-
 	}
 
 	// Build request
@@ -260,27 +226,19 @@ func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateReque
 	// Set optional fields
 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-
 		apiReq.SetLabel(data.Label.ValueString())
-
 	}
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
-
 		apiReq.SetColor(data.Color.ValueString())
-
 	}
 
 	if !data.RearPortPosition.IsNull() && !data.RearPortPosition.IsUnknown() {
-
 		apiReq.SetRearPortPosition(data.RearPortPosition.ValueInt32())
-
 	}
 
 	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
-
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
-
 	}
 
 	// Handle description, tags, and custom fields
@@ -290,13 +248,10 @@ func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateReque
 	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating front port", map[string]interface{}{
-
 		"device": data.Device.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -309,7 +264,6 @@ func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating front port",
@@ -318,7 +272,6 @@ func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateReque
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -326,38 +279,30 @@ func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateReque
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Trace(ctx, "Created front port", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read retrieves the resource.
 
 func (r *FrontPortResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data FrontPortResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	portID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID",
@@ -366,11 +311,9 @@ func (r *FrontPortResource) Read(ctx context.Context, req resource.ReadRequest, 
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading front port", map[string]interface{}{
-
 		"id": portID,
 	})
 
@@ -379,18 +322,14 @@ func (r *FrontPortResource) Read(ctx context.Context, req resource.ReadRequest, 
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "Front port not found, removing from state", map[string]interface{}{
-
 				"id": portID,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -401,7 +340,6 @@ func (r *FrontPortResource) Read(ctx context.Context, req resource.ReadRequest, 
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -409,33 +347,26 @@ func (r *FrontPortResource) Read(ctx context.Context, req resource.ReadRequest, 
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the resource.
 
 func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data FrontPortResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	portID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID",
@@ -444,7 +375,6 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 
 		return
-
 	}
 
 	// Lookup device
@@ -454,9 +384,7 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse rear port ID
@@ -464,7 +392,6 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 	rearPortID, err := utils.ParseID(data.RearPort.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Rear Port ID",
@@ -473,7 +400,6 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 
 		return
-
 	}
 
 	// Build request
@@ -483,27 +409,19 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 	// Set optional fields
 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-
 		apiReq.SetLabel(data.Label.ValueString())
-
 	}
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
-
 		apiReq.SetColor(data.Color.ValueString())
-
 	}
 
 	if !data.RearPortPosition.IsNull() && !data.RearPortPosition.IsUnknown() {
-
 		apiReq.SetRearPortPosition(data.RearPortPosition.ValueInt32())
-
 	}
 
 	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
-
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
-
 	}
 
 	// Handle description, tags, and custom fields
@@ -513,13 +431,10 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating front port", map[string]interface{}{
-
 		"id": portID,
 	})
 
@@ -528,7 +443,6 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating front port",
@@ -537,7 +451,6 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -545,33 +458,26 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete removes the resource.
 
 func (r *FrontPortResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data FrontPortResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	portID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID",
@@ -580,11 +486,9 @@ func (r *FrontPortResource) Delete(ctx context.Context, req resource.DeleteReque
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting front port", map[string]interface{}{
-
 		"id": portID,
 	})
 
@@ -593,13 +497,10 @@ func (r *FrontPortResource) Delete(ctx context.Context, req resource.DeleteReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			// Resource already deleted
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -610,19 +511,15 @@ func (r *FrontPortResource) Delete(ctx context.Context, req resource.DeleteReque
 		)
 
 		return
-
 	}
-
 }
 
 // ImportState imports the resource.
 
 func (r *FrontPortResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	portID, err := utils.ParseID(req.ID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Import ID",
@@ -631,7 +528,6 @@ func (r *FrontPortResource) ImportState(ctx context.Context, req resource.Import
 		)
 
 		return
-
 	}
 
 	response, httpResp, err := r.client.DcimAPI.DcimFrontPortsRetrieve(ctx, portID).Execute()
@@ -639,7 +535,6 @@ func (r *FrontPortResource) ImportState(ctx context.Context, req resource.Import
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error importing front port",
@@ -648,7 +543,6 @@ func (r *FrontPortResource) ImportState(ctx context.Context, req resource.Import
 		)
 
 		return
-
 	}
 
 	var data FrontPortResourceModel
@@ -656,36 +550,23 @@ func (r *FrontPortResource) ImportState(ctx context.Context, req resource.Import
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (r *FrontPortResource) mapResponseToModel(ctx context.Context, port *netbox.FrontPort, data *FrontPortResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", port.GetId()))
 
 	data.Name = types.StringValue(port.GetName())
 
-	// DisplayName
-	if port.Display != "" {
-		data.DisplayName = types.StringValue(port.Display)
-	} else {
-		data.DisplayName = types.StringNull()
-	}
-
 	// Map device - preserve user's input format
 
 	if device := port.GetDevice(); device.Id != 0 {
-
 		data.Device = utils.UpdateReferenceAttribute(data.Device, device.GetName(), "", device.GetId())
-
 	}
 
 	// Map type
@@ -695,75 +576,52 @@ func (r *FrontPortResource) mapResponseToModel(ctx context.Context, port *netbox
 	// Map label
 
 	if label, ok := port.GetLabelOk(); ok && label != nil && *label != "" {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Map color
 
 	if color, ok := port.GetColorOk(); ok && color != nil && *color != "" {
-
 		data.Color = types.StringValue(*color)
-
 	} else {
-
 		data.Color = types.StringNull()
-
 	}
 
 	// Map rear port - preserve user's input format
 
 	if rearPort := port.GetRearPort(); rearPort.Id != 0 {
-
 		data.RearPort = utils.UpdateReferenceAttribute(data.RearPort, rearPort.GetName(), "", rearPort.GetId())
-
 	}
 
 	// Map rear port position
 
 	if rearPortPos, ok := port.GetRearPortPositionOk(); ok && rearPortPos != nil {
-
 		data.RearPortPosition = types.Int32Value(*rearPortPos)
-
 	} else {
-
 		data.RearPortPosition = types.Int32Value(1)
-
 	}
 
 	// Map description
 
 	if desc, ok := port.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map mark_connected
 
 	if markConnected, ok := port.GetMarkConnectedOk(); ok && markConnected != nil {
-
 		data.MarkConnected = types.BoolValue(*markConnected)
-
 	} else {
-
 		data.MarkConnected = types.BoolValue(false)
-
 	}
 
 	// Handle tags
 
 	if port.HasTags() && len(port.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(port.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -771,31 +629,23 @@ func (r *FrontPortResource) mapResponseToModel(ctx context.Context, port *netbox
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if port.HasCustomFields() {
-
 		apiCustomFields := port.GetCustomFields()
 
 		var stateCustomFieldModels []utils.CustomFieldModel
 
 		if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
 			data.CustomFields.ElementsAs(ctx, &stateCustomFieldModels, false)
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(apiCustomFields, stateCustomFieldModels)
@@ -805,17 +655,11 @@ func (r *FrontPortResource) mapResponseToModel(ctx context.Context, port *netbox
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

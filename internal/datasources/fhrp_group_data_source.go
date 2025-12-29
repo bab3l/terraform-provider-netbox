@@ -19,9 +19,7 @@ import (
 var _ datasource.DataSource = &FHRPGroupDataSource{}
 
 func NewFHRPGroupDataSource() datasource.DataSource {
-
 	return &FHRPGroupDataSource{}
-
 }
 
 // FHRPGroupDataSource defines the data source implementation.
@@ -53,23 +51,17 @@ type FHRPGroupDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *FHRPGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_fhrp_group"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *FHRPGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about an FHRP (First Hop Redundancy Protocol) group in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the FHRP group. Use for lookup when specified.",
 
 				Optional: true,
@@ -78,14 +70,12 @@ func (d *FHRPGroupDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the FHRP group.",
 
 				Computed: true,
 			},
 
 			"protocol": schema.StringAttribute{
-
 				MarkdownDescription: "The redundancy protocol (vrrp2, vrrp3, carp, clusterxl, hsrp, glbp, other). Used with group_id for lookup when ID is not provided.",
 
 				Optional: true,
@@ -94,7 +84,6 @@ func (d *FHRPGroupDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"group_id": schema.Int32Attribute{
-
 				MarkdownDescription: "The FHRP group identifier. Used with protocol for lookup when ID is not provided.",
 
 				Optional: true,
@@ -103,51 +92,42 @@ func (d *FHRPGroupDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"auth_type": schema.StringAttribute{
-
 				MarkdownDescription: "Authentication type (plaintext, md5).",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the FHRP group.",
 
 				Computed: true,
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the FHRP group.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Additional comments about the FHRP group.",
 
 				Computed: true,
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *FHRPGroupDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -156,17 +136,14 @@ func (d *FHRPGroupDataSource) Configure(ctx context.Context, req datasource.Conf
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves the FHRP group data from NetBox.
 
 func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data FHRPGroupDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -174,9 +151,7 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var fhrpGroup *netbox.FHRPGroup
@@ -184,13 +159,11 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 	// Lookup by ID if provided
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		id := data.ID.ValueInt32()
 
 		tflog.Debug(ctx, "Looking up FHRP group by ID", map[string]interface{}{
-
 			"id": id,
 		})
 
@@ -199,7 +172,6 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error Reading FHRP Group",
@@ -208,7 +180,6 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		fhrpGroup = result
@@ -222,7 +193,6 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		groupID := data.GroupID.ValueInt32()
 
 		tflog.Debug(ctx, "Looking up FHRP group by protocol and group_id", map[string]interface{}{
-
 			"protocol": protocol,
 
 			"group_id": groupID,
@@ -239,7 +209,6 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error Reading FHRP Group",
@@ -248,11 +217,9 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		if list.Count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"FHRP Group Not Found",
@@ -261,11 +228,9 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		if list.Count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple FHRP Groups Found",
@@ -274,7 +239,6 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		fhrpGroup = &list.Results[0]
@@ -289,7 +253,6 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -303,75 +266,50 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 	// Name
 
 	if name := fhrpGroup.GetName(); name != "" {
-
 		data.Name = types.StringValue(name)
-
 	} else {
-
 		data.Name = types.StringNull()
-
 	}
 
 	// Auth Type
 
 	if fhrpGroup.AuthType != nil {
-
 		authTypeValue := string(*fhrpGroup.AuthType)
 
 		if authTypeValue != "" {
-
 			data.AuthType = types.StringValue(authTypeValue)
-
 		} else {
-
 			data.AuthType = types.StringNull()
-
 		}
-
 	} else {
-
 		data.AuthType = types.StringNull()
-
 	}
 
 	// Description
 
 	if description := fhrpGroup.GetDescription(); description != "" {
-
 		data.Description = types.StringValue(description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Display name
 
 	if fhrpGroup.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(fhrpGroup.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Comments
 
 	if comments := fhrpGroup.GetComments(); comments != "" {
-
 		data.Comments = types.StringValue(comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	tflog.Debug(ctx, "Read FHRP group", map[string]interface{}{
-
 		"id": data.ID.ValueInt32(),
 
 		"protocol": data.Protocol.ValueString(),
@@ -382,5 +320,4 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

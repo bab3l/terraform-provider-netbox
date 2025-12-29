@@ -26,9 +26,7 @@ var _ resource.Resource = &RegionResource{}
 var _ resource.ResourceWithImportState = &RegionResource{}
 
 func NewRegionResource() resource.Resource {
-
 	return &RegionResource{}
-
 }
 
 // RegionResource defines the resource implementation.
@@ -46,8 +44,6 @@ type RegionResourceModel struct {
 
 	Slug types.String `tfsdk:"slug"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Parent types.String `tfsdk:"parent"`
 
 	ParentID types.String `tfsdk:"parent_id"`
@@ -60,26 +56,19 @@ type RegionResourceModel struct {
 }
 
 func (r *RegionResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_region"
-
 }
 
 func (r *RegionResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a region in Netbox. Regions provide a hierarchical way to organize sites geographically, such as continents, countries, states, or cities.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.IDAttribute("region"),
 
 			"name": nbschema.NameAttribute("region", 100),
 
 			"slug": nbschema.SlugAttribute("region"),
-
-			"display_name": nbschema.DisplayNameAttribute("region"),
 
 			"parent": nbschema.ReferenceAttribute("parent region", "ID or slug of the parent region. Leave empty for top-level regions. This enables hierarchical organization of geographic areas."),
 
@@ -98,17 +87,13 @@ func (r *RegionResource) Schema(ctx context.Context, req resource.SchemaRequest,
 }
 
 func (r *RegionResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -117,27 +102,21 @@ func (r *RegionResource) Configure(ctx context.Context, req resource.ConfigureRe
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data RegionResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating region", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"slug": data.Slug.ValueString(),
@@ -146,7 +125,6 @@ func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest,
 	// Prepare the region request
 
 	regionRequest := netbox.WritableRegionRequest{
-
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
@@ -159,27 +137,21 @@ func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest,
 	utils.ApplyMetadataFields(ctx, &regionRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Set optional parent
 
 	if utils.IsSet(data.Parent) {
-
 		parentID, parentDiags := netboxlookup.LookupRegionID(ctx, r.client, data.Parent.ValueString())
 
 		resp.Diagnostics.Append(parentDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		regionRequest.Parent = *netbox.NewNullableInt32(&parentID)
-
 	}
 
 	// Call the API
@@ -189,19 +161,15 @@ func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Error creating region", utils.FormatAPIError("create region", err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 201 {
-
 		resp.Diagnostics.AddError("Error creating region", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	// Map response to state
@@ -209,27 +177,21 @@ func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest,
 	r.mapRegionToState(ctx, region, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Trace(ctx, "created a region resource")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *RegionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data RegionResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	regionID := data.ID.ValueString()
@@ -241,11 +203,9 @@ func (r *RegionResource) Read(ctx context.Context, req resource.ReadRequest, res
 	regionIDInt, err := utils.ParseID(regionID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid Region ID", fmt.Sprintf("Region ID must be a number, got: %s", regionID))
 
 		return
-
 	}
 
 	region, httpResp, err := r.client.DcimAPI.DcimRegionsRetrieve(ctx, regionIDInt).Execute()
@@ -261,15 +221,12 @@ func (r *RegionResource) Read(ctx context.Context, req resource.ReadRequest, res
 		resp.Diagnostics.AddError("Error reading region", utils.FormatAPIError(fmt.Sprintf("read region ID %s", regionID), err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError("Error reading region", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	// Map response to state
@@ -277,25 +234,19 @@ func (r *RegionResource) Read(ctx context.Context, req resource.ReadRequest, res
 	r.mapRegionToState(ctx, region, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data RegionResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	regionID := data.ID.ValueString()
@@ -307,17 +258,14 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 	regionIDInt, err := utils.ParseID(regionID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid Region ID", fmt.Sprintf("Region ID must be a number, got: %s", regionID))
 
 		return
-
 	}
 
 	// Prepare the region request
 
 	regionRequest := netbox.WritableRegionRequest{
-
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
@@ -330,27 +278,21 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 	utils.ApplyMetadataFields(ctx, &regionRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Set optional parent
 
 	if utils.IsSet(data.Parent) {
-
 		parentID, parentDiags := netboxlookup.LookupRegionID(ctx, r.client, data.Parent.ValueString())
 
 		resp.Diagnostics.Append(parentDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		regionRequest.Parent = *netbox.NewNullableInt32(&parentID)
-
 	}
 
 	// Call the API
@@ -360,19 +302,15 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Error updating region", utils.FormatAPIError(fmt.Sprintf("update region ID %s", regionID), err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError("Error updating region", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	// Map response to state
@@ -380,27 +318,21 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 	r.mapRegionToState(ctx, region, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Trace(ctx, "updated a region resource")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *RegionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data RegionResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	regionID := data.ID.ValueString()
@@ -412,11 +344,9 @@ func (r *RegionResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	regionIDInt, err := utils.ParseID(regionID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid Region ID", fmt.Sprintf("Region ID must be a number, got: %s", regionID))
 
 		return
-
 	}
 
 	httpResp, err := r.client.DcimAPI.DcimRegionsDestroy(ctx, regionIDInt).Execute()
@@ -431,38 +361,29 @@ func (r *RegionResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		resp.Diagnostics.AddError("Error deleting region", utils.FormatAPIError(fmt.Sprintf("delete region ID %s", regionID), err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 204 {
-
 		resp.Diagnostics.AddError("Error deleting region", fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	tflog.Trace(ctx, "deleted a region resource")
-
 }
 
 func (r *RegionResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // mapRegionToState maps API response to Terraform state.
 
 func (r *RegionResource) mapRegionToState(ctx context.Context, region *netbox.Region, data *RegionResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", region.GetId()))
 
 	data.Name = types.StringValue(region.GetName())
 
 	data.Slug = types.StringValue(region.GetSlug())
-
-	data.DisplayName = types.StringValue(region.GetDisplay())
 
 	// Handle parent
 	var parentResult utils.ReferenceWithID
@@ -483,5 +404,4 @@ func (r *RegionResource) mapRegionToState(ctx context.Context, region *netbox.Re
 
 	// Handle custom fields
 	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, region.HasCustomFields(), region.GetCustomFields(), data.CustomFields, diags)
-
 }

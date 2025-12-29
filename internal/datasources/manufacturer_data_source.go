@@ -138,13 +138,9 @@ func (d *ManufacturerDataSource) mapManufacturerToState(manufacturer *netbox.Man
 	// Display Name
 
 	if manufacturer.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(manufacturer.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 	data.Name = types.StringValue(manufacturer.GetName())
 	data.Slug = types.StringValue(manufacturer.GetSlug())

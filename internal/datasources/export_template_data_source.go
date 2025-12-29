@@ -23,9 +23,7 @@ var _ datasource.DataSource = &ExportTemplateDataSource{}
 // NewExportTemplateDataSource returns a new data source implementing the export template data source.
 
 func NewExportTemplateDataSource() datasource.DataSource {
-
 	return &ExportTemplateDataSource{}
-
 }
 
 // ExportTemplateDataSource defines the data source implementation.
@@ -57,27 +55,21 @@ type ExportTemplateDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *ExportTemplateDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_export_template"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *ExportTemplateDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about an export template in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("export template"),
 
 			"name": nbschema.DSNameAttribute("export template"),
 
 			"object_types": schema.ListAttribute{
-
 				MarkdownDescription: "List of object types this template applies to.",
 
 				Computed: true,
@@ -96,23 +88,18 @@ func (d *ExportTemplateDataSource) Schema(ctx context.Context, req datasource.Sc
 			"as_attachment": nbschema.DSComputedBoolAttribute("Whether to download file as attachment."),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *ExportTemplateDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -121,25 +108,20 @@ func (d *ExportTemplateDataSource) Configure(ctx context.Context, req datasource
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read reads the export template data.
 
 func (d *ExportTemplateDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ExportTemplateDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var exportTemplate *netbox.ExportTemplate
@@ -151,13 +133,11 @@ func (d *ExportTemplateDataSource) Read(ctx context.Context, req datasource.Read
 	// Lookup by ID
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		id, parseErr := utils.ParseID(data.ID.ValueString())
 
 		if parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid ID",
@@ -166,11 +146,9 @@ func (d *ExportTemplateDataSource) Read(ctx context.Context, req datasource.Read
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading export template by ID", map[string]interface{}{
-
 			"id": id,
 		})
 
@@ -183,7 +161,6 @@ func (d *ExportTemplateDataSource) Read(ctx context.Context, req datasource.Read
 		// Lookup by name
 
 		tflog.Debug(ctx, "Reading export template by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -198,11 +175,9 @@ func (d *ExportTemplateDataSource) Read(ctx context.Context, req datasource.Read
 		err = listErr
 
 		if err == nil {
-
 			results := list.GetResults()
 
 			if len(results) == 0 {
-
 				resp.Diagnostics.AddError(
 
 					"Not Found",
@@ -211,11 +186,9 @@ func (d *ExportTemplateDataSource) Read(ctx context.Context, req datasource.Read
 				)
 
 				return
-
 			}
 
 			if len(results) > 1 {
-
 				resp.Diagnostics.AddError(
 
 					"Multiple Found",
@@ -224,11 +197,9 @@ func (d *ExportTemplateDataSource) Read(ctx context.Context, req datasource.Read
 				)
 
 				return
-
 			}
 
 			exportTemplate = &results[0]
-
 		}
 
 	default:
@@ -241,11 +212,9 @@ func (d *ExportTemplateDataSource) Read(ctx context.Context, req datasource.Read
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading export template",
@@ -254,7 +223,6 @@ func (d *ExportTemplateDataSource) Read(ctx context.Context, req datasource.Read
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -262,13 +230,11 @@ func (d *ExportTemplateDataSource) Read(ctx context.Context, req datasource.Read
 	d.mapResponseToState(ctx, exportTemplate, &data, resp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToState maps the API response to the Terraform state.
 
 func (d *ExportTemplateDataSource) mapResponseToState(ctx context.Context, exportTemplate *netbox.ExportTemplate, data *ExportTemplateDataSourceModel, resp *datasource.ReadResponse) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", exportTemplate.GetId()))
 
 	data.Name = types.StringValue(exportTemplate.GetName())
@@ -278,65 +244,44 @@ func (d *ExportTemplateDataSource) mapResponseToState(ctx context.Context, expor
 	// Handle object types
 
 	if exportTemplate.ObjectTypes != nil && len(exportTemplate.ObjectTypes) > 0 {
-
 		objectTypesList, diags := types.ListValueFrom(ctx, types.StringType, exportTemplate.ObjectTypes)
 
 		resp.Diagnostics.Append(diags...)
 
 		data.ObjectTypes = objectTypesList
-
 	} else {
-
 		data.ObjectTypes = types.ListNull(types.StringType)
-
 	}
 
 	// Handle description
 
 	if exportTemplate.HasDescription() && exportTemplate.GetDescription() != "" {
-
 		data.Description = types.StringValue(exportTemplate.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle mime type
 
 	if exportTemplate.HasMimeType() && exportTemplate.GetMimeType() != "" {
-
 		data.MimeType = types.StringValue(exportTemplate.GetMimeType())
-
 	} else {
-
 		data.MimeType = types.StringNull()
-
 	}
 
 	// Handle file extension
 
 	if exportTemplate.HasFileExtension() && exportTemplate.GetFileExtension() != "" {
-
 		data.FileExtension = types.StringValue(exportTemplate.GetFileExtension())
-
 	} else {
-
 		data.FileExtension = types.StringNull()
-
 	}
 
 	// Handle as_attachment
 
 	if exportTemplate.HasAsAttachment() {
-
 		data.AsAttachment = types.BoolValue(exportTemplate.GetAsAttachment())
-
 	} else {
-
 		data.AsAttachment = types.BoolValue(true) // Default
-
 	}
-
 }

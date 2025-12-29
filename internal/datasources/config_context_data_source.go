@@ -17,9 +17,7 @@ import (
 var _ datasource.DataSource = &ConfigContextDataSource{}
 
 func NewConfigContextDataSource() datasource.DataSource {
-
 	return &ConfigContextDataSource{}
-
 }
 
 // ConfigContextDataSource defines the config context data source implementation.
@@ -71,21 +69,15 @@ type ConfigContextDataSourceModel struct {
 }
 
 func (d *ConfigContextDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_config_context"
-
 }
 
 func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a config context in Netbox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique identifier of the config context. Specify either `id` or `name`.",
 
 				Optional: true,
@@ -94,7 +86,6 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the config context. Specify either `id` or `name`.",
 
 				Optional: true,
@@ -103,35 +94,30 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the config context.",
 
 				Computed: true,
 			},
 
 			"weight": schema.Int64Attribute{
-
 				MarkdownDescription: "The weight of the config context. Higher weight contexts override lower weight contexts.",
 
 				Computed: true,
 			},
 
 			"is_active": schema.BoolAttribute{
-
 				MarkdownDescription: "Whether the config context is active.",
 
 				Computed: true,
 			},
 
 			"data": schema.StringAttribute{
-
 				MarkdownDescription: "The JSON configuration data.",
 
 				Computed: true,
 			},
 
 			"regions": schema.SetAttribute{
-
 				MarkdownDescription: "Set of region IDs this config context is assigned to.",
 
 				Computed: true,
@@ -140,7 +126,6 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"site_groups": schema.SetAttribute{
-
 				MarkdownDescription: "Set of site group IDs this config context is assigned to.",
 
 				Computed: true,
@@ -149,7 +134,6 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"sites": schema.SetAttribute{
-
 				MarkdownDescription: "Set of site IDs this config context is assigned to.",
 
 				Computed: true,
@@ -158,7 +142,6 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"locations": schema.SetAttribute{
-
 				MarkdownDescription: "Set of location IDs this config context is assigned to.",
 
 				Computed: true,
@@ -167,7 +150,6 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"device_types": schema.SetAttribute{
-
 				MarkdownDescription: "Set of device type IDs this config context is assigned to.",
 
 				Computed: true,
@@ -176,7 +158,6 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"roles": schema.SetAttribute{
-
 				MarkdownDescription: "Set of device role IDs this config context is assigned to.",
 
 				Computed: true,
@@ -185,7 +166,6 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"platforms": schema.SetAttribute{
-
 				MarkdownDescription: "Set of platform IDs this config context is assigned to.",
 
 				Computed: true,
@@ -194,7 +174,6 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"cluster_types": schema.SetAttribute{
-
 				MarkdownDescription: "Set of cluster type IDs this config context is assigned to.",
 
 				Computed: true,
@@ -203,7 +182,6 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"cluster_groups": schema.SetAttribute{
-
 				MarkdownDescription: "Set of cluster group IDs this config context is assigned to.",
 
 				Computed: true,
@@ -212,7 +190,6 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"clusters": schema.SetAttribute{
-
 				MarkdownDescription: "Set of cluster IDs this config context is assigned to.",
 
 				Computed: true,
@@ -221,7 +198,6 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"tenant_groups": schema.SetAttribute{
-
 				MarkdownDescription: "Set of tenant group IDs this config context is assigned to.",
 
 				Computed: true,
@@ -230,7 +206,6 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"tenants": schema.SetAttribute{
-
 				MarkdownDescription: "Set of tenant IDs this config context is assigned to.",
 
 				Computed: true,
@@ -239,7 +214,6 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 
 			"tags": schema.SetAttribute{
-
 				MarkdownDescription: "Set of tag slugs this config context is assigned to.",
 
 				Computed: true,
@@ -248,21 +222,16 @@ func (d *ConfigContextDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 		},
 	}
-
 }
 
 func (d *ConfigContextDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -271,29 +240,23 @@ func (d *ConfigContextDataSource) Configure(ctx context.Context, req datasource.
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *ConfigContextDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ConfigContextDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Validate that either id or name is provided
 
 	if data.ID.IsNull() && data.Name.IsNull() {
-
 		resp.Diagnostics.AddError(
 
 			"Missing Required Attribute",
@@ -302,7 +265,6 @@ func (d *ConfigContextDataSource) Read(ctx context.Context, req datasource.ReadR
 		)
 
 		return
-
 	}
 
 	var result *netbox.ConfigContext
@@ -312,34 +274,27 @@ func (d *ConfigContextDataSource) Read(ctx context.Context, req datasource.ReadR
 	var httpResp *http.Response
 
 	if !data.ID.IsNull() {
-
 		// Lookup by ID
 
 		id, parseErr := utils.ParseID(data.ID.ValueString())
 
 		if parseErr != nil {
-
 			resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("Could not parse ID %s: %s", data.ID.ValueString(), parseErr))
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading config context by ID", map[string]interface{}{
-
 			"id": id,
 		})
 
 		result, httpResp, err = d.client.ExtrasAPI.ExtrasConfigContextsRetrieve(ctx, id).Execute()
 
 		defer utils.CloseResponseBody(httpResp)
-
 	} else {
-
 		// Lookup by name
 
 		tflog.Debug(ctx, "Reading config context by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -354,9 +309,7 @@ func (d *ConfigContextDataSource) Read(ctx context.Context, req datasource.ReadR
 		err = listErr
 
 		if err == nil {
-
 			if listResult.GetCount() == 0 {
-
 				resp.Diagnostics.AddError(
 
 					"Config context not found",
@@ -365,11 +318,9 @@ func (d *ConfigContextDataSource) Read(ctx context.Context, req datasource.ReadR
 				)
 
 				return
-
 			}
 
 			if listResult.GetCount() > 1 {
-
 				resp.Diagnostics.AddError(
 
 					"Multiple config contexts found",
@@ -378,19 +329,14 @@ func (d *ConfigContextDataSource) Read(ctx context.Context, req datasource.ReadR
 				)
 
 				return
-
 			}
 
 			result = &listResult.GetResults()[0]
-
 		}
-
 	}
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			resp.Diagnostics.AddError(
 
 				"Config context not found",
@@ -399,7 +345,6 @@ func (d *ConfigContextDataSource) Read(ctx context.Context, req datasource.ReadR
 			)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -410,7 +355,6 @@ func (d *ConfigContextDataSource) Read(ctx context.Context, req datasource.ReadR
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -418,13 +362,11 @@ func (d *ConfigContextDataSource) Read(ctx context.Context, req datasource.ReadR
 	mapConfigContextDataSourceResponse(ctx, result, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Helper function to map API response to data source model.
 
 func mapConfigContextDataSourceResponse(ctx context.Context, result *netbox.ConfigContext, data *ConfigContextDataSourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
 	data.Name = types.StringValue(result.GetName())
@@ -432,47 +374,31 @@ func mapConfigContextDataSourceResponse(ctx context.Context, result *netbox.Conf
 	// Optional fields
 
 	if result.HasDescription() && result.GetDescription() != "" {
-
 		data.Description = types.StringValue(result.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	if result.HasWeight() {
-
 		data.Weight = types.Int64Value(int64(result.GetWeight()))
-
 	} else {
-
 		data.Weight = types.Int64Null()
-
 	}
 
 	if result.HasIsActive() {
-
 		data.IsActive = types.BoolValue(result.GetIsActive())
-
 	} else {
-
 		data.IsActive = types.BoolNull()
-
 	}
 
 	// Data field - serialize JSON back to string
 
 	if result.Data != nil {
-
 		jsonBytes, err := json.Marshal(result.GetData())
 
 		if err == nil {
-
 			data.Data = types.StringValue(string(jsonBytes))
-
 		}
-
 	}
 
 	// Assignment criteria - convert from response objects to ID sets
@@ -502,285 +428,208 @@ func mapConfigContextDataSourceResponse(ctx context.Context, result *netbox.Conf
 	data.Tenants = dsTenantsToSet(ctx, result.Tenants)
 
 	data.Tags = dsTagsSlugToSet(ctx, result.Tags)
-
 }
 
 // Helper functions to convert API response arrays to types.Set
 
 func dsRegionsToSet(ctx context.Context, regions []netbox.Region) types.Set {
-
 	if len(regions) == 0 {
-
 		return types.SetNull(types.Int64Type)
-
 	}
 
 	values := make([]int64, len(regions))
 
 	for i, r := range regions {
-
 		values[i] = int64(r.GetId())
-
 	}
 
 	set, _ := types.SetValueFrom(ctx, types.Int64Type, values)
 
 	return set
-
 }
 
 func dsSiteGroupsToSet(ctx context.Context, siteGroups []netbox.SiteGroup) types.Set {
-
 	if len(siteGroups) == 0 {
-
 		return types.SetNull(types.Int64Type)
-
 	}
 
 	values := make([]int64, len(siteGroups))
 
 	for i, sg := range siteGroups {
-
 		values[i] = int64(sg.GetId())
-
 	}
 
 	set, _ := types.SetValueFrom(ctx, types.Int64Type, values)
 
 	return set
-
 }
 
 func dsSitesToSet(ctx context.Context, sites []netbox.Site) types.Set {
-
 	if len(sites) == 0 {
-
 		return types.SetNull(types.Int64Type)
-
 	}
 
 	values := make([]int64, len(sites))
 
 	for i, s := range sites {
-
 		values[i] = int64(s.GetId())
-
 	}
 
 	set, _ := types.SetValueFrom(ctx, types.Int64Type, values)
 
 	return set
-
 }
 
 func dsLocationsToSet(ctx context.Context, locations []netbox.Location) types.Set {
-
 	if len(locations) == 0 {
-
 		return types.SetNull(types.Int64Type)
-
 	}
 
 	values := make([]int64, len(locations))
 
 	for i, l := range locations {
-
 		values[i] = int64(l.GetId())
-
 	}
 
 	set, _ := types.SetValueFrom(ctx, types.Int64Type, values)
 
 	return set
-
 }
 
 func dsDeviceTypesToSet(ctx context.Context, deviceTypes []netbox.DeviceType) types.Set {
-
 	if len(deviceTypes) == 0 {
-
 		return types.SetNull(types.Int64Type)
-
 	}
 
 	values := make([]int64, len(deviceTypes))
 
 	for i, dt := range deviceTypes {
-
 		values[i] = int64(dt.GetId())
-
 	}
 
 	set, _ := types.SetValueFrom(ctx, types.Int64Type, values)
 
 	return set
-
 }
 
 func dsRolesToSet(ctx context.Context, roles []netbox.DeviceRole) types.Set {
-
 	if len(roles) == 0 {
-
 		return types.SetNull(types.Int64Type)
-
 	}
 
 	values := make([]int64, len(roles))
 
 	for i, r := range roles {
-
 		values[i] = int64(r.GetId())
-
 	}
 
 	set, _ := types.SetValueFrom(ctx, types.Int64Type, values)
 
 	return set
-
 }
 
 func dsPlatformsToSet(ctx context.Context, platforms []netbox.Platform) types.Set {
-
 	if len(platforms) == 0 {
-
 		return types.SetNull(types.Int64Type)
-
 	}
 
 	values := make([]int64, len(platforms))
 
 	for i, p := range platforms {
-
 		values[i] = int64(p.GetId())
-
 	}
 
 	set, _ := types.SetValueFrom(ctx, types.Int64Type, values)
 
 	return set
-
 }
 
 func dsClusterTypesToSet(ctx context.Context, clusterTypes []netbox.ClusterType) types.Set {
-
 	if len(clusterTypes) == 0 {
-
 		return types.SetNull(types.Int64Type)
-
 	}
 
 	values := make([]int64, len(clusterTypes))
 
 	for i, ct := range clusterTypes {
-
 		values[i] = int64(ct.GetId())
-
 	}
 
 	set, _ := types.SetValueFrom(ctx, types.Int64Type, values)
 
 	return set
-
 }
 
 func dsClusterGroupsToSet(ctx context.Context, clusterGroups []netbox.ClusterGroup) types.Set {
-
 	if len(clusterGroups) == 0 {
-
 		return types.SetNull(types.Int64Type)
-
 	}
 
 	values := make([]int64, len(clusterGroups))
 
 	for i, cg := range clusterGroups {
-
 		values[i] = int64(cg.GetId())
-
 	}
 
 	set, _ := types.SetValueFrom(ctx, types.Int64Type, values)
 
 	return set
-
 }
 
 func dsClustersToSet(ctx context.Context, clusters []netbox.Cluster) types.Set {
-
 	if len(clusters) == 0 {
-
 		return types.SetNull(types.Int64Type)
-
 	}
 
 	values := make([]int64, len(clusters))
 
 	for i, c := range clusters {
-
 		values[i] = int64(c.GetId())
-
 	}
 
 	set, _ := types.SetValueFrom(ctx, types.Int64Type, values)
 
 	return set
-
 }
 
 func dsTenantGroupsToSet(ctx context.Context, tenantGroups []netbox.TenantGroup) types.Set {
-
 	if len(tenantGroups) == 0 {
-
 		return types.SetNull(types.Int64Type)
-
 	}
 
 	values := make([]int64, len(tenantGroups))
 
 	for i, tg := range tenantGroups {
-
 		values[i] = int64(tg.GetId())
-
 	}
 
 	set, _ := types.SetValueFrom(ctx, types.Int64Type, values)
 
 	return set
-
 }
 
 func dsTenantsToSet(ctx context.Context, tenants []netbox.Tenant) types.Set {
-
 	if len(tenants) == 0 {
-
 		return types.SetNull(types.Int64Type)
-
 	}
 
 	values := make([]int64, len(tenants))
 
 	for i, t := range tenants {
-
 		values[i] = int64(t.GetId())
-
 	}
 
 	set, _ := types.SetValueFrom(ctx, types.Int64Type, values)
 
 	return set
-
 }
 
 func dsTagsSlugToSet(ctx context.Context, tags []string) types.Set {
-
 	if len(tags) == 0 {
-
 		return types.SetNull(types.StringType)
-
 	}
 
 	set, _ := types.SetValueFrom(ctx, types.StringType, tags)
 
 	return set
-
 }

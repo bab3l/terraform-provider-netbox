@@ -25,9 +25,7 @@ var (
 // NewRouteTargetDataSource returns a new RouteTarget data source.
 
 func NewRouteTargetDataSource() datasource.DataSource {
-
 	return &RouteTargetDataSource{}
-
 }
 
 // RouteTargetDataSource defines the data source implementation.
@@ -59,23 +57,17 @@ type RouteTargetDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *RouteTargetDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_route_target"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *RouteTargetDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a Route Target in Netbox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the route target. Either `id` or `name` must be specified.",
 
 				Optional: true,
@@ -84,7 +76,6 @@ func (d *RouteTargetDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The route target value (formatted in accordance with RFC 4360).",
 
 				Optional: true,
@@ -93,35 +84,30 @@ func (d *RouteTargetDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"tenant": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the tenant that owns this route target.",
 
 				Computed: true,
 			},
 
 			"tenant_name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the tenant that owns this route target.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "The description of the route target.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Comments about the route target.",
 
 				Computed: true,
 			},
 
 			"tags": schema.ListAttribute{
-
 				MarkdownDescription: "The tags assigned to this route target.",
 
 				Computed: true,
@@ -130,30 +116,24 @@ func (d *RouteTargetDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the route target.",
 
 				Computed: true,
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *RouteTargetDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -162,17 +142,14 @@ func (d *RouteTargetDataSource) Configure(ctx context.Context, req datasource.Co
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data RouteTargetDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -180,9 +157,7 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var rt *netbox.RouteTarget
@@ -190,7 +165,6 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Check if we're looking up by ID
 
 	switch {
-
 	case utils.IsSet(data.ID):
 
 		var idInt int
@@ -198,7 +172,6 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 		_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid ID",
@@ -207,22 +180,18 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading RouteTarget by ID", map[string]interface{}{
-
 			"id": idInt,
 		})
 
 		id32, err := utils.SafeInt32(int64(idInt))
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", err))
 
 			return
-
 		}
 
 		result, httpResp, err := d.client.IpamAPI.IpamRouteTargetsRetrieve(ctx, id32).Execute()
@@ -230,7 +199,6 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading RouteTarget",
@@ -239,7 +207,6 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		rt = result
@@ -249,7 +216,6 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 		// Looking up by name
 
 		tflog.Debug(ctx, "Reading RouteTarget by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -262,7 +228,6 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error listing RouteTargets",
@@ -271,11 +236,9 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if results.Count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"RouteTarget not found",
@@ -284,11 +247,9 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if results.Count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple RouteTargets found",
@@ -297,7 +258,6 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		rt = &results.Results[0]
@@ -312,7 +272,6 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -320,7 +279,6 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 	d.mapRouteTargetToDataSourceModel(ctx, rt, &data)
 
 	tflog.Debug(ctx, "Read RouteTarget", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -329,13 +287,11 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapRouteTargetToDataSourceModel maps a Netbox RouteTarget to the Terraform data source model.
 
 func (d *RouteTargetDataSource) mapRouteTargetToDataSourceModel(ctx context.Context, rt *netbox.RouteTarget, data *RouteTargetDataSourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", rt.Id))
 
 	data.Name = types.StringValue(rt.Name)
@@ -343,77 +299,54 @@ func (d *RouteTargetDataSource) mapRouteTargetToDataSourceModel(ctx context.Cont
 	// Tenant
 
 	if rt.HasTenant() && rt.Tenant.Get() != nil {
-
 		tenant := rt.Tenant.Get()
 
 		data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 
 		data.TenantName = types.StringValue(tenant.GetName())
-
 	} else {
-
 		data.Tenant = types.StringNull()
 
 		data.TenantName = types.StringNull()
-
 	}
 
 	// Description
 
 	if rt.Description != nil && *rt.Description != "" {
-
 		data.Description = types.StringValue(*rt.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Comments
 
 	if rt.Comments != nil && *rt.Comments != "" {
-
 		data.Comments = types.StringValue(*rt.Comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Tags - convert to list of strings (tag names)
 
 	if len(rt.Tags) > 0 {
-
 		tagNames := make([]string, len(rt.Tags))
 
 		for i, tag := range rt.Tags {
-
 			tagNames[i] = tag.Name
-
 		}
 
 		tagsList, _ := types.ListValueFrom(ctx, types.StringType, tagNames)
 
 		data.Tags = tagsList
-
 	} else {
-
 		data.Tags = types.ListNull(types.StringType)
-
 	}
 
 	// Map display_name
 
 	if rt.Display != "" {
-
 		data.DisplayName = types.StringValue(rt.Display)
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
-
 }

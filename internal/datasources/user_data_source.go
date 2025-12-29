@@ -1,9 +1,7 @@
 // Package datasources contains Terraform data source implementations for the Netbox provider.
-
 //
 
 // This package integrates with the go-netbox OpenAPI client to provide
-
 // read-only access to Netbox resources via Terraform data sources.
 
 package datasources
@@ -26,9 +24,7 @@ import (
 var _ datasource.DataSource = &UserDataSource{}
 
 func NewUserDataSource() datasource.DataSource {
-
 	return &UserDataSource{}
-
 }
 
 // UserDataSource defines the data source implementation.
@@ -56,21 +52,15 @@ type UserDataSourceModel struct {
 }
 
 func (d *UserDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_user"
-
 }
 
 func (d *UserDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a user in Netbox. You can identify the user using `id` or `username`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "Unique ID of the user. Use this or `username` to look up the user.",
 
 				Optional: true,
@@ -79,7 +69,6 @@ func (d *UserDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 			},
 
 			"username": schema.StringAttribute{
-
 				MarkdownDescription: "Username of the user. Use this or `id` to look up the user.",
 
 				Optional: true,
@@ -88,58 +77,48 @@ func (d *UserDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 			},
 
 			"first_name": schema.StringAttribute{
-
 				MarkdownDescription: "First name of the user.",
 
 				Computed: true,
 			},
 
 			"last_name": schema.StringAttribute{
-
 				MarkdownDescription: "Last name of the user.",
 
 				Computed: true,
 			},
 
 			"email": schema.StringAttribute{
-
 				MarkdownDescription: "Email address of the user.",
 
 				Computed: true,
 			},
 
 			"is_staff": schema.BoolAttribute{
-
 				MarkdownDescription: "Whether the user can log into the admin site.",
 
 				Computed: true,
 			},
 
 			"is_active": schema.BoolAttribute{
-
 				MarkdownDescription: "Whether the user account is active.",
 
 				Computed: true,
 			},
 		},
 	}
-
 }
 
 func (d *UserDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	// Prevent panic if the provider has not been configured.
 
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -148,15 +127,12 @@ func (d *UserDataSource) Configure(ctx context.Context, req datasource.Configure
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data UserDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -164,9 +140,7 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var user *netbox.User
@@ -178,7 +152,6 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	// Determine if we're searching by ID or username
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		// Search by ID
@@ -186,7 +159,6 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		userID := data.ID.ValueString()
 
 		tflog.Debug(ctx, "Reading user by ID", map[string]interface{}{
-
 			"id": userID,
 		})
 
@@ -195,7 +167,6 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		var userIDInt int32
 
 		if _, parseErr := fmt.Sscanf(userID, "%d", &userIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid User ID",
@@ -204,7 +175,6 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		// Retrieve the user via API
@@ -220,7 +190,6 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		username := data.Username.ValueString()
 
 		tflog.Debug(ctx, "Reading user by username", map[string]interface{}{
-
 			"username": username,
 		})
 
@@ -233,7 +202,6 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading user",
@@ -242,11 +210,9 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		if len(users.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"User Not Found",
@@ -255,11 +221,9 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		if len(users.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Users Found",
@@ -268,7 +232,6 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		user = &users.GetResults()[0]
@@ -283,11 +246,9 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading user",
@@ -296,7 +257,6 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -306,57 +266,36 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	data.Username = types.StringValue(user.GetUsername())
 
 	if user.HasFirstName() && user.GetFirstName() != "" {
-
 		data.FirstName = types.StringValue(user.GetFirstName())
-
 	} else {
-
 		data.FirstName = types.StringNull()
-
 	}
 
 	if user.HasLastName() && user.GetLastName() != "" {
-
 		data.LastName = types.StringValue(user.GetLastName())
-
 	} else {
-
 		data.LastName = types.StringNull()
-
 	}
 
 	if user.HasEmail() && user.GetEmail() != "" {
-
 		data.Email = types.StringValue(user.GetEmail())
-
 	} else {
-
 		data.Email = types.StringNull()
-
 	}
 
 	if user.HasIsStaff() {
-
 		data.IsStaff = types.BoolValue(user.GetIsStaff())
-
 	} else {
-
 		data.IsStaff = types.BoolNull()
-
 	}
 
 	if user.HasIsActive() {
-
 		data.IsActive = types.BoolValue(user.GetIsActive())
-
 	} else {
-
 		data.IsActive = types.BoolNull()
-
 	}
 
 	tflog.Trace(ctx, "read user data source", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"username": data.Username.ValueString(),
@@ -365,5 +304,4 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

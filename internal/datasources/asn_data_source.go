@@ -27,9 +27,7 @@ var (
 // NewASNDataSource returns a new data source implementing the ASN data source.
 
 func NewASNDataSource() datasource.DataSource {
-
 	return &ASNDataSource{}
-
 }
 
 // ASNDataSource defines the data source implementation.
@@ -67,23 +65,17 @@ type ASNDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *ASNDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_asn"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *ASNDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about an Autonomous System Number (ASN) in NetBox. You can identify the ASN using `id` or `asn`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the ASN resource. Use this to look up by ID.",
 
 				Optional: true,
@@ -92,7 +84,6 @@ func (d *ASNDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			},
 
 			"asn": schema.Int64Attribute{
-
 				MarkdownDescription: "The 16- or 32-bit autonomous system number. Use this to look up by ASN.",
 
 				Optional: true,
@@ -101,42 +92,36 @@ func (d *ASNDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			},
 
 			"rir": schema.StringAttribute{
-
 				MarkdownDescription: "The Regional Internet Registry (RIR) that manages this ASN.",
 
 				Computed: true,
 			},
 
 			"tenant": schema.StringAttribute{
-
 				MarkdownDescription: "The tenant this ASN is assigned to.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of this ASN.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Additional comments or notes about this ASN.",
 
 				Computed: true,
 			},
 
 			"site_count": schema.Int64Attribute{
-
 				MarkdownDescription: "Number of sites using this ASN.",
 
 				Computed: true,
 			},
 
 			"provider_count": schema.Int64Attribute{
-
 				MarkdownDescription: "Number of providers using this ASN.",
 
 				Computed: true,
@@ -149,23 +134,18 @@ func (d *ASNDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *ASNDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -174,25 +154,20 @@ func (d *ASNDataSource) Configure(ctx context.Context, req datasource.ConfigureR
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the data source data.
 
 func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ASNDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var asn *netbox.ASN
@@ -200,13 +175,11 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	// Look up by ID if provided
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		asnID, err := utils.ParseID(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid ASN ID",
@@ -215,11 +188,9 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading ASN by ID", map[string]interface{}{
-
 			"id": asnID,
 		})
 
@@ -228,7 +199,6 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading ASN",
@@ -237,7 +207,6 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 
 			return
-
 		}
 
 		asn = a
@@ -247,18 +216,15 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		// Look up by ASN number
 
 		tflog.Debug(ctx, "Reading ASN by number", map[string]interface{}{
-
 			"asn": data.ASN.ValueInt64(),
 		})
 
 		asn32, err := utils.SafeInt32FromValue(data.ASN)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Invalid ASN", fmt.Sprintf("ASN value overflow: %s", err))
 
 			return
-
 		}
 
 		listResp, httpResp, err := d.client.IpamAPI.IpamAsnsList(ctx).Asn([]int32{asn32}).Execute()
@@ -266,7 +232,6 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading ASN",
@@ -275,11 +240,9 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 
 			return
-
 		}
 
 		if listResp.GetCount() == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"ASN not found",
@@ -288,11 +251,9 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 
 			return
-
 		}
 
 		if listResp.GetCount() > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple ASNs found",
@@ -301,7 +262,6 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 
 			return
-
 		}
 
 		asn = &listResp.GetResults()[0]
@@ -316,7 +276,6 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -324,19 +283,15 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	d.mapResponseToModel(ctx, asn, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *ASNDataSource) mapResponseToModel(ctx context.Context, asn *netbox.ASN, data *ASNDataSourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", asn.GetId()))
 
 	data.ASN = types.Int64Value(asn.GetAsn())
@@ -344,49 +299,33 @@ func (d *ASNDataSource) mapResponseToModel(ctx context.Context, asn *netbox.ASN,
 	// Map RIR
 
 	if asn.Rir.IsSet() && asn.Rir.Get() != nil {
-
 		data.RIR = types.StringValue(asn.Rir.Get().GetName())
-
 	} else {
-
 		data.RIR = types.StringNull()
-
 	}
 
 	// Map Tenant
 
 	if asn.Tenant.IsSet() && asn.Tenant.Get() != nil {
-
 		data.Tenant = types.StringValue(asn.Tenant.Get().GetName())
-
 	} else {
-
 		data.Tenant = types.StringNull()
-
 	}
 
 	// Map description
 
 	if desc, ok := asn.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map comments
 
 	if comments, ok := asn.GetCommentsOk(); ok && comments != nil && *comments != "" {
-
 		data.Comments = types.StringValue(*comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Map counts
@@ -398,7 +337,6 @@ func (d *ASNDataSource) mapResponseToModel(ctx context.Context, asn *netbox.ASN,
 	// Handle tags
 
 	if asn.HasTags() && len(asn.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(asn.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -406,23 +344,17 @@ func (d *ASNDataSource) mapResponseToModel(ctx context.Context, asn *netbox.ASN,
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if asn.HasCustomFields() {
-
 		apiCustomFields := asn.GetCustomFields()
 
 		customFields := utils.MapToCustomFieldModels(apiCustomFields, nil)
@@ -432,17 +364,12 @@ func (d *ASNDataSource) mapResponseToModel(ctx context.Context, asn *netbox.ASN,
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Map display name
@@ -452,5 +379,4 @@ func (d *ASNDataSource) mapResponseToModel(ctx context.Context, asn *netbox.ASN,
 	} else {
 		data.DisplayName = types.StringNull()
 	}
-
 }

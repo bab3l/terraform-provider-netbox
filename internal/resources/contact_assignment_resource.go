@@ -43,7 +43,6 @@ type ContactAssignmentResourceModel struct {
 	Contact      types.String `tfsdk:"contact_id"`
 	Role         types.String `tfsdk:"role_id"`
 	Priority     types.String `tfsdk:"priority"`
-	DisplayName  types.String `tfsdk:"display_name"`
 	Tags         types.Set    `tfsdk:"tags"`
 	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
@@ -89,11 +88,9 @@ func (r *ContactAssignmentResource) Schema(ctx context.Context, req resource.Sch
 				Optional:            true,
 				MarkdownDescription: "The priority of this contact assignment. Valid values are: `primary`, `secondary`, `tertiary`, `inactive`.",
 				Validators: []validator.String{
-
 					stringvalidator.OneOf("primary", "secondary", "tertiary", "inactive", ""),
 				},
 			},
-			"display_name": nbschema.DisplayNameAttribute("contact assignment"),
 		},
 	}
 
@@ -395,14 +392,6 @@ func (r *ContactAssignmentResource) mapResponseToState(ctx context.Context, assi
 	data.ID = types.StringValue(fmt.Sprintf("%d", assignment.GetId()))
 	data.ObjectType = types.StringValue(assignment.GetObjectType())
 	data.ObjectID = types.StringValue(fmt.Sprintf("%d", assignment.GetObjectId()))
-
-	// DisplayName
-	if assignment.GetDisplay() != "" {
-		data.DisplayName = types.StringValue(assignment.GetDisplay())
-	} else {
-		data.DisplayName = types.StringNull()
-	}
-
 	// Contact (required field) - preserve user's input format
 	contact := assignment.GetContact()
 	data.Contact = utils.UpdateReferenceAttribute(data.Contact, contact.GetName(), "", contact.GetId())

@@ -21,9 +21,7 @@ var _ datasource.DataSource = &RearPortDataSource{}
 // NewRearPortDataSource returns a new data source implementing the rear port data source.
 
 func NewRearPortDataSource() datasource.DataSource {
-
 	return &RearPortDataSource{}
-
 }
 
 // RearPortDataSource defines the data source implementation.
@@ -61,23 +59,17 @@ type RearPortDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *RearPortDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_rear_port"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *RearPortDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a rear port in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the rear port.",
 
 				Optional: true,
@@ -86,7 +78,6 @@ func (d *RearPortDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 			},
 
 			"device_id": schema.Int32Attribute{
-
 				MarkdownDescription: "The numeric ID of the device. Used with name for lookup when ID is not provided.",
 
 				Optional: true,
@@ -95,14 +86,12 @@ func (d *RearPortDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 			},
 
 			"device": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the device.",
 
 				Computed: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the rear port. Used with device_id for lookup when ID is not provided.",
 
 				Optional: true,
@@ -111,72 +100,60 @@ func (d *RearPortDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 			},
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label of the rear port.",
 
 				Computed: true,
 			},
 
 			"type": schema.StringAttribute{
-
 				MarkdownDescription: "The type of rear port.",
 
 				Computed: true,
 			},
 
 			"color": schema.StringAttribute{
-
 				MarkdownDescription: "Color of the rear port in hex format.",
 
 				Computed: true,
 			},
 
 			"positions": schema.Int32Attribute{
-
 				MarkdownDescription: "Number of front ports that may be mapped to this rear port.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the rear port.",
 
 				Computed: true,
 			},
 
 			"mark_connected": schema.BoolAttribute{
-
 				MarkdownDescription: "Whether the port is marked as connected.",
 
 				Computed: true,
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the rear port.",
 
 				Computed: true,
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *RearPortDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -185,31 +162,25 @@ func (d *RearPortDataSource) Configure(ctx context.Context, req datasource.Confi
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves the data source data.
 
 func (d *RearPortDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data RearPortDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var port *netbox.RearPort
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		// Lookup by ID
@@ -217,7 +188,6 @@ func (d *RearPortDataSource) Read(ctx context.Context, req datasource.ReadReques
 		portID := data.ID.ValueInt32()
 
 		tflog.Debug(ctx, "Reading rear port by ID", map[string]interface{}{
-
 			"id": portID,
 		})
 
@@ -226,7 +196,6 @@ func (d *RearPortDataSource) Read(ctx context.Context, req datasource.ReadReques
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading rear port",
@@ -235,7 +204,6 @@ func (d *RearPortDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		port = response
@@ -249,7 +217,6 @@ func (d *RearPortDataSource) Read(ctx context.Context, req datasource.ReadReques
 		name := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading rear port by device and name", map[string]interface{}{
-
 			"device_id": deviceID,
 
 			"name": name,
@@ -260,7 +227,6 @@ func (d *RearPortDataSource) Read(ctx context.Context, req datasource.ReadReques
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading rear port",
@@ -269,13 +235,11 @@ func (d *RearPortDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		count := int(response.GetCount())
 
 		if count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Rear Port Not Found",
@@ -284,11 +248,9 @@ func (d *RearPortDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		if count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Rear Ports Found",
@@ -297,7 +259,6 @@ func (d *RearPortDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		port = &response.GetResults()[0]
@@ -312,7 +273,6 @@ func (d *RearPortDataSource) Read(ctx context.Context, req datasource.ReadReques
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -320,13 +280,11 @@ func (d *RearPortDataSource) Read(ctx context.Context, req datasource.ReadReques
 	d.mapResponseToModel(port, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *RearPortDataSource) mapResponseToModel(port *netbox.RearPort, data *RearPortDataSourceModel) {
-
 	data.ID = types.Int32Value(port.GetId())
 
 	data.Name = types.StringValue(port.GetName())
@@ -334,11 +292,9 @@ func (d *RearPortDataSource) mapResponseToModel(port *netbox.RearPort, data *Rea
 	// Map device
 
 	if device := port.GetDevice(); device.Id != 0 {
-
 		data.DeviceID = types.Int32Value(device.Id)
 
 		data.Device = types.StringValue(device.GetName())
-
 	}
 
 	// Map type
@@ -348,73 +304,48 @@ func (d *RearPortDataSource) mapResponseToModel(port *netbox.RearPort, data *Rea
 	// Map label
 
 	if label, ok := port.GetLabelOk(); ok && label != nil && *label != "" {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Map color
 
 	if color, ok := port.GetColorOk(); ok && color != nil && *color != "" {
-
 		data.Color = types.StringValue(*color)
-
 	} else {
-
 		data.Color = types.StringNull()
-
 	}
 
 	// Map positions
 
 	if positions, ok := port.GetPositionsOk(); ok && positions != nil {
-
 		data.Positions = types.Int32Value(*positions)
-
 	} else {
-
 		data.Positions = types.Int32Value(1)
-
 	}
 
 	// Map description
 
 	if desc, ok := port.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map mark_connected
 
 	if mc, ok := port.GetMarkConnectedOk(); ok && mc != nil {
-
 		data.MarkConnected = types.BoolValue(*mc)
-
 	} else {
-
 		data.MarkConnected = types.BoolValue(false)
-
 	}
 
 	// Map display_name
 
 	if port.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(port.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
-
 }

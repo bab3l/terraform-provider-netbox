@@ -8,7 +8,6 @@ import (
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
-	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -40,7 +39,6 @@ type ConsolePortTemplateResourceModel struct {
 	ModuleType  types.String `tfsdk:"module_type"`
 	Name        types.String `tfsdk:"name"`
 	Label       types.String `tfsdk:"label"`
-	DisplayName types.String `tfsdk:"display_name"`
 	Type        types.String `tfsdk:"type"`
 	Description types.String `tfsdk:"description"`
 }
@@ -79,7 +77,6 @@ func (r *ConsolePortTemplateResource) Schema(ctx context.Context, req resource.S
 				Optional:            true,
 				Computed:            true,
 			},
-			"display_name": nbschema.DisplayNameAttribute("console port template"),
 			"type": schema.StringAttribute{
 				MarkdownDescription: "The type of console port (e.g., de-9, db-25, rj-45, usb-a, usb-b, usb-c, usb-mini-a, usb-mini-b, usb-micro-a, usb-micro-b, usb-micro-ab, other).",
 				Optional:            true,
@@ -311,13 +308,6 @@ func (r *ConsolePortTemplateResource) ImportState(ctx context.Context, req resou
 func (r *ConsolePortTemplateResource) mapResponseToModel(template *netbox.ConsolePortTemplate, data *ConsolePortTemplateResourceModel) {
 	data.ID = types.Int32Value(template.GetId())
 	data.Name = types.StringValue(template.GetName())
-
-	// DisplayName
-	if template.Display != "" {
-		data.DisplayName = types.StringValue(template.Display)
-	} else {
-		data.DisplayName = types.StringNull()
-	}
 
 	// Map device type - preserve user's input format
 	if template.DeviceType.IsSet() && template.DeviceType.Get() != nil {

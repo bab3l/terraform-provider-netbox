@@ -28,9 +28,7 @@ var _ resource.Resource = &L2VPNTerminationResource{}
 var _ resource.ResourceWithImportState = &L2VPNTerminationResource{}
 
 func NewL2VPNTerminationResource() resource.Resource {
-
 	return &L2VPNTerminationResource{}
-
 }
 
 // L2VPNTerminationResource defines the resource implementation.
@@ -50,37 +48,28 @@ type L2VPNTerminationResourceModel struct {
 
 	AssignedObjectID types.Int64 `tfsdk:"assigned_object_id"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
 }
 
 func (r *L2VPNTerminationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_l2vpn_termination"
-
 }
 
 func (r *L2VPNTerminationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a Layer 2 VPN termination in Netbox. L2VPN terminations associate L2VPNs with interfaces or VLANs.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.IDAttribute("L2VPN termination"),
 
 			"l2vpn": schema.StringAttribute{
-
 				MarkdownDescription: "ID of the L2VPN this termination belongs to.",
 
 				Required: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.RegexMatches(
 
 						validators.IntegerRegex(),
@@ -91,13 +80,11 @@ func (r *L2VPNTerminationResource) Schema(ctx context.Context, req resource.Sche
 			},
 
 			"assigned_object_type": schema.StringAttribute{
-
 				MarkdownDescription: "Content type of the assigned object. Valid values: `dcim.interface`, `ipam.vlan`, `virtualization.vminterface`.",
 
 				Required: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.OneOf(
 
 						"dcim.interface",
@@ -110,33 +97,25 @@ func (r *L2VPNTerminationResource) Schema(ctx context.Context, req resource.Sche
 			},
 
 			"assigned_object_id": schema.Int64Attribute{
-
 				MarkdownDescription: "ID of the assigned object (interface or VLAN).",
 
 				Required: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("L2VPN termination"),
 		},
 	}
 
 	// Add common metadata attributes (tags, custom_fields)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
-
 }
 
 func (r *L2VPNTerminationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -145,23 +124,18 @@ func (r *L2VPNTerminationResource) Configure(ctx context.Context, req resource.C
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data L2VPNTerminationResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Look up L2VPN to get name and slug for BriefL2VPNRequest
@@ -169,7 +143,6 @@ func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.Crea
 	var l2vpnID int32
 
 	if _, err := fmt.Sscanf(data.L2VPN.ValueString(), "%d", &l2vpnID); err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid L2VPN ID format",
@@ -178,7 +151,6 @@ func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.Crea
 		)
 
 		return
-
 	}
 
 	l2vpn, httpResp, err := r.client.VpnAPI.VpnL2vpnsRetrieve(ctx, l2vpnID).Execute()
@@ -186,7 +158,6 @@ func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.Crea
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error looking up L2VPN",
@@ -195,7 +166,6 @@ func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.Crea
 		)
 
 		return
-
 	}
 
 	// Build the API request
@@ -216,13 +186,10 @@ func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.Crea
 	utils.ApplyMetadataFields(ctx, terminationRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating L2VPN termination", map[string]interface{}{
-
 		"l2vpn_id": l2vpnID,
 
 		"assigned_object_type": data.AssignedObjectType.ValueString(),
@@ -237,7 +204,6 @@ func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.Crea
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating L2VPN termination",
@@ -246,7 +212,6 @@ func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.Crea
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -254,30 +219,23 @@ func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.Crea
 	r.mapResponseToState(ctx, termination, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Trace(ctx, "Created L2VPN termination resource", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *L2VPNTerminationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data L2VPNTerminationResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -285,7 +243,6 @@ func (r *L2VPNTerminationResource) Read(ctx context.Context, req resource.ReadRe
 	var idInt int32
 
 	if _, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt); err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID format",
@@ -294,7 +251,6 @@ func (r *L2VPNTerminationResource) Read(ctx context.Context, req resource.ReadRe
 		)
 
 		return
-
 	}
 
 	// Read from API
@@ -304,13 +260,10 @@ func (r *L2VPNTerminationResource) Read(ctx context.Context, req resource.ReadRe
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -321,7 +274,6 @@ func (r *L2VPNTerminationResource) Read(ctx context.Context, req resource.ReadRe
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -329,25 +281,19 @@ func (r *L2VPNTerminationResource) Read(ctx context.Context, req resource.ReadRe
 	r.mapResponseToState(ctx, termination, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data L2VPNTerminationResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -355,7 +301,6 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 	var idInt int32
 
 	if _, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt); err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID format",
@@ -364,7 +309,6 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 		)
 
 		return
-
 	}
 
 	// Look up L2VPN to get name and slug for BriefL2VPNRequest
@@ -372,7 +316,6 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 	var l2vpnID int32
 
 	if _, err := fmt.Sscanf(data.L2VPN.ValueString(), "%d", &l2vpnID); err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid L2VPN ID format",
@@ -381,7 +324,6 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 		)
 
 		return
-
 	}
 
 	l2vpn, httpResp, err := r.client.VpnAPI.VpnL2vpnsRetrieve(ctx, l2vpnID).Execute()
@@ -389,7 +331,6 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error looking up L2VPN",
@@ -398,7 +339,6 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 		)
 
 		return
-
 	}
 
 	// Build the API request
@@ -419,13 +359,10 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 	utils.ApplyMetadataFields(ctx, terminationRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating L2VPN termination", map[string]interface{}{
-
 		"id": idInt,
 
 		"l2vpn_id": l2vpnID,
@@ -438,7 +375,6 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating L2VPN termination",
@@ -447,7 +383,6 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -455,25 +390,19 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 	r.mapResponseToState(ctx, termination, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *L2VPNTerminationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data L2VPNTerminationResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -481,7 +410,6 @@ func (r *L2VPNTerminationResource) Delete(ctx context.Context, req resource.Dele
 	var idInt int32
 
 	if _, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt); err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID format",
@@ -490,11 +418,9 @@ func (r *L2VPNTerminationResource) Delete(ctx context.Context, req resource.Dele
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting L2VPN termination", map[string]interface{}{
-
 		"id": idInt,
 	})
 
@@ -505,13 +431,10 @@ func (r *L2VPNTerminationResource) Delete(ctx context.Context, req resource.Dele
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			// Already deleted
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -522,29 +445,17 @@ func (r *L2VPNTerminationResource) Delete(ctx context.Context, req resource.Dele
 		)
 
 		return
-
 	}
-
 }
 
 func (r *L2VPNTerminationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // mapResponseToState maps an L2VPNTermination API response to the Terraform state model.
 
 func (r *L2VPNTerminationResource) mapResponseToState(ctx context.Context, termination *netbox.L2VPNTermination, data *L2VPNTerminationResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", termination.GetId()))
-
-	// DisplayName
-	if termination.Display != "" {
-		data.DisplayName = types.StringValue(termination.Display)
-	} else {
-		data.DisplayName = types.StringNull()
-	}
 
 	// L2VPN
 
@@ -561,7 +472,6 @@ func (r *L2VPNTerminationResource) mapResponseToState(ctx context.Context, termi
 	// Tags
 
 	if termination.HasTags() && len(termination.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(termination.GetTags())
 
 		tagsValue, d := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -569,25 +479,19 @@ func (r *L2VPNTerminationResource) mapResponseToState(ctx context.Context, termi
 		diags.Append(d...)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom fields
 
 	if termination.HasCustomFields() && len(termination.GetCustomFields()) > 0 {
-
 		var existingModels []utils.CustomFieldModel
 
 		if !data.CustomFields.IsNull() {
-
 			d := data.CustomFields.ElementsAs(ctx, &existingModels, false)
 
 			diags.Append(d...)
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(termination.GetCustomFields(), existingModels)
@@ -597,11 +501,7 @@ func (r *L2VPNTerminationResource) mapResponseToState(ctx context.Context, termi
 		diags.Append(d...)
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

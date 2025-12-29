@@ -46,7 +46,6 @@ type CircuitTypeResourceModel struct {
 	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
 	Slug         types.String `tfsdk:"slug"`
-	DisplayName  types.String `tfsdk:"display_name"`
 	Description  types.String `tfsdk:"description"`
 	Color        types.String `tfsdk:"color"`
 	Tags         types.Set    `tfsdk:"tags"`
@@ -88,7 +87,6 @@ func (r *CircuitTypeResource) Schema(ctx context.Context, req resource.SchemaReq
 					),
 				},
 			},
-			"display_name": nbschema.DisplayNameAttribute("circuit type"),
 			"color": schema.StringAttribute{
 				MarkdownDescription: "The color to use when displaying this circuit type (6-character hex code without the leading #, e.g., 'aa1409').",
 				Optional:            true,
@@ -316,7 +314,6 @@ func (r *CircuitTypeResource) mapCircuitTypeToState(ctx context.Context, circuit
 	data.ID = types.StringValue(fmt.Sprintf("%d", circuitType.GetId()))
 	data.Name = types.StringValue(circuitType.GetName())
 	data.Slug = types.StringValue(circuitType.GetSlug())
-	data.DisplayName = types.StringValue(circuitType.GetDisplay())
 
 	// Handle description
 	if circuitType.HasDescription() && circuitType.GetDescription() != "" {

@@ -1,9 +1,7 @@
 // Package resources contains Terraform resource implementations for the Netbox provider.
-
 //
 
 // This package integrates with the go-netbox OpenAPI client to provide
-
 // CRUD operations for Netbox resources via Terraform.
 
 package resources
@@ -31,9 +29,7 @@ var _ resource.Resource = &SiteGroupResource{}
 var _ resource.ResourceWithImportState = &SiteGroupResource{}
 
 func NewSiteGroupResource() resource.Resource {
-
 	return &SiteGroupResource{}
-
 }
 
 // SiteGroupResource defines the resource implementation.
@@ -57,27 +53,20 @@ type SiteGroupResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
 }
 
 func (r *SiteGroupResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_site_group"
-
 }
 
 func (r *SiteGroupResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a site group in Netbox. Site groups provide a hierarchical way to organize sites, allowing you to create nested organizational structures for better management and reporting of your physical locations.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.IDAttribute("site group"),
 
 			"name": nbschema.NameAttribute("site group", 100),
@@ -90,8 +79,6 @@ func (r *SiteGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed:            true,
 				MarkdownDescription: "The numeric ID of the parent site group.",
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("site group"),
 		},
 	}
 
@@ -103,17 +90,13 @@ func (r *SiteGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 }
 
 func (r *SiteGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -122,27 +105,21 @@ func (r *SiteGroupResource) Configure(ctx context.Context, req resource.Configur
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data SiteGroupResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating site group", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"slug": data.Slug.ValueString(),
@@ -151,7 +128,6 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 	// Prepare the site group request
 
 	siteGroupRequest := netbox.WritableSiteGroupRequest{
-
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
@@ -167,19 +143,15 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 	// Handle parent reference
 
 	if utils.IsSet(data.Parent) {
-
 		parentID, parentDiags := netboxlookup.LookupSiteGroupID(ctx, r.client, data.Parent.ValueString())
 
 		resp.Diagnostics.Append(parentDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		siteGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
-
 	}
 
 	// Create the site group via API
@@ -189,9 +161,7 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		handler := utils.CreateErrorHandler{
-
 			ResourceType: "netbox_site_group",
 
 			ResourceName: "this.site_group",
@@ -199,46 +169,35 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 			SlugValue: data.Slug.ValueString(),
 
 			LookupFunc: func(lookupCtx context.Context, slug string) (string, error) {
-
 				list, _, lookupErr := r.client.DcimAPI.DcimSiteGroupsList(lookupCtx).Slug([]string{slug}).Execute()
 
 				if lookupErr != nil {
-
 					return "", lookupErr
-
 				}
 
 				if list != nil && len(list.Results) > 0 {
-
 					return fmt.Sprintf("%d", list.Results[0].GetId()), nil
-
 				}
 
 				return "", nil
-
 			},
 		}
 
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 201 {
-
 		resp.Diagnostics.AddError("Error creating site group", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	if siteGroup == nil {
-
 		resp.Diagnostics.AddError("SiteGroup API returned nil", "No site group object returned from Netbox API.")
 
 		return
-
 	}
 
 	// Map response to state using helper
@@ -246,26 +205,21 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 	r.mapSiteGroupToState(ctx, siteGroup, &data)
 
 	tflog.Debug(ctx, "Created site group", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *SiteGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data SiteGroupResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	siteGroupID := data.ID.ValueString()
@@ -275,11 +229,9 @@ func (r *SiteGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	siteGroupIDInt, err := utils.ParseID(siteGroupID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid Site Group ID", fmt.Sprintf("Site Group ID must be a number, got: %s", siteGroupID))
 
 		return
-
 	}
 
 	siteGroup, httpResp, err := r.client.DcimAPI.DcimSiteGroupsRetrieve(ctx, siteGroupIDInt).Execute()
@@ -295,15 +247,12 @@ func (r *SiteGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 		resp.Diagnostics.AddError("Error reading site group", utils.FormatAPIError(fmt.Sprintf("read site group ID %s", siteGroupID), err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError("Error reading site group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	// Map response to state using helper
@@ -311,19 +260,15 @@ func (r *SiteGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	r.mapSiteGroupToState(ctx, siteGroup, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data SiteGroupResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	siteGroupID := data.ID.ValueString()
@@ -333,17 +278,14 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	siteGroupIDInt, err := utils.ParseID(siteGroupID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid Site Group ID", fmt.Sprintf("Site Group ID must be a number, got: %s", siteGroupID))
 
 		return
-
 	}
 
 	// Prepare the site group update request
 
 	siteGroupRequest := netbox.WritableSiteGroupRequest{
-
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
@@ -359,19 +301,15 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	// Handle parent reference
 
 	if utils.IsSet(data.Parent) {
-
 		parentID, parentDiags := netboxlookup.LookupSiteGroupID(ctx, r.client, data.Parent.ValueString())
 
 		resp.Diagnostics.Append(parentDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		siteGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
-
 	}
 
 	siteGroup, httpResp, err := r.client.DcimAPI.DcimSiteGroupsUpdate(ctx, siteGroupIDInt).WritableSiteGroupRequest(siteGroupRequest).Execute()
@@ -379,19 +317,15 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Error updating site group", utils.FormatAPIError(fmt.Sprintf("update site group ID %s", siteGroupID), err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError("Error updating site group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	// Map response to state using helper
@@ -399,19 +333,15 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	r.mapSiteGroupToState(ctx, siteGroup, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *SiteGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data SiteGroupResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	siteGroupID := data.ID.ValueString()
@@ -421,11 +351,9 @@ func (r *SiteGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 	siteGroupIDInt, err := utils.ParseID(siteGroupID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid Site Group ID", fmt.Sprintf("Site Group ID must be a number, got: %s", siteGroupID))
 
 		return
-
 	}
 
 	httpResp, err := r.client.DcimAPI.DcimSiteGroupsDestroy(ctx, siteGroupIDInt).Execute()
@@ -440,29 +368,22 @@ func (r *SiteGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 		resp.Diagnostics.AddError("Error deleting site group", utils.FormatAPIError(fmt.Sprintf("delete site group ID %s", siteGroupID), err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 204 {
-
 		resp.Diagnostics.AddError("Error deleting site group", fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
-
 }
 
 func (r *SiteGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // mapSiteGroupToState maps API response to Terraform state using state helpers.
 
 func (r *SiteGroupResource) mapSiteGroupToState(ctx context.Context, siteGroup *netbox.SiteGroup, data *SiteGroupResourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", siteGroup.GetId()))
 
 	data.Name = types.StringValue(siteGroup.GetName())
@@ -472,37 +393,25 @@ func (r *SiteGroupResource) mapSiteGroupToState(ctx context.Context, siteGroup *
 	// Handle parent reference
 
 	if siteGroup.HasParent() {
-
 		parent := siteGroup.GetParent()
 
 		if parent.GetId() != 0 {
-
 			data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
 
 			userParent := data.Parent.ValueString()
 
 			if userParent == parent.GetName() || userParent == parent.GetSlug() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
-
 				// Keep user's original value
-
 			} else {
-
 				data.Parent = types.StringValue(parent.GetName())
-
 			}
-
 		} else {
-
 			data.Parent = types.StringNull()
 			data.ParentID = types.StringNull()
-
 		}
-
 	} else {
-
 		data.Parent = types.StringNull()
 		data.ParentID = types.StringNull()
-
 	}
 
 	// Handle optional string fields using helpers
@@ -510,63 +419,37 @@ func (r *SiteGroupResource) mapSiteGroupToState(ctx context.Context, siteGroup *
 	data.Description = utils.StringFromAPI(siteGroup.HasDescription(), siteGroup.GetDescription, data.Description)
 
 	// Handle display_name
-
-	if siteGroup.GetDisplay() != "" {
-
-		data.DisplayName = types.StringValue(siteGroup.GetDisplay())
-
-	} else {
-
-		data.DisplayName = types.StringNull()
-
-	}
-
 	// Handle tags
 
 	if siteGroup.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(siteGroup.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
 
 		if !tagDiags.HasError() {
-
 			data.Tags = tagsValue
-
 		}
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields - preserve state structure
 
 	if siteGroup.HasCustomFields() && !data.CustomFields.IsNull() {
-
 		var stateCustomFields []utils.CustomFieldModel
 
 		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
 
 		if !cfDiags.HasError() {
-
 			customFields := utils.MapToCustomFieldModels(siteGroup.GetCustomFields(), stateCustomFields)
 
 			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 
 			if !cfValueDiags.HasError() {
-
 				data.CustomFields = customFieldsValue
-
 			}
-
 		}
-
 	} else if data.CustomFields.IsNull() {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

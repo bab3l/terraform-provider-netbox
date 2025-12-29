@@ -44,7 +44,6 @@ type RIRResourceModel struct {
 	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
 	Slug         types.String `tfsdk:"slug"`
-	DisplayName  types.String `tfsdk:"display_name"`
 	IsPrivate    types.Bool   `tfsdk:"is_private"`
 	Description  types.String `tfsdk:"description"`
 	Tags         types.Set    `tfsdk:"tags"`
@@ -68,9 +67,8 @@ func (r *RIRResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"name":         nbschema.NameAttribute("RIR", 100),
-			"slug":         nbschema.SlugAttribute("RIR"),
-			"display_name": nbschema.DisplayNameAttribute("RIR"),
+			"name": nbschema.NameAttribute("RIR", 100),
+			"slug": nbschema.SlugAttribute("RIR"),
 			"is_private": schema.BoolAttribute{
 				MarkdownDescription: "Whether IP space managed by this RIR is considered private. Defaults to `false`.",
 				Optional:            true,
@@ -318,7 +316,6 @@ func (r *RIRResource) mapRIRToState(ctx context.Context, rir *netbox.RIR, data *
 	data.ID = types.StringValue(fmt.Sprintf("%d", rir.Id))
 	data.Name = types.StringValue(rir.Name)
 	data.Slug = types.StringValue(rir.Slug)
-	data.DisplayName = types.StringValue(rir.GetDisplay())
 
 	// Is Private
 	if rir.IsPrivate != nil {
