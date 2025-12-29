@@ -32,9 +32,7 @@ var (
 // NewDeviceBayResource returns a new resource implementing the DeviceBay resource.
 
 func NewDeviceBayResource() resource.Resource {
-
 	return &DeviceBayResource{}
-
 }
 
 // DeviceBayResource defines the resource implementation.
@@ -68,21 +66,16 @@ type DeviceBayResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *DeviceBayResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_device_bay"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *DeviceBayResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a device bay in NetBox. A device bay is a slot within a parent device where a child device can be installed, such as a blade server chassis slot or a modular switch slot.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.IDAttribute("device bay"),
 
 			"device": nbschema.RequiredReferenceAttribute("device", "The parent device containing this device bay. Accepts ID or name."),
@@ -90,7 +83,6 @@ func (r *DeviceBayResource) Schema(ctx context.Context, req resource.SchemaReque
 			"name": nbschema.NameAttribute("device bay", 64),
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label for the device bay.",
 
 				Optional: true,
@@ -99,7 +91,6 @@ func (r *DeviceBayResource) Schema(ctx context.Context, req resource.SchemaReque
 			"display_name": nbschema.DisplayNameAttribute("device bay"),
 
 			"installed_device": schema.StringAttribute{
-
 				MarkdownDescription: "The child device installed in this bay. Accepts ID or name.",
 
 				Optional: true,
@@ -112,23 +103,18 @@ func (r *DeviceBayResource) Schema(ctx context.Context, req resource.SchemaReque
 
 	// Add common metadata attributes (tags, custom_fields)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
-
 }
 
 // Configure adds the provider configured client to the resource.
 
 func (r *DeviceBayResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -137,25 +123,20 @@ func (r *DeviceBayResource) Configure(ctx context.Context, req resource.Configur
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates a new device bay resource.
 
 func (r *DeviceBayResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data DeviceBayResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Build the request
@@ -165,13 +146,10 @@ func (r *DeviceBayResource) Create(ctx context.Context, req resource.CreateReque
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating device bay", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"device": data.Device.ValueString(),
@@ -182,7 +160,6 @@ func (r *DeviceBayResource) Create(ctx context.Context, req resource.CreateReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating device bay",
@@ -191,7 +168,6 @@ func (r *DeviceBayResource) Create(ctx context.Context, req resource.CreateReque
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -199,40 +175,32 @@ func (r *DeviceBayResource) Create(ctx context.Context, req resource.CreateReque
 	r.mapResponseToModel(ctx, db, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Created device bay", map[string]interface{}{
-
 		"id": db.GetId(),
 
 		"name": db.GetName(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read reads the device bay resource.
 
 func (r *DeviceBayResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data DeviceBayResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	dbID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Device Bay ID",
@@ -241,11 +209,9 @@ func (r *DeviceBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading device bay", map[string]interface{}{
-
 		"id": dbID,
 	})
 
@@ -254,13 +220,10 @@ func (r *DeviceBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -271,7 +234,6 @@ func (r *DeviceBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -279,33 +241,26 @@ func (r *DeviceBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 	r.mapResponseToModel(ctx, db, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the device bay resource.
 
 func (r *DeviceBayResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data DeviceBayResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	dbID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Device Bay ID",
@@ -314,7 +269,6 @@ func (r *DeviceBayResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 
 		return
-
 	}
 
 	// Build the request
@@ -324,13 +278,10 @@ func (r *DeviceBayResource) Update(ctx context.Context, req resource.UpdateReque
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating device bay", map[string]interface{}{
-
 		"id": dbID,
 	})
 
@@ -339,7 +290,6 @@ func (r *DeviceBayResource) Update(ctx context.Context, req resource.UpdateReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating device bay",
@@ -348,7 +298,6 @@ func (r *DeviceBayResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -356,33 +305,26 @@ func (r *DeviceBayResource) Update(ctx context.Context, req resource.UpdateReque
 	r.mapResponseToModel(ctx, db, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the device bay resource.
 
 func (r *DeviceBayResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data DeviceBayResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	dbID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Device Bay ID",
@@ -391,11 +333,9 @@ func (r *DeviceBayResource) Delete(ctx context.Context, req resource.DeleteReque
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting device bay", map[string]interface{}{
-
 		"id": dbID,
 	})
 
@@ -404,11 +344,8 @@ func (r *DeviceBayResource) Delete(ctx context.Context, req resource.DeleteReque
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -419,23 +356,18 @@ func (r *DeviceBayResource) Delete(ctx context.Context, req resource.DeleteReque
 		)
 
 		return
-
 	}
-
 }
 
 // ImportState imports an existing device bay resource.
 
 func (r *DeviceBayResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // buildRequest builds the API request from the Terraform model.
 
 func (r *DeviceBayResource) buildRequest(ctx context.Context, data *DeviceBayResourceModel) (*netbox.DeviceBayRequest, diag.Diagnostics) {
-
 	var diags diag.Diagnostics
 
 	// Look up device
@@ -445,9 +377,7 @@ func (r *DeviceBayResource) buildRequest(ctx context.Context, data *DeviceBayRes
 	diags.Append(lookupDiags...)
 
 	if diags.HasError() {
-
 		return nil, diags
-
 	}
 
 	dbRequest := netbox.NewDeviceBayRequest(*deviceRef, data.Name.ValueString())
@@ -455,25 +385,19 @@ func (r *DeviceBayResource) buildRequest(ctx context.Context, data *DeviceBayRes
 	// Set optional fields
 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-
 		dbRequest.SetLabel(data.Label.ValueString())
-
 	}
 
 	if !data.InstalledDevice.IsNull() && !data.InstalledDevice.IsUnknown() {
-
 		installedDeviceRef, lookupDiags := netboxlookup.LookupDevice(ctx, r.client, data.InstalledDevice.ValueString())
 
 		diags.Append(lookupDiags...)
 
 		if diags.HasError() {
-
 			return nil, diags
-
 		}
 
 		dbRequest.InstalledDevice = *netbox.NewNullableBriefDeviceRequest(installedDeviceRef)
-
 	}
 
 	// Handle description, tags, and custom fields
@@ -483,19 +407,15 @@ func (r *DeviceBayResource) buildRequest(ctx context.Context, data *DeviceBayRes
 	utils.ApplyMetadataFields(ctx, dbRequest, data.Tags, data.CustomFields, &diags)
 
 	if diags.HasError() {
-
 		return nil, diags
-
 	}
 
 	return dbRequest, diags
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.DeviceBay, data *DeviceBayResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", db.GetId()))
 
 	data.Name = types.StringValue(db.GetName())
@@ -514,45 +434,32 @@ func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.D
 	// Map label
 
 	if label, ok := db.GetLabelOk(); ok && label != nil && *label != "" {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Map description
 
 	if desc, ok := db.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map installed_device - preserve user's input format
 
 	if db.InstalledDevice.IsSet() && db.InstalledDevice.Get() != nil {
-
 		installedDevice := db.InstalledDevice.Get()
 
 		data.InstalledDevice = utils.UpdateReferenceAttribute(data.InstalledDevice, installedDevice.GetName(), "", installedDevice.GetId())
-
 	} else {
-
 		data.InstalledDevice = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if db.HasTags() && len(db.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(db.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -560,31 +467,23 @@ func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.D
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if db.HasCustomFields() {
-
 		apiCustomFields := db.GetCustomFields()
 
 		var stateCustomFieldModels []utils.CustomFieldModel
 
 		if !data.CustomFields.IsNull() {
-
 			data.CustomFields.ElementsAs(ctx, &stateCustomFieldModels, false)
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(apiCustomFields, stateCustomFieldModels)
@@ -594,17 +493,11 @@ func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.D
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

@@ -34,9 +34,7 @@ var (
 // NewDeviceBayTemplateResource returns a new DeviceBayTemplate resource.
 
 func NewDeviceBayTemplateResource() resource.Resource {
-
 	return &DeviceBayTemplateResource{}
-
 }
 
 // DeviceBayTemplateResource defines the resource implementation.
@@ -64,54 +62,43 @@ type DeviceBayTemplateResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *DeviceBayTemplateResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_device_bay_template"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *DeviceBayTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a Device Bay Template in Netbox. Device bay templates define device bays that will be created on devices of the associated device type.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique identifier of the device bay template.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"device_type": schema.StringAttribute{
-
 				MarkdownDescription: "The ID or slug of the device type this template belongs to.",
 
 				Required: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the device bay template. Use {module} as a substitution for the module bay position when attached to a module type.",
 
 				Required: true,
 			},
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label for the device bay.",
 
 				Optional: true,
@@ -128,17 +115,13 @@ func (r *DeviceBayTemplateResource) Schema(ctx context.Context, req resource.Sch
 // Configure adds the provider configured client to the resource.
 
 func (r *DeviceBayTemplateResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -147,17 +130,14 @@ func (r *DeviceBayTemplateResource) Configure(ctx context.Context, req resource.
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates the resource and sets the initial Terraform state.
 
 func (r *DeviceBayTemplateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data DeviceBayTemplateResourceModel
 
 	// Read Terraform plan data into the model
@@ -165,9 +145,7 @@ func (r *DeviceBayTemplateResource) Create(ctx context.Context, req resource.Cre
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Look up device type
@@ -177,9 +155,7 @@ func (r *DeviceBayTemplateResource) Create(ctx context.Context, req resource.Cre
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Build the create request
@@ -189,18 +165,15 @@ func (r *DeviceBayTemplateResource) Create(ctx context.Context, req resource.Cre
 	// Set optional fields
 
 	if utils.IsSet(data.Label) {
-
 		label := data.Label.ValueString()
 
 		createReq.Label = &label
-
 	}
 
 	// Apply description
 	utils.ApplyDescription(&createReq, data.Description)
 
 	tflog.Debug(ctx, "Creating DeviceBayTemplate", map[string]interface{}{
-
 		"device_type": data.DeviceType.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -213,7 +186,6 @@ func (r *DeviceBayTemplateResource) Create(ctx context.Context, req resource.Cre
 		Execute()
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating DeviceBayTemplate",
@@ -222,7 +194,6 @@ func (r *DeviceBayTemplateResource) Create(ctx context.Context, req resource.Cre
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -230,7 +201,6 @@ func (r *DeviceBayTemplateResource) Create(ctx context.Context, req resource.Cre
 	r.mapTemplateToModel(template, &data)
 
 	tflog.Debug(ctx, "Created DeviceBayTemplate", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -239,13 +209,11 @@ func (r *DeviceBayTemplateResource) Create(ctx context.Context, req resource.Cre
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (r *DeviceBayTemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data DeviceBayTemplateResourceModel
 
 	// Read Terraform prior state data into the model
@@ -253,9 +221,7 @@ func (r *DeviceBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -263,7 +229,6 @@ func (r *DeviceBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 	id, err := strconv.Atoi(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing DeviceBayTemplate ID",
@@ -272,11 +237,9 @@ func (r *DeviceBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading DeviceBayTemplate", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -285,11 +248,9 @@ func (r *DeviceBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 	id32, err := utils.SafeInt32(int64(id))
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", err))
 
 		return
-
 	}
 
 	template, httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesRetrieve(ctx, id32).Execute()
@@ -297,18 +258,14 @@ func (r *DeviceBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "DeviceBayTemplate not found, removing from state", map[string]interface{}{
-
 				"id": id,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -319,7 +276,6 @@ func (r *DeviceBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -327,7 +283,6 @@ func (r *DeviceBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 	r.mapTemplateToModel(template, &data)
 
 	tflog.Debug(ctx, "Read DeviceBayTemplate", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -336,13 +291,11 @@ func (r *DeviceBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 	// Save updated data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 
 func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data DeviceBayTemplateResourceModel
 
 	// Read Terraform plan data into the model
@@ -350,9 +303,7 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -360,7 +311,6 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 	id, err := strconv.Atoi(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing DeviceBayTemplate ID",
@@ -369,7 +319,6 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 		)
 
 		return
-
 	}
 
 	// Look up device type
@@ -379,9 +328,7 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Build the update request
@@ -391,11 +338,9 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 	// Set optional fields
 
 	if utils.IsSet(data.Label) {
-
 		label := data.Label.ValueString()
 
 		updateReq.Label = &label
-
 	}
 
 	// Apply description
@@ -410,11 +355,9 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 	id32, convErr := utils.SafeInt32(int64(id))
 
 	if convErr != nil {
-
 		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", convErr))
 
 		return
-
 	}
 
 	template, httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesUpdate(ctx, id32).
@@ -422,7 +365,6 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 		Execute()
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating DeviceBayTemplate",
@@ -431,7 +373,6 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -445,13 +386,11 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 	// Save updated data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 
 func (r *DeviceBayTemplateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data DeviceBayTemplateResourceModel
 
 	// Read Terraform prior state data into the model
@@ -459,9 +398,7 @@ func (r *DeviceBayTemplateResource) Delete(ctx context.Context, req resource.Del
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -469,7 +406,6 @@ func (r *DeviceBayTemplateResource) Delete(ctx context.Context, req resource.Del
 	id, err := strconv.Atoi(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing DeviceBayTemplate ID",
@@ -478,11 +414,9 @@ func (r *DeviceBayTemplateResource) Delete(ctx context.Context, req resource.Del
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting DeviceBayTemplate", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -491,11 +425,9 @@ func (r *DeviceBayTemplateResource) Delete(ctx context.Context, req resource.Del
 	id32, convErr := utils.SafeInt32(int64(id))
 
 	if convErr != nil {
-
 		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", convErr))
 
 		return
-
 	}
 
 	httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesDestroy(ctx, id32).Execute()
@@ -503,16 +435,12 @@ func (r *DeviceBayTemplateResource) Delete(ctx context.Context, req resource.Del
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "DeviceBayTemplate already deleted", map[string]interface{}{
-
 				"id": id,
 			})
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -523,28 +451,22 @@ func (r *DeviceBayTemplateResource) Delete(ctx context.Context, req resource.Del
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted DeviceBayTemplate", map[string]interface{}{
-
 		"id": id,
 	})
-
 }
 
 // ImportState imports the resource state from Terraform.
 
 func (r *DeviceBayTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // mapTemplateToModel maps a Netbox DeviceBayTemplate to the Terraform resource model.
 
 func (r *DeviceBayTemplateResource) mapTemplateToModel(template *netbox.DeviceBayTemplate, data *DeviceBayTemplateResourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", template.Id))
 
 	data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, template.DeviceType.GetModel(), template.DeviceType.GetSlug(), template.DeviceType.GetId())
@@ -561,25 +483,16 @@ func (r *DeviceBayTemplateResource) mapTemplateToModel(template *netbox.DeviceBa
 	// Label
 
 	if template.Label != nil && *template.Label != "" {
-
 		data.Label = types.StringValue(*template.Label)
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Description
 
 	if template.Description != nil && *template.Description != "" {
-
 		data.Description = types.StringValue(*template.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
-
 }

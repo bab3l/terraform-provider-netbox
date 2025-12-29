@@ -25,9 +25,7 @@ var _ resource.Resource = &DeviceRoleResource{}
 var _ resource.ResourceWithImportState = &DeviceRoleResource{}
 
 func NewDeviceRoleResource() resource.Resource {
-
 	return &DeviceRoleResource{}
-
 }
 
 // DeviceRoleResource defines the resource implementation.
@@ -59,19 +57,14 @@ type DeviceRoleResourceModel struct {
 }
 
 func (r *DeviceRoleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_device_role"
-
 }
 
 func (r *DeviceRoleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a device role in Netbox. Device roles are used to categorize devices by their function within the network infrastructure (e.g., 'Router', 'Switch', 'Server', 'Firewall').",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.IDAttribute("device role"),
 
 			"name": nbschema.NameAttribute("device role", 100),
@@ -94,17 +87,13 @@ func (r *DeviceRoleResource) Schema(ctx context.Context, req resource.SchemaRequ
 }
 
 func (r *DeviceRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -113,17 +102,14 @@ func (r *DeviceRoleResource) Configure(ctx context.Context, req resource.Configu
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // mapDeviceRoleToState maps a DeviceRole from the API to the Terraform state model.
 
 func (r *DeviceRoleResource) mapDeviceRoleToState(ctx context.Context, deviceRole *netbox.DeviceRole, data *DeviceRoleResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", deviceRole.GetId()))
 
 	data.Name = types.StringValue(deviceRole.GetName())
@@ -135,47 +121,34 @@ func (r *DeviceRoleResource) mapDeviceRoleToState(ctx context.Context, deviceRol
 	// Handle color - use value from API if available
 
 	if deviceRole.HasColor() && deviceRole.GetColor() != "" {
-
 		data.Color = types.StringValue(deviceRole.GetColor())
-
 	} else if !data.Color.IsNull() {
-
 		// Preserve null if originally null and API returns empty
 
 		data.Color = types.StringNull()
-
 	}
 
 	// Handle vm_role
 
 	if deviceRole.HasVmRole() {
-
 		data.VMRole = types.BoolValue(deviceRole.GetVmRole())
-
 	} else {
-
 		data.VMRole = types.BoolValue(true) // Default to true per Netbox API
-
 	}
 
 	// Handle description
 
 	if deviceRole.HasDescription() && deviceRole.GetDescription() != "" {
-
 		data.Description = types.StringValue(deviceRole.GetDescription())
-
 	} else if !data.Description.IsNull() {
-
 		// Preserve null if originally null and API returns empty
 
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if deviceRole.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(deviceRole.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -183,23 +156,17 @@ func (r *DeviceRoleResource) mapDeviceRoleToState(ctx context.Context, deviceRol
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if deviceRole.HasCustomFields() && !data.CustomFields.IsNull() {
-
 		var stateCustomFields []utils.CustomFieldModel
 
 		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
@@ -207,9 +174,7 @@ func (r *DeviceRoleResource) mapDeviceRoleToState(ctx context.Context, deviceRol
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(deviceRole.GetCustomFields(), stateCustomFields)
@@ -219,35 +184,25 @@ func (r *DeviceRoleResource) mapDeviceRoleToState(ctx context.Context, deviceRol
 		diags.Append(cfValueDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else if data.CustomFields.IsNull() {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }
 
 func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data DeviceRoleResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating device role", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"slug": data.Slug.ValueString(),
@@ -256,7 +211,6 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 	// Build the device role request
 
 	deviceRoleRequest := netbox.DeviceRoleRequest{
-
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
@@ -265,19 +219,15 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 	// Set optional fields if provided
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
-
 		color := data.Color.ValueString()
 
 		deviceRoleRequest.Color = &color
-
 	}
 
 	if !data.VMRole.IsNull() && !data.VMRole.IsUnknown() {
-
 		vmRole := data.VMRole.ValueBool()
 
 		deviceRoleRequest.VmRole = &vmRole
-
 	}
 
 	// Apply description
@@ -293,7 +243,6 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating device role",
@@ -302,11 +251,9 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Created device role", map[string]interface{}{
-
 		"id": deviceRole.GetId(),
 
 		"name": deviceRole.GetName(),
@@ -317,25 +264,19 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 	r.mapDeviceRoleToState(ctx, deviceRole, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data DeviceRoleResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -347,7 +288,6 @@ func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest,
 	deviceRoleIDInt, err := utils.ParseID(deviceRoleID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Device Role ID",
@@ -356,11 +296,9 @@ func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest,
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading device role", map[string]interface{}{
-
 		"id": deviceRoleID,
 	})
 
@@ -371,18 +309,14 @@ func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "Device role not found, removing from state", map[string]interface{}{
-
 				"id": deviceRoleID,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -393,7 +327,6 @@ func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest,
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -401,25 +334,19 @@ func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest,
 	r.mapDeviceRoleToState(ctx, deviceRole, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data DeviceRoleResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -431,7 +358,6 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 	deviceRoleIDInt, err := utils.ParseID(deviceRoleID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Device Role ID",
@@ -440,11 +366,9 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating device role", map[string]interface{}{
-
 		"id": deviceRoleID,
 
 		"name": data.Name.ValueString(),
@@ -455,7 +379,6 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 	// Build the device role request
 
 	deviceRoleRequest := netbox.DeviceRoleRequest{
-
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
@@ -464,19 +387,15 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 	// Set optional fields if provided
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
-
 		color := data.Color.ValueString()
 
 		deviceRoleRequest.Color = &color
-
 	}
 
 	if !data.VMRole.IsNull() && !data.VMRole.IsUnknown() {
-
 		vmRole := data.VMRole.ValueBool()
 
 		deviceRoleRequest.VmRole = &vmRole
-
 	}
 
 	// Apply description
@@ -492,7 +411,6 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating device role",
@@ -501,11 +419,9 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updated device role", map[string]interface{}{
-
 		"id": deviceRole.GetId(),
 
 		"name": deviceRole.GetName(),
@@ -516,25 +432,19 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 	r.mapDeviceRoleToState(ctx, deviceRole, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *DeviceRoleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data DeviceRoleResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -546,7 +456,6 @@ func (r *DeviceRoleResource) Delete(ctx context.Context, req resource.DeleteRequ
 	deviceRoleIDInt, err := utils.ParseID(deviceRoleID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Device Role ID",
@@ -555,11 +464,9 @@ func (r *DeviceRoleResource) Delete(ctx context.Context, req resource.DeleteRequ
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting device role", map[string]interface{}{
-
 		"id": deviceRoleID,
 	})
 
@@ -570,18 +477,14 @@ func (r *DeviceRoleResource) Delete(ctx context.Context, req resource.DeleteRequ
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			// Already deleted, consider success
 
 			tflog.Debug(ctx, "Device role already deleted", map[string]interface{}{
-
 				"id": deviceRoleID,
 			})
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -592,18 +495,13 @@ func (r *DeviceRoleResource) Delete(ctx context.Context, req resource.DeleteRequ
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted device role", map[string]interface{}{
-
 		"id": deviceRoleID,
 	})
-
 }
 
 func (r *DeviceRoleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
