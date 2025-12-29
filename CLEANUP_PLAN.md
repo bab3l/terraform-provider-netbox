@@ -493,17 +493,30 @@ Ensure all example Terraform configurations in `examples/` directory are:
 - scope_id pattern in vlan_group is correct (validated in Phase 6)
 - Examples are realistic and follow best practices
 
-#### Batch 7.2: Sites & Organization (10 resources)
-- [ ] netbox_site
-- [ ] netbox_site_group
-- [ ] netbox_region
-- [ ] netbox_location
-- [ ] netbox_tenant
-- [ ] netbox_tenant_group
-- [ ] netbox_contact
-- [ ] netbox_contact_group
-- [ ] netbox_contact_role
-- [ ] netbox_contact_assignment
+#### Batch 7.2: Sites & Organization (10 resources) ✅ COMPLETE
+- [x] netbox_site - Clean, simple example with all common fields
+- [x] netbox_site_group - Clean, simple example
+- [x] netbox_region - Clean, simple example
+- [x] netbox_location - Clean, uses site slug reference
+- [x] netbox_tenant - Good, shows group reference, tags, custom_fields
+- [x] netbox_tenant_group - Good, shows parent-child hierarchy
+- [x] netbox_contact - Excellent, multiple examples (basic, full, with_tags)
+- [x] netbox_contact_group - Good, shows hierarchical groups with parent reference
+- [x] netbox_contact_role - Good, multiple role examples
+- [x] netbox_contact_assignment - **FIXED**: Updated to use primary fields instead of removed `_id` fields
+
+**Changes Made**:
+- Fixed `netbox_contact_assignment/resource.tf`:
+  - Changed `manufacturer_id` → `manufacturer` (uses slug)
+  - Changed `device_type_id` → `device_type` (uses slug)
+  - Changed `role_id` → `role` (uses slug)
+  - Changed `site_id` → `site` (uses slug)
+
+**Review Notes**:
+- All examples now use current schemas
+- No removed `_id` fields referenced after fix
+- Hierarchical relationships (parent-child) correctly shown
+- Good mix of simple and comprehensive examples
 
 #### Batch 7.3: Device Infrastructure (12 resources)
 - [ ] netbox_device
