@@ -37,8 +37,6 @@ type PlatformResourceModel struct {
 
 	Manufacturer types.String `tfsdk:"manufacturer"`
 
-	ManufacturerID types.String `tfsdk:"manufacturer_id"`
-
 	Description types.String `tfsdk:"description"`
 }
 
@@ -58,8 +56,6 @@ func (r *PlatformResource) Schema(ctx context.Context, req resource.SchemaReques
 			"slug": nbschema.SlugAttribute("platform"),
 
 			"manufacturer": nbschema.ReferenceAttribute("manufacturer", "Reference to the manufacturer (ID or slug)."),
-
-			"manufacturer_id": nbschema.ComputedIDAttribute("manufacturer"),
 		},
 	}
 
@@ -148,13 +144,7 @@ func (r *PlatformResource) Create(ctx context.Context, req resource.CreateReques
 
 		if ok && m != nil {
 			data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, m.Name, m.Slug, m.Id)
-
-			data.ManufacturerID = types.StringValue(fmt.Sprintf("%d", m.Id))
-		} else {
-			data.ManufacturerID = types.StringNull()
 		}
-	} else {
-		data.ManufacturerID = types.StringNull()
 	}
 
 	if platform.HasDescription() {
@@ -231,17 +221,11 @@ func (r *PlatformResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 		if ok && m != nil {
 			data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, m.Name, m.Slug, m.Id)
-
-			data.ManufacturerID = types.StringValue(fmt.Sprintf("%d", m.Id))
 		} else {
 			data.Manufacturer = types.StringNull()
-
-			data.ManufacturerID = types.StringNull()
 		}
 	} else {
 		data.Manufacturer = types.StringNull()
-
-		data.ManufacturerID = types.StringNull()
 	}
 
 	if platform.HasDescription() {
@@ -331,17 +315,11 @@ func (r *PlatformResource) Update(ctx context.Context, req resource.UpdateReques
 
 		if ok && m != nil {
 			data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, m.Name, m.Slug, m.Id)
-
-			data.ManufacturerID = types.StringValue(fmt.Sprintf("%d", m.Id))
 		} else {
 			data.Manufacturer = types.StringNull()
-
-			data.ManufacturerID = types.StringNull()
 		}
 	} else {
 		data.Manufacturer = types.StringNull()
-
-		data.ManufacturerID = types.StringNull()
 	}
 
 	if platform.HasDescription() {
