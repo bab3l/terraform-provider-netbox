@@ -208,9 +208,10 @@ These need additional test coverage. Pattern to add:
 4. ✅ Test Batch A4: console_server_port, console_server_port_template, contact_assignment - Commit e6ee1de
 5. ✅ Test Batch A5: contact_group, event_rule, fhrp_group_assignment, interface - Commit 84ea32a
 6. ✅ Test Batch A6: inventory_item_template, journal_entry, l2vpn_termination, location - Commit 5c3379f
-7. Test Batch A7-A8: Add missing tests for remaining datasources
+7. ✅ Test Batch A7: module_bay_template, notification_group, rack_reservation, rack_role - Commit 795e3bf
+8. Test Batch A8: Add missing tests for remaining datasources
 
-**Progress**: 25 datasources improved, 66 tests total (64 passed, 2 skipped)
+**Progress**: 29 datasources improved, 74 tests total (72 passed, 2 skipped)
 
 ---
 
