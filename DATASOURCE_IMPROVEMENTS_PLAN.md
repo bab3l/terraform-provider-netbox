@@ -160,16 +160,25 @@ These need additional test coverage. Pattern to add:
 
 **Split into sub-batches:**
 
-| Sub-batch | Datasources |
-|-----------|-------------|
-| A1 | aggregate, asn, asn_range, cable, cable_termination |
-| A2 | circuit, circuit_termination, circuit_type, cluster, cluster_group |
-| A3 | cluster_type, config_context, console_port, console_port_template |
-| A4 | console_server_port, console_server_port_template, contact_assignment |
-| A5 | contact_group, event_rule, fhrp_group_assignment, interface |
-| A6 | inventory_item_template, journal_entry, l2vpn_termination, location |
-| A7 | module_bay_template, notification_group, rack_reservation, rack_role |
-| A8 | virtual_device_context, virtual_machine, wireless_link |
+| Sub-batch | Datasources | Status |
+|-----------|-------------|--------|
+| A1 | aggregate, asn, asn_range, cable, cable_termination | ✅ COMPLETE |
+| A2 | circuit, circuit_termination, circuit_type, cluster, cluster_group | Pending |
+| A3 | cluster_type, config_context, console_port, console_port_template | Pending |
+| A4 | console_server_port, console_server_port_template, contact_assignment | Pending |
+| A5 | contact_group, event_rule, fhrp_group_assignment, interface | Pending |
+| A6 | inventory_item_template, journal_entry, l2vpn_termination, location | Pending |
+| A7 | module_bay_template, notification_group, rack_reservation, rack_role | Pending |
+| A8 | virtual_device_context, virtual_machine, wireless_link | Pending |
+
+**Test Batch A1 - ✅ COMPLETE** (Commit 9337fb4)
+- **Aggregate**: Split basic → byID + byPrefix (3 tests total)
+- **ASN**: Split basic → byID + byASN (3 tests total)
+- **ASN Range**: Split basic → byID + byName + bySlug (4 tests total)
+- **Cable**: Renamed basic → byID (2 tests total)
+- **Cable Termination**: Renamed basic → byID (2 tests, both skipped)
+- **Time**: 25 minutes
+- **Tests**: 12 passed, 2 skipped
 
 ---
 
@@ -184,7 +193,10 @@ These need additional test coverage. Pattern to add:
 **Phase Duration**: ~55 minutes total
 
 ### Phase 2: Test Coverage (Secondary)
-4. Test Batch A1-A8: Add missing tests for datasources with 3 tests
+1. ✅ Test Batch A1: aggregate, asn, asn_range, cable, cable_termination - Commit 9337fb4
+2. Test Batch A2-A8: Add missing tests for remaining datasources
+
+**A1 Complete**: 5 datasources improved, 14 tests total (12 passed, 2 skipped)
 
 ---
 
