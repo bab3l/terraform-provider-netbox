@@ -56,23 +56,13 @@ type VirtualMachineResourceModel struct {
 
 	Site types.String `tfsdk:"site"`
 
-	SiteID types.String `tfsdk:"site_id"`
-
 	Cluster types.String `tfsdk:"cluster"`
-
-	ClusterID types.String `tfsdk:"cluster_id"`
 
 	Role types.String `tfsdk:"role"`
 
-	RoleID types.String `tfsdk:"role_id"`
-
 	Tenant types.String `tfsdk:"tenant"`
 
-	TenantID types.String `tfsdk:"tenant_id"`
-
 	Platform types.String `tfsdk:"platform"`
-
-	PlatformID types.String `tfsdk:"platform_id"`
 
 	Vcpus types.Float64 `tfsdk:"vcpus"`
 
@@ -130,22 +120,10 @@ func (r *VirtualMachineResource) Schema(ctx context.Context, req resource.Schema
 				Optional: true,
 			},
 
-			"site_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the site where this virtual machine is located.",
-
-				Computed: true,
-			},
-
 			"cluster": schema.StringAttribute{
 				MarkdownDescription: "The name or ID of the cluster this virtual machine belongs to.",
 
 				Optional: true,
-			},
-
-			"cluster_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the cluster this virtual machine belongs to.",
-
-				Computed: true,
 			},
 
 			"role": schema.StringAttribute{
@@ -154,34 +132,16 @@ func (r *VirtualMachineResource) Schema(ctx context.Context, req resource.Schema
 				Optional: true,
 			},
 
-			"role_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the device role for this virtual machine.",
-
-				Computed: true,
-			},
-
 			"tenant": schema.StringAttribute{
 				MarkdownDescription: "The name or ID of the tenant this virtual machine is assigned to.",
 
 				Optional: true,
 			},
 
-			"tenant_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the tenant this virtual machine is assigned to.",
-
-				Computed: true,
-			},
-
 			"platform": schema.StringAttribute{
 				MarkdownDescription: "The name or ID of the platform (operating system) running on this virtual machine.",
 
 				Optional: true,
-			},
-
-			"platform_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the platform (operating system) running on this virtual machine.",
-
-				Computed: true,
 			},
 
 			"vcpus": schema.Float64Attribute{
@@ -262,13 +222,9 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 	if vm.Site.IsSet() && vm.Site.Get() != nil {
 		siteObj := vm.Site.Get()
 
-		data.SiteID = types.StringValue(fmt.Sprintf("%d", siteObj.GetId()))
-
 		data.Site = utils.UpdateReferenceAttribute(data.Site, siteObj.GetName(), siteObj.GetSlug(), siteObj.GetId())
 	} else {
 		data.Site = types.StringNull()
-
-		data.SiteID = types.StringNull()
 	}
 
 	// Cluster
@@ -276,13 +232,9 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 	if vm.Cluster.IsSet() && vm.Cluster.Get() != nil {
 		clusterObj := vm.Cluster.Get()
 
-		data.ClusterID = types.StringValue(fmt.Sprintf("%d", clusterObj.GetId()))
-
 		data.Cluster = utils.UpdateReferenceAttribute(data.Cluster, clusterObj.GetName(), "", clusterObj.GetId())
 	} else {
 		data.Cluster = types.StringNull()
-
-		data.ClusterID = types.StringNull()
 	}
 
 	// Role
@@ -290,13 +242,9 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 	if vm.Role.IsSet() && vm.Role.Get() != nil {
 		roleObj := vm.Role.Get()
 
-		data.RoleID = types.StringValue(fmt.Sprintf("%d", roleObj.GetId()))
-
 		data.Role = utils.UpdateReferenceAttribute(data.Role, roleObj.GetName(), roleObj.GetSlug(), roleObj.GetId())
 	} else {
 		data.Role = types.StringNull()
-
-		data.RoleID = types.StringNull()
 	}
 
 	// Tenant
@@ -304,13 +252,9 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 	if vm.Tenant.IsSet() && vm.Tenant.Get() != nil {
 		tenantObj := vm.Tenant.Get()
 
-		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenantObj.GetId()))
-
 		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenantObj.GetName(), tenantObj.GetSlug(), tenantObj.GetId())
 	} else {
 		data.Tenant = types.StringNull()
-
-		data.TenantID = types.StringNull()
 	}
 
 	// Platform
@@ -318,13 +262,9 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 	if vm.Platform.IsSet() && vm.Platform.Get() != nil {
 		platformObj := vm.Platform.Get()
 
-		data.PlatformID = types.StringValue(fmt.Sprintf("%d", platformObj.GetId()))
-
 		data.Platform = utils.UpdateReferenceAttribute(data.Platform, platformObj.GetName(), platformObj.GetSlug(), platformObj.GetId())
 	} else {
 		data.Platform = types.StringNull()
-
-		data.PlatformID = types.StringNull()
 	}
 
 	// Vcpus
