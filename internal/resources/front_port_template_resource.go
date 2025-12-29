@@ -30,9 +30,7 @@ var _ resource.ResourceWithImportState = &FrontPortTemplateResource{}
 // NewFrontPortTemplateResource returns a new resource implementing the front port template resource.
 
 func NewFrontPortTemplateResource() resource.Resource {
-
 	return &FrontPortTemplateResource{}
-
 }
 
 // FrontPortTemplateResource defines the resource implementation.
@@ -70,56 +68,45 @@ type FrontPortTemplateResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *FrontPortTemplateResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_front_port_template"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *FrontPortTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a front port template in NetBox. Front port templates define the default front ports that will be created on new devices of a specific device type or modules of a module type. Each front port must map to a rear port.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the front port template.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.Int32{
-
 					int32planmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"device_type": schema.StringAttribute{
-
 				MarkdownDescription: "The device type ID or slug. Either device_type or module_type must be specified.",
 
 				Optional: true,
 			},
 
 			"module_type": schema.StringAttribute{
-
 				MarkdownDescription: "The module type ID or model name. Either device_type or module_type must be specified.",
 
 				Optional: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the front port template. Use {module} as a substitution for the module bay position when attached to a module type.",
 
 				Required: true,
 			},
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label of the front port template.",
 
 				Optional: true,
@@ -128,14 +115,12 @@ func (r *FrontPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 			},
 
 			"type": schema.StringAttribute{
-
 				MarkdownDescription: "The type of front port (e.g., `8p8c`, `8p6c`, `110-punch`, `bnc`, `f`, `n`, `mrj21`, `fc`, `lc`, `lc-pc`, `lc-upc`, `lc-apc`, `lsh`, `lsh-pc`, `lsh-upc`, `lsh-apc`, `mpo`, `mtrj`, `sc`, `sc-pc`, `sc-upc`, `sc-apc`, `st`, `cs`, `sn`, `sma-905`, `sma-906`, `splice`, `other`).",
 
 				Required: true,
 			},
 
 			"color": schema.StringAttribute{
-
 				MarkdownDescription: "Color of the front port in hex format (e.g., `aa1409`).",
 
 				Optional: true,
@@ -146,14 +131,12 @@ func (r *FrontPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 			"display_name": nbschema.DisplayNameAttribute("front port template"),
 
 			"rear_port": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the rear port template on the same device type or module type that this front port maps to.",
 
 				Required: true,
 			},
 
 			"rear_port_position": schema.Int32Attribute{
-
 				MarkdownDescription: "Position on the rear port that this front port maps to (1-1024). Default is 1.",
 
 				Optional: true,
@@ -172,17 +155,13 @@ func (r *FrontPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 // Configure adds the provider configured client to the resource.
 
 func (r *FrontPortTemplateResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -191,25 +170,20 @@ func (r *FrontPortTemplateResource) Configure(ctx context.Context, req resource.
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates the resource and sets the initial Terraform state.
 
 func (r *FrontPortTemplateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data FrontPortTemplateResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Build the rear port reference - required field referencing by name
@@ -230,62 +204,47 @@ func (r *FrontPortTemplateResource) Create(ctx context.Context, req resource.Cre
 	// Set device type or module type
 
 	if !data.DeviceType.IsNull() && !data.DeviceType.IsUnknown() {
-
 		deviceType, diags := netboxlookup.LookupDeviceType(ctx, r.client, data.DeviceType.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetDeviceType(*deviceType)
-
 	}
 
 	if !data.ModuleType.IsNull() && !data.ModuleType.IsUnknown() {
-
 		moduleType, diags := netboxlookup.LookupModuleType(ctx, r.client, data.ModuleType.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetModuleType(*moduleType)
-
 	}
 
 	// Set optional fields
 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-
 		apiReq.SetLabel(data.Label.ValueString())
-
 	}
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
-
 		apiReq.SetColor(data.Color.ValueString())
-
 	}
 
 	if !data.RearPortPosition.IsNull() && !data.RearPortPosition.IsUnknown() {
-
 		apiReq.SetRearPortPosition(data.RearPortPosition.ValueInt32())
-
 	}
 
 	// Apply description
 	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Creating front port template", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"rear_port": data.RearPort.ValueString(),
@@ -296,7 +255,6 @@ func (r *FrontPortTemplateResource) Create(ctx context.Context, req resource.Cre
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating front port template",
@@ -305,7 +263,6 @@ func (r *FrontPortTemplateResource) Create(ctx context.Context, req resource.Cre
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -313,32 +270,26 @@ func (r *FrontPortTemplateResource) Create(ctx context.Context, req resource.Cre
 	r.mapResponseToModel(response, &data)
 
 	tflog.Trace(ctx, "Created front port template", map[string]interface{}{
-
 		"id": data.ID.ValueInt32(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (r *FrontPortTemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data FrontPortTemplateResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	templateID := data.ID.ValueInt32()
 
 	tflog.Debug(ctx, "Reading front port template", map[string]interface{}{
-
 		"id": templateID,
 	})
 
@@ -347,18 +298,14 @@ func (r *FrontPortTemplateResource) Read(ctx context.Context, req resource.ReadR
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "Front port template not found, removing from state", map[string]interface{}{
-
 				"id": templateID,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -369,7 +316,6 @@ func (r *FrontPortTemplateResource) Read(ctx context.Context, req resource.ReadR
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -377,21 +323,17 @@ func (r *FrontPortTemplateResource) Read(ctx context.Context, req resource.ReadR
 	r.mapResponseToModel(response, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 
 func (r *FrontPortTemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data FrontPortTemplateResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	templateID := data.ID.ValueInt32()
@@ -414,62 +356,47 @@ func (r *FrontPortTemplateResource) Update(ctx context.Context, req resource.Upd
 	// Set device type or module type
 
 	if !data.DeviceType.IsNull() && !data.DeviceType.IsUnknown() {
-
 		deviceType, diags := netboxlookup.LookupDeviceType(ctx, r.client, data.DeviceType.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetDeviceType(*deviceType)
-
 	}
 
 	if !data.ModuleType.IsNull() && !data.ModuleType.IsUnknown() {
-
 		moduleType, diags := netboxlookup.LookupModuleType(ctx, r.client, data.ModuleType.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetModuleType(*moduleType)
-
 	}
 
 	// Set optional fields
 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-
 		apiReq.SetLabel(data.Label.ValueString())
-
 	}
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
-
 		apiReq.SetColor(data.Color.ValueString())
-
 	}
 
 	if !data.RearPortPosition.IsNull() && !data.RearPortPosition.IsUnknown() {
-
 		apiReq.SetRearPortPosition(data.RearPortPosition.ValueInt32())
-
 	}
 
 	// Apply description
 	utils.ApplyDescription(apiReq, data.Description)
 
 	tflog.Debug(ctx, "Updating front port template", map[string]interface{}{
-
 		"id": templateID,
 	})
 
@@ -478,7 +405,6 @@ func (r *FrontPortTemplateResource) Update(ctx context.Context, req resource.Upd
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating front port template",
@@ -487,7 +413,6 @@ func (r *FrontPortTemplateResource) Update(ctx context.Context, req resource.Upd
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -495,27 +420,22 @@ func (r *FrontPortTemplateResource) Update(ctx context.Context, req resource.Upd
 	r.mapResponseToModel(response, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 
 func (r *FrontPortTemplateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data FrontPortTemplateResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	templateID := data.ID.ValueInt32()
 
 	tflog.Debug(ctx, "Deleting front port template", map[string]interface{}{
-
 		"id": templateID,
 	})
 
@@ -524,13 +444,10 @@ func (r *FrontPortTemplateResource) Delete(ctx context.Context, req resource.Del
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			// Resource already deleted
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -541,21 +458,17 @@ func (r *FrontPortTemplateResource) Delete(ctx context.Context, req resource.Del
 		)
 
 		return
-
 	}
-
 }
 
 // ImportState imports the resource state from Terraform.
 
 func (r *FrontPortTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	// Parse the import ID as an integer
 
 	id, err := utils.ParseInt32ID(req.ID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Import ID",
@@ -564,19 +477,16 @@ func (r *FrontPortTemplateResource) ImportState(ctx context.Context, req resourc
 		)
 
 		return
-
 	}
 
 	// Set the ID in state
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (r *FrontPortTemplateResource) mapResponseToModel(template *netbox.FrontPortTemplate, data *FrontPortTemplateResourceModel) {
-
 	data.ID = types.Int32Value(template.GetId())
 
 	data.Name = types.StringValue(template.GetName())
@@ -591,29 +501,21 @@ func (r *FrontPortTemplateResource) mapResponseToModel(template *netbox.FrontPor
 	// Map device type - preserve user's input format
 
 	if template.DeviceType.IsSet() && template.DeviceType.Get() != nil {
-
 		dt := template.DeviceType.Get()
 
 		data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, dt.GetModel(), dt.GetSlug(), dt.Id)
-
 	} else {
-
 		data.DeviceType = types.StringNull()
-
 	}
 
 	// Map module type - preserve user's input format
 
 	if template.ModuleType.IsSet() && template.ModuleType.Get() != nil {
-
 		mt := template.ModuleType.Get()
 
 		data.ModuleType = utils.UpdateReferenceAttribute(data.ModuleType, mt.GetModel(), "", mt.Id)
-
 	} else {
-
 		data.ModuleType = types.StringNull()
-
 	}
 
 	// Map type
@@ -623,25 +525,17 @@ func (r *FrontPortTemplateResource) mapResponseToModel(template *netbox.FrontPor
 	// Map label
 
 	if label, ok := template.GetLabelOk(); ok && label != nil {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringValue("")
-
 	}
 
 	// Map color
 
 	if color, ok := template.GetColorOk(); ok && color != nil {
-
 		data.Color = types.StringValue(*color)
-
 	} else {
-
 		data.Color = types.StringValue("")
-
 	}
 
 	// Map rear port - store the name for reference
@@ -651,15 +545,11 @@ func (r *FrontPortTemplateResource) mapResponseToModel(template *netbox.FrontPor
 	// Map rear port position
 
 	if pos, ok := template.GetRearPortPositionOk(); ok && pos != nil {
-
 		data.RearPortPosition = types.Int32Value(*pos)
-
 	} else {
-
 		data.RearPortPosition = types.Int32Value(1)
 	}
 
 	// Map description
 	data.Description = utils.StringFromAPI(template.HasDescription(), template.GetDescription, data.Description)
-
 }
