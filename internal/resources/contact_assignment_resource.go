@@ -89,7 +89,6 @@ func (r *ContactAssignmentResource) Schema(ctx context.Context, req resource.Sch
 				Optional:            true,
 				MarkdownDescription: "The priority of this contact assignment. Valid values are: `primary`, `secondary`, `tertiary`, `inactive`.",
 				Validators: []validator.String{
-
 					stringvalidator.OneOf("primary", "secondary", "tertiary", "inactive", ""),
 				},
 			},

@@ -325,7 +325,6 @@ func (r *ContactResource) mapContactToState(ctx context.Context, contact *netbox
 	}
 
 	if email := contact.GetEmail(); email != "" {
-
 		data.Email = types.StringValue(email)
 	} else {
 		data.Email = types.StringNull()

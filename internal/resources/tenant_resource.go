@@ -1,9 +1,7 @@
 // Package resources contains Terraform resource implementations for the Netbox provider.
-
 //
 
 // This package integrates with the go-netbox OpenAPI client to provide
-
 // CRUD operations for Netbox resources via Terraform.
 
 package resources
@@ -32,9 +30,7 @@ var _ resource.Resource = &TenantResource{}
 var _ resource.ResourceWithImportState = &TenantResource{}
 
 func NewTenantResource() resource.Resource {
-
 	return &TenantResource{}
-
 }
 
 // TenantResource defines the resource implementation.
@@ -68,19 +64,14 @@ type TenantResourceModel struct {
 }
 
 func (r *TenantResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_tenant"
-
 }
 
 func (r *TenantResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a tenant in Netbox. Tenants represent individual customers or organizational units in multi-tenancy scenarios, allowing you to organize and track resources by client or department.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.IDAttribute("tenant"),
 
 			"name": nbschema.NameAttribute("tenant", 100),
@@ -99,23 +90,18 @@ func (r *TenantResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 	// Add common metadata attributes (tags, custom_fields)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
-
 }
 
 func (r *TenantResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	// Prevent panic if the provider has not been configured.
 
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -124,27 +110,21 @@ func (r *TenantResource) Configure(ctx context.Context, req resource.ConfigureRe
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data TenantResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating tenant", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"slug": data.Slug.ValueString(),
@@ -153,7 +133,6 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 	// Prepare the tenant request
 
 	tenantRequest := netbox.TenantRequest{
-
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
@@ -165,9 +144,7 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 	// Handle group relationship - lookup the group details by ID
 
 	if groupRef := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupTenantGroup, &resp.Diagnostics); groupRef != nil {
-
 		tenantRequest.Group = *netbox.NewNullableBriefTenantGroupRequest(groupRef)
-
 	}
 
 	// Apply common metadata fields (tags, custom_fields)
@@ -183,11 +160,9 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		// Use enhanced error handler that detects duplicates and provides import hints
 
 		handler := utils.CreateErrorHandler{
-
 			ResourceType: "netbox_tenant",
 
 			ResourceName: "this.tenant",
@@ -195,46 +170,35 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 			SlugValue: data.Slug.ValueString(),
 
 			LookupFunc: func(lookupCtx context.Context, slug string) (string, error) {
-
 				list, _, lookupErr := r.client.TenancyAPI.TenancyTenantsList(lookupCtx).Slug([]string{slug}).Execute()
 
 				if lookupErr != nil {
-
 					return "", lookupErr
-
 				}
 
 				if list != nil && len(list.Results) > 0 {
-
 					return fmt.Sprintf("%d", list.Results[0].GetId()), nil
-
 				}
 
 				return "", nil
-
 			},
 		}
 
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 201 {
-
 		resp.Diagnostics.AddError("Error creating tenant", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	if tenant == nil {
-
 		resp.Diagnostics.AddError("Tenant API returned nil", "No tenant object returned from Netbox API.")
 
 		return
-
 	}
 
 	// Map response to state using helper
@@ -244,26 +208,21 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	tflog.Debug(ctx, "Created tenant", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data TenantResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tenantID := data.ID.ValueString()
@@ -273,11 +232,9 @@ func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, res
 	tenantIDInt, err := utils.ParseID(tenantID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid Tenant ID", fmt.Sprintf("Tenant ID must be a number, got: %s", tenantID))
 
 		return
-
 	}
 
 	tenant, httpResp, err := r.client.TenancyAPI.TenancyTenantsRetrieve(ctx, tenantIDInt).Execute()
@@ -293,15 +250,12 @@ func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, res
 		resp.Diagnostics.AddError("Error reading tenant", utils.FormatAPIError(fmt.Sprintf("read tenant ID %s", tenantID), err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError("Error reading tenant", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	// Map response to state using helper
@@ -311,19 +265,15 @@ func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data TenantResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tenantID := data.ID.ValueString()
@@ -333,17 +283,14 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 	tenantIDInt, err := utils.ParseID(tenantID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid Tenant ID", fmt.Sprintf("Tenant ID must be a number, got: %s", tenantID))
 
 		return
-
 	}
 
 	// Prepare the tenant update request
 
 	tenantRequest := netbox.TenantRequest{
-
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
@@ -355,9 +302,7 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 	// Handle group relationship
 
 	if groupRef := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupTenantGroup, &resp.Diagnostics); groupRef != nil {
-
 		tenantRequest.Group = *netbox.NewNullableBriefTenantGroupRequest(groupRef)
-
 	}
 
 	// Apply common metadata fields (tags, custom_fields)
@@ -371,19 +316,15 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Error updating tenant", utils.FormatAPIError(fmt.Sprintf("update tenant ID %s", tenantID), err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError("Error updating tenant", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	// Map response to state using helper
@@ -393,19 +334,15 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *TenantResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data TenantResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tenantID := data.ID.ValueString()
@@ -415,11 +352,9 @@ func (r *TenantResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	tenantIDInt, err := utils.ParseID(tenantID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid Tenant ID", fmt.Sprintf("Tenant ID must be a number, got: %s", tenantID))
 
 		return
-
 	}
 
 	httpResp, err := r.client.TenancyAPI.TenancyTenantsDestroy(ctx, tenantIDInt).Execute()
@@ -434,29 +369,22 @@ func (r *TenantResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		resp.Diagnostics.AddError("Error deleting tenant", utils.FormatAPIError(fmt.Sprintf("delete tenant ID %s", tenantID), err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 204 {
-
 		resp.Diagnostics.AddError("Error deleting tenant", fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
-
 }
 
 func (r *TenantResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // mapTenantToState maps API response to Terraform state using state helpers.
 
 func (r *TenantResource) mapTenantToState(ctx context.Context, tenant *netbox.Tenant, data *TenantResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 
 	data.Name = types.StringValue(tenant.GetName())
