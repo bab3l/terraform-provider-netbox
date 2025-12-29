@@ -664,17 +664,26 @@ Ensure all example Terraform configurations in `examples/` directory are:
 - [ ] netbox_ipsec_policy
 - [ ] netbox_ipsec_profile
 
-#### Batch 7.9: Wireless & Extras (10 resources)
-- [ ] netbox_ipsec_proposal
-- [ ] netbox_wireless_lan
-- [ ] netbox_wireless_lan_group
-- [ ] netbox_wireless_link
-- [ ] netbox_tag
-- [ ] netbox_custom_field
-- [ ] netbox_custom_field_choice_set
-- [ ] netbox_custom_link
-- [ ] netbox_webhook
-- [ ] netbox_event_rule
+#### Batch 7.9: Wireless & Extras (10 resources) ✅ COMPLETE
+- [x] netbox_ipsec_proposal - Clean, simple example
+- [x] netbox_wireless_lan - Clean, simple example
+- [x] netbox_wireless_lan_group - Clean, simple example
+- [x] netbox_wireless_link - Excellent, comprehensive examples (basic, with SSID, auth, complete)
+- [x] netbox_tag - Excellent, multiple examples showing different use cases
+- [x] netbox_custom_field - Clean, simple example
+- [x] netbox_custom_field_choice_set - Clean, shows choice set with values
+- [x] netbox_custom_link - Clean, shows templating with object variables
+- [x] netbox_webhook - Excellent, comprehensive examples (basic, custom, secure, templated, insecure)
+- [x] netbox_event_rule - Clean, shows webhook integration with action_object_id
+
+**Review Notes**:
+- All examples verified as correct
+- No removed `_id` fields referenced
+- Wireless link shows comprehensive examples with authentication and distance
+- Tag examples show variety of use cases (basic, color, object_types)
+- Webhook examples demonstrate full feature set
+- Event rule properly uses webhook.id for action_object_id
+- All examples use current schemas correctly
 
 #### Batch 7.10: Configuration & Remaining (9 resources)
 - [ ] netbox_export_template
