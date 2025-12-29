@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccEventRuleDataSource_basic(t *testing.T) {
-
+func TestAccEventRuleDataSource_byID(t *testing.T) {
 	t.Parallel()
 
 	webhookName := testutil.RandomName("tf-test-webhook")

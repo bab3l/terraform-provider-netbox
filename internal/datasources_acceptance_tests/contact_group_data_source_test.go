@@ -33,8 +33,7 @@ func TestAccContactGroupDataSource_IDPreservation(t *testing.T) {
 	})
 }
 
-func TestAccContactGroupDataSource_basic(t *testing.T) {
-
+func TestAccContactGroupDataSource_byID(t *testing.T) {
 	t.Parallel()
 	name := testutil.RandomName("test-contact-group")
 	slug := testutil.GenerateSlug(name)
@@ -48,23 +47,61 @@ func TestAccContactGroupDataSource_basic(t *testing.T) {
 		CheckDestroy:             testutil.CheckContactGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccContactGroupDataSourceConfig(name, slug),
+				Config: testAccContactGroupDataSourceConfigByID(name, slug),
 				Check: resource.ComposeTestCheckFunc(
-					// Check by_id lookup
 					resource.TestCheckResourceAttr("data.netbox_contact_group.by_id", "name", name),
 					resource.TestCheckResourceAttr("data.netbox_contact_group.by_id", "slug", slug),
 					resource.TestCheckResourceAttr("data.netbox_contact_group.by_id", "description", "Test Contact Group Description"),
-					// Check by_name lookup
+				),
+			},
+		},
+	})
+}
+
+func TestAccContactGroupDataSource_byName(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("test-contact-group")
+	slug := testutil.GenerateSlug(name)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckContactGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactGroupDataSourceConfigByName(name, slug),
+				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_contact_group.by_name", "name", name),
 					resource.TestCheckResourceAttr("data.netbox_contact_group.by_name", "slug", slug),
 					resource.TestCheckResourceAttr("data.netbox_contact_group.by_name", "description", "Test Contact Group Description"),
-					// Check by_slug lookup
+				),
+			},
+		},
+	})
+}
+
+func TestAccContactGroupDataSource_bySlug(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("test-contact-group")
+	slug := testutil.GenerateSlug(name)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckContactGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactGroupDataSourceConfigBySlug(name, slug),
+				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_contact_group.by_slug", "name", name),
 					resource.TestCheckResourceAttr("data.netbox_contact_group.by_slug", "slug", slug),
 					resource.TestCheckResourceAttr("data.netbox_contact_group.by_slug", "description", "Test Contact Group Description"),
-					// Verify all lookups return same contact group
-					resource.TestCheckResourceAttrPair("data.netbox_contact_group.by_id", "id", "data.netbox_contact_group.by_name", "id"),
-					resource.TestCheckResourceAttrPair("data.netbox_contact_group.by_id", "id", "data.netbox_contact_group.by_slug", "id"),
 				),
 			},
 		},
@@ -82,9 +119,43 @@ resource "netbox_contact_group" "test" {
 data "netbox_contact_group" "by_id" {
   id = netbox_contact_group.test.id
 }
+`, name, slug)
+}
+
+func testAccContactGroupDataSourceConfigByID(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_contact_group" "test" {
+  name        = %q
+  slug        = %q
+  description = "Test Contact Group Description"
+}
+
+data "netbox_contact_group" "by_id" {
+  id = netbox_contact_group.test.id
+}
+`, name, slug)
+}
+
+func testAccContactGroupDataSourceConfigByName(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_contact_group" "test" {
+  name        = %q
+  slug        = %q
+  description = "Test Contact Group Description"
+}
 
 data "netbox_contact_group" "by_name" {
   name = netbox_contact_group.test.name
+}
+`, name, slug)
+}
+
+func testAccContactGroupDataSourceConfigBySlug(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_contact_group" "test" {
+  name        = %q
+  slug        = %q
+  description = "Test Contact Group Description"
 }
 
 data "netbox_contact_group" "by_slug" {

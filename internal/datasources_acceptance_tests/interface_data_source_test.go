@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccInterfaceDataSource_basic(t *testing.T) {
-
+func TestAccInterfaceDataSource_byID(t *testing.T) {
 	t.Parallel()
 
 	siteName := testutil.RandomName("site")
