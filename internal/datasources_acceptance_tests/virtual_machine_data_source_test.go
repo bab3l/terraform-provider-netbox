@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccVirtualMachineDataSource_basic(t *testing.T) {
-
+func TestAccVirtualMachineDataSource_byID(t *testing.T) {
 	t.Parallel()
 
 	clusterTypeName := testutil.RandomName("cluster-type")
@@ -32,16 +31,45 @@ func TestAccVirtualMachineDataSource_basic(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVirtualMachineDataSourceConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName),
+				Config: testAccVirtualMachineDataSourceConfigByID(clusterTypeName, clusterTypeSlug, clusterName, vmName),
 				Check: resource.ComposeTestCheckFunc(
-					// Test lookup by name
-					resource.TestCheckResourceAttr("data.netbox_virtual_machine.by_name", "name", vmName),
-					resource.TestCheckResourceAttr("data.netbox_virtual_machine.by_name", "status", "active"),
-					resource.TestCheckResourceAttrSet("data.netbox_virtual_machine.by_name", "id"),
-					// Test lookup by id
 					resource.TestCheckResourceAttr("data.netbox_virtual_machine.by_id", "name", vmName),
 					resource.TestCheckResourceAttr("data.netbox_virtual_machine.by_id", "status", "active"),
 					resource.TestCheckResourceAttrSet("data.netbox_virtual_machine.by_id", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccVirtualMachineDataSource_byName(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("cluster-type")
+	clusterTypeSlug := testutil.RandomSlug("cluster-type")
+	clusterName := testutil.RandomName("cluster")
+	vmName := testutil.RandomName("vm")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckClusterTypeDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckVirtualMachineDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualMachineDataSourceConfigByName(clusterTypeName, clusterTypeSlug, clusterName, vmName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_virtual_machine.by_name", "name", vmName),
+					resource.TestCheckResourceAttr("data.netbox_virtual_machine.by_name", "status", "active"),
+					resource.TestCheckResourceAttrSet("data.netbox_virtual_machine.by_name", "id"),
 				),
 			},
 		},
@@ -102,9 +130,53 @@ resource "netbox_virtual_machine" "test" {
 data "netbox_virtual_machine" "by_name" {
 	name = netbox_virtual_machine.test.name
 }
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName)
+}
+
+func testAccVirtualMachineDataSourceConfigByID(clusterTypeName, clusterTypeSlug, clusterName, vmName string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+	name = "%s"
+	slug = "%s"
+}
+
+resource "netbox_cluster" "test" {
+	name = "%s"
+	type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+	name    = "%s"
+	cluster = netbox_cluster.test.id
+	status  = "active"
+}
 
 data "netbox_virtual_machine" "by_id" {
 	id = netbox_virtual_machine.test.id
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName)
+}
+
+func testAccVirtualMachineDataSourceConfigByName(clusterTypeName, clusterTypeSlug, clusterName, vmName string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+	name = "%s"
+	slug = "%s"
+}
+
+resource "netbox_cluster" "test" {
+	name = "%s"
+	type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+	name    = "%s"
+	cluster = netbox_cluster.test.id
+	status  = "active"
+}
+
+data "netbox_virtual_machine" "by_name" {
+	name = netbox_virtual_machine.test.name
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName)
 }
