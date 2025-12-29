@@ -549,12 +549,6 @@ func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *
 
 	data.Address = types.StringValue(ipAddress.Address)
 
-	// DisplayName
-
-	if ipAddress.Display != "" {
-	} else {
-	}
-
 	// VRF
 
 	if ipAddress.Vrf.IsSet() && ipAddress.Vrf.Get() != nil {

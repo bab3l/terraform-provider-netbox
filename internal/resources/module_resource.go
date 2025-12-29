@@ -509,11 +509,6 @@ func (r *ModuleResource) ImportState(ctx context.Context, req resource.ImportSta
 func (r *ModuleResource) mapResponseToModel(ctx context.Context, module *netbox.Module, data *ModuleResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", module.GetId()))
 
-	// DisplayName
-	if module.Display != "" {
-	} else {
-	}
-
 	// Map device - preserve user's input format
 
 	if device := module.GetDevice(); device.Id != 0 {

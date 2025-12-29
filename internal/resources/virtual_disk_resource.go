@@ -484,11 +484,6 @@ func (r *VirtualDiskResource) mapVirtualDiskToState(ctx context.Context, vd *net
 
 	data.Name = types.StringValue(vd.Name)
 
-	// DisplayName
-	if vd.Display != "" {
-	} else {
-	}
-
 	// VirtualMachine - preserve user's input format
 
 	data.VirtualMachine = utils.UpdateReferenceAttribute(data.VirtualMachine, vd.VirtualMachine.GetName(), "", vd.VirtualMachine.GetId())

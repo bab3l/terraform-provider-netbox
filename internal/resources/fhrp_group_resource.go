@@ -454,11 +454,6 @@ func (r *FHRPGroupResource) mapFHRPGroupToState(ctx context.Context, fhrpGroup *
 		data.Name = types.StringNull()
 	}
 
-	// DisplayName
-	if fhrpGroup.Display != "" {
-	} else {
-	}
-
 	// Auth Type
 
 	if fhrpGroup.AuthType != nil {

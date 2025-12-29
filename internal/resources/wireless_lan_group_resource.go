@@ -462,11 +462,6 @@ func (r *WirelessLANGroupResource) mapResponseToModel(ctx context.Context, group
 
 	data.Name = types.StringValue(group.GetName())
 
-	// DisplayName
-	if group.Display != "" {
-	} else {
-	}
-
 	data.Slug = types.StringValue(group.GetSlug())
 
 	// Map description

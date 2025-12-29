@@ -555,9 +555,4 @@ func (r *FHRPGroupAssignmentResource) mapResponseToState(ctx context.Context, as
 	data.InterfaceID = types.StringValue(fmt.Sprintf("%d", assignment.GetInterfaceId()))
 
 	data.Priority = types.Int64Value(int64(assignment.GetPriority()))
-
-	// Map display_name (computed field, always set a value)
-	if assignment.Display != "" {
-	} else {
-	}
 }

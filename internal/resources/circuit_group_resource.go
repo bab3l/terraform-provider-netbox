@@ -300,10 +300,6 @@ func (r *CircuitGroupResource) mapResponseToState(ctx context.Context, group *ne
 	data.ID = types.StringValue(fmt.Sprintf("%d", group.GetId()))
 	data.Name = types.StringValue(group.GetName())
 
-	// DisplayName
-	if group.Display != "" {
-	} else {
-	}
 	data.Slug = types.StringValue(group.GetSlug())
 
 	// Description

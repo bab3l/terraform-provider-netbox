@@ -452,11 +452,6 @@ func (r *RouteTargetResource) mapRouteTargetToState(ctx context.Context, rt *net
 		data.Comments = types.StringNull()
 	}
 
-	// Map display_name
-	if rt.Display != "" {
-	} else {
-	}
-
 	// Tags
 
 	if len(rt.Tags) > 0 {

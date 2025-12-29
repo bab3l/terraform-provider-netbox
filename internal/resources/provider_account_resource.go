@@ -452,10 +452,6 @@ func (r *ProviderAccountResource) mapResponseToModel(ctx context.Context, provid
 	// Map comments
 
 	data.Comments = utils.StringFromAPI(providerAccount.HasComments(), providerAccount.GetComments, data.Comments)
-	// Map display_name
-	if providerAccount.Display != "" {
-	} else {
-	}
 
 	// Tags
 

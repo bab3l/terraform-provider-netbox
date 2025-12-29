@@ -469,11 +469,6 @@ func (r *PowerPanelResource) mapResponseToModel(ctx context.Context, pp *netbox.
 
 	data.Name = types.StringValue(pp.GetName())
 
-	// DisplayName
-	if pp.Display != "" {
-	} else {
-	}
-
 	// Map site - preserve user's input format
 
 	site := pp.Site

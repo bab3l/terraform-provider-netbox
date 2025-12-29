@@ -603,11 +603,6 @@ func (r *L2VPNResource) mapResponseToState(ctx context.Context, l2vpn *netbox.L2
 
 	data.Name = types.StringValue(l2vpn.GetName())
 
-	// DisplayName
-	if l2vpn.Display != "" {
-	} else {
-	}
-
 	data.Slug = types.StringValue(l2vpn.GetSlug())
 
 	// Type

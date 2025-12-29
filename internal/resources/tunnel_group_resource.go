@@ -420,11 +420,6 @@ func (r *TunnelGroupResource) mapTunnelGroupToState(ctx context.Context, tunnelG
 		data.Description = types.StringNull()
 	}
 
-	// Map display_name
-	if tunnelGroup.Display != "" {
-	} else {
-	}
-
 	// Tags
 
 	if len(tunnelGroup.Tags) > 0 {

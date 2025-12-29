@@ -590,12 +590,6 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 
 	data.Prefix = types.StringValue(prefix.Prefix)
 
-	// DisplayName
-
-	if prefix.Display != "" {
-	} else {
-	}
-
 	// Site
 
 	if prefix.Site.IsSet() && prefix.Site.Get() != nil {

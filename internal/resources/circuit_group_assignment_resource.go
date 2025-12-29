@@ -358,11 +358,6 @@ func (r *CircuitGroupAssignmentResource) ImportState(ctx context.Context, req re
 func (r *CircuitGroupAssignmentResource) mapResponseToState(ctx context.Context, assignment *netbox.CircuitGroupAssignment, data *CircuitGroupAssignmentResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", assignment.GetId()))
 
-	// DisplayName
-	if assignment.Display != "" {
-	} else {
-	}
-
 	// Group (required field) - preserve user's input format
 	group := assignment.GetGroup()
 	data.Group = utils.UpdateReferenceAttribute(data.Group, group.GetName(), "", group.GetId())

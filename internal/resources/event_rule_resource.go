@@ -470,11 +470,6 @@ func (r *EventRuleResource) mapToState(ctx context.Context, result *netbox.Event
 		data.Description = types.StringNull()
 	}
 
-	// Map display_name
-	if result.Display != "" {
-	} else {
-	}
-
 	// Map tags
 	if result.HasTags() {
 		tags := utils.NestedTagsToTagModels(result.GetTags())

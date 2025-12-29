@@ -413,11 +413,6 @@ func (r *JournalEntryResource) mapJournalEntryToState(ctx context.Context, journ
 
 	data.Comments = types.StringValue(journalEntry.GetComments())
 
-	// Map display_name
-	if journalEntry.Display != "" {
-	} else {
-	}
-
 	// Kind
 
 	if journalEntry.Kind != nil && journalEntry.Kind.Value != nil {

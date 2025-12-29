@@ -442,11 +442,6 @@ func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *
 
 	data.Name = types.StringValue(vrf.GetName())
 
-	// DisplayName
-	if vrf.Display != "" {
-	} else {
-	}
-
 	// Route distinguisher
 	if rd, ok := vrf.GetRdOk(); ok && rd != nil && *rd != "" {
 		data.RD = types.StringValue(*rd)

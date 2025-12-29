@@ -538,11 +538,6 @@ func (r *PowerOutletResource) mapResponseToModel(ctx context.Context, powerOutle
 
 	data.Name = types.StringValue(powerOutlet.GetName())
 
-	// DisplayName
-	if powerOutlet.Display != "" {
-	} else {
-	}
-
 	// Map device - preserve user's input format
 
 	if device := powerOutlet.GetDevice(); device.Id != 0 {

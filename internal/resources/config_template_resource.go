@@ -248,10 +248,6 @@ func (r *ConfigTemplateResource) mapResponseToModel(template *netbox.ConfigTempl
 	data.ID = types.Int32Value(template.GetId())
 	data.Name = types.StringValue(template.GetName())
 
-	// DisplayName
-	if template.Display != "" {
-	} else {
-	}
 	data.TemplateCode = types.StringValue(template.GetTemplateCode())
 
 	// Map description

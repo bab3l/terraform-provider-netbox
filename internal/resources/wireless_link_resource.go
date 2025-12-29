@@ -663,11 +663,6 @@ func (r *WirelessLinkResource) ImportState(ctx context.Context, req resource.Imp
 func (r *WirelessLinkResource) mapToState(ctx context.Context, result *netbox.WirelessLink, data *WirelessLinkResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
-	// DisplayName
-	if result.Display != "" {
-	} else {
-	}
-
 	// Map interface IDs - on first read (unknown/null), set to ID; otherwise preserve current value to avoid drift
 
 	interfaceA := result.GetInterfaceA()

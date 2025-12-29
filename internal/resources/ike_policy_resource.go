@@ -580,12 +580,6 @@ func (r *IKEPolicyResource) mapIKEPolicyToState(ctx context.Context, ike *netbox
 		data.Comments = types.StringNull()
 	}
 
-	// Display Name
-
-	if ike.Display != "" {
-	} else {
-	}
-
 	// Tags
 
 	if len(ike.Tags) > 0 {

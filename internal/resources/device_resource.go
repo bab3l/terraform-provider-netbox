@@ -888,12 +888,6 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		data.Name = types.StringNull()
 	}
 
-	// Handle display_name
-
-	if device.Display != "" {
-	} else {
-	}
-
 	// Handle device_type - preserve the original input value (slug or ID)
 
 	data.DeviceTypeID = types.StringValue(fmt.Sprintf("%d", device.DeviceType.GetId()))

@@ -558,11 +558,6 @@ func (r *VirtualDeviceContextResource) mapToState(ctx context.Context, result *n
 
 	data.Name = types.StringValue(result.GetName())
 
-	// DisplayName
-	if result.Display != "" {
-	} else {
-	}
-
 	// Map device (required field) - preserve user's input format
 
 	device := result.GetDevice()

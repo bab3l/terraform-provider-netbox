@@ -377,11 +377,6 @@ func (r *ConsoleServerPortResource) mapResponseToModel(ctx context.Context, cons
 	data.ID = types.StringValue(fmt.Sprintf("%d", consoleServerPort.GetId()))
 	data.Name = types.StringValue(consoleServerPort.GetName())
 
-	// DisplayName
-	if consoleServerPort.Display != "" {
-	} else {
-	}
-
 	// Map device - preserve user's input format
 	if device := consoleServerPort.GetDevice(); device.Id != 0 {
 		data.Device = utils.UpdateReferenceAttribute(data.Device, device.GetName(), "", device.GetId())

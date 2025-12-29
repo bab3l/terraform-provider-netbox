@@ -187,11 +187,6 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 
 	data.Name = types.StringValue(iface.GetName())
 
-	// DisplayName
-	if iface.Display != "" {
-	} else {
-	}
-
 	// Virtual Machine (always present - required field)
 
 	data.VirtualMachine = utils.UpdateReferenceAttribute(data.VirtualMachine, iface.VirtualMachine.GetName(), "", iface.VirtualMachine.GetId())

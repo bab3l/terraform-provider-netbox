@@ -416,11 +416,6 @@ func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.D
 
 	data.Name = types.StringValue(db.GetName())
 
-	// DisplayName
-	if db.Display != "" {
-	} else {
-	}
-
 	// Map device - preserve user's input format
 
 	data.Device = utils.UpdateReferenceAttribute(data.Device, db.Device.GetName(), "", db.Device.GetId())

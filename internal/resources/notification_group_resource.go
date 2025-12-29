@@ -327,8 +327,4 @@ func (r *NotificationGroupResource) mapToState(ctx context.Context, result *netb
 		// No users - set to null
 		data.UserIDs = types.SetNull(types.Int32Type)
 	}
-	// Map display_name
-	if result.Display != "" {
-	} else {
-	}
 }

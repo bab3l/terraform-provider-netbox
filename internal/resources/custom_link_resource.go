@@ -520,10 +520,4 @@ func (r *CustomLinkResource) mapToState(ctx context.Context, result *netbox.Cust
 	} else {
 		data.NewWindow = types.BoolNull()
 	}
-
-	// Map display_name
-
-	if result.Display != "" {
-	} else {
-	}
 }

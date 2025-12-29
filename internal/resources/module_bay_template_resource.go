@@ -508,11 +508,6 @@ func (r *ModuleBayTemplateResource) mapToState(ctx context.Context, result *netb
 
 	data.Name = types.StringValue(result.GetName())
 
-	// DisplayName
-	if result.Display != "" {
-	} else {
-	}
-
 	// Map device type - preserve user's input format
 
 	if result.HasDeviceType() && result.GetDeviceType().Id != 0 {

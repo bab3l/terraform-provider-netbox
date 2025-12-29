@@ -517,11 +517,6 @@ func (r *RearPortResource) mapResponseToModel(ctx context.Context, port *netbox.
 
 	data.Name = types.StringValue(port.GetName())
 
-	// DisplayName
-	if port.Display != "" {
-	} else {
-	}
-
 	// Map device - preserve user's input format
 
 	if device := port.GetDevice(); device.Id != 0 {

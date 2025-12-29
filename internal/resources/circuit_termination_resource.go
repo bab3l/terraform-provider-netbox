@@ -412,11 +412,6 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 	data.ID = types.StringValue(fmt.Sprintf("%d", termination.GetId()))
 	data.TermSide = types.StringValue(string(termination.GetTermSide()))
 
-	// DisplayName
-	if termination.Display != "" {
-	} else {
-	}
-
 	// Map Circuit - preserve user's input format
 	if circuit := termination.GetCircuit(); circuit.Id != 0 {
 		data.Circuit = utils.UpdateReferenceAttribute(data.Circuit, circuit.GetCid(), "", circuit.Id)

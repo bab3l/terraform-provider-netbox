@@ -249,12 +249,6 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 	data.Name = types.StringValue(vm.GetName())
 
-	// DisplayName
-
-	if vm.Display != "" {
-	} else {
-	}
-
 	// Status
 
 	if vm.HasStatus() {

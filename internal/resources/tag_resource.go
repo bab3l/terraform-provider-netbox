@@ -260,10 +260,6 @@ func (r *TagResource) mapTagToState(ctx context.Context, tag *netbox.Tag, data *
 	data.Slug = types.StringValue(tag.GetSlug())
 	data.Color = utils.StringFromAPI(tag.HasColor(), tag.GetColor, data.Color)
 	data.Description = utils.StringFromAPI(tag.HasDescription(), tag.GetDescription, data.Description)
-	// Map display_name
-	if tag.Display != "" {
-	} else {
-	}
 	data.ID = types.StringValue(fmt.Sprintf("%d", tag.GetId()))
 	data.Name = types.StringValue(tag.GetName())
 	data.Slug = types.StringValue(tag.GetSlug())

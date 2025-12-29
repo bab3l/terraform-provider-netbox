@@ -410,11 +410,6 @@ func (r *VirtualChassisResource) mapResponseToModel(ctx context.Context, vc *net
 
 	data.Name = types.StringValue(vc.GetName())
 
-	// DisplayName
-	if vc.Display != "" {
-	} else {
-	}
-
 	// Map domain
 
 	if domain, ok := vc.GetDomainOk(); ok && domain != nil && *domain != "" {

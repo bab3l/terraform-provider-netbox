@@ -487,10 +487,4 @@ func (r *CustomFieldChoiceSetResource) mapToState(ctx context.Context, result *n
 	} else {
 		data.OrderAlphabetically = types.BoolNull()
 	}
-
-	// Map display_name
-
-	if result.Display != "" {
-	} else {
-	}
 }

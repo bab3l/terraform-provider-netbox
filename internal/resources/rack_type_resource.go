@@ -663,12 +663,6 @@ func (r *RackTypeResource) mapResponseToModel(ctx context.Context, rackType *net
 		data.Description = types.StringNull()
 	}
 
-	// Map display_name
-
-	if rackType.Display != "" {
-	} else {
-	}
-
 	// Map form_factor
 
 	if ff, ok := rackType.GetFormFactorOk(); ok && ff != nil {

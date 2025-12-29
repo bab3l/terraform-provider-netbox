@@ -486,11 +486,6 @@ func (r *ProviderNetworkResource) mapResponseToModel(ctx context.Context, pn *ne
 
 	data.Comments = utils.StringFromAPI(pn.HasComments(), pn.GetComments, data.Comments)
 
-	// Map display_name
-	if pn.Display != "" {
-	} else {
-	}
-
 	// Handle tags
 
 	if pn.HasTags() {

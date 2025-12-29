@@ -732,11 +732,6 @@ func (r *PowerFeedResource) mapResponseToModel(ctx context.Context, pf *netbox.P
 
 	data.Name = types.StringValue(pf.GetName())
 
-	// DisplayName
-	if pf.Display != "" {
-	} else {
-	}
-
 	// Map power panel
 
 	data.PowerPanel = types.StringValue(fmt.Sprintf("%d", pf.PowerPanel.GetId()))

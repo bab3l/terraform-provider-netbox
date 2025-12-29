@@ -456,11 +456,6 @@ func (r *PowerPortTemplateResource) mapResponseToModel(template *netbox.PowerPor
 
 	data.Name = types.StringValue(template.GetName())
 
-	// DisplayName
-	if template.Display != "" {
-	} else {
-	}
-
 	// Map device type - preserve user's input format
 
 	if template.DeviceType.IsSet() && template.DeviceType.Get() != nil {

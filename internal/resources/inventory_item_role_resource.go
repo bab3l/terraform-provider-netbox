@@ -424,11 +424,6 @@ func (r *InventoryItemRoleResource) mapResponseToModel(ctx context.Context, role
 
 	data.Slug = types.StringValue(role.GetSlug())
 
-	// DisplayName
-	if role.Display != "" {
-	} else {
-	}
-
 	// Map color
 
 	if color, ok := role.GetColorOk(); ok && color != nil && *color != "" {

@@ -530,11 +530,6 @@ func (r *PowerPortResource) mapResponseToModel(ctx context.Context, powerPort *n
 
 	data.Name = types.StringValue(powerPort.GetName())
 
-	// DisplayName
-	if powerPort.Display != "" {
-	} else {
-	}
-
 	// Map device - preserve user's input format
 
 	if device := powerPort.GetDevice(); device.Id != 0 {

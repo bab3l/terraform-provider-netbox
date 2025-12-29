@@ -396,11 +396,6 @@ func (r *CircuitResource) mapCircuitToState(ctx context.Context, circuit *netbox
 	data.ID = types.StringValue(fmt.Sprintf("%d", circuit.GetId()))
 	data.Cid = types.StringValue(circuit.GetCid())
 
-	// DisplayName
-	if circuit.Display != "" {
-	} else {
-	}
-
 	// Provider - preserve user input if it matches, otherwise normalize to slug/name
 	providerObj := circuit.GetProvider()
 	if data.CircuitProvider.IsUnknown() || data.CircuitProvider.IsNull() {

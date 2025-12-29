@@ -469,11 +469,6 @@ func (r *DeviceBayTemplateResource) mapTemplateToModel(template *netbox.DeviceBa
 
 	data.Name = types.StringValue(template.Name)
 
-	// DisplayName
-	if template.Display != "" {
-	} else {
-	}
-
 	// Label
 
 	if template.Label != nil && *template.Label != "" {

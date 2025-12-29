@@ -665,9 +665,4 @@ func (r *CustomFieldResource) mapResponseToModel(ctx context.Context, customFiel
 	} else {
 		data.Comments = types.StringNull()
 	}
-
-	// Map display_name
-	if customField.Display != "" {
-	} else {
-	}
 }

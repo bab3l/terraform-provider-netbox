@@ -598,12 +598,6 @@ func (r *IKEProposalResource) mapIKEProposalToState(ctx context.Context, ike *ne
 		data.Comments = types.StringNull()
 	}
 
-	// Display Name
-
-	if ike.Display != "" {
-	} else {
-	}
-
 	// Tags
 
 	if len(ike.Tags) > 0 {

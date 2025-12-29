@@ -533,11 +533,6 @@ func (r *InterfaceTemplateResource) mapResponseToModel(template *netbox.Interfac
 
 	data.Type = types.StringValue(string(template.Type.GetValue()))
 
-	// DisplayName
-	if template.Display != "" {
-	} else {
-	}
-
 	// Map device type - preserve user's input format
 
 	if template.DeviceType.IsSet() && template.DeviceType.Get() != nil {

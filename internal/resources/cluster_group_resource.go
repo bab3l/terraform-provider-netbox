@@ -293,11 +293,6 @@ func (r *ClusterGroupResource) mapClusterGroupToState(ctx context.Context, clust
 
 	data.Name = types.StringValue(clusterGroup.GetName())
 
-	// DisplayName
-	if clusterGroup.Display != "" {
-	} else {
-	}
-
 	data.Slug = types.StringValue(clusterGroup.GetSlug())
 
 	data.Description = utils.StringFromAPI(clusterGroup.HasDescription(), clusterGroup.GetDescription, data.Description)

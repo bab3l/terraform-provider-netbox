@@ -507,10 +507,4 @@ func (r *ExportTemplateResource) mapResponseToState(ctx context.Context, exportT
 	} else {
 		data.AsAttachment = types.BoolValue(true) // Default
 	}
-
-	// Handle display_name (computed field, always set a value)
-	display := exportTemplate.GetDisplay()
-	if display != "" {
-	} else {
-	}
 }

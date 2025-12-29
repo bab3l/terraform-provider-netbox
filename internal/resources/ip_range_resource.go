@@ -577,11 +577,6 @@ func (r *IPRangeResource) mapIPRangeToState(ctx context.Context, ipRange *netbox
 
 	data.Size = types.Int64Value(int64(ipRange.Size))
 
-	// DisplayName
-	if ipRange.Display != "" {
-	} else {
-	}
-
 	// VRF - preserve user input if it matches
 	if ipRange.Vrf.IsSet() && ipRange.Vrf.Get() != nil {
 		vrfObj := ipRange.Vrf.Get()

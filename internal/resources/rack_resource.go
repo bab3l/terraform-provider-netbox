@@ -1138,11 +1138,6 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 
 	data.Name = types.StringValue(rack.GetName())
 
-	// DisplayName
-	if rack.Display != "" {
-	} else {
-	}
-
 	// Map site
 
 	if site := rack.GetSite(); site.Id != 0 {

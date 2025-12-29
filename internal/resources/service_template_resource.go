@@ -513,11 +513,6 @@ func (r *ServiceTemplateResource) mapResponseToState(ctx context.Context, servic
 		data.Comments = types.StringNull()
 	}
 
-	// Map display_name
-	if serviceTemplate.Display != "" {
-	} else {
-	}
-
 	// Handle tags
 
 	if serviceTemplate.HasTags() && len(serviceTemplate.GetTags()) > 0 {

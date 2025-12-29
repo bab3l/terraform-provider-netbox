@@ -457,11 +457,6 @@ func (r *L2VPNTerminationResource) ImportState(ctx context.Context, req resource
 func (r *L2VPNTerminationResource) mapResponseToState(ctx context.Context, termination *netbox.L2VPNTermination, data *L2VPNTerminationResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", termination.GetId()))
 
-	// DisplayName
-	if termination.Display != "" {
-	} else {
-	}
-
 	// L2VPN
 
 	l2vpn := termination.GetL2vpn()

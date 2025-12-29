@@ -598,11 +598,6 @@ func (r *InventoryItemTemplateResource) mapToState(ctx context.Context, result *
 
 	data.Name = types.StringValue(result.GetName())
 
-	// DisplayName
-	if result.Display != "" {
-	} else {
-	}
-
 	// Map device type (required field)
 
 	deviceType := result.GetDeviceType()

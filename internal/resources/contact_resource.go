@@ -294,11 +294,6 @@ func (r *ContactResource) mapContactToState(ctx context.Context, contact *netbox
 	data.ID = types.StringValue(fmt.Sprintf("%d", contact.GetId()))
 	data.Name = types.StringValue(contact.GetName())
 
-	// DisplayName
-	if contact.Display != "" {
-	} else {
-	}
-
 	// Handle optional group - preserve user's input format
 	if contact.HasGroup() && contact.GetGroup().Id != 0 {
 		group := contact.GetGroup()

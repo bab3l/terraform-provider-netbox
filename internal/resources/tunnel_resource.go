@@ -329,12 +329,6 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
 
-	// Handle display_name
-
-	if tunnel.Display != "" {
-	} else {
-	}
-
 	// Handle group reference from response
 
 	if tunnel.HasGroup() && tunnel.Group.IsSet() && tunnel.Group.Get() != nil {
@@ -416,11 +410,6 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 	data.ID = types.StringValue(fmt.Sprintf("%d", tunnel.GetId()))
 
 	data.Name = types.StringValue(tunnel.GetName())
-
-	// DisplayName
-	if tunnel.Display != "" {
-	} else {
-	}
 
 	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
 
@@ -706,12 +695,6 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 	// Update status from response
 
 	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
-
-	// Update display_name from response
-
-	if tunnel.Display != "" {
-	} else {
-	}
 
 	// Handle group reference from response - preserve user's input format
 

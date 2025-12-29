@@ -620,11 +620,6 @@ func (r *InventoryItemResource) mapResponseToModel(ctx context.Context, item *ne
 
 	data.Name = types.StringValue(item.GetName())
 
-	// DisplayName
-	if item.Display != "" {
-	} else {
-	}
-
 	// Map device - preserve user's input format
 
 	if device := item.GetDevice(); device.Id != 0 {
