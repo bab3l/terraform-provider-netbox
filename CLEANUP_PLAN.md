@@ -561,17 +561,24 @@ Ensure all example Terraform configurations in `examples/` directory are:
 - Good variety: simple ports, templates, and complex examples with dependencies
 - Interface example shows advanced patterns (LAG, virtual interfaces)
 
-#### Batch 7.5: Power & Modules (10 resources)
-- [ ] netbox_rear_port
-- [ ] netbox_rear_port_template
-- [ ] netbox_power_feed
-- [ ] netbox_power_panel
-- [ ] netbox_module
-- [ ] netbox_module_type
-- [ ] netbox_module_bay
-- [ ] netbox_module_bay_template
-- [ ] netbox_inventory_item
-- [ ] netbox_inventory_item_role
+#### Batch 7.5: Power & Modules (10 resources) ✅ COMPLETE
+- [x] netbox_rear_port - Clean, uses device name reference
+- [x] netbox_rear_port_template - Clean, uses device_type model reference
+- [x] netbox_power_feed - Clean, uses power_panel/rack name references
+- [x] netbox_power_panel - Clean, uses site slug reference
+- [x] netbox_module - Clean, shows device, module_bay, module_type references
+- [x] netbox_module_type - Clean, uses manufacturer name reference
+- [x] netbox_module_bay - Clean, uses device name reference
+- [x] netbox_module_bay_template - Clean, uses device_type model reference
+- [x] netbox_inventory_item - Clean, uses device name reference
+- [x] netbox_inventory_item_role - Clean, simple example
+
+**Review Notes**:
+- All examples verified as correct
+- No removed `_id` fields referenced
+- Power feed shows comprehensive configuration with multiple parameters
+- Module examples demonstrate proper dependency chain (device → module_bay → module)
+- All examples use primary reference fields correctly
 
 #### Batch 7.6: Virtualization (10 resources)
 - [ ] netbox_inventory_item_template
