@@ -462,7 +462,7 @@ The 7 fields deferred from Phase 5 have been analyzed and confirmed as legitimat
 
 ### Phase 7: Update Examples
 
-**Status**: 📋 Planning
+**Status**: 📋 In Progress
 
 Ensure all example Terraform configurations in `examples/` directory are:
 - Using current resource schemas (no `_id` fields removed in Phase 5)
@@ -470,12 +470,148 @@ Ensure all example Terraform configurations in `examples/` directory are:
 - Syntactically valid and up-to-date with provider features
 - Well-documented with comments
 
-**Scope**:
-- [ ] Review all `examples/resources/*.tf` files
-- [ ] Review all `examples/data-sources/*.tf` files
-- [ ] Update any examples using removed `_id` fields
-- [ ] Verify examples match current schema definitions
-- [ ] Add missing examples for new resources (if any)
+**Totals**: 103 resource examples, 114 data source examples
+
+#### Batch 7.1: IPAM Core Resources (12 resources)
+- [ ] netbox_aggregate
+- [ ] netbox_asn
+- [ ] netbox_asn_range
+- [ ] netbox_ip_address
+- [ ] netbox_ip_range
+- [ ] netbox_prefix
+- [ ] netbox_rir
+- [ ] netbox_route_target
+- [ ] netbox_vlan
+- [ ] netbox_vlan_group
+- [ ] netbox_vrf
+- [ ] netbox_fhrp_group
+
+#### Batch 7.2: Sites & Organization (10 resources)
+- [ ] netbox_site
+- [ ] netbox_site_group
+- [ ] netbox_region
+- [ ] netbox_location
+- [ ] netbox_tenant
+- [ ] netbox_tenant_group
+- [ ] netbox_contact
+- [ ] netbox_contact_group
+- [ ] netbox_contact_role
+- [ ] netbox_contact_assignment
+
+#### Batch 7.3: Device Infrastructure (12 resources)
+- [ ] netbox_device
+- [ ] netbox_device_type
+- [ ] netbox_device_role
+- [ ] netbox_device_bay
+- [ ] netbox_device_bay_template
+- [ ] netbox_manufacturer
+- [ ] netbox_platform
+- [ ] netbox_role
+- [ ] netbox_rack
+- [ ] netbox_rack_type
+- [ ] netbox_rack_role
+- [ ] netbox_rack_reservation
+
+#### Batch 7.4: Device Components - Ports (10 resources)
+- [ ] netbox_interface
+- [ ] netbox_interface_template
+- [ ] netbox_console_port
+- [ ] netbox_console_port_template
+- [ ] netbox_console_server_port
+- [ ] netbox_console_server_port_template
+- [ ] netbox_power_port
+- [ ] netbox_power_outlet
+- [ ] netbox_front_port
+- [ ] netbox_front_port_template
+
+#### Batch 7.5: Power & Modules (10 resources)
+- [ ] netbox_rear_port
+- [ ] netbox_rear_port_template
+- [ ] netbox_power_feed
+- [ ] netbox_power_panel
+- [ ] netbox_module
+- [ ] netbox_module_type
+- [ ] netbox_module_bay
+- [ ] netbox_module_bay_template
+- [ ] netbox_inventory_item
+- [ ] netbox_inventory_item_role
+
+#### Batch 7.6: Virtualization (10 resources)
+- [ ] netbox_inventory_item_template
+- [ ] netbox_cluster
+- [ ] netbox_cluster_type
+- [ ] netbox_cluster_group
+- [ ] netbox_virtual_machine
+- [ ] netbox_vm_interface
+- [ ] netbox_virtual_chassis
+- [ ] netbox_virtual_device_context
+- [ ] netbox_virtual_disk
+- [ ] netbox_fhrp_group_assignment
+
+#### Batch 7.7: Circuits & Providers (10 resources)
+- [ ] netbox_cable
+- [ ] netbox_provider
+- [ ] netbox_provider_account
+- [ ] netbox_provider_network
+- [ ] netbox_circuit
+- [ ] netbox_circuit_type
+- [ ] netbox_circuit_group
+- [ ] netbox_circuit_group_assignment
+- [ ] netbox_circuit_termination
+- [ ] netbox_service
+
+#### Batch 7.8: VPN & Tunnels (10 resources)
+- [ ] netbox_service_template
+- [ ] netbox_l2vpn
+- [ ] netbox_l2vpn_termination
+- [ ] netbox_tunnel
+- [ ] netbox_tunnel_group
+- [ ] netbox_tunnel_termination
+- [ ] netbox_ike_policy
+- [ ] netbox_ike_proposal
+- [ ] netbox_ipsec_policy
+- [ ] netbox_ipsec_profile
+
+#### Batch 7.9: Wireless & Extras (10 resources)
+- [ ] netbox_ipsec_proposal
+- [ ] netbox_wireless_lan
+- [ ] netbox_wireless_lan_group
+- [ ] netbox_wireless_link
+- [ ] netbox_tag
+- [ ] netbox_custom_field
+- [ ] netbox_custom_field_choice_set
+- [ ] netbox_custom_link
+- [ ] netbox_webhook
+- [ ] netbox_event_rule
+
+#### Batch 7.10: Configuration & Remaining (9 resources)
+- [ ] netbox_export_template
+- [ ] netbox_config_context
+- [ ] netbox_config_template
+- [ ] netbox_journal_entry
+- [ ] netbox_notification_group
+- [ ] Any remaining resources not listed above
+
+#### Batch 7.11: Data Sources - Part 1 (30 data sources)
+Review first 30 data source examples alphabetically
+
+#### Batch 7.12: Data Sources - Part 2 (30 data sources)
+Review next 30 data source examples
+
+#### Batch 7.13: Data Sources - Part 3 (30 data sources)
+Review next 30 data source examples
+
+#### Batch 7.14: Data Sources - Part 4 (24 data sources)
+Review remaining data source examples
+
+**Review Checklist for Each Example**:
+- [ ] No references to removed `_id` fields (device_type_id, role_id, tenant_id, platform_id, site_id, location_id, rack_id, cluster_id, manufacturer_id, parent_id, group_id, rack_type_id, scope_id when used alone)
+- [ ] Uses primary reference fields correctly (tenant, site, cluster, etc.)
+- [ ] Syntax is valid Terraform HCL
+- [ ] Comments explain the example clearly
+- [ ] Required fields are present
+- [ ] Optional fields demonstrate useful patterns
+- [ ] Example is realistic and useful
 
 ---
 
