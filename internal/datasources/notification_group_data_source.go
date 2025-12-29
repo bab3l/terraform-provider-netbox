@@ -4,6 +4,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
@@ -170,6 +171,15 @@ func (d *NotificationGroupDataSource) Read(ctx context.Context, req datasource.R
 
 	result, httpResp, err := d.client.ExtrasAPI.ExtrasNotificationGroupsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
+
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		resp.Diagnostics.AddError(
+			"Notification Group Not Found",
+			fmt.Sprintf("No notification group found with ID: %d", id),
+		)
+		return
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError("Error Reading Notification Group",
 			utils.FormatAPIError(fmt.Sprintf("read notification group ID %d", id), err, httpResp))

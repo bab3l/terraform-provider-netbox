@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
@@ -222,6 +223,14 @@ func (d *ModuleBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 	result, httpResp, err := d.client.DcimAPI.DcimModuleBayTemplatesRetrieve(ctx, id).Execute()
 
 	defer utils.CloseResponseBody(httpResp)
+
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		resp.Diagnostics.AddError(
+			"Module Bay Template Not Found",
+			fmt.Sprintf("No module bay template found with ID: %d", id),
+		)
+		return
+	}
 
 	if err != nil {
 

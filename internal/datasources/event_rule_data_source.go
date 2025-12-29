@@ -4,6 +4,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -160,6 +161,15 @@ func (d *EventRuleDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 	result, httpResp, err := d.client.ExtrasAPI.ExtrasEventRulesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
+
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		resp.Diagnostics.AddError(
+			"Event Rule Not Found",
+			fmt.Sprintf("No event rule found with ID: %d", id),
+		)
+		return
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError("Error Reading Event Rule",
 			utils.FormatAPIError(fmt.Sprintf("read event rule ID %d", id), err, httpResp))

@@ -222,6 +222,14 @@ func (d *WirelessLinkDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 		defer utils.CloseResponseBody(httpResp)
 
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+			resp.Diagnostics.AddError(
+				"Wireless Link Not Found",
+				fmt.Sprintf("No wireless link found with ID: %d", id),
+			)
+			return
+		}
+
 		if err != nil {
 
 			resp.Diagnostics.AddError("Error Reading Wireless Link",

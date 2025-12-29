@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -256,6 +257,14 @@ func (d *VirtualDeviceContextDataSource) Read(ctx context.Context, req datasourc
 	result, httpResp, err := d.client.DcimAPI.DcimVirtualDeviceContextsRetrieve(ctx, id).Execute()
 
 	defer utils.CloseResponseBody(httpResp)
+
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		resp.Diagnostics.AddError(
+			"Virtual Device Context Not Found",
+			fmt.Sprintf("No virtual device context found with ID: %d", id),
+		)
+		return
+	}
 
 	if err != nil {
 
