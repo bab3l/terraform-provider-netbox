@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -174,6 +175,14 @@ func (d *ContactAssignmentDataSource) Read(ctx context.Context, req datasource.R
 	result, httpResp, err := d.client.TenancyAPI.TenancyContactAssignmentsRetrieve(ctx, idInt).Execute()
 
 	defer utils.CloseResponseBody(httpResp)
+
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		resp.Diagnostics.AddError(
+			"Contact Assignment Not Found",
+			fmt.Sprintf("No contact assignment found with ID: %d", idInt),
+		)
+		return
+	}
 
 	if err != nil {
 

@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
@@ -165,6 +166,14 @@ func (d *JournalEntryDataSource) Read(ctx context.Context, req datasource.ReadRe
 	journalEntry, httpResp, err := d.client.ExtrasAPI.ExtrasJournalEntriesRetrieve(ctx, id).Execute()
 
 	defer utils.CloseResponseBody(httpResp)
+
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		resp.Diagnostics.AddError(
+			"Journal Entry Not Found",
+			fmt.Sprintf("No journal entry found with ID: %d", id),
+		)
+		return
+	}
 
 	if err != nil {
 

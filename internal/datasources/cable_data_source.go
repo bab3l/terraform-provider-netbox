@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -222,6 +223,14 @@ func (d *CableDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		cable, httpResp, err := d.client.DcimAPI.DcimCablesRetrieve(ctx, id).Execute()
 
 		defer utils.CloseResponseBody(httpResp)
+
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+			resp.Diagnostics.AddError(
+				"Cable Not Found",
+				fmt.Sprintf("No cable found with ID: %d", id),
+			)
+			return
+		}
 
 		if err != nil {
 

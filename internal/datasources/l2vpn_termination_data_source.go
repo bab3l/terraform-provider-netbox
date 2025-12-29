@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -173,6 +174,14 @@ func (d *L2VPNTerminationDataSource) Read(ctx context.Context, req datasource.Re
 	termination, httpResp, err := d.client.VpnAPI.VpnL2vpnTerminationsRetrieve(ctx, idInt).Execute()
 
 	defer utils.CloseResponseBody(httpResp)
+
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		resp.Diagnostics.AddError(
+			"L2VPN Termination Not Found",
+			fmt.Sprintf("No L2VPN termination found with ID: %d", idInt),
+		)
+		return
+	}
 
 	if err != nil {
 

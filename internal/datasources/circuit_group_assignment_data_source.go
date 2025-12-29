@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -166,6 +167,14 @@ func (d *CircuitGroupAssignmentDataSource) Read(ctx context.Context, req datasou
 	result, httpResp, err := d.client.CircuitsAPI.CircuitsCircuitGroupAssignmentsRetrieve(ctx, idInt).Execute()
 
 	defer utils.CloseResponseBody(httpResp)
+
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		resp.Diagnostics.AddError(
+			"Circuit Group Assignment Not Found",
+			fmt.Sprintf("No circuit group assignment found with ID: %d", idInt),
+		)
+		return
+	}
 
 	if err != nil {
 

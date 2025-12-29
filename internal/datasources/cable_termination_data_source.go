@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
@@ -186,6 +187,14 @@ func (d *CableTerminationDataSource) Read(ctx context.Context, req datasource.Re
 	result, httpResp, err := d.client.DcimAPI.DcimCableTerminationsRetrieve(ctx, id).Execute()
 
 	defer utils.CloseResponseBody(httpResp)
+
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		resp.Diagnostics.AddError(
+			"Cable Termination Not Found",
+			fmt.Sprintf("No cable termination found with ID: %d", id),
+		)
+		return
+	}
 
 	if err != nil {
 

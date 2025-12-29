@@ -137,11 +137,14 @@ func (d *FHRPGroupAssignmentDataSource) Read(ctx context.Context, req datasource
 
 	var err error
 
+	var id int32
+
 	// Lookup by ID only - assignments don't have a name
 
 	if !data.ID.IsNull() && !data.ID.IsUnknown() {
 
-		id, parseErr := utils.ParseID(data.ID.ValueString())
+		var parseErr error
+		id, parseErr = utils.ParseID(data.ID.ValueString())
 
 		if parseErr != nil {
 
@@ -176,6 +179,14 @@ func (d *FHRPGroupAssignmentDataSource) Read(ctx context.Context, req datasource
 
 		return
 
+	}
+
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		resp.Diagnostics.AddError(
+			"FHRP Group Assignment Not Found",
+			fmt.Sprintf("No FHRP group assignment found with ID: %d", id),
+		)
+		return
 	}
 
 	if err != nil {

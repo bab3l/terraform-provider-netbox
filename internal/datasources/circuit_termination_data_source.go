@@ -5,6 +5,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -275,6 +276,14 @@ func (d *CircuitTerminationDataSource) Read(ctx context.Context, req datasource.
 		result, httpResp, err := d.client.CircuitsAPI.CircuitsCircuitTerminationsRetrieve(ctx, id).Execute()
 
 		defer utils.CloseResponseBody(httpResp)
+
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+			resp.Diagnostics.AddError(
+				"Circuit Termination Not Found",
+				fmt.Sprintf("No circuit termination found with ID: %d", id),
+			)
+			return
+		}
 
 		if err != nil {
 
