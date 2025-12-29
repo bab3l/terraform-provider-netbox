@@ -35,9 +35,7 @@ var (
 // NewIPSecPolicyResource returns a new IPSecPolicy resource.
 
 func NewIPSecPolicyResource() resource.Resource {
-
 	return &IPSecPolicyResource{}
-
 }
 
 // IPSecPolicyResource defines the resource implementation.
@@ -71,35 +69,27 @@ type IPSecPolicyResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *IPSecPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_ipsec_policy"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *IPSecPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages an IPSec Policy in Netbox. IPSec policies group together IPSec proposals and define the PFS (Perfect Forward Secrecy) group for VPN connections.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the IPSec policy.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the IPSec policy. Required.",
 
 				Required: true,
@@ -108,7 +98,6 @@ func (r *IPSecPolicyResource) Schema(ctx context.Context, req resource.SchemaReq
 			"description": nbschema.DescriptionAttribute("IPSec policy"),
 
 			"proposals": schema.SetAttribute{
-
 				MarkdownDescription: "A set of IPSec proposal IDs to associate with this policy.",
 
 				Optional: true,
@@ -117,13 +106,11 @@ func (r *IPSecPolicyResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 
 			"pfs_group": schema.Int64Attribute{
-
 				MarkdownDescription: "The Diffie-Hellman group for Perfect Forward Secrecy. Optional. Valid values: 1, 2, 5, 14-34.",
 
 				Optional: true,
 
 				Validators: []validator.Int64{
-
 					int64validator.OneOf(1, 2, 5, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34),
 				},
 			},
@@ -140,17 +127,13 @@ func (r *IPSecPolicyResource) Schema(ctx context.Context, req resource.SchemaReq
 }
 
 func (r *IPSecPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -159,17 +142,14 @@ func (r *IPSecPolicyResource) Configure(ctx context.Context, req resource.Config
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates the resource and sets the initial Terraform state.
 
 func (r *IPSecPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data IPSecPolicyResourceModel
 
 	// Read Terraform plan data into the model
@@ -177,9 +157,7 @@ func (r *IPSecPolicyResource) Create(ctx context.Context, req resource.CreateReq
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Create the IPSecPolicy request
@@ -191,13 +169,10 @@ func (r *IPSecPolicyResource) Create(ctx context.Context, req resource.CreateReq
 	r.setOptionalFields(ctx, ipsecRequest, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating IPSecPolicy", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 	})
 
@@ -208,7 +183,6 @@ func (r *IPSecPolicyResource) Create(ctx context.Context, req resource.CreateReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating IPSecPolicy",
@@ -217,7 +191,6 @@ func (r *IPSecPolicyResource) Create(ctx context.Context, req resource.CreateReq
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -225,7 +198,6 @@ func (r *IPSecPolicyResource) Create(ctx context.Context, req resource.CreateReq
 	r.mapIPSecPolicyToState(ctx, ipsec, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Created IPSecPolicy", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -234,13 +206,11 @@ func (r *IPSecPolicyResource) Create(ctx context.Context, req resource.CreateReq
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (r *IPSecPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data IPSecPolicyResourceModel
 
 	// Read Terraform prior state data into the model
@@ -248,15 +218,12 @@ func (r *IPSecPolicyResource) Read(ctx context.Context, req resource.ReadRequest
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing ID",
@@ -265,11 +232,9 @@ func (r *IPSecPolicyResource) Read(ctx context.Context, req resource.ReadRequest
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading IPSecPolicy", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -280,18 +245,14 @@ func (r *IPSecPolicyResource) Read(ctx context.Context, req resource.ReadRequest
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "IPSecPolicy not found, removing from state", map[string]interface{}{
-
 				"id": id,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -302,7 +263,6 @@ func (r *IPSecPolicyResource) Read(ctx context.Context, req resource.ReadRequest
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -312,13 +272,11 @@ func (r *IPSecPolicyResource) Read(ctx context.Context, req resource.ReadRequest
 	// Save updated data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 
 func (r *IPSecPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data IPSecPolicyResourceModel
 
 	// Read Terraform plan data into the model
@@ -326,15 +284,12 @@ func (r *IPSecPolicyResource) Update(ctx context.Context, req resource.UpdateReq
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing ID",
@@ -343,7 +298,6 @@ func (r *IPSecPolicyResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 
 		return
-
 	}
 
 	// Create the IPSecPolicy request
@@ -355,13 +309,10 @@ func (r *IPSecPolicyResource) Update(ctx context.Context, req resource.UpdateReq
 	r.setOptionalFields(ctx, ipsecRequest, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating IPSecPolicy", map[string]interface{}{
-
 		"id": id,
 
 		"name": data.Name.ValueString(),
@@ -374,7 +325,6 @@ func (r *IPSecPolicyResource) Update(ctx context.Context, req resource.UpdateReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating IPSecPolicy",
@@ -383,7 +333,6 @@ func (r *IPSecPolicyResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -391,7 +340,6 @@ func (r *IPSecPolicyResource) Update(ctx context.Context, req resource.UpdateReq
 	r.mapIPSecPolicyToState(ctx, ipsec, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Updated IPSecPolicy", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -400,13 +348,11 @@ func (r *IPSecPolicyResource) Update(ctx context.Context, req resource.UpdateReq
 	// Save updated data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 
 func (r *IPSecPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data IPSecPolicyResourceModel
 
 	// Read Terraform prior state data into the model
@@ -414,15 +360,12 @@ func (r *IPSecPolicyResource) Delete(ctx context.Context, req resource.DeleteReq
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing ID",
@@ -431,11 +374,9 @@ func (r *IPSecPolicyResource) Delete(ctx context.Context, req resource.DeleteReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting IPSecPolicy", map[string]interface{}{
-
 		"id": id,
 
 		"name": data.Name.ValueString(),
@@ -448,13 +389,10 @@ func (r *IPSecPolicyResource) Delete(ctx context.Context, req resource.DeleteReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			// Already deleted
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -465,82 +403,64 @@ func (r *IPSecPolicyResource) Delete(ctx context.Context, req resource.DeleteReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted IPSecPolicy", map[string]interface{}{
-
 		"id": id,
 	})
-
 }
 
 // ImportState imports the resource state from an existing resource.
 
 func (r *IPSecPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // setOptionalFields sets optional fields on the WritableIPSecPolicyRequest.
 
 func (r *IPSecPolicyResource) setOptionalFields(ctx context.Context, ipsecRequest *netbox.WritableIPSecPolicyRequest, data *IPSecPolicyResourceModel, diags *diag.Diagnostics) {
-
 	// Proposals
 
 	if utils.IsSet(data.Proposals) {
-
 		var proposalIDs []int64
 
 		diags.Append(data.Proposals.ElementsAs(ctx, &proposalIDs, false)...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		proposals := make([]int32, len(proposalIDs))
 
 		for i, id := range proposalIDs {
-
 			val, err := utils.SafeInt32(id)
 
 			if err != nil {
-
 				diags.AddError("Invalid value", fmt.Sprintf("Proposal ID value overflow: %s", err))
 
 				return
-
 			}
 
 			proposals[i] = val
-
 		}
 
 		ipsecRequest.Proposals = proposals
-
 	}
 
 	// PFS Group
 
 	if utils.IsSet(data.PFSGroup) {
-
 		pfsGroupVal, err := utils.SafeInt32FromValue(data.PFSGroup)
 
 		if err != nil {
-
 			diags.AddError("Invalid value", fmt.Sprintf("PFSGroup value overflow: %s", err))
 
 			return
-
 		}
 
 		pfsGroup := netbox.PatchedWritableIPSecPolicyRequestPfsGroup(pfsGroupVal)
 
 		ipsecRequest.PfsGroup = *netbox.NewNullablePatchedWritableIPSecPolicyRequestPfsGroup(&pfsGroup)
-
 	}
 
 	// Set common fields (description, comments, tags, custom_fields)
@@ -548,13 +468,11 @@ func (r *IPSecPolicyResource) setOptionalFields(ctx context.Context, ipsecReques
 	if diags.HasError() {
 		return
 	}
-
 }
 
 // mapIPSecPolicyToState maps an IPSecPolicy API response to the Terraform state model.
 
 func (r *IPSecPolicyResource) mapIPSecPolicyToState(ctx context.Context, ipsec *netbox.IPSecPolicy, data *IPSecPolicyResourceModel, diags *diag.Diagnostics) {
-
 	// ID
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipsec.Id))
@@ -566,59 +484,41 @@ func (r *IPSecPolicyResource) mapIPSecPolicyToState(ctx context.Context, ipsec *
 	// Description
 
 	if ipsec.Description != nil && *ipsec.Description != "" {
-
 		data.Description = types.StringValue(*ipsec.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Proposals
 
 	if len(ipsec.Proposals) > 0 {
-
 		proposalIDs := make([]int64, len(ipsec.Proposals))
 
 		for i, proposal := range ipsec.Proposals {
-
 			proposalIDs[i] = int64(proposal.Id)
-
 		}
 
 		proposalsValue, _ := types.SetValueFrom(ctx, types.Int64Type, proposalIDs)
 
 		data.Proposals = proposalsValue
-
 	} else {
-
 		data.Proposals = types.SetNull(types.Int64Type)
-
 	}
 
 	// PFS Group
 
 	if ipsec.PfsGroup != nil && ipsec.PfsGroup.Value != nil {
-
 		data.PFSGroup = types.Int64Value(int64(*ipsec.PfsGroup.Value))
-
 	} else {
-
 		data.PFSGroup = types.Int64Null()
-
 	}
 
 	// Comments
 
 	if ipsec.Comments != nil && *ipsec.Comments != "" {
-
 		data.Comments = types.StringValue(*ipsec.Comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Display Name
@@ -628,23 +528,18 @@ func (r *IPSecPolicyResource) mapIPSecPolicyToState(ctx context.Context, ipsec *
 	// Tags
 
 	if len(ipsec.Tags) > 0 {
-
 		tags := utils.NestedTagsToTagModels(ipsec.Tags)
 
 		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom Fields
 
 	switch {
-
 	case len(ipsec.CustomFields) > 0 && !data.CustomFields.IsNull():
 
 		var stateCustomFields []utils.CustomFieldModel
@@ -668,7 +563,5 @@ func (r *IPSecPolicyResource) mapIPSecPolicyToState(ctx context.Context, ipsec *
 	default:
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

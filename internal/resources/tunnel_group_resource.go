@@ -27,9 +27,7 @@ var _ resource.ResourceWithImportState = &TunnelGroupResource{}
 // NewTunnelGroupResource creates a new TunnelGroupResource.
 
 func NewTunnelGroupResource() resource.Resource {
-
 	return &TunnelGroupResource{}
-
 }
 
 // TunnelGroupResource defines the resource implementation.
@@ -59,21 +57,16 @@ type TunnelGroupResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *TunnelGroupResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_tunnel_group"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *TunnelGroupResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a tunnel group in Netbox. Tunnel groups are used to organize VPN tunnels by function, location, or other criteria.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.IDAttribute("tunnel group"),
 
 			"name": nbschema.NameAttribute("tunnel group", 100),
@@ -94,17 +87,13 @@ func (r *TunnelGroupResource) Schema(ctx context.Context, req resource.SchemaReq
 // Configure configures the resource with the provider client.
 
 func (r *TunnelGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -113,17 +102,14 @@ func (r *TunnelGroupResource) Configure(ctx context.Context, req resource.Config
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates a new tunnel group resource.
 
 func (r *TunnelGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data TunnelGroupResourceModel
 
 	// Read Terraform plan data into the model
@@ -131,13 +117,10 @@ func (r *TunnelGroupResource) Create(ctx context.Context, req resource.CreateReq
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating tunnel group", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"slug": data.Slug.ValueString(),
@@ -146,7 +129,6 @@ func (r *TunnelGroupResource) Create(ctx context.Context, req resource.CreateReq
 	// Create the tunnel group request
 
 	tunnelGroupRequest := netbox.TunnelGroupRequest{
-
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
@@ -159,9 +141,7 @@ func (r *TunnelGroupResource) Create(ctx context.Context, req resource.CreateReq
 	utils.ApplyMetadataFields(ctx, &tunnelGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Create via API
@@ -171,9 +151,7 @@ func (r *TunnelGroupResource) Create(ctx context.Context, req resource.CreateReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		handler := utils.CreateErrorHandler{
-
 			ResourceType: "netbox_tunnel_group",
 
 			ResourceName: "this.tunnel_group",
@@ -181,30 +159,23 @@ func (r *TunnelGroupResource) Create(ctx context.Context, req resource.CreateReq
 			SlugValue: data.Slug.ValueString(),
 
 			LookupFunc: func(lookupCtx context.Context, slug string) (string, error) {
-
 				list, _, lookupErr := r.client.VpnAPI.VpnTunnelGroupsList(lookupCtx).Slug([]string{slug}).Execute()
 
 				if lookupErr != nil {
-
 					return "", lookupErr
-
 				}
 
 				if list != nil && len(list.Results) > 0 {
-
 					return fmt.Sprintf("%d", list.Results[0].GetId()), nil
-
 				}
 
 				return "", nil
-
 			},
 		}
 
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 
 		return
-
 	}
 
 	// Map response to state
@@ -212,40 +183,32 @@ func (r *TunnelGroupResource) Create(ctx context.Context, req resource.CreateReq
 	r.mapTunnelGroupToState(ctx, tunnelGroup, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Created tunnel group", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read reads the tunnel group resource.
 
 func (r *TunnelGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data TunnelGroupResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing ID",
@@ -254,11 +217,9 @@ func (r *TunnelGroupResource) Read(ctx context.Context, req resource.ReadRequest
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading tunnel group", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -267,13 +228,10 @@ func (r *TunnelGroupResource) Read(ctx context.Context, req resource.ReadRequest
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -284,39 +242,31 @@ func (r *TunnelGroupResource) Read(ctx context.Context, req resource.ReadRequest
 		)
 
 		return
-
 	}
 
 	r.mapTunnelGroupToState(ctx, tunnelGroup, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the tunnel group resource.
 
 func (r *TunnelGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data TunnelGroupResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing ID",
@@ -325,11 +275,9 @@ func (r *TunnelGroupResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating tunnel group", map[string]interface{}{
-
 		"id": id,
 
 		"name": data.Name.ValueString(),
@@ -338,7 +286,6 @@ func (r *TunnelGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	// Create the tunnel group request
 
 	tunnelGroupRequest := netbox.TunnelGroupRequest{
-
 		Name: data.Name.ValueString(),
 
 		Slug: data.Slug.ValueString(),
@@ -347,29 +294,23 @@ func (r *TunnelGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	// Set optional fields
 
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-
 		description := data.Description.ValueString()
 
 		tunnelGroupRequest.Description = &description
-
 	}
 
 	// Handle tags
 
 	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-
 		var tags []utils.TagModel
 
 		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		tunnelGroupRequest.Tags = utils.TagsToNestedTagRequests(tags)
-
 	}
 
 	// Apply metadata fields (tags, custom_fields)
@@ -377,9 +318,7 @@ func (r *TunnelGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	utils.ApplyMetadataFields(ctx, &tunnelGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Update via API
@@ -389,7 +328,6 @@ func (r *TunnelGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating tunnel group",
@@ -398,46 +336,37 @@ func (r *TunnelGroupResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 
 		return
-
 	}
 
 	r.mapTunnelGroupToState(ctx, tunnelGroup, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updated tunnel group", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the tunnel group resource.
 
 func (r *TunnelGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data TunnelGroupResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing ID",
@@ -446,11 +375,9 @@ func (r *TunnelGroupResource) Delete(ctx context.Context, req resource.DeleteReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting tunnel group", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -459,7 +386,6 @@ func (r *TunnelGroupResource) Delete(ctx context.Context, req resource.DeleteReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error deleting tunnel group",
@@ -468,28 +394,22 @@ func (r *TunnelGroupResource) Delete(ctx context.Context, req resource.DeleteReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted tunnel group", map[string]interface{}{
-
 		"id": id,
 	})
-
 }
 
 // ImportState imports an existing tunnel group resource.
 
 func (r *TunnelGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // mapTunnelGroupToState maps a TunnelGroup API response to the Terraform state model.
 
 func (r *TunnelGroupResource) mapTunnelGroupToState(ctx context.Context, tunnelGroup *netbox.TunnelGroup, data *TunnelGroupResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", tunnelGroup.Id))
 
 	data.Name = types.StringValue(tunnelGroup.Name)
@@ -499,13 +419,9 @@ func (r *TunnelGroupResource) mapTunnelGroupToState(ctx context.Context, tunnelG
 	// Description
 
 	if tunnelGroup.Description != nil && *tunnelGroup.Description != "" {
-
 		data.Description = types.StringValue(*tunnelGroup.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map display_name
@@ -518,7 +434,6 @@ func (r *TunnelGroupResource) mapTunnelGroupToState(ctx context.Context, tunnelG
 	// Tags
 
 	if len(tunnelGroup.Tags) > 0 {
-
 		tags := utils.NestedTagsToTagModels(tunnelGroup.Tags)
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -526,23 +441,17 @@ func (r *TunnelGroupResource) mapTunnelGroupToState(ctx context.Context, tunnelG
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom fields
 
 	if tunnelGroup.CustomFields != nil && !data.CustomFields.IsNull() {
-
 		var stateCustomFields []utils.CustomFieldModel
 
 		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
@@ -550,9 +459,7 @@ func (r *TunnelGroupResource) mapTunnelGroupToState(ctx context.Context, tunnelG
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(tunnelGroup.CustomFields, stateCustomFields)
@@ -562,17 +469,11 @@ func (r *TunnelGroupResource) mapTunnelGroupToState(ctx context.Context, tunnelG
 		diags.Append(cfValueDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else if data.CustomFields.IsNull() {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }
