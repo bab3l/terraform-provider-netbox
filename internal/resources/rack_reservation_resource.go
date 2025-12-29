@@ -119,11 +119,10 @@ func (r *RackReservationResource) Schema(ctx context.Context, req resource.Schem
 
 				Required: true,
 			},
+
+			"comments": nbschema.CommentsAttribute("rack reservation"),
 		},
 	}
-
-	// Add common descriptive attributes (description, comments)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("rack reservation"))
 
 	// Add common metadata attributes (tags, custom_fields)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
