@@ -34,9 +34,7 @@ var (
 // NewRackReservationResource returns a new resource implementing the rack reservation resource.
 
 func NewRackReservationResource() resource.Resource {
-
 	return &RackReservationResource{}
-
 }
 
 // RackReservationResource defines the resource implementation.
@@ -72,42 +70,33 @@ type RackReservationResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *RackReservationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_rack_reservation"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *RackReservationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a rack reservation in NetBox. Rack reservations allow you to designate specific units within a rack for a particular purpose or user.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the rack reservation.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"rack": schema.StringAttribute{
-
 				MarkdownDescription: "The rack containing the reserved units (ID or name).",
 
 				Required: true,
 			},
 
 			"units": schema.SetAttribute{
-
 				MarkdownDescription: "The rack units (U positions) to reserve. Must be a set of integers.",
 
 				Required: true,
@@ -116,21 +105,18 @@ func (r *RackReservationResource) Schema(ctx context.Context, req resource.Schem
 			},
 
 			"user": schema.StringAttribute{
-
 				MarkdownDescription: "The user who owns this reservation (ID or username).",
 
 				Required: true,
 			},
 
 			"tenant": schema.StringAttribute{
-
 				MarkdownDescription: "The tenant associated with this reservation (ID or slug).",
 
 				Optional: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the reservation purpose.",
 
 				Required: true,
@@ -148,17 +134,13 @@ func (r *RackReservationResource) Schema(ctx context.Context, req resource.Schem
 }
 
 func (r *RackReservationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -167,25 +149,20 @@ func (r *RackReservationResource) Configure(ctx context.Context, req resource.Co
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates the resource.
 
 func (r *RackReservationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data RackReservationResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Lookup rack
@@ -195,9 +172,7 @@ func (r *RackReservationResource) Create(ctx context.Context, req resource.Creat
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Lookup user
@@ -207,9 +182,7 @@ func (r *RackReservationResource) Create(ctx context.Context, req resource.Creat
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Convert units to []int32
@@ -221,27 +194,21 @@ func (r *RackReservationResource) Create(ctx context.Context, req resource.Creat
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	units := make([]int32, len(unitsInt64))
 
 	for i, u := range unitsInt64 {
-
 		val, err := utils.SafeInt32(u)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Units value overflow: %s", err))
 
 			return
-
 		}
 
 		units[i] = val
-
 	}
 
 	// Build request
@@ -251,19 +218,15 @@ func (r *RackReservationResource) Create(ctx context.Context, req resource.Creat
 	// Set optional fields
 
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-
 		tenant, tenantDiags := lookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 
 		resp.Diagnostics.Append(tenantDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetTenant(*tenant)
-
 	}
 
 	// Apply optional fields (comments, tags, custom_fields)
@@ -273,21 +236,16 @@ func (r *RackReservationResource) Create(ctx context.Context, req resource.Creat
 	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating rack reservation", map[string]interface{}{
-
 		"rack": data.Rack.ValueString(),
 
 		"units": units,
@@ -304,7 +262,6 @@ func (r *RackReservationResource) Create(ctx context.Context, req resource.Creat
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating rack reservation",
@@ -313,7 +270,6 @@ func (r *RackReservationResource) Create(ctx context.Context, req resource.Creat
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -321,27 +277,21 @@ func (r *RackReservationResource) Create(ctx context.Context, req resource.Creat
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read reads the resource.
 
 func (r *RackReservationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data RackReservationResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -351,7 +301,6 @@ func (r *RackReservationResource) Read(ctx context.Context, req resource.ReadReq
 	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing rack reservation ID",
@@ -360,7 +309,6 @@ func (r *RackReservationResource) Read(ctx context.Context, req resource.ReadReq
 		)
 
 		return
-
 	}
 
 	// Read from API
@@ -370,13 +318,10 @@ func (r *RackReservationResource) Read(ctx context.Context, req resource.ReadReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -387,7 +332,6 @@ func (r *RackReservationResource) Read(ctx context.Context, req resource.ReadReq
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -395,27 +339,21 @@ func (r *RackReservationResource) Read(ctx context.Context, req resource.ReadReq
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the resource.
 
 func (r *RackReservationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data RackReservationResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -425,7 +363,6 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing rack reservation ID",
@@ -434,7 +371,6 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 		)
 
 		return
-
 	}
 
 	// Lookup rack
@@ -444,9 +380,7 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Lookup user
@@ -456,9 +390,7 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Convert units to []int32
@@ -470,27 +402,21 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	units := make([]int32, len(unitsInt64))
 
 	for i, u := range unitsInt64 {
-
 		val, err := utils.SafeInt32(u)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Units value overflow: %s", err))
 
 			return
-
 		}
 
 		units[i] = val
-
 	}
 
 	// Build request
@@ -500,19 +426,15 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 	// Set optional fields
 
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-
 		tenant, tenantDiags := lookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 
 		resp.Diagnostics.Append(tenantDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetTenant(*tenant)
-
 	}
 
 	// Apply optional fields (comments, tags, custom_fields)
@@ -522,21 +444,16 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating rack reservation", map[string]interface{}{
-
 		"id": id,
 
 		"rack": data.Rack.ValueString(),
@@ -555,7 +472,6 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating rack reservation",
@@ -564,7 +480,6 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -572,27 +487,21 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the resource.
 
 func (r *RackReservationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data RackReservationResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -602,7 +511,6 @@ func (r *RackReservationResource) Delete(ctx context.Context, req resource.Delet
 	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing rack reservation ID",
@@ -611,7 +519,6 @@ func (r *RackReservationResource) Delete(ctx context.Context, req resource.Delet
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting rack reservation", map[string]interface{}{"id": id})
@@ -623,11 +530,8 @@ func (r *RackReservationResource) Delete(ctx context.Context, req resource.Delet
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -638,23 +542,18 @@ func (r *RackReservationResource) Delete(ctx context.Context, req resource.Delet
 		)
 
 		return
-
 	}
-
 }
 
 // ImportState imports the resource state.
 
 func (r *RackReservationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // mapToState maps the API response to the Terraform state.
 
 func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox.RackReservation, data *RackReservationResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
 	// Map rack (required field) - preserve user's input format, but always set something for import
@@ -675,9 +574,7 @@ func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox
 	units := make([]int64, len(apiUnits))
 
 	for i, u := range apiUnits {
-
 		units[i] = int64(u)
-
 	}
 
 	unitsValue, unitDiags := types.SetValueFrom(ctx, types.Int64Type, units)
@@ -695,15 +592,11 @@ func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox
 	// Map tenant
 
 	if result.HasTenant() && result.GetTenant().Id != 0 {
-
 		tenant := result.GetTenant()
 
 		data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
-
 	} else {
-
 		data.Tenant = types.StringNull()
-
 	}
 
 	// Map description
@@ -713,19 +606,14 @@ func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox
 	// Map comments
 
 	if result.HasComments() && result.GetComments() != "" {
-
 		data.Comments = types.StringValue(result.GetComments())
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Map tags
 
 	if result.HasTags() && len(result.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(result.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -733,25 +621,19 @@ func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox
 		diags.Append(tagDiags...)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Map custom fields
 
 	if result.HasCustomFields() && len(result.GetCustomFields()) > 0 {
-
 		var existingModels []utils.CustomFieldModel
 
 		if !data.CustomFields.IsNull() {
-
 			elemDiags := data.CustomFields.ElementsAs(ctx, &existingModels, false)
 
 			diags.Append(elemDiags...)
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(result.GetCustomFields(), existingModels)
@@ -761,23 +643,15 @@ func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox
 		diags.Append(cfDiags...)
 
 		data.CustomFields = cfValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Map display_name
 
 	if result.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(result.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
-
 }
