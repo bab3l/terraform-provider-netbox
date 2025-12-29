@@ -95,7 +95,7 @@ func (r *ASNRangeResource) Schema(ctx context.Context, req resource.SchemaReques
 					),
 				},
 			},
-			"tenant":       nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this ASN range."),
+			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this ASN range."),
 		},
 	}
 

@@ -54,7 +54,6 @@ type CustomLinkResourceModel struct {
 	ButtonClass types.String `tfsdk:"button_class"`
 
 	NewWindow   types.Bool   `tfsdk:"new_window"`
-	DisplayName types.String `tfsdk:"display_name"`
 }
 
 func (r *CustomLinkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -525,8 +524,6 @@ func (r *CustomLinkResource) mapToState(ctx context.Context, result *netbox.Cust
 	// Map display_name
 
 	if result.Display != "" {
-		data.DisplayName = types.StringValue(result.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 }

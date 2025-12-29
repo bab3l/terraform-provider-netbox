@@ -50,8 +50,6 @@ type WirelessLANResourceModel struct {
 
 	SSID types.String `tfsdk:"ssid"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Description types.String `tfsdk:"description"`
 
 	Group types.String `tfsdk:"group"`
@@ -103,8 +101,6 @@ func (r *WirelessLANResource) Schema(ctx context.Context, req resource.SchemaReq
 
 				Required: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("wireless LAN"),
 
 			"description": schema.StringAttribute{
 				MarkdownDescription: "A description of the wireless LAN.",
@@ -644,8 +640,6 @@ func (r *WirelessLANResource) mapResponseToModel(ctx context.Context, wlan *netb
 	data.ID = types.StringValue(fmt.Sprintf("%d", wlan.GetId()))
 
 	data.SSID = types.StringValue(wlan.GetSsid())
-
-	data.DisplayName = types.StringValue(wlan.GetDisplay())
 
 	// Map description
 

@@ -49,7 +49,6 @@ type CustomFieldChoiceSetResourceModel struct {
 	ExtraChoices types.List `tfsdk:"extra_choices"`
 
 	OrderAlphabetically types.Bool   `tfsdk:"order_alphabetically"`
-	DisplayName         types.String `tfsdk:"display_name"`
 }
 
 // ChoicePairModel represents a key-value pair for choices.
@@ -492,8 +491,6 @@ func (r *CustomFieldChoiceSetResource) mapToState(ctx context.Context, result *n
 	// Map display_name
 
 	if result.Display != "" {
-		data.DisplayName = types.StringValue(result.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 }

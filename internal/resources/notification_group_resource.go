@@ -42,7 +42,6 @@ type NotificationGroupResourceModel struct {
 	Description types.String `tfsdk:"description"`
 	GroupIDs    types.Set    `tfsdk:"group_ids"`
 	UserIDs     types.Set    `tfsdk:"user_ids"`
-	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the resource type name.
@@ -75,7 +74,6 @@ func (r *NotificationGroupResource) Schema(ctx context.Context, req resource.Sch
 				Optional:            true,
 				ElementType:         types.Int32Type,
 			},
-			"display_name": nbschema.DisplayNameAttribute("notification group"),
 		},
 	}
 }
@@ -331,8 +329,6 @@ func (r *NotificationGroupResource) mapToState(ctx context.Context, result *netb
 	}
 	// Map display_name
 	if result.Display != "" {
-		data.DisplayName = types.StringValue(result.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 }

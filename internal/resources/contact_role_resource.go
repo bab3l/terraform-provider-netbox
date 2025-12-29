@@ -43,8 +43,6 @@ type ContactRoleResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -66,8 +64,6 @@ func (r *ContactRoleResource) Schema(ctx context.Context, req resource.SchemaReq
 			"slug": nbschema.SlugAttribute("contact role"),
 
 			"description": nbschema.DescriptionAttribute("contact role"),
-
-			"display_name": nbschema.DisplayNameAttribute("contact role"),
 		},
 	}
 
@@ -351,9 +347,7 @@ func (r *ContactRoleResource) mapContactRoleToState(ctx context.Context, contact
 
 	// Handle display_name
 	if contactRole.GetDisplay() != "" {
-		data.DisplayName = types.StringValue(contactRole.GetDisplay())
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Handle tags

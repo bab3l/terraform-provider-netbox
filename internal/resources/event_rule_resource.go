@@ -51,7 +51,6 @@ type EventRuleResourceModel struct {
 	ActionObjectType types.String `tfsdk:"action_object_type"`
 	ActionObjectID   types.String `tfsdk:"action_object_id"`
 	Description      types.String `tfsdk:"description"`
-	DisplayName      types.String `tfsdk:"display_name"`
 	Tags             types.Set    `tfsdk:"tags"`
 	CustomFields     types.Set    `tfsdk:"custom_fields"`
 }
@@ -110,7 +109,6 @@ func (r *EventRuleResource) Schema(ctx context.Context, req resource.SchemaReque
 				MarkdownDescription: "The ID of the action object (webhook, script, or notification group).",
 				Optional:            true,
 			},
-			"display_name": nbschema.DisplayNameAttribute("event rule"),
 		},
 	}
 
@@ -474,9 +472,7 @@ func (r *EventRuleResource) mapToState(ctx context.Context, result *netbox.Event
 
 	// Map display_name
 	if result.Display != "" {
-		data.DisplayName = types.StringValue(result.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map tags

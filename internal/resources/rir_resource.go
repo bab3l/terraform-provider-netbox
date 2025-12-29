@@ -67,8 +67,8 @@ func (r *RIRResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"name":         nbschema.NameAttribute("RIR", 100),
-			"slug":         nbschema.SlugAttribute("RIR"),
+			"name": nbschema.NameAttribute("RIR", 100),
+			"slug": nbschema.SlugAttribute("RIR"),
 			"is_private": schema.BoolAttribute{
 				MarkdownDescription: "Whether IP space managed by this RIR is considered private. Defaults to `false`.",
 				Optional:            true,
