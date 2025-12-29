@@ -77,8 +77,6 @@ type PowerFeedResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -208,8 +206,6 @@ func (r *PowerFeedResource) Schema(ctx context.Context, req resource.SchemaReque
 
 				Optional: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("power feed"),
 		},
 	}
 
@@ -738,9 +734,7 @@ func (r *PowerFeedResource) mapResponseToModel(ctx context.Context, pf *netbox.P
 
 	// DisplayName
 	if pf.Display != "" {
-		data.DisplayName = types.StringValue(pf.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map power panel

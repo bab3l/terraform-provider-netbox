@@ -69,8 +69,6 @@ type InventoryItemResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -162,8 +160,6 @@ func (r *InventoryItemResource) Schema(ctx context.Context, req resource.SchemaR
 
 				Computed: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("inventory item"),
 		},
 	}
 
@@ -626,9 +622,7 @@ func (r *InventoryItemResource) mapResponseToModel(ctx context.Context, item *ne
 
 	// DisplayName
 	if item.Display != "" {
-		data.DisplayName = types.StringValue(item.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map device - preserve user's input format

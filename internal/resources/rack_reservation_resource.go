@@ -60,8 +60,6 @@ type RackReservationResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -121,8 +119,6 @@ func (r *RackReservationResource) Schema(ctx context.Context, req resource.Schem
 
 				Required: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("rack reservation"),
 		},
 	}
 
@@ -650,8 +646,6 @@ func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox
 	// Map display_name
 
 	if result.GetDisplay() != "" {
-		data.DisplayName = types.StringValue(result.GetDisplay())
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 }

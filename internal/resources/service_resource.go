@@ -53,8 +53,6 @@ type ServiceResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Protocol types.String `tfsdk:"protocol"`
 
 	Ports types.List `tfsdk:"ports"`
@@ -110,8 +108,6 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 
 				Required: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("service"),
 
 			"protocol": schema.StringAttribute{
 				MarkdownDescription: "The protocol used by the service. Valid values: `tcp`, `udp`, `sctp`.",
@@ -606,9 +602,7 @@ func (r *ServiceResource) mapResponseToModel(ctx context.Context, svc *netbox.Se
 	data.Name = types.StringValue(svc.GetName())
 
 	if svc.GetDisplay() != "" {
-		data.DisplayName = types.StringValue(svc.GetDisplay())
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map device

@@ -54,8 +54,6 @@ type InventoryItemRoleResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -97,8 +95,6 @@ func (r *InventoryItemRoleResource) Schema(ctx context.Context, req resource.Sch
 			},
 
 			"color": nbschema.ComputedColorAttribute("inventory item role"),
-
-			"display_name": nbschema.DisplayNameAttribute("inventory item role"),
 		},
 	}
 
@@ -430,9 +426,7 @@ func (r *InventoryItemRoleResource) mapResponseToModel(ctx context.Context, role
 
 	// DisplayName
 	if role.Display != "" {
-		data.DisplayName = types.StringValue(role.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map color

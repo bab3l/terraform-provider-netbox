@@ -59,8 +59,6 @@ type ServiceTemplateResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -118,8 +116,6 @@ func (r *ServiceTemplateResource) Schema(ctx context.Context, req resource.Schem
 
 				ElementType: types.Int64Type,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("service template"),
 		},
 	}
 
@@ -519,9 +515,7 @@ func (r *ServiceTemplateResource) mapResponseToState(ctx context.Context, servic
 
 	// Map display_name
 	if serviceTemplate.Display != "" {
-		data.DisplayName = types.StringValue(serviceTemplate.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Handle tags

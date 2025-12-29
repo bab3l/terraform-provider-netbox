@@ -67,8 +67,6 @@ type InventoryItemTemplateResourceModel struct {
 	ComponentType types.String `tfsdk:"component_type"`
 
 	ComponentID types.String `tfsdk:"component_id"`
-
-	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the resource type name.
@@ -135,8 +133,6 @@ func (r *InventoryItemTemplateResource) Schema(ctx context.Context, req resource
 
 				Optional: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("inventory item template"),
 
 			"component_type": schema.StringAttribute{
 				MarkdownDescription: "The type of component this inventory item represents (e.g., `dcim.interface`).",
@@ -604,9 +600,7 @@ func (r *InventoryItemTemplateResource) mapToState(ctx context.Context, result *
 
 	// DisplayName
 	if result.Display != "" {
-		data.DisplayName = types.StringValue(result.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map device type (required field)
