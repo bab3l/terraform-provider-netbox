@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccCableDataSource_basic(t *testing.T) {
+func TestAccCableDataSource_byID(t *testing.T) {
 
 	t.Parallel()
 
