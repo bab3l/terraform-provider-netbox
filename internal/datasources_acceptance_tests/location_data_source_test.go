@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccLocationDataSource_basic(t *testing.T) {
+func TestAccLocationDataSource_bySlug(t *testing.T) {
 
 	t.Parallel()
 
