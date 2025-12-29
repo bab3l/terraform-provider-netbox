@@ -35,7 +35,6 @@ func (r *ClusterGroupResource) GetClient() *netbox.APIClient {
 type ClusterGroupResourceModel struct {
 	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
-	DisplayName  types.String `tfsdk:"display_name"`
 	Slug         types.String `tfsdk:"slug"`
 	Description  types.String `tfsdk:"description"`
 	Tags         types.Set    `tfsdk:"tags"`
@@ -52,7 +51,6 @@ func (r *ClusterGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 		Attributes: map[string]schema.Attribute{
 			"id":           nbschema.IDAttribute("cluster group"),
 			"name":         nbschema.NameAttribute("cluster group", 100),
-			"display_name": nbschema.DisplayNameAttribute("cluster group"),
 			"slug":         nbschema.SlugAttribute("cluster group"),
 		},
 	}
@@ -297,9 +295,7 @@ func (r *ClusterGroupResource) mapClusterGroupToState(ctx context.Context, clust
 
 	// DisplayName
 	if clusterGroup.Display != "" {
-		data.DisplayName = types.StringValue(clusterGroup.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	data.Slug = types.StringValue(clusterGroup.GetSlug())

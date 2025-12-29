@@ -41,7 +41,6 @@ type ClusterTypeResourceModel struct {
 	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
 	Slug         types.String `tfsdk:"slug"`
-	DisplayName  types.String `tfsdk:"display_name"`
 	Description  types.String `tfsdk:"description"`
 	Tags         types.Set    `tfsdk:"tags"`
 	CustomFields types.Set    `tfsdk:"custom_fields"`
@@ -60,7 +59,6 @@ func (r *ClusterTypeResource) Schema(ctx context.Context, req resource.SchemaReq
 			"id":           nbschema.IDAttribute("cluster type"),
 			"name":         nbschema.NameAttribute("cluster type", 100),
 			"slug":         nbschema.SlugAttribute("cluster type"),
-			"display_name": nbschema.DisplayNameAttribute("cluster type"),
 		},
 	}
 
@@ -92,7 +90,6 @@ func (r *ClusterTypeResource) mapClusterTypeToState(ctx context.Context, cluster
 	data.ID = types.StringValue(fmt.Sprintf("%d", clusterType.GetId()))
 	data.Name = types.StringValue(clusterType.GetName())
 	data.Slug = types.StringValue(clusterType.GetSlug())
-	data.DisplayName = types.StringValue(clusterType.GetDisplay())
 
 	// Handle description
 	data.Description = utils.NullableStringFromAPI(

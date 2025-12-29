@@ -59,8 +59,6 @@ type VirtualDiskResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -111,8 +109,6 @@ func (r *VirtualDiskResource) Schema(ctx context.Context, req resource.SchemaReq
 					),
 				},
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("virtual disk"),
 		},
 	}
 
@@ -490,9 +486,7 @@ func (r *VirtualDiskResource) mapVirtualDiskToState(ctx context.Context, vd *net
 
 	// DisplayName
 	if vd.Display != "" {
-		data.DisplayName = types.StringValue(vd.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// VirtualMachine - preserve user's input format

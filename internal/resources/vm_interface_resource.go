@@ -60,8 +60,6 @@ type VMInterfaceResourceModel struct {
 
 	MACAddress types.String `tfsdk:"mac_address"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Description types.String `tfsdk:"description"`
 
 	Mode types.String `tfsdk:"mode"`
@@ -132,8 +130,6 @@ func (r *VMInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 				Optional: true,
 			},
 
-			"display_name": nbschema.DisplayNameAttribute("VM interface"),
-
 			"mode": schema.StringAttribute{
 				MarkdownDescription: "The 802.1Q mode of the interface. Valid values are: `access`, `tagged`, `tagged-all`.",
 
@@ -193,9 +189,7 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 
 	// DisplayName
 	if iface.Display != "" {
-		data.DisplayName = types.StringValue(iface.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Virtual Machine (always present - required field)

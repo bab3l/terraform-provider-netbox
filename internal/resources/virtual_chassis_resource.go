@@ -47,8 +47,6 @@ type VirtualChassisResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Domain types.String `tfsdk:"domain"`
 
 	Master types.String `tfsdk:"master"`
@@ -80,8 +78,6 @@ func (r *VirtualChassisResource) Schema(ctx context.Context, req resource.Schema
 			"id": nbschema.IDAttribute("virtual chassis"),
 
 			"name": nbschema.NameAttribute("virtual chassis", 64),
-
-			"display_name": nbschema.DisplayNameAttribute("virtual chassis"),
 
 			"domain": schema.StringAttribute{
 				MarkdownDescription: "The domain for this virtual chassis.",
@@ -416,9 +412,7 @@ func (r *VirtualChassisResource) mapResponseToModel(ctx context.Context, vc *net
 
 	// DisplayName
 	if vc.Display != "" {
-		data.DisplayName = types.StringValue(vc.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map domain

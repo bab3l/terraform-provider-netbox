@@ -52,8 +52,6 @@ type VirtualMachineResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Status types.String `tfsdk:"status"`
 
 	Site types.String `tfsdk:"site"`
@@ -115,8 +113,6 @@ func (r *VirtualMachineResource) Schema(ctx context.Context, req resource.Schema
 			},
 
 			"name": nbschema.NameAttribute("virtual machine", 64),
-
-			"display_name": nbschema.DisplayNameAttribute("virtual machine"),
 
 			"status": schema.StringAttribute{
 				MarkdownDescription: "The status of the virtual machine. Valid values are: `offline`, `active`, `planned`, `staged`, `failed`, `decommissioning`. Defaults to `active`.",
@@ -256,9 +252,7 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 	// DisplayName
 
 	if vm.Display != "" {
-		data.DisplayName = types.StringValue(vm.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Status
