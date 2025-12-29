@@ -74,8 +74,6 @@ type WirelessLinkResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -191,8 +189,6 @@ func (r *WirelessLinkResource) Schema(ctx context.Context, req resource.SchemaRe
 					stringvalidator.OneOf("km", "m", "mi", "ft", ""),
 				},
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("wireless link"),
 		},
 	}
 
@@ -669,9 +665,7 @@ func (r *WirelessLinkResource) mapToState(ctx context.Context, result *netbox.Wi
 
 	// DisplayName
 	if result.Display != "" {
-		data.DisplayName = types.StringValue(result.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map interface IDs - on first read (unknown/null), set to ID; otherwise preserve current value to avoid drift

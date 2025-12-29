@@ -43,8 +43,6 @@ type VLANGroupResourceModel struct {
 
 	Slug types.String `tfsdk:"slug"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	ScopeType types.String `tfsdk:"scope_type"`
 
 	ScopeID types.String `tfsdk:"scope_id"`
@@ -70,8 +68,6 @@ func (r *VLANGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 			"name": nbschema.NameAttribute("VLAN Group", 100),
 
 			"slug": nbschema.SlugAttribute("VLAN Group"),
-
-			"display_name": nbschema.DisplayNameAttribute("VLAN Group"),
 
 			"description": nbschema.DescriptionAttribute("VLAN Group"),
 
@@ -454,8 +450,6 @@ func (r *VLANGroupResource) mapVLANGroupToState(ctx context.Context, vlanGroup *
 	data.Name = types.StringValue(vlanGroup.GetName())
 
 	data.Slug = types.StringValue(vlanGroup.GetSlug())
-
-	data.DisplayName = types.StringValue(vlanGroup.GetDisplay())
 
 	// Scope type
 
