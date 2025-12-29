@@ -204,9 +204,10 @@ These need additional test coverage. Pattern to add:
 ### Phase 2: Test Coverage (Secondary)
 1. ✅ Test Batch A1: aggregate, asn, asn_range, cable, cable_termination - Commit 9337fb4
 2. ✅ Test Batch A2: circuit, circuit_termination, circuit_type, cluster, cluster_group - Commit fe919b6
-3. Test Batch A3-A8: Add missing tests for remaining datasources
+3. ✅ Test Batch A3: cluster_type, config_context, console_port, console_port_template - Commit 1f646fb
+4. Test Batch A4-A8: Add missing tests for remaining datasources
 
-**Progress**: 10 datasources improved, 28 tests total (26 passed, 2 skipped)
+**Progress**: 14 datasources improved, 40 tests total (38 passed, 2 skipped)
 
 ---
 
