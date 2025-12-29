@@ -377,5 +377,4 @@ func (r *ASNResource) mapResponseToModel(ctx context.Context, asn *netbox.ASN, d
 
 	// Handle custom fields
 	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, asn.HasCustomFields(), asn.GetCustomFields(), data.CustomFields, diags)
-
 }

@@ -26,9 +26,7 @@ var _ resource.Resource = &VLANResource{}
 var _ resource.ResourceWithImportState = &VLANResource{}
 
 func NewVLANResource() resource.Resource {
-
 	return &VLANResource{}
-
 }
 
 // VLANResource defines the resource implementation.
@@ -72,23 +70,17 @@ type VLANResourceModel struct {
 }
 
 func (r *VLANResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_vlan"
-
 }
 
 func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a VLAN in Netbox. VLANs (Virtual Local Area Networks) represent layer 2 broadcast domains that can be assigned to interfaces and used to organize network resources.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.IDAttribute("VLAN"),
 
 			"vid": schema.Int64Attribute{
-
 				MarkdownDescription: "VLAN ID (1-4094). This is the numeric identifier used on network devices. Required.",
 
 				Required: true,
@@ -103,7 +95,6 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"site_id": nbschema.ComputedIDAttribute("site"),
 
 			"group": schema.StringAttribute{
-
 				MarkdownDescription: "ID or slug of the VLAN group this VLAN belongs to.",
 
 				Optional: true,
@@ -114,7 +105,6 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"tenant_id": nbschema.ComputedIDAttribute("tenant"),
 
 			"status": schema.StringAttribute{
-
 				MarkdownDescription: "Operational status of the VLAN. Valid values: `active`, `reserved`, `deprecated`. Defaults to `active`.",
 
 				Optional: true,
@@ -123,7 +113,6 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			},
 
 			"role": schema.StringAttribute{
-
 				MarkdownDescription: "ID or slug of the role assigned to this VLAN.",
 
 				Optional: true,
@@ -136,21 +125,16 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 	// Add common metadata attributes (tags, custom_fields)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
-
 }
 
 func (r *VLANResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -159,27 +143,21 @@ func (r *VLANResource) Configure(ctx context.Context, req resource.ConfigureRequ
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 func (r *VLANResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data VLANResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating VLAN", map[string]interface{}{
-
 		"vid": data.VID.ValueInt64(),
 
 		"name": data.Name.ValueString(),
@@ -190,17 +168,14 @@ func (r *VLANResource) Create(ctx context.Context, req resource.CreateRequest, r
 	vid, err := utils.SafeInt32FromValue(data.VID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid VLAN ID", fmt.Sprintf("VID overflow: %s", err))
 
 		return
-
 	}
 
 	// Prepare the VLAN request
 
 	vlanRequest := netbox.WritableVLANRequest{
-
 		Vid: vid,
 
 		Name: data.Name.ValueString(),
@@ -211,9 +186,7 @@ func (r *VLANResource) Create(ctx context.Context, req resource.CreateRequest, r
 	r.setOptionalFields(ctx, &vlanRequest, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Create the VLAN via API
@@ -223,9 +196,7 @@ func (r *VLANResource) Create(ctx context.Context, req resource.CreateRequest, r
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		handler := utils.CreateErrorHandler{
-
 			ResourceType: "netbox_vlan",
 
 			ResourceName: "this.vlan",
@@ -238,11 +209,9 @@ func (r *VLANResource) Create(ctx context.Context, req resource.CreateRequest, r
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Created VLAN", map[string]interface{}{
-
 		"id": vlan.GetId(),
 
 		"vid": vlan.GetVid(),
@@ -255,25 +224,19 @@ func (r *VLANResource) Create(ctx context.Context, req resource.CreateRequest, r
 	r.mapVLANToState(ctx, vlan, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *VLANResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data VLANResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -285,15 +248,12 @@ func (r *VLANResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	id, err := utils.ParseID(vlanID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid VLAN ID", fmt.Sprintf("VLAN ID must be a number, got: %s", vlanID))
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading VLAN", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -304,18 +264,14 @@ func (r *VLANResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "VLAN not found, removing from state", map[string]interface{}{
-
 				"id": id,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -326,11 +282,9 @@ func (r *VLANResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Read VLAN", map[string]interface{}{
-
 		"id": vlan.GetId(),
 
 		"vid": vlan.GetVid(),
@@ -343,25 +297,19 @@ func (r *VLANResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	r.mapVLANToState(ctx, vlan, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *VLANResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data VLANResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -373,15 +321,12 @@ func (r *VLANResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	id, err := utils.ParseID(vlanID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid VLAN ID", fmt.Sprintf("VLAN ID must be a number, got: %s", vlanID))
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating VLAN", map[string]interface{}{
-
 		"id": id,
 
 		"vid": data.VID.ValueInt64(),
@@ -394,17 +339,14 @@ func (r *VLANResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	vid, err := utils.SafeInt32FromValue(data.VID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid VLAN ID", fmt.Sprintf("VID overflow: %s", err))
 
 		return
-
 	}
 
 	// Prepare the VLAN request
 
 	vlanRequest := netbox.WritableVLANRequest{
-
 		Vid: vid,
 
 		Name: data.Name.ValueString(),
@@ -415,9 +357,7 @@ func (r *VLANResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	r.setOptionalFields(ctx, &vlanRequest, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Update the VLAN via API
@@ -427,7 +367,6 @@ func (r *VLANResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating VLAN",
@@ -436,11 +375,9 @@ func (r *VLANResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updated VLAN", map[string]interface{}{
-
 		"id": vlan.GetId(),
 
 		"vid": vlan.GetVid(),
@@ -453,25 +390,19 @@ func (r *VLANResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	r.mapVLANToState(ctx, vlan, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *VLANResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data VLANResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -483,15 +414,12 @@ func (r *VLANResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	id, err := utils.ParseID(vlanID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid VLAN ID", fmt.Sprintf("VLAN ID must be a number, got: %s", vlanID))
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting VLAN", map[string]interface{}{
-
 		"id": id,
 
 		"vid": data.VID.ValueInt64(),
@@ -506,16 +434,12 @@ func (r *VLANResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "VLAN already deleted", map[string]interface{}{
-
 				"id": id,
 			})
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -526,106 +450,82 @@ func (r *VLANResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted VLAN", map[string]interface{}{
-
 		"id": id,
 	})
-
 }
 
 func (r *VLANResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // setOptionalFields sets optional fields on the VLAN request from the resource model.
 
 func (r *VLANResource) setOptionalFields(ctx context.Context, vlanRequest *netbox.WritableVLANRequest, data *VLANResourceModel, diags *diag.Diagnostics) {
-
 	// Site
 
 	if utils.IsSet(data.Site) {
-
 		site, siteDiags := netboxlookup.LookupSite(ctx, r.client, data.Site.ValueString())
 
 		diags.Append(siteDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		vlanRequest.Site = *netbox.NewNullableBriefSiteRequest(site)
-
 	}
 
 	// Group
 
 	if utils.IsSet(data.Group) {
-
 		group, groupDiags := netboxlookup.LookupVLANGroup(ctx, r.client, data.Group.ValueString())
 
 		diags.Append(groupDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		vlanRequest.Group = *netbox.NewNullableBriefVLANGroupRequest(group)
-
 	}
 
 	// Tenant
 
 	if utils.IsSet(data.Tenant) {
-
 		tenant, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
 
 		diags.Append(tenantDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		vlanRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
-
 	}
 
 	// Status
 
 	if utils.IsSet(data.Status) {
-
 		status := netbox.PatchedWritableVLANRequestStatus(data.Status.ValueString())
 
 		vlanRequest.Status = &status
-
 	}
 
 	// Role
 
 	if utils.IsSet(data.Role) {
-
 		role, roleDiags := netboxlookup.LookupRole(ctx, r.client, data.Role.ValueString())
 
 		diags.Append(roleDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		vlanRequest.Role = *netbox.NewNullableBriefRoleRequest(role)
-
 	}
 
 	// Set common fields (description, comments, tags, custom_fields)
@@ -633,13 +533,11 @@ func (r *VLANResource) setOptionalFields(ctx context.Context, vlanRequest *netbo
 	if diags.HasError() {
 		return
 	}
-
 }
 
 // mapVLANToState maps a VLAN API response to the resource model.
 
 func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, data *VLANResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", vlan.GetId()))
 
 	data.VID = types.Int64Value(int64(vlan.GetVid()))
@@ -651,103 +549,74 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 	// Site
 
 	if vlan.HasSite() && vlan.Site.Get() != nil {
-
 		data.Site = utils.UpdateReferenceAttribute(data.Site, vlan.Site.Get().Name, vlan.Site.Get().Slug, vlan.Site.Get().Id)
 
 		data.SiteID = types.StringValue(fmt.Sprintf("%d", vlan.Site.Get().Id))
-
 	} else {
-
 		data.Site = types.StringNull()
 
 		data.SiteID = types.StringNull()
-
 	}
 
 	// Group - preserve user's input format
 
 	if vlan.HasGroup() && vlan.Group.Get() != nil {
-
 		group := vlan.Group.Get()
 
 		data.Group = utils.UpdateReferenceAttribute(data.Group, group.GetName(), group.GetSlug(), group.GetId())
-
 	} else {
-
 		data.Group = types.StringNull()
-
 	}
 
 	// Tenant
 
 	if vlan.HasTenant() && vlan.Tenant.Get() != nil {
-
 		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, vlan.Tenant.Get().Name, vlan.Tenant.Get().Slug, vlan.Tenant.Get().Id)
 
 		data.TenantID = types.StringValue(fmt.Sprintf("%d", vlan.Tenant.Get().Id))
-
 	} else {
-
 		data.Tenant = types.StringNull()
 
 		data.TenantID = types.StringNull()
-
 	}
 
 	// Status
 
 	if vlan.HasStatus() {
-
 		data.Status = types.StringValue(string(vlan.Status.GetValue()))
-
 	} else {
-
 		data.Status = types.StringValue("active")
-
 	}
 
 	// Role - preserve user's input format
 
 	if vlan.HasRole() && vlan.Role.Get() != nil {
-
 		role := vlan.Role.Get()
 
 		data.Role = utils.UpdateReferenceAttribute(data.Role, role.GetName(), role.GetSlug(), role.GetId())
-
 	} else {
-
 		data.Role = types.StringNull()
-
 	}
 
 	// Description
 
 	if desc, ok := vlan.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Comments
 
 	if comments, ok := vlan.GetCommentsOk(); ok && comments != nil && *comments != "" {
-
 		data.Comments = types.StringValue(*comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Tags
 
 	if vlan.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(vlan.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -755,23 +624,17 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom fields
 
 	if vlan.HasCustomFields() && !data.CustomFields.IsNull() {
-
 		var stateCustomFields []utils.CustomFieldModel
 
 		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
@@ -779,9 +642,7 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(vlan.GetCustomFields(), stateCustomFields)
@@ -791,17 +652,11 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 		diags.Append(cfValueDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else if data.CustomFields.IsNull() {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }
