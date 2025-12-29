@@ -580,17 +580,37 @@ Ensure all example Terraform configurations in `examples/` directory are:
 - Module examples demonstrate proper dependency chain (device → module_bay → module)
 - All examples use primary reference fields correctly
 
-#### Batch 7.6: Virtualization (10 resources)
-- [ ] netbox_inventory_item_template
-- [ ] netbox_cluster
-- [ ] netbox_cluster_type
-- [ ] netbox_cluster_group
-- [ ] netbox_virtual_machine
-- [ ] netbox_vm_interface
-- [ ] netbox_virtual_chassis
-- [ ] netbox_virtual_device_context
-- [ ] netbox_virtual_disk
-- [ ] netbox_fhrp_group_assignment
+#### Batch 7.6: Virtualization (10 resources) ✅ COMPLETE
+- [x] netbox_inventory_item_template - Clean, uses manufacturer/device_type name/model references
+- [x] netbox_cluster - Clean, uses cluster_type name reference
+- [x] netbox_cluster_type - Clean, simple example
+- [x] netbox_cluster_group - Clean, shows hierarchical groups with parent reference
+- [x] netbox_virtual_machine - Clean, uses cluster name reference
+- [x] netbox_vm_interface - Clean, uses virtual_machine name reference
+- [x] netbox_virtual_chassis - Clean, simple example
+- [x] netbox_virtual_device_context - **FIXED**: Updated to use primary fields instead of removed `_id` fields
+- [x] netbox_virtual_disk - Clean, shows multiple disk scenarios with descriptions
+- [x] netbox_fhrp_group_assignment - **FIXED**: Updated to use primary fields instead of removed `_id` fields
+
+**Changes Made**:
+- Fixed `netbox_virtual_device_context/resource.tf`:
+  - Changed `manufacturer_id` → `manufacturer` (uses slug)
+  - Changed `device_type_id` → `device_type` (uses model)
+  - Changed `role_id` → `role` (uses slug)
+  - Changed `site_id` → `site` (uses slug)
+- Fixed `netbox_fhrp_group_assignment/resource.tf`:
+  - Changed `manufacturer_id` → `manufacturer` (uses slug)
+  - Changed `device_type_id` → `device_type` (uses model)
+  - Changed `role_id` → `role` (uses slug)
+  - Changed `site_id` → `site` (uses slug)
+  - Changed `device_id` → `device` (uses name)
+
+**Review Notes**:
+- 2 files fixed (virtual_device_context, fhrp_group_assignment)
+- Both had same pattern of setup resources using removed `_id` fields
+- All examples now use current schemas
+- Virtual disk shows good variety with multiple disks and descriptions
+- FHRP assignment shows proper polymorphic interface reference pattern
 
 #### Batch 7.7: Circuits & Providers (10 resources)
 - [ ] netbox_cable
