@@ -1,5 +1,76 @@
 # Changelog
 
+## v0.0.10 (TBD)
+
+### Breaking Changes
+
+#### Removed Duplicate `_id` Computed Fields
+*   **Removed duplicate ID fields from 24 resources**
+    - These fields duplicated information already available in primary reference fields
+    - Primary fields (tenant, cluster, site, etc.) work for all references
+    - Removed fields were causing unnecessary plan noise with "(known after apply)"
+    - State migration is automatic (Terraform drops removed computed fields)
+
+**Resources affected and fields removed:**
+- `netbox_device`: device_type_id, role_id, tenant_id, platform_id, site_id, location_id, rack_id (7 fields)
+- `netbox_virtual_machine`: site_id, cluster_id, role_id, tenant_id, platform_id (5 fields)
+- `netbox_rack`: site_id, location_id, tenant_id, role_id, rack_type_id (5 fields)
+- `netbox_rack_type`: manufacturer_id (1 field)
+- `netbox_vlan`: site_id, tenant_id (2 fields)
+- `netbox_vrf`: tenant_id (1 field)
+- `netbox_route_target`: tenant_id (1 field)
+- `netbox_site_group`: parent_id (1 field)
+- `netbox_tenant_group`: parent_id (1 field)
+- `netbox_tenant`: group_id (1 field)
+- `netbox_region`: parent_id (1 field)
+- `netbox_location`: parent_id (1 field)
+- `netbox_platform`: manufacturer_id (1 field)
+
+**Migration Guide:**
+
+If you were referencing `_id` fields in your configuration:
+
+```hcl
+# Before (v0.0.9)
+resource "netbox_ip_address" "example" {
+  tenant = netbox_virtual_machine.vm.tenant_id  # ❌ No longer available
+}
+
+# After (v0.0.10)
+resource "netbox_ip_address" "example" {
+  tenant = netbox_virtual_machine.vm.tenant     # ✅ Use primary field
+  # OR reference the source directly:
+  tenant = netbox_tenant.my_tenant.id
+}
+```
+
+**Primary reference fields work with name, slug, or ID:**
+```hcl
+resource "netbox_virtual_machine" "vm" {
+  tenant = "tenant-name"              # ✅ Works
+  tenant = "tenant-slug"              # ✅ Works
+  tenant = netbox_tenant.test.id     # ✅ Works
+  tenant = netbox_tenant.test.name   # ✅ Works
+}
+```
+
+**Benefits of this change:**
+- Cleaner plans: No more `(known after apply)` noise for ID fields
+- Simpler state: Less duplication
+- Easier maintenance: Fewer fields to manage
+- Better UX: One consistent way to reference resources
+
+### Technical Details
+
+#### Files Modified
+*   **13 resource files** - Removed 24 duplicate computed ID fields from model structs, schemas, and state mapping
+*   **1 test file** - Updated platform_resource_test.go to remove manufacturer_id from expected computed fields
+
+#### Impact Analysis
+*   **High**: Configurations explicitly referencing `._id` fields must be updated
+*   **Medium**: Plans become cleaner without `(known after apply)` noise
+*   **Low**: State migration is fully automatic
+
 ## v0.0.9 (2025-12-29)
 
 ### Bug Fixes
