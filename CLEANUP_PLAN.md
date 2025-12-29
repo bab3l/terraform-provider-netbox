@@ -539,17 +539,27 @@ Ensure all example Terraform configurations in `examples/` directory are:
 - Device bay template shows advanced pattern with count
 - All examples realistic and follow best practices
 
-#### Batch 7.4: Device Components - Ports (10 resources)
-- [ ] netbox_interface
-- [ ] netbox_interface_template
-- [ ] netbox_console_port
-- [ ] netbox_console_port_template
-- [ ] netbox_console_server_port
-- [ ] netbox_console_server_port_template
-- [ ] netbox_power_port
-- [ ] netbox_power_outlet
-- [ ] netbox_front_port
-- [ ] netbox_front_port_template
+#### Batch 7.4: Device Components - Ports (10 resources) ✅ COMPLETE
+- [x] netbox_interface - Clean, comprehensive examples (basic, full config, virtual, LAG)
+- [x] netbox_interface_template - **FIXED**: Changed manufacturer_id → manufacturer
+- [x] netbox_console_port - Clean, uses device name reference
+- [x] netbox_console_port_template - Clean, uses device_type model reference
+- [x] netbox_console_server_port - Clean, uses name references
+- [x] netbox_console_server_port_template - Clean, uses device_type model reference
+- [x] netbox_power_port - Clean, uses device name reference
+- [x] netbox_power_outlet - Clean, uses name references
+- [x] netbox_front_port - Clean, shows rear_port dependency
+- [x] netbox_front_port_template - Clean, shows rear_port_template dependency
+
+**Changes Made**:
+- Fixed `netbox_interface_template/resource.tf`:
+  - Changed `manufacturer_id = netbox_manufacturer.test.id` → `manufacturer = netbox_manufacturer.test.slug`
+
+**Review Notes**:
+- All examples now use current schemas
+- No removed `_id` fields referenced after fix
+- Good variety: simple ports, templates, and complex examples with dependencies
+- Interface example shows advanced patterns (LAG, virtual interfaces)
 
 #### Batch 7.5: Power & Modules (10 resources)
 - [ ] netbox_rear_port
