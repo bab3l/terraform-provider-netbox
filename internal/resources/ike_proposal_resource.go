@@ -67,8 +67,6 @@ type IKEProposalResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -154,8 +152,6 @@ func (r *IKEProposalResource) Schema(ctx context.Context, req resource.SchemaReq
 					int64planmodifier.UseStateForUnknown(),
 				},
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("IKE proposal"),
 		},
 	}
 
@@ -605,9 +601,7 @@ func (r *IKEProposalResource) mapIKEProposalToState(ctx context.Context, ike *ne
 	// Display Name
 
 	if ike.Display != "" {
-		data.DisplayName = types.StringValue(ike.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Tags

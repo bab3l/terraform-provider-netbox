@@ -42,8 +42,6 @@ type FHRPGroupResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Protocol types.String `tfsdk:"protocol"`
 
 	GroupID types.Int32 `tfsdk:"group_id"`
@@ -85,8 +83,6 @@ func (r *FHRPGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 
 				Optional: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("FHRP group"),
 
 			"protocol": schema.StringAttribute{
 				MarkdownDescription: "The redundancy protocol. Valid values: `vrrp2`, `vrrp3`, `carp`, `clusterxl`, `hsrp`, `glbp`, `other`.",
@@ -460,9 +456,7 @@ func (r *FHRPGroupResource) mapFHRPGroupToState(ctx context.Context, fhrpGroup *
 
 	// DisplayName
 	if fhrpGroup.Display != "" {
-		data.DisplayName = types.StringValue(fhrpGroup.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Auth Type

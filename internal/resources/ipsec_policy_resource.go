@@ -59,8 +59,6 @@ type IPSecPolicyResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -114,8 +112,6 @@ func (r *IPSecPolicyResource) Schema(ctx context.Context, req resource.SchemaReq
 					int64validator.OneOf(1, 2, 5, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34),
 				},
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("IPSec policy"),
 		},
 	}
 
@@ -522,8 +518,6 @@ func (r *IPSecPolicyResource) mapIPSecPolicyToState(ctx context.Context, ipsec *
 	}
 
 	// Display Name
-
-	data.DisplayName = types.StringValue(ipsec.Display)
 
 	// Tags
 
