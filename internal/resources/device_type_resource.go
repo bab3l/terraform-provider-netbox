@@ -49,8 +49,6 @@ type DeviceTypeResourceModel struct {
 
 	Slug types.String `tfsdk:"slug"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	DefaultPlatform types.String `tfsdk:"default_platform"`
 
 	PartNumber types.String `tfsdk:"part_number"`
@@ -94,8 +92,6 @@ func (r *DeviceTypeResource) Schema(ctx context.Context, req resource.SchemaRequ
 			"model": nbschema.ModelAttribute("device type", 100),
 
 			"slug": nbschema.SlugAttribute("device type"),
-
-			"display_name": nbschema.DisplayNameAttribute("device type"),
 
 			"default_platform": nbschema.ReferenceAttribute("platform", "ID or slug of the default platform for devices of this type."),
 
@@ -642,8 +638,6 @@ func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceTyp
 	data.Model = types.StringValue(deviceType.GetModel())
 
 	data.Slug = types.StringValue(deviceType.GetSlug())
-
-	data.DisplayName = types.StringValue(deviceType.GetDisplay())
 
 	// Handle manufacturer - preserve the original input value (slug, name, or ID)
 

@@ -63,8 +63,6 @@ type ModuleTypeResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -134,8 +132,6 @@ func (r *ModuleTypeResource) Schema(ctx context.Context, req resource.SchemaRequ
 
 				Optional: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("module type"),
 		},
 	}
 
@@ -568,9 +564,7 @@ func (r *ModuleTypeResource) mapResponseToModel(ctx context.Context, moduleType 
 	// Map display_name
 
 	if moduleType.GetDisplay() != "" {
-		data.DisplayName = types.StringValue(moduleType.GetDisplay())
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Handle tags

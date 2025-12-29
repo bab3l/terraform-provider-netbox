@@ -63,8 +63,6 @@ type ModuleResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -130,8 +128,6 @@ func (r *ModuleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 				Optional: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("module"),
 		},
 	}
 
@@ -515,9 +511,7 @@ func (r *ModuleResource) mapResponseToModel(ctx context.Context, module *netbox.
 
 	// DisplayName
 	if module.Display != "" {
-		data.DisplayName = types.StringValue(module.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map device - preserve user's input format

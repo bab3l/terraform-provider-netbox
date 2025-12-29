@@ -54,8 +54,6 @@ type DeviceBayTemplateResourceModel struct {
 
 	Label types.String `tfsdk:"label"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Description types.String `tfsdk:"description"`
 }
 
@@ -103,8 +101,6 @@ func (r *DeviceBayTemplateResource) Schema(ctx context.Context, req resource.Sch
 
 				Optional: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("device bay template"),
 		},
 	}
 
@@ -475,9 +471,7 @@ func (r *DeviceBayTemplateResource) mapTemplateToModel(template *netbox.DeviceBa
 
 	// DisplayName
 	if template.Display != "" {
-		data.DisplayName = types.StringValue(template.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Label
