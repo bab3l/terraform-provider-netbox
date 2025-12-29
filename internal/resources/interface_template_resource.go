@@ -58,8 +58,6 @@ type InterfaceTemplateResourceModel struct {
 
 	MgmtOnly types.Bool `tfsdk:"mgmt_only"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Description types.String `tfsdk:"description"`
 
 	Bridge types.Int32 `tfsdk:"bridge"`
@@ -145,8 +143,6 @@ func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.Sch
 
 				Default: booldefault.StaticBool(false),
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("interface template"),
 
 			"bridge": schema.Int32Attribute{
 				MarkdownDescription: "The ID of the bridge interface template this interface belongs to.",
@@ -539,9 +535,7 @@ func (r *InterfaceTemplateResource) mapResponseToModel(template *netbox.Interfac
 
 	// DisplayName
 	if template.Display != "" {
-		data.DisplayName = types.StringValue(template.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map device type - preserve user's input format

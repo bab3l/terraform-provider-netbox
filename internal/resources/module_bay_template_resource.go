@@ -60,8 +60,6 @@ type ModuleBayTemplateResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -125,8 +123,6 @@ func (r *ModuleBayTemplateResource) Schema(ctx context.Context, req resource.Sch
 
 				Optional: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("module bay template"),
 		},
 	}
 
@@ -514,9 +510,7 @@ func (r *ModuleBayTemplateResource) mapToState(ctx context.Context, result *netb
 
 	// DisplayName
 	if result.Display != "" {
-		data.DisplayName = types.StringValue(result.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map device type - preserve user's input format

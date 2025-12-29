@@ -56,8 +56,6 @@ type RearPortTemplateResourceModel struct {
 
 	Color types.String `tfsdk:"color"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Positions types.Int32 `tfsdk:"positions"`
 
 	Description types.String `tfsdk:"description"`
@@ -125,8 +123,6 @@ func (r *RearPortTemplateResource) Schema(ctx context.Context, req resource.Sche
 
 				Computed: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("rear port template"),
 
 			"positions": schema.Int32Attribute{
 				MarkdownDescription: "Number of front ports that may be mapped to this rear port (1-1024). Default is 1.",
@@ -461,9 +457,7 @@ func (r *RearPortTemplateResource) mapResponseToModel(template *netbox.RearPortT
 
 	// DisplayName
 	if template.Display != "" {
-		data.DisplayName = types.StringValue(template.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map device type - preserve user's input format
