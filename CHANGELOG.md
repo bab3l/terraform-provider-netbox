@@ -1,5 +1,59 @@
 # Changelog
 
+## v0.0.9 (2025-12-29)
+
+### Bug Fixes
+
+#### Fixed display_name Field Issues
+*   **Removed display_name field from all 100 resources**
+    - The field was showing "(known after apply)" in plans unnecessarily
+    - It returned the resource's own Display value, not referenced resource names
+    - Added no user value while adding plan noise and complexity
+    - Removed from: all DCIM, IPAM, Circuits, Virtualization, Tenancy, and Extras resources
+
+#### Fixed Reference Attribute Plan Display
+*   **Reference attributes now preserve user-specified format**
+    - Previously: `tenant = "My Tenant" -> "42"` (unwanted ID conversion)
+    - Now: `tenant = "My Tenant"` (preserves name/slug as specified)
+    - Affects 47 resources with reference fields (tenant, cluster, site, vlan, etc.)
+    - Fix: Updated `UpdateReferenceAttribute` in state_helpers.go to prefer name/slug over ID
+*   **Comprehensive test coverage**
+    - 7 reference preservation tests verify no drift occurs
+    - All 150+ consistency tests passing
+    - Manual testing confirms correct behavior in real Terraform workflows
+
+#### Fixed Acceptance Test Failures
+*   **Fixed 18 test failures in 3 groups:**
+    - Group 1: display_name schema issues (CircuitGroup, ClusterGroup, ConfigContext) - 3 tests
+    - Group 2: Reference persistence (CircuitGroup, ConfigContext) - 2 tests
+    - Group 3: External deletion handling (ClusterGroup, Contact, ContactAssignment) - 3 tests
+*   **Improved test reliability**
+    - 7 tests updated with unique email addresses for parallel execution
+    - MAC address handling normalized (case-insensitive)
+    - JSON data properly normalized in ConfigContext
+    - 404 errors properly handled in external deletion tests
+
+### Technical Details
+
+#### Files Modified
+*   **100 resource files** - Removed display_name field (model, schema, state mapping)
+*   **1 utility file** - Enhanced UpdateReferenceAttribute function
+*   **1 test file** - Added IPAddress reference preservation test
+*   **7 test files** - Fixed bugs and improved test reliability
+
+#### Breaking Changes
+*   **display_name field removed** - Users should not be referencing this computed field
+    - Impact: Low (field was non-functional and confusing)
+    - Migration: Remove any references to `.display_name` in configurations
+    - The field never worked as intended and caused plan noise
+
+### Statistics
+*   **109 files modified**
+*   **All unit tests passing** (resources, datasources, utils)
+*   **All 150+ consistency tests passing**
+*   **18 test failures fixed**
+*   **7 tests improved for reliability**
+
 ## v0.0.8 (2025-12-29)
 
 ### Major Improvements
