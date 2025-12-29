@@ -472,19 +472,26 @@ Ensure all example Terraform configurations in `examples/` directory are:
 
 **Totals**: 103 resource examples, 114 data source examples
 
-#### Batch 7.1: IPAM Core Resources (12 resources)
-- [ ] netbox_aggregate
-- [ ] netbox_asn
-- [ ] netbox_asn_range
-- [ ] netbox_ip_address
-- [ ] netbox_ip_range
-- [ ] netbox_prefix
-- [ ] netbox_rir
-- [ ] netbox_route_target
-- [ ] netbox_vlan
-- [ ] netbox_vlan_group
-- [ ] netbox_vrf
-- [ ] netbox_fhrp_group
+#### Batch 7.1: IPAM Core Resources (12 resources) ✅ COMPLETE
+- [x] netbox_aggregate - Clean, uses RIR name reference
+- [x] netbox_asn - Clean, uses RIR name reference
+- [x] netbox_asn_range - Excellent, comprehensive with comments
+- [x] netbox_ip_address - Clean, shows multiple scenarios (IPv4, IPv6, VRF)
+- [x] netbox_ip_range - Clean, simple example
+- [x] netbox_prefix - Clean, uses slug for site, name for VLAN
+- [x] netbox_rir - Clean, simple example
+- [x] netbox_route_target - Good, shows tenant reference by slug
+- [x] netbox_vlan - Clean, uses `.id` (valid per schema)
+- [x] netbox_vlan_group - Clean, correct use of scope_id/scope_type pattern
+- [x] netbox_vrf - Clean, simple example
+- [x] netbox_fhrp_group - Clean, simple example
+
+**Review Notes**:
+- All examples verified against current schemas
+- No removed `_id` fields referenced
+- Mix of `.id`, `.slug`, and `.name` references all valid (schemas accept flexible input)
+- scope_id pattern in vlan_group is correct (validated in Phase 6)
+- Examples are realistic and follow best practices
 
 #### Batch 7.2: Sites & Organization (10 resources)
 - [ ] netbox_site
