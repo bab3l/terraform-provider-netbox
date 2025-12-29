@@ -72,7 +72,7 @@ func (r *ClusterResource) Schema(ctx context.Context, req resource.SchemaRequest
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"name":         nbschema.NameAttribute("cluster", 100),
+			"name": nbschema.NameAttribute("cluster", 100),
 			"type": schema.StringAttribute{
 				MarkdownDescription: "The name or ID of the cluster type (e.g., 'VMware vSphere', 'Proxmox').",
 				Required:            true,

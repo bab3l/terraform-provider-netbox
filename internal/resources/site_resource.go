@@ -64,9 +64,9 @@ func (r *SiteResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a site in Netbox. Sites represent physical locations such as data centers, offices, or other facilities where network infrastructure is deployed.",
 		Attributes: map[string]schema.Attribute{
-			"id":           nbschema.IDAttribute("site"),
-			"name":         nbschema.NameAttribute("site", 100),
-			"slug":         nbschema.SlugAttribute("site"),
+			"id":   nbschema.IDAttribute("site"),
+			"name": nbschema.NameAttribute("site", 100),
+			"slug": nbschema.SlugAttribute("site"),
 			"status": nbschema.StatusAttribute(
 				[]string{"planned", "staging", "active", "decommissioning", "retired"},
 				"Operational status of the site.",

@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
-	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"

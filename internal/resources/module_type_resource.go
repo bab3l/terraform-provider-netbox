@@ -562,11 +562,6 @@ func (r *ModuleTypeResource) mapResponseToModel(ctx context.Context, moduleType 
 	}
 
 	// Map display_name
-
-	if moduleType.GetDisplay() != "" {
-	} else {
-	}
-
 	// Handle tags
 
 	if moduleType.HasTags() && len(moduleType.GetTags()) > 0 {

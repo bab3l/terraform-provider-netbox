@@ -425,11 +425,6 @@ func (r *ASNRangeResource) mapASNRangeToState(ctx context.Context, asnRange *net
 		data.Description = types.StringNull()
 	}
 
-	// Display name
-	if asnRange.Display != "" {
-	} else {
-	}
-
 	// Tags
 	if len(asnRange.Tags) > 0 {
 		tags := utils.NestedTagsToTagModels(asnRange.Tags)

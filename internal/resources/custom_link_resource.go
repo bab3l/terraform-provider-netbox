@@ -53,7 +53,7 @@ type CustomLinkResourceModel struct {
 
 	ButtonClass types.String `tfsdk:"button_class"`
 
-	NewWindow   types.Bool   `tfsdk:"new_window"`
+	NewWindow types.Bool `tfsdk:"new_window"`
 }
 
 func (r *CustomLinkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {

@@ -56,9 +56,9 @@ func (r *ClusterTypeResource) Schema(ctx context.Context, req resource.SchemaReq
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a cluster type in Netbox. Cluster types define the technology or platform used for virtualization clusters (e.g., 'VMware vSphere', 'Proxmox', 'Kubernetes').",
 		Attributes: map[string]schema.Attribute{
-			"id":           nbschema.IDAttribute("cluster type"),
-			"name":         nbschema.NameAttribute("cluster type", 100),
-			"slug":         nbschema.SlugAttribute("cluster type"),
+			"id":   nbschema.IDAttribute("cluster type"),
+			"name": nbschema.NameAttribute("cluster type", 100),
+			"slug": nbschema.SlugAttribute("cluster type"),
 		},
 	}
 

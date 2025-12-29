@@ -48,7 +48,7 @@ type CustomFieldChoiceSetResourceModel struct {
 
 	ExtraChoices types.List `tfsdk:"extra_choices"`
 
-	OrderAlphabetically types.Bool   `tfsdk:"order_alphabetically"`
+	OrderAlphabetically types.Bool `tfsdk:"order_alphabetically"`
 }
 
 // ChoicePairModel represents a key-value pair for choices.

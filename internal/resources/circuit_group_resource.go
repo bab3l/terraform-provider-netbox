@@ -58,10 +58,10 @@ func (r *CircuitGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a circuit group in Netbox. Circuit groups allow you to organize related circuits together for management and reporting purposes.",
 		Attributes: map[string]schema.Attribute{
-			"id":           nbschema.IDAttribute("circuit group"),
-			"name":         nbschema.NameAttribute("circuit group", 100),
-			"slug":         nbschema.SlugAttribute("circuit group"),
-			"tenant":       nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant."),
+			"id":     nbschema.IDAttribute("circuit group"),
+			"name":   nbschema.NameAttribute("circuit group", 100),
+			"slug":   nbschema.SlugAttribute("circuit group"),
+			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant."),
 			"tenant_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The numeric ID of the tenant.",

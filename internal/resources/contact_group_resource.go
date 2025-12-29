@@ -292,11 +292,6 @@ func (r *ContactGroupResource) mapContactGroupToState(ctx context.Context, conta
 	data.Name = types.StringValue(contactGroup.GetName())
 	data.Slug = types.StringValue(contactGroup.GetSlug())
 	data.Description = utils.StringFromAPI(contactGroup.HasDescription(), contactGroup.GetDescription, data.Description)
-
-	if contactGroup.GetDisplay() != "" {
-	} else {
-	}
-
 	// Handle parent reference
 	if contactGroup.HasParent() {
 		parent := contactGroup.GetParent()

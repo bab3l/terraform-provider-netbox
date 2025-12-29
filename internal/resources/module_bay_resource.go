@@ -496,11 +496,6 @@ func (r *ModuleBayResource) mapResponseToModel(ctx context.Context, moduleBay *n
 	}
 
 	// Map display_name
-
-	if moduleBay.GetDisplay() != "" {
-	} else {
-	}
-
 	// Handle tags
 
 	if moduleBay.HasTags() && len(moduleBay.GetTags()) > 0 {

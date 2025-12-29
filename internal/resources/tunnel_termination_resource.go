@@ -569,11 +569,6 @@ func (r *TunnelTerminationResource) mapTunnelTerminationToState(ctx context.Cont
 	}
 
 	// Handle display_name
-
-	if tunnelTermination.GetDisplay() != "" {
-	} else {
-	}
-
 	// Handle tags
 
 	if tunnelTermination.HasTags() && len(tunnelTermination.GetTags()) > 0 {

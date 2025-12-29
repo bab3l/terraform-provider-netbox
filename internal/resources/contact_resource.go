@@ -53,9 +53,9 @@ func (r *ContactResource) Schema(ctx context.Context, req resource.SchemaRequest
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a contact in Netbox. Contacts represent people or organizations that can be assigned to various resources.",
 		Attributes: map[string]schema.Attribute{
-			"id":           nbschema.IDAttribute("contact"),
-			"name":         nbschema.NameAttribute("contact", 100),
-			"group":        nbschema.ReferenceAttribute("contact group", "ID or slug of the contact group this contact belongs to."),
+			"id":    nbschema.IDAttribute("contact"),
+			"name":  nbschema.NameAttribute("contact", 100),
+			"group": nbschema.ReferenceAttribute("contact group", "ID or slug of the contact group this contact belongs to."),
 
 			"tags": nbschema.TagsAttribute(),
 			"title": schema.StringAttribute{

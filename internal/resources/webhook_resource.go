@@ -400,10 +400,6 @@ func (r *WebhookResource) mapWebhookToState(ctx context.Context, webhook *netbox
 	}
 
 	// Map display_name
-	if webhook.GetDisplay() != "" {
-	} else {
-	}
-
 	// Handle tags
 	if webhook.HasTags() {
 		tags := utils.NestedTagsToTagModels(webhook.GetTags())
