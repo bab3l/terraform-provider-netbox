@@ -21,9 +21,7 @@ import (
 var _ datasource.DataSource = &VLANGroupDataSource{}
 
 func NewVLANGroupDataSource() datasource.DataSource {
-
 	return &VLANGroupDataSource{}
-
 }
 
 // VLANGroupDataSource defines the data source implementation.
@@ -55,21 +53,15 @@ type VLANGroupDataSourceModel struct {
 }
 
 func (d *VLANGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_vlan_group"
-
 }
 
 func (d *VLANGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a VLAN Group in Netbox. You can identify the VLAN Group using `id`, `name`, or `slug`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "Unique identifier for the VLAN Group. Use to look up by ID.",
 
 				Optional: true,
@@ -78,7 +70,6 @@ func (d *VLANGroupDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "Name of the VLAN Group. Use to look up by name.",
 
 				Optional: true,
@@ -87,7 +78,6 @@ func (d *VLANGroupDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"slug": schema.StringAttribute{
-
 				MarkdownDescription: "URL-friendly unique identifier for the VLAN Group. Use to look up by slug.",
 
 				Optional: true,
@@ -96,28 +86,24 @@ func (d *VLANGroupDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"scope_type": schema.StringAttribute{
-
 				MarkdownDescription: "The type of object this VLAN Group is scoped to.",
 
 				Computed: true,
 			},
 
 			"scope_id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the object this VLAN Group is scoped to.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "Brief description of the VLAN Group.",
 
 				Computed: true,
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "Display name for the VLAN Group.",
 
 				Computed: true,
@@ -128,21 +114,16 @@ func (d *VLANGroupDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 func (d *VLANGroupDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -151,23 +132,18 @@ func (d *VLANGroupDataSource) Configure(ctx context.Context, req datasource.Conf
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data VLANGroupDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var vlanGroup *netbox.VLANGroup
@@ -175,21 +151,17 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 	// Look up by ID, slug, or name
 
 	switch {
-
 	case !data.ID.IsNull() && data.ID.ValueString() != "":
 
 		var id int32
 
 		if _, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id); err != nil {
-
 			resp.Diagnostics.AddError("Invalid VLAN Group ID", fmt.Sprintf("VLAN Group ID must be a number, got: %s", data.ID.ValueString()))
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Looking up VLAN Group by ID", map[string]interface{}{
-
 			"id": id,
 		})
 
@@ -198,7 +170,6 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading VLAN Group",
@@ -207,7 +178,6 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		vlanGroup = vlanGroupResp
@@ -219,7 +189,6 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		slug := data.Slug.ValueString()
 
 		tflog.Debug(ctx, "Looking up VLAN Group by slug", map[string]interface{}{
-
 			"slug": slug,
 		})
 
@@ -228,7 +197,6 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading VLAN Group",
@@ -237,11 +205,9 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		if list == nil || len(list.Results) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"VLAN Group not found",
@@ -250,7 +216,6 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		vlanGroup = &list.Results[0]
@@ -262,7 +227,6 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		name := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Looking up VLAN Group by name", map[string]interface{}{
-
 			"name": name,
 		})
 
@@ -271,7 +235,6 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading VLAN Group",
@@ -280,11 +243,9 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		if list == nil || len(list.Results) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"VLAN Group not found",
@@ -293,11 +254,9 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		if len(list.Results) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple VLAN Groups found",
@@ -306,7 +265,6 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		vlanGroup = &list.Results[0]
@@ -321,11 +279,9 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Found VLAN Group", map[string]interface{}{
-
 		"id": vlanGroup.GetId(),
 
 		"name": vlanGroup.GetName(),
@@ -336,19 +292,15 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 	d.mapVLANGroupToState(ctx, vlanGroup, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapVLANGroupToState maps a VLANGroup API response to the data source model.
 
 func (d *VLANGroupDataSource) mapVLANGroupToState(ctx context.Context, vlanGroup *netbox.VLANGroup, data *VLANGroupDataSourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", vlanGroup.GetId()))
 
 	data.Name = types.StringValue(vlanGroup.GetName())
@@ -358,55 +310,38 @@ func (d *VLANGroupDataSource) mapVLANGroupToState(ctx context.Context, vlanGroup
 	// Scope type
 
 	if scopeType, ok := vlanGroup.GetScopeTypeOk(); ok && scopeType != nil && *scopeType != "" {
-
 		data.ScopeType = types.StringValue(*scopeType)
-
 	} else {
-
 		data.ScopeType = types.StringNull()
-
 	}
 
 	// Scope ID
 
 	if vlanGroup.HasScopeId() && vlanGroup.ScopeId.Get() != nil {
-
 		data.ScopeID = types.StringValue(fmt.Sprintf("%d", *vlanGroup.ScopeId.Get()))
-
 	} else {
-
 		data.ScopeID = types.StringNull()
-
 	}
 
 	// Description
 
 	if desc, ok := vlanGroup.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Display name
 
 	if displayName := vlanGroup.GetDisplay(); displayName != "" {
-
 		data.DisplayName = types.StringValue(displayName)
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Tags
 
 	if vlanGroup.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(vlanGroup.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -414,23 +349,17 @@ func (d *VLANGroupDataSource) mapVLANGroupToState(ctx context.Context, vlanGroup
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom fields
 
 	if vlanGroup.HasCustomFields() {
-
 		cf := vlanGroup.GetCustomFields()
 
 		customFields := utils.MapToCustomFieldModels(cf, nil)
@@ -440,17 +369,11 @@ func (d *VLANGroupDataSource) mapVLANGroupToState(ctx context.Context, vlanGroup
 		diags.Append(cfValueDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

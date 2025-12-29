@@ -23,9 +23,7 @@ var _ datasource.DataSource = &ConfigTemplateDataSource{}
 // NewConfigTemplateDataSource returns a new data source implementing the config template data source.
 
 func NewConfigTemplateDataSource() datasource.DataSource {
-
 	return &ConfigTemplateDataSource{}
-
 }
 
 // ConfigTemplateDataSource defines the data source implementation.
@@ -55,23 +53,17 @@ type ConfigTemplateDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *ConfigTemplateDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_config_template"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *ConfigTemplateDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a config template in NetBox. You can identify the config template using `id` or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the config template to retrieve. If specified, other filter attributes are ignored.",
 
 				Optional: true,
@@ -80,7 +72,6 @@ func (d *ConfigTemplateDataSource) Schema(ctx context.Context, req datasource.Sc
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "Filter by config template name.",
 
 				Optional: true,
@@ -89,28 +80,24 @@ func (d *ConfigTemplateDataSource) Schema(ctx context.Context, req datasource.Sc
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the config template.",
 
 				Computed: true,
 			},
 
 			"template_code": schema.StringAttribute{
-
 				MarkdownDescription: "Jinja2 template code.",
 
 				Computed: true,
 			},
 
 			"data_source": schema.Int32Attribute{
-
 				MarkdownDescription: "The ID of the data source the template is synced from.",
 
 				Computed: true,
 			},
 
 			"data_path": schema.StringAttribute{
-
 				MarkdownDescription: "Path to remote file (relative to data source root).",
 
 				Computed: true,
@@ -119,23 +106,18 @@ func (d *ConfigTemplateDataSource) Schema(ctx context.Context, req datasource.Sc
 			"display_name": nbschema.DSComputedStringAttribute("The display name of the config template."),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *ConfigTemplateDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -144,25 +126,20 @@ func (d *ConfigTemplateDataSource) Configure(ctx context.Context, req datasource
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (d *ConfigTemplateDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ConfigTemplateDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var template *netbox.ConfigTemplate
@@ -170,11 +147,9 @@ func (d *ConfigTemplateDataSource) Read(ctx context.Context, req datasource.Read
 	// If ID is provided, look up by ID directly
 
 	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-
 		templateID := data.ID.ValueInt32()
 
 		tflog.Debug(ctx, "Reading config template by ID", map[string]interface{}{
-
 			"id": templateID,
 		})
 
@@ -191,7 +166,6 @@ func (d *ConfigTemplateDataSource) Read(ctx context.Context, req datasource.Read
 		}
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading config template",
@@ -200,21 +174,16 @@ func (d *ConfigTemplateDataSource) Read(ctx context.Context, req datasource.Read
 			)
 
 			return
-
 		}
 
 		template = result
-
 	} else {
-
 		// Build search request with filters
 
 		listReq := d.client.ExtrasAPI.ExtrasConfigTemplatesList(ctx)
 
 		if !data.Name.IsNull() && !data.Name.IsUnknown() {
-
 			listReq = listReq.Name([]string{data.Name.ValueString()})
-
 		}
 
 		tflog.Debug(ctx, "Searching for config template")
@@ -224,7 +193,6 @@ func (d *ConfigTemplateDataSource) Read(ctx context.Context, req datasource.Read
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error searching for config template",
@@ -233,11 +201,9 @@ func (d *ConfigTemplateDataSource) Read(ctx context.Context, req datasource.Read
 			)
 
 			return
-
 		}
 
 		if result.GetCount() == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"No config template found",
@@ -246,11 +212,9 @@ func (d *ConfigTemplateDataSource) Read(ctx context.Context, req datasource.Read
 			)
 
 			return
-
 		}
 
 		if result.GetCount() > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple config templates found",
@@ -259,11 +223,9 @@ func (d *ConfigTemplateDataSource) Read(ctx context.Context, req datasource.Read
 			)
 
 			return
-
 		}
 
 		template = &result.GetResults()[0]
-
 	}
 
 	// Map response to model
@@ -271,13 +233,11 @@ func (d *ConfigTemplateDataSource) Read(ctx context.Context, req datasource.Read
 	d.mapResponseToModel(template, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *ConfigTemplateDataSource) mapResponseToModel(template *netbox.ConfigTemplate, data *ConfigTemplateDataSourceModel) {
-
 	data.ID = types.Int32Value(template.GetId())
 
 	data.Name = types.StringValue(template.GetName())
@@ -287,25 +247,17 @@ func (d *ConfigTemplateDataSource) mapResponseToModel(template *netbox.ConfigTem
 	// Map description
 
 	if desc, ok := template.GetDescriptionOk(); ok && desc != nil {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringValue("")
-
 	}
 
 	// Map data source
 
 	if dataSource, ok := template.GetDataSourceOk(); ok && dataSource != nil {
-
 		data.DataSource = types.Int32Value(dataSource.GetId())
-
 	} else {
-
 		data.DataSource = types.Int32Null()
-
 	}
 
 	// Map data path

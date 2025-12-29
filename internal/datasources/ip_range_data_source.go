@@ -25,9 +25,7 @@ var (
 // NewIPRangeDataSource returns a new IP Range data source.
 
 func NewIPRangeDataSource() datasource.DataSource {
-
 	return &IPRangeDataSource{}
-
 }
 
 // IPRangeDataSource defines the data source implementation.
@@ -75,23 +73,17 @@ type IPRangeDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *IPRangeDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_ip_range"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *IPRangeDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about an IP address range in Netbox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the IP range. Must be specified to look up a specific range.",
 
 				Optional: true,
@@ -100,14 +92,12 @@ func (d *IPRangeDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the IP range.",
 
 				Computed: true,
 			},
 
 			"start_address": schema.StringAttribute{
-
 				MarkdownDescription: "The starting IP address of the range. Can be used with `end_address` to look up a range.",
 
 				Optional: true,
@@ -116,7 +106,6 @@ func (d *IPRangeDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			},
 
 			"end_address": schema.StringAttribute{
-
 				MarkdownDescription: "The ending IP address of the range. Can be used with `start_address` to look up a range.",
 
 				Optional: true,
@@ -125,84 +114,72 @@ func (d *IPRangeDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			},
 
 			"size": schema.Int64Attribute{
-
 				MarkdownDescription: "The number of IP addresses in the range.",
 
 				Computed: true,
 			},
 
 			"vrf": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the VRF this IP range is assigned to.",
 
 				Computed: true,
 			},
 
 			"vrf_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the VRF this IP range is assigned to.",
 
 				Computed: true,
 			},
 
 			"tenant": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the tenant this IP range is assigned to.",
 
 				Computed: true,
 			},
 
 			"tenant_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the tenant this IP range is assigned to.",
 
 				Computed: true,
 			},
 
 			"status": schema.StringAttribute{
-
 				MarkdownDescription: "The status of the IP range.",
 
 				Computed: true,
 			},
 
 			"role": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the IPAM role for this IP range.",
 
 				Computed: true,
 			},
 
 			"role_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the IPAM role for this IP range.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "The description of the IP range.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Comments for the IP range.",
 
 				Computed: true,
 			},
 
 			"mark_utilized": schema.BoolAttribute{
-
 				MarkdownDescription: "Whether this range is treated as fully utilized.",
 
 				Computed: true,
 			},
 
 			"tags": schema.ListAttribute{
-
 				MarkdownDescription: "The tags assigned to this IP range.",
 
 				Computed: true,
@@ -211,23 +188,18 @@ func (d *IPRangeDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *IPRangeDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -236,17 +208,14 @@ func (d *IPRangeDataSource) Configure(ctx context.Context, req datasource.Config
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data IPRangeDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -254,9 +223,7 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var ipRange *netbox.IPRange
@@ -264,7 +231,6 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	// Check if we're looking up by ID
 
 	switch {
-
 	case utils.IsSet(data.ID):
 
 		var idInt int
@@ -272,7 +238,6 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid ID",
@@ -281,22 +246,18 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading IP range by ID", map[string]interface{}{
-
 			"id": idInt,
 		})
 
 		id32, err := utils.SafeInt32(int64(idInt))
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", err))
 
 			return
-
 		}
 
 		result, httpResp, err := d.client.IpamAPI.IpamIpRangesRetrieve(ctx, id32).Execute()
@@ -304,7 +265,6 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading IP range",
@@ -313,7 +273,6 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 
 			return
-
 		}
 
 		ipRange = result
@@ -323,7 +282,6 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		// Looking up by start and end address
 
 		tflog.Debug(ctx, "Reading IP range by addresses", map[string]interface{}{
-
 			"start_address": data.StartAddress.ValueString(),
 
 			"end_address": data.EndAddress.ValueString(),
@@ -340,7 +298,6 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error listing IP ranges",
@@ -349,11 +306,9 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 
 			return
-
 		}
 
 		if results.Count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"IP range not found",
@@ -362,11 +317,9 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 
 			return
-
 		}
 
 		if results.Count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple IP ranges found",
@@ -375,7 +328,6 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 
 			return
-
 		}
 
 		ipRange = &results.Results[0]
@@ -390,7 +342,6 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -398,7 +349,6 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	d.mapIPRangeToDataSourceModel(ctx, ipRange, &data)
 
 	tflog.Debug(ctx, "Read IP range", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"start_address": data.StartAddress.ValueString(),
@@ -409,25 +359,19 @@ func (d *IPRangeDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapIPRangeToDataSourceModel maps a Netbox IPRange to the Terraform data source model.
 
 func (d *IPRangeDataSource) mapIPRangeToDataSourceModel(ctx context.Context, ipRange *netbox.IPRange, data *IPRangeDataSourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipRange.Id))
 
 	// Display Name
 
 	if ipRange.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(ipRange.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	data.StartAddress = types.StringValue(ipRange.StartAddress)
@@ -439,125 +383,90 @@ func (d *IPRangeDataSource) mapIPRangeToDataSourceModel(ctx context.Context, ipR
 	// VRF
 
 	if ipRange.Vrf.IsSet() && ipRange.Vrf.Get() != nil {
-
 		vrfObj := ipRange.Vrf.Get()
 
 		data.VRF = types.StringValue(vrfObj.Name)
 
 		data.VRFID = types.Int64Value(int64(vrfObj.Id))
-
 	} else {
-
 		data.VRF = types.StringNull()
 
 		data.VRFID = types.Int64Null()
-
 	}
 
 	// Tenant
 
 	if ipRange.Tenant.IsSet() && ipRange.Tenant.Get() != nil {
-
 		tenantObj := ipRange.Tenant.Get()
 
 		data.Tenant = types.StringValue(tenantObj.Name)
 
 		data.TenantID = types.Int64Value(int64(tenantObj.Id))
-
 	} else {
-
 		data.Tenant = types.StringNull()
 
 		data.TenantID = types.Int64Null()
-
 	}
 
 	// Status
 
 	if ipRange.Status != nil {
-
 		data.Status = types.StringValue(string(ipRange.Status.GetValue()))
-
 	} else {
-
 		data.Status = types.StringNull()
-
 	}
 
 	// Role
 
 	if ipRange.Role.IsSet() && ipRange.Role.Get() != nil {
-
 		roleObj := ipRange.Role.Get()
 
 		data.Role = types.StringValue(roleObj.Name)
 
 		data.RoleID = types.Int64Value(int64(roleObj.Id))
-
 	} else {
-
 		data.Role = types.StringNull()
 
 		data.RoleID = types.Int64Null()
-
 	}
 
 	// Description
 
 	if ipRange.Description != nil && *ipRange.Description != "" {
-
 		data.Description = types.StringValue(*ipRange.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Comments
 
 	if ipRange.Comments != nil && *ipRange.Comments != "" {
-
 		data.Comments = types.StringValue(*ipRange.Comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Mark Utilized
 
 	if ipRange.MarkUtilized != nil {
-
 		data.MarkUtilized = types.BoolValue(*ipRange.MarkUtilized)
-
 	} else {
-
 		data.MarkUtilized = types.BoolValue(false)
-
 	}
 
 	// Tags - convert to list of strings (tag names)
 
 	if len(ipRange.Tags) > 0 {
-
 		tagNames := make([]string, len(ipRange.Tags))
 
 		for i, tag := range ipRange.Tags {
-
 			tagNames[i] = tag.Name
-
 		}
 
 		tagsList, _ := types.ListValueFrom(ctx, types.StringType, tagNames)
 
 		data.Tags = tagsList
-
 	} else {
-
 		data.Tags = types.ListNull(types.StringType)
-
 	}
-
 }

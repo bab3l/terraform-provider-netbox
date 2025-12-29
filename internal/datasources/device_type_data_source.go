@@ -1,9 +1,7 @@
 // Package datasources contains Terraform data source implementations for the Netbox provider.
-
 //
 
 // This package integrates with the go-netbox OpenAPI client to provide
-
 // read-only access to Netbox resources via Terraform data sources.
 
 package datasources
@@ -27,9 +25,7 @@ import (
 var _ datasource.DataSource = &DeviceTypeDataSource{}
 
 func NewDeviceTypeDataSource() datasource.DataSource {
-
 	return &DeviceTypeDataSource{}
-
 }
 
 // DeviceTypeDataSource defines the data source implementation.
@@ -81,25 +77,19 @@ type DeviceTypeDataSourceModel struct {
 }
 
 func (d *DeviceTypeDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_device_type"
-
 }
 
 func (d *DeviceTypeDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a device type in Netbox. Device types represent a particular make and model of device. You can identify the device type using `id`, `slug`, or `model`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("device type"),
 
 			"manufacturer": nbschema.DSComputedStringAttribute("The manufacturer of this device type. Returns the manufacturer slug."),
 
 			"model": schema.StringAttribute{
-
 				MarkdownDescription: "Model name of the device type. Can be used to identify the device type instead of `id` or `slug`.",
 
 				Optional: true,
@@ -138,23 +128,18 @@ func (d *DeviceTypeDataSource) Schema(ctx context.Context, req datasource.Schema
 			"device_count":  nbschema.DSComputedInt64Attribute("Number of devices of this type."),
 		},
 	}
-
 }
 
 func (d *DeviceTypeDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	// Prevent panic if the provider has not been configured.
 
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -163,15 +148,12 @@ func (d *DeviceTypeDataSource) Configure(ctx context.Context, req datasource.Con
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data DeviceTypeDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -179,9 +161,7 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var deviceType *netbox.DeviceType
@@ -193,7 +173,6 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	// Determine if we're searching by ID, slug, or model
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		// Search by ID
@@ -201,7 +180,6 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		deviceTypeID := data.ID.ValueString()
 
 		tflog.Debug(ctx, "Reading device type by ID", map[string]interface{}{
-
 			"id": deviceTypeID,
 		})
 
@@ -210,7 +188,6 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		var deviceTypeIDInt int32
 
 		if _, parseErr := fmt.Sscanf(deviceTypeID, "%d", &deviceTypeIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Device Type ID",
@@ -219,7 +196,6 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		// Retrieve the device type via API
@@ -235,7 +211,6 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		deviceTypeSlug := data.Slug.ValueString()
 
 		tflog.Debug(ctx, "Reading device type by slug", map[string]interface{}{
-
 			"slug": deviceTypeSlug,
 		})
 
@@ -248,7 +223,6 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading device type",
@@ -257,11 +231,9 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		if len(deviceTypes.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Device Type Not Found",
@@ -270,11 +242,9 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		if len(deviceTypes.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Device Types Found",
@@ -283,7 +253,6 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		deviceType = &deviceTypes.GetResults()[0]
@@ -295,7 +264,6 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		deviceTypeModel := data.Model.ValueString()
 
 		tflog.Debug(ctx, "Reading device type by model", map[string]interface{}{
-
 			"model": deviceTypeModel,
 		})
 
@@ -308,7 +276,6 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading device type",
@@ -317,11 +284,9 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		if len(deviceTypes.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Device Type Not Found",
@@ -330,11 +295,9 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		if len(deviceTypes.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Device Types Found",
@@ -343,7 +306,6 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		deviceType = &deviceTypes.GetResults()[0]
@@ -358,11 +320,9 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading device type",
@@ -371,11 +331,9 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		)
 
 		return
-
 	}
 
 	if httpResp.StatusCode == 404 {
-
 		resp.Diagnostics.AddError(
 
 			"Device Type Not Found",
@@ -384,11 +342,9 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		)
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading device type",
@@ -397,7 +353,6 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		)
 
 		return
-
 	}
 
 	// Update the model with the response from the API
@@ -411,159 +366,110 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	// Handle manufacturer
 
 	if manufacturer := deviceType.GetManufacturer(); manufacturer.Id != 0 {
-
 		data.Manufacturer = types.StringValue(manufacturer.GetSlug())
-
 	} else {
-
 		data.Manufacturer = types.StringNull()
-
 	}
 
 	// Handle default_platform
 
 	if deviceType.HasDefaultPlatform() && deviceType.GetDefaultPlatform().Id != 0 {
-
 		platform := deviceType.GetDefaultPlatform()
 
 		data.DefaultPlatform = types.StringValue(platform.GetSlug())
-
 	} else {
-
 		data.DefaultPlatform = types.StringNull()
-
 	}
 
 	// Handle part_number
 
 	if deviceType.HasPartNumber() && deviceType.GetPartNumber() != "" {
-
 		data.PartNumber = types.StringValue(deviceType.GetPartNumber())
-
 	} else {
-
 		data.PartNumber = types.StringNull()
-
 	}
 
 	// Handle u_height
 
 	if deviceType.HasUHeight() {
-
 		data.UHeight = types.Float64Value(deviceType.GetUHeight())
-
 	} else {
-
 		data.UHeight = types.Float64Value(1.0) // Default
-
 	}
 
 	// Handle exclude_from_utilization
 
 	if deviceType.HasExcludeFromUtilization() {
-
 		data.ExcludeFromUtilization = types.BoolValue(deviceType.GetExcludeFromUtilization())
-
 	} else {
-
 		data.ExcludeFromUtilization = types.BoolValue(false)
-
 	}
 
 	// Handle is_full_depth
 
 	if deviceType.HasIsFullDepth() {
-
 		data.IsFullDepth = types.BoolValue(deviceType.GetIsFullDepth())
-
 	} else {
-
 		data.IsFullDepth = types.BoolValue(true)
-
 	}
 
 	// Handle subdevice_role
 
 	if deviceType.HasSubdeviceRole() && deviceType.SubdeviceRole.IsSet() {
-
 		subdeviceRole := deviceType.GetSubdeviceRole()
 
 		data.SubdeviceRole = types.StringValue(string(subdeviceRole.GetValue()))
-
 	} else {
-
 		data.SubdeviceRole = types.StringNull()
-
 	}
 
 	// Handle airflow
 
 	if deviceType.HasAirflow() && deviceType.Airflow.IsSet() {
-
 		airflow := deviceType.GetAirflow()
 
 		data.Airflow = types.StringValue(string(airflow.GetValue()))
-
 	} else {
-
 		data.Airflow = types.StringNull()
-
 	}
 
 	// Handle weight
 
 	if deviceType.HasWeight() && deviceType.Weight.Get() != nil {
-
 		data.Weight = types.Float64Value(*deviceType.Weight.Get())
-
 	} else {
-
 		data.Weight = types.Float64Null()
-
 	}
 
 	// Handle weight_unit
 
 	if deviceType.HasWeightUnit() && deviceType.WeightUnit.IsSet() {
-
 		weightUnit := deviceType.GetWeightUnit()
 
 		data.WeightUnit = types.StringValue(string(weightUnit.GetValue()))
-
 	} else {
-
 		data.WeightUnit = types.StringNull()
-
 	}
 
 	// Handle description
 
 	if deviceType.HasDescription() && deviceType.GetDescription() != "" {
-
 		data.Description = types.StringValue(deviceType.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle comments
 
 	if deviceType.HasComments() && deviceType.GetComments() != "" {
-
 		data.Comments = types.StringValue(deviceType.GetComments())
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if deviceType.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(deviceType.GetTags())
 
 		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -571,23 +477,17 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if deviceType.HasCustomFields() {
-
 		// For data sources, we extract all available custom fields
 
 		customFields := utils.MapToCustomFieldModels(deviceType.GetCustomFields(), nil)
@@ -597,17 +497,12 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Handle device_count (read-only, always present)
@@ -624,5 +519,4 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

@@ -21,9 +21,7 @@ var _ datasource.DataSource = &RearPortTemplateDataSource{}
 // NewRearPortTemplateDataSource returns a new data source implementing the rear port template data source.
 
 func NewRearPortTemplateDataSource() datasource.DataSource {
-
 	return &RearPortTemplateDataSource{}
-
 }
 
 // RearPortTemplateDataSource defines the data source implementation.
@@ -59,23 +57,17 @@ type RearPortTemplateDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *RearPortTemplateDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_rear_port_template"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *RearPortTemplateDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a rear port template in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the rear port template.",
 
 				Optional: true,
@@ -84,7 +76,6 @@ func (d *RearPortTemplateDataSource) Schema(ctx context.Context, req datasource.
 			},
 
 			"device_type": schema.Int32Attribute{
-
 				MarkdownDescription: "The numeric ID of the device type. Used with name for lookup when ID is not provided.",
 
 				Optional: true,
@@ -93,7 +84,6 @@ func (d *RearPortTemplateDataSource) Schema(ctx context.Context, req datasource.
 			},
 
 			"module_type": schema.Int32Attribute{
-
 				MarkdownDescription: "The numeric ID of the module type. Used with name for lookup when ID is not provided.",
 
 				Optional: true,
@@ -102,7 +92,6 @@ func (d *RearPortTemplateDataSource) Schema(ctx context.Context, req datasource.
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the rear port template. Used with device_type or module_type for lookup when ID is not provided.",
 
 				Optional: true,
@@ -111,65 +100,54 @@ func (d *RearPortTemplateDataSource) Schema(ctx context.Context, req datasource.
 			},
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label of the rear port template.",
 
 				Computed: true,
 			},
 
 			"type": schema.StringAttribute{
-
 				MarkdownDescription: "The type of rear port.",
 
 				Computed: true,
 			},
 
 			"color": schema.StringAttribute{
-
 				MarkdownDescription: "Color of the rear port in hex format.",
 
 				Computed: true,
 			},
 
 			"positions": schema.Int32Attribute{
-
 				MarkdownDescription: "Number of front ports that may be mapped to this rear port.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the rear port template.",
 
 				Computed: true,
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the rear port template.",
 
 				Computed: true,
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *RearPortTemplateDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -178,31 +156,25 @@ func (d *RearPortTemplateDataSource) Configure(ctx context.Context, req datasour
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves the data source data.
 
 func (d *RearPortTemplateDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data RearPortTemplateDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var template *netbox.RearPortTemplate
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		// Lookup by ID
@@ -210,7 +182,6 @@ func (d *RearPortTemplateDataSource) Read(ctx context.Context, req datasource.Re
 		templateID := data.ID.ValueInt32()
 
 		tflog.Debug(ctx, "Reading rear port template by ID", map[string]interface{}{
-
 			"id": templateID,
 		})
 
@@ -219,7 +190,6 @@ func (d *RearPortTemplateDataSource) Read(ctx context.Context, req datasource.Re
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading rear port template",
@@ -228,7 +198,6 @@ func (d *RearPortTemplateDataSource) Read(ctx context.Context, req datasource.Re
 			)
 
 			return
-
 		}
 
 		template = response
@@ -240,26 +209,21 @@ func (d *RearPortTemplateDataSource) Read(ctx context.Context, req datasource.Re
 		name := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading rear port template by name", map[string]interface{}{
-
 			"name": name,
 		})
 
 		listReq := d.client.DcimAPI.DcimRearPortTemplatesList(ctx).Name([]string{name})
 
 		if !data.DeviceType.IsNull() && !data.DeviceType.IsUnknown() {
-
 			deviceTypeID := data.DeviceType.ValueInt32()
 
 			listReq = listReq.DeviceTypeId([]*int32{&deviceTypeID})
-
 		}
 
 		if !data.ModuleType.IsNull() && !data.ModuleType.IsUnknown() {
-
 			moduleTypeID := data.ModuleType.ValueInt32()
 
 			listReq = listReq.ModuleTypeId([]*int32{&moduleTypeID})
-
 		}
 
 		response, httpResp, err := listReq.Execute()
@@ -267,7 +231,6 @@ func (d *RearPortTemplateDataSource) Read(ctx context.Context, req datasource.Re
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading rear port template",
@@ -276,13 +239,11 @@ func (d *RearPortTemplateDataSource) Read(ctx context.Context, req datasource.Re
 			)
 
 			return
-
 		}
 
 		count := int(response.GetCount())
 
 		if count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Rear Port Template Not Found",
@@ -291,11 +252,9 @@ func (d *RearPortTemplateDataSource) Read(ctx context.Context, req datasource.Re
 			)
 
 			return
-
 		}
 
 		if count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Rear Port Templates Found",
@@ -304,7 +263,6 @@ func (d *RearPortTemplateDataSource) Read(ctx context.Context, req datasource.Re
 			)
 
 			return
-
 		}
 
 		template = &response.GetResults()[0]
@@ -319,7 +277,6 @@ func (d *RearPortTemplateDataSource) Read(ctx context.Context, req datasource.Re
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -327,13 +284,11 @@ func (d *RearPortTemplateDataSource) Read(ctx context.Context, req datasource.Re
 	d.mapResponseToModel(template, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *RearPortTemplateDataSource) mapResponseToModel(template *netbox.RearPortTemplate, data *RearPortTemplateDataSourceModel) {
-
 	data.ID = types.Int32Value(template.GetId())
 
 	data.Name = types.StringValue(template.GetName())
@@ -341,25 +296,17 @@ func (d *RearPortTemplateDataSource) mapResponseToModel(template *netbox.RearPor
 	// Map device type
 
 	if template.DeviceType.IsSet() && template.DeviceType.Get() != nil {
-
 		data.DeviceType = types.Int32Value(template.DeviceType.Get().Id)
-
 	} else {
-
 		data.DeviceType = types.Int32Null()
-
 	}
 
 	// Map module type
 
 	if template.ModuleType.IsSet() && template.ModuleType.Get() != nil {
-
 		data.ModuleType = types.Int32Value(template.ModuleType.Get().Id)
-
 	} else {
-
 		data.ModuleType = types.Int32Null()
-
 	}
 
 	// Map type
@@ -369,61 +316,40 @@ func (d *RearPortTemplateDataSource) mapResponseToModel(template *netbox.RearPor
 	// Map label
 
 	if label, ok := template.GetLabelOk(); ok && label != nil && *label != "" {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Map color
 
 	if color, ok := template.GetColorOk(); ok && color != nil && *color != "" {
-
 		data.Color = types.StringValue(*color)
-
 	} else {
-
 		data.Color = types.StringNull()
-
 	}
 
 	// Map positions
 
 	if positions, ok := template.GetPositionsOk(); ok && positions != nil {
-
 		data.Positions = types.Int32Value(*positions)
-
 	} else {
-
 		data.Positions = types.Int32Null()
-
 	}
 
 	// Map description
 
 	if desc, ok := template.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map display_name
 
 	if template.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(template.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
-
 }

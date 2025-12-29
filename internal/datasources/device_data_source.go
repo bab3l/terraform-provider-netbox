@@ -1,9 +1,7 @@
 // Package datasources contains Terraform data source implementations for the Netbox provider.
-
 //
 
 // This package integrates with the go-netbox OpenAPI client to provide
-
 // read-only access to Netbox resources via Terraform data sources.
 
 package datasources
@@ -27,9 +25,7 @@ import (
 var _ datasource.DataSource = &DeviceDataSource{}
 
 func NewDeviceDataSource() datasource.DataSource {
-
 	return &DeviceDataSource{}
-
 }
 
 // DeviceDataSource defines the data source implementation.
@@ -91,15 +87,11 @@ type DeviceDataSourceModel struct {
 }
 
 func (d *DeviceDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_device"
-
 }
 
 func (d *DeviceDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a device in Netbox. Devices represent physical or virtual hardware. You can identify the device using `id` (unique), `name` (may be non-unique), or `serial` (unique, recommended for uniqueness).",
 
 		Attributes: map[string]schema.Attribute{
@@ -133,23 +125,18 @@ func (d *DeviceDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			"display_name":  nbschema.DSComputedStringAttribute("The display name of the device."),
 		},
 	}
-
 }
 
 func (d *DeviceDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	// Prevent panic if the provider has not been configured.
 
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -158,15 +145,12 @@ func (d *DeviceDataSource) Configure(ctx context.Context, req datasource.Configu
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data DeviceDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -174,9 +158,7 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var device *netbox.Device
@@ -188,7 +170,6 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	// Look up device by ID, name, or serial
 
 	switch {
-
 	case !data.ID.IsNull() && data.ID.ValueString() != "":
 
 		// Look up by ID
@@ -196,7 +177,6 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		var id int32
 
 		if _, parseErr := fmt.Sscanf(data.ID.ValueString(), "%d", &id); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Device ID",
@@ -205,11 +185,9 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Looking up device by ID", map[string]interface{}{
-
 			"id": id,
 		})
 
@@ -218,7 +196,6 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading device",
@@ -227,7 +204,6 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			)
 
 			return
-
 		}
 
 	case !data.Name.IsNull() && data.Name.ValueString() != "":
@@ -235,7 +211,6 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		// Look up by name
 
 		tflog.Debug(ctx, "Looking up device by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -244,7 +219,6 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		defer utils.CloseResponseBody(listResp)
 
 		if listErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading device",
@@ -253,11 +227,9 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			)
 
 			return
-
 		}
 
 		if len(list.Results) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Device not found",
@@ -266,11 +238,9 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			)
 
 			return
-
 		}
 
 		if len(list.Results) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple devices found",
@@ -279,7 +249,6 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			)
 
 			return
-
 		}
 
 		device = &list.Results[0]
@@ -289,7 +258,6 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		// Look up by serial
 
 		tflog.Debug(ctx, "Looking up device by serial", map[string]interface{}{
-
 			"serial": data.Serial.ValueString(),
 		})
 
@@ -298,7 +266,6 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		defer utils.CloseResponseBody(listResp)
 
 		if listErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading device",
@@ -307,11 +274,9 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			)
 
 			return
-
 		}
 
 		if len(list.Results) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Device not found",
@@ -320,11 +285,9 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			)
 
 			return
-
 		}
 
 		if len(list.Results) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple devices found",
@@ -333,7 +296,6 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			)
 
 			return
-
 		}
 
 		device = &list.Results[0]
@@ -348,7 +310,6 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		)
 
 		return
-
 	}
 
 	// Map the device to the data source model
@@ -358,25 +319,19 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapDeviceToDataSource maps a Device from the API to the data source model.
 
 func (d *DeviceDataSource) mapDeviceToDataSource(ctx context.Context, device *netbox.Device, data *DeviceDataSourceModel, resp *datasource.ReadResponse) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", device.GetId()))
 
 	// Handle name
 
 	if device.HasName() && device.Name.Get() != nil && *device.Name.Get() != "" {
-
 		data.Name = types.StringValue(*device.Name.Get())
-
 	} else {
-
 		data.Name = types.StringNull()
-
 	}
 
 	// Handle device_type (return model)
@@ -390,49 +345,33 @@ func (d *DeviceDataSource) mapDeviceToDataSource(ctx context.Context, device *ne
 	// Handle tenant
 
 	if device.HasTenant() && device.Tenant.Get() != nil {
-
 		data.Tenant = types.StringValue(device.Tenant.Get().GetName())
-
 	} else {
-
 		data.Tenant = types.StringNull()
-
 	}
 
 	// Handle platform
 
 	if device.HasPlatform() && device.Platform.Get() != nil {
-
 		data.Platform = types.StringValue(device.Platform.Get().GetName())
-
 	} else {
-
 		data.Platform = types.StringNull()
-
 	}
 
 	// Handle serial
 
 	if device.HasSerial() && device.GetSerial() != "" {
-
 		data.Serial = types.StringValue(device.GetSerial())
-
 	} else {
-
 		data.Serial = types.StringNull()
-
 	}
 
 	// Handle asset_tag
 
 	if device.HasAssetTag() && device.AssetTag.Get() != nil && *device.AssetTag.Get() != "" {
-
 		data.AssetTag = types.StringValue(*device.AssetTag.Get())
-
 	} else {
-
 		data.AssetTag = types.StringNull()
-
 	}
 
 	// Handle site (return name)
@@ -442,151 +381,102 @@ func (d *DeviceDataSource) mapDeviceToDataSource(ctx context.Context, device *ne
 	// Handle location
 
 	if device.HasLocation() && device.Location.Get() != nil {
-
 		data.Location = types.StringValue(device.Location.Get().GetName())
-
 	} else {
-
 		data.Location = types.StringNull()
-
 	}
 
 	// Handle rack
 
 	if device.HasRack() && device.Rack.Get() != nil {
-
 		data.Rack = types.StringValue(device.Rack.Get().GetName())
-
 	} else {
-
 		data.Rack = types.StringNull()
-
 	}
 
 	// Handle position
 
 	if device.HasPosition() && device.Position.Get() != nil {
-
 		data.Position = types.Float64Value(*device.Position.Get())
-
 	} else {
-
 		data.Position = types.Float64Null()
-
 	}
 
 	// Handle face
 
 	if device.HasFace() && device.Face != nil {
-
 		data.Face = types.StringValue(string(device.Face.GetValue()))
-
 	} else {
-
 		data.Face = types.StringNull()
-
 	}
 
 	// Handle latitude
 
 	if device.HasLatitude() && device.Latitude.Get() != nil {
-
 		data.Latitude = types.Float64Value(*device.Latitude.Get())
-
 	} else {
-
 		data.Latitude = types.Float64Null()
-
 	}
 
 	// Handle longitude
 
 	if device.HasLongitude() && device.Longitude.Get() != nil {
-
 		data.Longitude = types.Float64Value(*device.Longitude.Get())
-
 	} else {
-
 		data.Longitude = types.Float64Null()
-
 	}
 
 	// Handle status
 
 	if device.HasStatus() && device.Status != nil {
-
 		data.Status = types.StringValue(string(device.Status.GetValue()))
-
 	} else {
-
 		data.Status = types.StringNull()
-
 	}
 
 	// Handle airflow
 
 	if device.HasAirflow() && device.Airflow != nil {
-
 		data.Airflow = types.StringValue(string(device.Airflow.GetValue()))
-
 	} else {
-
 		data.Airflow = types.StringNull()
-
 	}
 
 	// Handle vc_position
 
 	if device.HasVcPosition() && device.VcPosition.Get() != nil {
-
 		data.VcPosition = types.Int64Value(int64(*device.VcPosition.Get()))
-
 	} else {
-
 		data.VcPosition = types.Int64Null()
-
 	}
 
 	// Handle vc_priority
 
 	if device.HasVcPriority() && device.VcPriority.Get() != nil {
-
 		data.VcPriority = types.Int64Value(int64(*device.VcPriority.Get()))
-
 	} else {
-
 		data.VcPriority = types.Int64Null()
-
 	}
 
 	// Handle description
 
 	if device.HasDescription() && device.GetDescription() != "" {
-
 		data.Description = types.StringValue(device.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle comments
 
 	if device.HasComments() && device.GetComments() != "" {
-
 		data.Comments = types.StringValue(device.GetComments())
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if device.HasTags() && len(device.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(device.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -594,23 +484,17 @@ func (d *DeviceDataSource) mapDeviceToDataSource(ctx context.Context, device *ne
 		resp.Diagnostics.Append(tagDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if device.HasCustomFields() && len(device.GetCustomFields()) > 0 {
-
 		customFields := utils.MapToCustomFieldModels(device.GetCustomFields(), nil)
 
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
@@ -618,17 +502,12 @@ func (d *DeviceDataSource) mapDeviceToDataSource(ctx context.Context, device *ne
 		resp.Diagnostics.Append(cfDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Map display_name

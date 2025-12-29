@@ -21,9 +21,7 @@ var _ datasource.DataSource = &ModuleDataSource{}
 // NewModuleDataSource returns a new data source implementing the module data source.
 
 func NewModuleDataSource() datasource.DataSource {
-
 	return &ModuleDataSource{}
-
 }
 
 // ModuleDataSource defines the data source implementation.
@@ -65,23 +63,17 @@ type ModuleDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *ModuleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_module"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *ModuleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a module in NetBox. Modules are hardware components installed in module bays within devices.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the module.",
 
 				Optional: true,
@@ -90,14 +82,12 @@ func (d *ModuleDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the module.",
 
 				Computed: true,
 			},
 
 			"device_id": schema.Int32Attribute{
-
 				MarkdownDescription: "The numeric ID of the device. Used with serial or module_bay_id for lookup when ID is not provided.",
 
 				Optional: true,
@@ -106,14 +96,12 @@ func (d *ModuleDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			},
 
 			"device": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the device.",
 
 				Computed: true,
 			},
 
 			"module_bay_id": schema.Int32Attribute{
-
 				MarkdownDescription: "The numeric ID of the module bay. Used with device_id for lookup when ID is not provided.",
 
 				Optional: true,
@@ -122,35 +110,30 @@ func (d *ModuleDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			},
 
 			"module_bay": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the module bay.",
 
 				Computed: true,
 			},
 
 			"module_type_id": schema.Int32Attribute{
-
 				MarkdownDescription: "The numeric ID of the module type.",
 
 				Computed: true,
 			},
 
 			"module_type": schema.StringAttribute{
-
 				MarkdownDescription: "The model name of the module type.",
 
 				Computed: true,
 			},
 
 			"status": schema.StringAttribute{
-
 				MarkdownDescription: "Operational status.",
 
 				Computed: true,
 			},
 
 			"serial": schema.StringAttribute{
-
 				MarkdownDescription: "Serial number of the module. Can be used for lookup with device_id.",
 
 				Optional: true,
@@ -159,44 +142,36 @@ func (d *ModuleDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			},
 
 			"asset_tag": schema.StringAttribute{
-
 				MarkdownDescription: "A unique tag used to identify this module.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the module.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Additional comments or notes.",
 
 				Computed: true,
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *ModuleDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -205,31 +180,25 @@ func (d *ModuleDataSource) Configure(ctx context.Context, req datasource.Configu
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves the data source data.
 
 func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ModuleDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var module *netbox.Module
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		// Lookup by ID
@@ -237,7 +206,6 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		moduleID := data.ID.ValueInt32()
 
 		tflog.Debug(ctx, "Reading module by ID", map[string]interface{}{
-
 			"id": moduleID,
 		})
 
@@ -246,7 +214,6 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading module",
@@ -255,7 +222,6 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			)
 
 			return
-
 		}
 
 		module = response
@@ -267,22 +233,17 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		deviceID := data.DeviceID.ValueInt32()
 
 		tflog.Debug(ctx, "Reading module by device", map[string]interface{}{
-
 			"device_id": deviceID,
 		})
 
 		listReq := d.client.DcimAPI.DcimModulesList(ctx).DeviceId([]int32{deviceID})
 
 		if !data.ModuleBayID.IsNull() && !data.ModuleBayID.IsUnknown() {
-
 			listReq = listReq.ModuleBayId([]string{fmt.Sprintf("%d", data.ModuleBayID.ValueInt32())})
-
 		}
 
 		if !data.Serial.IsNull() && !data.Serial.IsUnknown() {
-
 			listReq = listReq.Serial([]string{data.Serial.ValueString()})
-
 		}
 
 		response, httpResp, err := listReq.Execute()
@@ -290,7 +251,6 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading module",
@@ -299,13 +259,11 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			)
 
 			return
-
 		}
 
 		count := int(response.GetCount())
 
 		if count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Module Not Found",
@@ -314,11 +272,9 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			)
 
 			return
-
 		}
 
 		if count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Modules Found",
@@ -327,7 +283,6 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			)
 
 			return
-
 		}
 
 		module = &response.GetResults()[0]
@@ -342,7 +297,6 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -350,35 +304,27 @@ func (d *ModuleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	d.mapResponseToModel(module, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *ModuleDataSource) mapResponseToModel(module *netbox.Module, data *ModuleDataSourceModel) {
-
 	data.ID = types.Int32Value(module.GetId())
 
 	// Display Name
 
 	if module.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(module.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Map device
 
 	if device := module.GetDevice(); device.Id != 0 {
-
 		data.DeviceID = types.Int32Value(device.Id)
 
 		data.Device = types.StringValue(device.GetName())
-
 	}
 
 	// Map module_bay
@@ -392,71 +338,48 @@ func (d *ModuleDataSource) mapResponseToModel(module *netbox.Module, data *Modul
 	// Map module_type
 
 	if mt := module.GetModuleType(); mt.Id != 0 {
-
 		data.ModuleTypeID = types.Int32Value(mt.Id)
 
 		data.ModuleType = types.StringValue(mt.GetModel())
-
 	}
 
 	// Map status
 
 	if module.Status != nil {
-
 		data.Status = types.StringValue(string(module.Status.GetValue()))
-
 	} else {
-
 		data.Status = types.StringNull()
-
 	}
 
 	// Map serial
 
 	if serial, ok := module.GetSerialOk(); ok && serial != nil && *serial != "" {
-
 		data.Serial = types.StringValue(*serial)
-
 	} else {
-
 		data.Serial = types.StringNull()
-
 	}
 
 	// Map asset_tag
 
 	if module.AssetTag.IsSet() && module.AssetTag.Get() != nil && *module.AssetTag.Get() != "" {
-
 		data.AssetTag = types.StringValue(*module.AssetTag.Get())
-
 	} else {
-
 		data.AssetTag = types.StringNull()
-
 	}
 
 	// Map description
 
 	if desc, ok := module.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map comments
 
 	if comments, ok := module.GetCommentsOk(); ok && comments != nil && *comments != "" {
-
 		data.Comments = types.StringValue(*comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
-
 }

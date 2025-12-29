@@ -27,9 +27,7 @@ var (
 // NewServiceDataSource returns a new data source implementing the Service data source.
 
 func NewServiceDataSource() datasource.DataSource {
-
 	return &ServiceDataSource{}
-
 }
 
 // ServiceDataSource defines the data source implementation.
@@ -69,23 +67,17 @@ type ServiceDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *ServiceDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_service"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a network service in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the service. Use this to look up by ID.",
 
 				Optional: true,
@@ -94,7 +86,6 @@ func (d *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			},
 
 			"device": schema.StringAttribute{
-
 				MarkdownDescription: "The device this service runs on (ID). Use with name for lookup.",
 
 				Optional: true,
@@ -103,7 +94,6 @@ func (d *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			},
 
 			"virtual_machine": schema.StringAttribute{
-
 				MarkdownDescription: "The virtual machine this service runs on (ID). Use with name for lookup.",
 
 				Optional: true,
@@ -112,7 +102,6 @@ func (d *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the service. Use with device or virtual_machine for lookup.",
 
 				Optional: true,
@@ -121,14 +110,12 @@ func (d *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			},
 
 			"protocol": schema.StringAttribute{
-
 				MarkdownDescription: "The protocol used by the service.",
 
 				Computed: true,
 			},
 
 			"ports": schema.ListAttribute{
-
 				MarkdownDescription: "List of port numbers the service listens on.",
 
 				Computed: true,
@@ -137,7 +124,6 @@ func (d *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			},
 
 			"ipaddresses": schema.ListAttribute{
-
 				MarkdownDescription: "List of IP address IDs associated with this service.",
 
 				Computed: true,
@@ -146,14 +132,12 @@ func (d *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the service.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Additional comments.",
 
 				Computed: true,
@@ -166,23 +150,18 @@ func (d *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *ServiceDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -191,25 +170,20 @@ func (d *ServiceDataSource) Configure(ctx context.Context, req datasource.Config
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the data source data.
 
 func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ServiceDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var svc *netbox.Service
@@ -217,13 +191,11 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	// Look up by ID or name
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		svcID, err := utils.ParseID(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Service ID",
@@ -232,11 +204,9 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading service by ID", map[string]interface{}{
-
 			"id": svcID,
 		})
 
@@ -245,7 +215,6 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading service",
@@ -254,7 +223,6 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 
 			return
-
 		}
 
 		svc = result
@@ -264,7 +232,6 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		// Look up by name
 
 		tflog.Debug(ctx, "Reading service by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -273,11 +240,9 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		// Filter by device if provided
 
 		if !data.Device.IsNull() && !data.Device.IsUnknown() {
-
 			deviceID, err := utils.ParseID(data.Device.ValueString())
 
 			if err != nil {
-
 				resp.Diagnostics.AddError(
 
 					"Invalid Device ID",
@@ -286,21 +251,17 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 				)
 
 				return
-
 			}
 
 			listReq = listReq.DeviceId([]*int32{&deviceID})
-
 		}
 
 		// Filter by virtual_machine if provided
 
 		if !data.VirtualMachine.IsNull() && !data.VirtualMachine.IsUnknown() {
-
 			vmID, err := utils.ParseID(data.VirtualMachine.ValueString())
 
 			if err != nil {
-
 				resp.Diagnostics.AddError(
 
 					"Invalid Virtual Machine ID",
@@ -309,11 +270,9 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 				)
 
 				return
-
 			}
 
 			listReq = listReq.VirtualMachineId([]*int32{&vmID})
-
 		}
 
 		listResp, httpResp, err := listReq.Execute()
@@ -321,7 +280,6 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading service",
@@ -330,11 +288,9 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 
 			return
-
 		}
 
 		if listResp.GetCount() == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Service not found",
@@ -343,11 +299,9 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 
 			return
-
 		}
 
 		if listResp.GetCount() > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple services found",
@@ -356,7 +310,6 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 
 			return
-
 		}
 
 		svc = &listResp.GetResults()[0]
@@ -371,7 +324,6 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -379,19 +331,15 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	d.mapResponseToModel(ctx, svc, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *ServiceDataSource) mapResponseToModel(ctx context.Context, svc *netbox.Service, data *ServiceDataSourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", svc.GetId()))
 
 	data.Name = types.StringValue(svc.GetName())
@@ -399,37 +347,25 @@ func (d *ServiceDataSource) mapResponseToModel(ctx context.Context, svc *netbox.
 	// Map device
 
 	if svc.Device.IsSet() && svc.Device.Get() != nil {
-
 		data.Device = types.StringValue(fmt.Sprintf("%d", svc.Device.Get().GetId()))
-
 	} else {
-
 		data.Device = types.StringNull()
-
 	}
 
 	// Map virtual_machine
 
 	if svc.VirtualMachine.IsSet() && svc.VirtualMachine.Get() != nil {
-
 		data.VirtualMachine = types.StringValue(fmt.Sprintf("%d", svc.VirtualMachine.Get().GetId()))
-
 	} else {
-
 		data.VirtualMachine = types.StringNull()
-
 	}
 
 	// Map protocol
 
 	if protocol, ok := svc.GetProtocolOk(); ok && protocol != nil {
-
 		data.Protocol = types.StringValue(string(protocol.GetValue()))
-
 	} else {
-
 		data.Protocol = types.StringNull()
-
 	}
 
 	// Map ports
@@ -439,9 +375,7 @@ func (d *ServiceDataSource) mapResponseToModel(ctx context.Context, svc *netbox.
 	portsInt64 := make([]int64, len(ports))
 
 	for i, p := range ports {
-
 		portsInt64[i] = int64(p)
-
 	}
 
 	portsValue, portsDiags := types.ListValueFrom(ctx, types.Int64Type, portsInt64)
@@ -449,9 +383,7 @@ func (d *ServiceDataSource) mapResponseToModel(ctx context.Context, svc *netbox.
 	diags.Append(portsDiags...)
 
 	if diags.HasError() {
-
 		return
-
 	}
 
 	data.Ports = portsValue
@@ -459,15 +391,12 @@ func (d *ServiceDataSource) mapResponseToModel(ctx context.Context, svc *netbox.
 	// Map IP addresses
 
 	if svc.HasIpaddresses() && len(svc.GetIpaddresses()) > 0 {
-
 		ipAddrs := svc.GetIpaddresses()
 
 		ipIDs := make([]int64, len(ipAddrs))
 
 		for i, ip := range ipAddrs {
-
 			ipIDs[i] = int64(ip.GetId())
-
 		}
 
 		ipValue, ipDiags := types.ListValueFrom(ctx, types.Int64Type, ipIDs)
@@ -475,59 +404,41 @@ func (d *ServiceDataSource) mapResponseToModel(ctx context.Context, svc *netbox.
 		diags.Append(ipDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.IPAddresses = ipValue
-
 	} else {
-
 		data.IPAddresses = types.ListNull(types.Int64Type)
-
 	}
 
 	// Map description
 
 	if desc, ok := svc.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map comments
 
 	if comments, ok := svc.GetCommentsOk(); ok && comments != nil && *comments != "" {
-
 		data.Comments = types.StringValue(*comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Map display_name
 
 	if svc.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(svc.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if svc.HasTags() && len(svc.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(svc.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -535,23 +446,17 @@ func (d *ServiceDataSource) mapResponseToModel(ctx context.Context, svc *netbox.
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if svc.HasCustomFields() {
-
 		apiCustomFields := svc.GetCustomFields()
 
 		customFields := utils.MapToCustomFieldModels(apiCustomFields, nil)
@@ -561,17 +466,11 @@ func (d *ServiceDataSource) mapResponseToModel(ctx context.Context, svc *netbox.
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

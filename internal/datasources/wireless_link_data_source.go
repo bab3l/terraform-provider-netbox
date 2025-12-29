@@ -25,9 +25,7 @@ var _ datasource.DataSourceWithConfigure = &WirelessLinkDataSource{}
 // NewWirelessLinkDataSource returns a new data source implementing wireless link lookup.
 
 func NewWirelessLinkDataSource() datasource.DataSource {
-
 	return &WirelessLinkDataSource{}
-
 }
 
 // WirelessLinkDataSource defines the data source implementation.
@@ -75,23 +73,17 @@ type WirelessLinkDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *WirelessLinkDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_wireless_link"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *WirelessLinkDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a wireless link in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "ID of the wireless link to look up. Either `id` must be specified.",
 
 				Optional: true,
@@ -100,21 +92,18 @@ func (d *WirelessLinkDataSource) Schema(ctx context.Context, req datasource.Sche
 			},
 
 			"interface_a": schema.StringAttribute{
-
 				MarkdownDescription: "ID of the first interface (A-side) of the wireless link.",
 
 				Computed: true,
 			},
 
 			"interface_b": schema.StringAttribute{
-
 				MarkdownDescription: "ID of the second interface (B-side) of the wireless link.",
 
 				Computed: true,
 			},
 
 			"ssid": schema.StringAttribute{
-
 				MarkdownDescription: "The SSID (network name) for the wireless link.",
 
 				Computed: true,
@@ -131,7 +120,6 @@ func (d *WirelessLinkDataSource) Schema(ctx context.Context, req datasource.Sche
 			"auth_cipher": nbschema.DSComputedStringAttribute("Authentication cipher."),
 
 			"distance": schema.Float64Attribute{
-
 				MarkdownDescription: "Distance of the wireless link.",
 
 				Computed: true,
@@ -150,23 +138,18 @@ func (d *WirelessLinkDataSource) Schema(ctx context.Context, req datasource.Sche
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *WirelessLinkDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -175,25 +158,20 @@ func (d *WirelessLinkDataSource) Configure(ctx context.Context, req datasource.C
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read reads the data source.
 
 func (d *WirelessLinkDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data WirelessLinkDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var result *netbox.WirelessLink
@@ -203,17 +181,14 @@ func (d *WirelessLinkDataSource) Read(ctx context.Context, req datasource.ReadRe
 	var err error
 
 	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-
 		// Lookup by ID
 
 		id, parseErr := utils.ParseID(data.ID.ValueString())
 
 		if parseErr != nil {
-
 			resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID must be a number, got: %s", data.ID.ValueString()))
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Looking up wireless link by ID", map[string]interface{}{"id": id})
@@ -231,23 +206,18 @@ func (d *WirelessLinkDataSource) Read(ctx context.Context, req datasource.ReadRe
 		}
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Error Reading Wireless Link",
 
 				utils.FormatAPIError(fmt.Sprintf("read wireless link ID %d", id), err, httpResp))
 
 			return
-
 		}
-
 	} else {
-
 		resp.Diagnostics.AddError("Missing Required Attribute",
 
 			"The 'id' attribute must be specified to look up a wireless link.")
 
 		return
-
 	}
 
 	// Map the response to state
@@ -255,13 +225,11 @@ func (d *WirelessLinkDataSource) Read(ctx context.Context, req datasource.ReadRe
 	d.mapToState(ctx, result, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapToState maps the API response to the Terraform state.
 
 func (d *WirelessLinkDataSource) mapToState(ctx context.Context, result *netbox.WirelessLink, data *WirelessLinkDataSourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
 	// Map interface IDs
@@ -277,169 +245,112 @@ func (d *WirelessLinkDataSource) mapToState(ctx context.Context, result *netbox.
 	// Map optional fields
 
 	if result.HasSsid() && result.GetSsid() != "" {
-
 		data.SSID = types.StringValue(result.GetSsid())
-
 	} else {
-
 		data.SSID = types.StringNull()
-
 	}
 
 	if result.HasStatus() {
-
 		status := result.GetStatus()
 
 		data.Status = types.StringValue(string(status.GetValue()))
-
 	} else {
-
 		data.Status = types.StringNull()
-
 	}
 
 	if result.HasTenant() && result.GetTenant().Id != 0 {
-
 		tenant := result.GetTenant()
 
 		data.Tenant = types.StringValue(tenant.GetName())
 
 		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
-
 	} else {
-
 		data.Tenant = types.StringNull()
 
 		data.TenantID = types.StringNull()
-
 	}
 
 	if result.HasAuthType() {
-
 		authType := result.GetAuthType()
 
 		data.AuthType = types.StringValue(string(authType.GetValue()))
-
 	} else {
-
 		data.AuthType = types.StringNull()
-
 	}
 
 	if result.HasAuthCipher() {
-
 		authCipher := result.GetAuthCipher()
 
 		data.AuthCipher = types.StringValue(string(authCipher.GetValue()))
-
 	} else {
-
 		data.AuthCipher = types.StringNull()
-
 	}
 
 	if result.HasDistance() {
-
 		distance, ok := result.GetDistanceOk()
 
 		if ok && distance != nil {
-
 			data.Distance = types.Float64Value(*distance)
-
 		} else {
-
 			data.Distance = types.Float64Null()
-
 		}
-
 	} else {
-
 		data.Distance = types.Float64Null()
-
 	}
 
 	if result.HasDistanceUnit() {
-
 		distanceUnit := result.GetDistanceUnit()
 
 		if distanceUnit.Value != nil && *distanceUnit.Value != "" {
-
 			data.DistanceUnit = types.StringValue(string(*distanceUnit.Value))
-
 		} else {
-
 			data.DistanceUnit = types.StringNull()
-
 		}
-
 	} else {
-
 		data.DistanceUnit = types.StringNull()
-
 	}
 
 	if result.HasDescription() && result.GetDescription() != "" {
-
 		data.Description = types.StringValue(result.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	if result.HasComments() && result.GetComments() != "" {
-
 		data.Comments = types.StringValue(result.GetComments())
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Map display name
 
 	if displayName := result.GetDisplay(); displayName != "" {
-
 		data.DisplayName = types.StringValue(displayName)
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Map tags
 
 	if result.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(result.GetTags())
 
 		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Map custom fields
 
 	if result.HasCustomFields() {
-
 		customFields := utils.MapToCustomFieldModels(result.GetCustomFields(), nil)
 
 		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

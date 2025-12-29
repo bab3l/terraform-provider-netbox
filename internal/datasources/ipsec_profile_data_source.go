@@ -25,9 +25,7 @@ var (
 // NewIPSecProfileDataSource returns a new IPSecProfile data source.
 
 func NewIPSecProfileDataSource() datasource.DataSource {
-
 	return &IPSecProfileDataSource{}
-
 }
 
 // IPSecProfileDataSource defines the data source implementation.
@@ -61,23 +59,17 @@ type IPSecProfileDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *IPSecProfileDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_ipsec_profile"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *IPSecProfileDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about an IPSec Profile in Netbox. IPSec profiles combine IKE and IPSec policies to define complete VPN configurations.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the IPSec profile. Either `id` or `name` must be specified.",
 
 				Optional: true,
@@ -86,7 +78,6 @@ func (d *IPSecProfileDataSource) Schema(ctx context.Context, req datasource.Sche
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the IPSec profile. Either `id` or `name` must be specified.",
 
 				Optional: true,
@@ -95,49 +86,42 @@ func (d *IPSecProfileDataSource) Schema(ctx context.Context, req datasource.Sche
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the IPSec profile.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "The description of the IPSec profile.",
 
 				Computed: true,
 			},
 
 			"mode": schema.StringAttribute{
-
 				MarkdownDescription: "The IPSec mode. Values: `esp` (Encapsulating Security Payload), `ah` (Authentication Header).",
 
 				Computed: true,
 			},
 
 			"ike_policy": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the IKE policy used by this profile.",
 
 				Computed: true,
 			},
 
 			"ipsec_policy": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the IPSec policy used by this profile.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Comments about the IPSec profile.",
 
 				Computed: true,
 			},
 
 			"tags": schema.ListAttribute{
-
 				MarkdownDescription: "The tags assigned to this IPSec profile.",
 
 				Computed: true,
@@ -146,23 +130,18 @@ func (d *IPSecProfileDataSource) Schema(ctx context.Context, req datasource.Sche
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *IPSecProfileDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -171,17 +150,14 @@ func (d *IPSecProfileDataSource) Configure(ctx context.Context, req datasource.C
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data IPSecProfileDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -189,9 +165,7 @@ func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRe
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var ipsec *netbox.IPSecProfile
@@ -199,13 +173,11 @@ func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRe
 	// Check if we're looking up by ID
 
 	switch {
-
 	case utils.IsSet(data.ID):
 
 		id, err := utils.ParseID(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid ID",
@@ -214,11 +186,9 @@ func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRe
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading IPSecProfile by ID", map[string]interface{}{
-
 			"id": id,
 		})
 
@@ -227,7 +197,6 @@ func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRe
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading IPSecProfile",
@@ -236,7 +205,6 @@ func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRe
 			)
 
 			return
-
 		}
 
 		ipsec = result
@@ -246,7 +214,6 @@ func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRe
 		// Looking up by name
 
 		tflog.Debug(ctx, "Reading IPSecProfile by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -259,7 +226,6 @@ func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRe
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error listing IPSecProfiles",
@@ -268,11 +234,9 @@ func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRe
 			)
 
 			return
-
 		}
 
 		if results.Count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"IPSecProfile not found",
@@ -281,11 +245,9 @@ func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRe
 			)
 
 			return
-
 		}
 
 		if results.Count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple IPSecProfiles found",
@@ -294,7 +256,6 @@ func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRe
 			)
 
 			return
-
 		}
 
 		ipsec = &results.Results[0]
@@ -309,7 +270,6 @@ func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRe
 		)
 
 		return
-
 	}
 
 	// Map the result to state
@@ -319,13 +279,11 @@ func (d *IPSecProfileDataSource) Read(ctx context.Context, req datasource.ReadRe
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapIPSecProfileToState maps an IPSecProfile API response to the Terraform state model.
 
 func (d *IPSecProfileDataSource) mapIPSecProfileToState(ipsec *netbox.IPSecProfile, data *IPSecProfileDataSourceModel) {
-
 	// ID
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipsec.Id))
@@ -333,13 +291,9 @@ func (d *IPSecProfileDataSource) mapIPSecProfileToState(ipsec *netbox.IPSecProfi
 	// Display Name
 
 	if ipsec.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(ipsec.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Name
@@ -349,25 +303,17 @@ func (d *IPSecProfileDataSource) mapIPSecProfileToState(ipsec *netbox.IPSecProfi
 	// Description
 
 	if ipsec.Description != nil && *ipsec.Description != "" {
-
 		data.Description = types.StringValue(*ipsec.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Mode
 
 	if ipsec.Mode.Value != nil {
-
 		data.Mode = types.StringValue(string(*ipsec.Mode.Value))
-
 	} else {
-
 		data.Mode = types.StringNull()
-
 	}
 
 	// IKE Policy
@@ -381,35 +327,24 @@ func (d *IPSecProfileDataSource) mapIPSecProfileToState(ipsec *netbox.IPSecProfi
 	// Comments
 
 	if ipsec.Comments != nil && *ipsec.Comments != "" {
-
 		data.Comments = types.StringValue(*ipsec.Comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Tags
 
 	if len(ipsec.Tags) > 0 {
-
 		tags := make([]string, len(ipsec.Tags))
 
 		for i, tag := range ipsec.Tags {
-
 			tags[i] = tag.Name
-
 		}
 
 		tagsValue, _ := types.ListValueFrom(context.Background(), types.StringType, tags)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.ListNull(types.StringType)
-
 	}
-
 }

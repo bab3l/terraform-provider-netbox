@@ -26,9 +26,7 @@ var (
 // NewDeviceBayTemplateDataSource returns a new DeviceBayTemplate data source.
 
 func NewDeviceBayTemplateDataSource() datasource.DataSource {
-
 	return &DeviceBayTemplateDataSource{}
-
 }
 
 // DeviceBayTemplateDataSource defines the data source implementation.
@@ -58,17 +56,13 @@ type DeviceBayTemplateDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *DeviceBayTemplateDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_device_bay_template"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *DeviceBayTemplateDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a Device Bay Template in Netbox.",
 
 		Attributes: map[string]schema.Attribute{
@@ -105,23 +99,18 @@ func (d *DeviceBayTemplateDataSource) Schema(ctx context.Context, req datasource
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *DeviceBayTemplateDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -130,17 +119,14 @@ func (d *DeviceBayTemplateDataSource) Configure(ctx context.Context, req datasou
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data DeviceBayTemplateDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -148,15 +134,12 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var template *netbox.DeviceBayTemplate
 
 	switch {
-
 	case utils.IsSet(data.ID):
 
 		// Looking up by ID
@@ -164,7 +147,6 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 		id, err := strconv.Atoi(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error parsing DeviceBayTemplate ID",
@@ -173,22 +155,18 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading DeviceBayTemplate by ID", map[string]interface{}{
-
 			"id": id,
 		})
 
 		id32, err := utils.SafeInt32(int64(id))
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", err))
 
 			return
-
 		}
 
 		t, httpResp, err := d.client.DcimAPI.DcimDeviceBayTemplatesRetrieve(ctx, id32).Execute()
@@ -196,7 +174,6 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading DeviceBayTemplate",
@@ -205,7 +182,6 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 			)
 
 			return
-
 		}
 
 		template = t
@@ -215,7 +191,6 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 		// Looking up by name (requires device_type)
 
 		tflog.Debug(ctx, "Reading DeviceBayTemplate by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 
 			"device_type": data.DeviceType.ValueString(),
@@ -228,25 +203,19 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 		// If device_type is specified, filter by it
 
 		if utils.IsSet(data.DeviceType) {
-
 			// Try to parse as ID first
 
 			if deviceTypeID, err := strconv.Atoi(data.DeviceType.ValueString()); err == nil {
-
 				deviceTypeID32, convErr := utils.SafeInt32(int64(deviceTypeID))
 
 				if convErr != nil {
-
 					resp.Diagnostics.AddError("Invalid device_type ID", fmt.Sprintf("device_type ID overflow: %s", convErr))
 
 					return
-
 				}
 
 				listReq = listReq.DeviceTypeId([]int32{deviceTypeID32})
-
 			}
-
 		}
 
 		results, httpResp, err := listReq.Execute()
@@ -254,7 +223,6 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error listing DeviceBayTemplates",
@@ -263,11 +231,9 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 			)
 
 			return
-
 		}
 
 		if results.Count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"DeviceBayTemplate not found",
@@ -276,11 +242,9 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 			)
 
 			return
-
 		}
 
 		if results.Count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple DeviceBayTemplates found",
@@ -289,7 +253,6 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 			)
 
 			return
-
 		}
 
 		template = &results.Results[0]
@@ -304,7 +267,6 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -312,7 +274,6 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 	d.mapTemplateToDataSourceModel(template, &data)
 
 	tflog.Debug(ctx, "Read DeviceBayTemplate", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -328,13 +289,11 @@ func (d *DeviceBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapTemplateToDataSourceModel maps a Netbox DeviceBayTemplate to the Terraform data source model.
 
 func (d *DeviceBayTemplateDataSource) mapTemplateToDataSourceModel(template *netbox.DeviceBayTemplate, data *DeviceBayTemplateDataSourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", template.Id))
 
 	data.DeviceType = types.StringValue(template.DeviceType.GetModel())
@@ -346,25 +305,16 @@ func (d *DeviceBayTemplateDataSource) mapTemplateToDataSourceModel(template *net
 	// Label
 
 	if template.Label != nil && *template.Label != "" {
-
 		data.Label = types.StringValue(*template.Label)
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Description
 
 	if template.Description != nil && *template.Description != "" {
-
 		data.Description = types.StringValue(*template.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
-
 }

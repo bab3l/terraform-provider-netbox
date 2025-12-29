@@ -23,9 +23,7 @@ var _ datasource.DataSource = &ScriptDataSource{}
 // NewScriptDataSource returns a new data source implementing the script data source.
 
 func NewScriptDataSource() datasource.DataSource {
-
 	return &ScriptDataSource{}
-
 }
 
 // ScriptDataSource defines the data source implementation.
@@ -53,21 +51,16 @@ type ScriptDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *ScriptDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_script"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *ScriptDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a script in NetBox. Scripts are Python files loaded from the filesystem and can only be read, not created via the API.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("script"),
 
 			"name": nbschema.DSNameAttribute("script"),
@@ -81,23 +74,18 @@ func (d *ScriptDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			"display": nbschema.DSComputedStringAttribute("Display name of the script."),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *ScriptDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -106,25 +94,20 @@ func (d *ScriptDataSource) Configure(ctx context.Context, req datasource.Configu
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read reads the script data.
 
 func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ScriptDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var script *netbox.Script
@@ -136,11 +119,9 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	// Lookup by ID or name
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		tflog.Debug(ctx, "Reading script by ID", map[string]interface{}{
-
 			"id": data.ID.ValueString(),
 		})
 
@@ -153,7 +134,6 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		// Lookup by name
 
 		tflog.Debug(ctx, "Reading script by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -168,11 +148,9 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		err = listErr
 
 		if err == nil {
-
 			results := list.GetResults()
 
 			if len(results) == 0 {
-
 				resp.Diagnostics.AddError(
 
 					"Not Found",
@@ -181,11 +159,9 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 				)
 
 				return
-
 			}
 
 			if len(results) > 1 {
-
 				resp.Diagnostics.AddError(
 
 					"Multiple Found",
@@ -194,11 +170,9 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 				)
 
 				return
-
 			}
 
 			script = &results[0]
-
 		}
 
 	default:
@@ -211,11 +185,9 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading script",
@@ -224,7 +196,6 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -232,13 +203,11 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	d.mapResponseToState(ctx, script, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToState maps the API response to the Terraform state.
 
 func (d *ScriptDataSource) mapResponseToState(ctx context.Context, script *netbox.Script, data *ScriptDataSourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", script.GetId()))
 
 	data.Name = types.StringValue(script.GetName())
@@ -254,13 +223,8 @@ func (d *ScriptDataSource) mapResponseToState(ctx context.Context, script *netbo
 	desc, _ := script.GetDescriptionOk()
 
 	if desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
-
 }

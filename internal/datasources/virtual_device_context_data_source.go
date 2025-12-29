@@ -28,9 +28,7 @@ var (
 // NewVirtualDeviceContextDataSource returns a new data source implementing the virtual device context data source.
 
 func NewVirtualDeviceContextDataSource() datasource.DataSource {
-
 	return &VirtualDeviceContextDataSource{}
-
 }
 
 // VirtualDeviceContextDataSource defines the data source implementation.
@@ -76,106 +74,88 @@ type VirtualDeviceContextDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *VirtualDeviceContextDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_virtual_device_context"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *VirtualDeviceContextDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a virtual device context in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the virtual device context.",
 
 				Required: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the virtual device context.",
 
 				Computed: true,
 			},
 
 			"device": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the device this VDC belongs to.",
 
 				Computed: true,
 			},
 
 			"device_id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the device this VDC belongs to.",
 
 				Computed: true,
 			},
 
 			"identifier": schema.Int64Attribute{
-
 				MarkdownDescription: "Numeric identifier unique to the parent device.",
 
 				Computed: true,
 			},
 
 			"tenant": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the tenant associated with this VDC.",
 
 				Computed: true,
 			},
 
 			"tenant_id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the tenant associated with this VDC.",
 
 				Computed: true,
 			},
 
 			"primary_ip4": schema.StringAttribute{
-
 				MarkdownDescription: "Primary IPv4 address assigned to this VDC.",
 
 				Computed: true,
 			},
 
 			"primary_ip6": schema.StringAttribute{
-
 				MarkdownDescription: "Primary IPv6 address assigned to this VDC.",
 
 				Computed: true,
 			},
 
 			"status": schema.StringAttribute{
-
 				MarkdownDescription: "Operational status of the VDC.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the virtual device context.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Additional comments about the VDC.",
 
 				Computed: true,
 			},
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "Display name of the VDC.",
 
 				Computed: true,
@@ -185,23 +165,18 @@ func (d *VirtualDeviceContextDataSource) Schema(ctx context.Context, req datasou
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *VirtualDeviceContextDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -210,25 +185,20 @@ func (d *VirtualDeviceContextDataSource) Configure(ctx context.Context, req data
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read reads the data source.
 
 func (d *VirtualDeviceContextDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data VirtualDeviceContextDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -238,7 +208,6 @@ func (d *VirtualDeviceContextDataSource) Read(ctx context.Context, req datasourc
 	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID",
@@ -247,7 +216,6 @@ func (d *VirtualDeviceContextDataSource) Read(ctx context.Context, req datasourc
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading virtual device context", map[string]interface{}{"id": id})
@@ -267,7 +235,6 @@ func (d *VirtualDeviceContextDataSource) Read(ctx context.Context, req datasourc
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading virtual device context",
@@ -276,7 +243,6 @@ func (d *VirtualDeviceContextDataSource) Read(ctx context.Context, req datasourc
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -284,19 +250,15 @@ func (d *VirtualDeviceContextDataSource) Read(ctx context.Context, req datasourc
 	d.mapToState(ctx, result, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapToState maps the API response to the Terraform state.
 
 func (d *VirtualDeviceContextDataSource) mapToState(ctx context.Context, result *netbox.VirtualDeviceContext, data *VirtualDeviceContextDataSourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
 	data.Name = types.StringValue(result.GetName())
@@ -312,67 +274,47 @@ func (d *VirtualDeviceContextDataSource) mapToState(ctx context.Context, result 
 	// Map identifier
 
 	if result.HasIdentifier() {
-
 		identifierPtr, ok := result.GetIdentifierOk()
 
 		if ok && identifierPtr != nil {
-
 			data.Identifier = types.Int64Value(int64(*identifierPtr))
-
 		} else {
-
 			data.Identifier = types.Int64Null()
-
 		}
-
 	} else {
-
 		data.Identifier = types.Int64Null()
-
 	}
 
 	// Map tenant
 
 	if result.HasTenant() && result.GetTenant().Id != 0 {
-
 		tenant := result.GetTenant()
 
 		data.Tenant = types.StringValue(tenant.GetName())
 
 		data.TenantID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
-
 	} else {
-
 		data.Tenant = types.StringNull()
 
 		data.TenantID = types.StringNull()
-
 	}
 
 	// Map primary IPs
 
 	if result.HasPrimaryIp4() && result.GetPrimaryIp4().Id != 0 {
-
 		ip := result.GetPrimaryIp4()
 
 		data.PrimaryIP4 = types.StringValue(ip.GetAddress())
-
 	} else {
-
 		data.PrimaryIP4 = types.StringNull()
-
 	}
 
 	if result.HasPrimaryIp6() && result.GetPrimaryIp6().Id != 0 {
-
 		ip := result.GetPrimaryIp6()
 
 		data.PrimaryIP6 = types.StringValue(ip.GetAddress())
-
 	} else {
-
 		data.PrimaryIP6 = types.StringNull()
-
 	}
 
 	// Map status (required field)
@@ -384,41 +326,28 @@ func (d *VirtualDeviceContextDataSource) mapToState(ctx context.Context, result 
 	// Map description
 
 	if result.HasDescription() && result.GetDescription() != "" {
-
 		data.Description = types.StringValue(result.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map comments
 
 	if result.HasComments() && result.GetComments() != "" {
-
 		data.Comments = types.StringValue(result.GetComments())
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 	// Handle display_name
 
 	if result.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(result.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 	// Map tags
 
 	if result.HasTags() && len(result.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(result.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -426,17 +355,13 @@ func (d *VirtualDeviceContextDataSource) mapToState(ctx context.Context, result 
 		diags.Append(tagDiags...)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Map custom fields
 
 	if result.HasCustomFields() && len(result.GetCustomFields()) > 0 {
-
 		customFields := utils.MapToCustomFieldModels(result.GetCustomFields(), nil)
 
 		cfValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
@@ -444,11 +369,7 @@ func (d *VirtualDeviceContextDataSource) mapToState(ctx context.Context, result 
 		diags.Append(cfDiags...)
 
 		data.CustomFields = cfValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

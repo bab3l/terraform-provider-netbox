@@ -21,9 +21,7 @@ var _ datasource.DataSource = &ModuleBayDataSource{}
 // NewModuleBayDataSource returns a new data source implementing the module bay data source.
 
 func NewModuleBayDataSource() datasource.DataSource {
-
 	return &ModuleBayDataSource{}
-
 }
 
 // ModuleBayDataSource defines the data source implementation.
@@ -57,23 +55,17 @@ type ModuleBayDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *ModuleBayDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_module_bay"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *ModuleBayDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a module bay in NetBox. Module bays are slots within devices that can accept modules.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the module bay.",
 
 				Optional: true,
@@ -82,14 +74,12 @@ func (d *ModuleBayDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the module bay.",
 
 				Computed: true,
 			},
 
 			"device_id": schema.Int32Attribute{
-
 				MarkdownDescription: "The numeric ID of the device. Used with name for lookup when ID is not provided.",
 
 				Optional: true,
@@ -98,14 +88,12 @@ func (d *ModuleBayDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"device": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the device.",
 
 				Computed: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the module bay. Used with device_id for lookup when ID is not provided.",
 
 				Optional: true,
@@ -114,51 +102,42 @@ func (d *ModuleBayDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label of the module bay.",
 
 				Computed: true,
 			},
 
 			"position": schema.StringAttribute{
-
 				MarkdownDescription: "Identifier to reference when renaming installed components.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the module bay.",
 
 				Computed: true,
 			},
 
 			"installed_module": schema.Int32Attribute{
-
 				MarkdownDescription: "The ID of the installed module, if any.",
 
 				Computed: true,
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *ModuleBayDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -167,31 +146,25 @@ func (d *ModuleBayDataSource) Configure(ctx context.Context, req datasource.Conf
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves the data source data.
 
 func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ModuleBayDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var moduleBay *netbox.ModuleBay
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		// Lookup by ID
@@ -199,7 +172,6 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 		bayID := data.ID.ValueInt32()
 
 		tflog.Debug(ctx, "Reading module bay by ID", map[string]interface{}{
-
 			"id": bayID,
 		})
 
@@ -208,7 +180,6 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading module bay",
@@ -217,7 +188,6 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		moduleBay = response
@@ -231,7 +201,6 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 		name := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading module bay by device and name", map[string]interface{}{
-
 			"device_id": deviceID,
 
 			"name": name,
@@ -242,7 +211,6 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading module bay",
@@ -251,13 +219,11 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		count := int(response.GetCount())
 
 		if count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Module Bay Not Found",
@@ -266,11 +232,9 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		if count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Module Bays Found",
@@ -279,7 +243,6 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		moduleBay = &response.GetResults()[0]
@@ -294,7 +257,6 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -302,25 +264,19 @@ func (d *ModuleBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 	d.mapResponseToModel(moduleBay, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *ModuleBayDataSource) mapResponseToModel(moduleBay *netbox.ModuleBay, data *ModuleBayDataSourceModel) {
-
 	data.ID = types.Int32Value(moduleBay.GetId())
 
 	// Display Name
 
 	if moduleBay.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(moduleBay.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	data.Name = types.StringValue(moduleBay.GetName())
@@ -328,59 +284,40 @@ func (d *ModuleBayDataSource) mapResponseToModel(moduleBay *netbox.ModuleBay, da
 	// Map device
 
 	if device := moduleBay.GetDevice(); device.Id != 0 {
-
 		data.DeviceID = types.Int32Value(device.Id)
 
 		data.Device = types.StringValue(device.GetName())
-
 	}
 
 	// Map label
 
 	if label, ok := moduleBay.GetLabelOk(); ok && label != nil && *label != "" {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Map position
 
 	if pos, ok := moduleBay.GetPositionOk(); ok && pos != nil && *pos != "" {
-
 		data.Position = types.StringValue(*pos)
-
 	} else {
-
 		data.Position = types.StringNull()
-
 	}
 
 	// Map description
 
 	if desc, ok := moduleBay.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map installed_module
 
 	if moduleBay.InstalledModule.IsSet() && moduleBay.InstalledModule.Get() != nil {
-
 		data.InstalledModule = types.Int32Value(moduleBay.InstalledModule.Get().Id)
-
 	} else {
-
 		data.InstalledModule = types.Int32Null()
-
 	}
-
 }

@@ -1,9 +1,7 @@
 // Package datasources contains Terraform data source implementations for the Netbox provider.
-
 //
 
 // This package integrates with the go-netbox OpenAPI client to provide
-
 // read-only access to Netbox resources via Terraform data sources.
 
 package datasources
@@ -27,9 +25,7 @@ import (
 var _ datasource.DataSource = &RackRoleDataSource{}
 
 func NewRackRoleDataSource() datasource.DataSource {
-
 	return &RackRoleDataSource{}
-
 }
 
 // RackRoleDataSource defines the data source implementation.
@@ -57,19 +53,14 @@ type RackRoleDataSourceModel struct {
 }
 
 func (d *RackRoleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_rack_role"
-
 }
 
 func (d *RackRoleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a rack role in Netbox. Rack roles categorize racks by their function (e.g., Production, Testing, Storage). You can identify the rack role using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("rack role"),
 
 			"name": nbschema.DSNameAttribute("rack role"),
@@ -85,23 +76,18 @@ func (d *RackRoleDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 func (d *RackRoleDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	// Prevent panic if the provider has not been configured.
 
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -110,15 +96,12 @@ func (d *RackRoleDataSource) Configure(ctx context.Context, req datasource.Confi
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data RackRoleDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -126,9 +109,7 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var rackRole *netbox.RackRole
@@ -140,7 +121,6 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 	// Determine if we're searching by ID, slug, or name
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		// Search by ID
@@ -148,7 +128,6 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		rackRoleID := data.ID.ValueString()
 
 		tflog.Debug(ctx, "Reading rack role by ID", map[string]interface{}{
-
 			"id": rackRoleID,
 		})
 
@@ -157,7 +136,6 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		var rackRoleIDInt int32
 
 		if _, parseErr := fmt.Sscanf(rackRoleID, "%d", &rackRoleIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Rack Role ID",
@@ -166,7 +144,6 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		// Retrieve the rack role via API
@@ -182,7 +159,6 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		rackRoleSlug := data.Slug.ValueString()
 
 		tflog.Debug(ctx, "Reading rack role by slug", map[string]interface{}{
-
 			"slug": rackRoleSlug,
 		})
 
@@ -195,7 +171,6 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading rack role",
@@ -204,11 +179,9 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		if len(rackRoles.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Rack Role Not Found",
@@ -217,11 +190,9 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		if len(rackRoles.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Rack Roles Found",
@@ -230,7 +201,6 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		rackRole = &rackRoles.GetResults()[0]
@@ -242,7 +212,6 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		rackRoleName := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading rack role by name", map[string]interface{}{
-
 			"name": rackRoleName,
 		})
 
@@ -255,7 +224,6 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading rack role",
@@ -264,11 +232,9 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		if len(rackRoles.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Rack Role Not Found",
@@ -277,11 +243,9 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		if len(rackRoles.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Rack Roles Found",
@@ -290,7 +254,6 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		rackRole = &rackRoles.GetResults()[0]
@@ -305,11 +268,9 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading rack role",
@@ -318,11 +279,9 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		)
 
 		return
-
 	}
 
 	if httpResp.StatusCode == 404 {
-
 		resp.Diagnostics.AddError(
 
 			"Rack Role Not Found",
@@ -331,11 +290,9 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		)
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading rack role",
@@ -344,7 +301,6 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		)
 
 		return
-
 	}
 
 	// Update the model with the response from the API
@@ -358,31 +314,22 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 	// Handle color
 
 	if rackRole.HasColor() && rackRole.GetColor() != "" {
-
 		data.Color = types.StringValue(rackRole.GetColor())
-
 	} else {
-
 		data.Color = types.StringNull()
-
 	}
 
 	// Handle description
 
 	if rackRole.HasDescription() && rackRole.GetDescription() != "" {
-
 		data.Description = types.StringValue(rackRole.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if rackRole.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(rackRole.GetTags())
 
 		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -390,23 +337,17 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if rackRole.HasCustomFields() {
-
 		// For data sources, we extract all available custom fields
 
 		customFields := utils.MapToCustomFieldModels(rackRole.GetCustomFields(), nil)
@@ -416,21 +357,15 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

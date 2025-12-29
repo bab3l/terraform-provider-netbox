@@ -27,9 +27,7 @@ var (
 // NewVirtualChassisDataSource returns a new data source implementing the VirtualChassis data source.
 
 func NewVirtualChassisDataSource() datasource.DataSource {
-
 	return &VirtualChassisDataSource{}
-
 }
 
 // VirtualChassisDataSource defines the data source implementation.
@@ -65,23 +63,17 @@ type VirtualChassisDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *VirtualChassisDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_virtual_chassis"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *VirtualChassisDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a virtual chassis in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the virtual chassis. Use this to look up by ID.",
 
 				Optional: true,
@@ -90,7 +82,6 @@ func (d *VirtualChassisDataSource) Schema(ctx context.Context, req datasource.Sc
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the virtual chassis. Use this to look up by name.",
 
 				Optional: true,
@@ -99,41 +90,35 @@ func (d *VirtualChassisDataSource) Schema(ctx context.Context, req datasource.Sc
 			},
 
 			"domain": schema.StringAttribute{
-
 				MarkdownDescription: "The domain for this virtual chassis.",
 
 				Computed: true,
 			},
 
 			"master": schema.StringAttribute{
-
 				MarkdownDescription: "ID of the master device for this virtual chassis.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the virtual chassis.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Additional comments or notes about this virtual chassis.",
 
 				Computed: true,
 			},
 
 			"member_count": schema.Int64Attribute{
-
 				MarkdownDescription: "Number of member devices in this virtual chassis.",
 
 				Computed: true,
 			},
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "Display name of the virtual chassis.",
 
 				Computed: true,
@@ -143,23 +128,18 @@ func (d *VirtualChassisDataSource) Schema(ctx context.Context, req datasource.Sc
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *VirtualChassisDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -168,25 +148,20 @@ func (d *VirtualChassisDataSource) Configure(ctx context.Context, req datasource
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the data source data.
 
 func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data VirtualChassisDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var vc *netbox.VirtualChassis
@@ -194,13 +169,11 @@ func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.Read
 	// Look up by ID or name
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		vcID, err := utils.ParseID(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Virtual Chassis ID",
@@ -209,11 +182,9 @@ func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.Read
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading virtual chassis by ID", map[string]interface{}{
-
 			"id": vcID,
 		})
 
@@ -222,7 +193,6 @@ func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.Read
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading virtual chassis",
@@ -231,7 +201,6 @@ func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.Read
 			)
 
 			return
-
 		}
 
 		vc = v
@@ -241,7 +210,6 @@ func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.Read
 		// Look up by name
 
 		tflog.Debug(ctx, "Reading virtual chassis by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -250,7 +218,6 @@ func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.Read
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading virtual chassis",
@@ -259,11 +226,9 @@ func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.Read
 			)
 
 			return
-
 		}
 
 		if listResp.GetCount() == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Virtual chassis not found",
@@ -272,11 +237,9 @@ func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.Read
 			)
 
 			return
-
 		}
 
 		if listResp.GetCount() > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple virtual chassis found",
@@ -285,7 +248,6 @@ func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.Read
 			)
 
 			return
-
 		}
 
 		vc = &listResp.GetResults()[0]
@@ -300,7 +262,6 @@ func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.Read
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -308,19 +269,15 @@ func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.Read
 	d.mapResponseToModel(ctx, vc, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *VirtualChassisDataSource) mapResponseToModel(ctx context.Context, vc *netbox.VirtualChassis, data *VirtualChassisDataSourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", vc.GetId()))
 
 	data.Name = types.StringValue(vc.GetName())
@@ -328,61 +285,41 @@ func (d *VirtualChassisDataSource) mapResponseToModel(ctx context.Context, vc *n
 	// Map domain
 
 	if domain, ok := vc.GetDomainOk(); ok && domain != nil && *domain != "" {
-
 		data.Domain = types.StringValue(*domain)
-
 	} else {
-
 		data.Domain = types.StringNull()
-
 	}
 
 	// Map master
 
 	if vc.Master.IsSet() && vc.Master.Get() != nil {
-
 		data.Master = types.StringValue(vc.Master.Get().GetName())
-
 	} else {
-
 		data.Master = types.StringNull()
-
 	}
 
 	// Map description
 
 	if desc, ok := vc.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map comments
 
 	if comments, ok := vc.GetCommentsOk(); ok && comments != nil && *comments != "" {
-
 		data.Comments = types.StringValue(*comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Handle display_name
 
 	if vc.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(vc.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Map member_count
@@ -392,7 +329,6 @@ func (d *VirtualChassisDataSource) mapResponseToModel(ctx context.Context, vc *n
 	// Handle tags
 
 	if vc.HasTags() && len(vc.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(vc.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -400,23 +336,17 @@ func (d *VirtualChassisDataSource) mapResponseToModel(ctx context.Context, vc *n
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if vc.HasCustomFields() {
-
 		apiCustomFields := vc.GetCustomFields()
 
 		customFields := utils.MapToCustomFieldModels(apiCustomFields, nil)
@@ -426,17 +356,11 @@ func (d *VirtualChassisDataSource) mapResponseToModel(ctx context.Context, vc *n
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

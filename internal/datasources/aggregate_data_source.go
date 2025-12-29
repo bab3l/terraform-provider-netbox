@@ -26,9 +26,7 @@ var (
 // NewAggregateDataSource returns a new Aggregate data source.
 
 func NewAggregateDataSource() datasource.DataSource {
-
 	return &AggregateDataSource{}
-
 }
 
 // AggregateDataSource defines the data source implementation.
@@ -66,23 +64,17 @@ type AggregateDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *AggregateDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_aggregate"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *AggregateDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to retrieve information about an aggregate in Netbox. You can identify the aggregate using `id` or `prefix`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the aggregate. Use this to look up an aggregate by ID.",
 
 				Optional: true,
@@ -91,7 +83,6 @@ func (d *AggregateDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"prefix": schema.StringAttribute{
-
 				MarkdownDescription: "The IP prefix in CIDR notation. Use this to look up an aggregate by prefix.",
 
 				Optional: true,
@@ -100,49 +91,42 @@ func (d *AggregateDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"rir": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the Regional Internet Registry (RIR) this aggregate belongs to.",
 
 				Computed: true,
 			},
 
 			"rir_name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the Regional Internet Registry (RIR) this aggregate belongs to.",
 
 				Computed: true,
 			},
 
 			"tenant": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the tenant this aggregate is assigned to.",
 
 				Computed: true,
 			},
 
 			"tenant_name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the tenant this aggregate is assigned to.",
 
 				Computed: true,
 			},
 
 			"date_added": schema.StringAttribute{
-
 				MarkdownDescription: "The date this aggregate was added (YYYY-MM-DD format).",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the aggregate.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Additional comments about the aggregate.",
 
 				Computed: true,
@@ -151,7 +135,6 @@ func (d *AggregateDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"display_name": nbschema.DSComputedStringAttribute("The display name of the aggregate."),
 
 			"tags": schema.ListAttribute{
-
 				MarkdownDescription: "Tags assigned to this aggregate.",
 
 				Computed: true,
@@ -160,25 +143,20 @@ func (d *AggregateDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 		},
 	}
-
 }
 
 // Configure sets the client for the data source.
 
 func (d *AggregateDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	// Prevent panic if the provider has not been configured.
 
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -187,17 +165,14 @@ func (d *AggregateDataSource) Configure(ctx context.Context, req datasource.Conf
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read reads the aggregate data source.
 
 func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data AggregateDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -205,9 +180,7 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var aggregate *netbox.Aggregate
@@ -215,13 +188,11 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 	// Look up by ID if provided
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		id, err := utils.ParseID(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid ID",
@@ -230,11 +201,9 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Looking up aggregate by ID", map[string]interface{}{
-
 			"id": id,
 		})
 
@@ -243,7 +212,6 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading aggregate",
@@ -252,7 +220,6 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		aggregate = result
@@ -264,7 +231,6 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 		prefix := data.Prefix.ValueString()
 
 		tflog.Debug(ctx, "Looking up aggregate by prefix", map[string]interface{}{
-
 			"prefix": prefix,
 		})
 
@@ -273,7 +239,6 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading aggregate",
@@ -282,11 +247,9 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		if len(list.Results) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Aggregate not found",
@@ -295,11 +258,9 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		if len(list.Results) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple aggregates found",
@@ -308,7 +269,6 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		aggregate = &list.Results[0]
@@ -323,7 +283,6 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -331,7 +290,6 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 	d.mapResponseToModel(ctx, aggregate, &data)
 
 	tflog.Debug(ctx, "Read aggregate", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"prefix": data.Prefix.ValueString(),
@@ -340,13 +298,11 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *AggregateDataSource) mapResponseToModel(ctx context.Context, aggregate *netbox.Aggregate, data *AggregateDataSourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", aggregate.GetId()))
 
 	data.Prefix = types.StringValue(aggregate.GetPrefix())
@@ -354,83 +310,59 @@ func (d *AggregateDataSource) mapResponseToModel(ctx context.Context, aggregate 
 	// Map RIR
 
 	if rir := aggregate.GetRir(); rir.Id != 0 {
-
 		data.RIR = types.StringValue(fmt.Sprintf("%d", rir.Id))
 
 		data.RIRName = types.StringValue(rir.GetName())
-
 	}
 
 	// Map tenant
 
 	if tenant, ok := aggregate.GetTenantOk(); ok && tenant != nil && tenant.Id != 0 {
-
 		data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 
 		data.TenantName = types.StringValue(tenant.GetName())
-
 	} else {
-
 		data.Tenant = types.StringNull()
 
 		data.TenantName = types.StringNull()
-
 	}
 
 	// Map date_added
 
 	if dateAdded := aggregate.GetDateAdded(); dateAdded != "" {
-
 		data.DateAdded = types.StringValue(dateAdded)
-
 	} else {
-
 		data.DateAdded = types.StringNull()
-
 	}
 
 	// Map description
 
 	if description, ok := aggregate.GetDescriptionOk(); ok && description != nil {
-
 		data.Description = types.StringValue(*description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map comments
 
 	if comments, ok := aggregate.GetCommentsOk(); ok && comments != nil {
-
 		data.Comments = types.StringValue(*comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Map tags
 
 	if tags := aggregate.GetTags(); len(tags) > 0 {
-
 		tagNames := make([]string, len(tags))
 
 		for i, tag := range tags {
-
 			tagNames[i] = tag.Name
-
 		}
 
 		data.Tags, _ = types.ListValueFrom(ctx, types.StringType, tagNames)
-
 	} else {
-
 		data.Tags = types.ListNull(types.StringType)
-
 	}
 
 	// Map display name
@@ -440,5 +372,4 @@ func (d *AggregateDataSource) mapResponseToModel(ctx context.Context, aggregate 
 	} else {
 		data.DisplayName = types.StringNull()
 	}
-
 }

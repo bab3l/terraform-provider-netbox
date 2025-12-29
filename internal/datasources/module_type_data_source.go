@@ -21,9 +21,7 @@ var _ datasource.DataSource = &ModuleTypeDataSource{}
 // NewModuleTypeDataSource returns a new data source implementing the module type data source.
 
 func NewModuleTypeDataSource() datasource.DataSource {
-
 	return &ModuleTypeDataSource{}
-
 }
 
 // ModuleTypeDataSource defines the data source implementation.
@@ -61,23 +59,17 @@ type ModuleTypeDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *ModuleTypeDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_module_type"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *ModuleTypeDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a module type in NetBox. Module types define hardware module specifications (model, manufacturer, etc.) that can be instantiated as modules within devices.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the module type.",
 
 				Optional: true,
@@ -86,14 +78,12 @@ func (d *ModuleTypeDataSource) Schema(ctx context.Context, req datasource.Schema
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the module type.",
 
 				Computed: true,
 			},
 
 			"model": schema.StringAttribute{
-
 				MarkdownDescription: "The model name/number of the module type. Used for lookup when ID is not provided.",
 
 				Optional: true,
@@ -102,7 +92,6 @@ func (d *ModuleTypeDataSource) Schema(ctx context.Context, req datasource.Schema
 			},
 
 			"manufacturer_id": schema.Int32Attribute{
-
 				MarkdownDescription: "The numeric ID of the manufacturer. Used with model for lookup when ID is not provided.",
 
 				Optional: true,
@@ -111,72 +100,60 @@ func (d *ModuleTypeDataSource) Schema(ctx context.Context, req datasource.Schema
 			},
 
 			"manufacturer": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the manufacturer.",
 
 				Computed: true,
 			},
 
 			"part_number": schema.StringAttribute{
-
 				MarkdownDescription: "Discrete part number (optional).",
 
 				Computed: true,
 			},
 
 			"airflow": schema.StringAttribute{
-
 				MarkdownDescription: "Airflow direction.",
 
 				Computed: true,
 			},
 
 			"weight": schema.Float64Attribute{
-
 				MarkdownDescription: "Weight of the module.",
 
 				Computed: true,
 			},
 
 			"weight_unit": schema.StringAttribute{
-
 				MarkdownDescription: "Unit for weight measurement.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the module type.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Additional comments or notes.",
 
 				Computed: true,
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *ModuleTypeDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -185,31 +162,25 @@ func (d *ModuleTypeDataSource) Configure(ctx context.Context, req datasource.Con
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves the data source data.
 
 func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ModuleTypeDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var moduleType *netbox.ModuleType
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		// Lookup by ID
@@ -217,7 +188,6 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		typeID := data.ID.ValueInt32()
 
 		tflog.Debug(ctx, "Reading module type by ID", map[string]interface{}{
-
 			"id": typeID,
 		})
 
@@ -226,7 +196,6 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading module type",
@@ -235,7 +204,6 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		moduleType = response
@@ -247,16 +215,13 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		model := data.Model.ValueString()
 
 		tflog.Debug(ctx, "Reading module type by model", map[string]interface{}{
-
 			"model": model,
 		})
 
 		listReq := d.client.DcimAPI.DcimModuleTypesList(ctx).Model([]string{model})
 
 		if !data.ManufacturerID.IsNull() && !data.ManufacturerID.IsUnknown() {
-
 			listReq = listReq.ManufacturerId([]int32{data.ManufacturerID.ValueInt32()})
-
 		}
 
 		response, httpResp, err := listReq.Execute()
@@ -264,7 +229,6 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading module type",
@@ -273,13 +237,11 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		count := int(response.GetCount())
 
 		if count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Module Type Not Found",
@@ -288,11 +250,9 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		if count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Module Types Found",
@@ -301,7 +261,6 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 
 			return
-
 		}
 
 		moduleType = &response.GetResults()[0]
@@ -316,7 +275,6 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -324,25 +282,19 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	d.mapResponseToModel(moduleType, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *ModuleTypeDataSource) mapResponseToModel(moduleType *netbox.ModuleType, data *ModuleTypeDataSourceModel) {
-
 	data.ID = types.Int32Value(moduleType.GetId())
 
 	// Display Name
 
 	if moduleType.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(moduleType.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	data.Model = types.StringValue(moduleType.GetModel())
@@ -350,83 +302,56 @@ func (d *ModuleTypeDataSource) mapResponseToModel(moduleType *netbox.ModuleType,
 	// Map manufacturer
 
 	if mfr := moduleType.GetManufacturer(); mfr.Id != 0 {
-
 		data.ManufacturerID = types.Int32Value(mfr.GetId())
 
 		data.Manufacturer = types.StringValue(mfr.GetName())
-
 	}
 
 	// Map part_number
 
 	if partNum, ok := moduleType.GetPartNumberOk(); ok && partNum != nil && *partNum != "" {
-
 		data.PartNumber = types.StringValue(*partNum)
-
 	} else {
-
 		data.PartNumber = types.StringNull()
-
 	}
 
 	// Map airflow
 
 	if moduleType.Airflow.IsSet() && moduleType.Airflow.Get() != nil {
-
 		data.Airflow = types.StringValue(string(moduleType.Airflow.Get().GetValue()))
-
 	} else {
-
 		data.Airflow = types.StringNull()
-
 	}
 
 	// Map weight
 
 	if moduleType.Weight.IsSet() && moduleType.Weight.Get() != nil {
-
 		data.Weight = types.Float64Value(*moduleType.Weight.Get())
-
 	} else {
-
 		data.Weight = types.Float64Null()
-
 	}
 
 	// Map weight_unit
 
 	if moduleType.WeightUnit.IsSet() && moduleType.WeightUnit.Get() != nil {
-
 		data.WeightUnit = types.StringValue(string(moduleType.WeightUnit.Get().GetValue()))
-
 	} else {
-
 		data.WeightUnit = types.StringNull()
-
 	}
 
 	// Map description
 
 	if desc, ok := moduleType.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map comments
 
 	if comments, ok := moduleType.GetCommentsOk(); ok && comments != nil && *comments != "" {
-
 		data.Comments = types.StringValue(*comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
-
 }

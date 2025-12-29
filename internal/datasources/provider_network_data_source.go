@@ -27,9 +27,7 @@ var (
 // NewProviderNetworkDataSource returns a new data source implementing the ProviderNetwork data source.
 
 func NewProviderNetworkDataSource() datasource.DataSource {
-
 	return &ProviderNetworkDataSource{}
-
 }
 
 // ProviderNetworkDataSource defines the data source implementation.
@@ -63,23 +61,17 @@ type ProviderNetworkDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *ProviderNetworkDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_provider_network"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *ProviderNetworkDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a provider network in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the provider network. Use this to look up by ID.",
 
 				Optional: true,
@@ -88,7 +80,6 @@ func (d *ProviderNetworkDataSource) Schema(ctx context.Context, req datasource.S
 			},
 
 			"circuit_provider": schema.StringAttribute{
-
 				MarkdownDescription: "The circuit provider that owns this network. Can be used with name to filter.",
 
 				Optional: true,
@@ -97,7 +88,6 @@ func (d *ProviderNetworkDataSource) Schema(ctx context.Context, req datasource.S
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the provider network. Use this to look up by name.",
 
 				Optional: true,
@@ -106,21 +96,18 @@ func (d *ProviderNetworkDataSource) Schema(ctx context.Context, req datasource.S
 			},
 
 			"service_id": schema.StringAttribute{
-
 				MarkdownDescription: "A unique identifier for this network provided by the circuit provider.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the provider network.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Additional comments or notes about this provider network.",
 
 				Computed: true,
@@ -133,23 +120,18 @@ func (d *ProviderNetworkDataSource) Schema(ctx context.Context, req datasource.S
 			"display_name": nbschema.DSComputedStringAttribute("The display name of the provider network."),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *ProviderNetworkDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -158,25 +140,20 @@ func (d *ProviderNetworkDataSource) Configure(ctx context.Context, req datasourc
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the data source data.
 
 func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ProviderNetworkDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var pn *netbox.ProviderNetwork
@@ -184,13 +161,11 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 	// Look up by ID if provided
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		pnID, err := utils.ParseID(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Provider Network ID",
@@ -199,11 +174,9 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading provider network by ID", map[string]interface{}{
-
 			"id": pnID,
 		})
 
@@ -212,7 +185,6 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading provider network",
@@ -221,7 +193,6 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 			)
 
 			return
-
 		}
 
 		pn = p
@@ -231,7 +202,6 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 		// Look up by name
 
 		tflog.Debug(ctx, "Reading provider network by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -240,9 +210,7 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 		// Optionally filter by provider as well
 
 		if !data.CircuitProvider.IsNull() && !data.CircuitProvider.IsUnknown() {
-
 			listReq = listReq.Provider([]string{data.CircuitProvider.ValueString()})
-
 		}
 
 		listResp, httpResp, err := listReq.Execute()
@@ -250,7 +218,6 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading provider network",
@@ -259,11 +226,9 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 			)
 
 			return
-
 		}
 
 		if listResp.GetCount() == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Provider network not found",
@@ -272,11 +237,9 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 			)
 
 			return
-
 		}
 
 		if listResp.GetCount() > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple provider networks found",
@@ -285,7 +248,6 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 			)
 
 			return
-
 		}
 
 		pn = &listResp.GetResults()[0]
@@ -300,7 +262,6 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -308,19 +269,15 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 	d.mapResponseToModel(ctx, pn, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *ProviderNetworkDataSource) mapResponseToModel(ctx context.Context, pn *netbox.ProviderNetwork, data *ProviderNetworkDataSourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", pn.GetId()))
 
 	data.Name = types.StringValue(pn.GetName())
@@ -332,43 +289,30 @@ func (d *ProviderNetworkDataSource) mapResponseToModel(ctx context.Context, pn *
 	// Map service_id
 
 	if serviceID, ok := pn.GetServiceIdOk(); ok && serviceID != nil && *serviceID != "" {
-
 		data.ServiceID = types.StringValue(*serviceID)
-
 	} else {
-
 		data.ServiceID = types.StringNull()
-
 	}
 
 	// Map description
 
 	if desc, ok := pn.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map comments
 
 	if comments, ok := pn.GetCommentsOk(); ok && comments != nil && *comments != "" {
-
 		data.Comments = types.StringValue(*comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if pn.HasTags() && len(pn.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(pn.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -376,23 +320,17 @@ func (d *ProviderNetworkDataSource) mapResponseToModel(ctx context.Context, pn *
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if pn.HasCustomFields() {
-
 		apiCustomFields := pn.GetCustomFields()
 
 		customFields := utils.MapToCustomFieldModels(apiCustomFields, nil)
@@ -402,29 +340,19 @@ func (d *ProviderNetworkDataSource) mapResponseToModel(ctx context.Context, pn *
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Map display_name
 
 	if pn.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(pn.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
-
 }

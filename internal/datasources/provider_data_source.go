@@ -23,9 +23,7 @@ var _ datasource.DataSource = &ProviderDataSource{}
 // NewProviderDataSource returns a new Provider data source (circuit provider, not Terraform provider).
 
 func NewProviderDataSource() datasource.DataSource {
-
 	return &ProviderDataSource{}
-
 }
 
 // ProviderDataSource defines the data source implementation for circuit providers.
@@ -57,21 +55,16 @@ type ProviderDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *ProviderDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_provider"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *ProviderDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a circuit provider in Netbox. Providers represent the organizations (ISPs, carriers, etc.) that provide circuit connectivity services.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("circuit provider"),
 
 			"name": nbschema.DSNameAttribute("circuit provider"),
@@ -89,23 +82,18 @@ func (d *ProviderDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 			"display_name": nbschema.DSComputedStringAttribute("The display name of the circuit provider."),
 		},
 	}
-
 }
 
 // Configure sets up the data source with the provider client.
 
 func (d *ProviderDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -114,25 +102,20 @@ func (d *ProviderDataSource) Configure(ctx context.Context, req datasource.Confi
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read reads the data source.
 
 func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ProviderDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var provider *netbox.Provider
@@ -144,7 +127,6 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 	// Determine if we're searching by ID, slug, or name
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		// Search by ID
@@ -152,14 +134,12 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 		providerID := data.ID.ValueString()
 
 		tflog.Debug(ctx, "Reading circuit provider by ID", map[string]interface{}{
-
 			"id": providerID,
 		})
 
 		var providerIDInt int32
 
 		if _, parseErr := fmt.Sscanf(providerID, "%d", &providerIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Provider ID",
@@ -168,7 +148,6 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		provider, httpResp, err = d.client.CircuitsAPI.CircuitsProvidersRetrieve(ctx, providerIDInt).Execute()
@@ -182,7 +161,6 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 		providerSlug := data.Slug.ValueString()
 
 		tflog.Debug(ctx, "Reading circuit provider by slug", map[string]interface{}{
-
 			"slug": providerSlug,
 		})
 
@@ -193,7 +171,6 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading circuit provider",
@@ -202,11 +179,9 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		if len(providers.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Provider Not Found",
@@ -215,7 +190,6 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		provider = &providers.GetResults()[0]
@@ -227,7 +201,6 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 		providerName := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading circuit provider by name", map[string]interface{}{
-
 			"name": providerName,
 		})
 
@@ -238,7 +211,6 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading circuit provider",
@@ -247,11 +219,9 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		if len(providers.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Provider Not Found",
@@ -260,7 +230,6 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 
 			return
-
 		}
 
 		provider = &providers.GetResults()[0]
@@ -275,11 +244,9 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading circuit provider",
@@ -288,7 +255,6 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 		)
 
 		return
-
 	}
 
 	// Map the provider to state
@@ -302,31 +268,22 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 	// Handle description
 
 	if provider.HasDescription() && provider.GetDescription() != "" {
-
 		data.Description = types.StringValue(provider.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle comments
 
 	if provider.HasComments() && provider.GetComments() != "" {
-
 		data.Comments = types.StringValue(provider.GetComments())
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if provider.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(provider.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -334,23 +291,17 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 		resp.Diagnostics.Append(tagDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if provider.HasCustomFields() {
-
 		customFields := utils.MapToCustomFieldModels(provider.GetCustomFields(), nil)
 
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
@@ -358,38 +309,27 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 		resp.Diagnostics.Append(cfDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Map display_name
 
 	if provider.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(provider.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	tflog.Debug(ctx, "Read circuit provider", map[string]interface{}{
-
 		"id": provider.GetId(),
 
 		"name": provider.GetName(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

@@ -26,9 +26,7 @@ var (
 // NewWirelessLANGroupDataSource returns a new data source implementing the wireless LAN group data source.
 
 func NewWirelessLANGroupDataSource() datasource.DataSource {
-
 	return &WirelessLANGroupDataSource{}
-
 }
 
 // WirelessLANGroupDataSource defines the data source implementation.
@@ -60,25 +58,19 @@ type WirelessLANGroupDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *WirelessLANGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_wireless_lan_group"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *WirelessLANGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about a wireless LAN group in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			// Filter attributes
 
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the wireless LAN group. Use this to filter by ID.",
 
 				Optional: true,
@@ -87,7 +79,6 @@ func (d *WirelessLANGroupDataSource) Schema(ctx context.Context, req datasource.
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the wireless LAN group. Use this to filter by name.",
 
 				Optional: true,
@@ -96,7 +87,6 @@ func (d *WirelessLANGroupDataSource) Schema(ctx context.Context, req datasource.
 			},
 
 			"slug": schema.StringAttribute{
-
 				MarkdownDescription: "The slug of the wireless LAN group. Use this to filter by slug.",
 
 				Optional: true,
@@ -107,35 +97,30 @@ func (d *WirelessLANGroupDataSource) Schema(ctx context.Context, req datasource.
 			// Computed attributes
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the wireless LAN group.",
 
 				Computed: true,
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "Display name for the wireless LAN group.",
 
 				Computed: true,
 			},
 
 			"parent_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the parent wireless LAN group.",
 
 				Computed: true,
 			},
 
 			"parent_name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the parent wireless LAN group.",
 
 				Computed: true,
 			},
 
 			"tags": schema.SetAttribute{
-
 				MarkdownDescription: "Tags associated with this wireless LAN group.",
 
 				Computed: true,
@@ -144,23 +129,18 @@ func (d *WirelessLANGroupDataSource) Schema(ctx context.Context, req datasource.
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *WirelessLANGroupDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -169,25 +149,20 @@ func (d *WirelessLANGroupDataSource) Configure(ctx context.Context, req datasour
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the data source data.
 
 func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data WirelessLANGroupDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var group *netbox.WirelessLANGroup
@@ -195,11 +170,9 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 	// If ID is provided, look up directly
 
 	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-
 		groupID, err := utils.ParseID(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Wireless LAN Group ID",
@@ -208,11 +181,9 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Looking up wireless LAN group by ID", map[string]interface{}{
-
 			"id": groupID,
 		})
 
@@ -229,7 +200,6 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 		}
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading wireless LAN group",
@@ -238,17 +208,13 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 			)
 
 			return
-
 		}
 
 		group = response
-
 	} else {
-
 		// Search by filters
 
 		tflog.Debug(ctx, "Searching for wireless LAN group", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 
 			"slug": data.Slug.ValueString(),
@@ -257,15 +223,11 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 		listReq := d.client.WirelessAPI.WirelessWirelessLanGroupsList(ctx)
 
 		if !data.Name.IsNull() && !data.Name.IsUnknown() {
-
 			listReq = listReq.Name([]string{data.Name.ValueString()})
-
 		}
 
 		if !data.Slug.IsNull() && !data.Slug.IsUnknown() {
-
 			listReq = listReq.Slug([]string{data.Slug.ValueString()})
-
 		}
 
 		response, httpResp, err := listReq.Execute()
@@ -273,7 +235,6 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading wireless LAN groups",
@@ -282,11 +243,9 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 			)
 
 			return
-
 		}
 
 		if response.GetCount() == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"No wireless LAN group found",
@@ -295,11 +254,9 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 			)
 
 			return
-
 		}
 
 		if response.GetCount() > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple wireless LAN groups found",
@@ -308,11 +265,9 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 			)
 
 			return
-
 		}
 
 		group = &response.GetResults()[0]
-
 	}
 
 	// Map response to model
@@ -326,55 +281,40 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 	// Map description
 
 	if desc, ok := group.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map display name
 
 	if displayName := group.GetDisplay(); displayName != "" {
-
 		data.DisplayName = types.StringValue(displayName)
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Map parent
 
 	if group.Parent.IsSet() && group.Parent.Get() != nil {
-
 		parent := group.Parent.Get()
 
 		data.ParentID = types.Int64Value(int64(parent.GetId()))
 
 		data.ParentName = types.StringValue(parent.GetName())
-
 	} else {
-
 		data.ParentID = types.Int64Null()
 
 		data.ParentName = types.StringNull()
-
 	}
 
 	// Handle tags (simplified - just names)
 
 	if group.HasTags() && len(group.GetTags()) > 0 {
-
 		tagNames := make([]string, 0, len(group.GetTags()))
 
 		for _, tag := range group.GetTags() {
-
 			tagNames = append(tagNames, tag.GetName())
-
 		}
 
 		tagsValue, diags := types.SetValueFrom(ctx, types.StringType, tagNames)
@@ -382,19 +322,13 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(types.StringType)
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

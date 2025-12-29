@@ -25,9 +25,7 @@ var (
 // NewIPSecPolicyDataSource returns a new IPSecPolicy data source.
 
 func NewIPSecPolicyDataSource() datasource.DataSource {
-
 	return &IPSecPolicyDataSource{}
-
 }
 
 // IPSecPolicyDataSource defines the data source implementation.
@@ -59,23 +57,17 @@ type IPSecPolicyDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *IPSecPolicyDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_ipsec_policy"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *IPSecPolicyDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about an IPSec Policy in Netbox. IPSec policies group together IPSec proposals and define the PFS (Perfect Forward Secrecy) group for VPN connections.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the IPSec policy. Either `id` or `name` must be specified.",
 
 				Optional: true,
@@ -84,7 +76,6 @@ func (d *IPSecPolicyDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the IPSec policy. Either `id` or `name` must be specified.",
 
 				Optional: true,
@@ -93,21 +84,18 @@ func (d *IPSecPolicyDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the IPSec policy.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "The description of the IPSec policy.",
 
 				Computed: true,
 			},
 
 			"proposals": schema.ListAttribute{
-
 				MarkdownDescription: "The list of IPSec proposal IDs associated with this policy.",
 
 				Computed: true,
@@ -116,21 +104,18 @@ func (d *IPSecPolicyDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"pfs_group": schema.Int64Attribute{
-
 				MarkdownDescription: "The Diffie-Hellman group for Perfect Forward Secrecy.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Comments about the IPSec policy.",
 
 				Computed: true,
 			},
 
 			"tags": schema.ListAttribute{
-
 				MarkdownDescription: "The tags assigned to this IPSec policy.",
 
 				Computed: true,
@@ -139,23 +124,18 @@ func (d *IPSecPolicyDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *IPSecPolicyDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -164,17 +144,14 @@ func (d *IPSecPolicyDataSource) Configure(ctx context.Context, req datasource.Co
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data IPSecPolicyDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -182,9 +159,7 @@ func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadReq
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var ipsec *netbox.IPSecPolicy
@@ -192,13 +167,11 @@ func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Check if we're looking up by ID
 
 	switch {
-
 	case utils.IsSet(data.ID):
 
 		id, err := utils.ParseID(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid ID",
@@ -207,11 +180,9 @@ func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading IPSecPolicy by ID", map[string]interface{}{
-
 			"id": id,
 		})
 
@@ -220,7 +191,6 @@ func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading IPSecPolicy",
@@ -229,7 +199,6 @@ func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		ipsec = result
@@ -239,7 +208,6 @@ func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadReq
 		// Looking up by name
 
 		tflog.Debug(ctx, "Reading IPSecPolicy by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -252,7 +220,6 @@ func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error listing IPSecPolicies",
@@ -261,11 +228,9 @@ func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if results.Count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"IPSecPolicy not found",
@@ -274,11 +239,9 @@ func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if results.Count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple IPSecPolicies found",
@@ -287,7 +250,6 @@ func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		ipsec = &results.Results[0]
@@ -302,7 +264,6 @@ func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	// Map the result to state
@@ -312,13 +273,11 @@ func (d *IPSecPolicyDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapIPSecPolicyToState maps an IPSecPolicy API response to the Terraform state model.
 
 func (d *IPSecPolicyDataSource) mapIPSecPolicyToState(ipsec *netbox.IPSecPolicy, data *IPSecPolicyDataSourceModel) {
-
 	// ID
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipsec.Id))
@@ -326,13 +285,9 @@ func (d *IPSecPolicyDataSource) mapIPSecPolicyToState(ipsec *netbox.IPSecPolicy,
 	// Display Name
 
 	if ipsec.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(ipsec.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Name
@@ -342,81 +297,56 @@ func (d *IPSecPolicyDataSource) mapIPSecPolicyToState(ipsec *netbox.IPSecPolicy,
 	// Description
 
 	if ipsec.Description != nil && *ipsec.Description != "" {
-
 		data.Description = types.StringValue(*ipsec.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Proposals
 
 	if len(ipsec.Proposals) > 0 {
-
 		proposalIDs := make([]int64, len(ipsec.Proposals))
 
 		for i, proposal := range ipsec.Proposals {
-
 			proposalIDs[i] = int64(proposal.Id)
-
 		}
 
 		proposalsValue, _ := types.ListValueFrom(context.Background(), types.Int64Type, proposalIDs)
 
 		data.Proposals = proposalsValue
-
 	} else {
-
 		data.Proposals = types.ListNull(types.Int64Type)
-
 	}
 
 	// PFS Group
 
 	if ipsec.PfsGroup != nil && ipsec.PfsGroup.Value != nil {
-
 		data.PFSGroup = types.Int64Value(int64(*ipsec.PfsGroup.Value))
-
 	} else {
-
 		data.PFSGroup = types.Int64Null()
-
 	}
 
 	// Comments
 
 	if ipsec.Comments != nil && *ipsec.Comments != "" {
-
 		data.Comments = types.StringValue(*ipsec.Comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 
 	// Tags
 
 	if len(ipsec.Tags) > 0 {
-
 		tags := make([]string, len(ipsec.Tags))
 
 		for i, tag := range ipsec.Tags {
-
 			tags[i] = tag.Name
-
 		}
 
 		tagsValue, _ := types.ListValueFrom(context.Background(), types.StringType, tags)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.ListNull(types.StringType)
-
 	}
-
 }

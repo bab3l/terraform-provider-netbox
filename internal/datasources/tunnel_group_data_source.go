@@ -1,9 +1,7 @@
 // Package datasources contains Terraform data source implementations for the Netbox provider.
-
 //
 
 // This package integrates with the go-netbox OpenAPI client to provide
-
 // read-only access to Netbox resources via Terraform data sources.
 
 package datasources
@@ -27,9 +25,7 @@ import (
 var _ datasource.DataSource = &TunnelGroupDataSource{}
 
 func NewTunnelGroupDataSource() datasource.DataSource {
-
 	return &TunnelGroupDataSource{}
-
 }
 
 // TunnelGroupDataSource defines the data source implementation.
@@ -57,19 +53,14 @@ type TunnelGroupDataSourceModel struct {
 }
 
 func (d *TunnelGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_tunnel_group"
-
 }
 
 func (d *TunnelGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a tunnel group in Netbox. Tunnel groups are used to organize VPN tunnels. You can identify the tunnel group using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("tunnel group"),
 
 			"name": nbschema.DSNameAttribute("tunnel group"),
@@ -85,23 +76,18 @@ func (d *TunnelGroupDataSource) Schema(ctx context.Context, req datasource.Schem
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 func (d *TunnelGroupDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	// Prevent panic if the provider has not been configured.
 
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -110,15 +96,12 @@ func (d *TunnelGroupDataSource) Configure(ctx context.Context, req datasource.Co
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data TunnelGroupDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -126,9 +109,7 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var tunnelGroup *netbox.TunnelGroup
@@ -140,7 +121,6 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Determine if we're searching by ID, slug, or name
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		// Search by ID
@@ -148,7 +128,6 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		tunnelGroupID := data.ID.ValueString()
 
 		tflog.Debug(ctx, "Reading tunnel group by ID", map[string]interface{}{
-
 			"id": tunnelGroupID,
 		})
 
@@ -157,7 +136,6 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		var tunnelGroupIDInt int32
 
 		if _, parseErr := fmt.Sscanf(tunnelGroupID, "%d", &tunnelGroupIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Tunnel Group ID",
@@ -166,7 +144,6 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		// Retrieve the tunnel group via API
@@ -182,7 +159,6 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		tunnelGroupSlug := data.Slug.ValueString()
 
 		tflog.Debug(ctx, "Reading tunnel group by slug", map[string]interface{}{
-
 			"slug": tunnelGroupSlug,
 		})
 
@@ -195,7 +171,6 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading tunnel group",
@@ -204,11 +179,9 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if len(tunnelGroups.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Tunnel Group Not Found",
@@ -217,11 +190,9 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if len(tunnelGroups.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Tunnel Groups Found",
@@ -230,7 +201,6 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		tunnelGroup = &tunnelGroups.GetResults()[0]
@@ -242,7 +212,6 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		tunnelGroupName := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading tunnel group by name", map[string]interface{}{
-
 			"name": tunnelGroupName,
 		})
 
@@ -255,7 +224,6 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading tunnel group",
@@ -264,11 +232,9 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if len(tunnelGroups.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Tunnel Group Not Found",
@@ -277,11 +243,9 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if len(tunnelGroups.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Tunnel Groups Found",
@@ -290,7 +254,6 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		tunnelGroup = &tunnelGroups.GetResults()[0]
@@ -305,11 +268,9 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading tunnel group",
@@ -318,11 +279,9 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	if httpResp.StatusCode == 404 {
-
 		resp.Diagnostics.AddError(
 
 			"Tunnel Group Not Found",
@@ -331,11 +290,9 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading tunnel group",
@@ -344,7 +301,6 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	// Update the model with the response from the API
@@ -358,31 +314,22 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Handle description
 
 	if tunnelGroup.HasDescription() && tunnelGroup.GetDescription() != "" {
-
 		data.Description = types.StringValue(tunnelGroup.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle display_name
 
 	if tunnelGroup.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(tunnelGroup.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if tunnelGroup.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(tunnelGroup.GetTags())
 
 		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -390,23 +337,17 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if tunnelGroup.HasCustomFields() {
-
 		// For data sources, we extract all available custom fields
 
 		customFields := utils.MapToCustomFieldModels(tunnelGroup.GetCustomFields(), nil)
@@ -416,21 +357,15 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		resp.Diagnostics.Append(diags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

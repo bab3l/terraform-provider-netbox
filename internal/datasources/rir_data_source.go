@@ -25,9 +25,7 @@ var (
 // NewRIRDataSource returns a new RIR data source.
 
 func NewRIRDataSource() datasource.DataSource {
-
 	return &RIRDataSource{}
-
 }
 
 // RIRDataSource defines the data source implementation.
@@ -57,23 +55,17 @@ type RIRDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *RIRDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_rir"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *RIRDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a Regional Internet Registry (RIR) in Netbox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the RIR. Either `id`, `name`, or `slug` must be specified.",
 
 				Optional: true,
@@ -82,7 +74,6 @@ func (d *RIRDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the RIR.",
 
 				Optional: true,
@@ -91,7 +82,6 @@ func (d *RIRDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			},
 
 			"slug": schema.StringAttribute{
-
 				MarkdownDescription: "The slug of the RIR.",
 
 				Optional: true,
@@ -100,21 +90,18 @@ func (d *RIRDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			},
 
 			"is_private": schema.BoolAttribute{
-
 				MarkdownDescription: "Whether IP space managed by this RIR is considered private.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "The description of the RIR.",
 
 				Computed: true,
 			},
 
 			"tags": schema.ListAttribute{
-
 				MarkdownDescription: "The tags assigned to this RIR.",
 
 				Computed: true,
@@ -123,30 +110,24 @@ func (d *RIRDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "The display name of the RIR.",
 
 				Computed: true,
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *RIRDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -155,17 +136,14 @@ func (d *RIRDataSource) Configure(ctx context.Context, req datasource.ConfigureR
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data RIRDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -173,9 +151,7 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var rir *netbox.RIR
@@ -183,7 +159,6 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	// Check if we're looking up by ID, name, or slug
 
 	switch {
-
 	case utils.IsSet(data.ID):
 
 		var idInt int
@@ -191,7 +166,6 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid ID",
@@ -200,22 +174,18 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading RIR by ID", map[string]interface{}{
-
 			"id": idInt,
 		})
 
 		id32, err := utils.SafeInt32(int64(idInt))
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", err))
 
 			return
-
 		}
 
 		result, httpResp, err := d.client.IpamAPI.IpamRirsRetrieve(ctx, id32).Execute()
@@ -223,7 +193,6 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading RIR",
@@ -232,7 +201,6 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 
 			return
-
 		}
 
 		rir = result
@@ -242,7 +210,6 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		// Looking up by name
 
 		tflog.Debug(ctx, "Reading RIR by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -255,7 +222,6 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error listing RIRs",
@@ -264,11 +230,9 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 
 			return
-
 		}
 
 		if results.Count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"RIR not found",
@@ -277,11 +241,9 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 
 			return
-
 		}
 
 		if results.Count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple RIRs found",
@@ -290,7 +252,6 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 
 			return
-
 		}
 
 		rir = &results.Results[0]
@@ -300,7 +261,6 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		// Looking up by slug
 
 		tflog.Debug(ctx, "Reading RIR by slug", map[string]interface{}{
-
 			"slug": data.Slug.ValueString(),
 		})
 
@@ -313,7 +273,6 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error listing RIRs",
@@ -322,11 +281,9 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 
 			return
-
 		}
 
 		if results.Count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"RIR not found",
@@ -335,7 +292,6 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 
 			return
-
 		}
 
 		rir = &results.Results[0]
@@ -350,7 +306,6 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -358,7 +313,6 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	d.mapRIRToDataSourceModel(ctx, rir, &data)
 
 	tflog.Debug(ctx, "Read RIR", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -367,13 +321,11 @@ func (d *RIRDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapRIRToDataSourceModel maps a Netbox RIR to the Terraform data source model.
 
 func (d *RIRDataSource) mapRIRToDataSourceModel(ctx context.Context, rir *netbox.RIR, data *RIRDataSourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", rir.Id))
 
 	data.Name = types.StringValue(rir.Name)
@@ -383,59 +335,40 @@ func (d *RIRDataSource) mapRIRToDataSourceModel(ctx context.Context, rir *netbox
 	// Is Private
 
 	if rir.IsPrivate != nil {
-
 		data.IsPrivate = types.BoolValue(*rir.IsPrivate)
-
 	} else {
-
 		data.IsPrivate = types.BoolValue(false)
-
 	}
 
 	// Description
 
 	if rir.Description != nil && *rir.Description != "" {
-
 		data.Description = types.StringValue(*rir.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Tags - convert to list of strings (tag names)
 
 	if len(rir.Tags) > 0 {
-
 		tagNames := make([]string, len(rir.Tags))
 
 		for i, tag := range rir.Tags {
-
 			tagNames[i] = tag.Name
-
 		}
 
 		tagsList, _ := types.ListValueFrom(ctx, types.StringType, tagNames)
 
 		data.Tags = tagsList
-
 	} else {
-
 		data.Tags = types.ListNull(types.StringType)
-
 	}
 
 	// Map display_name
 
 	if rir.Display != "" {
-
 		data.DisplayName = types.StringValue(rir.Display)
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
-
 }

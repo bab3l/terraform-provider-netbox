@@ -23,9 +23,7 @@ var _ datasource.DataSource = &FHRPGroupAssignmentDataSource{}
 // NewFHRPGroupAssignmentDataSource returns a new data source implementing the FHRP group assignment data source.
 
 func NewFHRPGroupAssignmentDataSource() datasource.DataSource {
-
 	return &FHRPGroupAssignmentDataSource{}
-
 }
 
 // FHRPGroupAssignmentDataSource defines the data source implementation.
@@ -55,21 +53,16 @@ type FHRPGroupAssignmentDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *FHRPGroupAssignmentDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_fhrp_group_assignment"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *FHRPGroupAssignmentDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about an FHRP group assignment in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("FHRP group assignment"),
 
 			"group_id": nbschema.DSComputedStringAttribute("ID of the FHRP group."),
@@ -85,23 +78,18 @@ func (d *FHRPGroupAssignmentDataSource) Schema(ctx context.Context, req datasour
 			"display_name": nbschema.DSComputedStringAttribute("The display name of the FHRP group assignment."),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *FHRPGroupAssignmentDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -110,25 +98,20 @@ func (d *FHRPGroupAssignmentDataSource) Configure(ctx context.Context, req datas
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read reads the FHRP group assignment data.
 
 func (d *FHRPGroupAssignmentDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data FHRPGroupAssignmentDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var assignment *netbox.FHRPGroupAssignment
@@ -142,12 +125,10 @@ func (d *FHRPGroupAssignmentDataSource) Read(ctx context.Context, req datasource
 	// Lookup by ID only - assignments don't have a name
 
 	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-
 		var parseErr error
 		id, parseErr = utils.ParseID(data.ID.ValueString())
 
 		if parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid ID",
@@ -156,20 +137,16 @@ func (d *FHRPGroupAssignmentDataSource) Read(ctx context.Context, req datasource
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading FHRP group assignment by ID", map[string]interface{}{
-
 			"id": id,
 		})
 
 		assignment, httpResp, err = d.client.IpamAPI.IpamFhrpGroupAssignmentsRetrieve(ctx, id).Execute()
 
 		defer utils.CloseResponseBody(httpResp)
-
 	} else {
-
 		resp.Diagnostics.AddError(
 
 			"Missing Identifier",
@@ -178,7 +155,6 @@ func (d *FHRPGroupAssignmentDataSource) Read(ctx context.Context, req datasource
 		)
 
 		return
-
 	}
 
 	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
@@ -190,7 +166,6 @@ func (d *FHRPGroupAssignmentDataSource) Read(ctx context.Context, req datasource
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading FHRP group assignment",
@@ -199,7 +174,6 @@ func (d *FHRPGroupAssignmentDataSource) Read(ctx context.Context, req datasource
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -207,13 +181,11 @@ func (d *FHRPGroupAssignmentDataSource) Read(ctx context.Context, req datasource
 	d.mapResponseToState(ctx, assignment, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToState maps the API response to the Terraform state.
 
 func (d *FHRPGroupAssignmentDataSource) mapResponseToState(ctx context.Context, assignment *netbox.FHRPGroupAssignment, data *FHRPGroupAssignmentDataSourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", assignment.GetId()))
 
 	// Get group info - access Id field directly since GetId() is a pointer receiver method
@@ -225,13 +197,9 @@ func (d *FHRPGroupAssignmentDataSource) mapResponseToState(ctx context.Context, 
 	// BriefFHRPGroup has Display, not Name
 
 	if group.Display != "" {
-
 		data.GroupName = types.StringValue(group.Display)
-
 	} else {
-
 		data.GroupName = types.StringNull()
-
 	}
 
 	data.InterfaceType = types.StringValue(assignment.GetInterfaceType())
@@ -246,5 +214,4 @@ func (d *FHRPGroupAssignmentDataSource) mapResponseToState(ctx context.Context, 
 	} else {
 		data.DisplayName = types.StringNull()
 	}
-
 }

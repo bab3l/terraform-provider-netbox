@@ -21,9 +21,7 @@ import (
 var _ datasource.DataSource = &RegionDataSource{}
 
 func NewRegionDataSource() datasource.DataSource {
-
 	return &RegionDataSource{}
-
 }
 
 // RegionDataSource defines the data source implementation.
@@ -55,19 +53,14 @@ type RegionDataSourceModel struct {
 }
 
 func (d *RegionDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_region"
-
 }
 
 func (d *RegionDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a region in Netbox. Regions provide hierarchical geographic organization for sites. You can identify the region using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("region"),
 
 			"name": nbschema.DSNameAttribute("region"),
@@ -87,21 +80,16 @@ func (d *RegionDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			"display_name": nbschema.DSComputedStringAttribute("The display name of the region."),
 		},
 	}
-
 }
 
 func (d *RegionDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -110,23 +98,18 @@ func (d *RegionDataSource) Configure(ctx context.Context, req datasource.Configu
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data RegionDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var region *netbox.Region
@@ -138,7 +121,6 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	// Determine if we're searching by ID, slug, or name
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		regionID := data.ID.ValueString()
@@ -148,11 +130,9 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		var regionIDInt int32
 
 		if _, parseErr := fmt.Sscanf(regionID, "%d", &regionIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError("Invalid Region ID", fmt.Sprintf("Region ID must be a number, got: %s", regionID))
 
 			return
-
 		}
 
 		region, httpResp, err = d.client.DcimAPI.DcimRegionsRetrieve(ctx, regionIDInt).Execute()
@@ -172,27 +152,21 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Error reading region", utils.FormatAPIError("read region by slug", err, httpResp))
 
 			return
-
 		}
 
 		if len(regions.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError("Region Not Found", fmt.Sprintf("No region found with slug: %s", regionSlug))
 
 			return
-
 		}
 
 		if len(regions.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError("Multiple Regions Found", fmt.Sprintf("Multiple regions found with slug: %s. This should not happen as slugs should be unique.", regionSlug))
 
 			return
-
 		}
 
 		region = &regions.GetResults()[0]
@@ -210,27 +184,21 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Error reading region", utils.FormatAPIError("read region by name", err, httpResp))
 
 			return
-
 		}
 
 		if len(regions.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError("Region Not Found", fmt.Sprintf("No region found with name: %s", regionName))
 
 			return
-
 		}
 
 		if len(regions.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError("Multiple Regions Found", fmt.Sprintf("Multiple regions found with name: %s. Region names may not be unique in Netbox.", regionName))
 
 			return
-
 		}
 
 		region = &regions.GetResults()[0]
@@ -240,23 +208,18 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		resp.Diagnostics.AddError("Missing Region Identifier", "Either 'id', 'slug', or 'name' must be specified to identify the region.")
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Error reading region", utils.FormatAPIError("read region", err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError("Error reading region", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	// Map response to state using helper
@@ -264,13 +227,11 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	d.mapRegionToState(ctx, region, &data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapRegionToState maps API response to Terraform state for data sources.
 
 func (d *RegionDataSource) mapRegionToState(ctx context.Context, region *netbox.Region, data *RegionDataSourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", region.GetId()))
 
 	data.Name = types.StringValue(region.GetName())
@@ -280,7 +241,6 @@ func (d *RegionDataSource) mapRegionToState(ctx context.Context, region *netbox.
 	// Handle parent
 
 	if region.HasParent() && region.GetParent().Id != 0 {
-
 		parent := region.GetParent()
 
 		parentID := fmt.Sprintf("%d", parent.GetId())
@@ -288,13 +248,10 @@ func (d *RegionDataSource) mapRegionToState(ctx context.Context, region *netbox.
 		data.Parent = types.StringValue(parentID)
 
 		data.ParentID = types.StringValue(parentID)
-
 	} else {
-
 		data.Parent = types.StringNull()
 
 		data.ParentID = types.StringNull()
-
 	}
 
 	// Handle description - use StringFromAPI to treat empty string as null
@@ -304,53 +261,36 @@ func (d *RegionDataSource) mapRegionToState(ctx context.Context, region *netbox.
 	// Handle tags
 
 	if region.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(region.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
 
 		if !tagDiags.HasError() {
-
 			data.Tags = tagsValue
-
 		}
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if region.HasCustomFields() {
-
 		customFields := utils.MapToCustomFieldModels(region.GetCustomFields(), nil)
 
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 
 		if !cfDiags.HasError() {
-
 			data.CustomFields = customFieldsValue
-
 		}
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Map display_name
 
 	if region.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(region.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
-
 }

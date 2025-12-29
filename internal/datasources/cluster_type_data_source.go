@@ -23,9 +23,7 @@ var _ datasource.DataSource = &ClusterTypeDataSource{}
 // NewClusterTypeDataSource returns a new Cluster Type data source.
 
 func NewClusterTypeDataSource() datasource.DataSource {
-
 	return &ClusterTypeDataSource{}
-
 }
 
 // ClusterTypeDataSource defines the data source implementation.
@@ -55,21 +53,16 @@ type ClusterTypeDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *ClusterTypeDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_cluster_type"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *ClusterTypeDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a cluster type in Netbox. Cluster types define the technology or platform used for virtualization clusters (e.g., 'VMware vSphere', 'Proxmox', 'Kubernetes'). You can identify the cluster type using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("cluster type"),
 
 			"name": nbschema.DSNameAttribute("cluster type"),
@@ -85,23 +78,18 @@ func (d *ClusterTypeDataSource) Schema(ctx context.Context, req datasource.Schem
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 // Configure sets up the data source with the provider client.
 
 func (d *ClusterTypeDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -110,25 +98,20 @@ func (d *ClusterTypeDataSource) Configure(ctx context.Context, req datasource.Co
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves data from the API.
 
 func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data ClusterTypeDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var clusterType *netbox.ClusterType
@@ -140,7 +123,6 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Determine if we're searching by ID, slug, or name
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		// Search by ID
@@ -148,14 +130,12 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		clusterTypeID := data.ID.ValueString()
 
 		tflog.Debug(ctx, "Reading cluster type by ID", map[string]interface{}{
-
 			"id": clusterTypeID,
 		})
 
 		var clusterTypeIDInt int32
 
 		if _, parseErr := fmt.Sscanf(clusterTypeID, "%d", &clusterTypeIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Cluster Type ID",
@@ -164,7 +144,6 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		clusterType, httpResp, err = d.client.VirtualizationAPI.VirtualizationClusterTypesRetrieve(ctx, clusterTypeIDInt).Execute()
@@ -178,7 +157,6 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		clusterTypeSlug := data.Slug.ValueString()
 
 		tflog.Debug(ctx, "Reading cluster type by slug", map[string]interface{}{
-
 			"slug": clusterTypeSlug,
 		})
 
@@ -189,7 +167,6 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading cluster type",
@@ -198,11 +175,9 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if len(clusterTypes.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Cluster Type Not Found",
@@ -211,11 +186,9 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if len(clusterTypes.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Cluster Types Found",
@@ -224,7 +197,6 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		clusterType = &clusterTypes.GetResults()[0]
@@ -236,7 +208,6 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		clusterTypeName := data.Name.ValueString()
 
 		tflog.Debug(ctx, "Reading cluster type by name", map[string]interface{}{
-
 			"name": clusterTypeName,
 		})
 
@@ -247,7 +218,6 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading cluster type",
@@ -256,11 +226,9 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if len(clusterTypes.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Cluster Type Not Found",
@@ -269,11 +237,9 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if len(clusterTypes.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple Cluster Types Found",
@@ -282,7 +248,6 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		clusterType = &clusterTypes.GetResults()[0]
@@ -297,11 +262,9 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading cluster type",
@@ -310,11 +273,9 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	if httpResp != nil && httpResp.StatusCode == 404 {
-
 		resp.Diagnostics.AddError(
 
 			"Cluster Type Not Found",
@@ -323,7 +284,6 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -337,19 +297,14 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Handle description
 
 	if clusterType.HasDescription() && clusterType.GetDescription() != "" {
-
 		data.Description = types.StringValue(clusterType.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if clusterType.HasTags() && len(clusterType.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(clusterType.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -357,23 +312,17 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		resp.Diagnostics.Append(tagDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if clusterType.HasCustomFields() {
-
 		customFields := utils.MapToCustomFieldModels(clusterType.GetCustomFields(), nil)
 
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
@@ -381,17 +330,12 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		resp.Diagnostics.Append(cfDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Map display name
@@ -402,12 +346,10 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	tflog.Debug(ctx, "Read cluster type", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

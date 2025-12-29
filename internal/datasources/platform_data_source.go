@@ -16,9 +16,7 @@ import (
 var _ datasource.DataSource = &PlatformDataSource{}
 
 func NewPlatformDataSource() datasource.DataSource {
-
 	return &PlatformDataSource{}
-
 }
 
 type PlatformDataSource struct {
@@ -40,19 +38,14 @@ type PlatformDataSourceModel struct {
 }
 
 func (d *PlatformDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_platform"
-
 }
 
 func (d *PlatformDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a platform type in Netbox. Platforms represent operating systems or firmware types for devices.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("platform"),
 
 			"display_name": nbschema.DSComputedStringAttribute("The display name of the platform."),
@@ -66,23 +59,18 @@ func (d *PlatformDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 			"description": nbschema.DSComputedStringAttribute("Detailed description of the platform."),
 		},
 	}
-
 }
 
 func (d *PlatformDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	// Prevent panic if the provider has not been configured.
 
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -91,23 +79,18 @@ func (d *PlatformDataSource) Configure(ctx context.Context, req datasource.Confi
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data PlatformDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var platform *netbox.Platform
@@ -119,7 +102,6 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 	// Lookup by id, slug, or name
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		platformID := data.ID.ValueString()
@@ -127,11 +109,9 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 		var platformIDInt int32
 
 		if _, parseErr := fmt.Sscanf(platformID, "%d", &platformIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError("Invalid Platform ID", "Platform ID must be a number.")
 
 			return
-
 		}
 
 		var p *netbox.Platform
@@ -141,9 +121,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 		defer utils.CloseResponseBody(httpResp)
 
 		if err == nil && httpResp.StatusCode == 200 {
-
 			platform = p
-
 		}
 
 	case !data.Slug.IsNull():
@@ -157,9 +135,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 		defer utils.CloseResponseBody(httpResp)
 
 		if err == nil && httpResp.StatusCode == 200 && len(platforms.GetResults()) > 0 {
-
 			platform = &platforms.GetResults()[0]
-
 		}
 
 	case !data.Name.IsNull():
@@ -173,9 +149,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 		defer utils.CloseResponseBody(httpResp)
 
 		if err == nil && httpResp.StatusCode == 200 && len(platforms.GetResults()) > 0 {
-
 			platform = &platforms.GetResults()[0]
-
 		}
 
 	default:
@@ -183,23 +157,18 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 		resp.Diagnostics.AddError("Missing Platform Identifier", "Either 'id', 'slug', or 'name' must be specified.")
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Error reading platform", utils.FormatAPIError("read platform", err, httpResp))
 
 		return
-
 	}
 
 	if httpResp == nil || httpResp.StatusCode != 200 || platform == nil {
-
 		resp.Diagnostics.AddError("Platform Not Found", "No platform found with the specified identifier.")
 
 		return
-
 	}
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", platform.GetId()))
@@ -207,13 +176,9 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 	// Display Name
 
 	if platform.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(platform.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	data.Name = types.StringValue(platform.GetName())
@@ -221,29 +186,20 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 	data.Slug = types.StringValue(platform.GetSlug())
 
 	if platform.HasManufacturer() {
-
 		manufacturer := platform.GetManufacturer()
 
 		data.Manufacturer = types.StringValue(manufacturer.GetName())
-
 	} else {
-
 		data.Manufacturer = types.StringNull()
-
 	}
 
 	if platform.HasDescription() {
-
 		data.Description = types.StringValue(platform.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Comments field may not exist; set to null
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }

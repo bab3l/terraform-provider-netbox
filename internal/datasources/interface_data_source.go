@@ -21,9 +21,7 @@ import (
 var _ datasource.DataSource = &InterfaceDataSource{}
 
 func NewInterfaceDataSource() datasource.DataSource {
-
 	return &InterfaceDataSource{}
-
 }
 
 // InterfaceDataSource defines the data source implementation.
@@ -79,23 +77,17 @@ type InterfaceDataSourceModel struct {
 }
 
 func (d *InterfaceDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_interface"
-
 }
 
 func (d *InterfaceDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about an interface in Netbox. Interfaces represent physical or virtual network interfaces on devices. You can identify the interface using `id` or by combining `device` and `name`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("interface"),
 
 			"device": schema.StringAttribute{
-
 				MarkdownDescription: "ID or name of the device this interface belongs to. Required when looking up by `name`.",
 
 				Optional: true,
@@ -104,7 +96,6 @@ func (d *InterfaceDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "Name of the interface (e.g., 'eth0', 'GigabitEthernet0/0'). Must be combined with `device` for lookup.",
 
 				Optional: true,
@@ -149,21 +140,16 @@ func (d *InterfaceDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 func (d *InterfaceDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -172,23 +158,18 @@ func (d *InterfaceDataSource) Configure(ctx context.Context, req datasource.Conf
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data InterfaceDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var iface *netbox.Interface
@@ -200,7 +181,6 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 	// Look up interface by ID or by device+name
 
 	switch {
-
 	case !data.ID.IsNull() && data.ID.ValueString() != "":
 
 		// Look up by ID
@@ -208,7 +188,6 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 		var id int32
 
 		if _, parseErr := fmt.Sscanf(data.ID.ValueString(), "%d", &id); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Interface ID",
@@ -217,11 +196,9 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Looking up interface by ID", map[string]interface{}{
-
 			"id": id,
 		})
 
@@ -230,7 +207,6 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading interface",
@@ -239,7 +215,6 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 	case !data.Device.IsNull() && data.Device.ValueString() != "" && !data.Name.IsNull() && data.Name.ValueString() != "":
@@ -247,7 +222,6 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 		// Look up by device + name
 
 		tflog.Debug(ctx, "Looking up interface by device and name", map[string]interface{}{
-
 			"device": data.Device.ValueString(),
 
 			"name": data.Name.ValueString(),
@@ -260,7 +234,6 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 		var deviceID int32
 
 		if _, parseErr := fmt.Sscanf(deviceValue, "%d", &deviceID); parseErr != nil {
-
 			// Not a number, try to look up by name
 
 			deviceList, deviceResp, deviceErr := d.client.DcimAPI.DcimDevicesList(ctx).Name([]string{deviceValue}).Execute()
@@ -268,7 +241,6 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 			defer utils.CloseResponseBody(deviceResp)
 
 			if deviceErr != nil {
-
 				resp.Diagnostics.AddError(
 
 					"Error looking up device",
@@ -277,11 +249,9 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 				)
 
 				return
-
 			}
 
 			if len(deviceList.Results) == 0 {
-
 				resp.Diagnostics.AddError(
 
 					"Device not found",
@@ -290,11 +260,9 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 				)
 
 				return
-
 			}
 
 			if len(deviceList.Results) > 1 {
-
 				resp.Diagnostics.AddError(
 
 					"Multiple devices found",
@@ -303,11 +271,9 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 				)
 
 				return
-
 			}
 
 			deviceID = deviceList.Results[0].GetId()
-
 		}
 
 		// Look up interface by device ID and name
@@ -320,7 +286,6 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 		defer utils.CloseResponseBody(listResp)
 
 		if listErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading interface",
@@ -329,11 +294,9 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		if len(list.Results) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Interface not found",
@@ -342,11 +305,9 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		if len(list.Results) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple interfaces found",
@@ -355,7 +316,6 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 
 			return
-
 		}
 
 		iface = &list.Results[0]
@@ -370,7 +330,6 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 		)
 
 		return
-
 	}
 
 	// Map the interface to the data source model
@@ -378,13 +337,11 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 	d.mapInterfaceToDataSource(ctx, iface, &data, resp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapInterfaceToDataSource maps an Interface from the API to the data source model.
 
 func (d *InterfaceDataSource) mapInterfaceToDataSource(ctx context.Context, iface *netbox.Interface, data *InterfaceDataSourceModel, resp *datasource.ReadResponse) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", iface.GetId()))
 
 	data.Name = types.StringValue(iface.GetName())
@@ -400,237 +357,156 @@ func (d *InterfaceDataSource) mapInterfaceToDataSource(ctx context.Context, ifac
 	ifaceType := iface.GetType()
 
 	if value, ok := ifaceType.GetValueOk(); ok && value != nil {
-
 		data.Type = types.StringValue(string(*value))
-
 	} else {
-
 		data.Type = types.StringNull()
-
 	}
 
 	// Label
 
 	if label, ok := iface.GetLabelOk(); ok && label != nil && *label != "" {
-
 		data.Label = types.StringValue(*label)
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Enabled
 
 	if enabled, ok := iface.GetEnabledOk(); ok && enabled != nil {
-
 		data.Enabled = types.BoolValue(*enabled)
-
 	} else {
-
 		data.Enabled = types.BoolValue(true)
-
 	}
 
 	// Parent
 
 	if iface.HasParent() {
-
 		parent := iface.GetParent()
 
 		if parent.GetId() != 0 {
-
 			data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
-
 		} else {
-
 			data.Parent = types.StringNull()
-
 		}
-
 	} else {
-
 		data.Parent = types.StringNull()
-
 	}
 
 	// Bridge
 
 	if iface.HasBridge() {
-
 		bridge := iface.GetBridge()
 
 		if bridge.GetId() != 0 {
-
 			data.Bridge = types.StringValue(fmt.Sprintf("%d", bridge.GetId()))
-
 		} else {
-
 			data.Bridge = types.StringNull()
-
 		}
-
 	} else {
-
 		data.Bridge = types.StringNull()
-
 	}
 
 	// LAG
 
 	if iface.HasLag() {
-
 		lag := iface.GetLag()
 
 		if lag.GetId() != 0 {
-
 			data.Lag = types.StringValue(fmt.Sprintf("%d", lag.GetId()))
-
 		} else {
-
 			data.Lag = types.StringNull()
-
 		}
-
 	} else {
-
 		data.Lag = types.StringNull()
-
 	}
 
 	// MTU
 
 	if mtu, ok := iface.GetMtuOk(); ok && mtu != nil {
-
 		data.Mtu = types.Int64Value(int64(*mtu))
-
 	} else {
-
 		data.Mtu = types.Int64Null()
-
 	}
 
 	// MAC Address
 
 	if macAddr, ok := iface.GetMacAddressOk(); ok && macAddr != nil && *macAddr != "" {
-
 		data.MacAddress = types.StringValue(*macAddr)
-
 	} else {
-
 		data.MacAddress = types.StringNull()
-
 	}
 
 	// Speed
 
 	if speed, ok := iface.GetSpeedOk(); ok && speed != nil {
-
 		data.Speed = types.Int64Value(int64(*speed))
-
 	} else {
-
 		data.Speed = types.Int64Null()
-
 	}
 
 	// Duplex
 
 	if iface.HasDuplex() {
-
 		duplex := iface.GetDuplex()
 
 		if value, ok := duplex.GetValueOk(); ok && value != nil {
-
 			data.Duplex = types.StringValue(string(*value))
-
 		} else {
-
 			data.Duplex = types.StringNull()
-
 		}
-
 	} else {
-
 		data.Duplex = types.StringNull()
-
 	}
 
 	// WWN
 
 	if wwn, ok := iface.GetWwnOk(); ok && wwn != nil && *wwn != "" {
-
 		data.Wwn = types.StringValue(*wwn)
-
 	} else {
-
 		data.Wwn = types.StringNull()
-
 	}
 
 	// MgmtOnly
 
 	if mgmtOnly, ok := iface.GetMgmtOnlyOk(); ok && mgmtOnly != nil {
-
 		data.MgmtOnly = types.BoolValue(*mgmtOnly)
-
 	} else {
-
 		data.MgmtOnly = types.BoolValue(false)
-
 	}
 
 	// Description
 
 	if desc, ok := iface.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Mode
 
 	if iface.HasMode() {
-
 		mode := iface.GetMode()
 
 		if value, ok := mode.GetValueOk(); ok && value != nil {
-
 			data.Mode = types.StringValue(string(*value))
-
 		} else {
-
 			data.Mode = types.StringNull()
-
 		}
-
 	} else {
-
 		data.Mode = types.StringNull()
-
 	}
 
 	// MarkConnected
 
 	if markConnected, ok := iface.GetMarkConnectedOk(); ok && markConnected != nil {
-
 		data.MarkConnected = types.BoolValue(*markConnected)
-
 	} else {
-
 		data.MarkConnected = types.BoolValue(false)
-
 	}
 
 	// Tags
 
 	if iface.HasTags() && len(iface.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(iface.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -638,23 +514,17 @@ func (d *InterfaceDataSource) mapInterfaceToDataSource(ctx context.Context, ifac
 		resp.Diagnostics.Append(tagDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom Fields
 
 	if iface.HasCustomFields() && len(iface.GetCustomFields()) > 0 {
-
 		customFields := utils.MapToCustomFieldModels(iface.GetCustomFields(), nil)
 
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
@@ -662,17 +532,12 @@ func (d *InterfaceDataSource) mapInterfaceToDataSource(ctx context.Context, ifac
 		resp.Diagnostics.Append(cfDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Display name
@@ -681,5 +546,4 @@ func (d *InterfaceDataSource) mapInterfaceToDataSource(ctx context.Context, ifac
 	} else {
 		data.DisplayName = types.StringNull()
 	}
-
 }

@@ -1,5 +1,4 @@
 // Copyright (c) 2024 Kevin Pelzel
-
 // SPDX-License-Identifier: MPL-2.0
 
 package datasources
@@ -27,9 +26,7 @@ var (
 // NewVLANDataSource returns a new VLAN data source.
 
 func NewVLANDataSource() datasource.DataSource {
-
 	return &VLANDataSource{}
-
 }
 
 // VLANDataSource defines the data source implementation.
@@ -77,23 +74,17 @@ type VLANDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *VLANDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_vlan"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *VLANDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a VLAN in Netbox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the VLAN. Either `id` or `name` and `vid` must be specified.",
 
 				Optional: true,
@@ -102,7 +93,6 @@ func (d *VLANDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 			},
 
 			"vid": schema.Int32Attribute{
-
 				MarkdownDescription: "The VLAN ID (numeric identifier).",
 
 				Optional: true,
@@ -111,7 +101,6 @@ func (d *VLANDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the VLAN.",
 
 				Optional: true,
@@ -120,91 +109,78 @@ func (d *VLANDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 			},
 
 			"site": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the site this VLAN is assigned to.",
 
 				Computed: true,
 			},
 
 			"site_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the site this VLAN is assigned to.",
 
 				Computed: true,
 			},
 
 			"group": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the VLAN group this VLAN belongs to.",
 
 				Computed: true,
 			},
 
 			"group_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the VLAN group this VLAN belongs to.",
 
 				Computed: true,
 			},
 
 			"tenant": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the tenant this VLAN is assigned to.",
 
 				Computed: true,
 			},
 
 			"tenant_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the tenant this VLAN is assigned to.",
 
 				Computed: true,
 			},
 
 			"status": schema.StringAttribute{
-
 				MarkdownDescription: "The status of the VLAN (active, reserved, deprecated).",
 
 				Computed: true,
 			},
 
 			"role": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the role assigned to this VLAN.",
 
 				Computed: true,
 			},
 
 			"role_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the role assigned to this VLAN.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "The description of the VLAN.",
 
 				Computed: true,
 			},
 
 			"comments": schema.StringAttribute{
-
 				MarkdownDescription: "Comments for the VLAN.",
 
 				Computed: true,
 			},
 
 			"display_name": schema.StringAttribute{
-
 				MarkdownDescription: "Display name of the VLAN.",
 
 				Computed: true,
 			},
 
 			"tags": schema.ListAttribute{
-
 				MarkdownDescription: "The tags assigned to this VLAN.",
 
 				Computed: true,
@@ -213,23 +189,18 @@ func (d *VLANDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 			},
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *VLANDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -238,17 +209,14 @@ func (d *VLANDataSource) Configure(ctx context.Context, req datasource.Configure
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data VLANDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -256,9 +224,7 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var vlan *netbox.VLAN
@@ -266,7 +232,6 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	// Check if we're looking up by ID, VID, or name
 
 	switch {
-
 	case utils.IsSet(data.ID):
 
 		var idInt int
@@ -274,7 +239,6 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid ID",
@@ -283,22 +247,18 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading VLAN by ID", map[string]interface{}{
-
 			"id": idInt,
 		})
 
 		id32, err := utils.SafeInt32(int64(idInt))
 
 		if err != nil {
-
 			resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID value overflow: %s", err))
 
 			return
-
 		}
 
 		result, httpResp, err := d.client.IpamAPI.IpamVlansRetrieve(ctx, id32).Execute()
@@ -306,7 +266,6 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading VLAN",
@@ -315,7 +274,6 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		vlan = result
@@ -325,7 +283,6 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		// Looking up by VID (optionally with name and group)
 
 		tflog.Debug(ctx, "Reading VLAN by VID", map[string]interface{}{
-
 			"vid": data.VID.ValueInt32(),
 		})
 
@@ -336,9 +293,7 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		// Optionally filter by name
 
 		if utils.IsSet(data.Name) {
-
 			listReq = listReq.Name([]string{data.Name.ValueString()})
-
 		}
 
 		results, httpResp, err := listReq.Execute()
@@ -346,7 +301,6 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error listing VLANs",
@@ -355,11 +309,9 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		if results.Count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"VLAN not found",
@@ -368,11 +320,9 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		if results.Count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple VLANs found",
@@ -381,7 +331,6 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		vlan = &results.Results[0]
@@ -391,7 +340,6 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		// Looking up by name
 
 		tflog.Debug(ctx, "Reading VLAN by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -404,7 +352,6 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error listing VLANs",
@@ -413,11 +360,9 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		if results.Count == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"VLAN not found",
@@ -426,11 +371,9 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		if results.Count > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple VLANs found",
@@ -439,7 +382,6 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		vlan = &results.Results[0]
@@ -454,7 +396,6 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		)
 
 		return
-
 	}
 
 	// Map the VLAN to our model
@@ -462,7 +403,6 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	d.mapVLANToState(ctx, vlan, &data)
 
 	tflog.Debug(ctx, "Read VLAN", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -471,13 +411,11 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapVLANToState maps a Netbox VLAN to the Terraform state model.
 
 func (d *VLANDataSource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, data *VLANDataSourceModel) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", vlan.Id))
 
 	data.VID = types.Int32Value(vlan.Vid)
@@ -487,133 +425,94 @@ func (d *VLANDataSource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, 
 	// Site
 
 	if vlan.Site.IsSet() && vlan.Site.Get() != nil {
-
 		data.Site = types.StringValue(vlan.Site.Get().Name)
 
 		data.SiteID = types.Int64Value(int64(vlan.Site.Get().Id))
-
 	} else {
-
 		data.Site = types.StringNull()
 
 		data.SiteID = types.Int64Null()
-
 	}
 
 	// Group
 
 	if vlan.Group.IsSet() && vlan.Group.Get() != nil {
-
 		data.Group = types.StringValue(vlan.Group.Get().Name)
 
 		data.GroupID = types.Int64Value(int64(vlan.Group.Get().Id))
-
 	} else {
-
 		data.Group = types.StringNull()
 
 		data.GroupID = types.Int64Null()
-
 	}
 
 	// Tenant
 
 	if vlan.Tenant.IsSet() && vlan.Tenant.Get() != nil {
-
 		data.Tenant = types.StringValue(vlan.Tenant.Get().Name)
 
 		data.TenantID = types.Int64Value(int64(vlan.Tenant.Get().Id))
-
 	} else {
-
 		data.Tenant = types.StringNull()
 
 		data.TenantID = types.Int64Null()
-
 	}
 
 	// Status
 
 	if vlan.Status != nil {
-
 		data.Status = types.StringValue(string(vlan.Status.GetValue()))
-
 	} else {
-
 		data.Status = types.StringNull()
-
 	}
 
 	// Role
 
 	if vlan.Role.IsSet() && vlan.Role.Get() != nil {
-
 		data.Role = types.StringValue(vlan.Role.Get().Name)
 
 		data.RoleID = types.Int64Value(int64(vlan.Role.Get().Id))
-
 	} else {
-
 		data.Role = types.StringNull()
 
 		data.RoleID = types.Int64Null()
-
 	}
 
 	// Description
 
 	if vlan.Description != nil && *vlan.Description != "" {
-
 		data.Description = types.StringValue(*vlan.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Comments
 
 	if vlan.Comments != nil && *vlan.Comments != "" {
-
 		data.Comments = types.StringValue(*vlan.Comments)
-
 	} else {
-
 		data.Comments = types.StringNull()
-
 	}
 	// Handle display_name
 
 	if vlan.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(vlan.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 	// Tags
 
 	if len(vlan.Tags) > 0 {
-
 		tagNames := make([]string, 0, len(vlan.Tags))
 
 		for _, tag := range vlan.Tags {
-
 			tagNames = append(tagNames, tag.Name)
-
 		}
 
 		tagList, _ := types.ListValueFrom(ctx, types.StringType, tagNames)
 
 		data.Tags = tagList
-
 	} else {
-
 		data.Tags = types.ListNull(types.StringType)
-
 	}
-
 }

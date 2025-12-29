@@ -27,9 +27,7 @@ var (
 // NewRoleDataSource returns a new data source implementing the Role data source.
 
 func NewRoleDataSource() datasource.DataSource {
-
 	return &RoleDataSource{}
-
 }
 
 // RoleDataSource defines the data source implementation.
@@ -65,23 +63,17 @@ type RoleDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *RoleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_role"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *RoleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Retrieves information about an IPAM role in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the role. Use this to look up by ID.",
 
 				Optional: true,
@@ -90,7 +82,6 @@ func (d *RoleDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the role. Use this to look up by name.",
 
 				Optional: true,
@@ -99,7 +90,6 @@ func (d *RoleDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 			},
 
 			"slug": schema.StringAttribute{
-
 				MarkdownDescription: "URL-friendly unique identifier for the role. Use this to look up by slug.",
 
 				Optional: true,
@@ -108,28 +98,24 @@ func (d *RoleDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 			},
 
 			"weight": schema.Int64Attribute{
-
 				MarkdownDescription: "Weight for sorting.",
 
 				Computed: true,
 			},
 
 			"description": schema.StringAttribute{
-
 				MarkdownDescription: "A description of the role.",
 
 				Computed: true,
 			},
 
 			"prefix_count": schema.Int64Attribute{
-
 				MarkdownDescription: "Number of prefixes assigned to this role.",
 
 				Computed: true,
 			},
 
 			"vlan_count": schema.Int64Attribute{
-
 				MarkdownDescription: "Number of VLANs assigned to this role.",
 
 				Computed: true,
@@ -142,23 +128,18 @@ func (d *RoleDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 			"display_name": nbschema.DSComputedStringAttribute("The display name of the role."),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the data source.
 
 func (d *RoleDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -167,25 +148,20 @@ func (d *RoleDataSource) Configure(ctx context.Context, req datasource.Configure
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read refreshes the data source data.
 
 func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data RoleDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var role *netbox.Role
@@ -193,13 +169,11 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	// Look up by ID, slug, or name
 
 	switch {
-
 	case !data.ID.IsNull() && !data.ID.IsUnknown():
 
 		roleID, err := utils.ParseID(data.ID.ValueString())
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Role ID",
@@ -208,11 +182,9 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		tflog.Debug(ctx, "Reading role by ID", map[string]interface{}{
-
 			"id": roleID,
 		})
 
@@ -221,7 +193,6 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading role",
@@ -230,7 +201,6 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		role = r
@@ -240,7 +210,6 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		// Look up by slug
 
 		tflog.Debug(ctx, "Reading role by slug", map[string]interface{}{
-
 			"slug": data.Slug.ValueString(),
 		})
 
@@ -249,7 +218,6 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading role",
@@ -258,11 +226,9 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		if listResp.GetCount() == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Role not found",
@@ -271,11 +237,9 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		if listResp.GetCount() > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple roles found",
@@ -284,7 +248,6 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		role = &listResp.GetResults()[0]
@@ -294,7 +257,6 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		// Look up by name
 
 		tflog.Debug(ctx, "Reading role by name", map[string]interface{}{
-
 			"name": data.Name.ValueString(),
 		})
 
@@ -303,7 +265,6 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading role",
@@ -312,11 +273,9 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		if listResp.GetCount() == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"Role not found",
@@ -325,11 +284,9 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		if listResp.GetCount() > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple roles found",
@@ -338,7 +295,6 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 
 			return
-
 		}
 
 		role = &listResp.GetResults()[0]
@@ -353,7 +309,6 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -361,19 +316,15 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	d.mapResponseToModel(ctx, role, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (d *RoleDataSource) mapResponseToModel(ctx context.Context, role *netbox.Role, data *RoleDataSourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", role.GetId()))
 
 	data.Name = types.StringValue(role.GetName())
@@ -383,25 +334,17 @@ func (d *RoleDataSource) mapResponseToModel(ctx context.Context, role *netbox.Ro
 	// Map weight
 
 	if weight, ok := role.GetWeightOk(); ok && weight != nil {
-
 		data.Weight = types.Int64Value(int64(*weight))
-
 	} else {
-
 		data.Weight = types.Int64Null()
-
 	}
 
 	// Map description
 
 	if desc, ok := role.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map counts
@@ -413,7 +356,6 @@ func (d *RoleDataSource) mapResponseToModel(ctx context.Context, role *netbox.Ro
 	// Handle tags
 
 	if role.HasTags() && len(role.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(role.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -421,23 +363,17 @@ func (d *RoleDataSource) mapResponseToModel(ctx context.Context, role *netbox.Ro
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if role.HasCustomFields() {
-
 		apiCustomFields := role.GetCustomFields()
 
 		customFields := utils.MapToCustomFieldModels(apiCustomFields, nil)
@@ -447,29 +383,19 @@ func (d *RoleDataSource) mapResponseToModel(ctx context.Context, role *netbox.Ro
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	// Map display_name
 
 	if role.GetDisplay() != "" {
-
 		data.DisplayName = types.StringValue(role.GetDisplay())
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
-
 }

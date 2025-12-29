@@ -23,9 +23,7 @@ var _ datasource.DataSource = &VMInterfaceDataSource{}
 // NewVMInterfaceDataSource returns a new VM Interface data source.
 
 func NewVMInterfaceDataSource() datasource.DataSource {
-
 	return &VMInterfaceDataSource{}
-
 }
 
 // VMInterfaceDataSource defines the data source implementation.
@@ -67,25 +65,19 @@ type VMInterfaceDataSourceModel struct {
 // Metadata returns the data source type name.
 
 func (d *VMInterfaceDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_vm_interface"
-
 }
 
 // Schema defines the schema for the data source.
 
 func (d *VMInterfaceDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Use this data source to get information about a virtual machine interface in Netbox. You can identify the interface using `id`, or by specifying both `name` and `virtual_machine`.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": nbschema.DSIDAttribute("VM interface"),
 
 			"virtual_machine": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the virtual machine. Required when looking up by name.",
 
 				Optional: true,
@@ -94,7 +86,6 @@ func (d *VMInterfaceDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the interface. Required when looking up by name (along with virtual_machine).",
 
 				Optional: true,
@@ -123,23 +114,18 @@ func (d *VMInterfaceDataSource) Schema(ctx context.Context, req datasource.Schem
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
-
 }
 
 // Configure sets up the data source with the provider client.
 
 func (d *VMInterfaceDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Data Source Configure Type",
@@ -148,25 +134,20 @@ func (d *VMInterfaceDataSource) Configure(ctx context.Context, req datasource.Co
 		)
 
 		return
-
 	}
 
 	d.client = client
-
 }
 
 // Read retrieves data from the API.
 
 func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-
 	var data VMInterfaceDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	var iface *netbox.VMInterface
@@ -178,7 +159,6 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Determine if we're searching by ID or by name+virtual_machine
 
 	switch {
-
 	case !data.ID.IsNull():
 
 		// Search by ID
@@ -186,14 +166,12 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		ifaceID := data.ID.ValueString()
 
 		tflog.Debug(ctx, "Reading VM interface by ID", map[string]interface{}{
-
 			"id": ifaceID,
 		})
 
 		var ifaceIDInt int32
 
 		if _, parseErr := fmt.Sscanf(ifaceID, "%d", &ifaceIDInt); parseErr != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid VM Interface ID",
@@ -202,7 +180,6 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		iface, httpResp, err = d.client.VirtualizationAPI.VirtualizationInterfacesRetrieve(ctx, ifaceIDInt).Execute()
@@ -218,7 +195,6 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		vmName := data.VirtualMachine.ValueString()
 
 		tflog.Debug(ctx, "Reading VM interface by name and virtual machine", map[string]interface{}{
-
 			"name": ifaceName,
 
 			"virtual_machine": vmName,
@@ -231,7 +207,6 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(httpResp)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Error reading VM interface",
@@ -240,11 +215,9 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if len(ifaces.GetResults()) == 0 {
-
 			resp.Diagnostics.AddError(
 
 				"VM Interface Not Found",
@@ -253,11 +226,9 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		if len(ifaces.GetResults()) > 1 {
-
 			resp.Diagnostics.AddError(
 
 				"Multiple VM Interfaces Found",
@@ -266,7 +237,6 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 
 			return
-
 		}
 
 		iface = &ifaces.GetResults()[0]
@@ -281,11 +251,9 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error reading VM interface",
@@ -294,11 +262,9 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	if httpResp != nil && httpResp.StatusCode == 404 {
-
 		resp.Diagnostics.AddError(
 
 			"VM Interface Not Found",
@@ -307,7 +273,6 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -323,103 +288,70 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Enabled
 
 	if iface.HasEnabled() {
-
 		data.Enabled = types.BoolValue(iface.GetEnabled())
-
 	} else {
-
 		data.Enabled = types.BoolNull()
-
 	}
 
 	// MTU
 
 	if iface.Mtu.IsSet() && iface.Mtu.Get() != nil {
-
 		data.MTU = types.Int64Value(int64(*iface.Mtu.Get()))
-
 	} else {
-
 		data.MTU = types.Int64Null()
-
 	}
 
 	// MAC Address
 
 	if iface.MacAddress.IsSet() && iface.MacAddress.Get() != nil && *iface.MacAddress.Get() != "" {
-
 		data.MACAddress = types.StringValue(*iface.MacAddress.Get())
-
 	} else {
-
 		data.MACAddress = types.StringNull()
-
 	}
 
 	// Description
 
 	if iface.HasDescription() && iface.GetDescription() != "" {
-
 		data.Description = types.StringValue(iface.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Mode
 
 	if iface.HasMode() {
-
 		data.Mode = types.StringValue(string(iface.Mode.GetValue()))
-
 	} else {
-
 		data.Mode = types.StringNull()
-
 	}
 
 	// Untagged VLAN
 
 	if iface.UntaggedVlan.IsSet() && iface.UntaggedVlan.Get() != nil {
-
 		data.UntaggedVLAN = types.StringValue(iface.UntaggedVlan.Get().GetName())
-
 	} else {
-
 		data.UntaggedVLAN = types.StringNull()
-
 	}
 
 	// VRF
 
 	if iface.Vrf.IsSet() && iface.Vrf.Get() != nil {
-
 		data.VRF = types.StringValue(iface.Vrf.Get().GetName())
-
 	} else {
-
 		data.VRF = types.StringNull()
-
 	}
 
 	// Display name
 
 	if displayName := iface.GetDisplay(); displayName != "" {
-
 		data.DisplayName = types.StringValue(displayName)
-
 	} else {
-
 		data.DisplayName = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if iface.HasTags() && len(iface.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(iface.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -427,23 +359,17 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		resp.Diagnostics.Append(tagDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if iface.HasCustomFields() {
-
 		customFields := utils.MapToCustomFieldModels(iface.GetCustomFields(), nil)
 
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
@@ -451,26 +377,19 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		resp.Diagnostics.Append(cfDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
 
 	tflog.Debug(ctx, "Read VM interface", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
