@@ -37,9 +37,7 @@ var (
 // NewVirtualDiskResource returns a new VirtualDisk resource.
 
 func NewVirtualDiskResource() resource.Resource {
-
 	return &VirtualDiskResource{}
-
 }
 
 // VirtualDiskResource defines the resource implementation.
@@ -71,35 +69,27 @@ type VirtualDiskResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *VirtualDiskResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_virtual_disk"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *VirtualDiskResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a virtual disk attached to a virtual machine in Netbox. Virtual disks represent storage volumes associated with VMs.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the virtual disk.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"virtual_machine": schema.StringAttribute{
-
 				MarkdownDescription: "ID or name of the virtual machine this disk belongs to. Required.",
 
 				Required: true,
@@ -108,13 +98,11 @@ func (r *VirtualDiskResource) Schema(ctx context.Context, req resource.SchemaReq
 			"name": nbschema.NameAttribute("virtual disk", 64),
 
 			"size": schema.StringAttribute{
-
 				MarkdownDescription: "Size of the virtual disk in GB. Required.",
 
 				Required: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.RegexMatches(
 
 						validators.IntegerRegex(),
@@ -138,17 +126,13 @@ func (r *VirtualDiskResource) Schema(ctx context.Context, req resource.SchemaReq
 // Configure adds the provider configured client to the resource.
 
 func (r *VirtualDiskResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -157,17 +141,14 @@ func (r *VirtualDiskResource) Configure(ctx context.Context, req resource.Config
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates the resource and sets the initial Terraform state.
 
 func (r *VirtualDiskResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data VirtualDiskResourceModel
 
 	// Read Terraform plan data into the model
@@ -175,9 +156,7 @@ func (r *VirtualDiskResource) Create(ctx context.Context, req resource.CreateReq
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Lookup virtual machine
@@ -187,9 +166,7 @@ func (r *VirtualDiskResource) Create(ctx context.Context, req resource.CreateReq
 	resp.Diagnostics.Append(vmDiags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse size to int32
@@ -197,7 +174,6 @@ func (r *VirtualDiskResource) Create(ctx context.Context, req resource.CreateReq
 	var size int32
 
 	if _, err := fmt.Sscanf(data.Size.ValueString(), "%d", &size); err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Size",
@@ -206,7 +182,6 @@ func (r *VirtualDiskResource) Create(ctx context.Context, req resource.CreateReq
 		)
 
 		return
-
 	}
 
 	// Create the VirtualDisk request
@@ -218,13 +193,10 @@ func (r *VirtualDiskResource) Create(ctx context.Context, req resource.CreateReq
 	r.setOptionalFields(ctx, vdRequest, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating VirtualDisk", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"virtual_machine": data.VirtualMachine.ValueString(),
@@ -239,7 +211,6 @@ func (r *VirtualDiskResource) Create(ctx context.Context, req resource.CreateReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating VirtualDisk",
@@ -248,7 +219,6 @@ func (r *VirtualDiskResource) Create(ctx context.Context, req resource.CreateReq
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -256,7 +226,6 @@ func (r *VirtualDiskResource) Create(ctx context.Context, req resource.CreateReq
 	r.mapVirtualDiskToState(ctx, vd, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Created VirtualDisk", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -265,13 +234,11 @@ func (r *VirtualDiskResource) Create(ctx context.Context, req resource.CreateReq
 	// Save data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (r *VirtualDiskResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data VirtualDiskResourceModel
 
 	// Read Terraform prior state data into the model
@@ -279,9 +246,7 @@ func (r *VirtualDiskResource) Read(ctx context.Context, req resource.ReadRequest
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -289,7 +254,6 @@ func (r *VirtualDiskResource) Read(ctx context.Context, req resource.ReadRequest
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID",
@@ -298,11 +262,9 @@ func (r *VirtualDiskResource) Read(ctx context.Context, req resource.ReadRequest
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading VirtualDisk", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -313,13 +275,10 @@ func (r *VirtualDiskResource) Read(ctx context.Context, req resource.ReadRequest
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -330,7 +289,6 @@ func (r *VirtualDiskResource) Read(ctx context.Context, req resource.ReadRequest
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -338,7 +296,6 @@ func (r *VirtualDiskResource) Read(ctx context.Context, req resource.ReadRequest
 	r.mapVirtualDiskToState(ctx, vd, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Read VirtualDisk", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -347,13 +304,11 @@ func (r *VirtualDiskResource) Read(ctx context.Context, req resource.ReadRequest
 	// Save updated data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 
 func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data VirtualDiskResourceModel
 
 	// Read Terraform plan data into the model
@@ -361,9 +316,7 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -371,7 +324,6 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID",
@@ -380,7 +332,6 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 
 		return
-
 	}
 
 	// Lookup virtual machine
@@ -390,9 +341,7 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 	resp.Diagnostics.Append(vmDiags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse size to int32
@@ -400,7 +349,6 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 	var size int32
 
 	if _, err := fmt.Sscanf(data.Size.ValueString(), "%d", &size); err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Size",
@@ -409,7 +357,6 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 
 		return
-
 	}
 
 	// Create the VirtualDisk request
@@ -421,13 +368,10 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 	r.setOptionalFields(ctx, vdRequest, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating VirtualDisk", map[string]interface{}{
-
 		"id": id,
 
 		"name": data.Name.ValueString(),
@@ -440,7 +384,6 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating VirtualDisk",
@@ -449,7 +392,6 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -457,7 +399,6 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 	r.mapVirtualDiskToState(ctx, vd, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Updated VirtualDisk", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
@@ -466,13 +407,11 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 	// Save updated data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 
 func (r *VirtualDiskResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data VirtualDiskResourceModel
 
 	// Read Terraform prior state data into the model
@@ -480,9 +419,7 @@ func (r *VirtualDiskResource) Delete(ctx context.Context, req resource.DeleteReq
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -490,7 +427,6 @@ func (r *VirtualDiskResource) Delete(ctx context.Context, req resource.DeleteReq
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID",
@@ -499,11 +435,9 @@ func (r *VirtualDiskResource) Delete(ctx context.Context, req resource.DeleteReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting VirtualDisk", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -526,38 +460,30 @@ func (r *VirtualDiskResource) Delete(ctx context.Context, req resource.DeleteReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted VirtualDisk", map[string]interface{}{
-
 		"id": id,
 	})
-
 }
 
 func (r *VirtualDiskResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // setOptionalFields sets optional fields on the VirtualDisk request from the resource model.
 
 func (r *VirtualDiskResource) setOptionalFields(ctx context.Context, vdRequest *netbox.VirtualDiskRequest, data *VirtualDiskResourceModel, diags *diag.Diagnostics) {
-
 	// Apply description and metadata fields
 
 	utils.ApplyDescription(vdRequest, data.Description)
 
 	utils.ApplyMetadataFields(ctx, vdRequest, data.Tags, data.CustomFields, diags)
-
 }
 
 // mapVirtualDiskToState maps a Netbox VirtualDisk to the Terraform state model.
 
 func (r *VirtualDiskResource) mapVirtualDiskToState(ctx context.Context, vd *netbox.VirtualDisk, data *VirtualDiskResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", vd.Id))
 
 	data.Name = types.StringValue(vd.Name)
@@ -578,35 +504,26 @@ func (r *VirtualDiskResource) mapVirtualDiskToState(ctx context.Context, vd *net
 	// Description
 
 	if vd.Description != nil && *vd.Description != "" {
-
 		data.Description = types.StringValue(*vd.Description)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Tags
 
 	if len(vd.Tags) > 0 {
-
 		tags := utils.NestedTagsToTagModels(vd.Tags)
 
 		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom Fields
 
 	switch {
-
 	case len(vd.CustomFields) > 0 && !data.CustomFields.IsNull():
 
 		var stateCustomFields []utils.CustomFieldModel
@@ -630,7 +547,5 @@ func (r *VirtualDiskResource) mapVirtualDiskToState(ctx context.Context, vd *net
 	default:
 
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

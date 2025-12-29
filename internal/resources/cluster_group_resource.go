@@ -176,15 +176,12 @@ func (r *ClusterGroupResource) Read(ctx context.Context, req resource.ReadReques
 }
 
 func (r *ClusterGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data ClusterGroupResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	clusterGroupID := data.ID.ValueString()
@@ -192,15 +189,12 @@ func (r *ClusterGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	clusterGroupIDInt := utils.ParseInt32FromString(clusterGroupID)
 
 	if clusterGroupIDInt == 0 {
-
 		resp.Diagnostics.AddError("Invalid Cluster Group ID", fmt.Sprintf("Cluster Group ID must be a number, got: %s", clusterGroupID))
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating cluster group", map[string]interface{}{
-
 		"id": clusterGroupID,
 
 		"name": data.Name.ValueString(),
@@ -226,43 +220,33 @@ func (r *ClusterGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Error updating cluster group", utils.FormatAPIError(fmt.Sprintf("update cluster group ID %s", clusterGroupID), err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 200 {
-
 		resp.Diagnostics.AddError("Error updating cluster group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	r.mapClusterGroupToState(ctx, clusterGroup, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *ClusterGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data ClusterGroupResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	clusterGroupID := data.ID.ValueString()
@@ -270,11 +254,9 @@ func (r *ClusterGroupResource) Delete(ctx context.Context, req resource.DeleteRe
 	clusterGroupIDInt := utils.ParseInt32FromString(clusterGroupID)
 
 	if clusterGroupIDInt == 0 {
-
 		resp.Diagnostics.AddError("Invalid Cluster Group ID", fmt.Sprintf("Cluster Group ID must be a number, got: %s", clusterGroupID))
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting cluster group", map[string]interface{}{"id": clusterGroupID})
@@ -291,31 +273,24 @@ func (r *ClusterGroupResource) Delete(ctx context.Context, req resource.DeleteRe
 		resp.Diagnostics.AddError("Error deleting cluster group", utils.FormatAPIError(fmt.Sprintf("delete cluster group ID %s", clusterGroupID), err, httpResp))
 
 		return
-
 	}
 
 	if httpResp.StatusCode != 204 {
-
 		resp.Diagnostics.AddError("Error deleting cluster group", fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
 
 		return
-
 	}
 
 	tflog.Trace(ctx, "deleted a cluster group resource")
-
 }
 
 func (r *ClusterGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // mapClusterGroupToState maps API response to Terraform state.
 
 func (r *ClusterGroupResource) mapClusterGroupToState(ctx context.Context, clusterGroup *netbox.ClusterGroup, data *ClusterGroupResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", clusterGroup.GetId()))
 
 	data.Name = types.StringValue(clusterGroup.GetName())

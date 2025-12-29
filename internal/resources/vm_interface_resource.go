@@ -36,9 +36,7 @@ var (
 // NewVMInterfaceResource returns a new VM Interface resource.
 
 func NewVMInterfaceResource() resource.Resource {
-
 	return &VMInterfaceResource{}
-
 }
 
 // VMInterfaceResource defines the resource implementation.
@@ -80,49 +78,39 @@ type VMInterfaceResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *VMInterfaceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_vm_interface"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *VMInterfaceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a virtual machine interface in Netbox. VM interfaces represent the virtual network interfaces attached to a virtual machine.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the VM interface.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"virtual_machine": schema.StringAttribute{
-
 				MarkdownDescription: "The name or ID of the virtual machine this interface belongs to.",
 
 				Required: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the interface (e.g., 'eth0', 'ens192').",
 
 				Required: true,
 			},
 
 			"enabled": schema.BoolAttribute{
-
 				MarkdownDescription: "Whether the interface is enabled. Defaults to true.",
 
 				Optional: true,
@@ -133,14 +121,12 @@ func (r *VMInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 
 			"mtu": schema.Int64Attribute{
-
 				MarkdownDescription: "The Maximum Transmission Unit (MTU) size for the interface.",
 
 				Optional: true,
 			},
 
 			"mac_address": schema.StringAttribute{
-
 				MarkdownDescription: "The MAC address of the interface.",
 
 				Optional: true,
@@ -149,21 +135,18 @@ func (r *VMInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 			"display_name": nbschema.DisplayNameAttribute("VM interface"),
 
 			"mode": schema.StringAttribute{
-
 				MarkdownDescription: "The 802.1Q mode of the interface. Valid values are: `access`, `tagged`, `tagged-all`.",
 
 				Optional: true,
 			},
 
 			"untagged_vlan": schema.StringAttribute{
-
 				MarkdownDescription: "The name or ID of the untagged VLAN (for access or tagged mode).",
 
 				Optional: true,
 			},
 
 			"vrf": schema.StringAttribute{
-
 				MarkdownDescription: "The name or ID of the VRF assigned to this interface.",
 
 				Optional: true,
@@ -181,17 +164,13 @@ func (r *VMInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 // Configure sets up the resource with the provider client.
 
 func (r *VMInterfaceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -200,17 +179,14 @@ func (r *VMInterfaceResource) Configure(ctx context.Context, req resource.Config
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // mapVMInterfaceToState maps a VMInterface from the API to the Terraform state model.
 
 func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *netbox.VMInterface, data *VMInterfaceResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", iface.GetId()))
 
 	data.Name = types.StringValue(iface.GetName())
@@ -229,109 +205,76 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 	// Enabled
 
 	if iface.HasEnabled() {
-
 		data.Enabled = types.BoolValue(iface.GetEnabled())
-
 	} else {
-
 		data.Enabled = types.BoolValue(true)
-
 	}
 
 	// MTU
 
 	if iface.Mtu.IsSet() && iface.Mtu.Get() != nil {
-
 		data.MTU = types.Int64Value(int64(*iface.Mtu.Get()))
-
 	} else {
-
 		data.MTU = types.Int64Null()
-
 	}
 
 	// MAC Address
 
 	if iface.MacAddress.IsSet() && iface.MacAddress.Get() != nil && *iface.MacAddress.Get() != "" {
-
 		apiMac := *iface.MacAddress.Get()
 
 		if !data.MACAddress.IsNull() && !data.MACAddress.IsUnknown() {
-
 			if strings.EqualFold(data.MACAddress.ValueString(), apiMac) {
-
 				// Keep user's casing
 
 				apiMac = data.MACAddress.ValueString()
-
 			}
-
 		}
 
 		data.MACAddress = types.StringValue(apiMac)
-
 	} else {
-
 		data.MACAddress = types.StringNull()
-
 	}
 
 	// Description
 
 	if iface.HasDescription() && iface.GetDescription() != "" {
-
 		data.Description = types.StringValue(iface.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Mode
 
 	if iface.HasMode() {
-
 		data.Mode = types.StringValue(string(iface.Mode.GetValue()))
-
 	} else {
-
 		data.Mode = types.StringNull()
-
 	}
 
 	// Untagged VLAN
 
 	if iface.UntaggedVlan.IsSet() && iface.UntaggedVlan.Get() != nil {
-
 		vlan := iface.UntaggedVlan.Get()
 
 		data.UntaggedVLAN = utils.UpdateReferenceAttribute(data.UntaggedVLAN, vlan.GetName(), "", vlan.GetId())
-
 	} else {
-
 		data.UntaggedVLAN = types.StringNull()
-
 	}
 
 	// VRF
 
 	if iface.Vrf.IsSet() && iface.Vrf.Get() != nil {
-
 		vrf := iface.Vrf.Get()
 
 		data.VRF = utils.UpdateReferenceAttribute(data.VRF, vrf.GetName(), "", vrf.GetId())
-
 	} else {
-
 		data.VRF = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if iface.HasTags() {
-
 		tags := utils.NestedTagsToTagModels(iface.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -339,23 +282,17 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if iface.HasCustomFields() && !data.CustomFields.IsNull() {
-
 		var stateCustomFields []utils.CustomFieldModel
 
 		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
@@ -363,9 +300,7 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(iface.GetCustomFields(), stateCustomFields)
@@ -375,25 +310,18 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 		diags.Append(cfValueDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else if data.CustomFields.IsNull() {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }
 
 // buildVMInterfaceRequest builds a WritableVMInterfaceRequest from the resource model.
 
 func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, data *VMInterfaceResourceModel, diags *diag.Diagnostics) *netbox.WritableVMInterfaceRequest {
-
 	// Lookup virtual machine (required)
 
 	vm, vmDiags := netboxlookup.LookupVirtualMachine(ctx, r.client, data.VirtualMachine.ValueString())
@@ -401,13 +329,10 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, data 
 	diags.Append(vmDiags...)
 
 	if diags.HasError() {
-
 		return nil
-
 	}
 
 	ifaceRequest := &netbox.WritableVMInterfaceRequest{
-
 		VirtualMachine: *vm,
 
 		Name: data.Name.ValueString(),
@@ -416,95 +341,75 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, data 
 	// Enabled
 
 	if utils.IsSet(data.Enabled) {
-
 		enabled := data.Enabled.ValueBool()
 
 		ifaceRequest.Enabled = &enabled
-
 	}
 
 	// MTU
 
 	if utils.IsSet(data.MTU) {
-
 		mtu, err := utils.SafeInt32FromValue(data.MTU)
 
 		if err != nil {
-
 			diags.AddError("Invalid MTU value", fmt.Sprintf("MTU value overflow: %s", err))
 
 			return nil
-
 		}
 
 		ifaceRequest.Mtu = *netbox.NewNullableInt32(&mtu)
-
 	}
 
 	// MAC Address
 
 	if utils.IsSet(data.MACAddress) {
-
 		macAddress := data.MACAddress.ValueString()
 
 		ifaceRequest.MacAddress = *netbox.NewNullableString(&macAddress)
-
 	}
 
 	// Description
 
 	if utils.IsSet(data.Description) {
-
 		description := data.Description.ValueString()
 
 		ifaceRequest.Description = &description
-
 	}
 
 	// Mode
 
 	if utils.IsSet(data.Mode) {
-
 		mode := netbox.PatchedWritableInterfaceRequestMode(data.Mode.ValueString())
 
 		ifaceRequest.Mode = &mode
-
 	}
 
 	// Untagged VLAN
 
 	if utils.IsSet(data.UntaggedVLAN) {
-
 		vlan, vlanDiags := netboxlookup.LookupVLAN(ctx, r.client, data.UntaggedVLAN.ValueString())
 
 		diags.Append(vlanDiags...)
 
 		if diags.HasError() {
-
 			return nil
-
 		}
 
 		ifaceRequest.UntaggedVlan = *netbox.NewNullableBriefVLANRequest(vlan)
-
 	}
 
 	// VRF
 
 	if utils.IsSet(data.VRF) {
-
 		vrf, vrfDiags := netboxlookup.LookupVRF(ctx, r.client, data.VRF.ValueString())
 
 		diags.Append(vrfDiags...)
 
 		if diags.HasError() {
-
 			return nil
-
 		}
 
 		ifaceRequest.Vrf = *netbox.NewNullableBriefVRFRequest(vrf)
-
 	}
 
 	// Apply metadata fields (tags, custom_fields)
@@ -512,31 +417,24 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, data 
 	utils.ApplyMetadataFields(ctx, ifaceRequest, data.Tags, data.CustomFields, diags)
 
 	if diags.HasError() {
-
 		return nil
-
 	}
 
 	return ifaceRequest
-
 }
 
 // Create creates a new VM interface resource.
 
 func (r *VMInterfaceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data VMInterfaceResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating VM interface", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"virtual_machine": data.VirtualMachine.ValueString(),
@@ -547,9 +445,7 @@ func (r *VMInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 	ifaceRequest := r.buildVMInterfaceRequest(ctx, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Call the API
@@ -559,7 +455,6 @@ func (r *VMInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating VM interface",
@@ -568,11 +463,9 @@ func (r *VMInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Created VM interface", map[string]interface{}{
-
 		"id": iface.GetId(),
 
 		"name": iface.GetName(),
@@ -583,27 +476,21 @@ func (r *VMInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 	r.mapVMInterfaceToState(ctx, iface, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read refreshes the Terraform state with the latest data.
 
 func (r *VMInterfaceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data VMInterfaceResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -615,7 +502,6 @@ func (r *VMInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 	ifaceIDInt, err := utils.ParseID(ifaceID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid VM Interface ID",
@@ -624,11 +510,9 @@ func (r *VMInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading VM interface", map[string]interface{}{
-
 		"id": ifaceID,
 	})
 
@@ -639,18 +523,14 @@ func (r *VMInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "VM interface not found, removing from state", map[string]interface{}{
-
 				"id": ifaceID,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -661,7 +541,6 @@ func (r *VMInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -669,27 +548,21 @@ func (r *VMInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 	r.mapVMInterfaceToState(ctx, iface, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the resource and sets the updated Terraform state.
 
 func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data VMInterfaceResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -701,7 +574,6 @@ func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	ifaceIDInt, err := utils.ParseID(ifaceID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid VM Interface ID",
@@ -710,11 +582,9 @@ func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating VM interface", map[string]interface{}{
-
 		"id": ifaceID,
 
 		"name": data.Name.ValueString(),
@@ -725,9 +595,7 @@ func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	ifaceRequest := r.buildVMInterfaceRequest(ctx, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Call the API
@@ -737,7 +605,6 @@ func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating VM interface",
@@ -746,11 +613,9 @@ func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updated VM interface", map[string]interface{}{
-
 		"id": iface.GetId(),
 
 		"name": iface.GetName(),
@@ -761,27 +626,21 @@ func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	r.mapVMInterfaceToState(ctx, iface, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the resource and removes the Terraform state.
 
 func (r *VMInterfaceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data VMInterfaceResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse the ID
@@ -793,7 +652,6 @@ func (r *VMInterfaceResource) Delete(ctx context.Context, req resource.DeleteReq
 	ifaceIDInt, err := utils.ParseID(ifaceID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid VM Interface ID",
@@ -802,11 +660,9 @@ func (r *VMInterfaceResource) Delete(ctx context.Context, req resource.DeleteReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting VM interface", map[string]interface{}{
-
 		"id": ifaceID,
 	})
 
@@ -817,18 +673,14 @@ func (r *VMInterfaceResource) Delete(ctx context.Context, req resource.DeleteReq
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			// Already deleted, consider success
 
 			tflog.Debug(ctx, "VM interface already deleted", map[string]interface{}{
-
 				"id": ifaceID,
 			})
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -839,20 +691,15 @@ func (r *VMInterfaceResource) Delete(ctx context.Context, req resource.DeleteReq
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted VM interface", map[string]interface{}{
-
 		"id": ifaceID,
 	})
-
 }
 
 // ImportState imports an existing resource into Terraform.
 
 func (r *VMInterfaceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
