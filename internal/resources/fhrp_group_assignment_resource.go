@@ -35,9 +35,7 @@ var (
 // NewFHRPGroupAssignmentResource returns a new resource implementing the FHRP group assignment resource.
 
 func NewFHRPGroupAssignmentResource() resource.Resource {
-
 	return &FHRPGroupAssignmentResource{}
-
 }
 
 // FHRPGroupAssignmentResource defines the resource implementation.
@@ -65,41 +63,32 @@ type FHRPGroupAssignmentResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *FHRPGroupAssignmentResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_fhrp_group_assignment"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *FHRPGroupAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages an FHRP group assignment in NetBox. FHRP group assignments link FHRP groups to interfaces.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the FHRP group assignment.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"group_id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the FHRP group to assign.",
 
 				Required: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.RegexMatches(
 
 						validators.IntegerRegex(),
@@ -110,25 +99,21 @@ func (r *FHRPGroupAssignmentResource) Schema(ctx context.Context, req resource.S
 			},
 
 			"interface_type": schema.StringAttribute{
-
 				MarkdownDescription: "The type of interface. Valid values: `dcim.interface`, `virtualization.vminterface`.",
 
 				Required: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.OneOf("dcim.interface", "virtualization.vminterface"),
 				},
 			},
 
 			"interface_id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the interface to assign the FHRP group to.",
 
 				Required: true,
 
 				Validators: []validator.String{
-
 					stringvalidator.RegexMatches(
 
 						validators.IntegerRegex(),
@@ -139,7 +124,6 @@ func (r *FHRPGroupAssignmentResource) Schema(ctx context.Context, req resource.S
 			},
 
 			"priority": schema.Int64Attribute{
-
 				MarkdownDescription: "The priority of this assignment (0-255).",
 
 				Required: true,
@@ -147,23 +131,18 @@ func (r *FHRPGroupAssignmentResource) Schema(ctx context.Context, req resource.S
 			"display_name": nbschema.DisplayNameAttribute("FHRP group assignment"),
 		},
 	}
-
 }
 
 // Configure adds the provider configured client to the resource.
 
 func (r *FHRPGroupAssignmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -172,25 +151,20 @@ func (r *FHRPGroupAssignmentResource) Configure(ctx context.Context, req resourc
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates a new FHRP group assignment.
 
 func (r *FHRPGroupAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data FHRPGroupAssignmentResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse group ID
@@ -198,7 +172,6 @@ func (r *FHRPGroupAssignmentResource) Create(ctx context.Context, req resource.C
 	groupID, err := utils.ParseID(data.GroupID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Group ID",
@@ -207,7 +180,6 @@ func (r *FHRPGroupAssignmentResource) Create(ctx context.Context, req resource.C
 		)
 
 		return
-
 	}
 
 	// Parse interface ID
@@ -215,7 +187,6 @@ func (r *FHRPGroupAssignmentResource) Create(ctx context.Context, req resource.C
 	interfaceID, err := utils.ParseID(data.InterfaceID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Interface ID",
@@ -224,11 +195,9 @@ func (r *FHRPGroupAssignmentResource) Create(ctx context.Context, req resource.C
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating FHRP group assignment", map[string]interface{}{
-
 		"group_id": groupID,
 
 		"interface_type": data.InterfaceType.ValueString(),
@@ -245,7 +214,6 @@ func (r *FHRPGroupAssignmentResource) Create(ctx context.Context, req resource.C
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error looking up FHRP group",
@@ -254,11 +222,9 @@ func (r *FHRPGroupAssignmentResource) Create(ctx context.Context, req resource.C
 		)
 
 		return
-
 	}
 
 	// Create BriefFHRPGroupRequest from the looked up group
-
 	// Protocol is already a BriefFHRPGroupProtocol string type
 
 	briefGroup := netbox.NewBriefFHRPGroupRequest(fhrpGroup.GetProtocol(), fhrpGroup.GetGroupId())
@@ -266,11 +232,9 @@ func (r *FHRPGroupAssignmentResource) Create(ctx context.Context, req resource.C
 	priority, err := utils.SafeInt32FromValue(data.Priority)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Priority value overflow: %s", err))
 
 		return
-
 	}
 
 	assignmentRequest := netbox.NewFHRPGroupAssignmentRequest(
@@ -297,7 +261,6 @@ func (r *FHRPGroupAssignmentResource) Create(ctx context.Context, req resource.C
 		Execute()
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating FHRP group assignment",
@@ -306,7 +269,6 @@ func (r *FHRPGroupAssignmentResource) Create(ctx context.Context, req resource.C
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -314,26 +276,21 @@ func (r *FHRPGroupAssignmentResource) Create(ctx context.Context, req resource.C
 	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Created FHRP group assignment", map[string]interface{}{
-
 		"id": assignment.GetId(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read reads the FHRP group assignment.
 
 func (r *FHRPGroupAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data FHRPGroupAssignmentResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -341,7 +298,6 @@ func (r *FHRPGroupAssignmentResource) Read(ctx context.Context, req resource.Rea
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID format",
@@ -350,11 +306,9 @@ func (r *FHRPGroupAssignmentResource) Read(ctx context.Context, req resource.Rea
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading FHRP group assignment", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -365,13 +319,10 @@ func (r *FHRPGroupAssignmentResource) Read(ctx context.Context, req resource.Rea
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -382,7 +333,6 @@ func (r *FHRPGroupAssignmentResource) Read(ctx context.Context, req resource.Rea
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -390,21 +340,17 @@ func (r *FHRPGroupAssignmentResource) Read(ctx context.Context, req resource.Rea
 	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the FHRP group assignment.
 
 func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data FHRPGroupAssignmentResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -412,7 +358,6 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID format",
@@ -421,7 +366,6 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 		)
 
 		return
-
 	}
 
 	// Parse group ID
@@ -429,7 +373,6 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 	groupID, err := utils.ParseID(data.GroupID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Group ID",
@@ -438,7 +381,6 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 		)
 
 		return
-
 	}
 
 	// Parse interface ID
@@ -446,7 +388,6 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 	interfaceID, err := utils.ParseID(data.InterfaceID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Interface ID",
@@ -455,11 +396,9 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating FHRP group assignment", map[string]interface{}{
-
 		"id": id,
 
 		"group_id": groupID,
@@ -478,7 +417,6 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error looking up FHRP group",
@@ -487,11 +425,9 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 		)
 
 		return
-
 	}
 
 	// Create BriefFHRPGroupRequest from the looked up group
-
 	// Protocol is already a BriefFHRPGroupProtocol string type
 
 	briefGroup := netbox.NewBriefFHRPGroupRequest(fhrpGroup.GetProtocol(), fhrpGroup.GetGroupId())
@@ -499,11 +435,9 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 	priority, err := utils.SafeInt32FromValue(data.Priority)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Priority value overflow: %s", err))
 
 		return
-
 	}
 
 	assignmentRequest := netbox.NewFHRPGroupAssignmentRequest(
@@ -530,7 +464,6 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 		Execute()
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating FHRP group assignment",
@@ -539,7 +472,6 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -547,26 +479,21 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Updated FHRP group assignment", map[string]interface{}{
-
 		"id": assignment.GetId(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the FHRP group assignment.
 
 func (r *FHRPGroupAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data FHRPGroupAssignmentResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -574,7 +501,6 @@ func (r *FHRPGroupAssignmentResource) Delete(ctx context.Context, req resource.D
 	id, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid ID format",
@@ -583,11 +509,9 @@ func (r *FHRPGroupAssignmentResource) Delete(ctx context.Context, req resource.D
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting FHRP group assignment", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -596,11 +520,8 @@ func (r *FHRPGroupAssignmentResource) Delete(ctx context.Context, req resource.D
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -611,28 +532,22 @@ func (r *FHRPGroupAssignmentResource) Delete(ctx context.Context, req resource.D
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted FHRP group assignment", map[string]interface{}{
-
 		"id": id,
 	})
-
 }
 
 // ImportState imports an existing FHRP group assignment.
 
 func (r *FHRPGroupAssignmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // mapResponseToState maps the API response to the Terraform state.
 
 func (r *FHRPGroupAssignmentResource) mapResponseToState(ctx context.Context, assignment *netbox.FHRPGroupAssignment, data *FHRPGroupAssignmentResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", assignment.GetId()))
 
 	group := assignment.GetGroup()
