@@ -206,9 +206,10 @@ These need additional test coverage. Pattern to add:
 2. ✅ Test Batch A2: circuit, circuit_termination, circuit_type, cluster, cluster_group - Commit fe919b6
 3. ✅ Test Batch A3: cluster_type, config_context, console_port, console_port_template - Commit 1f646fb
 4. ✅ Test Batch A4: console_server_port, console_server_port_template, contact_assignment - Commit e6ee1de
-5. Test Batch A5-A8: Add missing tests for remaining datasources
+5. ✅ Test Batch A5: contact_group, event_rule, fhrp_group_assignment, interface - Commit 84ea32a
+6. Test Batch A6-A8: Add missing tests for remaining datasources
 
-**Progress**: 17 datasources improved, 48 tests total (46 passed, 2 skipped)
+**Progress**: 21 datasources improved, 58 tests total (56 passed, 2 skipped)
 
 ---
 
