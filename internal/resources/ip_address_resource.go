@@ -51,8 +51,6 @@ type IPAddressResourceModel struct {
 
 	Address types.String `tfsdk:"address"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	VRF types.String `tfsdk:"vrf"`
 
 	Tenant types.String `tfsdk:"tenant"`
@@ -102,8 +100,6 @@ func (r *IPAddressResource) Schema(ctx context.Context, req resource.SchemaReque
 
 				Required: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("IP address"),
 
 			"vrf": schema.StringAttribute{
 				MarkdownDescription: "The name or ID of the VRF this IP address is assigned to.",
@@ -556,9 +552,7 @@ func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *
 	// DisplayName
 
 	if ipAddress.Display != "" {
-		data.DisplayName = types.StringValue(ipAddress.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// VRF

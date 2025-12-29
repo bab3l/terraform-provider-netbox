@@ -43,7 +43,6 @@ type ASNResource struct {
 type ASNResourceModel struct {
 	ID           types.String `tfsdk:"id"`
 	ASN          types.Int64  `tfsdk:"asn"`
-	DisplayName  types.String `tfsdk:"display_name"`
 	RIR          types.String `tfsdk:"rir"`
 	Tenant       types.String `tfsdk:"tenant"`
 	Description  types.String `tfsdk:"description"`
@@ -73,7 +72,6 @@ func (r *ASNResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				MarkdownDescription: "The 16- or 32-bit autonomous system number.",
 				Required:            true,
 			},
-			"display_name": nbschema.DisplayNameAttribute("ASN"),
 			"rir": schema.StringAttribute{
 				MarkdownDescription: "The Regional Internet Registry (RIR) that manages this ASN. Can be specified by name, slug, or ID.",
 				Optional:            true,
@@ -340,7 +338,6 @@ func (r *ASNResource) buildASNRequest(ctx context.Context, data *ASNResourceMode
 func (r *ASNResource) mapResponseToModel(ctx context.Context, asn *netbox.ASN, data *ASNResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", asn.GetId()))
 	data.ASN = types.Int64Value(asn.GetAsn())
-	data.DisplayName = types.StringValue(asn.GetDisplay())
 
 	// Map RIR - preserve the user's input format (ID or slug)
 	if asn.Rir.IsSet() && asn.Rir.Get() != nil {

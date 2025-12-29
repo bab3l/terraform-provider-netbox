@@ -55,17 +55,6 @@ func ComputedIDAttribute(resourceName string) schema.StringAttribute {
 	}
 }
 
-// DisplayNameAttribute returns a computed display name attribute.
-// This is used to show the human-readable name of a resource referenced by ID.
-
-func DisplayNameAttribute(resourceName string) schema.StringAttribute {
-	return schema.StringAttribute{
-		MarkdownDescription: "Human-readable name of the " + resourceName + " (computed from the referenced resource).",
-
-		Computed: true,
-	}
-}
-
 // NameAttribute returns a required name attribute with standard validation.
 
 func NameAttribute(resourceName string, maxLength int) schema.StringAttribute {

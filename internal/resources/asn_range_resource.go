@@ -51,7 +51,6 @@ type ASNRangeResourceModel struct {
 	End          types.String `tfsdk:"end"`
 	Tenant       types.String `tfsdk:"tenant"`
 	Description  types.String `tfsdk:"description"`
-	DisplayName  types.String `tfsdk:"display_name"`
 	Tags         types.Set    `tfsdk:"tags"`
 	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
@@ -97,7 +96,6 @@ func (r *ASNRangeResource) Schema(ctx context.Context, req resource.SchemaReques
 				},
 			},
 			"tenant":       nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this ASN range."),
-			"display_name": nbschema.DisplayNameAttribute("ASN range"),
 		},
 	}
 
@@ -429,9 +427,7 @@ func (r *ASNRangeResource) mapASNRangeToState(ctx context.Context, asnRange *net
 
 	// Display name
 	if asnRange.Display != "" {
-		data.DisplayName = types.StringValue(asnRange.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Tags

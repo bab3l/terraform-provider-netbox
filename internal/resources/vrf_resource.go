@@ -41,8 +41,6 @@ type VRFResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	RD types.String `tfsdk:"rd"`
 
 	Tenant types.String `tfsdk:"tenant"`
@@ -72,8 +70,6 @@ func (r *VRFResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 			"id": nbschema.IDAttribute("VRF"),
 
 			"name": nbschema.NameAttribute("VRF", 100),
-
-			"display_name": nbschema.DisplayNameAttribute("VRF"),
 
 			"rd": schema.StringAttribute{
 				MarkdownDescription: "Route distinguisher (RD) as defined in RFC 4364. Format: `ASN:nn` or `IP:nn`. Example: `65000:1` or `192.168.1.1:1`.",
@@ -448,9 +444,7 @@ func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *
 
 	// DisplayName
 	if vrf.Display != "" {
-		data.DisplayName = types.StringValue(vrf.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Route distinguisher

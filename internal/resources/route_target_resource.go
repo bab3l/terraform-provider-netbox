@@ -58,8 +58,6 @@ type RouteTargetResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -97,8 +95,6 @@ func (r *RouteTargetResource) Schema(ctx context.Context, req resource.SchemaReq
 			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this route target."),
 
 			"tenant_id": nbschema.ComputedIDAttribute("tenant"),
-
-			"display_name": nbschema.DisplayNameAttribute("route target"),
 		},
 	}
 
@@ -458,9 +454,7 @@ func (r *RouteTargetResource) mapRouteTargetToState(ctx context.Context, rt *net
 
 	// Map display_name
 	if rt.Display != "" {
-		data.DisplayName = types.StringValue(rt.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Tags
