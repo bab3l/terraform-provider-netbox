@@ -518,19 +518,26 @@ Ensure all example Terraform configurations in `examples/` directory are:
 - Hierarchical relationships (parent-child) correctly shown
 - Good mix of simple and comprehensive examples
 
-#### Batch 7.3: Device Infrastructure (12 resources)
-- [ ] netbox_device
-- [ ] netbox_device_type
-- [ ] netbox_device_role
-- [ ] netbox_device_bay
-- [ ] netbox_device_bay_template
-- [ ] netbox_manufacturer
-- [ ] netbox_platform
-- [ ] netbox_role
-- [ ] netbox_rack
-- [ ] netbox_rack_type
-- [ ] netbox_rack_role
-- [ ] netbox_rack_reservation
+#### Batch 7.3: Device Infrastructure (12 resources) ✅ COMPLETE
+- [x] netbox_device - Clean, shows references using name/model/slug
+- [x] netbox_device_type - Clean, uses manufacturer.id reference
+- [x] netbox_device_role - Clean, simple example
+- [x] netbox_device_bay - Clean, uses device name reference
+- [x] netbox_device_bay_template - Excellent, comprehensive with count example
+- [x] netbox_manufacturer - Clean, simple example
+- [x] netbox_platform - Clean, uses manufacturer name reference
+- [x] netbox_role - Clean, simple example
+- [x] netbox_rack - Clean, uses site/role name references
+- [x] netbox_rack_type - Clean, uses manufacturer name reference
+- [x] netbox_rack_role - Clean, simple example
+- [x] netbox_rack_reservation - Clean, uses rack name and data source for user
+
+**Review Notes**:
+- All examples verified as correct
+- No removed `_id` fields referenced
+- Good variety of reference patterns (id, name, slug, model)
+- Device bay template shows advanced pattern with count
+- All examples realistic and follow best practices
 
 #### Batch 7.4: Device Components - Ports (10 resources)
 - [ ] netbox_interface
