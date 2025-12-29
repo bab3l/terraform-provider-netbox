@@ -163,7 +163,7 @@ These need additional test coverage. Pattern to add:
 | Sub-batch | Datasources | Status |
 |-----------|-------------|--------|
 | A1 | aggregate, asn, asn_range, cable, cable_termination | ✅ COMPLETE |
-| A2 | circuit, circuit_termination, circuit_type, cluster, cluster_group | Pending |
+| A2 | circuit, circuit_termination, circuit_type, cluster, cluster_group | ✅ COMPLETE |
 | A3 | cluster_type, config_context, console_port, console_port_template | Pending |
 | A4 | console_server_port, console_server_port_template, contact_assignment | Pending |
 | A5 | contact_group, event_rule, fhrp_group_assignment, interface | Pending |
@@ -180,6 +180,15 @@ These need additional test coverage. Pattern to add:
 - **Time**: 25 minutes
 - **Tests**: 12 passed, 2 skipped
 
+**Test Batch A2 - ✅ COMPLETE** (Commit fe919b6)
+- **Circuit**: Split basic → byID + byCID (3 tests total)
+- **Circuit Termination**: Renamed basic → byID (2 tests total)
+- **Circuit Type**: Split basic → byID + byName + bySlug (4 tests total)
+- **Cluster**: Split basic → byID + byName (3 tests total)
+- **Cluster Group**: Renamed basic → byID (2 tests total)
+- **Time**: 20 minutes
+- **Tests**: 14 passed
+
 ---
 
 ## Implementation Order
@@ -194,9 +203,10 @@ These need additional test coverage. Pattern to add:
 
 ### Phase 2: Test Coverage (Secondary)
 1. ✅ Test Batch A1: aggregate, asn, asn_range, cable, cable_termination - Commit 9337fb4
-2. Test Batch A2-A8: Add missing tests for remaining datasources
+2. ✅ Test Batch A2: circuit, circuit_termination, circuit_type, cluster, cluster_group - Commit fe919b6
+3. Test Batch A3-A8: Add missing tests for remaining datasources
 
-**A1 Complete**: 5 datasources improved, 14 tests total (12 passed, 2 skipped)
+**Progress**: 10 datasources improved, 28 tests total (26 passed, 2 skipped)
 
 ---
 
