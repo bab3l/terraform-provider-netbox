@@ -445,39 +445,76 @@ Users who reference `netbox_virtual_machine.vm.tenant_id` will need to change to
 - v0.0.9: Fix display_name and reference preservation ✅
 - v0.0.10: Remove all duplicate `_id` fields (breaking change, alpha version)
 
-### Phase 6: Review Non-Standard ID Fields (Future Consideration)
+### Phase 6: Review Non-Standard Fields ✅ COMPLETE
 
-**Note**: The following fields were identified in the original audit but don't follow the typical "duplicate computed ID" pattern. They require further investigation to determine if they should be removed or retained.
+**Status**: Analysis Complete - No Action Needed
 
-**vlan_group_resource.go - scope_id field:**
-- Current: `scope_id` is OPTIONAL (not computed), used with `scope_type` to identify a scope object
-- Pattern: Composite key (scope_type + scope_id) with no primary "scope" reference field
-- Question: Is this a polymorphic reference pattern that should be kept, or can it be replaced?
+The 7 fields deferred from Phase 5 have been analyzed and confirmed as legitimate:
+- **vlan_group**: `scope_id` + `scope_type` (polymorphic composite key pattern)
+- **fhrp_group_assignment**: `group_id`, `interface_id` (required primitive inputs)
+- **inventory_item**: `part_id` (manufacturer part number string, not reference)
+- **inventory_item_template**: `part_id`, `component_id` (part number + polymorphic component link)
+- **provider_network**: `service_id` (external provider service identifier)
 
-**fhrp_group_assignment_resource.go - group_id, interface_id fields:**
-- Current: Both `group_id` and `interface_id` are REQUIRED fields (not computed)
-- Pattern: These are the primary way to specify relationships, not duplicates of other fields
-- Question: Are these actually the primary fields, or should there be reference fields instead?
+**Verdict**: All fields serve distinct purposes and should remain in schema.
 
-**inventory_item_resource.go - part_id field:**
-- Current: `part_id` is OPTIONAL string field for manufacturer part numbers (e.g., "ABC-123")
-- Pattern: Not a reference ID - it's a part number/SKU string
-- Question: This appears to be business data, not a duplicate reference. Should it be kept?
+---
 
-**inventory_item_template_resource.go - part_id, component_id fields:**
-- Current: `part_id` is optional part number string, `component_id` is optional
-- Pattern: Similar to inventory_item - `part_id` is a part number, `component_id` needs investigation
-- Question: Are these business data fields or actual duplicate references?
+### Phase 7: Update Examples
 
-**provider_network_resource.go - service_id field:**
-- Current: `service_id` is OPTIONAL string field for service identifiers from circuit provider
-- Pattern: Not a reference ID - it's a service identifier/account number string
-- Question: This appears to be business data (like an account number), not a duplicate reference. Should it be kept?
+**Status**: 📋 Planning
 
-**Recommendation**: Review Netbox API documentation and existing Terraform configurations to determine:
-1. Whether these fields serve different purposes than typical reference duplicates
-2. If removing them would break legitimate use cases
-3. Whether alternative patterns exist for these scenarios
+Ensure all example Terraform configurations in `examples/` directory are:
+- Using current resource schemas (no `_id` fields removed in Phase 5)
+- Following best practices for resource references
+- Syntactically valid and up-to-date with provider features
+- Well-documented with comments
+
+**Scope**:
+- [ ] Review all `examples/resources/*.tf` files
+- [ ] Review all `examples/data-sources/*.tf` files
+- [ ] Update any examples using removed `_id` fields
+- [ ] Verify examples match current schema definitions
+- [ ] Add missing examples for new resources (if any)
+
+---
+
+### Phase 8: Regenerate Documentation
+
+**Status**: 📋 Planning
+
+Use terraform-plugin-docs to regenerate provider documentation from:
+- Resource/datasource schema definitions
+- Example configurations
+- Description fields
+
+**Tasks**:
+- [ ] Run `make docs` or `tfplugindocs generate`
+- [ ] Verify all resources have documentation in `docs/resources/`
+- [ ] Verify all data sources have documentation in `docs/data-sources/`
+- [ ] Review generated docs for accuracy
+- [ ] Commit updated documentation
+
+**Note**: Documentation should reflect Phase 5 changes (no `_id` fields in schemas).
+
+---
+
+### Phase 9: Terraform Integration Tests
+
+**Status**: 📋 Planning
+
+Review and update Terraform configuration tests in `test/` directory:
+- Ensure tests use current resource schemas
+- Verify tests pass against running Netbox instance
+- Update any tests using removed `_id` fields
+- Add tests for new functionality (if applicable)
+
+**Scope**:
+- [ ] Audit all `.tf` files in `test/` directory
+- [ ] Identify tests using removed `_id` fields
+- [ ] Update tests to use primary reference fields
+- [ ] Run tests against Netbox (if test environment available)
+- [ ] Document test coverage and any gaps
 
 ## Script Usage
 
