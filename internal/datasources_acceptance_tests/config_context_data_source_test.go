@@ -39,7 +39,7 @@ func TestAccConfigContextDataSource_IDPreservation(t *testing.T) {
 	})
 }
 
-func TestAccConfigContextDataSource_basic(t *testing.T) {
+func TestAccConfigContextDataSource_byID(t *testing.T) {
 
 	t.Parallel()
 
