@@ -44,8 +44,6 @@ type RackResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Site types.String `tfsdk:"site"`
 
 	SiteID types.String `tfsdk:"site_id"`
@@ -119,8 +117,6 @@ func (r *RackResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"id": nbschema.IDAttribute("rack"),
 
 			"name": nbschema.NameAttribute("rack", 100),
-
-			"display_name": nbschema.DisplayNameAttribute("rack"),
 
 			"site": nbschema.RequiredReferenceAttribute("site", "ID or slug of the site where this rack is located. Required."),
 
@@ -1144,9 +1140,7 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 
 	// DisplayName
 	if rack.Display != "" {
-		data.DisplayName = types.StringValue(rack.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map site

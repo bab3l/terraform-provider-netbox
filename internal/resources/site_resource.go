@@ -42,7 +42,6 @@ type SiteResourceModel struct {
 	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
 	Slug         types.String `tfsdk:"slug"`
-	DisplayName  types.String `tfsdk:"display_name"`
 	Status       types.String `tfsdk:"status"`
 	Region       types.String `tfsdk:"region"`
 	RegionID     types.String `tfsdk:"region_id"`
@@ -68,7 +67,6 @@ func (r *SiteResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"id":           nbschema.IDAttribute("site"),
 			"name":         nbschema.NameAttribute("site", 100),
 			"slug":         nbschema.SlugAttribute("site"),
-			"display_name": nbschema.DisplayNameAttribute("site"),
 			"status": nbschema.StatusAttribute(
 				[]string{"planned", "staging", "active", "decommissioning", "retired"},
 				"Operational status of the site.",
@@ -381,7 +379,6 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 	data.ID = types.StringValue(fmt.Sprintf("%d", site.GetId()))
 	data.Name = types.StringValue(site.GetName())
 	data.Slug = types.StringValue(site.GetSlug())
-	data.DisplayName = types.StringValue(site.GetDisplay())
 
 	// Handle status
 	if site.HasStatus() {

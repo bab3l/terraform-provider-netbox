@@ -82,8 +82,6 @@ type RackTypeResourceModel struct {
 
 	Comments types.String `tfsdk:"comments"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -113,8 +111,6 @@ func (r *RackTypeResource) Schema(ctx context.Context, req resource.SchemaReques
 			"slug": nbschema.SlugAttribute("rack type"),
 
 			"description": nbschema.DescriptionAttribute("rack type"),
-
-			"display_name": nbschema.DisplayNameAttribute("rack type"),
 
 			"form_factor": schema.StringAttribute{
 				MarkdownDescription: "Form factor of the rack type. Valid values include: 2-post-frame, 4-post-frame, 4-post-cabinet, wall-frame, wall-frame-vertical, wall-cabinet, wall-cabinet-vertical.",
@@ -670,9 +666,7 @@ func (r *RackTypeResource) mapResponseToModel(ctx context.Context, rackType *net
 	// Map display_name
 
 	if rackType.Display != "" {
-		data.DisplayName = types.StringValue(rackType.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map form_factor

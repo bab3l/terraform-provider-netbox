@@ -53,8 +53,6 @@ type SiteGroupResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -81,8 +79,6 @@ func (r *SiteGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed:            true,
 				MarkdownDescription: "The numeric ID of the parent site group.",
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("site group"),
 		},
 	}
 
@@ -425,9 +421,7 @@ func (r *SiteGroupResource) mapSiteGroupToState(ctx context.Context, siteGroup *
 	// Handle display_name
 
 	if siteGroup.GetDisplay() != "" {
-		data.DisplayName = types.StringValue(siteGroup.GetDisplay())
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Handle tags
