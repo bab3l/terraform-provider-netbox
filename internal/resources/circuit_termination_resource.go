@@ -47,7 +47,6 @@ type CircuitTerminationResourceModel struct {
 	ID              types.String `tfsdk:"id"`
 	Circuit         types.String `tfsdk:"circuit"`
 	TermSide        types.String `tfsdk:"term_side"`
-	DisplayName     types.String `tfsdk:"display_name"`
 	Site            types.String `tfsdk:"site"`
 	ProviderNetwork types.String `tfsdk:"provider_network"`
 	PortSpeed       types.Int64  `tfsdk:"port_speed"`
@@ -88,7 +87,6 @@ func (r *CircuitTerminationResource) Schema(ctx context.Context, req resource.Sc
 					stringvalidator.OneOf("A", "Z"),
 				},
 			},
-			"display_name": nbschema.DisplayNameAttribute("circuit termination"),
 			"site": schema.StringAttribute{
 				MarkdownDescription: "The name, slug, or ID of the site where this termination is located.",
 				Optional:            true,
@@ -416,9 +414,7 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 
 	// DisplayName
 	if termination.Display != "" {
-		data.DisplayName = types.StringValue(termination.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map Circuit - preserve user's input format

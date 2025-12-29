@@ -41,7 +41,6 @@ type CircuitGroupAssignmentResourceModel struct {
 	Group        types.String `tfsdk:"group_id"`
 	Circuit      types.String `tfsdk:"circuit_id"`
 	Priority     types.String `tfsdk:"priority"`
-	DisplayName  types.String `tfsdk:"display_name"`
 	Tags         types.Set    `tfsdk:"tags"`
 	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
@@ -76,7 +75,6 @@ func (r *CircuitGroupAssignmentResource) Schema(ctx context.Context, req resourc
 					stringvalidator.OneOf("primary", "secondary", "tertiary", "inactive", ""),
 				},
 			},
-			"display_name": nbschema.DisplayNameAttribute("circuit group assignment"),
 		},
 	}
 
@@ -362,9 +360,7 @@ func (r *CircuitGroupAssignmentResource) mapResponseToState(ctx context.Context,
 
 	// DisplayName
 	if assignment.Display != "" {
-		data.DisplayName = types.StringValue(assignment.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Group (required field) - preserve user's input format

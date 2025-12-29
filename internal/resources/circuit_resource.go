@@ -46,7 +46,6 @@ type CircuitResource struct {
 type CircuitResourceModel struct {
 	ID              types.String `tfsdk:"id"`
 	Cid             types.String `tfsdk:"cid"`
-	DisplayName     types.String `tfsdk:"display_name"`
 	CircuitProvider types.String `tfsdk:"circuit_provider"`
 	Type            types.String `tfsdk:"type"`
 	Status          types.String `tfsdk:"status"`
@@ -84,7 +83,6 @@ func (r *CircuitResource) Schema(ctx context.Context, req resource.SchemaRequest
 					stringvalidator.LengthAtLeast(1),
 				},
 			},
-			"display_name": nbschema.DisplayNameAttribute("circuit"),
 			"circuit_provider": schema.StringAttribute{
 				MarkdownDescription: "The circuit provider (carrier or ISP) supplying this circuit. Can be specified by name, slug, or ID.",
 				Required:            true,
@@ -400,9 +398,7 @@ func (r *CircuitResource) mapCircuitToState(ctx context.Context, circuit *netbox
 
 	// DisplayName
 	if circuit.Display != "" {
-		data.DisplayName = types.StringValue(circuit.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Provider - preserve user input if it matches, otherwise normalize to slug/name

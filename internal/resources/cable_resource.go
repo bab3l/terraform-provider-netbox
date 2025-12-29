@@ -38,7 +38,6 @@ type CableResource struct {
 // CableResourceModel describes the resource data model.
 type CableResourceModel struct {
 	ID            types.String  `tfsdk:"id"`
-	DisplayName   types.String  `tfsdk:"display_name"`
 	ATerminations types.List    `tfsdk:"a_terminations"`
 	BTerminations types.List    `tfsdk:"b_terminations"`
 	Type          types.String  `tfsdk:"type"`
@@ -81,7 +80,6 @@ func (r *CableResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 		MarkdownDescription: "Manages a cable connection between two endpoints in Netbox. Cables represent physical connections between interfaces, ports, or circuit terminations.",
 		Attributes: map[string]schema.Attribute{
 			"id":           nbschema.IDAttribute("cable"),
-			"display_name": nbschema.DisplayNameAttribute("cable"),
 			"a_terminations": schema.ListNestedAttribute{
 				MarkdownDescription: "A-side termination points for this cable. Each termination specifies an object type and ID.",
 				Required:            true,
@@ -459,7 +457,6 @@ func (r *CableResource) parseTerminations(ctx context.Context, terminations type
 func (r *CableResource) mapResponseToState(ctx context.Context, result *netbox.Cable, data *CableResourceModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
-	data.DisplayName = types.StringValue(result.GetDisplay())
 
 	// Map A terminations
 	if result.HasATerminations() {
