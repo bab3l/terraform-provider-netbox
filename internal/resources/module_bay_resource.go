@@ -57,8 +57,6 @@ type ModuleBayResourceModel struct {
 
 	Description types.String `tfsdk:"description"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	Tags types.Set `tfsdk:"tags"`
 
 	CustomFields types.Set `tfsdk:"custom_fields"`
@@ -110,8 +108,6 @@ func (r *ModuleBayResource) Schema(ctx context.Context, req resource.SchemaReque
 
 				Optional: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("module bay"),
 		},
 	}
 
@@ -502,9 +498,7 @@ func (r *ModuleBayResource) mapResponseToModel(ctx context.Context, moduleBay *n
 	// Map display_name
 
 	if moduleBay.GetDisplay() != "" {
-		data.DisplayName = types.StringValue(moduleBay.GetDisplay())
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Handle tags

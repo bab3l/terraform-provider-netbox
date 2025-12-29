@@ -56,8 +56,6 @@ type PowerOutletResourceModel struct {
 
 	Type types.String `tfsdk:"type"`
 
-	DisplayName types.String `tfsdk:"display_name"`
-
 	PowerPort types.Int32 `tfsdk:"power_port"`
 
 	FeedLeg types.String `tfsdk:"feed_leg"`
@@ -117,8 +115,6 @@ func (r *PowerOutletResource) Schema(ctx context.Context, req resource.SchemaReq
 
 				Optional: true,
 			},
-
-			"display_name": nbschema.DisplayNameAttribute("power outlet"),
 
 			"power_port": schema.Int32Attribute{
 				MarkdownDescription: "The power port ID that feeds this outlet.",
@@ -544,9 +540,7 @@ func (r *PowerOutletResource) mapResponseToModel(ctx context.Context, powerOutle
 
 	// DisplayName
 	if powerOutlet.Display != "" {
-		data.DisplayName = types.StringValue(powerOutlet.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map device - preserve user's input format

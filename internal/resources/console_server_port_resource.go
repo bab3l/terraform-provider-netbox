@@ -48,7 +48,6 @@ type ConsoleServerPortResourceModel struct {
 	Device        types.String `tfsdk:"device"`
 	Name          types.String `tfsdk:"name"`
 	Label         types.String `tfsdk:"label"`
-	DisplayName   types.String `tfsdk:"display_name"`
 	Type          types.String `tfsdk:"type"`
 	Speed         types.Int32  `tfsdk:"speed"`
 	Description   types.String `tfsdk:"description"`
@@ -86,7 +85,6 @@ func (r *ConsoleServerPortResource) Schema(ctx context.Context, req resource.Sch
 				MarkdownDescription: "Physical label of the console server port.",
 				Optional:            true,
 			},
-			"display_name": nbschema.DisplayNameAttribute("console server port"),
 			"type": schema.StringAttribute{
 				MarkdownDescription: "Console server port type. Valid values: `de-9`, `db-25`, `rj-11`, `rj-12`, `rj-45`, `mini-din-8`, `usb-a`, `usb-b`, `usb-c`, `usb-mini-a`, `usb-mini-b`, `usb-micro-a`, `usb-micro-b`, `usb-micro-ab`, `other`.",
 				Optional:            true,
@@ -381,9 +379,7 @@ func (r *ConsoleServerPortResource) mapResponseToModel(ctx context.Context, cons
 
 	// DisplayName
 	if consoleServerPort.Display != "" {
-		data.DisplayName = types.StringValue(consoleServerPort.Display)
 	} else {
-		data.DisplayName = types.StringNull()
 	}
 
 	// Map device - preserve user's input format
