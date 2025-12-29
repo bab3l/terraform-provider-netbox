@@ -29,9 +29,7 @@ var _ resource.Resource = &JournalEntryResource{}
 var _ resource.ResourceWithImportState = &JournalEntryResource{}
 
 func NewJournalEntryResource() resource.Resource {
-
 	return &JournalEntryResource{}
-
 }
 
 // JournalEntryResource defines the resource implementation.
@@ -61,57 +59,45 @@ type JournalEntryResourceModel struct {
 }
 
 func (r *JournalEntryResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_journal_entry"
-
 }
 
 func (r *JournalEntryResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages a journal entry in NetBox. Journal entries allow you to record notes, comments, and documentation against any object in NetBox.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.Int32Attribute{
-
 				MarkdownDescription: "The unique numeric ID of the journal entry.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.Int32{
-
 					int32planmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"assigned_object_type": schema.StringAttribute{
-
 				MarkdownDescription: "The content type of the assigned object (e.g., `dcim.device`, `dcim.site`, `ipam.ipaddress`).",
 
 				Required: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 
 			"assigned_object_id": schema.Int64Attribute{
-
 				MarkdownDescription: "The ID of the assigned object.",
 
 				Required: true,
 
 				PlanModifiers: []planmodifier.Int64{
-
 					int64planmodifier.RequiresReplace(),
 				},
 			},
 
 			"kind": schema.StringAttribute{
-
 				MarkdownDescription: "The kind/severity of the journal entry. Valid values: `info`, `success`, `warning`, `danger`. Defaults to `info`.",
 
 				Optional: true,
@@ -130,21 +116,16 @@ func (r *JournalEntryResource) Schema(ctx context.Context, req resource.SchemaRe
 
 	// Add common metadata attributes (tags, custom_fields)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
-
 }
 
 func (r *JournalEntryResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -153,27 +134,21 @@ func (r *JournalEntryResource) Configure(ctx context.Context, req resource.Confi
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 func (r *JournalEntryResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data JournalEntryResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating Journal Entry", map[string]interface{}{
-
 		"assigned_object_type": data.AssignedObjectType.ValueString(),
 
 		"assigned_object_id": data.AssignedObjectID.ValueInt64(),
@@ -182,7 +157,6 @@ func (r *JournalEntryResource) Create(ctx context.Context, req resource.CreateRe
 	// Prepare the Journal Entry request
 
 	journalEntryRequest := netbox.WritableJournalEntryRequest{
-
 		AssignedObjectType: data.AssignedObjectType.ValueString(),
 
 		AssignedObjectId: data.AssignedObjectID.ValueInt64(),
@@ -195,9 +169,7 @@ func (r *JournalEntryResource) Create(ctx context.Context, req resource.CreateRe
 	r.setOptionalFields(ctx, &journalEntryRequest, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Create the Journal Entry via API
@@ -207,7 +179,6 @@ func (r *JournalEntryResource) Create(ctx context.Context, req resource.CreateRe
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error Creating Journal Entry",
@@ -216,11 +187,9 @@ func (r *JournalEntryResource) Create(ctx context.Context, req resource.CreateRe
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Created Journal Entry", map[string]interface{}{
-
 		"id": journalEntry.GetId(),
 	})
 
@@ -229,25 +198,19 @@ func (r *JournalEntryResource) Create(ctx context.Context, req resource.CreateRe
 	r.mapJournalEntryToState(ctx, journalEntry, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *JournalEntryResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data JournalEntryResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Get the Journal Entry via API
@@ -259,18 +222,14 @@ func (r *JournalEntryResource) Read(ctx context.Context, req resource.ReadReques
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			tflog.Debug(ctx, "Journal Entry not found, removing from state", map[string]interface{}{
-
 				"id": id,
 			})
 
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -281,7 +240,6 @@ func (r *JournalEntryResource) Read(ctx context.Context, req resource.ReadReques
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -289,38 +247,30 @@ func (r *JournalEntryResource) Read(ctx context.Context, req resource.ReadReques
 	r.mapJournalEntryToState(ctx, journalEntry, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *JournalEntryResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data JournalEntryResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id := data.ID.ValueInt32()
 
 	tflog.Debug(ctx, "Updating Journal Entry", map[string]interface{}{
-
 		"id": id,
 	})
 
 	// Prepare the Journal Entry request
 
 	journalEntryRequest := netbox.WritableJournalEntryRequest{
-
 		AssignedObjectType: data.AssignedObjectType.ValueString(),
 
 		AssignedObjectId: data.AssignedObjectID.ValueInt64(),
@@ -333,9 +283,7 @@ func (r *JournalEntryResource) Update(ctx context.Context, req resource.UpdateRe
 	r.setOptionalFields(ctx, &journalEntryRequest, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Update the Journal Entry via API
@@ -345,7 +293,6 @@ func (r *JournalEntryResource) Update(ctx context.Context, req resource.UpdateRe
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error Updating Journal Entry",
@@ -354,11 +301,9 @@ func (r *JournalEntryResource) Update(ctx context.Context, req resource.UpdateRe
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updated Journal Entry", map[string]interface{}{
-
 		"id": journalEntry.GetId(),
 	})
 
@@ -367,31 +312,24 @@ func (r *JournalEntryResource) Update(ctx context.Context, req resource.UpdateRe
 	r.mapJournalEntryToState(ctx, journalEntry, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 func (r *JournalEntryResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data JournalEntryResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	id := data.ID.ValueInt32()
 
 	tflog.Debug(ctx, "Deleting Journal Entry", map[string]interface{}{
-
 		"id": id,
 	})
 
@@ -402,13 +340,10 @@ func (r *JournalEntryResource) Delete(ctx context.Context, req resource.DeleteRe
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			// Already deleted
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -419,22 +354,17 @@ func (r *JournalEntryResource) Delete(ctx context.Context, req resource.DeleteRe
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleted Journal Entry", map[string]interface{}{
-
 		"id": id,
 	})
-
 }
 
 func (r *JournalEntryResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	id, err := utils.ParseID(req.ID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error Importing Journal Entry",
@@ -443,33 +373,26 @@ func (r *JournalEntryResource) ImportState(ctx context.Context, req resource.Imp
 		)
 
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
-
 }
 
 // setOptionalFields sets optional fields on the Journal Entry request.
 
 func (r *JournalEntryResource) setOptionalFields(ctx context.Context, journalEntryRequest *netbox.WritableJournalEntryRequest, data *JournalEntryResourceModel, diags *diag.Diagnostics) {
-
 	// Kind
 
 	if utils.IsSet(data.Kind) {
-
 		kind, err := netbox.NewJournalEntryKindValueFromValue(data.Kind.ValueString())
 
 		if err != nil {
-
 			diags.AddError("Invalid Kind", fmt.Sprintf("Invalid journal entry kind value: %s", data.Kind.ValueString()))
 
 			return
-
 		}
 
 		journalEntryRequest.Kind = kind
-
 	}
 
 	// Apply Tags and CustomFields
@@ -481,13 +404,11 @@ func (r *JournalEntryResource) setOptionalFields(ctx context.Context, journalEnt
 	if diags.HasError() {
 		return
 	}
-
 }
 
 // mapJournalEntryToState maps a Journal Entry API response to the Terraform state model.
 
 func (r *JournalEntryResource) mapJournalEntryToState(ctx context.Context, journalEntry *netbox.JournalEntry, data *JournalEntryResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.Int32Value(journalEntry.GetId())
 
 	data.AssignedObjectType = types.StringValue(journalEntry.GetAssignedObjectType())
@@ -506,19 +427,14 @@ func (r *JournalEntryResource) mapJournalEntryToState(ctx context.Context, journ
 	// Kind
 
 	if journalEntry.Kind != nil && journalEntry.Kind.Value != nil {
-
 		data.Kind = types.StringValue(string(*journalEntry.Kind.Value))
-
 	} else {
-
 		data.Kind = types.StringValue("info") // Default value
-
 	}
 
 	// Tags
 
 	if len(journalEntry.Tags) > 0 {
-
 		tags := utils.NestedTagsToTagModels(journalEntry.Tags)
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -526,23 +442,17 @@ func (r *JournalEntryResource) mapJournalEntryToState(ctx context.Context, journ
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Custom Fields
 
 	if journalEntry.CustomFields != nil && !data.CustomFields.IsNull() {
-
 		var stateCustomFields []utils.CustomFieldModel
 
 		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
@@ -550,9 +460,7 @@ func (r *JournalEntryResource) mapJournalEntryToState(ctx context.Context, journ
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(journalEntry.CustomFields, stateCustomFields)
@@ -562,17 +470,11 @@ func (r *JournalEntryResource) mapJournalEntryToState(ctx context.Context, journ
 		diags.Append(cfValueDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else if data.CustomFields.IsNull() {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }
