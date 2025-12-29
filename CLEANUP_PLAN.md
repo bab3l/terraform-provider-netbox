@@ -22,19 +22,84 @@ This plan fixes excessive blank lines throughout the Go codebase (~45% blank lin
 - [ ] request_helpers.go
 - [ ] attributes.go
 
-**Batch 1.3: Resources batch 1** (10 files - DCIM basics)
-- [ ] device_resource.go, device_type_resource.go, device_role_resource.go
-- [ ] device_bay_resource.go, device_bay_template_resource.go
-- [ ] manufacturer_resource.go, platform_resource.go
-- [ ] site_resource.go, site_group_resource.go, location_resource.go
+**Batch 1.3: DCIM basics** (10 files) ✅ DONE
+- [x] device_resource.go, device_type_resource.go, device_role_resource.go
+- [x] device_bay_resource.go, device_bay_template_resource.go
+- [x] manufacturer_resource.go, platform_resource.go
+- [x] site_resource.go, site_group_resource.go, location_resource.go
 
-**Batch 1.4-1.12**: Continue with remaining ~90 resource files (10 files per batch)
+**Batch 1.4: Racks, power, modules** (10 files) ✅ DONE
+- [x] rack_resource.go, rack_role_resource.go, rack_type_resource.go, rack_reservation_resource.go
+- [x] power_panel_resource.go, power_feed_resource.go
+- [x] module_resource.go, module_type_resource.go, module_bay_resource.go
+- [x] interface_resource.go
 
-**Batch 1.13**: Format datasource files (~30 files)
+**Batch 1.5: Device component ports** (10 files)
+- [ ] console_port_resource.go, console_server_port_resource.go
+- [ ] power_port_resource.go, power_outlet_resource.go
+- [ ] front_port_resource.go, rear_port_resource.go
+- [ ] inventory_item_resource.go, inventory_item_role_resource.go, inventory_item_template_resource.go
+- [ ] module_bay_template_resource.go
 
-**Batch 1.14**: Format test files (~100 files)
+**Batch 1.6: Component templates** (8 files)
+- [ ] console_port_template_resource.go, console_server_port_template_resource.go
+- [ ] power_port_template_resource.go, power_outlet_template_resource.go
+- [ ] front_port_template_resource.go, rear_port_template_resource.go
+- [ ] interface_template_resource.go
+- [ ] service_resource.go
 
-**Batch 1.15**: Verify and commit all formatting changes
+**Batch 1.7: IPAM core** (10 files)
+- [ ] ip_address_resource.go, ip_range_resource.go
+- [ ] prefix_resource.go, vrf_resource.go
+- [ ] vlan_resource.go, vlan_group_resource.go
+- [ ] aggregate_resource.go, asn_resource.go, asn_range_resource.go
+- [ ] rir_resource.go
+
+**Batch 1.8: IPAM & VPN** (10 files)
+- [ ] route_target_resource.go
+- [ ] l2vpn_resource.go, l2vpn_termination_resource.go
+- [ ] tunnel_resource.go, tunnel_group_resource.go, tunnel_termination_resource.go
+- [ ] ipsec_profile_resource.go, ipsec_policy_resource.go, ipsec_proposal_resource.go
+- [ ] ike_policy_resource.go
+
+**Batch 1.9: Circuits & providers** (10 files)
+- [ ] ike_proposal_resource.go
+- [ ] cable_resource.go
+- [ ] circuit_resource.go, circuit_type_resource.go, circuit_group_resource.go
+- [ ] circuit_group_assignment_resource.go, circuit_termination_resource.go
+- [ ] provider_resource.go, provider_account_resource.go, provider_network_resource.go
+
+**Batch 1.10: Virtualization & wireless** (10 files)
+- [ ] cluster_resource.go, cluster_type_resource.go, cluster_group_resource.go
+- [ ] virtual_machine_resource.go, vm_interface_resource.go, virtual_disk_resource.go
+- [ ] virtual_chassis_resource.go, virtual_device_context_resource.go
+- [ ] wireless_lan_resource.go, wireless_lan_group_resource.go
+
+**Batch 1.11: Tenancy & contacts** (10 files)
+- [ ] wireless_link_resource.go
+- [ ] tenant_resource.go, tenant_group_resource.go
+- [ ] contact_resource.go, contact_group_resource.go, contact_role_resource.go, contact_assignment_resource.go
+- [ ] region_resource.go
+- [ ] role_resource.go
+- [ ] tag_resource.go
+
+**Batch 1.12: Extras & remaining** (10 files)
+- [ ] fhrp_group_resource.go, fhrp_group_assignment_resource.go
+- [ ] service_template_resource.go
+- [ ] config_template_resource.go, config_context_resource.go
+- [ ] custom_field_resource.go, custom_field_choice_set_resource.go, custom_link_resource.go
+- [ ] webhook_resource.go, event_rule_resource.go
+
+**Batch 1.13: Final resources** (3 files)
+- [ ] export_template_resource.go
+- [ ] journal_entry_resource.go
+- [ ] notification_group_resource.go
+
+**Batch 1.14**: Format datasource files (~100 files)
+
+**Batch 1.15**: Format test files (~100 files)
+
+**Batch 1.16**: Verify and commit all formatting changes
 
 ### Phase 2: Remove DisplayNameAttribute and display_name Field
 

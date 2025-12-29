@@ -32,9 +32,7 @@ var (
 // NewInventoryItemRoleResource returns a new resource implementing the inventory item role resource.
 
 func NewInventoryItemRoleResource() resource.Resource {
-
 	return &InventoryItemRoleResource{}
-
 }
 
 // InventoryItemRoleResource defines the resource implementation.
@@ -66,42 +64,33 @@ type InventoryItemRoleResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *InventoryItemRoleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_inventory_item_role"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *InventoryItemRoleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages an inventory item role in NetBox. Inventory item roles define the functional purpose of inventory items within devices.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the inventory item role.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the inventory item role.",
 
 				Required: true,
 			},
 
 			"slug": schema.StringAttribute{
-
 				MarkdownDescription: "A unique slug identifier for the inventory item role.",
 
 				Required: true,
@@ -121,17 +110,13 @@ func (r *InventoryItemRoleResource) Schema(ctx context.Context, req resource.Sch
 }
 
 func (r *InventoryItemRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -140,25 +125,20 @@ func (r *InventoryItemRoleResource) Configure(ctx context.Context, req resource.
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates the resource.
 
 func (r *InventoryItemRoleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data InventoryItemRoleResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Build request
@@ -168,9 +148,7 @@ func (r *InventoryItemRoleResource) Create(ctx context.Context, req resource.Cre
 	// Set optional fields
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
-
 		apiReq.SetColor(data.Color.ValueString())
-
 	}
 
 	// Handle description and metadata fields
@@ -178,13 +156,10 @@ func (r *InventoryItemRoleResource) Create(ctx context.Context, req resource.Cre
 	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Creating inventory item role", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"slug": data.Slug.ValueString(),
@@ -195,7 +170,6 @@ func (r *InventoryItemRoleResource) Create(ctx context.Context, req resource.Cre
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating inventory item role",
@@ -204,7 +178,6 @@ func (r *InventoryItemRoleResource) Create(ctx context.Context, req resource.Cre
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -212,40 +185,32 @@ func (r *InventoryItemRoleResource) Create(ctx context.Context, req resource.Cre
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Trace(ctx, "Created inventory item role", map[string]interface{}{
-
 		"id": data.ID.ValueString(),
 
 		"name": data.Name.ValueString(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read refreshes the resource state.
 
 func (r *InventoryItemRoleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data InventoryItemRoleResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	roleID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Inventory Item Role ID",
@@ -254,11 +219,9 @@ func (r *InventoryItemRoleResource) Read(ctx context.Context, req resource.ReadR
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Reading inventory item role", map[string]interface{}{
-
 		"id": roleID,
 	})
 
@@ -267,13 +230,10 @@ func (r *InventoryItemRoleResource) Read(ctx context.Context, req resource.ReadR
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -284,7 +244,6 @@ func (r *InventoryItemRoleResource) Read(ctx context.Context, req resource.ReadR
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -292,33 +251,26 @@ func (r *InventoryItemRoleResource) Read(ctx context.Context, req resource.ReadR
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the resource.
 
 func (r *InventoryItemRoleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data InventoryItemRoleResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	roleID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Inventory Item Role ID",
@@ -327,7 +279,6 @@ func (r *InventoryItemRoleResource) Update(ctx context.Context, req resource.Upd
 		)
 
 		return
-
 	}
 
 	// Build request
@@ -337,9 +288,7 @@ func (r *InventoryItemRoleResource) Update(ctx context.Context, req resource.Upd
 	// Set optional fields
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
-
 		apiReq.SetColor(data.Color.ValueString())
-
 	}
 
 	// Handle description and metadata fields
@@ -347,13 +296,10 @@ func (r *InventoryItemRoleResource) Update(ctx context.Context, req resource.Upd
 	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating inventory item role", map[string]interface{}{
-
 		"id": roleID,
 	})
 
@@ -362,7 +308,6 @@ func (r *InventoryItemRoleResource) Update(ctx context.Context, req resource.Upd
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating inventory item role",
@@ -371,7 +316,6 @@ func (r *InventoryItemRoleResource) Update(ctx context.Context, req resource.Upd
 		)
 
 		return
-
 	}
 
 	// Map response to model
@@ -379,33 +323,26 @@ func (r *InventoryItemRoleResource) Update(ctx context.Context, req resource.Upd
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the resource.
 
 func (r *InventoryItemRoleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data InventoryItemRoleResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	roleID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Inventory Item Role ID",
@@ -414,11 +351,9 @@ func (r *InventoryItemRoleResource) Delete(ctx context.Context, req resource.Del
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting inventory item role", map[string]interface{}{
-
 		"id": roleID,
 	})
 
@@ -427,11 +362,8 @@ func (r *InventoryItemRoleResource) Delete(ctx context.Context, req resource.Del
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -442,19 +374,15 @@ func (r *InventoryItemRoleResource) Delete(ctx context.Context, req resource.Del
 		)
 
 		return
-
 	}
-
 }
 
 // ImportState imports an existing resource.
 
 func (r *InventoryItemRoleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	roleID, err := utils.ParseID(req.ID)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Invalid Import ID",
@@ -463,7 +391,6 @@ func (r *InventoryItemRoleResource) ImportState(ctx context.Context, req resourc
 		)
 
 		return
-
 	}
 
 	response, httpResp, err := r.client.DcimAPI.DcimInventoryItemRolesRetrieve(ctx, roleID).Execute()
@@ -471,7 +398,6 @@ func (r *InventoryItemRoleResource) ImportState(ctx context.Context, req resourc
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error importing inventory item role",
@@ -480,7 +406,6 @@ func (r *InventoryItemRoleResource) ImportState(ctx context.Context, req resourc
 		)
 
 		return
-
 	}
 
 	var data InventoryItemRoleResourceModel
@@ -488,19 +413,15 @@ func (r *InventoryItemRoleResource) ImportState(ctx context.Context, req resourc
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
 
 func (r *InventoryItemRoleResource) mapResponseToModel(ctx context.Context, role *netbox.InventoryItemRole, data *InventoryItemRoleResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", role.GetId()))
 
 	data.Name = types.StringValue(role.GetName())
@@ -517,31 +438,22 @@ func (r *InventoryItemRoleResource) mapResponseToModel(ctx context.Context, role
 	// Map color
 
 	if color, ok := role.GetColorOk(); ok && color != nil && *color != "" {
-
 		data.Color = types.StringValue(*color)
-
 	} else {
-
 		data.Color = types.StringNull()
-
 	}
 
 	// Map description
 
 	if desc, ok := role.GetDescriptionOk(); ok && desc != nil && *desc != "" {
-
 		data.Description = types.StringValue(*desc)
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Handle tags
 
 	if role.HasTags() && len(role.GetTags()) > 0 {
-
 		tags := utils.NestedTagsToTagModels(role.GetTags())
 
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -549,31 +461,23 @@ func (r *InventoryItemRoleResource) mapResponseToModel(ctx context.Context, role
 		diags.Append(tagDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.Tags = tagsValue
-
 	} else {
-
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-
 	}
 
 	// Handle custom fields
 
 	if role.HasCustomFields() {
-
 		apiCustomFields := role.GetCustomFields()
 
 		var stateCustomFieldModels []utils.CustomFieldModel
 
 		if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-
 			data.CustomFields.ElementsAs(ctx, &stateCustomFieldModels, false)
-
 		}
 
 		customFields := utils.MapToCustomFieldModels(apiCustomFields, stateCustomFieldModels)
@@ -583,17 +487,11 @@ func (r *InventoryItemRoleResource) mapResponseToModel(ctx context.Context, role
 		diags.Append(cfDiags...)
 
 		if diags.HasError() {
-
 			return
-
 		}
 
 		data.CustomFields = customFieldsValue
-
 	} else {
-
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-
 	}
-
 }

@@ -34,9 +34,7 @@ var (
 // NewInventoryItemTemplateResource returns a new resource implementing the inventory item template resource.
 
 func NewInventoryItemTemplateResource() resource.Resource {
-
 	return &InventoryItemTemplateResource{}
-
 }
 
 // InventoryItemTemplateResource defines the resource implementation.
@@ -76,77 +74,63 @@ type InventoryItemTemplateResourceModel struct {
 // Metadata returns the resource type name.
 
 func (r *InventoryItemTemplateResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-
 	resp.TypeName = req.ProviderTypeName + "_inventory_item_template"
-
 }
 
 // Schema defines the schema for the resource.
 
 func (r *InventoryItemTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
-
 		MarkdownDescription: "Manages an inventory item template in NetBox. Inventory item templates define inventory items for device types.",
 
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-
 				MarkdownDescription: "The unique numeric ID of the inventory item template.",
 
 				Computed: true,
 
 				PlanModifiers: []planmodifier.String{
-
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
 			"device_type": schema.StringAttribute{
-
 				MarkdownDescription: "The device type this inventory item template belongs to (ID or model name).",
 
 				Required: true,
 			},
 
 			"parent": schema.StringAttribute{
-
 				MarkdownDescription: "Parent inventory item template (ID).",
 
 				Optional: true,
 			},
 
 			"name": schema.StringAttribute{
-
 				MarkdownDescription: "The name of the inventory item template. {module} is accepted as a substitution for the module bay position when attached to a module type.",
 
 				Required: true,
 			},
 
 			"label": schema.StringAttribute{
-
 				MarkdownDescription: "Physical label of the inventory item template.",
 
 				Optional: true,
 			},
 
 			"role": schema.StringAttribute{
-
 				MarkdownDescription: "The inventory item role (ID or slug).",
 
 				Optional: true,
 			},
 
 			"manufacturer": schema.StringAttribute{
-
 				MarkdownDescription: "The manufacturer of the inventory item (ID or slug).",
 
 				Optional: true,
 			},
 
 			"part_id": schema.StringAttribute{
-
 				MarkdownDescription: "Manufacturer-assigned part identifier.",
 
 				Optional: true,
@@ -155,14 +139,12 @@ func (r *InventoryItemTemplateResource) Schema(ctx context.Context, req resource
 			"display_name": nbschema.DisplayNameAttribute("inventory item template"),
 
 			"component_type": schema.StringAttribute{
-
 				MarkdownDescription: "The type of component this inventory item represents (e.g., `dcim.interface`).",
 
 				Optional: true,
 			},
 
 			"component_id": schema.StringAttribute{
-
 				MarkdownDescription: "The ID of the component this inventory item represents.",
 
 				Optional: true,
@@ -177,17 +159,13 @@ func (r *InventoryItemTemplateResource) Schema(ctx context.Context, req resource
 // Configure adds the provider configured client to the resource.
 
 func (r *InventoryItemTemplateResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-
 	if req.ProviderData == nil {
-
 		return
-
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
 
 	if !ok {
-
 		resp.Diagnostics.AddError(
 
 			"Unexpected Resource Configure Type",
@@ -196,25 +174,20 @@ func (r *InventoryItemTemplateResource) Configure(ctx context.Context, req resou
 		)
 
 		return
-
 	}
 
 	r.client = client
-
 }
 
 // Create creates the resource.
 
 func (r *InventoryItemTemplateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	var data InventoryItemTemplateResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Lookup device type
@@ -224,9 +197,7 @@ func (r *InventoryItemTemplateResource) Create(ctx context.Context, req resource
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Build request
@@ -236,13 +207,11 @@ func (r *InventoryItemTemplateResource) Create(ctx context.Context, req resource
 	// Set optional fields
 
 	if !data.Parent.IsNull() && !data.Parent.IsUnknown() {
-
 		var parentID int32
 
 		_, err := fmt.Sscanf(data.Parent.ValueString(), "%d", &parentID)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Parent ID",
@@ -251,74 +220,56 @@ func (r *InventoryItemTemplateResource) Create(ctx context.Context, req resource
 			)
 
 			return
-
 		}
 
 		apiReq.SetParent(parentID)
-
 	}
 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-
 		apiReq.SetLabel(data.Label.ValueString())
-
 	}
 
 	if !data.Role.IsNull() && !data.Role.IsUnknown() {
-
 		role, roleDiags := lookup.LookupInventoryItemRole(ctx, r.client, data.Role.ValueString())
 
 		resp.Diagnostics.Append(roleDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetRole(*role)
-
 	}
 
 	if !data.Manufacturer.IsNull() && !data.Manufacturer.IsUnknown() {
-
 		manufacturer, mfrDiags := lookup.LookupManufacturer(ctx, r.client, data.Manufacturer.ValueString())
 
 		resp.Diagnostics.Append(mfrDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetManufacturer(*manufacturer)
-
 	}
 
 	if !data.PartID.IsNull() && !data.PartID.IsUnknown() {
-
 		apiReq.SetPartId(data.PartID.ValueString())
-
 	}
 
 	// Apply description
 	utils.ApplyDescription(apiReq, data.Description)
 
 	if !data.ComponentType.IsNull() && !data.ComponentType.IsUnknown() {
-
 		apiReq.SetComponentType(data.ComponentType.ValueString())
-
 	}
 
 	if !data.ComponentID.IsNull() && !data.ComponentID.IsUnknown() {
-
 		var componentID int64
 
 		_, err := fmt.Sscanf(data.ComponentID.ValueString(), "%d", &componentID)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Component ID",
@@ -327,15 +278,12 @@ func (r *InventoryItemTemplateResource) Create(ctx context.Context, req resource
 			)
 
 			return
-
 		}
 
 		apiReq.SetComponentId(componentID)
-
 	}
 
 	tflog.Debug(ctx, "Creating inventory item template", map[string]interface{}{
-
 		"name": data.Name.ValueString(),
 
 		"device_type": data.DeviceType.ValueString(),
@@ -348,7 +296,6 @@ func (r *InventoryItemTemplateResource) Create(ctx context.Context, req resource
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error creating inventory item template",
@@ -357,7 +304,6 @@ func (r *InventoryItemTemplateResource) Create(ctx context.Context, req resource
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -365,27 +311,21 @@ func (r *InventoryItemTemplateResource) Create(ctx context.Context, req resource
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Read reads the resource.
 
 func (r *InventoryItemTemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	var data InventoryItemTemplateResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -395,7 +335,6 @@ func (r *InventoryItemTemplateResource) Read(ctx context.Context, req resource.R
 	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing inventory item template ID",
@@ -404,7 +343,6 @@ func (r *InventoryItemTemplateResource) Read(ctx context.Context, req resource.R
 		)
 
 		return
-
 	}
 
 	// Read from API
@@ -414,13 +352,10 @@ func (r *InventoryItemTemplateResource) Read(ctx context.Context, req resource.R
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			resp.State.RemoveResource(ctx)
 
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -431,7 +366,6 @@ func (r *InventoryItemTemplateResource) Read(ctx context.Context, req resource.R
 		)
 
 		return
-
 	}
 
 	// Map response to state
@@ -439,27 +373,21 @@ func (r *InventoryItemTemplateResource) Read(ctx context.Context, req resource.R
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the resource.
 
 func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	var data InventoryItemTemplateResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -469,7 +397,6 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing inventory item template ID",
@@ -478,7 +405,6 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 		)
 
 		return
-
 	}
 
 	// Lookup device type
@@ -488,9 +414,7 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Build request
@@ -500,13 +424,11 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 	// Set optional fields
 
 	if !data.Parent.IsNull() && !data.Parent.IsUnknown() {
-
 		var parentID int32
 
 		_, err := fmt.Sscanf(data.Parent.ValueString(), "%d", &parentID)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Parent ID",
@@ -515,74 +437,56 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 			)
 
 			return
-
 		}
 
 		apiReq.SetParent(parentID)
-
 	}
 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-
 		apiReq.SetLabel(data.Label.ValueString())
-
 	}
 
 	if !data.Role.IsNull() && !data.Role.IsUnknown() {
-
 		role, roleDiags := lookup.LookupInventoryItemRole(ctx, r.client, data.Role.ValueString())
 
 		resp.Diagnostics.Append(roleDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetRole(*role)
-
 	}
 
 	if !data.Manufacturer.IsNull() && !data.Manufacturer.IsUnknown() {
-
 		manufacturer, mfrDiags := lookup.LookupManufacturer(ctx, r.client, data.Manufacturer.ValueString())
 
 		resp.Diagnostics.Append(mfrDiags...)
 
 		if resp.Diagnostics.HasError() {
-
 			return
-
 		}
 
 		apiReq.SetManufacturer(*manufacturer)
-
 	}
 
 	if !data.PartID.IsNull() && !data.PartID.IsUnknown() {
-
 		apiReq.SetPartId(data.PartID.ValueString())
-
 	}
 
 	// Apply description
 	utils.ApplyDescription(apiReq, data.Description)
 
 	if !data.ComponentType.IsNull() && !data.ComponentType.IsUnknown() {
-
 		apiReq.SetComponentType(data.ComponentType.ValueString())
-
 	}
 
 	if !data.ComponentID.IsNull() && !data.ComponentID.IsUnknown() {
-
 		var componentID int64
 
 		_, err := fmt.Sscanf(data.ComponentID.ValueString(), "%d", &componentID)
 
 		if err != nil {
-
 			resp.Diagnostics.AddError(
 
 				"Invalid Component ID",
@@ -591,15 +495,12 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 			)
 
 			return
-
 		}
 
 		apiReq.SetComponentId(componentID)
-
 	}
 
 	tflog.Debug(ctx, "Updating inventory item template", map[string]interface{}{
-
 		"id": id,
 
 		"name": data.Name.ValueString(),
@@ -614,7 +515,6 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error updating inventory item template",
@@ -623,7 +523,6 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 		)
 
 		return
-
 	}
 
 	// Preserve display_name since it's computed but might change when other attributes update
@@ -632,27 +531,21 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Delete deletes the resource.
 
 func (r *InventoryItemTemplateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
 	var data InventoryItemTemplateResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Parse ID
@@ -662,7 +555,6 @@ func (r *InventoryItemTemplateResource) Delete(ctx context.Context, req resource
 	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
 
 	if err != nil {
-
 		resp.Diagnostics.AddError(
 
 			"Error parsing inventory item template ID",
@@ -671,7 +563,6 @@ func (r *InventoryItemTemplateResource) Delete(ctx context.Context, req resource
 		)
 
 		return
-
 	}
 
 	tflog.Debug(ctx, "Deleting inventory item template", map[string]interface{}{"id": id})
@@ -683,11 +574,8 @@ func (r *InventoryItemTemplateResource) Delete(ctx context.Context, req resource
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-
 		if httpResp != nil && httpResp.StatusCode == 404 {
-
 			return
-
 		}
 
 		resp.Diagnostics.AddError(
@@ -698,23 +586,18 @@ func (r *InventoryItemTemplateResource) Delete(ctx context.Context, req resource
 		)
 
 		return
-
 	}
-
 }
 
 // ImportState imports the resource state.
 
 func (r *InventoryItemTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 }
 
 // mapToState maps the API response to the Terraform state.
 
 func (r *InventoryItemTemplateResource) mapToState(ctx context.Context, result *netbox.InventoryItemTemplate, data *InventoryItemTemplateResourceModel, diags *diag.Diagnostics) {
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
 	data.Name = types.StringValue(result.GetName())
@@ -733,155 +616,101 @@ func (r *InventoryItemTemplateResource) mapToState(ctx context.Context, result *
 	userDeviceType := data.DeviceType.ValueString()
 
 	if userDeviceType == deviceType.GetModel() || userDeviceType == deviceType.GetSlug() || userDeviceType == deviceType.GetDisplay() || userDeviceType == fmt.Sprintf("%d", deviceType.GetId()) {
-
 		// Keep user's original value
-
 	} else {
-
 		data.DeviceType = types.StringValue(deviceType.GetModel())
-
 	}
 
 	// Map parent (NullableInt32 - just the ID)
-
 	// Check if the value is set and non-nil (parent: null in JSON means no parent)
 
 	if parentID, ok := result.GetParentOk(); ok && parentID != nil {
-
 		data.Parent = types.StringValue(fmt.Sprintf("%d", *parentID))
-
 	} else {
-
 		data.Parent = types.StringNull()
-
 	}
 
 	// Map label
 
 	if result.HasLabel() && result.GetLabel() != "" {
-
 		data.Label = types.StringValue(result.GetLabel())
-
 	} else {
-
 		data.Label = types.StringNull()
-
 	}
 
 	// Map role
 
 	if result.HasRole() && result.GetRole().Id != 0 {
-
 		role := result.GetRole()
 
 		userRole := data.Role.ValueString()
 
 		if userRole == role.GetName() || userRole == role.GetSlug() || userRole == role.GetDisplay() || userRole == fmt.Sprintf("%d", role.GetId()) {
-
 			// Keep user's original value
-
 		} else {
-
 			data.Role = types.StringValue(role.GetName())
-
 		}
-
 	} else {
-
 		data.Role = types.StringNull()
-
 	}
 
 	// Map manufacturer
 
 	if result.HasManufacturer() && result.GetManufacturer().Id != 0 {
-
 		manufacturer := result.GetManufacturer()
 
 		userManufacturer := data.Manufacturer.ValueString()
 
 		if userManufacturer == manufacturer.GetName() || userManufacturer == manufacturer.GetSlug() || userManufacturer == manufacturer.GetDisplay() || userManufacturer == fmt.Sprintf("%d", manufacturer.GetId()) {
-
 			// Keep user's original value
-
 		} else {
-
 			data.Manufacturer = types.StringValue(manufacturer.GetName())
-
 		}
-
 	} else {
-
 		data.Manufacturer = types.StringNull()
-
 	}
 
 	// Map part ID
 
 	if result.HasPartId() && result.GetPartId() != "" {
-
 		data.PartID = types.StringValue(result.GetPartId())
-
 	} else {
-
 		data.PartID = types.StringNull()
-
 	}
 
 	// Map description
 
 	if result.HasDescription() && result.GetDescription() != "" {
-
 		data.Description = types.StringValue(result.GetDescription())
-
 	} else {
-
 		data.Description = types.StringNull()
-
 	}
 
 	// Map component type
 
 	if result.HasComponentType() {
-
 		componentTypePtr, ok := result.GetComponentTypeOk()
 
 		if ok && componentTypePtr != nil && *componentTypePtr != "" {
-
 			data.ComponentType = types.StringValue(*componentTypePtr)
-
 		} else {
-
 			data.ComponentType = types.StringNull()
-
 		}
-
 	} else {
-
 		data.ComponentType = types.StringNull()
-
 	}
 
 	// Map component ID
 
 	if result.HasComponentId() {
-
 		componentIDPtr, ok := result.GetComponentIdOk()
 
 		if ok && componentIDPtr != nil {
-
 			data.ComponentID = types.StringValue(fmt.Sprintf("%d", *componentIDPtr))
-
 		} else {
-
 			data.ComponentID = types.StringNull()
-
 		}
-
 	} else {
-
 		data.ComponentID = types.StringNull()
-
 	}
-
 }
