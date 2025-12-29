@@ -232,7 +232,6 @@ func (r *CircuitTerminationResource) Read(ctx context.Context, req resource.Read
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 }
 
 // Update updates the circuit termination resource.

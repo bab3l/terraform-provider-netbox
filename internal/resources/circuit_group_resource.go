@@ -114,9 +114,7 @@ func (r *CircuitGroupResource) Create(ctx context.Context, req resource.CreateRe
 	utils.ApplyMetadataFields(ctx, groupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	// Handle tenant
@@ -230,9 +228,7 @@ func (r *CircuitGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	utils.ApplyMetadataFields(ctx, groupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
-
 		return
-
 	}
 
 	tflog.Debug(ctx, "Updating circuit group", map[string]interface{}{

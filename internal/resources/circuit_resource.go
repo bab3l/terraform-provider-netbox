@@ -209,7 +209,6 @@ func (r *CircuitResource) Read(ctx context.Context, req resource.ReadRequest, re
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("Could not parse circuit ID: %s", err))
 		return
-
 	}
 	tflog.Debug(ctx, "Reading circuit", map[string]interface{}{
 		"id": id,
