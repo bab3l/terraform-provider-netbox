@@ -1030,17 +1030,19 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 
 **Review Notes**: All 10 tests clean (0 fixes needed). These are primarily configuration resources with minimal cross-resource dependencies.
 
-#### Batch 9.6: Virtualization Resources (10 tests)
-- [ ] test/terraform/resources/cluster
-- [ ] test/terraform/resources/cluster_type
-- [ ] test/terraform/resources/cluster_group
-- [ ] test/terraform/resources/virtual_machine
-- [ ] test/terraform/resources/vm_interface
-- [ ] test/terraform/resources/virtual_disk
-- [ ] test/terraform/resources/virtual_device_context
-- [ ] test/terraform/resources/service
-- [ ] test/terraform/resources/service_template
-- [ ] test/terraform/resources/notification_group
+#### Batch 9.6: Virtualization Resources (10 tests) ✅ COMPLETE
+- [x] test/terraform/resources/cluster - Clean (uses type.slug)
+- [x] test/terraform/resources/cluster_type - Clean (no dependencies)
+- [x] test/terraform/resources/cluster_group - Clean (no dependencies)
+- [x] test/terraform/resources/virtual_machine - Clean (uses cluster.name)
+- [x] test/terraform/resources/vm_interface - Clean (uses virtual_machine.name)
+- [x] test/terraform/resources/virtual_disk - Clean (uses virtual_machine.id, cluster.id)
+- [x] test/terraform/resources/virtual_device_context - Clean (uses device.id, device_type.id, role.id, site.id)
+- [x] test/terraform/resources/service - Clean (uses device.id, device_type.id)
+- [x] test/terraform/resources/service_template - Clean (no dependencies)
+- [x] test/terraform/resources/notification_group - Clean (no dependencies)
+
+**Review Notes**: All 10 tests clean (0 fixes needed). Virtualization resources correctly use .id and .name/.slug for cross-resource references.
 
 #### Batch 9.7: Circuits & VPN Resources (16 tests)
 - [ ] test/terraform/resources/provider
