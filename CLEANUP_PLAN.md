@@ -1016,17 +1016,19 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 
 **Review Notes**: All 15 tests clean (0 fixes needed). Tests correctly use `.id` for device components and their templates. Note: front_port_template uses rear_port.name (string reference, not ID).
 
-#### Batch 9.5: Inventory & Templates Resources (10 tests)
-- [ ] test/terraform/resources/inventory_item_role
-- [ ] test/terraform/resources/inventory_item_template
-- [ ] test/terraform/resources/config_template
-- [ ] test/terraform/resources/config_context
-- [ ] test/terraform/resources/export_template
-- [ ] test/terraform/resources/custom_field
-- [ ] test/terraform/resources/custom_field_choice_set
-- [ ] test/terraform/resources/custom_link
-- [ ] test/terraform/resources/journal_entry
-- [ ] test/terraform/resources/webhook
+#### Batch 9.5: Inventory & Templates Resources (10 tests) ✅ COMPLETE
+- [x] test/terraform/resources/inventory_item_role - Clean (no dependencies)
+- [x] test/terraform/resources/inventory_item_template - Clean (uses device_type.id, manufacturer.id, role.id, parent.id)
+- [x] test/terraform/resources/config_template - Clean (no dependencies)
+- [x] test/terraform/resources/config_context - Clean (no dependencies, uses IDs in data attribute)
+- [x] test/terraform/resources/export_template - Clean (no dependencies)
+- [x] test/terraform/resources/custom_field - Clean (no dependencies)
+- [x] test/terraform/resources/custom_field_choice_set - Clean (no dependencies)
+- [x] test/terraform/resources/custom_link - Clean (no dependencies)
+- [x] test/terraform/resources/journal_entry - Clean (uses assigned_object_id with device.id)
+- [x] test/terraform/resources/webhook - Clean (no dependencies)
+
+**Review Notes**: All 10 tests clean (0 fixes needed). These are primarily configuration resources with minimal cross-resource dependencies.
 
 #### Batch 9.6: Virtualization Resources (10 tests)
 - [ ] test/terraform/resources/cluster
