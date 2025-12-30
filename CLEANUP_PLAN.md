@@ -1076,22 +1076,24 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 
 **Review Notes**: All 8 tests clean (0 fixes needed). Wireless and event resources correctly use .id for cross-resource references.
 
-#### Batch 9.9: Data Sources Part 1 - IPAM (15 tests)
-- [ ] test/terraform/data-sources/aggregate
-- [ ] test/terraform/data-sources/asn
-- [ ] test/terraform/data-sources/asn_range
-- [ ] test/terraform/data-sources/ip_address
-- [ ] test/terraform/data-sources/ip_range
-- [ ] test/terraform/data-sources/prefix
-- [ ] test/terraform/data-sources/rir
-- [ ] test/terraform/data-sources/role
-- [ ] test/terraform/data-sources/route_target
-- [ ] test/terraform/data-sources/vlan
-- [ ] test/terraform/data-sources/vlan_group
-- [ ] test/terraform/data-sources/vrf
-- [ ] test/terraform/data-sources/fhrp_group
-- [ ] test/terraform/data-sources/fhrp_group_assignment
-- [ ] test/terraform/data-sources/l2vpn
+#### Batch 9.9: Data Sources Part 1 - IPAM (15 tests) ✅ COMPLETE
+- [x] test/terraform/data-sources/aggregate - Clean (uses rir.id)
+- [x] test/terraform/data-sources/asn - Clean (uses rir.id)
+- [x] test/terraform/data-sources/asn_range - Clean (uses rir.id)
+- [x] test/terraform/data-sources/ip_address - Clean (data source outputs use .id)
+- [x] test/terraform/data-sources/ip_range - Clean (data source outputs use .id)
+- [x] test/terraform/data-sources/prefix - Clean (data source outputs use .id)
+- [x] test/terraform/data-sources/rir - Clean (no dependencies)
+- [x] test/terraform/data-sources/role - Clean (no dependencies)
+- [x] test/terraform/data-sources/route_target - Clean (no dependencies)
+- [x] test/terraform/data-sources/vlan - Clean (no dependencies)
+- [x] test/terraform/data-sources/vlan_group - Clean (no dependencies)
+- [x] test/terraform/data-sources/vrf - Clean (no dependencies)
+- [x] test/terraform/data-sources/fhrp_group - Clean (no dependencies)
+- [x] test/terraform/data-sources/fhrp_group_assignment - Clean (uses .id for all resource references)
+- [x] test/terraform/data-sources/l2vpn - Clean (no dependencies)
+
+**Review Notes**: All 15 data source tests clean (0 fixes needed). IPAM data sources correctly use .id for cross-resource references.
 
 #### Batch 9.10: Data Sources Part 2 - Sites & Org (15 tests)
 - [ ] test/terraform/data-sources/site
