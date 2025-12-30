@@ -1152,27 +1152,29 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 
 **Review Notes**: All 15 data source tests clean (0 fixes needed). Component data sources correctly use .id for cross-resource references. Note: front_port_template uses rear_port.name (string reference by design).
 
-#### Batch 9.13: Data Sources Part 5 - Config & Virtualization (20 tests)
-- [ ] test/terraform/data-sources/inventory_item_role
-- [ ] test/terraform/data-sources/inventory_item_template
-- [ ] test/terraform/data-sources/config_template
-- [ ] test/terraform/data-sources/config_context
-- [ ] test/terraform/data-sources/export_template
-- [ ] test/terraform/data-sources/custom_field
-- [ ] test/terraform/data-sources/custom_field_choice_set
-- [ ] test/terraform/data-sources/custom_link
-- [ ] test/terraform/data-sources/journal_entry
-- [ ] test/terraform/data-sources/webhook
-- [ ] test/terraform/data-sources/cluster
-- [ ] test/terraform/data-sources/cluster_type
-- [ ] test/terraform/data-sources/cluster_group
-- [ ] test/terraform/data-sources/virtual_machine
-- [ ] test/terraform/data-sources/vm_interface
-- [ ] test/terraform/data-sources/virtual_disk
-- [ ] test/terraform/data-sources/virtual_device_context
-- [ ] test/terraform/data-sources/service
-- [ ] test/terraform/data-sources/service_template
-- [ ] test/terraform/data-sources/notification_group
+#### Batch 9.13: Data Sources Part 5 - Config & Virtualization (20 tests) ✅ COMPLETE
+- [x] test/terraform/data-sources/inventory_item_role - Clean (no dependencies)
+- [x] test/terraform/data-sources/inventory_item_template - Clean (uses manufacturer.id, device_type.id, role.id)
+- [x] test/terraform/data-sources/config_template - Clean (no dependencies)
+- [x] test/terraform/data-sources/config_context - Clean (no dependencies)
+- [x] test/terraform/data-sources/export_template - Clean (no dependencies)
+- [x] test/terraform/data-sources/custom_field - Clean (no dependencies)
+- [x] test/terraform/data-sources/custom_field_choice_set - Clean (no dependencies)
+- [x] test/terraform/data-sources/custom_link - Clean (no dependencies)
+- [x] test/terraform/data-sources/journal_entry - Clean (uses site.id for assigned_object_id)
+- [x] test/terraform/data-sources/webhook - Clean (no dependencies)
+- [x] test/terraform/data-sources/cluster - Clean (uses cluster_type.slug)
+- [x] test/terraform/data-sources/cluster_type - Clean (no dependencies)
+- [x] test/terraform/data-sources/cluster_group - Clean (no dependencies)
+- [x] test/terraform/data-sources/virtual_machine - Clean (uses cluster.name)
+- [x] test/terraform/data-sources/vm_interface - Clean (uses virtual_machine.name)
+- [x] test/terraform/data-sources/virtual_disk - Clean (uses cluster.id, virtual_machine.id)
+- [x] test/terraform/data-sources/virtual_device_context - Clean (uses device.id)
+- [x] test/terraform/data-sources/service - Clean (uses device.id)
+- [x] test/terraform/data-sources/service_template - Clean (no dependencies)
+- [x] test/terraform/data-sources/notification_group - Clean (no dependencies)
+
+**Review Notes**: All 20 data source tests clean (0 fixes needed). Config & Virtualization data sources correctly use .id/.name/.slug for cross-resource references.
 
 #### Batch 9.14: Data Sources Part 6 - Circuits & VPN (18 tests)
 - [ ] test/terraform/data-sources/provider
