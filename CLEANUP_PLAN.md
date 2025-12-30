@@ -1176,25 +1176,27 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 
 **Review Notes**: All 20 data source tests clean (0 fixes needed). Config & Virtualization data sources correctly use .id/.name/.slug for cross-resource references.
 
-#### Batch 9.14: Data Sources Part 6 - Circuits & VPN (18 tests)
-- [ ] test/terraform/data-sources/provider
-- [ ] test/terraform/data-sources/provider_account
-- [ ] test/terraform/data-sources/provider_network
-- [ ] test/terraform/data-sources/circuit
-- [ ] test/terraform/data-sources/circuit_type
-- [ ] test/terraform/data-sources/circuit_group
-- [ ] test/terraform/data-sources/circuit_group_assignment
-- [ ] test/terraform/data-sources/circuit_termination
-- [ ] test/terraform/data-sources/tunnel
-- [ ] test/terraform/data-sources/tunnel_group
-- [ ] test/terraform/data-sources/tunnel_termination
-- [ ] test/terraform/data-sources/l2vpn_termination
-- [ ] test/terraform/data-sources/ike_policy
-- [ ] test/terraform/data-sources/ike_proposal
-- [ ] test/terraform/data-sources/ipsec_policy
-- [ ] test/terraform/data-sources/ipsec_profile
-- [ ] test/terraform/data-sources/ipsec_proposal
-- [ ] test/terraform/data-sources/event_rule
+#### Batch 9.14: Data Sources Part 6 - Circuits & VPN (18 tests) ✅ COMPLETE
+- [x] test/terraform/data-sources/provider - Clean (no dependencies)
+- [x] test/terraform/data-sources/provider_account - Clean (uses circuit_provider.id)
+- [x] test/terraform/data-sources/provider_network - Clean (uses circuit_provider.id)
+- [x] test/terraform/data-sources/circuit - Clean (uses circuit_provider.id, circuit_type.id)
+- [x] test/terraform/data-sources/circuit_type - Clean (no dependencies)
+- [x] test/terraform/data-sources/circuit_group - Clean (uses tenant.id)
+- [x] test/terraform/data-sources/circuit_group_assignment - Clean (uses provider.slug, circuit_type.slug, group.id, circuit.id)
+- [x] test/terraform/data-sources/circuit_termination - Clean (uses site.id, provider.id, circuit_type.id, circuit.id)
+- [x] test/terraform/data-sources/tunnel - Clean (no dependencies)
+- [x] test/terraform/data-sources/tunnel_group - Clean (no dependencies)
+- [x] test/terraform/data-sources/tunnel_termination - Clean (uses tunnel.id)
+- [x] test/terraform/data-sources/l2vpn_termination - Clean (uses l2vpn.id, vlan.id)
+- [x] test/terraform/data-sources/ike_policy - Clean (uses ike_proposal.id)
+- [x] test/terraform/data-sources/ike_proposal - Clean (no dependencies)
+- [x] test/terraform/data-sources/ipsec_policy - Clean (uses ipsec_proposal.id)
+- [x] test/terraform/data-sources/ipsec_profile - Clean (uses ike_policy.id, ipsec_policy.id)
+- [x] test/terraform/data-sources/ipsec_proposal - Clean (no dependencies)
+- [x] test/terraform/data-sources/event_rule - Clean (uses webhook.id for action_object_id)
+
+**Review Notes**: All 18 data source tests clean (0 fixes needed). Circuits & VPN data sources correctly use .id/.slug for cross-resource references.
 
 #### Batch 9.15: Data Sources Part 7 - Wireless (6 tests)
 - [ ] test/terraform/data-sources/wireless_lan
