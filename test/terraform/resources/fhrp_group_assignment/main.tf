@@ -28,7 +28,7 @@ resource "netbox_manufacturer" "test" {
 }
 
 resource "netbox_device_type" "test" {
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
   model        = "Test Model for FHRP Assignment"
   slug         = "test-model-fhrp-assignment"
 }
@@ -42,22 +42,22 @@ resource "netbox_device_role" "test" {
 # Dependencies - Device
 resource "netbox_device" "test" {
   name        = "Test Device for FHRP Assignment"
-  device_type = netbox_device_type.test.model
-  role        = netbox_device_role.test.slug
-  site        = netbox_site.test.slug
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
   status      = "active"
 }
 
 # Dependencies - Interface
 resource "netbox_interface" "test" {
   name   = "eth0"
-  device = netbox_device.test.name
+  device = netbox_device.test.id
   type   = "1000base-t"
 }
 
 resource "netbox_interface" "test2" {
   name   = "eth1"
-  device = netbox_device.test.name
+  device = netbox_device.test.id
   type   = "1000base-t"
 }
 

@@ -917,10 +917,15 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 **Scope**: 204 test directories (101 resources + 103 datasources)
 
 **Review Pattern for Each Test**:
-1. Check main.tf for removed `_id` field usage (device_type_id, role_id, tenant_id, platform_id, site_id, location_id, rack_id, cluster_id, manufacturer_id, parent_id, group_id, rack_type_id)
-2. Verify uses primary reference fields (device_type, role, tenant, etc.)
-3. Check outputs.tf doesn't reference removed fields
+1. Check for references to removed COMPUTED `_id` OUTPUT fields in outputs/data blocks
+2. **DO NOT flag uses of `.id` as INPUT** - that's correct! (e.g., `role = netbox_device_role.test.id`)
+3. Look for invalid patterns like: `output "x" { value = netbox_device.test.role_id }` ❌
 4. Ensure syntax is valid Terraform HCL
+
+**Key Understanding**:
+- Phase 5 removed duplicate computed OUTPUT fields (role_id, site_id, tenant_id, etc.)
+- Phase 5 DID NOT affect using `.id` for cross-resource INPUT references
+- Primary fields (role, site, tenant) accept ID/name/slug - using `.id` is preferred (immutable)
 
 **Note**: These are Terraform integration tests, not Go tests. Focus on .tf file correctness.
 
@@ -940,18 +945,19 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 - [x] test/terraform/resources/vlan_group - Clean
 - [x] test/terraform/resources/vrf - Clean
 - [x] test/terraform/resources/fhrp_group - Clean
-- [x] test/terraform/resources/fhrp_group_assignment - **FIXED** (5 fields: manufacturer, device_type, role, site, device)
+- [x] test/terraform/resources/fhrp_group_assignment - Clean
 - [x] test/terraform/resources/l2vpn - Clean
 
 **Review Notes**:
-- Fixed fhrp_group_assignment: Changed device setup to use primary reference fields
-  - manufacturer: `.id` → `.slug`
-  - device_type: `.id` → `.model`
-  - role: `.id` → `.slug`
-  - site: `.id` → `.slug`
-  - device (in interfaces): `.id` → `.name`
-- All other tests were clean and using primary reference fields correctly
-- Tests use `.id` for resource cross-references (which is correct and still supported)
+- All 15 tests are clean and correct!
+- Tests correctly use `.id` for cross-resource references (this is the preferred pattern)
+- Primary reference fields (role, site, tenant, device_type, etc.) accept ID/name/slug
+- Using `.id` is actually BEST PRACTICE (immutable, unambiguous)
+- Phase 5 only removed duplicate COMPUTED `_id` fields from outputs, not the ability to use IDs as inputs
+
+**What to look for in Phase 9**:
+- ❌ References to removed computed fields: `netbox_device.test.role_id` (in outputs)
+- ✅ Using .id as input: `role = netbox_device_role.test.id` (CORRECT, keep this!)
 
 #### Batch 9.2: Sites & Organization Resources (15 tests)
 - [ ] test/terraform/resources/site
