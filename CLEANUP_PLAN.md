@@ -1546,16 +1546,17 @@ Tests are grouped by dependency level and functional area to maximize paralleliz
 - [x] **Batch 10.3**: Location & Inventory Setup (20 tests) - ✅ Complete (100% pass rate, ~11.5 min)
 - [x] **Batch 10.4**: Power & Clusters (20 tests) - ✅ Complete (100% pass rate, ~12 min)
 - [x] **Batch 10.5**: Device Components & Templates (22 tests) - ✅ Complete (100% pass rate, ~13 min)
-- [ ] **Batch 10.6**: Device Ports & Components (22 tests)
+- [x] **Batch 10.6**: Device Ports & Components (22 tests) - ✅ Complete (100% pass rate, ~13.5 min)
+  - Fixed front_port data source outputs to match schema (removed ID comparison, aligned with other tests)
 - [ ] **Batch 10.7**: IPAM Resources (20 tests)
 - [ ] **Batch 10.8**: FHRP & Circuits (20 tests)
 - [ ] **Batch 10.9**: Wireless & VPN Part 1 (20 tests)
 - [ ] **Batch 10.10**: VPN Part 2, Extras & Final (22 tests)
 
 **Session Progress:**
-- Total tests completed: 144/204 (70.6%)
-- Estimated remaining time: ~30-35 minutes
-- Latest commit: Fix port template test configurations and resource references
+- Total tests completed: 166/204 (81.4%)
+- Estimated remaining time: ~25-30 minutes
+- Latest commit: Fix front_port data source outputs - align with actual schema attributes
 
 **Total**: 206 test invocations (204 unique test directories + 2 duplicates for dependency handling)
 
