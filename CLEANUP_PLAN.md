@@ -1095,22 +1095,24 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 
 **Review Notes**: All 15 data source tests clean (0 fixes needed). IPAM data sources correctly use .id for cross-resource references.
 
-#### Batch 9.10: Data Sources Part 2 - Sites & Org (15 tests)
-- [ ] test/terraform/data-sources/site
-- [ ] test/terraform/data-sources/site_group
-- [ ] test/terraform/data-sources/region
-- [ ] test/terraform/data-sources/location
-- [ ] test/terraform/data-sources/tenant
-- [ ] test/terraform/data-sources/tenant_group
-- [ ] test/terraform/data-sources/contact
-- [ ] test/terraform/data-sources/contact_group
-- [ ] test/terraform/data-sources/contact_role
-- [ ] test/terraform/data-sources/contact_assignment
-- [ ] test/terraform/data-sources/manufacturer
-- [ ] test/terraform/data-sources/platform
-- [ ] test/terraform/data-sources/tag
-- [ ] test/terraform/data-sources/device_role
-- [ ] test/terraform/data-sources/rack_role
+#### Batch 9.10: Data Sources Part 2 - Sites & Org (15 tests) ✅ COMPLETE
+- [x] test/terraform/data-sources/site - Clean (no dependencies)
+- [x] test/terraform/data-sources/site_group - Clean (uses parent.id)
+- [x] test/terraform/data-sources/region - Clean (uses parent.id)
+- [x] test/terraform/data-sources/location - Clean (uses site.id, tenant.id, parent.id)
+- [x] test/terraform/data-sources/tenant - Clean (uses group.id)
+- [x] test/terraform/data-sources/tenant_group - Clean (uses parent.id)
+- [x] test/terraform/data-sources/contact - Clean (no dependencies)
+- [x] test/terraform/data-sources/contact_group - Clean (no dependencies)
+- [x] test/terraform/data-sources/contact_role - Clean (no dependencies)
+- [x] test/terraform/data-sources/contact_assignment - Clean (uses site.id, contact.id, role.id)
+- [x] test/terraform/data-sources/manufacturer - Clean (no dependencies)
+- [x] test/terraform/data-sources/platform - Clean (uses manufacturer.id)
+- [x] test/terraform/data-sources/tag - Clean (no dependencies)
+- [x] test/terraform/data-sources/device_role - Clean (no dependencies)
+- [x] test/terraform/data-sources/rack_role - Clean (no dependencies)
+
+**Review Notes**: All 15 data source tests clean (0 fixes needed). Sites & Organization data sources correctly use .id for cross-resource references.
 
 #### Batch 9.11: Data Sources Part 3 - Devices (15 tests)
 - [ ] test/terraform/data-sources/device
