@@ -1216,6 +1216,352 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 - Key finding: All tests correctly use primary reference fields (role, site, tenant, etc.) with `.id`/`.name`/`.slug` for cross-resource INPUT references
 - No tests reference removed computed OUTPUT fields (role_id, site_id, tenant_id, platform_id, device_type_id, location_id, rack_id, cluster_id, manufacturer_id, parent_id, group_id, rack_type_id)
 
+## Phase 10: Run Terraform Integration Tests
+
+### Overview
+Execute all 204 Terraform integration tests in the `test/terraform` directory against a live Netbox instance to validate end-to-end resource and data source functionality.
+
+**Prerequisites**:
+- Netbox running: `docker-compose up -d`
+- Provider built: `go build .`
+- Dev overrides configured in `%APPDATA%\terraform.rc`
+
+### Test Execution Syntax
+
+#### Run Single Test
+```powershell
+# Run specific test directory
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\site"
+
+# With options
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\site" -ShowDetails -SkipDestroy
+```
+
+#### Run From Specific Test Onwards
+```powershell
+# Start from a specific test (useful for resuming after failures)
+.\scripts\run-terraform-tests.ps1 -StartFrom "resource/device"
+```
+
+#### Run All Tests (Full Suite)
+```powershell
+# Run all 204 tests in dependency order
+.\scripts\run-terraform-tests.ps1
+```
+
+### Batch Plan (10 Batches of ~20 tests each)
+
+Tests are grouped by dependency level and functional area to maximize parallelization opportunities within batches.
+
+#### Batch 10.1: Foundation Resources (20 tests)
+**No dependencies - can run in any order**
+```powershell
+# Resources (10)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\manufacturer"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\rir"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\tag"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\tenant_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\site_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\region"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\cluster_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\cluster_type"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\contact_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\contact_role"
+
+# Data Sources (10)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\manufacturer"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\rir"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\tag"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\tenant_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\site_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\region"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\cluster_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\cluster_type"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\contact_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\contact_role"
+```
+
+#### Batch 10.2: Core Infrastructure (20 tests)
+**Depends on Batch 10.1**
+```powershell
+# Resources (10)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\rack_role"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\role"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\device_role"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\wireless_lan_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\vlan_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\platform"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\tenant"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\site"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\rack_type"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\device_type"
+
+# Data Sources (10)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\rack_role"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\role"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\device_role"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\wireless_lan_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\vlan_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\platform"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\tenant"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\site"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\rack_type"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\device_type"
+```
+
+#### Batch 10.3: Location & Inventory Setup (20 tests)
+**Depends on Batch 10.2**
+```powershell
+# Resources (10)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\module_type"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\inventory_item_role"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\provider"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\vrf"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\custom_field"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\custom_field_choice_set"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\config_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\location"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\rack"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\power_panel"
+
+# Data Sources (10)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\module_type"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\inventory_item_role"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\provider"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\vrf"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\custom_field"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\custom_field_choice_set"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\config_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\location"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\rack"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\power_panel"
+```
+
+#### Batch 10.4: Power & Clusters (20 tests)
+**Depends on Batch 10.3**
+```powershell
+# Resources (10)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\power_feed"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\cluster"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\device"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\virtual_chassis"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\device_bay"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\module_bay"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\module"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\rack_reservation"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\virtual_device_context"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\contact"
+
+# Data Sources (10)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\power_feed"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\cluster"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\device"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\virtual_chassis"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\device_bay"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\module_bay"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\module"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\rack_reservation"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\virtual_device_context"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\contact"
+```
+
+#### Batch 10.5: Device Components & Templates (22 tests)
+**Depends on Batch 10.4**
+```powershell
+# Resources (11)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\console_port_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\console_server_port_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\power_port_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\power_outlet_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\interface_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\front_port_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\rear_port_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\device_bay_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\module_bay_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\inventory_item_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\console_port"
+
+# Data Sources (11)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\console_port_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\console_server_port_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\power_port_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\power_outlet_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\interface_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\front_port_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\rear_port_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\device_bay_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\module_bay_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\inventory_item_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\console_port"
+```
+
+#### Batch 10.6: Device Ports & Components (22 tests)
+**Depends on Batch 10.5**
+```powershell
+# Resources (11)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\console_server_port"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\power_port"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\power_outlet"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\interface"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\front_port"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\rear_port"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\inventory_item"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\virtual_machine"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\vm_interface"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\virtual_disk"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\contact_assignment"
+
+# Data Sources (11)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\console_server_port"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\power_port"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\power_outlet"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\interface"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\front_port"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\rear_port"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\inventory_item"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\virtual_machine"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\vm_interface"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\virtual_disk"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\contact_assignment"
+```
+
+#### Batch 10.7: IPAM Resources (20 tests)
+**Depends on Batch 10.6**
+```powershell
+# Resources (10)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\asn"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\asn_range"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\aggregate"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\vlan"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\prefix"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\ip_address"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\ip_range"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\route_target"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\service"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\service_template"
+
+# Data Sources (10)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\asn"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\asn_range"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\aggregate"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\vlan"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\prefix"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\ip_address"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\ip_range"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\route_target"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\service"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\service_template"
+```
+
+#### Batch 10.8: FHRP & Circuits (20 tests)
+**Depends on Batch 10.7**
+```powershell
+# Resources (10)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\fhrp_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\fhrp_group_assignment"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\circuit_type"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\provider_account"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\provider_network"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\circuit"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\circuit_termination"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\circuit_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\circuit_group_assignment"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\wireless_lan"
+
+# Data Sources (10)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\fhrp_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\fhrp_group_assignment"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\circuit_type"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\provider_account"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\provider_network"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\circuit"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\circuit_termination"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\circuit_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\circuit_group_assignment"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\wireless_lan"
+```
+
+#### Batch 10.9: Wireless & VPN Part 1 (20 tests)
+**Depends on Batch 10.8**
+```powershell
+# Resources (10)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\wireless_link"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\ike_proposal"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\ike_policy"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\ipsec_proposal"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\ipsec_policy"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\ipsec_profile"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\tunnel_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\tunnel"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\tunnel_termination"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\l2vpn"
+
+# Data Sources (10)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\wireless_link"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\ike_proposal"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\ike_policy"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\ipsec_proposal"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\ipsec_policy"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\ipsec_profile"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\tunnel_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\tunnel"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\tunnel_termination"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\l2vpn"
+```
+
+#### Batch 10.10: VPN Part 2, Extras & Final (22 tests)
+**Depends on Batch 10.9**
+```powershell
+# Resources (11)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\l2vpn_termination"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\cable"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\webhook"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\config_context"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\export_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\event_rule"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\journal_entry"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\custom_link"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\notification_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\script"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\resources\user"
+
+# Data Sources (11)
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\l2vpn_termination"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\cable"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\webhook"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\config_context"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\export_template"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\event_rule"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\journal_entry"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\custom_link"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\notification_group"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\script"
+.\scripts\run-terraform-tests.ps1 -TestDir "test\terraform\data-sources\user"
+```
+
+### Batch Progress Tracking
+
+- [x] **Batch 10.1**: Foundation Resources (20 tests) - ✅ Complete (100% pass rate, ~11 min)
+- [x] **Batch 10.2**: Core Infrastructure (20 tests) - ✅ Complete (100% pass rate, ~11 min)
+- [x] **Batch 10.3**: Location & Inventory Setup (20 tests) - ✅ Complete (100% pass rate, ~11.5 min)
+- [x] **Batch 10.4**: Power & Clusters (20 tests) - ✅ Complete (100% pass rate, ~12 min)
+- [x] **Batch 10.5**: Device Components & Templates (22 tests) - ✅ Complete (100% pass rate, ~13 min)
+- [ ] **Batch 10.6**: Device Ports & Components (22 tests)
+- [ ] **Batch 10.7**: IPAM Resources (20 tests)
+- [ ] **Batch 10.8**: FHRP & Circuits (20 tests)
+- [ ] **Batch 10.9**: Wireless & VPN Part 1 (20 tests)
+- [ ] **Batch 10.10**: VPN Part 2, Extras & Final (22 tests)
+
+**Total**: 206 test invocations (204 unique test directories + 2 duplicates for dependency handling)
+
+### Notes
+
+- Tests within each batch respect dependency order defined in the script
+- Each batch should be run sequentially (finish one before starting next)
+- Use `-StartFrom` to resume from a specific test after failures
+- Script automatically handles resource cleanup between tests
+- Expect ~5-10 seconds per test on average (total runtime: ~20-30 minutes for all batches)
+
 ## Script Usage
 
 ```powershell
@@ -1235,3 +1581,4 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 - [x] Build succeeds after formatting
 - [ ] All files formatted consistently
 - [ ] No functionality changes (formatting only)
+- [ ] Phase 10: All 204 Terraform integration tests pass
