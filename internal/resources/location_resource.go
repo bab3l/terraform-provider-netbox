@@ -48,8 +48,6 @@ type LocationResourceModel struct {
 
 	Parent types.String `tfsdk:"parent"`
 
-	ParentID types.String `tfsdk:"parent_id"`
-
 	Status types.String `tfsdk:"status"`
 
 	Tenant types.String `tfsdk:"tenant"`
@@ -81,12 +79,6 @@ func (r *LocationResource) Schema(ctx context.Context, req resource.SchemaReques
 			"site": nbschema.RequiredReferenceAttribute("site", "ID or slug of the site this location belongs to. Required."),
 
 			"parent": nbschema.ReferenceAttribute("parent location", "ID or slug of the parent location. Leave empty for top-level locations within the site."),
-
-			"parent_id": schema.StringAttribute{
-				Computed: true,
-
-				MarkdownDescription: "The numeric ID of the parent location.",
-			},
 
 			"status": nbschema.StatusAttribute([]string{"planned", "staging", "active", "decommissioning", "retired"}, "Operational status of the location. Defaults to `active`."),
 
@@ -570,13 +562,9 @@ func (r *LocationResource) mapLocationToState(ctx context.Context, location *net
 	if location.HasParent() && location.GetParent().Id != 0 {
 		parent := location.GetParent()
 
-		data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
-
 		data.Parent = utils.UpdateReferenceAttribute(data.Parent, parent.GetName(), parent.GetSlug(), parent.GetId())
 	} else {
 		data.Parent = types.StringNull()
-
-		data.ParentID = types.StringNull()
 	}
 
 	// Status

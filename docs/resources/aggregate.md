@@ -33,10 +33,10 @@ resource "netbox_aggregate" "test" {
 
 ### Optional
 
-- `comments` (String) Additional comments about the aggregate.
+- `comments` (String) Additional comments or notes about the aggregate. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `date_added` (String) The date this aggregate was added (YYYY-MM-DD format).
-- `description` (String) A description of the aggregate.
+- `description` (String) Description of the aggregate.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 - `tenant` (String) The name or ID of the tenant this aggregate is assigned to.
 

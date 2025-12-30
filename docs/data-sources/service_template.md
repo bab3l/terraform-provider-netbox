@@ -13,12 +13,26 @@ Use this data source to get information about a service template in NetBox.
 ## Example Usage
 
 ```terraform
-data "netbox_service_template" "test" {
-  name = "test-service-template"
+# Look up service template by ID
+data "netbox_service_template" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_service_template.test.id
+# Look up service template by name
+data "netbox_service_template" "by_name" {
+  name = "HTTP"
+}
+
+output "template_by_id" {
+  value = data.netbox_service_template.by_id.protocol
+}
+
+output "template_protocol" {
+  value = data.netbox_service_template.by_name.protocol
+}
+
+output "template_ports" {
+  value = data.netbox_service_template.by_name.ports
 }
 ```
 
@@ -35,6 +49,7 @@ output "example" {
 - `comments` (String) Comments about the service template.
 - `custom_fields` (Attributes Set) Custom fields assigned to this service template. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the service template.
+- `display_name` (String) Display name of the service template.
 - `ports` (List of Number) List of port numbers the service template listens on.
 - `protocol` (String) Protocol used by the service template (tcp, udp, sctp).
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))

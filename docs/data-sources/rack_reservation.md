@@ -13,12 +13,17 @@ Use this data source to get information about a rack reservation in NetBox.
 ## Example Usage
 
 ```terraform
-data "netbox_rack_reservation" "test" {
-  id = 123
+# Lookup by ID
+data "netbox_rack_reservation" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_rack_reservation.test.id
+output "by_id" {
+  value = data.netbox_rack_reservation.by_id.rack
+}
+
+output "by_id_units" {
+  value = data.netbox_rack_reservation.by_id.units
 }
 ```
 
@@ -34,6 +39,7 @@ output "example" {
 - `comments` (String) Additional comments about the reservation.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) A description of the reservation purpose.
+- `display_name` (String) The display name of the rack reservation.
 - `rack` (String) The name of the rack.
 - `rack_id` (String) The ID of the rack.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))

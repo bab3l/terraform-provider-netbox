@@ -13,12 +13,29 @@ Use this data source to get information about an IP address range in Netbox.
 ## Example Usage
 
 ```terraform
-data "netbox_ip_range" "test" {
-  start_address = "10.0.0.1/24"
+data "netbox_ip_range" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_ip_range.test.id
+data "netbox_ip_range" "by_addresses" {
+  start_address = "10.0.0.0"
+  end_address   = "10.0.0.255"
+}
+
+output "range_id" {
+  value = data.netbox_ip_range.by_id.id
+}
+
+output "range_start" {
+  value = data.netbox_ip_range.by_addresses.start_address
+}
+
+output "range_end" {
+  value = data.netbox_ip_range.by_addresses.end_address
+}
+
+output "range_size" {
+  value = data.netbox_ip_range.by_addresses.size
 }
 ```
 
@@ -35,6 +52,7 @@ output "example" {
 
 - `comments` (String) Comments for the IP range.
 - `description` (String) The description of the IP range.
+- `display_name` (String) The display name of the IP range.
 - `mark_utilized` (Boolean) Whether this range is treated as fully utilized.
 - `role` (String) The name of the IPAM role for this IP range.
 - `role_id` (Number) The ID of the IPAM role for this IP range.

@@ -47,7 +47,6 @@ resource "netbox_location" "test" {
 ### Read-Only
 
 - `id` (String) Unique identifier for the location (assigned by Netbox).
-- `parent_id` (String) The numeric ID of the parent location.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

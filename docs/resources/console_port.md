@@ -62,7 +62,7 @@ resource "netbox_console_port" "test" {
 ### Optional
 
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the console port.
+- `description` (String) Description of the console port.
 - `label` (String) Physical label of the console port.
 - `mark_connected` (Boolean) Treat as if a cable is connected.
 - `speed` (Number) Console port speed in bps. Valid values: `1200`, `2400`, `4800`, `9600`, `19200`, `38400`, `57600`, `115200`.

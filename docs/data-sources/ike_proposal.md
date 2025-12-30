@@ -13,12 +13,31 @@ Use this data source to get information about an IKE (Internet Key Exchange) Pro
 ## Example Usage
 
 ```terraform
-data "netbox_ike_proposal" "test" {
-  name = "test-ike-proposal"
+# Example: Look up an IKE proposal by ID
+data "netbox_ike_proposal" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_ike_proposal.test.id
+# Example: Look up an IKE proposal by name
+data "netbox_ike_proposal" "by_name" {
+  name = "AES-256-SHA"
+}
+
+# Example: Use IKE proposal data in other resources
+output "ike_proposal_id" {
+  value = data.netbox_ike_proposal.by_id.id
+}
+
+output "ike_proposal_name" {
+  value = data.netbox_ike_proposal.by_name.name
+}
+
+output "ike_proposal_encryption" {
+  value = data.netbox_ike_proposal.by_name.encryption_algorithm
+}
+
+output "ike_proposal_authentication" {
+  value = data.netbox_ike_proposal.by_name.authentication_algorithm
 }
 ```
 
@@ -36,6 +55,7 @@ output "example" {
 - `authentication_method` (String) The authentication method for the IKE proposal. Values: `preshared-keys`, `certificates`, `rsa-signatures`, `dsa-signatures`.
 - `comments` (String) Comments about the IKE proposal.
 - `description` (String) The description of the IKE proposal.
+- `display_name` (String) The display name of the IKE proposal.
 - `encryption_algorithm` (String) The encryption algorithm for the IKE proposal. Values: `aes-128-cbc`, `aes-128-gcm`, `aes-192-cbc`, `aes-192-gcm`, `aes-256-cbc`, `aes-256-gcm`, `3des-cbc`, `des-cbc`.
 - `group` (Number) The Diffie-Hellman group for the IKE proposal.
 - `sa_lifetime` (Number) Security association lifetime in seconds.

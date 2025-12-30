@@ -54,7 +54,7 @@ resource "netbox_circuit_termination" "test_a" {
 ### Optional
 
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the circuit termination.
+- `description` (String) Description of the circuit termination.
 - `mark_connected` (Boolean) Treat as if a cable is connected. Defaults to `false`.
 - `port_speed` (Number) The physical circuit speed in Kbps.
 - `pp_info` (String) Patch panel ID and port number(s).

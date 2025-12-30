@@ -13,12 +13,24 @@ Use this data source to get information about an IP address in Netbox.
 ## Example Usage
 
 ```terraform
-data "netbox_ip_address" "test" {
-  ip_address = "10.0.0.1/24"
+data "netbox_ip_address" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_ip_address.test.id
+data "netbox_ip_address" "by_address" {
+  address = "192.168.1.1/32"
+}
+
+output "address_id" {
+  value = data.netbox_ip_address.by_id.id
+}
+
+output "address_value" {
+  value = data.netbox_ip_address.by_address.address
+}
+
+output "address_status" {
+  value = data.netbox_ip_address.by_address.status
 }
 ```
 
@@ -36,6 +48,7 @@ output "example" {
 - `assigned_object_type` (String) The content type of the assigned object.
 - `comments` (String) Comments for the IP address.
 - `description` (String) The description of the IP address.
+- `display_name` (String) The display name of the IP address.
 - `dns_name` (String) Hostname or FQDN.
 - `role` (String) The role of the IP address.
 - `status` (String) The status of the IP address.

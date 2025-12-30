@@ -29,9 +29,9 @@ resource "netbox_wireless_lan" "test" {
 - `auth_cipher` (String) Authentication cipher. Valid values: `auto`, `tkip`, `aes`.
 - `auth_psk` (String, Sensitive) Pre-shared key for authentication.
 - `auth_type` (String) Authentication type. Valid values: `open`, `wep`, `wpa-personal`, `wpa-enterprise`.
-- `comments` (String) Additional comments or notes about the wireless LAN.
+- `comments` (String) Additional comments or notes about the wireless LAN. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the wireless LAN.
+- `description` (String) Description of the wireless LAN.
 - `group` (String) The wireless LAN group this network belongs to (ID or slug).
 - `status` (String) Status of the wireless LAN. Valid values: `active`, `reserved`, `disabled`, `deprecated`. Default: `active`.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))

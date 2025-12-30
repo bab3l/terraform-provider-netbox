@@ -45,8 +45,6 @@ type VRFResourceModel struct {
 
 	Tenant types.String `tfsdk:"tenant"`
 
-	TenantID types.String `tfsdk:"tenant_id"`
-
 	EnforceUnique types.Bool `tfsdk:"enforce_unique"`
 
 	Description types.String `tfsdk:"description"`
@@ -77,8 +75,7 @@ func (r *VRFResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				Optional: true,
 			},
 
-			"tenant":    nbschema.ReferenceAttribute("tenant", "Name, Slug, or ID of the tenant this VRF belongs to."),
-			"tenant_id": nbschema.ComputedIDAttribute("tenant"),
+			"tenant": nbschema.ReferenceAttribute("tenant", "Name, Slug, or ID of the tenant this VRF belongs to."),
 
 			"enforce_unique": schema.BoolAttribute{
 				MarkdownDescription: "Prevent duplicate prefixes/IP addresses within this VRF. Defaults to `true`.",
@@ -458,7 +455,6 @@ func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *
 		vrf.Tenant.Get().GetSlug(),
 	)
 	data.Tenant = tenantRef.Reference
-	data.TenantID = tenantRef.ID
 
 	// Enforce unique - default is true
 	data.EnforceUnique = types.BoolValue(vrf.GetEnforceUnique())

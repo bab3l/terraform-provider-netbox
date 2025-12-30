@@ -13,12 +13,22 @@ Use this data source to get information about a rack in Netbox. Racks represent 
 ## Example Usage
 
 ```terraform
-data "netbox_rack" "test" {
-  name = "test-rack"
+# Lookup by ID
+data "netbox_rack" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_rack.test.id
+output "by_id" {
+  value = data.netbox_rack.by_id.name
+}
+
+# Lookup by name
+data "netbox_rack" "by_name" {
+  name = "RACK-A1"
+}
+
+output "by_name" {
+  value = data.netbox_rack.by_name.site
 }
 ```
 
@@ -38,6 +48,7 @@ output "example" {
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `desc_units` (Boolean) If true, rack units are numbered in descending order (top to bottom).
 - `description` (String) Description of the rack.
+- `display_name` (String) The display name of the rack.
 - `form_factor` (String) Physical form factor of the rack (`2-post-frame`, `4-post-frame`, `4-post-cabinet`, `wall-frame`, `wall-frame-vertical`, `wall-cabinet`, `wall-cabinet-vertical`).
 - `location` (String) Name of the location within the site.
 - `location_id` (String) ID of the location within the site.

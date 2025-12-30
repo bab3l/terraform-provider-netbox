@@ -1719,9 +1719,22 @@ func (c *CleanupResource) RegisterVMInterfaceCleanup(name string, vmName string)
 
 		defer cancel()
 
+		// First check if the parent VM exists
+		vmList, vmResp, vmErr := c.client.VirtualizationAPI.VirtualizationVirtualMachinesList(ctx).Name([]string{vmName}).Execute()
+		if vmErr != nil || vmResp.StatusCode != 200 || vmList.Count == 0 {
+			// VM doesn't exist, so interface is cascade-deleted
+			c.t.Logf("Cleanup: VM interface with name %s not cleaned up (parent VM %s already deleted)", name, vmName)
+			return
+		}
+
 		list, resp, err := c.client.VirtualizationAPI.VirtualizationInterfacesList(ctx).Name([]string{name}).VirtualMachine([]string{vmName}).Execute()
 
 		if err != nil {
+			// 404 means the interface doesn't exist
+			if resp != nil && resp.StatusCode == 404 {
+				c.t.Logf("Cleanup: VM interface with name %s on VM %s not found (already deleted)", name, vmName)
+				return
+			}
 
 			c.t.Logf("Cleanup: failed to list VM interfaces with name %s on VM %s: %v", name, vmName, err)
 

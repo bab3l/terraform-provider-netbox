@@ -62,7 +62,7 @@ resource "netbox_power_outlet" "test" {
 ### Optional
 
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the power outlet.
+- `description` (String) Description of the power outlet.
 - `feed_leg` (String) Phase leg for three-phase power. Valid values: `A`, `B`, `C`.
 - `label` (String) Physical label of the power outlet.
 - `mark_connected` (Boolean) Treat as if a cable is connected.

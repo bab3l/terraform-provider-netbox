@@ -62,6 +62,7 @@ output "interface_by_device_id" {
 - `bridge` (String) ID of the bridge interface this interface belongs to.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Brief description of the interface.
+- `display_name` (String) The display name of the interface.
 - `duplex` (String) Duplex mode (half, full, auto).
 - `enabled` (Boolean) Whether the interface is enabled.
 - `label` (String) Physical label on the interface.

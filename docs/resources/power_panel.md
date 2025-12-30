@@ -34,9 +34,9 @@ resource "netbox_power_panel" "test" {
 
 ### Optional
 
-- `comments` (String) Additional comments or notes about the power panel.
+- `comments` (String) Additional comments or notes about the power panel. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the power panel.
+- `description` (String) Description of the power panel.
 - `location` (String) The location within the site (ID or slug).
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 

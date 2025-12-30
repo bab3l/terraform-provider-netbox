@@ -33,9 +33,9 @@ resource "netbox_custom_field" "test" {
 ### Optional
 
 - `choice_set` (String) The choice set name for select and multiselect custom fields.
-- `comments` (String) Comments or notes about the custom field.
+- `comments` (String) Additional comments or notes about the custom field. Supports Markdown formatting.
 - `default` (String) Default value for the field (must be a JSON value). Encapsulate strings with double quotes.
-- `description` (String) A description of the custom field.
+- `description` (String) Description of the custom field.
 - `filter_logic` (String) Filter logic for the custom field. Valid values: `disabled`, `loose`, `exact`.
 - `group_name` (String) Custom fields within the same group will be displayed together.
 - `is_cloneable` (Boolean) Replicate this value when cloning objects.

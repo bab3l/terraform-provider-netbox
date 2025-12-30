@@ -13,12 +13,34 @@ Use this data source to get information about a VRF (Virtual Routing and Forward
 ## Example Usage
 
 ```terraform
-data "netbox_vrf" "test" {
+# Look up a VRF by ID
+data "netbox_vrf" "by_id" {
+  id = "1"
+}
+
+# Look up a VRF by name
+data "netbox_vrf" "by_name" {
   name = "test-vrf"
 }
 
-output "example" {
-  value = data.netbox_vrf.test.id
+# Use VRF data in outputs
+output "by_id" {
+  value = data.netbox_vrf.by_id.name
+}
+
+output "by_name" {
+  value = data.netbox_vrf.by_name.id
+}
+
+output "vrf_info" {
+  value = {
+    id             = data.netbox_vrf.by_name.id
+    name           = data.netbox_vrf.by_name.name
+    rd             = data.netbox_vrf.by_name.rd
+    tenant         = data.netbox_vrf.by_name.tenant
+    enforce_unique = data.netbox_vrf.by_name.enforce_unique
+    description    = data.netbox_vrf.by_name.description
+  }
 }
 ```
 
@@ -35,6 +57,7 @@ output "example" {
 - `comments` (String) Additional comments or notes about the VRF.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Brief description of the VRF.
+- `display_name` (String) Display name for the VRF.
 - `enforce_unique` (Boolean) Prevent duplicate prefixes/IP addresses within this VRF.
 - `rd` (String) Route distinguisher (RD) as defined in RFC 4364.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))

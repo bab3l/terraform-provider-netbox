@@ -3,22 +3,38 @@
 page_title: "netbox_circuit_type Data Source - terraform-provider-netbox"
 subcategory: ""
 description: |-
-  Retrieves information about a circuit type in Netbox. Circuit types categorize the various types of circuits used by your organization (e.g., Internet Transit, MPLS, Point-to-Point, etc.).
+  Retrieves information about a circuit type in Netbox. Circuit types categorize the various types of circuits used by your organization (e.g., Internet Transit, MPLS, Point-to-Point, etc.). You can identify the circuit type using id, slug, or name.
 ---
 
 # netbox_circuit_type (Data Source)
 
-Retrieves information about a circuit type in Netbox. Circuit types categorize the various types of circuits used by your organization (e.g., Internet Transit, MPLS, Point-to-Point, etc.).
+Retrieves information about a circuit type in Netbox. Circuit types categorize the various types of circuits used by your organization (e.g., Internet Transit, MPLS, Point-to-Point, etc.). You can identify the circuit type using `id`, `slug`, or `name`.
 
 ## Example Usage
 
 ```terraform
-data "netbox_circuit_type" "test" {
-  slug = "test-circuit-type"
+data "netbox_circuit_type" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_circuit_type.test.id
+data "netbox_circuit_type" "by_name" {
+  name = "Internet Transit"
+}
+
+data "netbox_circuit_type" "by_slug" {
+  slug = "internet-transit"
+}
+
+output "by_id" {
+  value = data.netbox_circuit_type.by_id.name
+}
+
+output "by_name" {
+  value = data.netbox_circuit_type.by_name.id
+}
+
+output "by_slug" {
+  value = data.netbox_circuit_type.by_slug.id
 }
 ```
 
@@ -36,6 +52,7 @@ output "example" {
 - `color` (String) Color of the circuit type (6-character hex code).
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the circuit type.
+- `display_name` (String) The display name of the circuit type.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
 
 <a id="nestedatt--custom_fields"></a>

@@ -273,6 +273,156 @@ function Get-ResourceNamesFromTerraform {
     return $resources
 }
 
+function Clear-AllTestAggregates {
+    <#
+    .SYNOPSIS
+    Removes ALL aggregates with private/test IP ranges to prevent overlapping aggregate errors.
+    #>
+    $headers = Get-NetboxHeaders
+    $deleted = 0
+
+    try {
+        # Get all aggregates
+        $uri = "$($env:NETBOX_SERVER_URL)/api/ipam/aggregates/?limit=1000"
+        $response = Invoke-RestMethod -Uri $uri -Method Get -Headers $headers
+
+        if (-not $response.results) {
+            return $deleted
+        }
+
+        # Test prefixes to check for: private/reserved IP ranges commonly used in tests
+        $testPrefixes = @(
+            "10.",           # 10.0.0.0/8
+            "172.16.",       # 172.16.0.0/12
+            "172.17.",
+            "172.18.",
+            "172.19.",
+            "172.20.",
+            "172.21.",
+            "172.22.",
+            "172.23.",
+            "172.24.",
+            "172.25.",
+            "172.26.",
+            "172.27.",
+            "172.28.",
+            "172.29.",
+            "172.30.",
+            "172.31.",
+            "192.168.",      # 192.168.0.0/16
+            "192.0.2.",      # TEST-NET-1
+            "192.0.",        # Reserved test ranges
+            "198.51.",       # TEST-NET-2
+            "203.0.113."     # TEST-NET-3
+        )
+
+        foreach ($aggregate in $response.results) {
+            $prefix = $aggregate.prefix
+            $isTestPrefix = $false
+
+            foreach ($testPrefix in $testPrefixes) {
+                if ($prefix.StartsWith($testPrefix)) {
+                    $isTestPrefix = $true
+                    break
+                }
+            }
+
+            if ($isTestPrefix) {
+                try {
+                    $deleteUri = "$($env:NETBOX_SERVER_URL)/api/ipam/aggregates/$($aggregate.id)/"
+                    Invoke-RestMethod -Uri $deleteUri -Method Delete -Headers $headers -ErrorAction Stop | Out-Null
+                    $deleted++
+                    Write-Info "      Deleted test aggregate: $prefix (ID: $($aggregate.id))"
+                }
+                catch {
+                    # Might fail if it has dependencies, that's ok - we'll try again later
+                    Write-Info "      Could not delete aggregate $prefix - may have dependencies"
+                }
+            }
+        }
+    }
+    catch {
+        Write-Info "      Error cleaning test aggregates: $_"
+    }
+
+    return $deleted
+}
+
+function Clear-AllTestIPRanges {
+    <#
+    .SYNOPSIS
+    Removes ALL IP ranges with private/test IP ranges to prevent overlapping range errors.
+    #>
+    $headers = Get-NetboxHeaders
+    $deleted = 0
+
+    try {
+        # Get all IP ranges
+        $uri = "$($env:NETBOX_SERVER_URL)/api/ipam/ip-ranges/?limit=1000"
+        $response = Invoke-RestMethod -Uri $uri -Method Get -Headers $headers
+
+        if (-not $response.results) {
+            return $deleted
+        }
+
+        # Test IP ranges to check for: private/reserved IP ranges commonly used in tests
+        $testRanges = @(
+            "10.",           # 10.0.0.0/8
+            "172.16.",       # 172.16.0.0/12
+            "172.17.",
+            "172.18.",
+            "172.19.",
+            "172.20.",
+            "172.21.",
+            "172.22.",
+            "172.23.",
+            "172.24.",
+            "172.25.",
+            "172.26.",
+            "172.27.",
+            "172.28.",
+            "172.29.",
+            "172.30.",
+            "172.31.",
+            "192.168.",      # 192.168.0.0/16
+            "192.0.2.",      # TEST-NET-1
+            "192.0.",        # Reserved test ranges
+            "198.51.",       # TEST-NET-2
+            "203.0.113."     # TEST-NET-3
+        )
+
+        foreach ($range in $response.results) {
+            $startAddr = $range.start_address
+            $isTestRange = $false
+
+            foreach ($testRange in $testRanges) {
+                if ($startAddr.StartsWith($testRange)) {
+                    $isTestRange = $true
+                    break
+                }
+            }
+
+            if ($isTestRange) {
+                try {
+                    $deleteUri = "$($env:NETBOX_SERVER_URL)/api/ipam/ip-ranges/$($range.id)/"
+                    Invoke-RestMethod -Uri $deleteUri -Method Delete -Headers $headers -ErrorAction Stop | Out-Null
+                    $deleted++
+                    Write-Info "      Deleted test IP range: $startAddr (ID: $($range.id))"
+                }
+                catch {
+                    # Might fail if it has dependencies, that's ok - we'll try again later
+                    Write-Info "      Could not delete IP range $startAddr - may have dependencies"
+                }
+            }
+        }
+    }
+    catch {
+        Write-Info "      Error cleaning test IP ranges: $_"
+    }
+
+    return $deleted
+}
+
 function Clear-OrphanedNetboxResources {
     param(
         [string]$TestPath
@@ -294,6 +444,26 @@ function Clear-OrphanedNetboxResources {
     }
 
     Write-Info "  Checking for orphaned resources in Netbox ($($resources.Count) resources defined)..."
+
+    # Special handling for aggregates: clean up ALL test aggregates (those with private/test prefixes)
+    # to avoid overlapping aggregate errors
+    if ($resources | Where-Object { $_.ResourceType -eq 'netbox_aggregate' }) {
+        Write-Info "    Pre-cleaning all test aggregates to avoid overlaps..."
+        $testAggregates = Clear-AllTestAggregates
+        if ($testAggregates -gt 0) {
+            Write-Warn "    Pre-cleaned $testAggregates test aggregate(s)"
+        }
+    }
+
+    # Special handling for IP ranges: clean up ALL test IP ranges (those with private/test ranges)
+    # to avoid overlapping range errors
+    if ($resources | Where-Object { $_.ResourceType -eq 'netbox_ip_range' }) {
+        Write-Info "    Pre-cleaning all test IP ranges to avoid overlaps..."
+        $testRanges = Clear-AllTestIPRanges
+        if ($testRanges -gt 0) {
+            Write-Warn "    Pre-cleaned $testRanges test IP range(s)"
+        }
+    }
 
     # Reverse order to handle dependencies (delete children first)
     $deletionOrder = @(

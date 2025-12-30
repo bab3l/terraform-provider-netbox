@@ -34,7 +34,7 @@ func TestPlatformResourceSchema(t *testing.T) {
 	testutil.ValidateResourceSchema(t, schemaResponse.Schema.Attributes, testutil.SchemaValidation{
 		Required:         []string{"name", "slug"},
 		Optional:         []string{"manufacturer", "description"},
-		Computed:         []string{"id", "manufacturer_id"},
+		Computed:         []string{"id"},
 		OptionalComputed: []string{},
 	})
 }

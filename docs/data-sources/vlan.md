@@ -13,12 +13,47 @@ Use this data source to get information about a VLAN in Netbox.
 ## Example Usage
 
 ```terraform
-data "netbox_vlan" "test" {
+# Look up a VLAN by ID
+data "netbox_vlan" "by_id" {
+  id = "1"
+}
+
+# Look up a VLAN by VID
+data "netbox_vlan" "by_vid" {
   vid = 100
 }
 
-output "example" {
-  value = data.netbox_vlan.test.id
+# Look up a VLAN by name
+data "netbox_vlan" "by_name" {
+  name = "test-vlan"
+}
+
+# Look up a VLAN by VID with optional name filter
+data "netbox_vlan" "by_vid_and_name" {
+  vid  = 100
+  name = "test-vlan"
+}
+
+# Use VLAN data in outputs
+output "by_id" {
+  value = data.netbox_vlan.by_id.name
+}
+
+output "by_vid" {
+  value = data.netbox_vlan.by_vid.name
+}
+
+output "vlan_info" {
+  value = {
+    id          = data.netbox_vlan.by_name.id
+    vid         = data.netbox_vlan.by_name.vid
+    name        = data.netbox_vlan.by_name.name
+    site        = data.netbox_vlan.by_name.site
+    group       = data.netbox_vlan.by_name.group
+    status      = data.netbox_vlan.by_name.status
+    role        = data.netbox_vlan.by_name.role
+    description = data.netbox_vlan.by_name.description
+  }
 }
 ```
 
@@ -35,6 +70,7 @@ output "example" {
 
 - `comments` (String) Comments for the VLAN.
 - `description` (String) The description of the VLAN.
+- `display_name` (String) Display name of the VLAN.
 - `group` (String) The name of the VLAN group this VLAN belongs to.
 - `group_id` (Number) The ID of the VLAN group this VLAN belongs to.
 - `role` (String) The name of the role assigned to this VLAN.

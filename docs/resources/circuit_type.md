@@ -30,7 +30,7 @@ resource "netbox_circuit_type" "test" {
 
 - `color` (String) The color to use when displaying this circuit type (6-character hex code without the leading #, e.g., 'aa1409').
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the circuit type.
+- `description` (String) Description of the circuit type.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 
 ### Read-Only

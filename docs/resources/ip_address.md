@@ -46,8 +46,8 @@ resource "netbox_ip_address" "test_vrf" {
 
 - `assigned_object_id` (Number) The ID of the assigned object (interface or VM interface).
 - `assigned_object_type` (String) The content type of the assigned object (e.g., `dcim.interface`, `virtualization.vminterface`).
-- `comments` (String) Comments for the IP address.
-- `description` (String) A description for the IP address.
+- `comments` (String) Additional comments or notes about the IP address. Supports Markdown formatting.
+- `description` (String) Description of the IP address.
 - `dns_name` (String) Hostname or FQDN (not case-sensitive).
 - `role` (String) The role of the IP address. Valid values are: `loopback`, `secondary`, `anycast`, `vip`, `vrrp`, `hsrp`, `glbp`, `carp`.
 - `status` (String) The status of the IP address. Valid values are: `active`, `reserved`, `deprecated`, `dhcp`, `slaac`. Defaults to `active`.

@@ -20,12 +20,12 @@ Manages a power outlet template in NetBox. Power outlet templates define the def
 
 ### Optional
 
-- `description` (String) A description of the power outlet template.
+- `description` (String) Description of the power outlet template.
 - `device_type` (String) The device type ID or slug. Either device_type or module_type must be specified.
-- `feed_leg` (String) Phase leg for three-phase power (A, B, or C).
+- `feed_leg` (String) Feed leg for three-phase power (A, B, or C).
 - `label` (String) Physical label of the power outlet template.
 - `module_type` (String) The module type ID or model name. Either device_type or module_type must be specified.
-- `power_port` (Number) The power port template ID that feeds this outlet.
+- `power_port` (Number) The power port template that feeds this power outlet.
 - `type` (String) The type of power outlet (e.g., iec-60320-c5, iec-60320-c7, iec-60320-c13, iec-60320-c15, iec-60320-c19, nema-1-15r, nema-5-15r, nema-5-20r, etc.).
 
 ### Read-Only

@@ -52,7 +52,7 @@ resource "netbox_front_port_template" "test" {
 ### Optional
 
 - `color` (String) Color of the front port in hex format (e.g., `aa1409`).
-- `description` (String) A description of the front port template.
+- `description` (String) Description of the front port template.
 - `device_type` (String) The device type ID or slug. Either device_type or module_type must be specified.
 - `label` (String) Physical label of the front port template.
 - `module_type` (String) The module type ID or model name. Either device_type or module_type must be specified.

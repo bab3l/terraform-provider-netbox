@@ -33,7 +33,7 @@ resource "netbox_cluster" "test" {
 
 ### Optional
 
-- `comments` (String) Additional comments or notes about the cluster.
+- `comments` (String) Additional comments or notes about the cluster. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the cluster.
 - `group` (String) The name or ID of the cluster group this cluster belongs to.

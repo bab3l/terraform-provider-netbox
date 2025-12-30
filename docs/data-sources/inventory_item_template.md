@@ -13,13 +13,20 @@ Use this data source to get information about an inventory item template in NetB
 ## Example Usage
 
 ```terraform
-data "netbox_inventory_item_template" "test" {
-  name           = "test-inventory-item-template"
-  device_type_id = 123
+data "netbox_inventory_item_template" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_inventory_item_template.test.id
+output "template_id" {
+  value = data.netbox_inventory_item_template.by_id.id
+}
+
+output "template_name" {
+  value = data.netbox_inventory_item_template.by_id.name
+}
+
+output "template_device_type" {
+  value = data.netbox_inventory_item_template.by_id.device_type_id
 }
 ```
 
@@ -37,6 +44,7 @@ output "example" {
 - `description` (String) A description of the inventory item template.
 - `device_type` (String) The model name of the device type this inventory item template belongs to.
 - `device_type_id` (String) The ID of the device type this inventory item template belongs to.
+- `display_name` (String) The display name of the inventory item template.
 - `label` (String) Physical label of the inventory item template.
 - `manufacturer` (String) The name of the manufacturer.
 - `manufacturer_id` (String) The ID of the manufacturer.

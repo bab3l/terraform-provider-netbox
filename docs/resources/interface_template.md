@@ -18,10 +18,10 @@ resource "netbox_manufacturer" "test" {
 }
 
 resource "netbox_device_type" "test" {
-  model           = "Test Model"
-  slug            = "test-model"
-  manufacturer_id = netbox_manufacturer.test.id
-  u_height        = 1
+  model        = "Test Model"
+  slug         = "test-model"
+  manufacturer = netbox_manufacturer.test.slug
+  u_height     = 1
 }
 
 resource "netbox_interface_template" "test" {
@@ -42,7 +42,7 @@ resource "netbox_interface_template" "test" {
 ### Optional
 
 - `bridge` (Number) The ID of the bridge interface template this interface belongs to.
-- `description` (String) A description of the interface template.
+- `description` (String) Description of the interface template.
 - `device_type` (String) The device type ID or slug. Either device_type or module_type must be specified.
 - `enabled` (Boolean) Whether the interface is enabled by default.
 - `label` (String) Physical label of the interface template.

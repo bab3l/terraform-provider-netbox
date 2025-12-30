@@ -13,12 +13,28 @@ Use this data source to get information about an IPSec Proposal in Netbox. IPSec
 ## Example Usage
 
 ```terraform
-data "netbox_ipsec_proposal" "test" {
-  name = "test-ipsec-proposal"
+data "netbox_ipsec_proposal" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_ipsec_proposal.test.id
+data "netbox_ipsec_proposal" "by_name" {
+  name = "AES256-SHA256"
+}
+
+output "proposal_id" {
+  value = data.netbox_ipsec_proposal.by_id.id
+}
+
+output "proposal_name" {
+  value = data.netbox_ipsec_proposal.by_name.name
+}
+
+output "proposal_encryption" {
+  value = data.netbox_ipsec_proposal.by_name.encryption_algorithm
+}
+
+output "proposal_authentication" {
+  value = data.netbox_ipsec_proposal.by_name.authentication_algorithm
 }
 ```
 
@@ -35,6 +51,7 @@ output "example" {
 - `authentication_algorithm` (String) The authentication algorithm (hash) for the IPSec proposal. Values: `hmac-sha1`, `hmac-sha256`, `hmac-sha384`, `hmac-sha512`, `hmac-md5`.
 - `comments` (String) Comments about the IPSec proposal.
 - `description` (String) The description of the IPSec proposal.
+- `display_name` (String) The display name of the IPSec proposal.
 - `encryption_algorithm` (String) The encryption algorithm for the IPSec proposal. Values: `aes-128-cbc`, `aes-128-gcm`, `aes-192-cbc`, `aes-192-gcm`, `aes-256-cbc`, `aes-256-gcm`, `3des-cbc`, `des-cbc`.
 - `sa_lifetime_data` (Number) Security association lifetime in kilobytes.
 - `sa_lifetime_seconds` (Number) Security association lifetime in seconds.

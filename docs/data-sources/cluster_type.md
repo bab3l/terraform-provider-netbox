@@ -13,12 +13,28 @@ Use this data source to get information about a cluster type in Netbox. Cluster 
 ## Example Usage
 
 ```terraform
-data "netbox_cluster_type" "test" {
-  name = "test-cluster-type"
+data "netbox_cluster_type" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_cluster_type.test.id
+data "netbox_cluster_type" "by_name" {
+  name = "VMware vSphere"
+}
+
+data "netbox_cluster_type" "by_slug" {
+  slug = "vmware-vsphere"
+}
+
+output "by_id" {
+  value = data.netbox_cluster_type.by_id.name
+}
+
+output "by_name" {
+  value = data.netbox_cluster_type.by_name.id
+}
+
+output "by_slug" {
+  value = data.netbox_cluster_type.by_slug.id
 }
 ```
 
@@ -35,6 +51,7 @@ output "example" {
 
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Detailed description of the cluster type.
+- `display_name` (String) The display name of the cluster type.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
 
 <a id="nestedatt--custom_fields"></a>

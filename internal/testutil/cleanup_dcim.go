@@ -553,9 +553,22 @@ func (c *CleanupResource) RegisterInterfaceCleanup(name string, deviceName strin
 
 		defer cancel()
 
+		// First check if the parent device exists
+		deviceList, deviceResp, deviceErr := c.client.DcimAPI.DcimDevicesList(ctx).Name([]string{deviceName}).Execute()
+		if deviceErr != nil || deviceResp.StatusCode != 200 || len(deviceList.Results) == 0 {
+			// Device doesn't exist, so interface is cascade-deleted
+			c.t.Logf("Cleanup: interface with name %s not cleaned up (parent device %s already deleted)", name, deviceName)
+			return
+		}
+
 		list, resp, err := c.client.DcimAPI.DcimInterfacesList(ctx).Name([]string{name}).Device([]*string{&deviceName}).Execute()
 
 		if err != nil {
+			// 404 means the interface doesn't exist
+			if resp != nil && resp.StatusCode == 404 {
+				c.t.Logf("Cleanup: interface with name %s on device %s not found (already deleted)", name, deviceName)
+				return
+			}
 
 			c.t.Logf("Cleanup: failed to list interfaces with name %s on device %s: %v", name, deviceName, err)
 

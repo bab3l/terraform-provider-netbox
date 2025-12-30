@@ -13,18 +13,22 @@ Retrieves information about a journal entry in NetBox.
 ## Example Usage
 
 ```terraform
-# Look up a journal entry by ID
-data "netbox_journal_entry" "example" {
+# Example: Look up a journal entry by ID (only supported lookup method)
+data "netbox_journal_entry" "by_id" {
   id = 123
 }
 
-# Use the journal entry data
+# Example: Use journal entry data in other resources
 output "journal_comments" {
-  value = data.netbox_journal_entry.example.comments
+  value = data.netbox_journal_entry.by_id.comments
 }
 
 output "journal_kind" {
-  value = data.netbox_journal_entry.example.kind
+  value = data.netbox_journal_entry.by_id.kind
+}
+
+output "journal_object_type" {
+  value = data.netbox_journal_entry.by_id.assigned_object_type
 }
 ```
 
@@ -40,4 +44,5 @@ output "journal_kind" {
 - `assigned_object_id` (Number) The ID of the assigned object.
 - `assigned_object_type` (String) The content type of the assigned object (e.g., `dcim.device`, `dcim.site`, `ipam.ipaddress`).
 - `comments` (String) The content of the journal entry.
+- `display_name` (String) The display name of the journal entry.
 - `kind` (String) The kind/severity of the journal entry (info, success, warning, danger).

@@ -13,12 +13,27 @@ Retrieves information about a custom field in NetBox.
 ## Example Usage
 
 ```terraform
-data "netbox_custom_field" "test" {
+# Example: Look up a custom field by ID
+data "netbox_custom_field" "by_id" {
+  id = "1"
+}
+
+# Example: Look up a custom field by name
+data "netbox_custom_field" "by_name" {
   name = "test_field"
 }
 
-output "example" {
-  value = data.netbox_custom_field.test.id
+# Example: Use custom field data in other resources
+output "custom_field_id" {
+  value = data.netbox_custom_field.by_id.id
+}
+
+output "custom_field_name" {
+  value = data.netbox_custom_field.by_name.name
+}
+
+output "custom_field_type" {
+  value = data.netbox_custom_field.by_name.type
 }
 ```
 
@@ -37,6 +52,7 @@ output "example" {
 - `data_type` (String) The data type of the custom field.
 - `default` (String) Default value for the field (JSON string).
 - `description` (String) A description of the custom field.
+- `display_name` (String) The display name of the custom field.
 - `filter_logic` (String) Filter logic for the custom field.
 - `group_name` (String) Custom fields within the same group will be displayed together.
 - `is_cloneable` (Boolean) Replicate this value when cloning objects.

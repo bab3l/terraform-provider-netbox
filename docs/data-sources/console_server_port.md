@@ -3,23 +3,31 @@
 page_title: "netbox_console_server_port Data Source - terraform-provider-netbox"
 subcategory: ""
 description: |-
-  Retrieves information about a console server port in NetBox.
+  Retrieves information about a console server port in NetBox. You can identify the console server port using id or the combination of device_id and name.
 ---
 
 # netbox_console_server_port (Data Source)
 
-Retrieves information about a console server port in NetBox.
+Retrieves information about a console server port in NetBox. You can identify the console server port using `id` or the combination of `device_id` and `name`.
 
 ## Example Usage
 
 ```terraform
-data "netbox_console_server_port" "test" {
-  name      = "test-console-server-port"
-  device_id = 123
+data "netbox_console_server_port" "by_id" {
+  id = "789"
 }
 
-output "example" {
-  value = data.netbox_console_server_port.test.id
+data "netbox_console_server_port" "by_device_and_name" {
+  device_id = "456"
+  name      = "csp0"
+}
+
+output "by_id" {
+  value = data.netbox_console_server_port.by_id.name
+}
+
+output "by_device_and_name" {
+  value = data.netbox_console_server_port.by_device_and_name.id
 }
 ```
 
@@ -36,6 +44,7 @@ output "example" {
 
 - `description` (String) A description of the console server port.
 - `device` (String) The name of the device.
+- `display_name` (String) The display name of the console server port.
 - `label` (String) Physical label of the console server port.
 - `mark_connected` (Boolean) Treat as if a cable is connected.
 - `speed` (Number) Console server port speed in bps.

@@ -13,12 +13,31 @@ Use this data source to get information about a tunnel group in Netbox. Tunnel g
 ## Example Usage
 
 ```terraform
-data "netbox_tunnel_group" "test" {
-  name = "test-tunnel-group"
+# Look up tunnel group by ID
+data "netbox_tunnel_group" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_tunnel_group.test.id
+# Look up tunnel group by slug
+data "netbox_tunnel_group" "by_slug" {
+  slug = "default"
+}
+
+# Look up tunnel group by name
+data "netbox_tunnel_group" "by_name" {
+  name = "Default"
+}
+
+output "tunnel_group_description" {
+  value = data.netbox_tunnel_group.by_id.description
+}
+
+output "tunnel_group_by_slug" {
+  value = data.netbox_tunnel_group.by_slug.name
+}
+
+output "tunnel_group_by_name" {
+  value = data.netbox_tunnel_group.by_name.slug
 }
 ```
 
@@ -35,6 +54,7 @@ output "example" {
 
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Detailed description of the tunnel group.
+- `display_name` (String) Display name of the tunnel group.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
 
 <a id="nestedatt--custom_fields"></a>

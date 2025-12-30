@@ -13,12 +13,31 @@ Use this data source to get information about a region in Netbox. Regions provid
 ## Example Usage
 
 ```terraform
-data "netbox_region" "test" {
-  name = "test-region"
+# Lookup by ID
+data "netbox_region" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_region.test.id
+output "by_id" {
+  value = data.netbox_region.by_id.name
+}
+
+# Lookup by slug
+data "netbox_region" "by_slug" {
+  slug = "north-america"
+}
+
+output "by_slug" {
+  value = data.netbox_region.by_slug.name
+}
+
+# Lookup by name
+data "netbox_region" "by_name" {
+  name = "North America"
+}
+
+output "by_name" {
+  value = data.netbox_region.by_name.slug
 }
 ```
 
@@ -35,6 +54,7 @@ output "example" {
 
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Detailed description of the region.
+- `display_name` (String) The display name of the region.
 - `parent` (String) ID of the parent region. Null if this is a top-level region.
 - `parent_id` (String) ID of the parent region (same as parent, for compatibility).
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))

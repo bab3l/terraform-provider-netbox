@@ -57,7 +57,6 @@ resource "netbox_rack_type" "test" {
 ### Read-Only
 
 - `id` (String) Unique identifier for the rack type (assigned by Netbox).
-- `manufacturer_id` (String) The numeric ID of the manufacturer.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

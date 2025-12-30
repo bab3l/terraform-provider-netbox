@@ -35,6 +35,7 @@ output "example" {
 - `circuit` (String) The ID of the circuit this termination belongs to.
 - `circuit_cid` (String) The CID (circuit identifier) of the circuit this termination belongs to.
 - `description` (String) A description of the circuit termination.
+- `display_name` (String) The display name of the circuit termination.
 - `mark_connected` (Boolean) Whether the termination is treated as if a cable is connected.
 - `port_speed` (Number) The physical circuit speed in Kbps.
 - `pp_info` (String) Patch panel ID and port number(s).

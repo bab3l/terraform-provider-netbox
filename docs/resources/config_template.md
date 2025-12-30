@@ -31,7 +31,7 @@ resource "netbox_config_template" "test" {
 
 ### Optional
 
-- `description` (String) A description of the config template.
+- `description` (String) Description of the config template.
 
 ### Read-Only
 

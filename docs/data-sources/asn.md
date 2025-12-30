@@ -3,22 +3,30 @@
 page_title: "netbox_asn Data Source - terraform-provider-netbox"
 subcategory: ""
 description: |-
-  Retrieves information about an Autonomous System Number (ASN) in NetBox.
+  Retrieves information about an Autonomous System Number (ASN) in NetBox. You can identify the ASN using id or asn.
 ---
 
 # netbox_asn (Data Source)
 
-Retrieves information about an Autonomous System Number (ASN) in NetBox.
+Retrieves information about an Autonomous System Number (ASN) in NetBox. You can identify the ASN using `id` or `asn`.
 
 ## Example Usage
 
 ```terraform
-data "netbox_asn" "test" {
+data "netbox_asn" "by_asn" {
   asn = 65001
 }
 
-output "example" {
-  value = data.netbox_asn.test.id
+data "netbox_asn" "by_id" {
+  id = 123
+}
+
+output "by_asn" {
+  value = data.netbox_asn.by_asn.id
+}
+
+output "by_id" {
+  value = data.netbox_asn.by_id.asn
 }
 ```
 
@@ -35,6 +43,7 @@ output "example" {
 - `comments` (String) Additional comments or notes about this ASN.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) A description of this ASN.
+- `display_name` (String) The display name of the ASN.
 - `provider_count` (Number) Number of providers using this ASN.
 - `rir` (String) The Regional Internet Registry (RIR) that manages this ASN.
 - `site_count` (Number) Number of sites using this ASN.

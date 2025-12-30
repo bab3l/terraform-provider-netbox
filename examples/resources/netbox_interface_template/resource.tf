@@ -4,10 +4,10 @@ resource "netbox_manufacturer" "test" {
 }
 
 resource "netbox_device_type" "test" {
-  model           = "Test Model"
-  slug            = "test-model"
-  manufacturer_id = netbox_manufacturer.test.id
-  u_height        = 1
+  model        = "Test Model"
+  slug         = "test-model"
+  manufacturer = netbox_manufacturer.test.slug
+  u_height     = 1
 }
 
 resource "netbox_interface_template" "test" {

@@ -33,7 +33,7 @@ resource "netbox_export_template" "test" {
 ### Optional
 
 - `as_attachment` (Boolean) Download file as attachment. Defaults to `true`.
-- `description` (String) A description of the export template.
+- `description` (String) Description of the export template.
 - `file_extension` (String) Extension to append to the rendered filename.
 - `mime_type` (String) MIME type for the rendered output. Defaults to `text/plain; charset=utf-8`.
 

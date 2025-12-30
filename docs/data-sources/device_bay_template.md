@@ -56,4 +56,5 @@ output "device_bay_template_by_id" {
 
 - `description` (String) Description of the device bay template.
 - `device_type_name` (String) The model name of the device type.
+- `display_name` (String) The display name of the device bay template.
 - `label` (String) Physical label for the device bay.

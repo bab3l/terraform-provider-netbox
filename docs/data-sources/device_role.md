@@ -13,12 +13,32 @@ Use this data source to get information about a device role in Netbox. Device ro
 ## Example Usage
 
 ```terraform
-data "netbox_device_role" "test" {
-  name = "test-role"
+# Example: Look up a device role by ID
+data "netbox_device_role" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_device_role.test.id
+# Example: Look up a device role by name
+data "netbox_device_role" "by_name" {
+  name = "Router"
+}
+
+# Example: Look up a device role by slug
+data "netbox_device_role" "by_slug" {
+  slug = "router"
+}
+
+# Example: Use device role data in other resources
+output "device_role_id" {
+  value = data.netbox_device_role.by_id.id
+}
+
+output "device_role_name" {
+  value = data.netbox_device_role.by_name.name
+}
+
+output "device_role_slug" {
+  value = data.netbox_device_role.by_slug.slug
 }
 ```
 
@@ -36,6 +56,7 @@ output "example" {
 - `color` (String) Color for the device role in 6-character hexadecimal format (e.g., 'aa1409').
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Detailed description of the device role.
+- `display_name` (String) The display name of the device role.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
 - `vm_role` (Boolean) Whether virtual machines may be assigned to this role.
 

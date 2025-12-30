@@ -74,9 +74,9 @@ resource "netbox_module" "test" {
 ### Optional
 
 - `asset_tag` (String) A unique tag used to identify this module.
-- `comments` (String) Additional comments or notes.
+- `comments` (String) Additional comments or notes about the module. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the module.
+- `description` (String) Description of the module.
 - `serial` (String) Serial number of the module.
 - `status` (String) Operational status. Valid values: `offline`, `active`, `planned`, `staged`, `failed`, `decommissioning`.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))

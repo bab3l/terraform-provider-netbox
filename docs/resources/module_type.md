@@ -34,9 +34,9 @@ resource "netbox_module_type" "test" {
 ### Optional
 
 - `airflow` (String) Airflow direction. Valid values: `front-to-rear`, `rear-to-front`, `left-to-right`, `right-to-left`, `side-to-rear`, `passive`, `mixed`.
-- `comments` (String) Additional comments or notes.
+- `comments` (String) Additional comments or notes about the module type. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the module type.
+- `description` (String) Description of the module type.
 - `part_number` (String) Discrete part number (optional).
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 - `weight` (Number) Weight of the module.

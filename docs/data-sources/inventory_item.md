@@ -11,80 +11,30 @@ description: |-
 
 Retrieves information about an inventory item in NetBox. Inventory items represent hardware components installed within a device.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ~> **Deprecation Warning:** Beginning in NetBox v4.3, inventory items are deprecated and planned for removal in a future release. Users are strongly encouraged to use modules and module types instead.
 
 ## Example Usage
 
 ```terraform
-data "netbox_inventory_item" "test" {
-  name      = "test-inventory-item"
-  device_id = 123
+data "netbox_inventory_item" "by_id" {
+  id = 1
 }
 
-output "example" {
-  value = data.netbox_inventory_item.test.id
+data "netbox_inventory_item" "by_name_device" {
+  name      = "Module1"
+  device_id = 5
+}
+
+output "item_id" {
+  value = data.netbox_inventory_item.by_id.id
+}
+
+output "item_name" {
+  value = data.netbox_inventory_item.by_name_device.name
+}
+
+output "item_device" {
+  value = data.netbox_inventory_item.by_name_device.device_id
 }
 ```
 
@@ -103,6 +53,7 @@ output "example" {
 - `description` (String) A description of the inventory item.
 - `device_name` (String) The name of the device.
 - `discovered` (Boolean) Whether this item was automatically discovered.
+- `display_name` (String) The display name of the inventory item.
 - `label` (String) Physical label on the inventory item.
 - `manufacturer_id` (Number) The ID of the manufacturer.
 - `manufacturer_name` (String) The name of the manufacturer.

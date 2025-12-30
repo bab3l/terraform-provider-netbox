@@ -13,13 +13,31 @@ Use this data source to retrieve information about a VPN tunnel termination in N
 ## Example Usage
 
 ```terraform
-data "netbox_tunnel_termination" "test" {
-  tunnel_id = 123
-  role      = "peer"
+# Look up tunnel termination by ID
+data "netbox_tunnel_termination" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_tunnel_termination.test.id
+# Look up tunnel termination by tunnel ID
+data "netbox_tunnel_termination" "by_tunnel" {
+  tunnel = "1"
+}
+
+# Look up tunnel termination by tunnel name
+data "netbox_tunnel_termination" "by_tunnel_name" {
+  tunnel_name = "example-tunnel"
+}
+
+output "termination_role" {
+  value = data.netbox_tunnel_termination.by_id.role
+}
+
+output "termination_by_tunnel" {
+  value = data.netbox_tunnel_termination.by_tunnel.termination_type
+}
+
+output "termination_outside_ip" {
+  value = data.netbox_tunnel_termination.by_tunnel_name.outside_ip
 }
 ```
 
@@ -35,6 +53,7 @@ output "example" {
 ### Read-Only
 
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
+- `display_name` (String) Display name of the tunnel termination.
 - `outside_ip` (String) ID of the outside IP address.
 - `role` (String) Role of the tunnel termination (peer, hub).
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))

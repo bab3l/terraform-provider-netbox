@@ -54,9 +54,9 @@ resource "netbox_power_feed" "test" {
 ### Optional
 
 - `amperage` (Number) Amperage in amps. Default: 20.
-- `comments` (String) Additional comments or notes about the power feed.
+- `comments` (String) Additional comments or notes about the power feed. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the power feed.
+- `description` (String) Description of the power feed.
 - `mark_connected` (Boolean) Treat as if a cable is connected. Default: false.
 - `max_utilization` (Number) Maximum utilization percentage (1-100). Default: 80.
 - `phase` (String) Phase type. Valid values: `single-phase`, `three-phase`. Default: `single-phase`.

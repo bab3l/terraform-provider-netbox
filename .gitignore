@@ -1,4 +1,4 @@
-# Binaries for programs and plugins
+﻿# Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll
@@ -59,7 +59,6 @@ terraform.rc
 test-fixtures/
 terraform-provider-netbox_*
 
-
 # Python
 __pycache__/
 *.py[cod]
@@ -76,3 +75,4 @@ build/
 *.egg-info/
 
 .gotmp/
+acceptance_tests_*.txt

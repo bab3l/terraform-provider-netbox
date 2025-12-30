@@ -13,13 +13,34 @@ Retrieves information about a front port template in NetBox.
 ## Example Usage
 
 ```terraform
-data "netbox_front_port_template" "test" {
-  name           = "test-front-port-template"
-  device_type_id = 123
+# Example: Look up a front port template by ID
+data "netbox_front_port_template" "by_id" {
+  id = 1
 }
 
-output "example" {
-  value = data.netbox_front_port_template.test.id
+# Example: Look up a front port template by name (with optional device_type)
+data "netbox_front_port_template" "by_name" {
+  name        = "GigabitEthernet"
+  device_type = 5
+}
+
+# Example: Look up a front port template by name (with optional module_type)
+data "netbox_front_port_template" "by_name_module" {
+  name        = "SFP"
+  module_type = 10
+}
+
+# Example: Use front port template data in other resources
+output "template_id" {
+  value = data.netbox_front_port_template.by_id.id
+}
+
+output "template_name" {
+  value = data.netbox_front_port_template.by_name.name
+}
+
+output "template_type" {
+  value = data.netbox_front_port_template.by_name.type
 }
 ```
 
@@ -37,6 +58,7 @@ output "example" {
 
 - `color` (String) Color of the front port in hex format.
 - `description` (String) A description of the front port template.
+- `display_name` (String) The display name of the front port template.
 - `label` (String) Physical label of the front port template.
 - `rear_port` (String) The name of the rear port template this front port maps to.
 - `rear_port_id` (Number) The ID of the rear port template this front port maps to.

@@ -10,6 +10,11 @@ resource "netbox_device_role" "test" {
   vm_role = false
 }
 
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-manufacturer"
+}
+
 resource "netbox_device_type" "test" {
   model        = "Test Model"
   slug         = "test-model"
@@ -17,14 +22,9 @@ resource "netbox_device_type" "test" {
   u_height     = 1
 }
 
-resource "netbox_manufacturer" "test" {
-  name = "Test Manufacturer"
-  slug = "test-manufacturer"
-}
-
 resource "netbox_device" "test" {
   name        = "Test Device"
-  device_type = netbox_device_type.test.slug
+  device_type = netbox_device_type.test.model
   role        = netbox_device_role.test.slug
   site        = netbox_site.test.slug
 }

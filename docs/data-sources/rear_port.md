@@ -13,13 +13,23 @@ Retrieves information about a rear port in NetBox.
 ## Example Usage
 
 ```terraform
-data "netbox_rear_port" "test" {
-  name      = "test-rear-port"
-  device_id = 123
+# Lookup by ID
+data "netbox_rear_port" "by_id" {
+  id = 123
 }
 
-output "example" {
-  value = data.netbox_rear_port.test.id
+output "by_id" {
+  value = data.netbox_rear_port.by_id.name
+}
+
+# Lookup by device_id and name
+data "netbox_rear_port" "by_device_and_name" {
+  device_id = 456
+  name      = "RearPort1"
+}
+
+output "by_device_and_name" {
+  value = data.netbox_rear_port.by_device_and_name.type
 }
 ```
 
@@ -37,6 +47,7 @@ output "example" {
 - `color` (String) Color of the rear port in hex format.
 - `description` (String) A description of the rear port.
 - `device` (String) The name of the device.
+- `display_name` (String) The display name of the rear port.
 - `label` (String) Physical label of the rear port.
 - `mark_connected` (Boolean) Whether the port is marked as connected.
 - `positions` (Number) Number of front ports that may be mapped to this rear port.

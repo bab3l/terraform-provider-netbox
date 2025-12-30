@@ -36,7 +36,6 @@ resource "netbox_region" "test" {
 ### Read-Only
 
 - `id` (String) Unique identifier for the region (assigned by Netbox).
-- `parent_id` (String) The numeric ID of the parent region.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

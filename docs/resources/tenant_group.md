@@ -110,7 +110,6 @@ output "subsidiaries_tenant_group" {
 ### Read-Only
 
 - `id` (String) Unique identifier for the tenant group (assigned by Netbox).
-- `parent_id` (String) The numeric ID of the parent tenant group.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

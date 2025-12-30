@@ -13,12 +13,35 @@ Use this data source to get information about a virtual machine in Netbox. Virtu
 ## Example Usage
 
 ```terraform
-data "netbox_virtual_machine" "test" {
+# Look up a virtual machine by ID
+data "netbox_virtual_machine" "by_id" {
+  id = "1"
+}
+
+# Look up a virtual machine by name
+data "netbox_virtual_machine" "by_name" {
   name = "test-vm"
 }
 
-output "example" {
-  value = data.netbox_virtual_machine.test.id
+# Use virtual machine data in outputs
+output "by_id" {
+  value = data.netbox_virtual_machine.by_id.name
+}
+
+output "by_name" {
+  value = data.netbox_virtual_machine.by_name.id
+}
+
+output "vm_specs" {
+  value = {
+    status  = data.netbox_virtual_machine.by_name.status
+    site    = data.netbox_virtual_machine.by_name.site
+    cluster = data.netbox_virtual_machine.by_name.cluster
+    role    = data.netbox_virtual_machine.by_name.role
+    vcpus   = data.netbox_virtual_machine.by_name.vcpus
+    memory  = data.netbox_virtual_machine.by_name.memory
+    disk    = data.netbox_virtual_machine.by_name.disk
+  }
 }
 ```
 
@@ -37,6 +60,7 @@ output "example" {
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Detailed description of the virtual machine.
 - `disk` (Number) The total disk space (in GB) allocated to this virtual machine.
+- `display_name` (String) Display name of the virtual machine.
 - `memory` (Number) The amount of memory (in MB) allocated to this virtual machine.
 - `platform` (String) The platform (operating system) running on this virtual machine.
 - `role` (String) The device role for this virtual machine.

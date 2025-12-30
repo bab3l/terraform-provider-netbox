@@ -10,68 +10,6 @@ description: |-
 
 Manages an inventory item in NetBox. Inventory items represent hardware components installed within a device, such as power supplies, CPUs, or line cards.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ~> **Deprecation Warning:** Beginning in NetBox v4.3, inventory items are deprecated and planned for removal in a future release. Users are strongly encouraged to use [modules](https://netboxlabs.com/docs/netbox/models/dcim/module/) and [module types](https://netboxlabs.com/docs/netbox/models/dcim/moduletype/) instead.
 
 ## Example Usage
@@ -127,7 +65,7 @@ resource "netbox_inventory_item" "test" {
 
 - `asset_tag` (String) A unique tag used to identify this inventory item.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the inventory item.
+- `description` (String) Description of the inventory item.
 - `discovered` (Boolean) Whether this item was automatically discovered.
 - `label` (String) Physical label on the inventory item.
 - `manufacturer` (String) The manufacturer of the inventory item (ID or slug).

@@ -50,6 +50,7 @@ output "route_target_by_id" {
 
 - `comments` (String) Comments about the route target.
 - `description` (String) The description of the route target.
+- `display_name` (String) The display name of the route target.
 - `tags` (List of String) The tags assigned to this route target.
 - `tenant` (String) The ID of the tenant that owns this route target.
 - `tenant_name` (String) The name of the tenant that owns this route target.

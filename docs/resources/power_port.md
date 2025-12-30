@@ -63,7 +63,7 @@ resource "netbox_power_port" "test" {
 
 - `allocated_draw` (Number) Allocated power draw in watts.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the power port.
+- `description` (String) Description of the power port.
 - `label` (String) Physical label of the power port.
 - `mark_connected` (Boolean) Treat as if a cable is connected.
 - `maximum_draw` (Number) Maximum power draw in watts.

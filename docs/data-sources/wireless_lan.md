@@ -13,12 +13,40 @@ Retrieves information about a wireless LAN (WiFi network) in NetBox.
 ## Example Usage
 
 ```terraform
-data "netbox_wireless_lan" "test" {
+# Look up a wireless LAN by ID
+data "netbox_wireless_lan" "by_id" {
+  id = "1"
+}
+
+# Look up a wireless LAN by SSID
+data "netbox_wireless_lan" "by_ssid" {
   ssid = "test-ssid"
 }
 
-output "example" {
-  value = data.netbox_wireless_lan.test.id
+# Look up a wireless LAN by group ID
+data "netbox_wireless_lan" "by_group" {
+  group_id = 1
+}
+
+# Use wireless LAN data in outputs
+output "by_id" {
+  value = data.netbox_wireless_lan.by_id.ssid
+}
+
+output "by_ssid" {
+  value = data.netbox_wireless_lan.by_ssid.id
+}
+
+output "wlan_info" {
+  value = {
+    id          = data.netbox_wireless_lan.by_ssid.id
+    ssid        = data.netbox_wireless_lan.by_ssid.ssid
+    status      = data.netbox_wireless_lan.by_ssid.status
+    group_name  = data.netbox_wireless_lan.by_ssid.group_name
+    vlan_name   = data.netbox_wireless_lan.by_ssid.vlan_name
+    auth_type   = data.netbox_wireless_lan.by_ssid.auth_type
+    description = data.netbox_wireless_lan.by_ssid.description
+  }
 }
 ```
 
@@ -37,6 +65,7 @@ output "example" {
 - `auth_type` (String) Authentication type (open, wep, wpa-personal, wpa-enterprise).
 - `comments` (String) Additional comments or notes about the wireless LAN.
 - `description` (String) A description of the wireless LAN.
+- `display_name` (String) Display name for the wireless LAN.
 - `group_name` (String) The name of the wireless LAN group.
 - `status` (String) Status of the wireless LAN (active, reserved, disabled, deprecated).
 - `tags` (Set of String) Tags associated with this wireless LAN.

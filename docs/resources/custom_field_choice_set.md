@@ -34,7 +34,7 @@ resource "netbox_custom_field_choice_set" "example" {
 ### Optional
 
 - `base_choices` (String) Base choice set to inherit from. Valid values: `IATA` (Airport codes), `ISO_3166` (Country codes), `UN_LOCODE` (Location codes).
-- `description` (String) Description of the choice set.
+- `description` (String) Description of the custom field choice set.
 - `order_alphabetically` (Boolean) Whether to order choices alphabetically. Defaults to false.
 
 ### Read-Only

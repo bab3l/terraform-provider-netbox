@@ -13,12 +13,41 @@ Use this data source to get information about a VLAN Group in Netbox. You can id
 ## Example Usage
 
 ```terraform
-data "netbox_vlan_group" "test" {
+# Look up a VLAN group by ID
+data "netbox_vlan_group" "by_id" {
+  id = "1"
+}
+
+# Look up a VLAN group by slug
+data "netbox_vlan_group" "by_slug" {
+  slug = "test-vlan-group"
+}
+
+# Look up a VLAN group by name
+data "netbox_vlan_group" "by_name" {
   name = "test-vlan-group"
 }
 
-output "example" {
-  value = data.netbox_vlan_group.test.id
+# Use VLAN group data in outputs
+output "by_id" {
+  value = data.netbox_vlan_group.by_id.name
+}
+
+output "by_slug" {
+  value = data.netbox_vlan_group.by_slug.id
+}
+
+output "by_name" {
+  value = data.netbox_vlan_group.by_name.slug
+}
+
+output "vlan_group_info" {
+  value = {
+    id          = data.netbox_vlan_group.by_name.id
+    name        = data.netbox_vlan_group.by_name.name
+    slug        = data.netbox_vlan_group.by_name.slug
+    description = data.netbox_vlan_group.by_name.description
+  }
 }
 ```
 
@@ -35,6 +64,7 @@ output "example" {
 
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Brief description of the VLAN Group.
+- `display_name` (String) Display name for the VLAN Group.
 - `scope_id` (String) The ID of the object this VLAN Group is scoped to.
 - `scope_type` (String) The type of object this VLAN Group is scoped to.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))

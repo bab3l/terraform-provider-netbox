@@ -42,7 +42,7 @@ resource "netbox_virtual_machine" "test" {
 ### Optional
 
 - `cluster` (String) The name or ID of the cluster this virtual machine belongs to.
-- `comments` (String) Additional comments or notes about the virtual machine.
+- `comments` (String) Additional comments or notes about the virtual machine. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the virtual machine.
 - `disk` (Number) The total disk space (in GB) allocated to this virtual machine.
@@ -57,12 +57,7 @@ resource "netbox_virtual_machine" "test" {
 
 ### Read-Only
 
-- `cluster_id` (String) The ID of the cluster this virtual machine belongs to.
 - `id` (String) The unique numeric ID of the virtual machine.
-- `platform_id` (String) The ID of the platform (operating system) running on this virtual machine.
-- `role_id` (String) The ID of the device role for this virtual machine.
-- `site_id` (String) The ID of the site where this virtual machine is located.
-- `tenant_id` (String) The ID of the tenant this virtual machine is assigned to.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

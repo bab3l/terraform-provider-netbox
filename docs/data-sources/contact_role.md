@@ -58,3 +58,4 @@ output "contact_role_by_slug" {
 ### Read-Only
 
 - `description` (String) Description of the contact role.
+- `display_name` (String) The display name of the contact role.

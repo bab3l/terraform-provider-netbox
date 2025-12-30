@@ -13,12 +13,32 @@ Use this data source to get information about a device type in Netbox. Device ty
 ## Example Usage
 
 ```terraform
-data "netbox_device_type" "test" {
-  model = "test-model"
+# Example: Look up a device type by ID
+data "netbox_device_type" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_device_type.test.id
+# Example: Look up a device type by slug
+data "netbox_device_type" "by_slug" {
+  slug = "catalyst-3750"
+}
+
+# Example: Look up a device type by model name
+data "netbox_device_type" "by_model" {
+  model = "Catalyst 3750"
+}
+
+# Example: Use device type data in other resources
+output "device_type_id" {
+  value = data.netbox_device_type.by_id.id
+}
+
+output "device_type_model" {
+  value = data.netbox_device_type.by_model.model
+}
+
+output "device_type_manufacturer" {
+  value = data.netbox_device_type.by_model.manufacturer
 }
 ```
 
@@ -39,6 +59,7 @@ output "example" {
 - `default_platform` (String) Default platform for devices of this type. Returns the platform slug.
 - `description` (String) Detailed description of the device type.
 - `device_count` (Number) Number of devices of this type.
+- `display_name` (String) The display name of the device type.
 - `exclude_from_utilization` (Boolean) Whether devices of this type are excluded when calculating rack utilization.
 - `is_full_depth` (Boolean) Whether the device type consumes both front and rear rack faces.
 - `manufacturer` (String) The manufacturer of this device type. Returns the manufacturer slug.

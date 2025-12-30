@@ -13,12 +13,31 @@ Use this data source to get information about an IKE (Internet Key Exchange) Pol
 ## Example Usage
 
 ```terraform
-data "netbox_ike_policy" "test" {
-  name = "test-ike-policy"
+# Example: Look up an IKE policy by ID
+data "netbox_ike_policy" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_ike_policy.test.id
+# Example: Look up an IKE policy by name
+data "netbox_ike_policy" "by_name" {
+  name = "IKEv2-Policy"
+}
+
+# Example: Use IKE policy data in other resources
+output "ike_policy_id" {
+  value = data.netbox_ike_policy.by_id.id
+}
+
+output "ike_policy_name" {
+  value = data.netbox_ike_policy.by_name.name
+}
+
+output "ike_policy_version" {
+  value = data.netbox_ike_policy.by_name.version
+}
+
+output "ike_policy_mode" {
+  value = data.netbox_ike_policy.by_name.mode
 }
 ```
 
@@ -34,6 +53,7 @@ output "example" {
 
 - `comments` (String) Comments about the IKE policy.
 - `description` (String) The description of the IKE policy.
+- `display_name` (String) The display name of the IKE policy.
 - `mode` (String) The IKE negotiation mode. Values: `aggressive`, `main`. Only applicable for IKEv1.
 - `proposals` (List of Number) The list of IKE proposal IDs associated with this policy.
 - `tags` (List of String) The tags assigned to this IKE policy.

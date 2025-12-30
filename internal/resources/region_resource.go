@@ -46,8 +46,6 @@ type RegionResourceModel struct {
 
 	Parent types.String `tfsdk:"parent"`
 
-	ParentID types.String `tfsdk:"parent_id"`
-
 	Description types.String `tfsdk:"description"`
 
 	Tags types.Set `tfsdk:"tags"`
@@ -71,11 +69,6 @@ func (r *RegionResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"slug": nbschema.SlugAttribute("region"),
 
 			"parent": nbschema.ReferenceAttribute("parent region", "ID or slug of the parent region. Leave empty for top-level regions. This enables hierarchical organization of geographic areas."),
-
-			"parent_id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The numeric ID of the parent region.",
-			},
 		},
 	}
 
@@ -394,7 +387,6 @@ func (r *RegionResource) mapRegionToState(ctx context.Context, region *netbox.Re
 		parentResult = utils.PreserveOptionalReferenceWithID(data.Parent, false, 0, "", "")
 	}
 	data.Parent = parentResult.Reference
-	data.ParentID = parentResult.ID
 
 	// Handle description - use StringFromAPI to treat empty string as null
 	data.Description = utils.StringFromAPI(region.HasDescription(), region.GetDescription, data.Description)

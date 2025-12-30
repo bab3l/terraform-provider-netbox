@@ -52,6 +52,7 @@ output "cable_length" {
 - `color` (String) Color of the cable (hex code).
 - `comments` (String) Comments about the cable.
 - `description` (String) Description of the cable.
+- `display_name` (String) The display name of the cable.
 - `label` (String) Physical label attached to the cable.
 - `length` (Number) Length of the cable.
 - `length_unit` (String) Unit for cable length.

@@ -49,7 +49,7 @@ resource "netbox_rack_reservation" "test" {
 
 ### Optional
 
-- `comments` (String) Additional comments about the reservation.
+- `comments` (String) Additional comments or notes about the rack reservation. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 - `tenant` (String) The tenant associated with this reservation (ID or slug).

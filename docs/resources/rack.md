@@ -72,11 +72,6 @@ resource "netbox_rack" "test" {
 ### Read-Only
 
 - `id` (String) Unique identifier for the rack (assigned by Netbox).
-- `location_id` (String) The numeric ID of the location.
-- `rack_type_id` (String) The numeric ID of the rack type.
-- `role_id` (String) The numeric ID of the rack role.
-- `site_id` (String) The numeric ID of the site.
-- `tenant_id` (String) The numeric ID of the tenant.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

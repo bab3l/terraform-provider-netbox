@@ -13,12 +13,27 @@ Retrieves information about a virtual chassis in NetBox.
 ## Example Usage
 
 ```terraform
-data "netbox_virtual_chassis" "test" {
+# Look up a virtual chassis by ID
+data "netbox_virtual_chassis" "by_id" {
+  id = "1"
+}
+
+# Look up a virtual chassis by name
+data "netbox_virtual_chassis" "by_name" {
   name = "test-virtual-chassis"
 }
 
-output "example" {
-  value = data.netbox_virtual_chassis.test.id
+# Use virtual chassis data in outputs
+output "by_id" {
+  value = data.netbox_virtual_chassis.by_id.name
+}
+
+output "by_name" {
+  value = data.netbox_virtual_chassis.by_name.id
+}
+
+output "master_device" {
+  value = data.netbox_virtual_chassis.by_name.master
 }
 ```
 
@@ -35,6 +50,7 @@ output "example" {
 - `comments` (String) Additional comments or notes about this virtual chassis.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) A description of the virtual chassis.
+- `display_name` (String) Display name of the virtual chassis.
 - `domain` (String) The domain for this virtual chassis.
 - `master` (String) ID of the master device for this virtual chassis.
 - `member_count` (Number) Number of member devices in this virtual chassis.

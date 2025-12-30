@@ -59,4 +59,5 @@ output "tag_by_slug" {
 
 - `color` (String) Color of the tag (6-character hex code).
 - `description` (String) Description of the tag.
+- `display_name` (String) The display name of the tag.
 - `object_types` (List of String) List of object types this tag can be applied to.
