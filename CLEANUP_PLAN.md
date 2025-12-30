@@ -1198,19 +1198,23 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 
 **Review Notes**: All 18 data source tests clean (0 fixes needed). Circuits & VPN data sources correctly use .id/.slug for cross-resource references.
 
-#### Batch 9.15: Data Sources Part 7 - Wireless (6 tests)
-- [ ] test/terraform/data-sources/wireless_lan
-- [ ] test/terraform/data-sources/wireless_lan_group
-- [ ] test/terraform/data-sources/wireless_link
-- [ ] test/terraform/data-sources/script (if exists)
-- [ ] test/terraform/data-sources/user (if exists)
-- [ ] Final review and documentation
+#### Batch 9.15: Data Sources Part 7 - Wireless (3 tests) ✅ COMPLETE
+- [x] test/terraform/data-sources/wireless_lan - Clean (no dependencies)
+- [x] test/terraform/data-sources/wireless_lan_group - Clean (no dependencies)
+- [x] test/terraform/data-sources/wireless_link - Clean (uses site.id, device.id, interface.id)
+- [x] Note: script and user data sources already reviewed in Batch 9.8
+
+**Review Notes**: All 3 wireless data source tests clean (0 fixes needed). Wireless data sources correctly use .id for cross-resource references.
+
+**Phase 9 COMPLETE**: All 204 integration tests reviewed (0 fixes needed). All tests correctly use `.id`/`.name`/`.slug` for INPUT references and don't reference any removed computed OUTPUT fields.
 
 **Phase 9 Summary**:
-- Total test directories: 204 (101 resources + 103 datasources)
+- Total test directories reviewed: 204 (101 resources + 103 datasources)
 - Organized into 15 batches for systematic review
-- Focus: Verify no references to removed duplicate `_id` fields
-- Expected changes: Minimal (most tests should use primary reference fields already)
+- Tests reviewed: 204/204 (100% complete)
+- Fixes needed: 0 (all tests already correct)
+- Key finding: All tests correctly use primary reference fields (role, site, tenant, etc.) with `.id`/`.name`/`.slug` for cross-resource INPUT references
+- No tests reference removed computed OUTPUT fields (role_id, site_id, tenant_id, platform_id, device_type_id, location_id, rack_id, cluster_id, manufacturer_id, parent_id, group_id, rack_type_id)
 
 ## Script Usage
 
