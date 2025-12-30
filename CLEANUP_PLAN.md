@@ -777,33 +777,40 @@ Ensure all example Terraform configurations in `examples/` directory are:
 - Good variety of lookup patterns demonstrated
 - All examples use valid query parameters
 
-#### Batch 7.13: Data Sources - Part 3 (26 data sources)
-- [ ] netbox_manufacturer
-- [ ] netbox_module
-- [ ] netbox_module_bay
-- [ ] netbox_module_bay_template
-- [ ] netbox_module_type
-- [ ] netbox_notification_group
-- [ ] netbox_platform
-- [ ] netbox_power_feed
-- [ ] netbox_power_outlet
-- [ ] netbox_power_outlet_template
-- [ ] netbox_power_panel
-- [ ] netbox_power_port
-- [ ] netbox_power_port_template
-- [ ] netbox_prefix
-- [ ] netbox_provider
-- [ ] netbox_provider_account
-- [ ] netbox_provider_network
-- [ ] netbox_rack
-- [ ] netbox_rack_reservation
-- [ ] netbox_rack_role
-- [ ] netbox_rack_type
-- [ ] netbox_rear_port
-- [ ] netbox_rear_port_template
-- [ ] netbox_region
-- [ ] netbox_rir
-- [ ] netbox_role
+#### Batch 7.13: Data Sources - Part 3 (26 data sources) ✅ COMPLETE
+- [x] netbox_manufacturer - Clean, shows ID, name, and slug lookups
+- [x] netbox_module - Clean, shows ID, device_id+module_bay_id, device_id+serial lookups
+- [x] netbox_module_bay - Clean, shows ID and device_id+name lookups
+- [x] netbox_module_bay_template - Clean, ID-based lookup
+- [x] netbox_module_type - Clean, shows ID, model, model+manufacturer_id lookups
+- [x] netbox_notification_group - Clean, ID-based lookup
+- [x] netbox_platform - Clean, shows ID, slug, and name lookups
+- [x] netbox_power_feed - Clean, shows ID and power_panel+name lookups
+- [x] netbox_power_outlet - Clean, shows ID and device_id+name lookups
+- [x] netbox_power_outlet_template - Clean, shows ID, device_type+name, module_type+name lookups
+- [x] netbox_power_panel - Clean, shows ID, name, name+site lookups
+- [x] netbox_power_port - Clean, shows ID and device_id+name lookups
+- [x] netbox_power_port_template - Clean, shows ID, device_type+name, module_type+name lookups
+- [x] netbox_prefix - Clean, shows ID and CIDR prefix lookups
+- [x] netbox_provider - Clean, shows ID, slug, and name lookups
+- [x] netbox_provider_account - Clean, shows ID and account lookups
+- [x] netbox_provider_network - Clean, shows ID, name, name+circuit_provider lookups
+- [x] netbox_rack - Clean, shows ID and name lookups
+- [x] netbox_rack_reservation - Clean, ID-based lookup
+- [x] netbox_rack_role - Clean, name-based lookup
+- [x] netbox_rack_type - Clean, shows ID, slug, and model lookups
+- [x] netbox_rear_port - Clean, shows ID and device_id+name lookups
+- [x] netbox_rear_port_template - Clean, shows ID, device_type+name, module_type+name lookups
+- [x] netbox_region - Clean, shows ID, slug, and name lookups
+- [x] netbox_rir - Clean, shows ID, name, and slug lookups
+- [x] netbox_role - Clean, shows ID, name, and slug lookups
+
+**Review Notes**:
+- All examples verified as correct
+- Datasources correctly use `_id` filter parameters (device_id, module_bay_id, manufacturer_id, etc.)
+- display_name outputs are valid (computed field in datasources)
+- Good variety of lookup combinations demonstrated
+- All examples use valid query parameters
 
 #### Batch 7.14: Data Sources - Part 4 (24 data sources)
 - [ ] netbox_route_target
