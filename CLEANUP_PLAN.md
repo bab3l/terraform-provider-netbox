@@ -706,17 +706,123 @@ Ensure all example Terraform configurations in `examples/` directory are:
 - Files verified clean: 98
 - Error rate: 4.9% (5 fixes needed out of 103 files)
 
-#### Batch 7.11: Data Sources - Part 1 (30 data sources)
-Review first 30 data source examples alphabetically
+#### Batch 7.11: Data Sources - Part 1 (26 data sources) ✅ COMPLETE
+- [x] netbox_aggregate - Clean, shows lookup by prefix and ID
+- [x] netbox_asn - Clean, shows lookup by ASN and ID
+- [x] netbox_asn_range - Excellent, comprehensive with multiple lookup methods
+- [x] netbox_cable - Clean, ID-only lookup (cables don't have names/slugs)
+- [x] netbox_circuit - Clean, shows CID and ID lookups
+- [x] netbox_circuit_group - Clean, shows ID, name, and slug lookups
+- [x] netbox_circuit_group_assignment - Clean, ID-based lookup
+- [x] netbox_circuit_termination - Clean, simple ID lookup
+- [x] netbox_circuit_type - Clean, shows ID, name, and slug lookups
+- [x] netbox_cluster - Clean, shows ID and name lookups
+- [x] netbox_cluster_group - Clean, shows ID, name, and slug lookups
+- [x] netbox_cluster_type - Clean, shows ID, name, and slug lookups
+- [x] netbox_config_context - Clean, shows ID and name lookups with JSON parsing
+- [x] netbox_config_template - Clean, shows ID and name lookups
+- [x] netbox_console_port - Clean, shows ID and device_id+name lookups
+- [x] netbox_console_port_template - Clean, shows ID and device_type+name lookups
+- [x] netbox_console_server_port - Clean, shows ID and device_id+name lookups
+- [x] netbox_console_server_port_template - Clean, shows ID and device_type+name lookups
+- [x] netbox_contact - Clean, shows ID, name, and email lookups
+- [x] netbox_contact_assignment - Clean, simple ID lookup
+- [x] netbox_contact_group - Clean, shows ID, name, and slug lookups (parent_id in datasource is OK)
+- [x] netbox_contact_role - Clean, shows ID, name, and slug lookups
+- [x] netbox_custom_field - Clean, shows ID and name lookups
+- [x] netbox_custom_field_choice_set - Clean, shows ID and name lookups
+- [x] netbox_custom_link - Clean, shows ID and name lookups
+- [x] netbox_device - Clean, shows ID, name, and serial lookups
 
-#### Batch 7.12: Data Sources - Part 2 (30 data sources)
-Review next 30 data source examples
+**Review Notes**:
+- All examples verified as correct
+- Note: Datasources retain `_id` fields (like parent_id, device_id) as computed attributes - this is correct
+  - Datasources are read-only and show what's available from API
+  - Phase 5 changes only removed duplicate `_id` fields from resources (writable schemas)
+- Good variety of lookup methods demonstrated across examples
+- All examples use valid query parameters
 
-#### Batch 7.13: Data Sources - Part 3 (30 data sources)
-Review next 30 data source examples
+#### Batch 7.12: Data Sources - Part 2 (26 data sources)
+- [ ] netbox_device_bay
+- [ ] netbox_device_bay_template
+- [ ] netbox_device_role
+- [ ] netbox_device_type
+- [ ] netbox_event_rule
+- [ ] netbox_export_template
+- [ ] netbox_fhrp_group
+- [ ] netbox_fhrp_group_assignment
+- [ ] netbox_front_port
+- [ ] netbox_front_port_template
+- [ ] netbox_ike_policy
+- [ ] netbox_ike_proposal
+- [ ] netbox_interface
+- [ ] netbox_interface_template
+- [ ] netbox_inventory_item
+- [ ] netbox_inventory_item_role
+- [ ] netbox_inventory_item_template
+- [ ] netbox_ip_address
+- [ ] netbox_ip_range
+- [ ] netbox_ipsec_policy
+- [ ] netbox_ipsec_profile
+- [ ] netbox_ipsec_proposal
+- [ ] netbox_journal_entry
+- [ ] netbox_l2vpn
+- [ ] netbox_l2vpn_termination
+- [ ] netbox_location
+
+#### Batch 7.13: Data Sources - Part 3 (26 data sources)
+- [ ] netbox_manufacturer
+- [ ] netbox_module
+- [ ] netbox_module_bay
+- [ ] netbox_module_bay_template
+- [ ] netbox_module_type
+- [ ] netbox_notification_group
+- [ ] netbox_platform
+- [ ] netbox_power_feed
+- [ ] netbox_power_outlet
+- [ ] netbox_power_outlet_template
+- [ ] netbox_power_panel
+- [ ] netbox_power_port
+- [ ] netbox_power_port_template
+- [ ] netbox_prefix
+- [ ] netbox_provider
+- [ ] netbox_provider_account
+- [ ] netbox_provider_network
+- [ ] netbox_rack
+- [ ] netbox_rack_reservation
+- [ ] netbox_rack_role
+- [ ] netbox_rack_type
+- [ ] netbox_rear_port
+- [ ] netbox_rear_port_template
+- [ ] netbox_region
+- [ ] netbox_rir
+- [ ] netbox_role
 
 #### Batch 7.14: Data Sources - Part 4 (24 data sources)
-Review remaining data source examples
+- [ ] netbox_route_target
+- [ ] netbox_service
+- [ ] netbox_service_template
+- [ ] netbox_site
+- [ ] netbox_site_group
+- [ ] netbox_tag
+- [ ] netbox_tenant
+- [ ] netbox_tenant_group
+- [ ] netbox_tunnel
+- [ ] netbox_tunnel_group
+- [ ] netbox_tunnel_termination
+- [ ] netbox_user
+- [ ] netbox_virtual_chassis
+- [ ] netbox_virtual_device_context
+- [ ] netbox_virtual_disk
+- [ ] netbox_virtual_machine
+- [ ] netbox_vlan
+- [ ] netbox_vlan_group
+- [ ] netbox_vm_interface
+- [ ] netbox_vrf
+- [ ] netbox_webhook
+- [ ] netbox_wireless_lan
+- [ ] netbox_wireless_lan_group
+- [ ] netbox_wireless_link
 
 **Review Checklist for Each Example**:
 - [ ] No references to removed `_id` fields (device_type_id, role_id, tenant_id, platform_id, site_id, location_id, rack_id, cluster_id, manufacturer_id, parent_id, group_id, rack_type_id, scope_id when used alone)
