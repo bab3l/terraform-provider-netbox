@@ -1044,23 +1044,25 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 
 **Review Notes**: All 10 tests clean (0 fixes needed). Virtualization resources correctly use .id and .name/.slug for cross-resource references.
 
-#### Batch 9.7: Circuits & VPN Resources (16 tests)
-- [ ] test/terraform/resources/provider
-- [ ] test/terraform/resources/provider_account
-- [ ] test/terraform/resources/provider_network
-- [ ] test/terraform/resources/circuit
-- [ ] test/terraform/resources/circuit_type
-- [ ] test/terraform/resources/circuit_group
-- [ ] test/terraform/resources/circuit_group_assignment
-- [ ] test/terraform/resources/circuit_termination
-- [ ] test/terraform/resources/tunnel
-- [ ] test/terraform/resources/tunnel_group
-- [ ] test/terraform/resources/tunnel_termination
-- [ ] test/terraform/resources/l2vpn_termination
-- [ ] test/terraform/resources/ike_policy
-- [ ] test/terraform/resources/ike_proposal
-- [ ] test/terraform/resources/ipsec_policy
-- [ ] test/terraform/resources/ipsec_profile
+#### Batch 9.7: Circuits & VPN Resources (16 tests) ✅ COMPLETE
+- [x] test/terraform/resources/provider - Clean (no dependencies)
+- [x] test/terraform/resources/provider_account - Clean (uses circuit_provider.id)
+- [x] test/terraform/resources/provider_network - Clean (uses circuit_provider.id)
+- [x] test/terraform/resources/circuit - Clean (uses circuit_provider.slug, type.slug, tenant.id)
+- [x] test/terraform/resources/circuit_type - Clean (no dependencies)
+- [x] test/terraform/resources/circuit_group - Clean (uses tenant.id, tag references)
+- [x] test/terraform/resources/circuit_group_assignment - Clean (uses group_id, circuit_id)
+- [x] test/terraform/resources/circuit_termination - Clean (uses circuit.id, site.id)
+- [x] test/terraform/resources/tunnel - Clean (uses group.id)
+- [x] test/terraform/resources/tunnel_group - Clean (no dependencies)
+- [x] test/terraform/resources/tunnel_termination - Clean (uses tunnel.id)
+- [x] test/terraform/resources/l2vpn_termination - Clean (uses l2vpn.id, vlan.id)
+- [x] test/terraform/resources/ike_policy - Clean (uses proposal.id)
+- [x] test/terraform/resources/ike_proposal - Clean (no dependencies)
+- [x] test/terraform/resources/ipsec_policy - Clean (uses proposal.id)
+- [x] test/terraform/resources/ipsec_profile - Clean (uses ike_policy.id, ipsec_policy.id)
+
+**Review Notes**: All 16 tests clean (0 fixes needed). Circuits and VPN resources correctly use .id and .slug for cross-resource references.
 
 #### Batch 9.8: Wireless & Events Resources (8 tests)
 - [ ] test/terraform/resources/ipsec_proposal
