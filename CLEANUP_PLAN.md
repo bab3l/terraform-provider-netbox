@@ -1064,15 +1064,17 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 
 **Review Notes**: All 16 tests clean (0 fixes needed). Circuits and VPN resources correctly use .id and .slug for cross-resource references.
 
-#### Batch 9.8: Wireless & Events Resources (8 tests)
-- [ ] test/terraform/resources/ipsec_proposal
-- [ ] test/terraform/resources/wireless_lan
-- [ ] test/terraform/resources/wireless_lan_group
-- [ ] test/terraform/resources/wireless_link
-- [ ] test/terraform/resources/event_rule
-- [ ] test/terraform/data-sources/script
-- [ ] test/terraform/data-sources/user
-- [ ] test/terraform/resources/notification_group (if not covered)
+#### Batch 9.8: Wireless & Events Resources (8 tests) ✅ COMPLETE
+- [x] test/terraform/resources/ipsec_proposal - Clean (no dependencies)
+- [x] test/terraform/resources/wireless_lan - Clean (uses group.id)
+- [x] test/terraform/resources/wireless_lan_group - Clean (uses parent.id)
+- [x] test/terraform/resources/wireless_link - Clean (uses site.id, device_type.id, role.id, device.id, interface.id, tenant.id)
+- [x] test/terraform/resources/event_rule - Clean (uses webhook.id for action_object_id)
+- [x] test/terraform/data-sources/script - Clean (documentation file)
+- [x] test/terraform/data-sources/user - Clean (data source outputs use .id)
+- [x] test/terraform/resources/notification_group - Already covered in Batch 9.6
+
+**Review Notes**: All 8 tests clean (0 fixes needed). Wireless and event resources correctly use .id for cross-resource references.
 
 #### Batch 9.9: Data Sources Part 1 - IPAM (15 tests)
 - [ ] test/terraform/data-sources/aggregate
