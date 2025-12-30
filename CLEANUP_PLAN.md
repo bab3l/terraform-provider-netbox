@@ -978,22 +978,24 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 
 **Review Notes**: All 15 tests clean (0 fixes needed). Tests correctly use `.id` for cross-resource references and parent/group relationships.
 
-#### Batch 9.3: Device Infrastructure Resources (15 tests)
-- [ ] test/terraform/resources/device
-- [ ] test/terraform/resources/device_type
-- [ ] test/terraform/resources/device_bay
-- [ ] test/terraform/resources/device_bay_template
-- [ ] test/terraform/resources/rack
-- [ ] test/terraform/resources/rack_type
-- [ ] test/terraform/resources/rack_reservation
-- [ ] test/terraform/resources/cable
-- [ ] test/terraform/resources/power_panel
-- [ ] test/terraform/resources/power_feed
-- [ ] test/terraform/resources/module
-- [ ] test/terraform/resources/module_type
-- [ ] test/terraform/resources/module_bay
-- [ ] test/terraform/resources/module_bay_template
-- [ ] test/terraform/resources/virtual_chassis
+#### Batch 9.3: Device Infrastructure Resources (15 tests) ✅ COMPLETE
+- [x] test/terraform/resources/device - Clean (uses site.id, device_type.id, role.id, tenant.id, platform.id, rack.id)
+- [x] test/terraform/resources/device_type - Clean (uses manufacturer.id)
+- [x] test/terraform/resources/device_bay - Clean (uses device.id, device_type.id, role.id, site.id)
+- [x] test/terraform/resources/device_bay_template - Clean (uses device_type.id, manufacturer.id)
+- [x] test/terraform/resources/rack - Clean (uses site.id, location.id, tenant.id)
+- [x] test/terraform/resources/rack_type - Clean (uses manufacturer.id)
+- [x] test/terraform/resources/rack_reservation - Clean (uses rack.id, user.id)
+- [x] test/terraform/resources/cable - Clean (uses device.id for interfaces)
+- [x] test/terraform/resources/power_panel - Clean (uses site.id, location.id)
+- [x] test/terraform/resources/power_feed - Clean (uses power_panel.id, rack.id)
+- [x] test/terraform/resources/module - Clean (uses device.id, module_bay.id, module_type.id)
+- [x] test/terraform/resources/module_type - Clean (uses manufacturer.id)
+- [x] test/terraform/resources/module_bay - Clean (uses device.id, device_type.id)
+- [x] test/terraform/resources/module_bay_template - Clean (uses device_type.id, manufacturer.id)
+- [x] test/terraform/resources/virtual_chassis - Clean (no dependencies)
+
+**Review Notes**: All 15 tests clean (0 fixes needed). Tests correctly use `.id` for all cross-resource references including devices, racks, modules, and their related components.
 
 #### Batch 9.4: Device Components Resources (15 tests)
 - [ ] test/terraform/resources/interface
