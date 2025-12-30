@@ -685,13 +685,26 @@ Ensure all example Terraform configurations in `examples/` directory are:
 - Event rule properly uses webhook.id for action_object_id
 - All examples use current schemas correctly
 
-#### Batch 7.10: Configuration & Remaining (9 resources)
-- [ ] netbox_export_template
-- [ ] netbox_config_context
-- [ ] netbox_config_template
-- [ ] netbox_journal_entry
-- [ ] netbox_notification_group
-- [ ] Any remaining resources not listed above
+#### Batch 7.10: Configuration & Remaining (5 resources) ✅ COMPLETE
+- [x] netbox_export_template - Clean, simple example with Jinja2 template
+- [x] netbox_config_context - Excellent, comprehensive examples (basic, site-specific, role-specific, multi-criteria, tag-based)
+- [x] netbox_config_template - Clean, simple example with environment params
+- [x] netbox_journal_entry - Clean, shows polymorphic assigned_object pattern
+- [x] netbox_notification_group - Clean, simple examples
+
+**Review Notes**:
+- All examples verified as correct
+- No removed `_id` fields referenced
+- Config context uses lists of IDs (sites, roles, tenant_groups) which is correct
+- Export template shows Jinja2 templating
+- Journal entry demonstrates polymorphic object assignment
+- All examples use current schemas correctly
+
+**Phase 7 Resource Examples Summary**:
+- Total reviewed: 103 resource examples across 10 batches
+- Files fixed: 5 (contact_assignment, interface_template, virtual_device_context, fhrp_group_assignment, service)
+- Files verified clean: 98
+- Error rate: 4.9% (5 fixes needed out of 103 files)
 
 #### Batch 7.11: Data Sources - Part 1 (30 data sources)
 Review first 30 data source examples alphabetically
