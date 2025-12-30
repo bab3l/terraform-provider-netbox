@@ -905,20 +905,280 @@ Used terraform-plugin-docs to regenerate provider documentation from:
 
 ### Phase 9: Terraform Integration Tests
 
-**Status**: 📋 Planning
+**Status**: � In Progress
 
-Review and update Terraform configuration tests in `test/` directory:
-- Ensure tests use current resource schemas
-- Verify tests pass against running Netbox instance
-- Update any tests using removed `_id` fields
-- Add tests for new functionality (if applicable)
+Review and update Terraform configuration tests in `test/terraform/` directory:
+- Ensure tests use current resource schemas (no removed `_id` fields)
+- Verify main.tf configurations reflect Phase 5 changes
+- Update any tests using removed `_id` fields to use primary reference fields
+- Check outputs.tf for references to removed fields
+- Document test coverage and any gaps
 
-**Scope**:
-- [ ] Audit all `.tf` files in `test/` directory
-- [ ] Identify tests using removed `_id` fields
-- [ ] Update tests to use primary reference fields
-- [ ] Run tests against Netbox (if test environment available)
-- [ ] Document test coverage and any gaps
+**Scope**: 204 test directories (101 resources + 103 datasources)
+
+**Review Pattern for Each Test**:
+1. Check main.tf for removed `_id` field usage (device_type_id, role_id, tenant_id, platform_id, site_id, location_id, rack_id, cluster_id, manufacturer_id, parent_id, group_id, rack_type_id)
+2. Verify uses primary reference fields (device_type, role, tenant, etc.)
+3. Check outputs.tf doesn't reference removed fields
+4. Ensure syntax is valid Terraform HCL
+
+**Note**: These are Terraform integration tests, not Go tests. Focus on .tf file correctness.
+
+---
+
+#### Batch 9.1: IPAM Core Resources (15 tests) ✅ COMPLETE
+- [x] test/terraform/resources/aggregate - Clean
+- [x] test/terraform/resources/asn - Clean
+- [x] test/terraform/resources/asn_range - Clean
+- [x] test/terraform/resources/ip_address - Clean
+- [x] test/terraform/resources/ip_range - Clean
+- [x] test/terraform/resources/prefix - Clean
+- [x] test/terraform/resources/rir - Clean
+- [x] test/terraform/resources/role - Clean
+- [x] test/terraform/resources/route_target - Clean
+- [x] test/terraform/resources/vlan - Clean
+- [x] test/terraform/resources/vlan_group - Clean
+- [x] test/terraform/resources/vrf - Clean
+- [x] test/terraform/resources/fhrp_group - Clean
+- [x] test/terraform/resources/fhrp_group_assignment - **FIXED** (5 fields: manufacturer, device_type, role, site, device)
+- [x] test/terraform/resources/l2vpn - Clean
+
+**Review Notes**:
+- Fixed fhrp_group_assignment: Changed device setup to use primary reference fields
+  - manufacturer: `.id` → `.slug`
+  - device_type: `.id` → `.model`
+  - role: `.id` → `.slug`
+  - site: `.id` → `.slug`
+  - device (in interfaces): `.id` → `.name`
+- All other tests were clean and using primary reference fields correctly
+- Tests use `.id` for resource cross-references (which is correct and still supported)
+
+#### Batch 9.2: Sites & Organization Resources (15 tests)
+- [ ] test/terraform/resources/site
+- [ ] test/terraform/resources/site_group
+- [ ] test/terraform/resources/region
+- [ ] test/terraform/resources/location
+- [ ] test/terraform/resources/tenant
+- [ ] test/terraform/resources/tenant_group
+- [ ] test/terraform/resources/contact
+- [ ] test/terraform/resources/contact_group
+- [ ] test/terraform/resources/contact_role
+- [ ] test/terraform/resources/contact_assignment
+- [ ] test/terraform/resources/manufacturer
+- [ ] test/terraform/resources/platform
+- [ ] test/terraform/resources/tag
+- [ ] test/terraform/resources/device_role
+- [ ] test/terraform/resources/rack_role
+
+#### Batch 9.3: Device Infrastructure Resources (15 tests)
+- [ ] test/terraform/resources/device
+- [ ] test/terraform/resources/device_type
+- [ ] test/terraform/resources/device_bay
+- [ ] test/terraform/resources/device_bay_template
+- [ ] test/terraform/resources/rack
+- [ ] test/terraform/resources/rack_type
+- [ ] test/terraform/resources/rack_reservation
+- [ ] test/terraform/resources/cable
+- [ ] test/terraform/resources/power_panel
+- [ ] test/terraform/resources/power_feed
+- [ ] test/terraform/resources/module
+- [ ] test/terraform/resources/module_type
+- [ ] test/terraform/resources/module_bay
+- [ ] test/terraform/resources/module_bay_template
+- [ ] test/terraform/resources/virtual_chassis
+
+#### Batch 9.4: Device Components Resources (15 tests)
+- [ ] test/terraform/resources/interface
+- [ ] test/terraform/resources/interface_template
+- [ ] test/terraform/resources/console_port
+- [ ] test/terraform/resources/console_port_template
+- [ ] test/terraform/resources/console_server_port
+- [ ] test/terraform/resources/console_server_port_template
+- [ ] test/terraform/resources/power_port
+- [ ] test/terraform/resources/power_port_template
+- [ ] test/terraform/resources/power_outlet
+- [ ] test/terraform/resources/power_outlet_template
+- [ ] test/terraform/resources/front_port
+- [ ] test/terraform/resources/front_port_template
+- [ ] test/terraform/resources/rear_port
+- [ ] test/terraform/resources/rear_port_template
+- [ ] test/terraform/resources/inventory_item
+
+#### Batch 9.5: Inventory & Templates Resources (10 tests)
+- [ ] test/terraform/resources/inventory_item_role
+- [ ] test/terraform/resources/inventory_item_template
+- [ ] test/terraform/resources/config_template
+- [ ] test/terraform/resources/config_context
+- [ ] test/terraform/resources/export_template
+- [ ] test/terraform/resources/custom_field
+- [ ] test/terraform/resources/custom_field_choice_set
+- [ ] test/terraform/resources/custom_link
+- [ ] test/terraform/resources/journal_entry
+- [ ] test/terraform/resources/webhook
+
+#### Batch 9.6: Virtualization Resources (10 tests)
+- [ ] test/terraform/resources/cluster
+- [ ] test/terraform/resources/cluster_type
+- [ ] test/terraform/resources/cluster_group
+- [ ] test/terraform/resources/virtual_machine
+- [ ] test/terraform/resources/vm_interface
+- [ ] test/terraform/resources/virtual_disk
+- [ ] test/terraform/resources/virtual_device_context
+- [ ] test/terraform/resources/service
+- [ ] test/terraform/resources/service_template
+- [ ] test/terraform/resources/notification_group
+
+#### Batch 9.7: Circuits & VPN Resources (16 tests)
+- [ ] test/terraform/resources/provider
+- [ ] test/terraform/resources/provider_account
+- [ ] test/terraform/resources/provider_network
+- [ ] test/terraform/resources/circuit
+- [ ] test/terraform/resources/circuit_type
+- [ ] test/terraform/resources/circuit_group
+- [ ] test/terraform/resources/circuit_group_assignment
+- [ ] test/terraform/resources/circuit_termination
+- [ ] test/terraform/resources/tunnel
+- [ ] test/terraform/resources/tunnel_group
+- [ ] test/terraform/resources/tunnel_termination
+- [ ] test/terraform/resources/l2vpn_termination
+- [ ] test/terraform/resources/ike_policy
+- [ ] test/terraform/resources/ike_proposal
+- [ ] test/terraform/resources/ipsec_policy
+- [ ] test/terraform/resources/ipsec_profile
+
+#### Batch 9.8: Wireless & Events Resources (8 tests)
+- [ ] test/terraform/resources/ipsec_proposal
+- [ ] test/terraform/resources/wireless_lan
+- [ ] test/terraform/resources/wireless_lan_group
+- [ ] test/terraform/resources/wireless_link
+- [ ] test/terraform/resources/event_rule
+- [ ] test/terraform/data-sources/script
+- [ ] test/terraform/data-sources/user
+- [ ] test/terraform/resources/notification_group (if not covered)
+
+#### Batch 9.9: Data Sources Part 1 - IPAM (15 tests)
+- [ ] test/terraform/data-sources/aggregate
+- [ ] test/terraform/data-sources/asn
+- [ ] test/terraform/data-sources/asn_range
+- [ ] test/terraform/data-sources/ip_address
+- [ ] test/terraform/data-sources/ip_range
+- [ ] test/terraform/data-sources/prefix
+- [ ] test/terraform/data-sources/rir
+- [ ] test/terraform/data-sources/role
+- [ ] test/terraform/data-sources/route_target
+- [ ] test/terraform/data-sources/vlan
+- [ ] test/terraform/data-sources/vlan_group
+- [ ] test/terraform/data-sources/vrf
+- [ ] test/terraform/data-sources/fhrp_group
+- [ ] test/terraform/data-sources/fhrp_group_assignment
+- [ ] test/terraform/data-sources/l2vpn
+
+#### Batch 9.10: Data Sources Part 2 - Sites & Org (15 tests)
+- [ ] test/terraform/data-sources/site
+- [ ] test/terraform/data-sources/site_group
+- [ ] test/terraform/data-sources/region
+- [ ] test/terraform/data-sources/location
+- [ ] test/terraform/data-sources/tenant
+- [ ] test/terraform/data-sources/tenant_group
+- [ ] test/terraform/data-sources/contact
+- [ ] test/terraform/data-sources/contact_group
+- [ ] test/terraform/data-sources/contact_role
+- [ ] test/terraform/data-sources/contact_assignment
+- [ ] test/terraform/data-sources/manufacturer
+- [ ] test/terraform/data-sources/platform
+- [ ] test/terraform/data-sources/tag
+- [ ] test/terraform/data-sources/device_role
+- [ ] test/terraform/data-sources/rack_role
+
+#### Batch 9.11: Data Sources Part 3 - Devices (15 tests)
+- [ ] test/terraform/data-sources/device
+- [ ] test/terraform/data-sources/device_type
+- [ ] test/terraform/data-sources/device_bay
+- [ ] test/terraform/data-sources/device_bay_template
+- [ ] test/terraform/data-sources/rack
+- [ ] test/terraform/data-sources/rack_type
+- [ ] test/terraform/data-sources/rack_reservation
+- [ ] test/terraform/data-sources/cable
+- [ ] test/terraform/data-sources/power_panel
+- [ ] test/terraform/data-sources/power_feed
+- [ ] test/terraform/data-sources/module
+- [ ] test/terraform/data-sources/module_type
+- [ ] test/terraform/data-sources/module_bay
+- [ ] test/terraform/data-sources/module_bay_template
+- [ ] test/terraform/data-sources/virtual_chassis
+
+#### Batch 9.12: Data Sources Part 4 - Components (15 tests)
+- [ ] test/terraform/data-sources/interface
+- [ ] test/terraform/data-sources/interface_template
+- [ ] test/terraform/data-sources/console_port
+- [ ] test/terraform/data-sources/console_port_template
+- [ ] test/terraform/data-sources/console_server_port
+- [ ] test/terraform/data-sources/console_server_port_template
+- [ ] test/terraform/data-sources/power_port
+- [ ] test/terraform/data-sources/power_port_template
+- [ ] test/terraform/data-sources/power_outlet
+- [ ] test/terraform/data-sources/power_outlet_template
+- [ ] test/terraform/data-sources/front_port
+- [ ] test/terraform/data-sources/front_port_template
+- [ ] test/terraform/data-sources/rear_port
+- [ ] test/terraform/data-sources/rear_port_template
+- [ ] test/terraform/data-sources/inventory_item
+
+#### Batch 9.13: Data Sources Part 5 - Config & Virtualization (20 tests)
+- [ ] test/terraform/data-sources/inventory_item_role
+- [ ] test/terraform/data-sources/inventory_item_template
+- [ ] test/terraform/data-sources/config_template
+- [ ] test/terraform/data-sources/config_context
+- [ ] test/terraform/data-sources/export_template
+- [ ] test/terraform/data-sources/custom_field
+- [ ] test/terraform/data-sources/custom_field_choice_set
+- [ ] test/terraform/data-sources/custom_link
+- [ ] test/terraform/data-sources/journal_entry
+- [ ] test/terraform/data-sources/webhook
+- [ ] test/terraform/data-sources/cluster
+- [ ] test/terraform/data-sources/cluster_type
+- [ ] test/terraform/data-sources/cluster_group
+- [ ] test/terraform/data-sources/virtual_machine
+- [ ] test/terraform/data-sources/vm_interface
+- [ ] test/terraform/data-sources/virtual_disk
+- [ ] test/terraform/data-sources/virtual_device_context
+- [ ] test/terraform/data-sources/service
+- [ ] test/terraform/data-sources/service_template
+- [ ] test/terraform/data-sources/notification_group
+
+#### Batch 9.14: Data Sources Part 6 - Circuits & VPN (18 tests)
+- [ ] test/terraform/data-sources/provider
+- [ ] test/terraform/data-sources/provider_account
+- [ ] test/terraform/data-sources/provider_network
+- [ ] test/terraform/data-sources/circuit
+- [ ] test/terraform/data-sources/circuit_type
+- [ ] test/terraform/data-sources/circuit_group
+- [ ] test/terraform/data-sources/circuit_group_assignment
+- [ ] test/terraform/data-sources/circuit_termination
+- [ ] test/terraform/data-sources/tunnel
+- [ ] test/terraform/data-sources/tunnel_group
+- [ ] test/terraform/data-sources/tunnel_termination
+- [ ] test/terraform/data-sources/l2vpn_termination
+- [ ] test/terraform/data-sources/ike_policy
+- [ ] test/terraform/data-sources/ike_proposal
+- [ ] test/terraform/data-sources/ipsec_policy
+- [ ] test/terraform/data-sources/ipsec_profile
+- [ ] test/terraform/data-sources/ipsec_proposal
+- [ ] test/terraform/data-sources/event_rule
+
+#### Batch 9.15: Data Sources Part 7 - Wireless (6 tests)
+- [ ] test/terraform/data-sources/wireless_lan
+- [ ] test/terraform/data-sources/wireless_lan_group
+- [ ] test/terraform/data-sources/wireless_link
+- [ ] test/terraform/data-sources/script (if exists)
+- [ ] test/terraform/data-sources/user (if exists)
+- [ ] Final review and documentation
+
+**Phase 9 Summary**:
+- Total test directories: 204 (101 resources + 103 datasources)
+- Organized into 15 batches for systematic review
+- Focus: Verify no references to removed duplicate `_id` fields
+- Expected changes: Minimal (most tests should use primary reference fields already)
 
 ## Script Usage
 
