@@ -917,15 +917,15 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 **Scope**: 204 test directories (101 resources + 103 datasources)
 
 **Review Pattern for Each Test**:
-1. Check for references to removed COMPUTED `_id` OUTPUT fields in outputs/data blocks
-2. **DO NOT flag uses of `.id` as INPUT** - that's correct! (e.g., `role = netbox_device_role.test.id`)
-3. Look for invalid patterns like: `output "x" { value = netbox_device.test.role_id }` ❌
-4. Ensure syntax is valid Terraform HCL
+1. Read main.tf and outputs.tf (if exists)
+2. Search for removed computed fields in OUTPUTS: `role_id`, `site_id`, `tenant_id`, `platform_id`, `device_type_id`, `location_id`, `rack_id`, `cluster_id`, `manufacturer_id`, `parent_id`, `group_id`, `rack_type_id`
+3. **✅ CORRECT - Do NOT flag**: `role = netbox_device_role.test.id` (using .id as INPUT)
+4. **❌ INCORRECT - Flag this**: `output "role_id" { value = netbox_device.test.role_id }` (accessing removed field)
 
 **Key Understanding**:
-- Phase 5 removed duplicate computed OUTPUT fields (role_id, site_id, tenant_id, etc.)
-- Phase 5 DID NOT affect using `.id` for cross-resource INPUT references
-- Primary fields (role, site, tenant) accept ID/name/slug - using `.id` is preferred (immutable)
+- Phase 5 removed duplicate computed OUTPUT fields from resource schemas
+- Using `.id` as INPUT for cross-resource references is CORRECT and PREFERRED (immutable)
+- Primary fields (role, site, tenant) accept ID, name, or slug - all are valid inputs
 
 **Note**: These are Terraform integration tests, not Go tests. Focus on .tf file correctness.
 
@@ -959,22 +959,24 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 - ❌ References to removed computed fields: `netbox_device.test.role_id` (in outputs)
 - ✅ Using .id as input: `role = netbox_device_role.test.id` (CORRECT, keep this!)
 
-#### Batch 9.2: Sites & Organization Resources (15 tests)
-- [ ] test/terraform/resources/site
-- [ ] test/terraform/resources/site_group
-- [ ] test/terraform/resources/region
-- [ ] test/terraform/resources/location
-- [ ] test/terraform/resources/tenant
-- [ ] test/terraform/resources/tenant_group
-- [ ] test/terraform/resources/contact
-- [ ] test/terraform/resources/contact_group
-- [ ] test/terraform/resources/contact_role
-- [ ] test/terraform/resources/contact_assignment
-- [ ] test/terraform/resources/manufacturer
-- [ ] test/terraform/resources/platform
-- [ ] test/terraform/resources/tag
-- [ ] test/terraform/resources/device_role
-- [ ] test/terraform/resources/rack_role
+#### Batch 9.2: Sites & Organization Resources (15 tests) ✅ COMPLETE
+- [x] test/terraform/resources/site - Clean
+- [x] test/terraform/resources/site_group - Clean (uses parent.id correctly)
+- [x] test/terraform/resources/region - Clean (uses parent.id correctly)
+- [x] test/terraform/resources/location - Clean (uses site.id, tenant.id correctly)
+- [x] test/terraform/resources/tenant - Clean (uses group.id correctly)
+- [x] test/terraform/resources/tenant_group - Clean (uses parent.id correctly)
+- [x] test/terraform/resources/contact - Clean
+- [x] test/terraform/resources/contact_group - Clean (uses parent.id correctly)
+- [x] test/terraform/resources/contact_role - Clean
+- [x] test/terraform/resources/contact_assignment - Clean (uses object_id, contact_id, role_id)
+- [x] test/terraform/resources/manufacturer - Clean
+- [x] test/terraform/resources/platform - Clean (uses manufacturer.id correctly)
+- [x] test/terraform/resources/tag - Clean
+- [x] test/terraform/resources/device_role - Clean
+- [x] test/terraform/resources/rack_role - Clean
+
+**Review Notes**: All 15 tests clean (0 fixes needed). Tests correctly use `.id` for cross-resource references and parent/group relationships.
 
 #### Batch 9.3: Device Infrastructure Resources (15 tests)
 - [ ] test/terraform/resources/device
