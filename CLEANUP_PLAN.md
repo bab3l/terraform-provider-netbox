@@ -812,31 +812,61 @@ Ensure all example Terraform configurations in `examples/` directory are:
 - Good variety of lookup combinations demonstrated
 - All examples use valid query parameters
 
-#### Batch 7.14: Data Sources - Part 4 (24 data sources)
-- [ ] netbox_route_target
-- [ ] netbox_service
-- [ ] netbox_service_template
-- [ ] netbox_site
-- [ ] netbox_site_group
-- [ ] netbox_tag
-- [ ] netbox_tenant
-- [ ] netbox_tenant_group
-- [ ] netbox_tunnel
-- [ ] netbox_tunnel_group
-- [ ] netbox_tunnel_termination
-- [ ] netbox_user
-- [ ] netbox_virtual_chassis
-- [ ] netbox_virtual_device_context
-- [ ] netbox_virtual_disk
-- [ ] netbox_virtual_machine
-- [ ] netbox_vlan
-- [ ] netbox_vlan_group
-- [ ] netbox_vm_interface
-- [ ] netbox_vrf
-- [ ] netbox_webhook
-- [ ] netbox_wireless_lan
-- [ ] netbox_wireless_lan_group
-- [ ] netbox_wireless_link
+#### Batch 7.14: Data Sources - Part 4 (24 data sources) ✅ COMPLETE
+- [x] netbox_route_target - Clean, shows ID and name lookups
+- [x] netbox_service - Clean, shows ID, name+device, name+vm lookups
+- [x] netbox_service_template - Clean, shows ID and name lookups
+- [x] netbox_site - Clean, shows ID, slug, and name lookups
+- [x] netbox_site_group - Clean, shows ID, slug, and name lookups
+- [x] netbox_tag - Clean, shows ID, name, and slug lookups
+- [x] netbox_tenant - Clean, shows ID, slug, and name lookups
+- [x] netbox_tenant_group - Clean, shows ID, slug, and name lookups
+- [x] netbox_tunnel - Clean, shows ID and name lookups
+- [x] netbox_tunnel_group - Clean, shows ID, slug, and name lookups
+- [x] netbox_tunnel_termination - Clean, shows ID, tunnel, tunnel_name lookups
+- [x] netbox_user - Clean, username-based lookup
+- [x] netbox_virtual_chassis - Clean, shows ID and name lookups
+- [x] netbox_virtual_device_context - Clean, ID-based lookup
+- [x] netbox_virtual_disk - Clean, shows ID and name+virtual_machine lookups
+- [x] netbox_virtual_machine - Clean, shows ID and name lookups
+- [x] netbox_vlan - Clean, shows ID, VID, name, VID+name lookups
+- [x] netbox_vlan_group - Clean, shows ID, slug, and name lookups
+- [x] netbox_vm_interface - Clean, shows ID and name+virtual_machine lookups
+- [x] netbox_vrf - Clean, shows ID and name lookups
+- [x] netbox_webhook - Clean, shows ID and name lookups
+- [x] netbox_wireless_lan - Clean, shows ID, SSID, group_id lookups
+- [x] netbox_wireless_lan_group - Clean, shows ID, slug, and name lookups
+- [x] netbox_wireless_link - Clean, ID-based lookup
+
+**Review Notes**:
+- All examples verified as correct
+- Good variety of lookup methods across all data sources
+- All examples use valid query parameters
+- Datasources correctly show computed fields and filter parameters
+
+**Phase 7 Data Source Examples Summary**:
+- Total reviewed: 102 data source examples across 4 batches
+- Files fixed: 0 (all examples were correct)
+- Files verified clean: 102
+- Error rate: 0% (perfect record for data sources!)
+
+---
+
+## 🎉 Phase 7 Complete: All Examples Reviewed
+
+**Total Phase 7 Results**:
+- **Resources**: 103 examples reviewed, 5 fixed (4.9% error rate)
+- **Data Sources**: 102 examples reviewed, 0 fixed (0% error rate)
+- **Grand Total**: 205 example files reviewed, 5 fixed (2.4% overall error rate)
+
+**Files Fixed**:
+1. netbox_contact_assignment/resource.tf - 4 fields updated
+2. netbox_interface_template/resource.tf - 1 field updated
+3. netbox_virtual_device_context/resource.tf - 4 fields updated
+4. netbox_fhrp_group_assignment/resource.tf - 5 fields updated
+5. netbox_service/resource.tf - 1 field updated
+
+**Key Finding**: Data sources were 100% clean because they correctly retain `_id` computed fields and filter parameters as part of their read-only API interface. Only resource examples needed fixes.
 
 **Review Checklist for Each Example**:
 - [ ] No references to removed `_id` fields (device_type_id, role_id, tenant_id, platform_id, site_id, location_id, rack_id, cluster_id, manufacturer_id, parent_id, group_id, rack_type_id, scope_id when used alone)
