@@ -1114,22 +1114,24 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 
 **Review Notes**: All 15 data source tests clean (0 fixes needed). Sites & Organization data sources correctly use .id for cross-resource references.
 
-#### Batch 9.11: Data Sources Part 3 - Devices (15 tests)
-- [ ] test/terraform/data-sources/device
-- [ ] test/terraform/data-sources/device_type
-- [ ] test/terraform/data-sources/device_bay
-- [ ] test/terraform/data-sources/device_bay_template
-- [ ] test/terraform/data-sources/rack
-- [ ] test/terraform/data-sources/rack_type
-- [ ] test/terraform/data-sources/rack_reservation
-- [ ] test/terraform/data-sources/cable
-- [ ] test/terraform/data-sources/power_panel
-- [ ] test/terraform/data-sources/power_feed
-- [ ] test/terraform/data-sources/module
-- [ ] test/terraform/data-sources/module_type
-- [ ] test/terraform/data-sources/module_bay
-- [ ] test/terraform/data-sources/module_bay_template
-- [ ] test/terraform/data-sources/virtual_chassis
+#### Batch 9.11: Data Sources Part 3 - Devices (15 tests) ✅ COMPLETE
+- [x] test/terraform/data-sources/device - Clean (uses site.id, manufacturer.id, device_type.id, role.id)
+- [x] test/terraform/data-sources/device_type - Clean (uses manufacturer.id)
+- [x] test/terraform/data-sources/device_bay - Clean (uses device.id with full dependency chain)
+- [x] test/terraform/data-sources/device_bay_template - Clean (uses manufacturer.id, device_type.id)
+- [x] test/terraform/data-sources/rack - Clean (uses site.id, location.id, tenant.id)
+- [x] test/terraform/data-sources/rack_type - Clean (uses manufacturer.id)
+- [x] test/terraform/data-sources/rack_reservation - Clean (uses site.id, rack.id, user.id)
+- [x] test/terraform/data-sources/cable - Clean (uses device.id, interface.id)
+- [x] test/terraform/data-sources/power_panel - Clean (uses site.id)
+- [x] test/terraform/data-sources/power_feed - Clean (uses site.id, power_panel.id)
+- [x] test/terraform/data-sources/module - Clean (uses device.id, module_type.id)
+- [x] test/terraform/data-sources/module_type - Clean (uses manufacturer.id)
+- [x] test/terraform/data-sources/module_bay - Clean (uses device.id)
+- [x] test/terraform/data-sources/module_bay_template - Clean (uses manufacturer.id, device_type.id)
+- [x] test/terraform/data-sources/virtual_chassis - Clean (no dependencies)
+
+**Review Notes**: All 15 data source tests clean (0 fixes needed). Device data sources correctly use .id for all cross-resource references.
 
 #### Batch 9.12: Data Sources Part 4 - Components (15 tests)
 - [ ] test/terraform/data-sources/interface
