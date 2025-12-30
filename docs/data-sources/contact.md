@@ -3,12 +3,12 @@
 page_title: "netbox_contact Data Source - terraform-provider-netbox"
 subcategory: ""
 description: |-
-  Use this data source to get information about a contact in Netbox.
+  Use this data source to get information about a contact in Netbox. You can identify the contact using id, name, or email.
 ---
 
 # netbox_contact (Data Source)
 
-Use this data source to get information about a contact in Netbox.
+Use this data source to get information about a contact in Netbox. You can identify the contact using `id`, `name`, or `email`.
 
 ## Example Usage
 
@@ -56,6 +56,7 @@ output "contact_by_email" {
 - `address` (String) Physical address of the contact.
 - `comments` (String) Comments about the contact.
 - `description` (String) Description of the contact.
+- `display_name` (String) The display name of the contact.
 - `group` (String) ID of the contact group this contact belongs to.
 - `link` (String) URL link associated with the contact.
 - `phone` (String) Phone number of the contact.

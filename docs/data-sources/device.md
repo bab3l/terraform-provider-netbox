@@ -3,22 +3,46 @@
 page_title: "netbox_device Data Source - terraform-provider-netbox"
 subcategory: ""
 description: |-
-  Use this data source to get information about a device in Netbox. Devices represent physical or virtual hardware. You can identify the device using id, name, or serial.
+  Use this data source to get information about a device in Netbox. Devices represent physical or virtual hardware. You can identify the device using id (unique), name (may be non-unique), or serial (unique, recommended for uniqueness).
 ---
 
 # netbox_device (Data Source)
 
-Use this data source to get information about a device in Netbox. Devices represent physical or virtual hardware. You can identify the device using `id`, `name`, or `serial`.
+Use this data source to get information about a device in Netbox. Devices represent physical or virtual hardware. You can identify the device using `id` (unique), `name` (may be non-unique), or `serial` (unique, recommended for uniqueness).
 
 ## Example Usage
 
 ```terraform
-data "netbox_device" "test" {
+# Example: Look up a device by ID
+data "netbox_device" "by_id" {
+  id = "1"
+}
+
+# Example: Look up a device by name (may return multiple results)
+data "netbox_device" "by_name" {
   name = "test-device"
 }
 
-output "example" {
-  value = data.netbox_device.test.id
+# Example: Look up a device by serial number (unique, preferred for uniqueness)
+data "netbox_device" "by_serial" {
+  serial = "ABC123456789"
+}
+
+# Example: Use device data in other resources
+output "device_id" {
+  value = data.netbox_device.by_id.id
+}
+
+output "device_name" {
+  value = data.netbox_device.by_name.name
+}
+
+output "device_type" {
+  value = data.netbox_device.by_serial.device_type
+}
+
+output "device_site" {
+  value = data.netbox_device.by_serial.site
 }
 ```
 
@@ -29,7 +53,7 @@ output "example" {
 
 - `id` (String) Unique identifier for the device. Use to look up by ID.
 - `name` (String) Name of the device. Use to look up by name.
-- `serial` (String) Chassis serial number. Can be used to identify the device instead of `id` or `name`.
+- `serial` (String) Chassis serial number (unique). Use this for reliable device lookup, or use `id` if you already have it. Note: `name` may not be unique.
 
 ### Read-Only
 
@@ -39,6 +63,7 @@ output "example" {
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Brief description of the device.
 - `device_type` (String) The device type. Returns the device type slug.
+- `display_name` (String) The display name of the device.
 - `face` (String) Which face of the rack the device is mounted on (front or rear).
 - `latitude` (Number) GPS latitude coordinate in decimal format.
 - `location` (String) The location within the site. Returns the location slug.

@@ -74,7 +74,7 @@ resource "netbox_front_port" "test" {
 
 - `color` (String) Color of the front port in hex format (e.g., `aa1409`).
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the front port.
+- `description` (String) Description of the front port.
 - `label` (String) Physical label of the front port.
 - `mark_connected` (Boolean) Treat as if a cable is connected.
 - `rear_port_position` (Number) Position on the rear port (1-1024). Default is 1.

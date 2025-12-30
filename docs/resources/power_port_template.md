@@ -20,11 +20,11 @@ Manages a power port template in NetBox. Power port templates define the default
 
 ### Optional
 
-- `allocated_draw` (Number) Allocated power draw in watts.
-- `description` (String) A description of the power port template.
+- `allocated_draw` (Number) Allocated power draw (watts) for this power port.
+- `description` (String) Description of the power port template.
 - `device_type` (String) The device type ID or slug. Either device_type or module_type must be specified.
 - `label` (String) Physical label of the power port template.
-- `maximum_draw` (Number) Maximum power draw in watts.
+- `maximum_draw` (Number) Maximum power draw (watts) for this power port.
 - `module_type` (String) The module type ID or model name. Either device_type or module_type must be specified.
 - `type` (String) The type of power port (e.g., iec-60320-c6, iec-60320-c8, iec-60320-c14, nema-1-15p, nema-5-15p, nema-5-20p, etc.).
 

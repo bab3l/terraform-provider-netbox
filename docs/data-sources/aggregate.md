@@ -3,22 +3,30 @@
 page_title: "netbox_aggregate Data Source - terraform-provider-netbox"
 subcategory: ""
 description: |-
-  Use this data source to retrieve information about an aggregate in Netbox.
+  Use this data source to retrieve information about an aggregate in Netbox. You can identify the aggregate using id or prefix.
 ---
 
 # netbox_aggregate (Data Source)
 
-Use this data source to retrieve information about an aggregate in Netbox.
+Use this data source to retrieve information about an aggregate in Netbox. You can identify the aggregate using `id` or `prefix`.
 
 ## Example Usage
 
 ```terraform
-data "netbox_aggregate" "test" {
+data "netbox_aggregate" "by_prefix" {
   prefix = "10.0.0.0/8"
 }
 
-output "example" {
-  value = data.netbox_aggregate.test.id
+data "netbox_aggregate" "by_id" {
+  id = 123
+}
+
+output "by_prefix" {
+  value = data.netbox_aggregate.by_prefix.id
+}
+
+output "by_id" {
+  value = data.netbox_aggregate.by_id.prefix
 }
 ```
 
@@ -35,6 +43,7 @@ output "example" {
 - `comments` (String) Additional comments about the aggregate.
 - `date_added` (String) The date this aggregate was added (YYYY-MM-DD format).
 - `description` (String) A description of the aggregate.
+- `display_name` (String) The display name of the aggregate.
 - `rir` (String) The ID of the Regional Internet Registry (RIR) this aggregate belongs to.
 - `rir_name` (String) The name of the Regional Internet Registry (RIR) this aggregate belongs to.
 - `tags` (List of String) Tags assigned to this aggregate.

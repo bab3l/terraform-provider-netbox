@@ -13,12 +13,28 @@ Use this data source to get information about an IPSec Profile in Netbox. IPSec 
 ## Example Usage
 
 ```terraform
-data "netbox_ipsec_profile" "test" {
-  name = "test-ipsec-profile"
+data "netbox_ipsec_profile" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_ipsec_profile.test.id
+data "netbox_ipsec_profile" "by_name" {
+  name = "Site-to-Site-VPN"
+}
+
+output "profile_id" {
+  value = data.netbox_ipsec_profile.by_id.id
+}
+
+output "profile_name" {
+  value = data.netbox_ipsec_profile.by_name.name
+}
+
+output "profile_mode" {
+  value = data.netbox_ipsec_profile.by_name.mode
+}
+
+output "profile_ike_policy" {
+  value = data.netbox_ipsec_profile.by_name.ike_policy
 }
 ```
 
@@ -34,6 +50,7 @@ output "example" {
 
 - `comments` (String) Comments about the IPSec profile.
 - `description` (String) The description of the IPSec profile.
+- `display_name` (String) The display name of the IPSec profile.
 - `ike_policy` (String) The name of the IKE policy used by this profile.
 - `ipsec_policy` (String) The name of the IPSec policy used by this profile.
 - `mode` (String) The IPSec mode. Values: `esp` (Encapsulating Security Payload), `ah` (Authentication Header).

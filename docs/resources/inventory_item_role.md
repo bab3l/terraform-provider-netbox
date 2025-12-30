@@ -29,9 +29,9 @@ resource "netbox_inventory_item_role" "test" {
 
 ### Optional
 
-- `color` (String) The color associated with this role (6-character hex code without #).
+- `color` (String) Color for the inventory item role in 6-character hexadecimal format (without #). Example: 'aa1409'. If not specified, Netbox assigns a default.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the inventory item role.
+- `description` (String) Description of the inventory item role.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 
 ### Read-Only

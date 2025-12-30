@@ -13,12 +13,20 @@ Use this data source to get information about a virtualization cluster in Netbox
 ## Example Usage
 
 ```terraform
-data "netbox_cluster" "test" {
-  name = "test-cluster"
+data "netbox_cluster" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_cluster.test.id
+data "netbox_cluster" "by_name" {
+  name = "example-cluster"
+}
+
+output "by_id" {
+  value = data.netbox_cluster.by_id.name
+}
+
+output "by_name" {
+  value = data.netbox_cluster.by_name.id
 }
 ```
 
@@ -35,6 +43,7 @@ output "example" {
 - `comments` (String) Additional comments or notes about the cluster.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Detailed description of the cluster.
+- `display_name` (String) The display name of the cluster.
 - `group` (String) The cluster group this cluster belongs to.
 - `site` (String) The site where this cluster is located.
 - `status` (String) The status of the cluster (planned, staging, active, decommissioning, offline).

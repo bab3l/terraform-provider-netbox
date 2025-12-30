@@ -65,6 +65,7 @@ output "asn_range_by_slug" {
 
 - `asn_count` (Number) The number of ASNs allocated from this range.
 - `description` (String) The description of the ASN range.
+- `display_name` (String) The display name of the ASN range.
 - `end` (String) The ending ASN in this range.
 - `rir` (String) The ID of the RIR responsible for this ASN range.
 - `rir_name` (String) The name of the RIR responsible for this ASN range.

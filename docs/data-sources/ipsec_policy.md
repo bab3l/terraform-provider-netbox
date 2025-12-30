@@ -13,12 +13,28 @@ Use this data source to get information about an IPSec Policy in Netbox. IPSec p
 ## Example Usage
 
 ```terraform
-data "netbox_ipsec_policy" "test" {
-  name = "test-ipsec-policy"
+data "netbox_ipsec_policy" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_ipsec_policy.test.id
+data "netbox_ipsec_policy" "by_name" {
+  name = "Corporate-VPN-Policy"
+}
+
+output "policy_id" {
+  value = data.netbox_ipsec_policy.by_id.id
+}
+
+output "policy_name" {
+  value = data.netbox_ipsec_policy.by_name.name
+}
+
+output "policy_pfs_group" {
+  value = data.netbox_ipsec_policy.by_name.pfs_group
+}
+
+output "policy_proposals" {
+  value = data.netbox_ipsec_policy.by_name.proposals
 }
 ```
 
@@ -34,6 +50,7 @@ output "example" {
 
 - `comments` (String) Comments about the IPSec policy.
 - `description` (String) The description of the IPSec policy.
+- `display_name` (String) The display name of the IPSec policy.
 - `pfs_group` (Number) The Diffie-Hellman group for Perfect Forward Secrecy.
 - `proposals` (List of Number) The list of IPSec proposal IDs associated with this policy.
 - `tags` (List of String) The tags assigned to this IPSec policy.

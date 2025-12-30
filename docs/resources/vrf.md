@@ -38,7 +38,6 @@ resource "netbox_vrf" "test" {
 ### Read-Only
 
 - `id` (String) Unique identifier for the VRF (assigned by Netbox).
-- `tenant_id` (String) The numeric ID of the tenant.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

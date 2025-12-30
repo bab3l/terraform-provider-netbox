@@ -49,6 +49,7 @@ output "event_rule_enabled" {
 - `created` (String) The timestamp of when the event rule was created.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) A description of the event rule.
+- `display_name` (String) The display name of the event rule.
 - `enabled` (Boolean) Whether the event rule is enabled.
 - `event_types` (Set of String) The types of events which will trigger this rule.
 - `last_updated` (String) The timestamp of when the event rule was last updated.

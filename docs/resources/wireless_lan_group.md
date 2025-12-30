@@ -29,7 +29,7 @@ resource "netbox_wireless_lan_group" "test" {
 ### Optional
 
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the wireless LAN group.
+- `description` (String) Description of the wireless LAN group.
 - `parent` (String) Parent wireless LAN group (ID or slug) for hierarchical organization.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 

@@ -50,7 +50,6 @@ resource "netbox_route_target" "tenant_rt" {
 ### Read-Only
 
 - `id` (String) The unique numeric ID of the route target.
-- `tenant_id` (String) The numeric ID of the tenant.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

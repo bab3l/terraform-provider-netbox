@@ -13,12 +13,22 @@ Use this data source to retrieve information about a provider account in Netbox.
 ## Example Usage
 
 ```terraform
-data "netbox_provider_account" "test" {
-  account = "123456789"
+# Lookup by ID
+data "netbox_provider_account" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_provider_account.test.id
+output "by_id" {
+  value = data.netbox_provider_account.by_id.account
+}
+
+# Lookup by account identifier
+data "netbox_provider_account" "by_account" {
+  account = "ACC-123456789"
+}
+
+output "by_account" {
+  value = data.netbox_provider_account.by_account.name
 }
 ```
 
@@ -36,5 +46,6 @@ output "example" {
 - `circuit_provider` (String) The ID of the circuit provider this account belongs to.
 - `comments` (String) Additional comments about the provider account.
 - `description` (String) A description of the provider account.
+- `display_name` (String) The display name of the provider account.
 - `provider_name` (String) The name of the circuit provider this account belongs to.
 - `tags` (List of String) Tags assigned to this provider account.

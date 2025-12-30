@@ -13,13 +13,33 @@ Retrieves information about a power port template in NetBox.
 ## Example Usage
 
 ```terraform
-data "netbox_power_port_template" "test" {
-  name           = "test-power-port-template"
-  device_type_id = 123
+# Lookup by ID
+data "netbox_power_port_template" "by_id" {
+  id = 123
 }
 
-output "example" {
-  value = data.netbox_power_port_template.test.id
+output "by_id" {
+  value = data.netbox_power_port_template.by_id.name
+}
+
+# Lookup by device_type and name
+data "netbox_power_port_template" "by_device_type" {
+  device_type = 456
+  name        = "PWR1"
+}
+
+output "by_device_type" {
+  value = data.netbox_power_port_template.by_device_type.type
+}
+
+# Lookup by module_type and name
+data "netbox_power_port_template" "by_module_type" {
+  module_type = 789
+  name        = "PWR1"
+}
+
+output "by_module_type" {
+  value = data.netbox_power_port_template.by_module_type.type
 }
 ```
 
@@ -37,6 +57,7 @@ output "example" {
 
 - `allocated_draw` (Number) Allocated power draw in watts.
 - `description` (String) A description of the power port template.
+- `display_name` (String) The display name of the power port template.
 - `label` (String) Physical label of the power port template.
 - `maximum_draw` (Number) Maximum power draw in watts.
 - `type` (String) The type of power port.

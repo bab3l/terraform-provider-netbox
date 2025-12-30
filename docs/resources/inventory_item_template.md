@@ -42,7 +42,7 @@ resource "netbox_inventory_item_template" "test" {
 
 - `component_id` (String) The ID of the component this inventory item represents.
 - `component_type` (String) The type of component this inventory item represents (e.g., `dcim.interface`).
-- `description` (String) A description of the inventory item template.
+- `description` (String) Description of the inventory item template.
 - `label` (String) Physical label of the inventory item template.
 - `manufacturer` (String) The manufacturer of the inventory item (ID or slug).
 - `parent` (String) Parent inventory item template (ID).

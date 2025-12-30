@@ -881,21 +881,25 @@ Ensure all example Terraform configurations in `examples/` directory are:
 
 ### Phase 8: Regenerate Documentation
 
-**Status**: 📋 Planning
+**Status**: ✅ COMPLETE
 
-Use terraform-plugin-docs to regenerate provider documentation from:
+Used terraform-plugin-docs to regenerate provider documentation from:
 - Resource/datasource schema definitions
 - Example configurations
 - Description fields
 
 **Tasks**:
-- [ ] Run `make docs` or `tfplugindocs generate`
-- [ ] Verify all resources have documentation in `docs/resources/`
-- [ ] Verify all data sources have documentation in `docs/data-sources/`
-- [ ] Review generated docs for accuracy
-- [ ] Commit updated documentation
+- [x] Run `tfplugindocs generate --provider-dir=. --rendered-website-dir=docs`
+- [x] Verify all resources have documentation in `docs/resources/` (103 files)
+- [x] Verify all data sources have documentation in `docs/data-sources/` (105 files)
+- [x] Review generated docs for accuracy
+- [x] Commit updated documentation
 
-**Note**: Documentation should reflect Phase 5 changes (no `_id` fields in schemas).
+**Results**:
+- Generated 209 total documentation files (103 resources + 105 datasources + 1 index)
+- All documentation reflects Phase 5 changes (no duplicate `_id` fields in resource schemas)
+- Datasource documentation correctly shows `_id` filter parameters (read-only, as designed)
+- Documentation generation successful with no errors
 
 ---
 

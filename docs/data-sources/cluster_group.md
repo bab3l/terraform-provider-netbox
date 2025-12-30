@@ -3,12 +3,12 @@
 page_title: "netbox_cluster_group Data Source - terraform-provider-netbox"
 subcategory: ""
 description: |-
-  Use this data source to get information about a cluster group in Netbox.
+  Use this data source to get information about a cluster group in Netbox. You can identify the cluster group using id, slug, or name.
 ---
 
 # netbox_cluster_group (Data Source)
 
-Use this data source to get information about a cluster group in Netbox.
+Use this data source to get information about a cluster group in Netbox. You can identify the cluster group using `id`, `slug`, or `name`.
 
 ## Example Usage
 
@@ -58,3 +58,4 @@ output "cluster_group_by_slug" {
 ### Read-Only
 
 - `description` (String) Description of the cluster group.
+- `display_name` (String) The display name of the cluster group.

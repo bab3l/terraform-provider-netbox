@@ -13,13 +13,33 @@ Retrieves information about a rear port template in NetBox.
 ## Example Usage
 
 ```terraform
-data "netbox_rear_port_template" "test" {
-  name           = "test-rear-port-template"
-  device_type_id = 123
+# Lookup by ID
+data "netbox_rear_port_template" "by_id" {
+  id = 123
 }
 
-output "example" {
-  value = data.netbox_rear_port_template.test.id
+output "by_id" {
+  value = data.netbox_rear_port_template.by_id.name
+}
+
+# Lookup by device_type and name
+data "netbox_rear_port_template" "by_device_type" {
+  device_type = 456
+  name        = "RearPort1"
+}
+
+output "by_device_type" {
+  value = data.netbox_rear_port_template.by_device_type.type
+}
+
+# Lookup by module_type and name
+data "netbox_rear_port_template" "by_module_type" {
+  module_type = 789
+  name        = "RearPort1"
+}
+
+output "by_module_type" {
+  value = data.netbox_rear_port_template.by_module_type.type
 }
 ```
 
@@ -37,6 +57,7 @@ output "example" {
 
 - `color` (String) Color of the rear port in hex format.
 - `description` (String) A description of the rear port template.
+- `display_name` (String) The display name of the rear port template.
 - `label` (String) Physical label of the rear port template.
 - `positions` (Number) Number of front ports that may be mapped to this rear port.
 - `type` (String) The type of rear port.

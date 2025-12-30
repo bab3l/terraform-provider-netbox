@@ -29,9 +29,9 @@ resource "netbox_service_template" "test" {
 
 ### Optional
 
-- `comments` (String) Additional comments or notes about the service template.
+- `comments` (String) Additional comments or notes about the service template. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the service template.
+- `description` (String) Description of the service template.
 - `protocol` (String) The protocol used by the service. Valid values: `tcp`, `udp`, `sctp`. Defaults to `tcp` if not specified.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 

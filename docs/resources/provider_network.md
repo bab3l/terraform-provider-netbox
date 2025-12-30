@@ -33,9 +33,9 @@ resource "netbox_provider_network" "test" {
 
 ### Optional
 
-- `comments` (String) Additional comments or notes about this provider network.
+- `comments` (String) Additional comments or notes about the provider network. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the provider network.
+- `description` (String) Description of the provider network.
 - `service_id` (String) A unique identifier for this network provided by the circuit provider.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 

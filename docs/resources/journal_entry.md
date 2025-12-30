@@ -36,10 +36,10 @@ resource "netbox_journal_entry" "maintenance_notice" {
 
 - `assigned_object_id` (Number) The ID of the assigned object.
 - `assigned_object_type` (String) The content type of the assigned object (e.g., `dcim.device`, `dcim.site`, `ipam.ipaddress`).
-- `comments` (String) The content of the journal entry. Supports markdown formatting.
 
 ### Optional
 
+- `comments` (String) Additional comments or notes about the journal entry. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `kind` (String) The kind/severity of the journal entry. Valid values: `info`, `success`, `warning`, `danger`. Defaults to `info`.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))

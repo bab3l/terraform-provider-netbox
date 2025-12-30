@@ -13,13 +13,36 @@ Use this data source to get information about a virtual machine interface in Net
 ## Example Usage
 
 ```terraform
-data "netbox_vm_interface" "test" {
-  name               = "eth0"
-  virtual_machine_id = 123
+# Look up a VM interface by ID
+data "netbox_vm_interface" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_vm_interface.test.id
+# Look up a VM interface by name and virtual machine
+data "netbox_vm_interface" "by_name" {
+  name            = "eth0"
+  virtual_machine = "test-vm"
+}
+
+# Use VM interface data in outputs
+output "by_id" {
+  value = data.netbox_vm_interface.by_id.name
+}
+
+output "by_name" {
+  value = data.netbox_vm_interface.by_name.id
+}
+
+output "interface_info" {
+  value = {
+    id            = data.netbox_vm_interface.by_name.id
+    name          = data.netbox_vm_interface.by_name.name
+    enabled       = data.netbox_vm_interface.by_name.enabled
+    mtu           = data.netbox_vm_interface.by_name.mtu
+    mac_address   = data.netbox_vm_interface.by_name.mac_address
+    mode          = data.netbox_vm_interface.by_name.mode
+    untagged_vlan = data.netbox_vm_interface.by_name.untagged_vlan
+  }
 }
 ```
 
@@ -36,6 +59,7 @@ output "example" {
 
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Detailed description of the VM interface.
+- `display_name` (String) Display name for the VM interface.
 - `enabled` (Boolean) Whether the interface is enabled.
 - `mac_address` (String) The MAC address of the interface.
 - `mode` (String) The 802.1Q mode of the interface (access, tagged, tagged-all).

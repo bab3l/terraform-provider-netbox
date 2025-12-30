@@ -3,12 +3,12 @@
 page_title: "netbox_contact_group Data Source - terraform-provider-netbox"
 subcategory: ""
 description: |-
-  Use this data source to get information about a contact group in Netbox.
+  Use this data source to get information about a contact group in Netbox. You can identify the contact group using id, slug, or name.
 ---
 
 # netbox_contact_group (Data Source)
 
-Use this data source to get information about a contact group in Netbox.
+Use this data source to get information about a contact group in Netbox. You can identify the contact group using `id`, `slug`, or `name`.
 
 ## Example Usage
 
@@ -58,5 +58,6 @@ output "contact_group_by_slug" {
 ### Read-Only
 
 - `description` (String) Description of the contact group.
+- `display_name` (String) The display name of the contact group.
 - `parent` (String) Name of the parent contact group.
 - `parent_id` (String) ID of the parent contact group.

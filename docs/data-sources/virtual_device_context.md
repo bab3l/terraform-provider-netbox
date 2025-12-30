@@ -13,13 +13,22 @@ Use this data source to get information about a virtual device context in NetBox
 ## Example Usage
 
 ```terraform
-data "netbox_virtual_device_context" "test" {
-  name      = "test-vdc"
-  device_id = 123
+# Look up a virtual device context by ID
+data "netbox_virtual_device_context" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_virtual_device_context.test.id
+# Use virtual device context data in outputs
+output "vdc_info" {
+  value = {
+    id          = data.netbox_virtual_device_context.by_id.id
+    name        = data.netbox_virtual_device_context.by_id.name
+    device      = data.netbox_virtual_device_context.by_id.device
+    identifier  = data.netbox_virtual_device_context.by_id.identifier
+    status      = data.netbox_virtual_device_context.by_id.status
+    primary_ip4 = data.netbox_virtual_device_context.by_id.primary_ip4
+    primary_ip6 = data.netbox_virtual_device_context.by_id.primary_ip6
+  }
 }
 ```
 
@@ -37,6 +46,7 @@ output "example" {
 - `description` (String) A description of the virtual device context.
 - `device` (String) The name of the device this VDC belongs to.
 - `device_id` (String) The ID of the device this VDC belongs to.
+- `display_name` (String) Display name of the VDC.
 - `identifier` (Number) Numeric identifier unique to the parent device.
 - `name` (String) The name of the virtual device context.
 - `primary_ip4` (String) Primary IPv4 address assigned to this VDC.

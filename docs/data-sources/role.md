@@ -13,12 +13,31 @@ Retrieves information about an IPAM role in NetBox.
 ## Example Usage
 
 ```terraform
-data "netbox_role" "test" {
-  name = "test-role"
+# Lookup by ID
+data "netbox_role" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_role.test.id
+output "by_id" {
+  value = data.netbox_role.by_id.name
+}
+
+# Lookup by name
+data "netbox_role" "by_name" {
+  name = "Primary"
+}
+
+output "by_name" {
+  value = data.netbox_role.by_name.slug
+}
+
+# Lookup by slug
+data "netbox_role" "by_slug" {
+  slug = "primary"
+}
+
+output "by_slug" {
+  value = data.netbox_role.by_slug.weight
 }
 ```
 
@@ -35,6 +54,7 @@ output "example" {
 
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) A description of the role.
+- `display_name` (String) The display name of the role.
 - `prefix_count` (Number) Number of prefixes assigned to this role.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
 - `vlan_count` (Number) Number of VLANs assigned to this role.

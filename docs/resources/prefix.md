@@ -42,8 +42,8 @@ resource "netbox_prefix" "test" {
 
 ### Optional
 
-- `comments` (String) Comments for the prefix.
-- `description` (String) A description for the prefix.
+- `comments` (String) Additional comments or notes about the prefix. Supports Markdown formatting.
+- `description` (String) Description of the prefix.
 - `is_pool` (Boolean) If true, all IP addresses within this prefix are considered usable. Defaults to false.
 - `mark_utilized` (Boolean) If true, treat the prefix as fully utilized. Defaults to false.
 - `role` (String) The name or ID of the role for this prefix.

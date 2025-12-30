@@ -13,12 +13,28 @@ Retrieves information about an FHRP (First Hop Redundancy Protocol) group in Net
 ## Example Usage
 
 ```terraform
-data "netbox_fhrp_group" "test" {
+# Example: Look up an FHRP group by ID
+data "netbox_fhrp_group" "by_id" {
+  id = "1"
+}
+
+# Example: Look up an FHRP group by protocol and group_id
+data "netbox_fhrp_group" "by_protocol_and_group" {
+  protocol = "vrrp3"
   group_id = 10
 }
 
-output "example" {
-  value = data.netbox_fhrp_group.test.id
+# Example: Use FHRP group data in other resources
+output "fhrp_group_id" {
+  value = data.netbox_fhrp_group.by_id.id
+}
+
+output "fhrp_group_protocol" {
+  value = data.netbox_fhrp_group.by_protocol_and_group.protocol
+}
+
+output "fhrp_group_description" {
+  value = data.netbox_fhrp_group.by_protocol_and_group.description
 }
 ```
 
@@ -36,4 +52,5 @@ output "example" {
 - `auth_type` (String) Authentication type (plaintext, md5).
 - `comments` (String) Additional comments about the FHRP group.
 - `description` (String) A description of the FHRP group.
+- `display_name` (String) The display name of the FHRP group.
 - `name` (String) The name of the FHRP group.

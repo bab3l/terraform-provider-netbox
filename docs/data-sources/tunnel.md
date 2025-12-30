@@ -13,12 +13,22 @@ Use this data source to get information about a VPN tunnel in Netbox. Tunnels re
 ## Example Usage
 
 ```terraform
-data "netbox_tunnel" "test" {
-  name = "test-tunnel"
+# Look up tunnel by ID
+data "netbox_tunnel" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_tunnel.test.id
+# Look up tunnel by name
+data "netbox_tunnel" "by_name" {
+  name = "example-tunnel"
+}
+
+output "tunnel_by_id" {
+  value = data.netbox_tunnel.by_id.status
+}
+
+output "tunnel_by_name" {
+  value = data.netbox_tunnel.by_name.encapsulation
 }
 ```
 
@@ -35,6 +45,7 @@ output "example" {
 - `comments` (String) Additional comments about the tunnel.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Detailed description of the tunnel.
+- `display_name` (String) Display name of the tunnel.
 - `encapsulation` (String) Encapsulation protocol for the tunnel.
 - `group` (String) Name of the tunnel group.
 - `group_id` (String) ID of the tunnel group.

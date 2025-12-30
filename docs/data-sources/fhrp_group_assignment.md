@@ -13,13 +13,22 @@ Use this data source to get information about an FHRP group assignment in NetBox
 ## Example Usage
 
 ```terraform
-data "netbox_fhrp_group_assignment" "test" {
-  group_id     = 123
-  interface_id = 456
+# Example: Look up an FHRP group assignment by ID (only supported lookup method)
+data "netbox_fhrp_group_assignment" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_fhrp_group_assignment.test.id
+# Example: Use FHRP group assignment data in other resources
+output "assignment_id" {
+  value = data.netbox_fhrp_group_assignment.by_id.id
+}
+
+output "assignment_group_id" {
+  value = data.netbox_fhrp_group_assignment.by_id.group_id
+}
+
+output "assignment_priority" {
+  value = data.netbox_fhrp_group_assignment.by_id.priority
 }
 ```
 
@@ -32,6 +41,7 @@ output "example" {
 
 ### Read-Only
 
+- `display_name` (String) The display name of the FHRP group assignment.
 - `group_id` (String) ID of the FHRP group.
 - `group_name` (String) Name of the FHRP group.
 - `interface_id` (String) ID of the interface.

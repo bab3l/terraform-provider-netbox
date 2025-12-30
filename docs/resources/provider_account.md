@@ -34,9 +34,9 @@ resource "netbox_provider_account" "test" {
 
 ### Optional
 
-- `comments` (String) Additional comments about the provider account.
+- `comments` (String) Additional comments or notes about the provider account. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the provider account.
+- `description` (String) Description of the provider account.
 - `name` (String) An optional name for this provider account.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 

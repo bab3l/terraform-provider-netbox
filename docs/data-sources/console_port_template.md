@@ -3,23 +3,31 @@
 page_title: "netbox_console_port_template Data Source - terraform-provider-netbox"
 subcategory: ""
 description: |-
-  Retrieves information about a console port template in NetBox.
+  Retrieves information about a console port template in NetBox. You can identify the template using id or the combination of name with device_type or module_type.
 ---
 
 # netbox_console_port_template (Data Source)
 
-Retrieves information about a console port template in NetBox.
+Retrieves information about a console port template in NetBox. You can identify the template using `id` or the combination of `name` with `device_type` or `module_type`.
 
 ## Example Usage
 
 ```terraform
-data "netbox_console_port_template" "test" {
-  name           = "test-console-port-template"
-  device_type_id = 123
+data "netbox_console_port_template" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_console_port_template.test.id
+data "netbox_console_port_template" "by_device_type_and_name" {
+  device_type = "456"
+  name        = "Con0"
+}
+
+output "by_id" {
+  value = data.netbox_console_port_template.by_id.name
+}
+
+output "by_device_type_and_name" {
+  value = data.netbox_console_port_template.by_device_type_and_name.id
 }
 ```
 
@@ -36,5 +44,6 @@ output "example" {
 ### Read-Only
 
 - `description` (String) A description of the console port template.
+- `display_name` (String) The display name of the console port template.
 - `label` (String) Physical label of the console port template.
 - `type` (String) The type of console port.

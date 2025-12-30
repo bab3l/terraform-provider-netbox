@@ -40,7 +40,7 @@ resource "netbox_console_server_port_template" "test" {
 
 ### Optional
 
-- `description` (String) A description of the console server port template.
+- `description` (String) Description of the console server port template.
 - `device_type` (String) The device type ID or slug. Either device_type or module_type must be specified.
 - `label` (String) Physical label of the console server port template.
 - `module_type` (String) The module type ID or model name. Either device_type or module_type must be specified.

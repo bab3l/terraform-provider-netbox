@@ -24,6 +24,11 @@ resource "netbox_device_role" "test" {
   vm_role = false
 }
 
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-manufacturer"
+}
+
 resource "netbox_device_type" "test" {
   model        = "Test Model"
   slug         = "test-model"
@@ -31,14 +36,9 @@ resource "netbox_device_type" "test" {
   u_height     = 1
 }
 
-resource "netbox_manufacturer" "test" {
-  name = "Test Manufacturer"
-  slug = "test-manufacturer"
-}
-
 resource "netbox_device" "test" {
   name        = "Test Device"
-  device_type = netbox_device_type.test.slug
+  device_type = netbox_device_type.test.model
   role        = netbox_device_role.test.slug
   site        = netbox_site.test.slug
 }
@@ -62,9 +62,9 @@ resource "netbox_service" "test" {
 
 ### Optional
 
-- `comments` (String) Additional comments or notes about the service.
+- `comments` (String) Additional comments or notes about the service. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the service.
+- `description` (String) Description of the service.
 - `device` (String) The device this service runs on (ID or name). Mutually exclusive with virtual_machine.
 - `ipaddresses` (List of Number) List of IP address IDs associated with this service.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))

@@ -52,6 +52,7 @@ output "virtual_disk_by_id" {
 ### Read-Only
 
 - `description` (String) The description of the virtual disk.
+- `display_name` (String) Display name of the virtual disk.
 - `size` (String) The size of the virtual disk in GB.
 - `tags` (List of String) The tags assigned to this virtual disk.
 - `virtual_machine_name` (String) The name of the virtual machine this disk belongs to.

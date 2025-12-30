@@ -23,10 +23,10 @@ resource "netbox_manufacturer" "test" {
 }
 
 resource "netbox_device_type" "test" {
-  model           = "Test Model"
-  slug            = "test-model"
-  manufacturer_id = netbox_manufacturer.test.id
-  u_height        = 1
+  model        = "Test Model"
+  slug         = "test-model"
+  manufacturer = netbox_manufacturer.test.slug
+  u_height     = 1
 }
 
 resource "netbox_device_role" "test" {
@@ -37,10 +37,10 @@ resource "netbox_device_role" "test" {
 }
 
 resource "netbox_device" "test" {
-  name           = "Test Device"
-  device_type_id = netbox_device_type.test.id
-  role_id        = netbox_device_role.test.id
-  site_id        = netbox_site.test.id
+  name        = "Test Device"
+  device_type = netbox_device_type.test.model
+  role        = netbox_device_role.test.slug
+  site        = netbox_site.test.slug
 }
 
 resource "netbox_virtual_device_context" "test" {
@@ -61,9 +61,9 @@ resource "netbox_virtual_device_context" "test" {
 
 ### Optional
 
-- `comments` (String) Additional comments about the VDC.
+- `comments` (String) Additional comments or notes about the virtual device context. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the virtual device context.
+- `description` (String) Description of the virtual device context.
 - `identifier` (Number) Numeric identifier unique to the parent device.
 - `primary_ip4` (String) Primary IPv4 address assigned to this VDC (ID).
 - `primary_ip6` (String) Primary IPv6 address assigned to this VDC (ID).

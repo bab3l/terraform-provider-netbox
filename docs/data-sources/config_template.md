@@ -3,22 +3,30 @@
 page_title: "netbox_config_template Data Source - terraform-provider-netbox"
 subcategory: ""
 description: |-
-  Retrieves information about a config template in NetBox.
+  Retrieves information about a config template in NetBox. You can identify the config template using id or name.
 ---
 
 # netbox_config_template (Data Source)
 
-Retrieves information about a config template in NetBox.
+Retrieves information about a config template in NetBox. You can identify the config template using `id` or `name`.
 
 ## Example Usage
 
 ```terraform
-data "netbox_config_template" "test" {
-  name = "test-config-template"
+data "netbox_config_template" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_config_template.test.id
+data "netbox_config_template" "by_name" {
+  name = "device-config"
+}
+
+output "by_id" {
+  value = data.netbox_config_template.by_id.name
+}
+
+output "by_name" {
+  value = data.netbox_config_template.by_name.id
 }
 ```
 
@@ -35,4 +43,5 @@ output "example" {
 - `data_path` (String) Path to remote file (relative to data source root).
 - `data_source` (Number) The ID of the data source the template is synced from.
 - `description` (String) A description of the config template.
+- `display_name` (String) The display name of the config template.
 - `template_code` (String) Jinja2 template code.

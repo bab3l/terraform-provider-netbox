@@ -3,22 +3,30 @@
 page_title: "netbox_circuit Data Source - terraform-provider-netbox"
 subcategory: ""
 description: |-
-  Retrieves information about a circuit in Netbox. Circuits represent physical or logical network connections provided by external carriers or service providers.
+  Retrieves information about a circuit in Netbox. Circuits represent physical or logical network connections provided by external carriers or service providers. You can identify the circuit using id or cid.
 ---
 
 # netbox_circuit (Data Source)
 
-Retrieves information about a circuit in Netbox. Circuits represent physical or logical network connections provided by external carriers or service providers.
+Retrieves information about a circuit in Netbox. Circuits represent physical or logical network connections provided by external carriers or service providers. You can identify the circuit using `id` or `cid`.
 
 ## Example Usage
 
 ```terraform
-data "netbox_circuit" "test" {
+data "netbox_circuit" "by_cid" {
   cid = "123456789"
 }
 
-output "example" {
-  value = data.netbox_circuit.test.id
+data "netbox_circuit" "by_id" {
+  id = "456"
+}
+
+output "by_cid" {
+  value = data.netbox_circuit.by_cid.id
+}
+
+output "by_id" {
+  value = data.netbox_circuit.by_id.cid
 }
 ```
 
@@ -37,6 +45,7 @@ output "example" {
 - `commit_rate` (Number) The committed information rate (CIR) in Kbps for this circuit.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the circuit.
+- `display_name` (String) The display name of the circuit.
 - `install_date` (String) The date when the circuit was installed.
 - `status` (String) The operational status of the circuit.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))

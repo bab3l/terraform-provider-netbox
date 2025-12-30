@@ -13,12 +13,39 @@ Retrieves information about a wireless LAN group in NetBox.
 ## Example Usage
 
 ```terraform
-data "netbox_wireless_lan_group" "test" {
+# Look up a wireless LAN group by ID
+data "netbox_wireless_lan_group" "by_id" {
+  id = "1"
+}
+
+# Look up a wireless LAN group by slug
+data "netbox_wireless_lan_group" "by_slug" {
+  slug = "test-wireless-lan-group"
+}
+
+# Look up a wireless LAN group by name
+data "netbox_wireless_lan_group" "by_name" {
   name = "test-wireless-lan-group"
 }
 
-output "example" {
-  value = data.netbox_wireless_lan_group.test.id
+# Use wireless LAN group data in outputs
+output "by_id" {
+  value = data.netbox_wireless_lan_group.by_id.name
+}
+
+output "by_slug" {
+  value = data.netbox_wireless_lan_group.by_slug.id
+}
+
+output "wlan_group_info" {
+  value = {
+    id          = data.netbox_wireless_lan_group.by_name.id
+    name        = data.netbox_wireless_lan_group.by_name.name
+    slug        = data.netbox_wireless_lan_group.by_name.slug
+    description = data.netbox_wireless_lan_group.by_name.description
+    parent_id   = data.netbox_wireless_lan_group.by_name.parent_id
+    parent_name = data.netbox_wireless_lan_group.by_name.parent_name
+  }
 }
 ```
 
@@ -34,6 +61,7 @@ output "example" {
 ### Read-Only
 
 - `description` (String) A description of the wireless LAN group.
+- `display_name` (String) Display name for the wireless LAN group.
 - `parent_id` (Number) The ID of the parent wireless LAN group.
 - `parent_name` (String) The name of the parent wireless LAN group.
 - `tags` (Set of String) Tags associated with this wireless LAN group.

@@ -13,13 +13,22 @@ Use this data source to get information about a Layer 2 VPN termination in Netbo
 ## Example Usage
 
 ```terraform
-data "netbox_l2vpn_termination" "test" {
-  l2vpn_id           = 123
-  assigned_object_id = 456
+# Example: Look up an L2VPN termination by ID (only supported lookup method)
+data "netbox_l2vpn_termination" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_l2vpn_termination.test.id
+# Example: Use L2VPN termination data in other resources
+output "termination_id" {
+  value = data.netbox_l2vpn_termination.by_id.id
+}
+
+output "termination_l2vpn" {
+  value = data.netbox_l2vpn_termination.by_id.l2vpn
+}
+
+output "termination_object_type" {
+  value = data.netbox_l2vpn_termination.by_id.assigned_object_type
 }
 ```
 
@@ -35,6 +44,7 @@ output "example" {
 - `assigned_object_id` (Number) ID of the assigned object (interface or VLAN).
 - `assigned_object_type` (String) Content type of the assigned object. Valid values: `dcim.interface`, `ipam.vlan`, `virtualization.vminterface`.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
+- `display_name` (String) The display name of the L2VPN termination.
 - `l2vpn` (String) ID of the L2VPN this termination belongs to.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
 

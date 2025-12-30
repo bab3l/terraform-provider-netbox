@@ -13,13 +13,23 @@ Retrieves information about a power port in NetBox.
 ## Example Usage
 
 ```terraform
-data "netbox_power_port" "test" {
-  name      = "test-power-port"
-  device_id = 123
+# Lookup by ID
+data "netbox_power_port" "by_id" {
+  id = 123
 }
 
-output "example" {
-  value = data.netbox_power_port.test.id
+output "by_id" {
+  value = data.netbox_power_port.by_id.name
+}
+
+# Lookup by device_id and name
+data "netbox_power_port" "by_device_and_name" {
+  device_id = 456
+  name      = "PWR1"
+}
+
+output "by_device_and_name" {
+  value = data.netbox_power_port.by_device_and_name.type
 }
 ```
 
@@ -37,6 +47,7 @@ output "example" {
 - `allocated_draw` (Number) Allocated power draw in watts.
 - `description` (String) A description of the power port.
 - `device` (String) The name of the device.
+- `display_name` (String) The display name of the power port.
 - `label` (String) Physical label of the power port.
 - `mark_connected` (Boolean) Treat as if a cable is connected.
 - `maximum_draw` (Number) Maximum power draw in watts.

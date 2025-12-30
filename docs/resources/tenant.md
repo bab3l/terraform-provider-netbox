@@ -91,7 +91,6 @@ resource "netbox_tenant" "standalone_tenant" {
 
 ### Read-Only
 
-- `group_id` (String) The numeric ID of the tenant group.
 - `id` (String) Unique identifier for the tenant (assigned by Netbox).
 
 <a id="nestedatt--custom_fields"></a>

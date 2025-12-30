@@ -13,12 +13,31 @@ Retrieves information about a circuit provider in Netbox. Providers represent th
 ## Example Usage
 
 ```terraform
-data "netbox_provider" "test" {
-  name = "test-provider"
+# Lookup by ID
+data "netbox_provider" "by_id" {
+  id = "123"
 }
 
-output "example" {
-  value = data.netbox_provider.test.id
+output "by_id" {
+  value = data.netbox_provider.by_id.name
+}
+
+# Lookup by slug
+data "netbox_provider" "by_slug" {
+  slug = "isp-provider"
+}
+
+output "by_slug" {
+  value = data.netbox_provider.by_slug.name
+}
+
+# Lookup by name
+data "netbox_provider" "by_name" {
+  name = "ISP Provider"
+}
+
+output "by_name" {
+  value = data.netbox_provider.by_name.slug
 }
 ```
 
@@ -36,6 +55,7 @@ output "example" {
 - `comments` (String) Additional comments or notes about the circuit provider.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the circuit provider.
+- `display_name` (String) The display name of the circuit provider.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
 
 <a id="nestedatt--custom_fields"></a>

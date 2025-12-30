@@ -13,13 +13,25 @@ Retrieves information about a power outlet in NetBox.
 ## Example Usage
 
 ```terraform
-data "netbox_power_outlet" "test" {
-  name      = "test-power-outlet"
-  device_id = 123
+# Example 1: Lookup by ID
+data "netbox_power_outlet" "by_id" {
+  id = 1
 }
 
-output "example" {
-  value = data.netbox_power_outlet.test.id
+output "power_outlet_by_id" {
+  value       = data.netbox_power_outlet.by_id.name
+  description = "Power outlet name when looked up by ID"
+}
+
+# Example 2: Lookup by device_id and name
+data "netbox_power_outlet" "by_device_and_name" {
+  device_id = 5
+  name      = "PSU-1"
+}
+
+output "power_outlet_by_device_and_name" {
+  value       = data.netbox_power_outlet.by_device_and_name.type
+  description = "Power outlet type when looked up by device and name"
 }
 ```
 
@@ -36,6 +48,7 @@ output "example" {
 
 - `description` (String) A description of the power outlet.
 - `device` (String) The name of the device.
+- `display_name` (String) The display name of the power outlet.
 - `feed_leg` (String) Phase leg for three-phase power.
 - `label` (String) Physical label of the power outlet.
 - `mark_connected` (Boolean) Treat as if a cable is connected.

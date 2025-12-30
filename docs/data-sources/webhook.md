@@ -51,6 +51,7 @@ output "webhook_by_id" {
 - `body_template` (String) Jinja2 template for a custom request body.
 - `ca_file_path` (String) The specific CA certificate file to use for SSL verification.
 - `description` (String) Description of the webhook.
+- `display_name` (String) Display name for the webhook.
 - `http_content_type` (String) The HTTP content type header.
 - `http_method` (String) The HTTP method used when calling the webhook URL.
 - `payload_url` (String) The URL that will be called when the webhook is triggered.

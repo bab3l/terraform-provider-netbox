@@ -13,12 +13,28 @@ Use this data source to get information about a Layer 2 VPN in Netbox.
 ## Example Usage
 
 ```terraform
-data "netbox_l2vpn" "test" {
-  name = "test-l2vpn"
+data "netbox_l2vpn" "by_id" {
+  id = "1"
 }
 
-output "example" {
-  value = data.netbox_l2vpn.test.id
+data "netbox_l2vpn" "by_name" {
+  name = "Corporate-L2VPN"
+}
+
+data "netbox_l2vpn" "by_slug" {
+  slug = "corporate-l2vpn"
+}
+
+output "l2vpn_id" {
+  value = data.netbox_l2vpn.by_id.id
+}
+
+output "l2vpn_name" {
+  value = data.netbox_l2vpn.by_name.name
+}
+
+output "l2vpn_type" {
+  value = data.netbox_l2vpn.by_slug.type
 }
 ```
 
@@ -36,6 +52,7 @@ output "example" {
 - `comments` (String) Comments for the L2VPN.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the L2VPN.
+- `display_name` (String) The display name of the L2VPN.
 - `export_targets` (Set of String) Set of route target IDs to export.
 - `identifier` (Number) Numeric identifier unique to the parent L2VPN.
 - `import_targets` (Set of String) Set of route target IDs to import.

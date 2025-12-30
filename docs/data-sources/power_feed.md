@@ -13,12 +13,25 @@ Retrieves information about a power feed in NetBox.
 ## Example Usage
 
 ```terraform
-data "netbox_power_feed" "test" {
-  name = "test-power-feed"
+# Example 1: Lookup by ID
+data "netbox_power_feed" "by_id" {
+  id = 1
 }
 
-output "example" {
-  value = data.netbox_power_feed.test.id
+output "power_feed_by_id" {
+  value       = data.netbox_power_feed.by_id.name
+  description = "Power feed name when looked up by ID"
+}
+
+# Example 2: Lookup by power_panel and name
+data "netbox_power_feed" "by_panel_and_name" {
+  power_panel = 5
+  name        = "Feed-A"
+}
+
+output "power_feed_by_panel_and_name" {
+  value       = data.netbox_power_feed.by_panel_and_name.status
+  description = "Power feed status when looked up by panel and name"
 }
 ```
 
@@ -37,6 +50,7 @@ output "example" {
 - `comments` (String) Additional comments.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) A description of the power feed.
+- `display_name` (String) The display name of the power feed.
 - `mark_connected` (Boolean) Whether the power feed is treated as connected.
 - `max_utilization` (Number) Maximum utilization percentage.
 - `phase` (String) Phase type.

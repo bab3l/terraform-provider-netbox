@@ -42,10 +42,10 @@ resource "netbox_circuit" "test" {
 
 ### Optional
 
-- `comments` (String) Additional comments or notes about the circuit.
+- `comments` (String) Additional comments or notes about the circuit. Supports Markdown formatting.
 - `commit_rate` (Number) The committed information rate (CIR) in Kbps for this circuit.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
-- `description` (String) A description of the circuit.
+- `description` (String) Description of the circuit.
 - `install_date` (String) The date when the circuit was installed, in YYYY-MM-DD format.
 - `status` (String) The operational status of the circuit. Valid values are: `planned`, `provisioning`, `active`, `offline`, `deprovisioning`, `decommissioned`. Defaults to `active`.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))

@@ -37,7 +37,6 @@ resource "netbox_site_group" "example" {
 ### Read-Only
 
 - `id` (String) Unique identifier for the site group (assigned by Netbox).
-- `parent_id` (String) The numeric ID of the parent site group.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

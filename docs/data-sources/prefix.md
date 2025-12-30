@@ -13,12 +13,22 @@ Use this data source to get information about a prefix in Netbox.
 ## Example Usage
 
 ```terraform
-data "netbox_prefix" "test" {
+# Lookup by ID
+data "netbox_prefix" "by_id" {
+  id = "123"
+}
+
+output "by_id" {
+  value = data.netbox_prefix.by_id.prefix
+}
+
+# Lookup by prefix CIDR
+data "netbox_prefix" "by_cidr" {
   prefix = "10.0.0.0/24"
 }
 
-output "example" {
-  value = data.netbox_prefix.test.id
+output "by_cidr" {
+  value = data.netbox_prefix.by_cidr.status
 }
 ```
 
@@ -34,6 +44,7 @@ output "example" {
 
 - `comments` (String) Comments for the prefix.
 - `description` (String) The description of the prefix.
+- `display_name` (String) The display name of the prefix.
 - `is_pool` (Boolean) If true, all IP addresses within this prefix are considered usable.
 - `mark_utilized` (Boolean) If true, the prefix is treated as fully utilized.
 - `role` (String) The name of the role for this prefix.
