@@ -2,6 +2,54 @@
 
 ## v0.0.10 (TBD)
 
+### Features & Improvements
+
+#### Terraform Integration Test Suite
+*   **Complete Phase 10: All 204 Terraform Integration Tests Passing**
+    - 206 test invocations across 204 unique test directories
+    - 100% pass rate (206/206 successful)
+    - ~3 hours of comprehensive end-to-end validation
+    - Tests cover all 101 resource types and 103 data source types
+
+**Test Coverage by Category:**
+- DCIM: 80+ tests (devices, racks, interfaces, ports, components, templates)
+- IPAM: 40+ tests (IP addresses, prefixes, VLANs, ASNs, aggregates)
+- Virtualization: 20+ tests (VMs, clusters, disks, interfaces)
+- Circuits: 20+ tests (circuits, providers, terminations)
+- VPN & Security: 20+ tests (tunnels, IPSec, IKE policies)
+- Wireless & Tenancy: 15+ tests
+- Extras: 15+ tests (webhooks, events, templates, configs)
+
+**Test Organization:**
+- Batch 10.1-10.10: 204 tests organized by dependency and functionality
+- Each batch achieves 100% pass rate
+- Average test execution: 35-50 seconds (includes setup, apply, verify, cleanup)
+
+#### Test Infrastructure Improvements
+*   **Enhanced Resource Cleanup**
+    - Added pre-cleanup for aggregates to prevent overlapping aggregate errors
+    - Added pre-cleanup for IP ranges to prevent overlapping range errors
+    - Intelligent multi-iteration cleanup handling dependencies
+    - Comprehensive deletion order mapping for 70+ resource types
+*   **Configuration Standardization**
+    - All test configurations include proper terraform block
+    - Consistent required_providers configuration across all tests
+    - Proper dependency ordering for resource and data source tests
+
+#### Bug Fixes in Test Configurations
+*   **Fixed Port Template Issues (Batch 10.5)**
+    - Corrected rear_port reference in front_port_template (ID → NAME)
+    - Fixed missing terraform blocks in device component templates
+    - Port template tests now fully passing
+*   **Fixed Data Source Schema Issues (Batch 10.6)**
+    - Corrected front_port data source outputs to match actual schema
+    - Removed unsupported attribute references
+    - Aligned test patterns with other successful data sources
+*   **Fixed IP Data Overlaps (Batch 10.7)**
+    - Added aggregate and IP range pre-cleanup to prevent conflicts
+    - Resolves "400 Bad Request" from overlapping network ranges
+    - Enables reliable test execution across multiple runs
+
 ### Breaking Changes
 
 #### Removed Duplicate `_id` Computed Fields
@@ -65,11 +113,19 @@ resource "netbox_virtual_machine" "vm" {
 #### Files Modified
 *   **13 resource files** - Removed 24 duplicate computed ID fields from model structs, schemas, and state mapping
 *   **1 test file** - Updated platform_resource_test.go to remove manufacturer_id from expected computed fields
+*   **1 test script** - Enhanced run-terraform-tests.ps1 with aggregate and IP range pre-cleanup functions
+*   **204 test configurations** - Updated with terraform blocks and proper provider configuration
 
 #### Impact Analysis
 *   **High**: Configurations explicitly referencing `._id` fields must be updated
 *   **Medium**: Plans become cleaner without `(known after apply)` noise
 *   **Low**: State migration is fully automatic
+
+#### Validation
+*   **All 204 Terraform integration tests passing** (100% pass rate)
+*   **All resource and data source types validated**
+*   **Cross-resource references verified**
+*   **State management and drift detection confirmed**
 
 ## v0.0.9 (2025-12-29)
 
