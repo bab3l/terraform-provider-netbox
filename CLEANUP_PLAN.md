@@ -1133,22 +1133,24 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 
 **Review Notes**: All 15 data source tests clean (0 fixes needed). Device data sources correctly use .id for all cross-resource references.
 
-#### Batch 9.12: Data Sources Part 4 - Components (15 tests)
-- [ ] test/terraform/data-sources/interface
-- [ ] test/terraform/data-sources/interface_template
-- [ ] test/terraform/data-sources/console_port
-- [ ] test/terraform/data-sources/console_port_template
-- [ ] test/terraform/data-sources/console_server_port
-- [ ] test/terraform/data-sources/console_server_port_template
-- [ ] test/terraform/data-sources/power_port
-- [ ] test/terraform/data-sources/power_port_template
-- [ ] test/terraform/data-sources/power_outlet
-- [ ] test/terraform/data-sources/power_outlet_template
-- [ ] test/terraform/data-sources/front_port
-- [ ] test/terraform/data-sources/front_port_template
-- [ ] test/terraform/data-sources/rear_port
-- [ ] test/terraform/data-sources/rear_port_template
-- [ ] test/terraform/data-sources/inventory_item
+#### Batch 9.12: Data Sources Part 4 - Components (15 tests) ✅ COMPLETE
+- [x] test/terraform/data-sources/interface - Clean (uses device.id)
+- [x] test/terraform/data-sources/interface_template - Clean (uses device_type.id)
+- [x] test/terraform/data-sources/console_port - Clean (uses device.id)
+- [x] test/terraform/data-sources/console_port_template - Clean (uses device_type.id)
+- [x] test/terraform/data-sources/console_server_port - Clean (uses device.id)
+- [x] test/terraform/data-sources/console_server_port_template - Clean (uses device_type.id)
+- [x] test/terraform/data-sources/power_port - Clean (uses device.id)
+- [x] test/terraform/data-sources/power_port_template - Clean (uses device_type.id)
+- [x] test/terraform/data-sources/power_outlet - Clean (uses device.id)
+- [x] test/terraform/data-sources/power_outlet_template - Clean (uses device_type.id)
+- [x] test/terraform/data-sources/front_port - Clean (uses device.id, rear_port.id)
+- [x] test/terraform/data-sources/front_port_template - Clean (uses device_type.id, rear_port.name)
+- [x] test/terraform/data-sources/rear_port - Clean (uses device.id)
+- [x] test/terraform/data-sources/rear_port_template - Clean (uses device_type.id)
+- [x] test/terraform/data-sources/inventory_item - Clean (uses device.id)
+
+**Review Notes**: All 15 data source tests clean (0 fixes needed). Component data sources correctly use .id for cross-resource references. Note: front_port_template uses rear_port.name (string reference by design).
 
 #### Batch 9.13: Data Sources Part 5 - Config & Virtualization (20 tests)
 - [ ] test/terraform/data-sources/inventory_item_role
