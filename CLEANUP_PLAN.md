@@ -742,33 +742,40 @@ Ensure all example Terraform configurations in `examples/` directory are:
 - Good variety of lookup methods demonstrated across examples
 - All examples use valid query parameters
 
-#### Batch 7.12: Data Sources - Part 2 (26 data sources)
-- [ ] netbox_device_bay
-- [ ] netbox_device_bay_template
-- [ ] netbox_device_role
-- [ ] netbox_device_type
-- [ ] netbox_event_rule
-- [ ] netbox_export_template
-- [ ] netbox_fhrp_group
-- [ ] netbox_fhrp_group_assignment
-- [ ] netbox_front_port
-- [ ] netbox_front_port_template
-- [ ] netbox_ike_policy
-- [ ] netbox_ike_proposal
-- [ ] netbox_interface
-- [ ] netbox_interface_template
-- [ ] netbox_inventory_item
-- [ ] netbox_inventory_item_role
-- [ ] netbox_inventory_item_template
-- [ ] netbox_ip_address
-- [ ] netbox_ip_range
-- [ ] netbox_ipsec_policy
-- [ ] netbox_ipsec_profile
-- [ ] netbox_ipsec_proposal
-- [ ] netbox_journal_entry
-- [ ] netbox_l2vpn
-- [ ] netbox_l2vpn_termination
-- [ ] netbox_location
+#### Batch 7.12: Data Sources - Part 2 (26 data sources) ✅ COMPLETE
+- [x] netbox_device_bay - Clean, shows ID and device+name lookups
+- [x] netbox_device_bay_template - Clean, shows ID and name+device_type lookups
+- [x] netbox_device_role - Clean, shows ID, name, and slug lookups
+- [x] netbox_device_type - Clean, shows ID, slug, and model lookups
+- [x] netbox_event_rule - Clean, ID-based lookup
+- [x] netbox_export_template - Clean, shows ID and name lookups
+- [x] netbox_fhrp_group - Clean, shows ID and protocol+group_id lookups
+- [x] netbox_fhrp_group_assignment - Clean, ID-based lookup (group_id is valid in datasource)
+- [x] netbox_front_port - Clean, shows ID and device_id+name lookups
+- [x] netbox_front_port_template - Clean, shows ID and name+device_type/module_type lookups
+- [x] netbox_ike_policy - Clean, shows ID and name lookups
+- [x] netbox_ike_proposal - Clean, shows ID and name lookups
+- [x] netbox_interface - Clean, shows ID and device+name lookups
+- [x] netbox_interface_template - Clean, shows ID and name+device_type/module_type lookups
+- [x] netbox_inventory_item - Clean, shows ID and name+device_id lookups
+- [x] netbox_inventory_item_role - Clean, shows ID, name, and slug lookups
+- [x] netbox_inventory_item_template - Clean, ID-based lookup (device_type_id is valid in datasource)
+- [x] netbox_ip_address - Clean, shows ID and address lookups
+- [x] netbox_ip_range - Clean, shows ID and start/end address lookups
+- [x] netbox_ipsec_policy - Clean, shows ID and name lookups
+- [x] netbox_ipsec_profile - Clean, shows ID and name lookups
+- [x] netbox_ipsec_proposal - Clean, shows ID and name lookups
+- [x] netbox_journal_entry - Clean, ID-based lookup
+- [x] netbox_l2vpn - Clean, shows ID, name, and slug lookups
+- [x] netbox_l2vpn_termination - Clean, ID-based lookup
+- [x] netbox_location - Clean, shows ID, name, and slug lookups
+
+**Review Notes**:
+- All examples verified as correct
+- Datasources correctly use `_id` query parameters (e.g., device_id, device_type_id) for filtering
+- These are distinct from the removed computed `_id` fields in resources
+- Good variety of lookup patterns demonstrated
+- All examples use valid query parameters
 
 #### Batch 7.13: Data Sources - Part 3 (26 data sources)
 - [ ] netbox_manufacturer
