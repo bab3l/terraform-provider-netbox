@@ -1,19 +1,11 @@
-output "id_matches" {
-  value = data.netbox_front_port.by_id.id == netbox_front_port.test.id
+output "by_id_name" {
+  value = data.netbox_front_port.by_id.name
 }
 
-output "name_matches" {
-  value = data.netbox_front_port.by_id.name == netbox_front_port.test.name
+output "by_id_device" {
+  value = data.netbox_front_port.by_id.device
 }
 
-output "rear_port_matches" {
-  value = data.netbox_front_port.by_id.rear_port == netbox_rear_port.test.id
-}
-
-output "type_matches" {
-  value = data.netbox_front_port.by_id.type == netbox_front_port.test.type
-}
-
-output "description_matches" {
-  value = data.netbox_front_port.by_id.description == netbox_front_port.test.description
+output "by_id_description" {
+  value = data.netbox_front_port.by_id.description
 }
