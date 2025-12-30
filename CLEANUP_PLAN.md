@@ -997,22 +997,24 @@ Review and update Terraform configuration tests in `test/terraform/` directory:
 
 **Review Notes**: All 15 tests clean (0 fixes needed). Tests correctly use `.id` for all cross-resource references including devices, racks, modules, and their related components.
 
-#### Batch 9.4: Device Components Resources (15 tests)
-- [ ] test/terraform/resources/interface
-- [ ] test/terraform/resources/interface_template
-- [ ] test/terraform/resources/console_port
-- [ ] test/terraform/resources/console_port_template
-- [ ] test/terraform/resources/console_server_port
-- [ ] test/terraform/resources/console_server_port_template
-- [ ] test/terraform/resources/power_port
-- [ ] test/terraform/resources/power_port_template
-- [ ] test/terraform/resources/power_outlet
-- [ ] test/terraform/resources/power_outlet_template
-- [ ] test/terraform/resources/front_port
-- [ ] test/terraform/resources/front_port_template
-- [ ] test/terraform/resources/rear_port
-- [ ] test/terraform/resources/rear_port_template
-- [ ] test/terraform/resources/inventory_item
+#### Batch 9.4: Device Components Resources (15 tests) ✅ COMPLETE
+- [x] test/terraform/resources/interface - Clean (uses device.id, manufacturer.id)
+- [x] test/terraform/resources/interface_template - Clean (uses device_type.id, manufacturer.id)
+- [x] test/terraform/resources/console_port - Clean (uses device.id, device_type.id)
+- [x] test/terraform/resources/console_port_template - Clean (uses device_type.id, manufacturer.id)
+- [x] test/terraform/resources/console_server_port - Clean (uses device.id, device_type.id)
+- [x] test/terraform/resources/console_server_port_template - Clean (uses device_type.id, manufacturer.id)
+- [x] test/terraform/resources/power_port - Clean (uses device.id, device_type.id)
+- [x] test/terraform/resources/power_port_template - Clean (uses device_type.id, manufacturer.id)
+- [x] test/terraform/resources/power_outlet - Clean (uses device.id, device_type.id)
+- [x] test/terraform/resources/power_outlet_template - Clean (uses device_type.id, manufacturer.id)
+- [x] test/terraform/resources/front_port - Clean (uses device.id, rear_port.id)
+- [x] test/terraform/resources/front_port_template - Clean (uses device_type.id, rear_port.name)
+- [x] test/terraform/resources/rear_port - Clean (uses device.id, device_type.id)
+- [x] test/terraform/resources/rear_port_template - Clean (uses device_type.id, manufacturer.id)
+- [x] test/terraform/resources/inventory_item - Clean (uses device.id, manufacturer.id)
+
+**Review Notes**: All 15 tests clean (0 fixes needed). Tests correctly use `.id` for device components and their templates. Note: front_port_template uses rear_port.name (string reference, not ID).
 
 #### Batch 9.5: Inventory & Templates Resources (10 tests)
 - [ ] test/terraform/resources/inventory_item_role
