@@ -416,9 +416,15 @@ func (r *JournalEntryResource) mapJournalEntryToState(ctx context.Context, journ
 	// Kind
 
 	if journalEntry.Kind != nil && journalEntry.Kind.Value != nil {
-		data.Kind = types.StringValue(string(*journalEntry.Kind.Value))
+		// Only set kind if user specified it in config or this is an import (unknown)
+		if !data.Kind.IsNull() || data.Kind.IsUnknown() {
+			data.Kind = types.StringValue(string(*journalEntry.Kind.Value))
+		}
 	} else {
-		data.Kind = types.StringValue("info") // Default value
+		// Only set default if user specified it in config or this is an import (unknown)
+		if !data.Kind.IsNull() || data.Kind.IsUnknown() {
+			data.Kind = types.StringValue("info") // Default value
+		}
 	}
 
 	// Tags

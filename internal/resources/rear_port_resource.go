@@ -546,9 +546,15 @@ func (r *RearPortResource) mapResponseToModel(ctx context.Context, port *netbox.
 	// Map positions
 
 	if positions, ok := port.GetPositionsOk(); ok && positions != nil {
-		data.Positions = types.Int32Value(*positions)
+		// Only set positions if user specified it in config or this is an import (unknown)
+		if !data.Positions.IsNull() || data.Positions.IsUnknown() {
+			data.Positions = types.Int32Value(*positions)
+		}
 	} else {
-		data.Positions = types.Int32Value(1)
+		// Only set default if user specified it in config or this is an import (unknown)
+		if !data.Positions.IsNull() || data.Positions.IsUnknown() {
+			data.Positions = types.Int32Value(1)
+		}
 	}
 
 	// Map description

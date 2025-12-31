@@ -476,9 +476,15 @@ func (r *RoleResource) mapResponseToModel(ctx context.Context, role *netbox.Role
 	// Map weight
 
 	if weight, ok := role.GetWeightOk(); ok && weight != nil {
-		data.Weight = types.Int64Value(int64(*weight))
+		// Only set weight if user specified it in config or this is an import (unknown)
+		if !data.Weight.IsNull() || data.Weight.IsUnknown() {
+			data.Weight = types.Int64Value(int64(*weight))
+		}
 	} else {
-		data.Weight = types.Int64Value(1000)
+		// Only set default if user specified it in config or this is an import (unknown)
+		if !data.Weight.IsNull() || data.Weight.IsUnknown() {
+			data.Weight = types.Int64Value(1000)
+		}
 	}
 
 	// Map description
