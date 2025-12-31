@@ -18,10 +18,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
+
+const defaultTunnelStatus = "active"
 
 // Ensure provider defined types fully satisfy framework interfaces.
 
@@ -86,6 +89,8 @@ func (r *TunnelResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional: true,
 
 				Computed: true,
+
+				Default: stringdefault.StaticString(defaultTunnelStatus),
 
 				Validators: []validator.String{
 					stringvalidator.OneOf(
@@ -204,7 +209,7 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Set status - default to "active" if not provided (Netbox requires status)
 
-	statusValue := "active"
+	statusValue := defaultTunnelStatus
 
 	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		statusValue = data.Status.ValueString()
@@ -567,7 +572,7 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	// Set status - default to "active" if not provided (Netbox requires status)
 
-	statusValue := "active"
+	statusValue := defaultTunnelStatus
 
 	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		statusValue = data.Status.ValueString()

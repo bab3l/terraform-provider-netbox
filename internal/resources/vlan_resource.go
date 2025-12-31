@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -98,6 +99,8 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				Optional: true,
 
 				Computed: true,
+
+				Default: stringdefault.StaticString("active"),
 			},
 
 			"role": schema.StringAttribute{
@@ -494,13 +497,13 @@ func (r *VLANResource) setOptionalFields(ctx context.Context, vlanRequest *netbo
 		vlanRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
 	}
 
-	// Status
-
-	if utils.IsSet(data.Status) {
-		status := netbox.PatchedWritableVLANRequestStatus(data.Status.ValueString())
-
-		vlanRequest.Status = &status
+	// Status - Optional+Computed field: always set value (defaults to "active")
+	statusValue := "active" // default
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
+		statusValue = data.Status.ValueString()
 	}
+	status := netbox.PatchedWritableVLANRequestStatus(statusValue)
+	vlanRequest.Status = &status
 
 	// Role
 

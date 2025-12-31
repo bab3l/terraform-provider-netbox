@@ -1,0 +1,37 @@
+package resources_acceptance_tests
+
+import (
+	"testing"
+
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+)
+
+// TestAccTunnelResource_StatusComprehensive tests comprehensive scenarios for tunnel status field.
+// This validates that Optional+Computed fields work correctly across all scenarios.
+func TestAccTunnelResource_StatusComprehensive(t *testing.T) {
+
+	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
+		ResourceName:   "netbox_tunnel",
+		OptionalField:  "status",
+		DefaultValue:   "active",
+		FieldTestValue: "planned",
+		BaseConfig: func() string {
+			return `
+resource "netbox_tunnel" "test" {
+	name       = "test-tunnel-status"
+	encapsulation = "gre"
+	# status field intentionally omitted - should get default "active"
+}
+`
+		},
+		WithFieldConfig: func(value string) string {
+			return `
+resource "netbox_tunnel" "test" {
+	name       = "test-tunnel-status"
+	encapsulation = "gre"
+	status     = "` + value + `"
+}
+`
+		},
+	})
+}
