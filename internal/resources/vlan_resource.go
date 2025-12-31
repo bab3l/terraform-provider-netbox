@@ -558,12 +558,15 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 		data.Tenant = types.StringNull()
 	}
 
-	// Status
+	// Status - only set if user specified it in config, or during import (when current is unknown)
+	// This prevents Terraform from seeing drift when the API returns a status but config doesn't specify one
 
-	if vlan.HasStatus() {
-		data.Status = types.StringValue(string(vlan.Status.GetValue()))
-	} else {
-		data.Status = types.StringValue("active")
+	if !data.Status.IsNull() || data.Status.IsUnknown() {
+		if vlan.HasStatus() {
+			data.Status = types.StringValue(string(vlan.Status.GetValue()))
+		} else {
+			data.Status = types.StringValue("active")
+		}
 	}
 
 	// Role - preserve user's input format

@@ -209,12 +209,15 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 	data.Name = types.StringValue(vm.GetName())
 
-	// Status
+	// Status - only set if user specified it in config, or during import (when current is unknown)
+	// This prevents Terraform from seeing drift when the API returns a status but config doesn't specify one
 
-	if vm.HasStatus() {
-		data.Status = types.StringValue(string(vm.Status.GetValue()))
-	} else {
-		data.Status = types.StringValue("active")
+	if !data.Status.IsNull() || data.Status.IsUnknown() {
+		if vm.HasStatus() {
+			data.Status = types.StringValue(string(vm.Status.GetValue()))
+		} else {
+			data.Status = types.StringValue("active")
+		}
 	}
 
 	// Site

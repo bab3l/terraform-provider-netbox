@@ -327,7 +327,10 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", tunnel.GetId()))
 
-	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
+	// Status - only set if user specified it in config, or during creation (when current is unknown)
+	if !data.Status.IsNull() || data.Status.IsUnknown() {
+		data.Status = types.StringValue(string(tunnel.Status.GetValue()))
+	}
 
 	// Handle group reference from response
 
@@ -411,7 +414,10 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	data.Name = types.StringValue(tunnel.GetName())
 
-	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
+	// Status - only set if user specified it in config, or during update (when current is unknown)
+	if !data.Status.IsNull() || data.Status.IsUnknown() {
+		data.Status = types.StringValue(string(tunnel.Status.GetValue()))
+	}
 
 	data.Encapsulation = types.StringValue(string(tunnel.Encapsulation.GetValue()))
 
@@ -692,9 +698,11 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	// Update status from response
-
-	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
+	// Status - only set if user specified it in config, or during import (when current is unknown)
+	// This prevents Terraform from seeing drift when the API returns a status but config doesn't specify one
+	if !data.Status.IsNull() || data.Status.IsUnknown() {
+		data.Status = types.StringValue(string(tunnel.Status.GetValue()))
+	}
 
 	// Handle group reference from response - preserve user's input format
 

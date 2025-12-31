@@ -980,10 +980,15 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		data.Longitude = types.Float64Null()
 	}
 
-	// Handle status
+	// Handle status - only set if user specified it in config, or during import (when current is unknown)
+	// This prevents Terraform from seeing drift when the API returns a status but config doesn't specify one
 
-	if device.HasStatus() && device.Status != nil {
-		data.Status = types.StringValue(string(device.Status.GetValue()))
+	if !data.Status.IsNull() || data.Status.IsUnknown() {
+		if device.HasStatus() && device.Status != nil {
+			data.Status = types.StringValue(string(device.Status.GetValue()))
+		} else {
+			data.Status = types.StringNull()
+		}
 	}
 
 	// Handle airflow
