@@ -58,16 +58,16 @@ if !data.Field.IsNull() || data.Field.IsUnknown() {
 | tunnel_resource.go | status | String | Optional | ✅ Fixed | ⏳ Pending | Fixed in Create, Read, Update |
 | interface_resource.go | enabled | Bool | Optional | ✅ Fixed | ✅ Added | Similar to vm_interface |
 | journal_entry_resource.go | kind | String | Optional | ⏳ Pending | ⏳ Pending | |
-| power_feed_resource.go | voltage | Int64 | Optional | ⏳ Pending | ⏳ Pending | |
-| power_feed_resource.go | amperage | Int64 | Optional | ⏳ Pending | ⏳ Pending | |
+| power_feed_resource.go | voltage | Int64 | Optional | ✅ Fixed | ⏳ Pending | |
+| power_feed_resource.go | amperage | Int64 | Optional | ✅ Fixed | ⏳ Pending | |
 | role_resource.go | weight | Int64 | Optional | ⏳ Pending | ⏳ Pending | |
 | rear_port_resource.go | positions | Int32 | Optional | ⏳ Pending | ⏳ Pending | |
-| front_port_template_resource.go | label | String | Optional | ⏳ Pending | ⏳ Pending | |
-| front_port_template_resource.go | color | String | Optional | ⏳ Pending | ⏳ Pending | |
+| front_port_template_resource.go | label | String | Optional | ✅ Fixed | ⏳ Pending | |
+| front_port_template_resource.go | color | String | Optional | ✅ Fixed | ⏳ Pending | |
 | interface_template_resource.go | label | String | Optional | ✅ Fixed | ✅ Added | |
 | interface_template_resource.go | enabled | Bool | Optional | ✅ Fixed | ✅ Added | |
-| power_outlet_template_resource.go | label | String | Optional | ⏳ Pending | ⏳ Pending | |
-| power_port_template_resource.go | label | String | Optional | ⏳ Pending | ⏳ Pending | |
+| power_outlet_template_resource.go | label | String | Optional | ✅ Fixed | ⏳ Pending | |
+| power_port_template_resource.go | label | String | Optional | ✅ Fixed | ⏳ Pending | |
 | rear_port_template_resource.go | label | String | Optional | ⏳ Pending | ⏳ Pending | |
 | rear_port_template_resource.go | color | String | Optional | ⏳ Pending | ⏳ Pending | |
 | rear_port_template_resource.go | positions | Int32 | Optional | ⏳ Pending | ⏳ Pending | |
@@ -160,7 +160,7 @@ Fix bugs in logical groups:
 
 ## Progress Summary
 
-**Fixed Resources: 7/20 (35%)**
+**Fixed Resources: 13/20 (65%)**
 - ✅ vm_interface_resource.go (mode field) - Original bug
 - ✅ device_resource.go (status field) - High priority
 - ✅ virtual_machine_resource.go (status field) - High priority
@@ -168,9 +168,13 @@ Fix bugs in logical groups:
 - ✅ tunnel_resource.go (status field) - High priority
 - ✅ interface_resource.go (enabled field) - Interface related
 - ✅ interface_template_resource.go (enabled, label fields) - Interface related
+- ✅ power_feed_resource.go (voltage, amperage fields) - Power related
+- ✅ front_port_template_resource.go (label, color fields) - Template related
+- ✅ power_outlet_template_resource.go (label field) - Template related
+- ✅ power_port_template_resource.go (label field) - Template related
 
-**Current Batch**: Interface and template fields (✅ Complete)
-**Next Batch**: Power and port related optional fields
+**Current Batch**: Power and template fields (✅ Complete)
+**Next Batch**: Miscellaneous remaining fields
 
 ## Success Criteria
 
@@ -192,4 +196,4 @@ Fix bugs in logical groups:
 **Branch**: `fix/vm-interface-mode-and-reference-bugs`
 **Started**: 2025-12-31
 **Last Updated**: 2025-12-31
-**Progress**: 7/20 bugs fixed (35% complete)
+**Progress**: 13/20 bugs fixed (65% complete)

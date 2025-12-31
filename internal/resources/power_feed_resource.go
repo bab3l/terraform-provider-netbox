@@ -781,17 +781,29 @@ func (r *PowerFeedResource) mapResponseToModel(ctx context.Context, pf *netbox.P
 	// Map voltage
 
 	if voltage, ok := pf.GetVoltageOk(); ok && voltage != nil {
-		data.Voltage = types.Int64Value(int64(*voltage))
+		// Only set voltage if user specified it in config or this is an import (unknown)
+		if !data.Voltage.IsNull() || data.Voltage.IsUnknown() {
+			data.Voltage = types.Int64Value(int64(*voltage))
+		}
 	} else {
-		data.Voltage = types.Int64Value(120)
+		// Only set default if user specified it in config or this is an import (unknown)
+		if !data.Voltage.IsNull() || data.Voltage.IsUnknown() {
+			data.Voltage = types.Int64Value(120)
+		}
 	}
 
 	// Map amperage
 
 	if amperage, ok := pf.GetAmperageOk(); ok && amperage != nil {
-		data.Amperage = types.Int64Value(int64(*amperage))
+		// Only set amperage if user specified it in config or this is an import (unknown)
+		if !data.Amperage.IsNull() || data.Amperage.IsUnknown() {
+			data.Amperage = types.Int64Value(int64(*amperage))
+		}
 	} else {
-		data.Amperage = types.Int64Value(20)
+		// Only set default if user specified it in config or this is an import (unknown)
+		if !data.Amperage.IsNull() || data.Amperage.IsUnknown() {
+			data.Amperage = types.Int64Value(20)
+		}
 	}
 
 	// Map max_utilization

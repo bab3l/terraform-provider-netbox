@@ -514,17 +514,29 @@ func (r *FrontPortTemplateResource) mapResponseToModel(template *netbox.FrontPor
 	// Map label
 
 	if label, ok := template.GetLabelOk(); ok && label != nil {
-		data.Label = types.StringValue(*label)
+		// Only set label if user specified it in config or this is an import (unknown)
+		if !data.Label.IsNull() || data.Label.IsUnknown() {
+			data.Label = types.StringValue(*label)
+		}
 	} else {
-		data.Label = types.StringValue("")
+		// Only set default if user specified it in config or this is an import (unknown)
+		if !data.Label.IsNull() || data.Label.IsUnknown() {
+			data.Label = types.StringValue("")
+		}
 	}
 
 	// Map color
 
 	if color, ok := template.GetColorOk(); ok && color != nil {
-		data.Color = types.StringValue(*color)
+		// Only set color if user specified it in config or this is an import (unknown)
+		if !data.Color.IsNull() || data.Color.IsUnknown() {
+			data.Color = types.StringValue(*color)
+		}
 	} else {
-		data.Color = types.StringValue("")
+		// Only set default if user specified it in config or this is an import (unknown)
+		if !data.Color.IsNull() || data.Color.IsUnknown() {
+			data.Color = types.StringValue("")
+		}
 	}
 
 	// Map rear port - store the name for reference

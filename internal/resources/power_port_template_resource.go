@@ -479,9 +479,15 @@ func (r *PowerPortTemplateResource) mapResponseToModel(template *netbox.PowerPor
 	// Map label
 
 	if label, ok := template.GetLabelOk(); ok && label != nil {
-		data.Label = types.StringValue(*label)
+		// Only set label if user specified it in config or this is an import (unknown)
+		if !data.Label.IsNull() || data.Label.IsUnknown() {
+			data.Label = types.StringValue(*label)
+		}
 	} else {
-		data.Label = types.StringValue("")
+		// Only set default if user specified it in config or this is an import (unknown)
+		if !data.Label.IsNull() || data.Label.IsUnknown() {
+			data.Label = types.StringValue("")
+		}
 	}
 
 	// Map type
