@@ -233,12 +233,15 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 		data.Description = types.StringNull()
 	}
 
-	// Mode
+	// Mode - only set if user specified it in config, or during import (when current is unknown)
+	// This prevents Terraform from seeing drift when the API returns a mode but config doesn't specify one
 
-	if iface.HasMode() {
-		data.Mode = types.StringValue(string(iface.Mode.GetValue()))
-	} else {
-		data.Mode = types.StringNull()
+	if !data.Mode.IsNull() || data.Mode.IsUnknown() {
+		if iface.HasMode() {
+			data.Mode = types.StringValue(string(iface.Mode.GetValue()))
+		} else {
+			data.Mode = types.StringNull()
+		}
 	}
 
 	// Untagged VLAN

@@ -334,3 +334,152 @@ resource "netbox_ip_address" "test" {
 }
 `, tenantName, tenantSlug, vrfName, vrfRD, address)
 }
+
+// TestAccIPAddress_TenantNameNotID verifies that when a tenant is specified by name,
+// the state stores the name (not the numeric ID) and remains consistent after refresh.
+func TestAccIPAddress_TenantNameNotID(t *testing.T) {
+	t.Parallel()
+
+	tenantName := testutil.RandomName("tf-test-tenant-namenotid")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-namenotid")
+	address := fmt.Sprintf("10.201.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create with tenant name
+			{
+				Config: testAccIPAddressConfig_tenantByName(tenantName, tenantSlug, address),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
+					// Verify tenant is stored as NAME, not numeric ID
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tenant", tenantName),
+				),
+			},
+			// Step 2: Refresh state and verify no drift (tenant should still be name)
+			{
+				RefreshState: true,
+				Check: resource.ComposeTestCheckFunc(
+					// After refresh, tenant should still be the name, not a number
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tenant", tenantName),
+				),
+			},
+			// Step 3: Plan only - verify no changes detected
+			{
+				PlanOnly: true,
+				Config:   testAccIPAddressConfig_tenantByName(tenantName, tenantSlug, address),
+			},
+		},
+	})
+}
+
+func testAccIPAddressConfig_tenantByName(tenantName, tenantSlug, address string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_ip_address" "test" {
+  address = %[3]q
+  tenant  = netbox_tenant.test.name
+}
+`, tenantName, tenantSlug, address)
+}
+
+// TestAccIPAddress_TenantByID verifies that when a tenant is specified by ID,
+// the state stores the ID correctly.
+func TestAccIPAddress_TenantByID(t *testing.T) {
+	t.Parallel()
+
+	tenantName := testutil.RandomName("tf-test-tenant-byid")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-byid")
+	address := fmt.Sprintf("10.202.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create with tenant ID
+			{
+				Config: testAccIPAddressConfig_tenantByID(tenantName, tenantSlug, address),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
+					// When specified by ID, tenant should be stored as ID
+					resource.TestCheckResourceAttrPair("netbox_ip_address.test", "tenant", "netbox_tenant.test", "id"),
+				),
+			},
+			// Step 2: Plan only - verify no changes detected
+			{
+				PlanOnly: true,
+				Config:   testAccIPAddressConfig_tenantByID(tenantName, tenantSlug, address),
+			},
+		},
+	})
+}
+
+func testAccIPAddressConfig_tenantByID(tenantName, tenantSlug, address string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_ip_address" "test" {
+  address = %[3]q
+  tenant  = netbox_tenant.test.id
+}
+`, tenantName, tenantSlug, address)
+}
+
+// TestAccIPAddress_TenantReferenceByID_StoresID verifies that when a tenant is referenced
+// by ID in config (like netbox_tenant.test.id), the state stores the ID consistently.
+func TestAccIPAddress_TenantReferenceByID_StoresID(t *testing.T) {
+	t.Parallel()
+
+	tenantName := testutil.RandomName("tf-test-tenant-ref")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-ref")
+	address := fmt.Sprintf("10.203.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create with tenant referenced by ID
+			{
+				Config: testAccIPAddressConfig_tenantByID(tenantName, tenantSlug, address),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
+					// When config uses .id, state should store the ID
+					resource.TestCheckResourceAttrPair("netbox_ip_address.test", "tenant", "netbox_tenant.test", "id"),
+				),
+			},
+			// Step 2: Refresh state - should remain consistent
+			{
+				RefreshState: true,
+				Check: resource.ComposeTestCheckFunc(
+					// After refresh, tenant should still be the ID (no drift)
+					resource.TestCheckResourceAttrPair("netbox_ip_address.test", "tenant", "netbox_tenant.test", "id"),
+				),
+			},
+			// Step 3: Plan only - verify no changes detected
+			{
+				PlanOnly: true,
+				Config:   testAccIPAddressConfig_tenantByID(tenantName, tenantSlug, address),
+			},
+		},
+	})
+}
