@@ -479,15 +479,9 @@ func (r *PowerPortTemplateResource) mapResponseToModel(template *netbox.PowerPor
 	// Map label
 
 	if label, ok := template.GetLabelOk(); ok && label != nil {
-		// Only set label if user specified it in config or this is an import (unknown)
-		if !data.Label.IsNull() || data.Label.IsUnknown() {
-			data.Label = types.StringValue(*label)
-		}
+		data.Label = types.StringValue(*label)
 	} else {
-		// Only set default if user specified it in config or this is an import (unknown)
-		if !data.Label.IsNull() || data.Label.IsUnknown() {
-			data.Label = types.StringValue("")
-		}
+		data.Label = types.StringValue("") // Always set default for Optional+Computed field
 	}
 
 	// Map type
