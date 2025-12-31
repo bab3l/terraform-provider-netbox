@@ -556,13 +556,13 @@ func (r *InterfaceTemplateResource) mapResponseToModel(template *netbox.Interfac
 	// Map label
 
 	if label, ok := template.GetLabelOk(); ok && label != nil {
-		// Only set label if user specified it in config or this is an import (unknown)
-		if !data.Label.IsNull() || data.Label.IsUnknown() {
+		// Only set label if it was already present in state (user specified or import)
+		if !data.Label.IsNull() {
 			data.Label = types.StringValue(*label)
 		}
 	} else {
-		// Only set default if user specified it in config or this is an import (unknown)
-		if !data.Label.IsNull() || data.Label.IsUnknown() {
+		// Only set if it was already present in state
+		if !data.Label.IsNull() {
 			data.Label = types.StringValue("")
 		}
 	}
@@ -570,13 +570,13 @@ func (r *InterfaceTemplateResource) mapResponseToModel(template *netbox.Interfac
 	// Map enabled
 
 	if enabled, ok := template.GetEnabledOk(); ok && enabled != nil {
-		// Only set enabled if user specified it in config or this is an import (unknown)
-		if !data.Enabled.IsNull() || data.Enabled.IsUnknown() {
+		// Only set enabled if it was already present in state (user specified or import)
+		if !data.Enabled.IsNull() {
 			data.Enabled = types.BoolValue(*enabled)
 		}
 	} else {
-		// Only set default if user specified it in config or this is an import (unknown)
-		if !data.Enabled.IsNull() || data.Enabled.IsUnknown() {
+		// Only set default if it was already present in state
+		if !data.Enabled.IsNull() {
 			data.Enabled = types.BoolValue(true)
 		}
 	}

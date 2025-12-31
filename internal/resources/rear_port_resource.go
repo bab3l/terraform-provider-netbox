@@ -543,18 +543,12 @@ func (r *RearPortResource) mapResponseToModel(ctx context.Context, port *netbox.
 		data.Color = types.StringNull()
 	}
 
-	// Map positions
+	// Map positions - always set since it's computed (defaults to 1)
 
 	if positions, ok := port.GetPositionsOk(); ok && positions != nil {
-		// Only set positions if user specified it in config or this is an import (unknown)
-		if !data.Positions.IsNull() || data.Positions.IsUnknown() {
-			data.Positions = types.Int32Value(*positions)
-		}
+		data.Positions = types.Int32Value(*positions)
 	} else {
-		// Only set default if user specified it in config or this is an import (unknown)
-		if !data.Positions.IsNull() || data.Positions.IsUnknown() {
-			data.Positions = types.Int32Value(1)
-		}
+		data.Positions = types.Int32Value(1)
 	}
 
 	// Map description

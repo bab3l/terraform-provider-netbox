@@ -17,19 +17,23 @@ func TestAccInterfaceResource_EnabledOptionalField(t *testing.T) {
 			return `
 			resource "netbox_site" "test" {
 				name = "test-site"
+				slug = "test-site"
 			}
 
 			resource "netbox_device_type" "test" {
 				manufacturer = netbox_manufacturer.test.id
 				model        = "test-device-type"
+				slug         = "test-device-type"
 			}
 
 			resource "netbox_manufacturer" "test" {
 				name = "test-manufacturer"
+				slug = "test-manufacturer"
 			}
 
 			resource "netbox_device_role" "test" {
 				name = "test-device-role"
+				slug = "test-device-role"
 			}
 
 			resource "netbox_device" "test" {
@@ -50,19 +54,23 @@ func TestAccInterfaceResource_EnabledOptionalField(t *testing.T) {
 			return `
 			resource "netbox_site" "test" {
 				name = "test-site"
+				slug = "test-site"
 			}
 
 			resource "netbox_device_type" "test" {
 				manufacturer = netbox_manufacturer.test.id
 				model        = "test-device-type"
+				slug         = "test-device-type"
 			}
 
 			resource "netbox_manufacturer" "test" {
 				name = "test-manufacturer"
+				slug = "test-manufacturer"
 			}
 
 			resource "netbox_device_role" "test" {
 				name = "test-device-role"
+				slug = "test-device-role"
 			}
 
 			resource "netbox_device" "test" {
@@ -101,11 +109,13 @@ func TestAccInterfaceTemplateResource_EnabledOptionalField(t *testing.T) {
 			return `
 			resource "netbox_manufacturer" "test" {
 				name = "test-manufacturer"
+				slug = "test-manufacturer"
 			}
 
 			resource "netbox_device_type" "test" {
 				manufacturer = netbox_manufacturer.test.id
 				model        = "test-device-type"
+				slug         = "test-device-type"
 			}
 
 			resource "netbox_interface_template" "test" {
@@ -119,11 +129,13 @@ func TestAccInterfaceTemplateResource_EnabledOptionalField(t *testing.T) {
 			return `
 			resource "netbox_manufacturer" "test" {
 				name = "test-manufacturer"
+				slug = "test-manufacturer"
 			}
 
 			resource "netbox_device_type" "test" {
 				manufacturer = netbox_manufacturer.test.id
 				model        = "test-device-type"
+				slug         = "test-device-type"
 			}
 
 			resource "netbox_interface_template" "test" {
@@ -155,11 +167,13 @@ func TestAccInterfaceTemplateResource_LabelOptionalField(t *testing.T) {
 			return `
 			resource "netbox_manufacturer" "test" {
 				name = "test-manufacturer"
+				slug = "test-manufacturer"
 			}
 
 			resource "netbox_device_type" "test" {
 				manufacturer = netbox_manufacturer.test.id
 				model        = "test-device-type"
+				slug         = "test-device-type"
 			}
 
 			resource "netbox_interface_template" "test" {
@@ -173,11 +187,13 @@ func TestAccInterfaceTemplateResource_LabelOptionalField(t *testing.T) {
 			return `
 			resource "netbox_manufacturer" "test" {
 				name = "test-manufacturer"
+				slug = "test-manufacturer"
 			}
 
 			resource "netbox_device_type" "test" {
 				manufacturer = netbox_manufacturer.test.id
 				model        = "test-device-type"
+				slug         = "test-device-type"
 			}
 
 			resource "netbox_interface_template" "test" {

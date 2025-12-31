@@ -717,16 +717,12 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 
 	// Enabled
 
+	// Enabled - always set value since it's computed (defaults to true)
 	if enabled, ok := iface.GetEnabledOk(); ok && enabled != nil {
-		// Only set enabled if user specified it in config or this is an import (unknown)
-		if !data.Enabled.IsNull() || data.Enabled.IsUnknown() {
-			data.Enabled = types.BoolValue(*enabled)
-		}
+		data.Enabled = types.BoolValue(*enabled)
 	} else {
-		// Only set default if user specified it in config or this is an import (unknown)
-		if !data.Enabled.IsNull() || data.Enabled.IsUnknown() {
-			data.Enabled = types.BoolValue(true)
-		}
+		// Set default value for computed field
+		data.Enabled = types.BoolValue(true)
 	}
 
 	// Parent
