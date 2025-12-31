@@ -556,17 +556,29 @@ func (r *InterfaceTemplateResource) mapResponseToModel(template *netbox.Interfac
 	// Map label
 
 	if label, ok := template.GetLabelOk(); ok && label != nil {
-		data.Label = types.StringValue(*label)
+		// Only set label if user specified it in config or this is an import (unknown)
+		if !data.Label.IsNull() || data.Label.IsUnknown() {
+			data.Label = types.StringValue(*label)
+		}
 	} else {
-		data.Label = types.StringValue("")
+		// Only set default if user specified it in config or this is an import (unknown)
+		if !data.Label.IsNull() || data.Label.IsUnknown() {
+			data.Label = types.StringValue("")
+		}
 	}
 
 	// Map enabled
 
 	if enabled, ok := template.GetEnabledOk(); ok && enabled != nil {
-		data.Enabled = types.BoolValue(*enabled)
+		// Only set enabled if user specified it in config or this is an import (unknown)
+		if !data.Enabled.IsNull() || data.Enabled.IsUnknown() {
+			data.Enabled = types.BoolValue(*enabled)
+		}
 	} else {
-		data.Enabled = types.BoolValue(true)
+		// Only set default if user specified it in config or this is an import (unknown)
+		if !data.Enabled.IsNull() || data.Enabled.IsUnknown() {
+			data.Enabled = types.BoolValue(true)
+		}
 	}
 
 	// Map mgmt_only
