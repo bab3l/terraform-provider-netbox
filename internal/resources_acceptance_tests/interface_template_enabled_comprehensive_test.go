@@ -9,6 +9,12 @@ import (
 // TestAccInterfaceTemplateResource_EnabledComprehensive tests comprehensive scenarios for interface template enabled field.
 // This validates that Optional+Computed boolean fields work correctly across all scenarios.
 func TestAccInterfaceTemplateResource_EnabledComprehensive(t *testing.T) {
+	// Generate unique names for this test run
+	manufacturerName := testutil.RandomName("tf-test-mfr-int-tpl")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-int-tpl")
+	deviceTypeName := testutil.RandomName("tf-test-dev-type-int-tpl")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dev-type-int-tpl")
+	interfaceTemplateName := testutil.RandomName("tf-test-int-tpl")
 
 	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
 		ResourceName:   "netbox_interface_template",
@@ -22,19 +28,19 @@ func TestAccInterfaceTemplateResource_EnabledComprehensive(t *testing.T) {
 		BaseConfig: func() string {
 			return `
 resource "netbox_manufacturer" "test" {
-	name = "test-manufacturer-interface-template-enabled"
-	slug = "test-manufacturer-interface-template-enabled"
+	name = "` + manufacturerName + `"
+	slug = "` + manufacturerSlug + `"
 }
 
 resource "netbox_device_type" "test" {
 	manufacturer = netbox_manufacturer.test.id
-	model        = "test-device-type-interface-template-enabled"
-	slug         = "test-device-type-interface-template-enabled"
+	model        = "` + deviceTypeName + `"
+	slug         = "` + deviceTypeSlug + `"
 }
 
 resource "netbox_interface_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "eth0-template-enabled-test"
+	name        = "` + interfaceTemplateName + `"
 	type        = "1000base-t"
 	# enabled field intentionally omitted - should get default true
 }
@@ -43,19 +49,19 @@ resource "netbox_interface_template" "test" {
 		WithFieldConfig: func(value string) string {
 			return `
 resource "netbox_manufacturer" "test" {
-	name = "test-manufacturer-interface-template-enabled"
-	slug = "test-manufacturer-interface-template-enabled"
+	name = "` + manufacturerName + `"
+	slug = "` + manufacturerSlug + `"
 }
 
 resource "netbox_device_type" "test" {
 	manufacturer = netbox_manufacturer.test.id
-	model        = "test-device-type-interface-template-enabled"
-	slug         = "test-device-type-interface-template-enabled"
+	model        = "` + deviceTypeName + `"
+	slug         = "` + deviceTypeSlug + `"
 }
 
 resource "netbox_interface_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "eth0-template-enabled-test"
+	name        = "` + interfaceTemplateName + `"
 	type        = "1000base-t"
 	enabled     = ` + value + `
 }

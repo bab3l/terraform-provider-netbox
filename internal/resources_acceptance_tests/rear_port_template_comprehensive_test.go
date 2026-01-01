@@ -9,6 +9,12 @@ import (
 // TestAccRearPortTemplateResource_Label tests comprehensive scenarios for rear port template label field.
 // This validates that Optional+Computed string fields with empty string defaults work correctly.
 func TestAccRearPortTemplateResource_Label(t *testing.T) {
+	// Generate unique names for this test run
+	manufacturerName := testutil.RandomName("tf-test-mfr-rear-port-tpl")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-rear-port-tpl")
+	deviceTypeName := testutil.RandomName("tf-test-dev-type-rear-port-tpl")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dev-type-rear-port-tpl")
+	rearPortTemplateName := testutil.RandomName("tf-test-rear-port-tpl")
 
 	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
 		ResourceName:   "netbox_rear_port_template",
@@ -23,19 +29,19 @@ func TestAccRearPortTemplateResource_Label(t *testing.T) {
 		BaseConfig: func() string {
 			return `
 resource "netbox_manufacturer" "test" {
-	name = "test-manufacturer-rear-port-template"
-	slug = "test-manufacturer-rear-port-template"
+	name = "` + manufacturerName + `"
+	slug = "` + manufacturerSlug + `"
 }
 
 resource "netbox_device_type" "test" {
 	manufacturer = netbox_manufacturer.test.id
-	model        = "test-device-type-rear-port-template"
-	slug         = "test-device-type-rear-port-template"
+	model        = "` + deviceTypeName + `"
+	slug         = "` + deviceTypeSlug + `"
 }
 
 resource "netbox_rear_port_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "rear-port-template-label-test"
+	name        = "` + rearPortTemplateName + `"
 	type        = "8p8c"
 	# label field intentionally omitted - should get default ""
 }
@@ -44,19 +50,19 @@ resource "netbox_rear_port_template" "test" {
 		WithFieldConfig: func(value string) string {
 			return `
 resource "netbox_manufacturer" "test" {
-	name = "test-manufacturer-rear-port-template"
-	slug = "test-manufacturer-rear-port-template"
+	name = "` + manufacturerName + `"
+	slug = "` + manufacturerSlug + `"
 }
 
 resource "netbox_device_type" "test" {
 	manufacturer = netbox_manufacturer.test.id
-	model        = "test-device-type-rear-port-template"
-	slug         = "test-device-type-rear-port-template"
+	model        = "` + deviceTypeName + `"
+	slug         = "` + deviceTypeSlug + `"
 }
 
 resource "netbox_rear_port_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "rear-port-template-label-test"
+	name        = "` + rearPortTemplateName + `"
 	type        = "8p8c"
 	label       = "` + value + `"
 }
@@ -68,6 +74,12 @@ resource "netbox_rear_port_template" "test" {
 // TestAccRearPortTemplateResource_Color tests comprehensive scenarios for rear port template color field.
 // This validates that Optional+Computed string fields with empty string defaults work correctly.
 func TestAccRearPortTemplateResource_Color(t *testing.T) {
+	// Generate unique names for this test run
+	manufacturerName := testutil.RandomName("tf-test-mfr-rear-port-tpl-color")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-rear-port-tpl-color")
+	deviceTypeName := testutil.RandomName("tf-test-dev-type-rear-port-tpl-color")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dev-type-rear-port-tpl-color")
+	rearPortTemplateName := testutil.RandomName("tf-test-rear-port-tpl-color")
 
 	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
 		ResourceName:   "netbox_rear_port_template",
@@ -77,19 +89,19 @@ func TestAccRearPortTemplateResource_Color(t *testing.T) {
 		BaseConfig: func() string {
 			return `
 resource "netbox_manufacturer" "test" {
-	name = "test-manufacturer-rear-port-template-color"
-	slug = "test-manufacturer-rear-port-template-color"
+	name = "` + manufacturerName + `"
+	slug = "` + manufacturerSlug + `"
 }
 
 resource "netbox_device_type" "test" {
 	manufacturer = netbox_manufacturer.test.id
-	model        = "test-device-type-rear-port-template-color"
-	slug         = "test-device-type-rear-port-template-color"
+	model        = "` + deviceTypeName + `"
+	slug         = "` + deviceTypeSlug + `"
 }
 
 resource "netbox_rear_port_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "rear-port-template-color-test"
+	name        = "` + rearPortTemplateName + `"
 	type        = "8p8c"
 	# color field intentionally omitted - should get default ""
 }
@@ -98,19 +110,19 @@ resource "netbox_rear_port_template" "test" {
 		WithFieldConfig: func(value string) string {
 			return `
 resource "netbox_manufacturer" "test" {
-	name = "test-manufacturer-rear-port-template-color"
-	slug = "test-manufacturer-rear-port-template-color"
+	name = "` + manufacturerName + `"
+	slug = "` + manufacturerSlug + `"
 }
 
 resource "netbox_device_type" "test" {
 	manufacturer = netbox_manufacturer.test.id
-	model        = "test-device-type-rear-port-template-color"
-	slug         = "test-device-type-rear-port-template-color"
+	model        = "` + deviceTypeName + `"
+	slug         = "` + deviceTypeSlug + `"
 }
 
 resource "netbox_rear_port_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "rear-port-template-color-test"
+	name        = "` + rearPortTemplateName + `"
 	type        = "8p8c"
 	color       = "` + value + `"
 }
@@ -122,6 +134,12 @@ resource "netbox_rear_port_template" "test" {
 // TestAccRearPortTemplateResource_Positions tests comprehensive scenarios for rear port template positions field.
 // This validates that Optional+Computed int64 fields with proper defaults work correctly.
 func TestAccRearPortTemplateResource_Positions(t *testing.T) {
+	// Generate unique names for this test run
+	manufacturerName := testutil.RandomName("tf-test-mfr-rear-port-tpl-pos")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-rear-port-tpl-pos")
+	deviceTypeName := testutil.RandomName("tf-test-dev-type-rear-port-tpl-pos")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dev-type-rear-port-tpl-pos")
+	rearPortTemplateName := testutil.RandomName("tf-test-rear-port-tpl-pos")
 
 	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
 		ResourceName:   "netbox_rear_port_template",
@@ -131,19 +149,19 @@ func TestAccRearPortTemplateResource_Positions(t *testing.T) {
 		BaseConfig: func() string {
 			return `
 resource "netbox_manufacturer" "test" {
-	name = "test-manufacturer-rear-port-template-positions"
-	slug = "test-manufacturer-rear-port-template-positions"
+	name = "` + manufacturerName + `"
+	slug = "` + manufacturerSlug + `"
 }
 
 resource "netbox_device_type" "test" {
 	manufacturer = netbox_manufacturer.test.id
-	model        = "test-device-type-rear-port-template-positions"
-	slug         = "test-device-type-rear-port-template-positions"
+	model        = "` + deviceTypeName + `"
+	slug         = "` + deviceTypeSlug + `"
 }
 
 resource "netbox_rear_port_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "rear-port-template-positions-test"
+	name        = "` + rearPortTemplateName + `"
 	type        = "8p8c"
 	# positions field intentionally omitted - should get default 1
 }
@@ -152,19 +170,19 @@ resource "netbox_rear_port_template" "test" {
 		WithFieldConfig: func(value string) string {
 			return `
 resource "netbox_manufacturer" "test" {
-	name = "test-manufacturer-rear-port-template-positions"
-	slug = "test-manufacturer-rear-port-template-positions"
+	name = "` + manufacturerName + `"
+	slug = "` + manufacturerSlug + `"
 }
 
 resource "netbox_device_type" "test" {
 	manufacturer = netbox_manufacturer.test.id
-	model        = "test-device-type-rear-port-template-positions"
-	slug         = "test-device-type-rear-port-template-positions"
+	model        = "` + deviceTypeName + `"
+	slug         = "` + deviceTypeSlug + `"
 }
 
 resource "netbox_rear_port_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "rear-port-template-positions-test"
+	name        = "` + rearPortTemplateName + `"
 	type        = "8p8c"
 	positions   = ` + value + `
 }

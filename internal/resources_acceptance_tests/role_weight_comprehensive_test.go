@@ -9,6 +9,9 @@ import (
 // TestAccRoleResource_Weight tests comprehensive scenarios for role weight field.
 // This validates that Optional+Computed int64 fields with proper defaults work correctly.
 func TestAccRoleResource_Weight(t *testing.T) {
+	// Generate unique names for this test run
+	roleName := testutil.RandomName("tf-test-role-weight")
+	roleSlug := testutil.RandomSlug("tf-test-role-weight")
 
 	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
 		ResourceName:   "netbox_role",
@@ -19,8 +22,8 @@ func TestAccRoleResource_Weight(t *testing.T) {
 		BaseConfig: func() string {
 			return `
 resource "netbox_role" "test" {
-	name = "role-weight-test"
-	slug = "role-weight-test"
+	name = "` + roleName + `"
+	slug = "` + roleSlug + `"
 	# weight field intentionally omitted - should get default 1000
 }
 `
@@ -28,8 +31,8 @@ resource "netbox_role" "test" {
 		WithFieldConfig: func(value string) string {
 			return `
 resource "netbox_role" "test" {
-	name = "role-weight-test"
-	slug = "role-weight-test"
+	name = "` + roleName + `"
+	slug = "` + roleSlug + `"
 	weight = ` + value + `
 }
 `

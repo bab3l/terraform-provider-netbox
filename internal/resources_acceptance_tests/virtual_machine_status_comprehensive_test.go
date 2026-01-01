@@ -11,6 +11,12 @@ import (
 func TestAccVirtualMachineResource_StatusOptionalField(t *testing.T) {
 	t.Parallel()
 
+	// Generate unique names for this test run
+	clusterTypeName := testutil.RandomName("tf-test-ct-vm-status")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-ct-vm-status")
+	clusterName := testutil.RandomName("tf-test-cluster-vm-status")
+	vmName := testutil.RandomName("tf-test-vm-status")
+
 	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
 		ResourceName:   "netbox_virtual_machine",
 		OptionalField:  "status",
@@ -24,17 +30,17 @@ func TestAccVirtualMachineResource_StatusOptionalField(t *testing.T) {
 		), BaseConfig: func() string {
 			return `
 			resource "netbox_cluster_type" "test" {
-				name = "test-cluster-type-vm-status"
-				slug = "test-cluster-type-vm-status"
+				name = "` + clusterTypeName + `"
+				slug = "` + clusterTypeSlug + `"
 			}
 
 			resource "netbox_cluster" "test" {
-				name = "test-cluster-vm-status"
+				name = "` + clusterName + `"
 				type = netbox_cluster_type.test.id
 			}
 
 			resource "netbox_virtual_machine" "test" {
-				name    = "test-vm-status"
+				name    = "` + vmName + `"
 				cluster = netbox_cluster.test.id
 				# status field intentionally omitted - should get default "active"
 			}
@@ -43,17 +49,17 @@ func TestAccVirtualMachineResource_StatusOptionalField(t *testing.T) {
 		WithFieldConfig: func(value string) string {
 			return `
 			resource "netbox_cluster_type" "test" {
-				name = "test-cluster-type-vm-status"
-				slug = "test-cluster-type-vm-status"
+				name = "` + clusterTypeName + `"
+				slug = "` + clusterTypeSlug + `"
 			}
 
 			resource "netbox_cluster" "test" {
-				name = "test-cluster-vm-status"
+				name = "` + clusterName + `"
 				type = netbox_cluster_type.test.id
 			}
 
 			resource "netbox_virtual_machine" "test" {
-				name    = "test-vm-status"
+				name    = "` + vmName + `"
 				cluster = netbox_cluster.test.id
 				status  = "` + value + `"
 			}

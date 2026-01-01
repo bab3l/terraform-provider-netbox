@@ -10,6 +10,9 @@ import (
 // This validates that Optional+Computed fields work correctly across all scenarios.
 func TestAccVlanResource_StatusOptionalField(t *testing.T) {
 
+	// Generate unique names for this test run
+	vlanName := testutil.RandomName("tf-test-vlan-status")
+
 	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
 		ResourceName:   "netbox_vlan",
 		OptionalField:  "status",
@@ -21,7 +24,7 @@ func TestAccVlanResource_StatusOptionalField(t *testing.T) {
 		), BaseConfig: func() string {
 			return `
 resource "netbox_vlan" "test" {
-	name = "test-vlan-status"
+	name = "` + vlanName + `"
 	vid  = 100
 	# status field intentionally omitted - should get default "active"
 }
@@ -30,7 +33,7 @@ resource "netbox_vlan" "test" {
 		WithFieldConfig: func(value string) string {
 			return `
 resource "netbox_vlan" "test" {
-	name   = "test-vlan-status"
+	name   = "` + vlanName + `"
 	vid    = 100
 	status = "` + value + `"
 }

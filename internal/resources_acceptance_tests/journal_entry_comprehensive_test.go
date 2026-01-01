@@ -9,6 +9,9 @@ import (
 // TestAccJournalEntryResource_Kind tests comprehensive scenarios for journal entry kind field.
 // This validates that Optional+Computed string fields with proper defaults work correctly.
 func TestAccJournalEntryResource_Kind(t *testing.T) {
+	// Generate unique names for this test run
+	siteName := testutil.RandomName("tf-test-site-journal")
+	siteSlug := testutil.RandomSlug("tf-test-site-journal")
 
 	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
 		ResourceName:   "netbox_journal_entry",
@@ -22,8 +25,8 @@ func TestAccJournalEntryResource_Kind(t *testing.T) {
 		BaseConfig: func() string {
 			return `
 resource "netbox_site" "test" {
-	name = "test-site-journal-entry"
-	slug = "test-site-journal-entry"
+	name = "` + siteName + `"
+	slug = "` + siteSlug + `"
 }
 
 resource "netbox_journal_entry" "test" {
@@ -37,8 +40,8 @@ resource "netbox_journal_entry" "test" {
 		WithFieldConfig: func(value string) string {
 			return `
 resource "netbox_site" "test" {
-	name = "test-site-journal-entry"
-	slug = "test-site-journal-entry"
+	name = "` + siteName + `"
+	slug = "` + siteSlug + `"
 }
 
 resource "netbox_journal_entry" "test" {

@@ -10,6 +10,14 @@ import (
 // This validates that Optional+Computed string fields with empty string defaults work correctly.
 func TestAccFrontPortTemplateResource_Label(t *testing.T) {
 
+	// Generate unique names for this test run
+	manufacturerName := testutil.RandomName("tf-test-manufacturer-fpt-label")
+	manufacturerSlug := testutil.RandomSlug("tf-test-manufacturer-fpt-label")
+	deviceTypeName := testutil.RandomName("tf-test-device-type-fpt-label")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-device-type-fpt-label")
+	rearPortName := testutil.RandomName("tf-test-rear-port-fpt-label")
+	frontPortName := testutil.RandomName("tf-test-front-port-fpt-label")
+
 	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
 		ResourceName:   "netbox_front_port_template",
 		OptionalField:  "label",
@@ -24,25 +32,25 @@ func TestAccFrontPortTemplateResource_Label(t *testing.T) {
 		BaseConfig: func() string {
 			return `
 resource "netbox_manufacturer" "test" {
-	name = "test-manufacturer-front-port-template"
-	slug = "test-manufacturer-front-port-template"
+	name = "` + manufacturerName + `"
+	slug = "` + manufacturerSlug + `"
 }
 
 resource "netbox_device_type" "test" {
 	manufacturer = netbox_manufacturer.test.id
-	model        = "test-device-type-front-port-template"
-	slug         = "test-device-type-front-port-template"
+	model        = "` + deviceTypeName + `"
+	slug         = "` + deviceTypeSlug + `"
 }
 
 resource "netbox_rear_port_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "rear-port-for-front-port-test"
+	name        = "` + rearPortName + `"
 	type        = "8p8c"
 }
 
 resource "netbox_front_port_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "front-port-template-label-test"
+	name        = "` + frontPortName + `"
 	type        = "8p8c"
 	rear_port   = netbox_rear_port_template.test.name
 	# label field intentionally omitted - should get default ""
@@ -52,25 +60,25 @@ resource "netbox_front_port_template" "test" {
 		WithFieldConfig: func(value string) string {
 			return `
 resource "netbox_manufacturer" "test" {
-	name = "test-manufacturer-front-port-template"
-	slug = "test-manufacturer-front-port-template"
+	name = "` + manufacturerName + `"
+	slug = "` + manufacturerSlug + `"
 }
 
 resource "netbox_device_type" "test" {
 	manufacturer = netbox_manufacturer.test.id
-	model        = "test-device-type-front-port-template"
-	slug         = "test-device-type-front-port-template"
+	model        = "` + deviceTypeName + `"
+	slug         = "` + deviceTypeSlug + `"
 }
 
 resource "netbox_rear_port_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "rear-port-for-front-port-test"
+	name        = "` + rearPortName + `"
 	type        = "8p8c"
 }
 
 resource "netbox_front_port_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "front-port-template-label-test"
+	name        = "` + frontPortName + `"
 	type        = "8p8c"
 	rear_port   = netbox_rear_port_template.test.name
 	label       = "` + value + `"
@@ -84,6 +92,14 @@ resource "netbox_front_port_template" "test" {
 // This validates that Optional+Computed string fields with empty string defaults work correctly.
 func TestAccFrontPortTemplateResource_Color(t *testing.T) {
 
+	// Generate unique names for this test run
+	manufacturerName := testutil.RandomName("tf-test-manufacturer-fpt-color")
+	manufacturerSlug := testutil.RandomSlug("tf-test-manufacturer-fpt-color")
+	deviceTypeName := testutil.RandomName("tf-test-device-type-fpt-color")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-device-type-fpt-color")
+	rearPortName := testutil.RandomName("tf-test-rear-port-fpt-color")
+	frontPortName := testutil.RandomName("tf-test-front-port-fpt-color")
+
 	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
 		ResourceName:   "netbox_front_port_template",
 		OptionalField:  "color",
@@ -92,25 +108,25 @@ func TestAccFrontPortTemplateResource_Color(t *testing.T) {
 		BaseConfig: func() string {
 			return `
 resource "netbox_manufacturer" "test" {
-	name = "test-manufacturer-front-port-template-color"
-	slug = "test-manufacturer-front-port-template-color"
+	name = "` + manufacturerName + `"
+	slug = "` + manufacturerSlug + `"
 }
 
 resource "netbox_device_type" "test" {
 	manufacturer = netbox_manufacturer.test.id
-	model        = "test-device-type-front-port-template-color"
-	slug         = "test-device-type-front-port-template-color"
+	model        = "` + deviceTypeName + `"
+	slug         = "` + deviceTypeSlug + `"
 }
 
 resource "netbox_rear_port_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "rear-port-for-front-port-color-test"
+	name        = "` + rearPortName + `"
 	type        = "8p8c"
 }
 
 resource "netbox_front_port_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "front-port-template-color-test"
+	name        = "` + frontPortName + `"
 	type        = "8p8c"
 	rear_port   = netbox_rear_port_template.test.name
 	# color field intentionally omitted - should get default ""
@@ -120,25 +136,25 @@ resource "netbox_front_port_template" "test" {
 		WithFieldConfig: func(value string) string {
 			return `
 resource "netbox_manufacturer" "test" {
-	name = "test-manufacturer-front-port-template-color"
-	slug = "test-manufacturer-front-port-template-color"
+	name = "` + manufacturerName + `"
+	slug = "` + manufacturerSlug + `"
 }
 
 resource "netbox_device_type" "test" {
 	manufacturer = netbox_manufacturer.test.id
-	model        = "test-device-type-front-port-template-color"
-	slug         = "test-device-type-front-port-template-color"
+	model        = "` + deviceTypeName + `"
+	slug         = "` + deviceTypeSlug + `"
 }
 
 resource "netbox_rear_port_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "rear-port-for-front-port-color-test"
+	name        = "` + rearPortName + `"
 	type        = "8p8c"
 }
 
 resource "netbox_front_port_template" "test" {
 	device_type = netbox_device_type.test.id
-	name        = "front-port-template-color-test"
+	name        = "` + frontPortName + `"
 	type        = "8p8c"
 	rear_port   = netbox_rear_port_template.test.name
 	color       = "` + value + `"
