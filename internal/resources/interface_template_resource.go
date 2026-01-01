@@ -114,8 +114,6 @@ func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.Sch
 				MarkdownDescription: "Physical label of the interface template.",
 
 				Optional: true,
-
-				Computed: true,
 			},
 
 			"type": schema.StringAttribute{
@@ -128,10 +126,8 @@ func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.Sch
 				MarkdownDescription: "Whether the interface is enabled by default.",
 
 				Optional: true,
-
 				Computed: true,
-
-				Default: booldefault.StaticBool(true),
+				Default:  booldefault.StaticBool(true),
 			},
 
 			"mgmt_only": schema.BoolAttribute{
@@ -247,6 +243,9 @@ func (r *InterfaceTemplateResource) Create(ctx context.Context, req resource.Cre
 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
 		apiReq.SetLabel(data.Label.ValueString())
+	} else {
+		// Clear field when removed from config
+		apiReq.SetLabel("")
 	}
 
 	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
@@ -407,6 +406,9 @@ func (r *InterfaceTemplateResource) Update(ctx context.Context, req resource.Upd
 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
 		apiReq.SetLabel(data.Label.ValueString())
+	} else {
+		// Clear field when removed from config
+		apiReq.SetLabel("")
 	}
 
 	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
@@ -555,16 +557,10 @@ func (r *InterfaceTemplateResource) mapResponseToModel(template *netbox.Interfac
 
 	// Map label
 
-	if label, ok := template.GetLabelOk(); ok && label != nil {
-		// Only set label if it was already present in state (user specified or import)
-		if !data.Label.IsNull() {
-			data.Label = types.StringValue(*label)
-		}
+	if label, ok := template.GetLabelOk(); ok && label != nil && *label != "" {
+		data.Label = types.StringValue(*label)
 	} else {
-		// Only set if it was already present in state
-		if !data.Label.IsNull() {
-			data.Label = types.StringValue("")
-		}
+		data.Label = types.StringNull()
 	}
 
 	// Map enabled

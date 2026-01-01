@@ -130,10 +130,8 @@ func (r *InterfaceResource) Schema(ctx context.Context, req resource.SchemaReque
 				MarkdownDescription: "Whether the interface is enabled. Defaults to `true`.",
 
 				Optional: true,
-
 				Computed: true,
-
-				Default: booldefault.StaticBool(true),
+				Default:  booldefault.StaticBool(true),
 			},
 
 			"parent": schema.StringAttribute{

@@ -8,10 +8,10 @@ import (
 )
 
 func TestAccInterfaceResource_EnabledOptionalField(t *testing.T) {
-	config := testutil.OptionalFieldTestConfig{
+	config := testutil.OptionalComputedFieldTestConfig{
 		ResourceName:   "netbox_interface",
-		ResourceType:   "test_interface",
 		OptionalField:  "enabled",
+		DefaultValue:   "true",
 		FieldTestValue: "false",
 		BaseConfig: func() string {
 			return `
@@ -90,7 +90,7 @@ func TestAccInterfaceResource_EnabledOptionalField(t *testing.T) {
 		},
 	}
 
-	steps := testutil.GenerateOptionalFieldTests(t, config)
+	steps := testutil.GenerateOptionalComputedFieldTests(t, config)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -100,10 +100,10 @@ func TestAccInterfaceResource_EnabledOptionalField(t *testing.T) {
 }
 
 func TestAccInterfaceTemplateResource_EnabledOptionalField(t *testing.T) {
-	config := testutil.OptionalFieldTestConfig{
+	config := testutil.OptionalComputedFieldTestConfig{
 		ResourceName:   "netbox_interface_template",
-		ResourceType:   "test_interface_template",
 		OptionalField:  "enabled",
+		DefaultValue:   "true",
 		FieldTestValue: "false",
 		BaseConfig: func() string {
 			return `
@@ -148,7 +148,7 @@ func TestAccInterfaceTemplateResource_EnabledOptionalField(t *testing.T) {
 		},
 	}
 
-	steps := testutil.GenerateOptionalFieldTests(t, config)
+	steps := testutil.GenerateOptionalComputedFieldTests(t, config)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -160,9 +160,8 @@ func TestAccInterfaceTemplateResource_EnabledOptionalField(t *testing.T) {
 func TestAccInterfaceTemplateResource_LabelOptionalField(t *testing.T) {
 	config := testutil.OptionalFieldTestConfig{
 		ResourceName:   "netbox_interface_template",
-		ResourceType:   "test_interface_template",
 		OptionalField:  "label",
-		FieldTestValue: "Test Label",
+		FieldTestValue: "test-label",
 		BaseConfig: func() string {
 			return `
 			resource "netbox_manufacturer" "test" {
