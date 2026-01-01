@@ -15,6 +15,14 @@ func TestAccRearPortResource_Positions(t *testing.T) {
 		OptionalField:  "positions",
 		DefaultValue:   "1",
 		FieldTestValue: "4",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckRearPortDestroy,
+			testutil.CheckDeviceDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckSiteDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
 		BaseConfig: func() string {
 			return `
 resource "netbox_site" "test" {

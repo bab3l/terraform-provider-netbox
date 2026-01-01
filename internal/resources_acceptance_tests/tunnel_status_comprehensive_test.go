@@ -15,6 +15,10 @@ func TestAccTunnelResource_StatusComprehensive(t *testing.T) {
 		OptionalField:  "status",
 		DefaultValue:   "active",
 		FieldTestValue: "planned",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckTunnelDestroy,
+			testutil.CheckTunnelGroupDestroy,
+		),
 		BaseConfig: func() string {
 			return `
 resource "netbox_tunnel" "test" {

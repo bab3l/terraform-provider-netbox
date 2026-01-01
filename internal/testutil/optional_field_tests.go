@@ -15,6 +15,8 @@ type OptionalFieldTestConfig struct {
 	BaseConfig      func() string                  // Function that returns base config without optional field
 	WithFieldConfig func(fieldValue string) string // Function that returns config with optional field
 	FieldTestValue  string                         // Value to use when testing with field present
+	// CheckDestroy function to verify resource cleanup (optional)
+	CheckDestroy resource.TestCheckFunc
 }
 
 // GenerateOptionalFieldTests creates the standard set of optional field tests.
@@ -94,20 +96,34 @@ func RunOptionalFieldTestSuite(t *testing.T, config OptionalFieldTestConfig) {
 	t.Parallel()
 
 	// Test suite for optional field handling
-	resource.Test(t, resource.TestCase{
+	testCase := resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
 		Steps:                    GenerateOptionalFieldTests(t, config),
-	})
+	}
+
+	// Add CheckDestroy if provided
+	if config.CheckDestroy != nil {
+		testCase.CheckDestroy = config.CheckDestroy
+	}
+
+	resource.Test(t, testCase)
 }
 
 // OptionalFieldImportTestSuite runs import-specific tests.
 func RunOptionalFieldImportTestSuite(t *testing.T, config OptionalFieldTestConfig) {
 	t.Parallel()
 
-	resource.Test(t, resource.TestCase{
+	testCase := resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
 		Steps:                    ImportOptionalFieldTest(t, config),
-	})
+	}
+
+	// Add CheckDestroy if provided
+	if config.CheckDestroy != nil {
+		testCase.CheckDestroy = config.CheckDestroy
+	}
+
+	resource.Test(t, testCase)
 }

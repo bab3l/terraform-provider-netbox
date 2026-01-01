@@ -95,7 +95,15 @@ func TestAccInterfaceResource_EnabledOptionalField(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps:                    steps,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckInterfaceDestroy,
+			testutil.CheckDeviceDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckSiteDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		Steps: steps,
 	})
 }
 
@@ -153,7 +161,11 @@ func TestAccInterfaceTemplateResource_EnabledOptionalField(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps:                    steps,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		Steps: steps,
 	})
 }
 
@@ -210,6 +222,10 @@ func TestAccInterfaceTemplateResource_LabelOptionalField(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps:                    steps,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		Steps: steps,
 	})
 }

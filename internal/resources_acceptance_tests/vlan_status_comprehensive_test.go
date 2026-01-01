@@ -14,8 +14,11 @@ func TestAccVlanResource_StatusOptionalField(t *testing.T) {
 		ResourceName:   "netbox_vlan",
 		OptionalField:  "status",
 		DefaultValue:   "active",
-		FieldTestValue: "deprecated",
-		BaseConfig: func() string {
+		FieldTestValue: "deprecated", CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVLANDestroy,
+			testutil.CheckVLANGroupDestroy,
+			testutil.CheckSiteDestroy,
+		), BaseConfig: func() string {
 			return `
 resource "netbox_vlan" "test" {
 	name = "test-vlan-status"

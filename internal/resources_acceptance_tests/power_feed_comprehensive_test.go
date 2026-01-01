@@ -16,6 +16,12 @@ func TestAccPowerFeedResource_VoltageAmperage(t *testing.T) {
 		OptionalField:  "voltage",
 		DefaultValue:   "120",
 		FieldTestValue: "240",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckPowerFeedDestroy,
+			testutil.CheckPowerPanelDestroy,
+			testutil.CheckLocationDestroy,
+			testutil.CheckSiteDestroy,
+		),
 		BaseConfig: func() string {
 			return `
 resource "netbox_site" "test" {

@@ -15,6 +15,10 @@ func TestAccInterfaceTemplateResource_EnabledComprehensive(t *testing.T) {
 		OptionalField:  "enabled",
 		DefaultValue:   "true",
 		FieldTestValue: "false",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
 		BaseConfig: func() string {
 			return `
 resource "netbox_manufacturer" "test" {

@@ -14,8 +14,10 @@ func TestAccPowerOutletTemplateResource_Label(t *testing.T) {
 		ResourceName:   "netbox_power_outlet_template",
 		OptionalField:  "label",
 		DefaultValue:   "",
-		FieldTestValue: "Outlet-01",
-		BaseConfig: func() string {
+		FieldTestValue: "Outlet-01", CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckManufacturerDestroy,
+		), BaseConfig: func() string {
 			return `
 resource "netbox_manufacturer" "test" {
 	name = "test-manufacturer-outlet-template"

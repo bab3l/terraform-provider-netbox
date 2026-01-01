@@ -15,8 +15,13 @@ func TestAccVirtualMachineResource_StatusOptionalField(t *testing.T) {
 		ResourceName:   "netbox_virtual_machine",
 		OptionalField:  "status",
 		DefaultValue:   "active",
-		FieldTestValue: "staged",
-		BaseConfig: func() string {
+		FieldTestValue: "staged", CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+			testutil.CheckClusterGroupDestroy,
+			testutil.CheckRoleDestroy,
+		), BaseConfig: func() string {
 			return `
 			resource "netbox_cluster_type" "test" {
 				name = "test-cluster-type-vm-status"

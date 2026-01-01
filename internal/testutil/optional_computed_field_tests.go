@@ -28,6 +28,9 @@ type OptionalComputedFieldTestConfig struct {
 
 	// WithFieldConfig returns Terraform config with the optional field set to the given value
 	WithFieldConfig func(value string) string
+
+	// CheckDestroy function to verify resource cleanup (optional)
+	CheckDestroy resource.TestCheckFunc
 }
 
 // GenerateOptionalComputedFieldTests creates tests for Optional+Computed fields.
@@ -101,9 +104,16 @@ func ImportOptionalComputedFieldTest(t *testing.T, config OptionalComputedFieldT
 func RunOptionalComputedFieldTestSuite(t *testing.T, config OptionalComputedFieldTestConfig) {
 	t.Helper()
 
-	resource.Test(t, resource.TestCase{
+	testCase := resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
 		Steps:                    GenerateOptionalComputedFieldTests(t, config),
-	})
+	}
+
+	// Add CheckDestroy if provided
+	if config.CheckDestroy != nil {
+		testCase.CheckDestroy = config.CheckDestroy
+	}
+
+	resource.Test(t, testCase)
 }

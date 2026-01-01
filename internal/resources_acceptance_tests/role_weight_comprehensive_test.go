@@ -15,6 +15,7 @@ func TestAccRoleResource_Weight(t *testing.T) {
 		OptionalField:  "weight",
 		DefaultValue:   "1000",
 		FieldTestValue: "2000",
+		CheckDestroy:   testutil.CheckRoleDestroy,
 		BaseConfig: func() string {
 			return `
 resource "netbox_role" "test" {

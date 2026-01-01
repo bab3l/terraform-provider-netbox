@@ -15,6 +15,12 @@ func TestAccFrontPortTemplateResource_Label(t *testing.T) {
 		OptionalField:  "label",
 		DefaultValue:   "",
 		FieldTestValue: "FP-01",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckFrontPortTemplateDestroy,
+			testutil.CheckRearPortTemplateDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
 		BaseConfig: func() string {
 			return `
 resource "netbox_manufacturer" "test" {

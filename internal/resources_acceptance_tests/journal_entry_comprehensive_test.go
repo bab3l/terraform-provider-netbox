@@ -15,6 +15,10 @@ func TestAccJournalEntryResource_Kind(t *testing.T) {
 		OptionalField:  "kind",
 		DefaultValue:   "info",
 		FieldTestValue: "warning",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckJournalEntryDestroy,
+			testutil.CheckSiteDestroy,
+		),
 		BaseConfig: func() string {
 			return `
 resource "netbox_site" "test" {

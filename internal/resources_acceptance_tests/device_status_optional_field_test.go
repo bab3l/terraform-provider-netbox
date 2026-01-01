@@ -33,6 +33,13 @@ func TestAccDevice_StatusNotInConfig(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckSiteDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
 		Steps: []resource.TestStep{
 			// Step 1: Create device without status in config
 			{
@@ -78,6 +85,13 @@ func TestAccDevice_StatusAddedThenRemoved(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckSiteDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
 		Steps: []resource.TestStep{
 			// Step 1: Create device without status
 			{

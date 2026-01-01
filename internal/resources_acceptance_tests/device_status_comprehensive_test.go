@@ -16,6 +16,13 @@ func TestAccDeviceResource_StatusOptionalField(t *testing.T) {
 		OptionalField:  "status",
 		DefaultValue:   "active",
 		FieldTestValue: "planned",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckSiteDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
 		BaseConfig: func() string {
 			return `
 			resource "netbox_site" "test" {

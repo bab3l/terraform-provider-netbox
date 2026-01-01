@@ -14,6 +14,12 @@ func TestAccVMInterfaceResource_ModeOptionalField(t *testing.T) {
 		ResourceName:   "netbox_vm_interface",
 		OptionalField:  "mode",
 		FieldTestValue: "tagged",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVMInterfaceDestroy,
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+		),
 		BaseConfig: func() string {
 			return `
 			resource "netbox_cluster_type" "test" {
