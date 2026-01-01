@@ -47,8 +47,8 @@ func TestAccDevice_StatusNotInConfig(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_device.test", "id"),
 					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceName),
-					// Status should NOT be present in state when not specified in config
-					resource.TestCheckNoResourceAttr("netbox_device.test", "status"),
+					// Status should have default "active" value when not specified in config (Optional+Computed)
+					resource.TestCheckResourceAttr("netbox_device.test", "status", "active"),
 				),
 			},
 			// Step 2: Plan only - verify no changes detected
@@ -99,7 +99,8 @@ func TestAccDevice_StatusAddedThenRemoved(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_device.test", "id"),
 					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceName),
-					resource.TestCheckNoResourceAttr("netbox_device.test", "status"),
+					// Status should have default "active" value (Optional+Computed)
+					resource.TestCheckResourceAttr("netbox_device.test", "status", "active"),
 				),
 			},
 			// Step 2: Add status to existing device
@@ -111,14 +112,14 @@ func TestAccDevice_StatusAddedThenRemoved(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_device.test", "status", "active"),
 				),
 			},
-			// Step 3: Remove status from config - should not show in state
+			// Step 3: Remove status from config - should revert to default
 			{
 				Config: testAccDeviceConfig_statusNotInConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_device.test", "id"),
 					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceName),
-					// Status should NOT be present in state when removed from config
-					resource.TestCheckNoResourceAttr("netbox_device.test", "status"),
+					// Status should revert to default "active" when removed from config (Optional+Computed)
+					resource.TestCheckResourceAttr("netbox_device.test", "status", "active"),
 				),
 			},
 			// Step 4: Final plan-only verification - no changes

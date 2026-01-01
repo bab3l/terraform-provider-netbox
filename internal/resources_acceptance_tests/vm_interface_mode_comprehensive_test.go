@@ -9,6 +9,12 @@ import (
 // TestAccVMInterfaceResource_ModeOptionalField tests comprehensive scenarios for VM interface mode.
 // This validates that Optional Only fields work correctly across all scenarios.
 func TestAccVMInterfaceResource_ModeOptionalField(t *testing.T) {
+	// Generate unique names for this test run
+	clusterTypeName := testutil.RandomName("tf-test-ct-vmif-mode")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-ct-vmif-mode")
+	clusterName := testutil.RandomName("tf-test-cluster-vmif-mode")
+	vmName := testutil.RandomName("tf-test-vm-vmif-mode")
+	interfaceName := testutil.RandomName("eth0-mode-test")
 
 	testutil.RunOptionalFieldTestSuite(t, testutil.OptionalFieldTestConfig{
 		ResourceName:   "netbox_vm_interface",
@@ -23,23 +29,23 @@ func TestAccVMInterfaceResource_ModeOptionalField(t *testing.T) {
 		BaseConfig: func() string {
 			return `
 			resource "netbox_cluster_type" "test" {
-				name = "test-cluster-type-vmif-mode"
-				slug = "test-cluster-type-vmif-mode"
+				name = "` + clusterTypeName + `"
+				slug = "` + clusterTypeSlug + `"
 			}
 
 			resource "netbox_cluster" "test" {
-				name = "test-cluster-vmif-mode"
+				name = "` + clusterName + `"
 				type = netbox_cluster_type.test.id
 			}
 
 			resource "netbox_virtual_machine" "test" {
-				name    = "test-vm-vmif-mode"
+				name    = "` + vmName + `"
 				cluster = netbox_cluster.test.id
 			}
 
 			resource "netbox_vm_interface" "test" {
 				virtual_machine = netbox_virtual_machine.test.id
-				name            = "eth0-mode-test"
+				name            = "` + interfaceName + `"
 				# mode field intentionally omitted - should be absent in state
 			}
 			`
@@ -47,23 +53,23 @@ func TestAccVMInterfaceResource_ModeOptionalField(t *testing.T) {
 		WithFieldConfig: func(value string) string {
 			return `
 			resource "netbox_cluster_type" "test" {
-				name = "test-cluster-type-vmif-mode"
-				slug = "test-cluster-type-vmif-mode"
+				name = "` + clusterTypeName + `"
+				slug = "` + clusterTypeSlug + `"
 			}
 
 			resource "netbox_cluster" "test" {
-				name = "test-cluster-vmif-mode"
+				name = "` + clusterName + `"
 				type = netbox_cluster_type.test.id
 			}
 
 			resource "netbox_virtual_machine" "test" {
-				name    = "test-vm-vmif-mode"
+				name    = "` + vmName + `"
 				cluster = netbox_cluster.test.id
 			}
 
 			resource "netbox_vm_interface" "test" {
 				virtual_machine = netbox_virtual_machine.test.id
-				name            = "eth0-mode-test"
+				name            = "` + interfaceName + `"
 				mode            = "` + value + `"
 			}
 			`
