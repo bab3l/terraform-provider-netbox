@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -258,7 +259,7 @@ func (r *InterfaceResource) Read(ctx context.Context, req resource.ReadRequest, 
 	iface, httpResp, err := r.client.DcimAPI.DcimInterfacesRetrieve(ctx, interfaceID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Interface not found, removing from state", map[string]interface{}{
 				"id": interfaceID,
 			})
@@ -359,7 +360,7 @@ func (r *InterfaceResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.DcimAPI.DcimInterfacesDestroy(ctx, interfaceID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Interface already deleted", map[string]interface{}{
 				"id": interfaceID,
 			})

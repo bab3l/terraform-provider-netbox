@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -262,7 +263,7 @@ func (r *InventoryItemResource) Read(ctx context.Context, req resource.ReadReque
 	response, httpResp, err := r.client.DcimAPI.DcimInventoryItemsRetrieve(ctx, itemID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -406,7 +407,7 @@ func (r *InventoryItemResource) Delete(ctx context.Context, req resource.DeleteR
 	httpResp, err := r.client.DcimAPI.DcimInventoryItemsDestroy(ctx, itemID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			return
 		}
 		resp.Diagnostics.AddError(

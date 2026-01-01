@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -20,7 +21,6 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-
 var (
 	_ resource.Resource                = &DeviceBayResource{}
 	_ resource.ResourceWithConfigure   = &DeviceBayResource{}
@@ -115,7 +115,6 @@ func (r *DeviceBayResource) Create(ctx context.Context, req resource.CreateReque
 		"name":   data.Name.ValueString(),
 		"device": data.Device.ValueString(),
 	})
-
 	db, httpResp, err := r.client.DcimAPI.DcimDeviceBaysCreate(ctx).DeviceBayRequest(*dbRequest).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
@@ -161,7 +160,7 @@ func (r *DeviceBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 	db, httpResp, err := r.client.DcimAPI.DcimDeviceBaysRetrieve(ctx, dbID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -187,7 +186,6 @@ func (r *DeviceBayResource) Update(ctx context.Context, req resource.UpdateReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	dbID, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -206,7 +204,6 @@ func (r *DeviceBayResource) Update(ctx context.Context, req resource.UpdateReque
 	tflog.Debug(ctx, "Updating device bay", map[string]interface{}{
 		"id": dbID,
 	})
-
 	db, httpResp, err := r.client.DcimAPI.DcimDeviceBaysUpdate(ctx, dbID).DeviceBayRequest(*dbRequest).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
@@ -232,7 +229,6 @@ func (r *DeviceBayResource) Delete(ctx context.Context, req resource.DeleteReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	dbID, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -248,7 +244,7 @@ func (r *DeviceBayResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.DcimAPI.DcimDeviceBaysDestroy(ctx, dbID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			return
 		}
 		resp.Diagnostics.AddError(

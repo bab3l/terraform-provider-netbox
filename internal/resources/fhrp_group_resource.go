@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -170,7 +171,7 @@ func (r *FHRPGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	fhrpGroup, httpResp, err := r.client.IpamAPI.IpamFhrpGroupsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "FHRP Group not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
@@ -258,7 +259,7 @@ func (r *FHRPGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.IpamAPI.IpamFhrpGroupsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Already deleted
 			return
 		}
@@ -317,7 +318,6 @@ func (r *FHRPGroupResource) setOptionalFields(ctx context.Context, fhrpGroupRequ
 }
 
 // mapFHRPGroupToState maps an FHRP Group API response to the Terraform state model.
-
 func (r *FHRPGroupResource) mapFHRPGroupToState(ctx context.Context, fhrpGroup *netbox.FHRPGroup, data *FHRPGroupResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.Int32Value(fhrpGroup.GetId())
 	data.Protocol = types.StringValue(string(fhrpGroup.Protocol))

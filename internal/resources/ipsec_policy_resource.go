@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -180,7 +181,7 @@ func (r *IPSecPolicyResource) Read(ctx context.Context, req resource.ReadRequest
 	ipsec, httpResp, err := r.client.VpnAPI.VpnIpsecPoliciesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "IPSecPolicy not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
@@ -280,7 +281,7 @@ func (r *IPSecPolicyResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.VpnAPI.VpnIpsecPoliciesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Already deleted
 			return
 		}

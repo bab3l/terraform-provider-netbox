@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -269,7 +270,7 @@ func (r *DeviceTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 	deviceType, httpResp, err := r.client.DcimAPI.DcimDeviceTypesRetrieve(ctx, deviceTypeIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Device type not found, removing from state", map[string]interface{}{
 				"id": deviceTypeID,
 			})
@@ -434,7 +435,7 @@ func (r *DeviceTypeResource) Delete(ctx context.Context, req resource.DeleteRequ
 	httpResp, err := r.client.DcimAPI.DcimDeviceTypesDestroy(ctx, deviceTypeIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Already deleted
 			tflog.Debug(ctx, "Device type already deleted", map[string]interface{}{
 				"id": deviceTypeID,

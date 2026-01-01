@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
@@ -188,7 +189,7 @@ func (r *CustomLinkResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	if httpResp.StatusCode != 201 {
+	if httpResp.StatusCode != http.StatusCreated {
 		resp.Diagnostics.AddError("Error creating custom link",
 			fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
 		return
@@ -220,7 +221,7 @@ func (r *CustomLinkResource) Read(ctx context.Context, req resource.ReadRequest,
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasCustomLinksRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -302,7 +303,7 @@ func (r *CustomLinkResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	if httpResp.StatusCode != 200 {
+	if httpResp.StatusCode != http.StatusOK {
 		resp.Diagnostics.AddError("Error updating custom link",
 			fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
@@ -314,34 +315,29 @@ func (r *CustomLinkResource) Update(ctx context.Context, req resource.UpdateRequ
 
 func (r *CustomLinkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data CustomLinkResourceModel
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	id, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid ID",
 			fmt.Sprintf("ID must be a number, got: %s", data.ID.ValueString()))
 		return
 	}
-
 	httpResp, err := r.client.ExtrasAPI.ExtrasCustomLinksDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// If the resource was already deleted (404), consider it a success
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Custom link already deleted", map[string]interface{}{"id": id})
 			return
 		}
-
 		resp.Diagnostics.AddError("Error deleting custom link",
 			utils.FormatAPIError(fmt.Sprintf("delete custom link ID %s", data.ID.ValueString()), err, httpResp))
 		return
 	}
-
-	if httpResp.StatusCode != 204 {
+	if httpResp.StatusCode != http.StatusNoContent {
 		resp.Diagnostics.AddError("Error deleting custom link",
 			fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
 		return

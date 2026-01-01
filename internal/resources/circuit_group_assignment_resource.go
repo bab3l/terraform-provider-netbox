@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -187,7 +188,7 @@ func (r *CircuitGroupAssignmentResource) Read(ctx context.Context, req resource.
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// Check if resource was deleted outside of Terraform
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Circuit group assignment not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
@@ -307,7 +308,7 @@ func (r *CircuitGroupAssignmentResource) Delete(ctx context.Context, req resourc
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// Ignore 404 errors (resource already deleted)
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Circuit group assignment already deleted", map[string]interface{}{
 				"id": id,
 			})

@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
@@ -225,7 +226,7 @@ func (r *FHRPGroupAssignmentResource) Read(ctx context.Context, req resource.Rea
 	assignment, httpResp, err := r.client.IpamAPI.IpamFhrpGroupAssignmentsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -359,7 +360,7 @@ func (r *FHRPGroupAssignmentResource) Delete(ctx context.Context, req resource.D
 	httpResp, err := r.client.IpamAPI.IpamFhrpGroupAssignmentsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			return
 		}
 		resp.Diagnostics.AddError(

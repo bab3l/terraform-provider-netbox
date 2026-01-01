@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -200,7 +201,7 @@ func (r *IPSecProposalResource) Read(ctx context.Context, req resource.ReadReque
 	ipsec, httpResp, err := r.client.VpnAPI.VpnIpsecProposalsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "IPSecProposal not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
@@ -300,7 +301,7 @@ func (r *IPSecProposalResource) Delete(ctx context.Context, req resource.DeleteR
 	httpResp, err := r.client.VpnAPI.VpnIpsecProposalsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Already deleted
 			return
 		}

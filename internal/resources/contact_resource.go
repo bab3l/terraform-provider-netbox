@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -148,19 +149,16 @@ func (r *ContactResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// Handle tags
 	utils.ApplyTags(ctx, contactRequest, data.Tags, &resp.Diagnostics)
-
 	contact, httpResp, err := r.client.TenancyAPI.TenancyContactsCreate(ctx).ContactRequest(*contactRequest).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating contact", utils.FormatAPIError("create contact", err, httpResp))
 		return
 	}
-
-	if httpResp.StatusCode != 201 {
+	if httpResp.StatusCode != http.StatusCreated {
 		resp.Diagnostics.AddError("Error creating contact", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
 		return
 	}
-
 	if contact == nil {
 		resp.Diagnostics.AddError("Contact API returned nil", "No contact object returned from Netbox API.")
 		return
@@ -190,7 +188,7 @@ func (r *ContactResource) Read(ctx context.Context, req resource.ReadRequest, re
 	contact, httpResp, err := r.client.TenancyAPI.TenancyContactsRetrieve(ctx, contactID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -245,7 +243,7 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 		resp.Diagnostics.AddError("Error updating contact", utils.FormatAPIError("update contact", err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != 200 {
+	if httpResp.StatusCode != http.StatusOK {
 		resp.Diagnostics.AddError("Error updating contact", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
@@ -272,7 +270,7 @@ func (r *ContactResource) Delete(ctx context.Context, req resource.DeleteRequest
 	httpResp, err := r.client.TenancyAPI.TenancyContactsDestroy(ctx, contactID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Already deleted, nothing to do
 			return
 		}

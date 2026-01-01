@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -356,7 +357,7 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 	device, httpResp, err := r.client.DcimAPI.DcimDevicesRetrieve(ctx, deviceIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Device not found, removing from state", map[string]interface{}{
 				"id": deviceID,
 			})
@@ -578,7 +579,7 @@ func (r *DeviceResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	httpResp, err := r.client.DcimAPI.DcimDevicesDestroy(ctx, deviceIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Already deleted
 			tflog.Debug(ctx, "Device already deleted", map[string]interface{}{
 				"id": deviceID,
@@ -791,7 +792,6 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		if diags.HasError() {
 			return
 		}
-
 		customFields := utils.MapToCustomFieldModels(device.GetCustomFields(), stateCustomFields)
 		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		diags.Append(cfValueDiags...)

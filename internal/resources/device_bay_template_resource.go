@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 	"strconv"
 
 	"github.com/bab3l/go-netbox"
@@ -194,7 +195,7 @@ func (r *DeviceBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 	template, httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesRetrieve(ctx, id32).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "DeviceBayTemplate not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
@@ -322,7 +323,7 @@ func (r *DeviceBayTemplateResource) Delete(ctx context.Context, req resource.Del
 	httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesDestroy(ctx, id32).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "DeviceBayTemplate already deleted", map[string]interface{}{
 				"id": id,
 			})

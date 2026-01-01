@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -221,7 +222,7 @@ func (r *IKEProposalResource) Read(ctx context.Context, req resource.ReadRequest
 	ike, httpResp, err := r.client.VpnAPI.VpnIkeProposalsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "IKEProposal not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
@@ -334,7 +335,7 @@ func (r *IKEProposalResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.VpnAPI.VpnIkeProposalsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Already deleted
 			return
 		}

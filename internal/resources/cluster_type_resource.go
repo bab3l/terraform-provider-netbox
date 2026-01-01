@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -182,7 +183,7 @@ func (r *ClusterTypeResource) Read(ctx context.Context, req resource.ReadRequest
 	clusterType, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterTypesRetrieve(ctx, clusterTypeIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Cluster type not found, removing from state", map[string]interface{}{
 				"id": clusterTypeID,
 			})
@@ -291,7 +292,7 @@ func (r *ClusterTypeResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterTypesDestroy(ctx, clusterTypeIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Already deleted, consider success
 			tflog.Debug(ctx, "Cluster type already deleted", map[string]interface{}{
 				"id": clusterTypeID,

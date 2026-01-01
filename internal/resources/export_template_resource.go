@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -200,11 +201,10 @@ func (r *ExportTemplateResource) Read(ctx context.Context, req resource.ReadRequ
 	exportTemplate, httpResp, err := r.client.ExtrasAPI.ExtrasExportTemplatesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-
 		resp.Diagnostics.AddError(
 			"Error reading export template",
 			utils.FormatAPIError("read export template", err, httpResp),
@@ -306,21 +306,18 @@ func (r *ExportTemplateResource) Delete(ctx context.Context, req resource.Delete
 	tflog.Debug(ctx, "Deleting export template", map[string]interface{}{
 		"id": id,
 	})
-
 	httpResp, err := r.client.ExtrasAPI.ExtrasExportTemplatesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			return
 		}
-
 		resp.Diagnostics.AddError(
 			"Error deleting export template",
 			utils.FormatAPIError("delete export template", err, httpResp),
 		)
 		return
 	}
-
 	tflog.Debug(ctx, "Deleted export template", map[string]interface{}{
 		"id": id,
 	})
@@ -347,7 +344,6 @@ func (r *ExportTemplateResource) mapResponseToState(ctx context.Context, exportT
 	}
 
 	// Handle description
-
 	if exportTemplate.HasDescription() && exportTemplate.GetDescription() != "" {
 		data.Description = types.StringValue(exportTemplate.GetDescription())
 	} else {
@@ -355,7 +351,6 @@ func (r *ExportTemplateResource) mapResponseToState(ctx context.Context, exportT
 	}
 
 	// Handle mime type
-
 	if exportTemplate.HasMimeType() && exportTemplate.GetMimeType() != "" {
 		data.MimeType = types.StringValue(exportTemplate.GetMimeType())
 	} else {
@@ -363,7 +358,6 @@ func (r *ExportTemplateResource) mapResponseToState(ctx context.Context, exportT
 	}
 
 	// Handle file extension
-
 	if exportTemplate.HasFileExtension() && exportTemplate.GetFileExtension() != "" {
 		data.FileExtension = types.StringValue(exportTemplate.GetFileExtension())
 	} else {
@@ -371,7 +365,6 @@ func (r *ExportTemplateResource) mapResponseToState(ctx context.Context, exportT
 	}
 
 	// Handle as_attachment
-
 	if exportTemplate.HasAsAttachment() {
 		data.AsAttachment = types.BoolValue(exportTemplate.GetAsAttachment())
 	} else {
