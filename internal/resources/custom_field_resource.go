@@ -615,8 +615,6 @@ func (r *CustomFieldResource) mapResponseToModel(ctx context.Context, customFiel
 		switch v := defaultVal.(type) {
 		case string:
 			data.Default = types.StringValue(v)
-		case nil:
-			data.Default = types.StringNull()
 		default:
 			data.Default = types.StringValue(fmt.Sprintf("%v", v))
 		}
