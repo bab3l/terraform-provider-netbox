@@ -18,10 +18,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
+
+const defaultTunnelStatus = "active"
 
 // Ensure provider defined types fully satisfy framework interfaces.
 
@@ -86,6 +89,8 @@ func (r *TunnelResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional: true,
 
 				Computed: true,
+
+				Default: stringdefault.StaticString(defaultTunnelStatus),
 
 				Validators: []validator.String{
 					stringvalidator.OneOf(
@@ -204,7 +209,7 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Set status - default to "active" if not provided (Netbox requires status)
 
-	statusValue := "active"
+	statusValue := defaultTunnelStatus
 
 	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		statusValue = data.Status.ValueString()
@@ -327,6 +332,7 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	data.ID = types.StringValue(fmt.Sprintf("%d", tunnel.GetId()))
 
+	// Status - always set since it's computed
 	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
 
 	// Handle group reference from response
@@ -411,6 +417,7 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	data.Name = types.StringValue(tunnel.GetName())
 
+	// Status - always set since it's computed
 	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
 
 	data.Encapsulation = types.StringValue(string(tunnel.Encapsulation.GetValue()))
@@ -565,7 +572,7 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	// Set status - default to "active" if not provided (Netbox requires status)
 
-	statusValue := "active"
+	statusValue := defaultTunnelStatus
 
 	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		statusValue = data.Status.ValueString()
@@ -692,8 +699,7 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	// Update status from response
-
+	// Status - always set since it's computed (defaults from API)
 	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
 
 	// Handle group reference from response - preserve user's input format

@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -179,7 +180,7 @@ func (r *ASNResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	asn, httpResp, err := r.client.IpamAPI.IpamAsnsRetrieve(ctx, asnID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "ASN not found, removing from state", map[string]interface{}{
 				"id": asnID,
 			})
@@ -279,7 +280,7 @@ func (r *ASNResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	httpResp, err := r.client.IpamAPI.IpamAsnsDestroy(ctx, asnID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Resource already deleted
 			return
 		}

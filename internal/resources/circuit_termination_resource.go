@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -211,7 +212,7 @@ func (r *CircuitTerminationResource) Read(ctx context.Context, req resource.Read
 	termination, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitTerminationsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Circuit termination not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
@@ -306,7 +307,7 @@ func (r *CircuitTerminationResource) Delete(ctx context.Context, req resource.De
 	httpResp, err := r.client.CircuitsAPI.CircuitsCircuitTerminationsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Circuit termination already deleted", map[string]interface{}{
 				"id": id,
 			})

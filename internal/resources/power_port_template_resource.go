@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -107,6 +108,8 @@ func (r *PowerPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 				Optional: true,
 
 				Computed: true,
+
+				Default: stringdefault.StaticString(""),
 			},
 
 			"type": schema.StringAttribute{
@@ -481,7 +484,7 @@ func (r *PowerPortTemplateResource) mapResponseToModel(template *netbox.PowerPor
 	if label, ok := template.GetLabelOk(); ok && label != nil {
 		data.Label = types.StringValue(*label)
 	} else {
-		data.Label = types.StringValue("")
+		data.Label = types.StringValue("") // Always set default for Optional+Computed field
 	}
 
 	// Map type

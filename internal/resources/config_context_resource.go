@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -315,7 +316,7 @@ func (r *ConfigContextResource) Read(ctx context.Context, req resource.ReadReque
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasConfigContextsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Warn(ctx, "Config context not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
@@ -436,7 +437,7 @@ func (r *ConfigContextResource) Delete(ctx context.Context, req resource.DeleteR
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// If the resource was already deleted (404), consider it a success
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Config context already deleted", map[string]interface{}{"id": id})
 			return
 		}

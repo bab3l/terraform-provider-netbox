@@ -83,7 +83,6 @@ func (r *NotificationGroupResource) Configure(ctx context.Context, req resource.
 	if req.ProviderData == nil {
 		return
 	}
-
 	client, ok := req.ProviderData.(*netbox.APIClient)
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -92,7 +91,6 @@ func (r *NotificationGroupResource) Configure(ctx context.Context, req resource.
 		)
 		return
 	}
-
 	r.client = client
 }
 

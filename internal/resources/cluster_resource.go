@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -290,7 +291,7 @@ func (r *ClusterResource) Read(ctx context.Context, req resource.ReadRequest, re
 	cluster, httpResp, err := r.client.VirtualizationAPI.VirtualizationClustersRetrieve(ctx, clusterIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Cluster not found, removing from state", map[string]interface{}{
 				"id": clusterID,
 			})
@@ -392,7 +393,7 @@ func (r *ClusterResource) Delete(ctx context.Context, req resource.DeleteRequest
 	httpResp, err := r.client.VirtualizationAPI.VirtualizationClustersDestroy(ctx, clusterIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Already deleted, consider success
 			tflog.Debug(ctx, "Cluster already deleted", map[string]interface{}{
 				"id": clusterID,

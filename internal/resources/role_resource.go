@@ -473,7 +473,7 @@ func (r *RoleResource) mapResponseToModel(ctx context.Context, role *netbox.Role
 
 	data.Slug = types.StringValue(role.GetSlug())
 
-	// Map weight
+	// Map weight - always set since it's computed (defaults to 1000)
 
 	if weight, ok := role.GetWeightOk(); ok && weight != nil {
 		data.Weight = types.Int64Value(int64(*weight))

@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -182,7 +183,7 @@ func (r *ConsolePortTemplateResource) Read(ctx context.Context, req resource.Rea
 	response, httpResp, err := r.client.DcimAPI.DcimConsolePortTemplatesRetrieve(ctx, templateID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Console port template not found, removing from state", map[string]interface{}{
 				"id": templateID,
 			})
@@ -276,7 +277,7 @@ func (r *ConsolePortTemplateResource) Delete(ctx context.Context, req resource.D
 	httpResp, err := r.client.DcimAPI.DcimConsolePortTemplatesDestroy(ctx, templateID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Resource already deleted
 			return
 		}

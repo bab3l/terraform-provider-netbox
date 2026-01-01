@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 	"regexp"
 
 	"github.com/bab3l/go-netbox"
@@ -214,7 +215,7 @@ func (r *CircuitResource) Read(ctx context.Context, req resource.ReadRequest, re
 	circuit, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Circuit not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
@@ -302,7 +303,7 @@ func (r *CircuitResource) Delete(ctx context.Context, req resource.DeleteRequest
 	httpResp, err := r.client.CircuitsAPI.CircuitsCircuitsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Circuit already deleted", map[string]interface{}{
 				"id": id,
 			})

@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -146,7 +147,7 @@ func (r *ConfigTemplateResource) Read(ctx context.Context, req resource.ReadRequ
 	response, httpResp, err := r.client.ExtrasAPI.ExtrasConfigTemplatesRetrieve(ctx, templateID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Config template not found, removing from state", map[string]interface{}{
 				"id": templateID,
 			})
@@ -215,7 +216,7 @@ func (r *ConfigTemplateResource) Delete(ctx context.Context, req resource.Delete
 	httpResp, err := r.client.ExtrasAPI.ExtrasConfigTemplatesDestroy(ctx, templateID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Resource already deleted
 			return
 		}

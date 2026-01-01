@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -283,7 +284,7 @@ func (r *CustomFieldResource) Read(ctx context.Context, req resource.ReadRequest
 	customField, httpResp, err := r.client.ExtrasAPI.ExtrasCustomFieldsRetrieve(ctx, customFieldID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Custom field not found, removing from state", map[string]interface{}{
 				"id": customFieldID,
 			})
@@ -390,7 +391,7 @@ func (r *CustomFieldResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.ExtrasAPI.ExtrasCustomFieldsDestroy(ctx, customFieldID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Resource already deleted
 			return
 		}
@@ -615,8 +616,6 @@ func (r *CustomFieldResource) mapResponseToModel(ctx context.Context, customFiel
 		switch v := defaultVal.(type) {
 		case string:
 			data.Default = types.StringValue(v)
-		case nil:
-			data.Default = types.StringNull()
 		default:
 			data.Default = types.StringValue(fmt.Sprintf("%v", v))
 		}

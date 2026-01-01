@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -273,7 +274,7 @@ func (r *CableResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	result, httpResp, err := r.client.DcimAPI.DcimCablesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Cable not found, removing from state", map[string]interface{}{"id": id})
 			resp.State.RemoveResource(ctx)
 			return
@@ -412,7 +413,7 @@ func (r *CableResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 	httpResp, err := r.client.DcimAPI.DcimCablesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Cable already deleted", map[string]interface{}{"id": id})
 			return
 		}

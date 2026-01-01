@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -180,7 +181,7 @@ func (r *AggregateResource) Read(ctx context.Context, req resource.ReadRequest, 
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Aggregate not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
@@ -275,7 +276,7 @@ func (r *AggregateResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.IpamAPI.IpamAggregatesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Aggregate already deleted", map[string]interface{}{
 				"id": id,
 			})

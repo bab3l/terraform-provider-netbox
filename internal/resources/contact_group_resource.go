@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -142,7 +143,7 @@ func (r *ContactGroupResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	if httpResp.StatusCode != 201 {
+	if httpResp.StatusCode != http.StatusCreated {
 		resp.Diagnostics.AddError("Error creating contact group", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
 		return
 	}
@@ -171,7 +172,7 @@ func (r *ContactGroupResource) Read(ctx context.Context, req resource.ReadReques
 	contactGroup, httpResp, err := r.client.TenancyAPI.TenancyContactGroupsRetrieve(ctx, contactGroupIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -179,7 +180,7 @@ func (r *ContactGroupResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	if httpResp.StatusCode != 200 {
+	if httpResp.StatusCode != http.StatusOK {
 		resp.Diagnostics.AddError("Error reading contact group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
@@ -238,7 +239,7 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 		resp.Diagnostics.AddError("Error updating contact group", utils.FormatAPIError(fmt.Sprintf("update contact group ID %s", contactGroupID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != 200 {
+	if httpResp.StatusCode != http.StatusOK {
 		resp.Diagnostics.AddError("Error updating contact group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
@@ -268,14 +269,14 @@ func (r *ContactGroupResource) Delete(ctx context.Context, req resource.DeleteRe
 	httpResp, err := r.client.TenancyAPI.TenancyContactGroupsDestroy(ctx, contactGroupIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			return
 		}
 		resp.Diagnostics.AddError("Error deleting contact group", utils.FormatAPIError(fmt.Sprintf("delete contact group ID %s", contactGroupID), err, httpResp))
 		return
 	}
 
-	if httpResp.StatusCode != 204 {
+	if httpResp.StatusCode != http.StatusNoContent {
 		resp.Diagnostics.AddError("Error deleting contact group", fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
 		return
 	}

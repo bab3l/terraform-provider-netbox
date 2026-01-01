@@ -233,12 +233,17 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 		data.Description = types.StringNull()
 	}
 
-	// Mode
+	// Mode - only set if user specified it in config, or during import
+	// This prevents Terraform from seeing drift when the API returns a mode but config doesn't specify one
+	// During import, data.ID would be unknown initially, but by the time we reach mapVMInterfaceToState,
+	// the ID has been set. Instead, we check if mode is unknown (happens during import state refresh)
 
-	if iface.HasMode() {
-		data.Mode = types.StringValue(string(iface.Mode.GetValue()))
-	} else {
-		data.Mode = types.StringNull()
+	if !data.Mode.IsNull() || data.Mode.IsUnknown() {
+		if iface.HasMode() {
+			data.Mode = types.StringValue(string(iface.Mode.GetValue()))
+		} else {
+			data.Mode = types.StringNull()
+		}
 	}
 
 	// Untagged VLAN
@@ -691,4 +696,8 @@ func (r *VMInterfaceResource) Delete(ctx context.Context, req resource.DeleteReq
 
 func (r *VMInterfaceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+
+	// Mark mode as unknown during import so that Read method knows to populate it
+	// This allows import to preserve mode field while regular reads without mode in config don't cause drift
+	resp.State.SetAttribute(ctx, path.Root("mode"), types.StringUnknown())
 }

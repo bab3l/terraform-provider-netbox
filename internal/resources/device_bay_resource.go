@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -20,76 +21,54 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-
 var (
-	_ resource.Resource = &DeviceBayResource{}
-
-	_ resource.ResourceWithConfigure = &DeviceBayResource{}
-
+	_ resource.Resource                = &DeviceBayResource{}
+	_ resource.ResourceWithConfigure   = &DeviceBayResource{}
 	_ resource.ResourceWithImportState = &DeviceBayResource{}
 )
 
 // NewDeviceBayResource returns a new resource implementing the DeviceBay resource.
-
 func NewDeviceBayResource() resource.Resource {
 	return &DeviceBayResource{}
 }
 
 // DeviceBayResource defines the resource implementation.
-
 type DeviceBayResource struct {
 	client *netbox.APIClient
 }
 
 // DeviceBayResourceModel describes the resource data model.
-
 type DeviceBayResourceModel struct {
-	ID types.String `tfsdk:"id"`
-
-	Device types.String `tfsdk:"device"`
-
-	Name types.String `tfsdk:"name"`
-
-	Label types.String `tfsdk:"label"`
-
-	Description types.String `tfsdk:"description"`
-
+	ID              types.String `tfsdk:"id"`
+	Device          types.String `tfsdk:"device"`
+	Name            types.String `tfsdk:"name"`
+	Label           types.String `tfsdk:"label"`
+	Description     types.String `tfsdk:"description"`
 	InstalledDevice types.String `tfsdk:"installed_device"`
-
-	Tags types.Set `tfsdk:"tags"`
-
-	CustomFields types.Set `tfsdk:"custom_fields"`
+	Tags            types.Set    `tfsdk:"tags"`
+	CustomFields    types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the resource type name.
-
 func (r *DeviceBayResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_device_bay"
 }
 
 // Schema defines the schema for the resource.
-
 func (r *DeviceBayResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a device bay in NetBox. A device bay is a slot within a parent device where a child device can be installed, such as a blade server chassis slot or a modular switch slot.",
-
 		Attributes: map[string]schema.Attribute{
-			"id": nbschema.IDAttribute("device bay"),
-
+			"id":     nbschema.IDAttribute("device bay"),
 			"device": nbschema.RequiredReferenceAttribute("device", "The parent device containing this device bay. Accepts ID or name."),
-
-			"name": nbschema.NameAttribute("device bay", 64),
-
+			"name":   nbschema.NameAttribute("device bay", 64),
 			"label": schema.StringAttribute{
 				MarkdownDescription: "Physical label for the device bay.",
-
-				Optional: true,
+				Optional:            true,
 			},
-
 			"installed_device": schema.StringAttribute{
 				MarkdownDescription: "The child device installed in this bay. Accepts ID or name.",
-
-				Optional: true,
+				Optional:            true,
 			},
 		},
 	}
@@ -102,326 +81,229 @@ func (r *DeviceBayResource) Schema(ctx context.Context, req resource.SchemaReque
 }
 
 // Configure adds the provider configured client to the resource.
-
 func (r *DeviceBayResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
-
 	if !ok {
 		resp.Diagnostics.AddError(
-
 			"Unexpected Resource Configure Type",
-
 			fmt.Sprintf("Expected *netbox.APIClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
-
 		return
 	}
-
 	r.client = client
 }
 
 // Create creates a new device bay resource.
-
 func (r *DeviceBayResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data DeviceBayResourceModel
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Build the request
-
 	dbRequest, diags := r.buildRequest(ctx, &data)
-
 	resp.Diagnostics.Append(diags...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	tflog.Debug(ctx, "Creating device bay", map[string]interface{}{
-		"name": data.Name.ValueString(),
-
+		"name":   data.Name.ValueString(),
 		"device": data.Device.ValueString(),
 	})
-
 	db, httpResp, err := r.client.DcimAPI.DcimDeviceBaysCreate(ctx).DeviceBayRequest(*dbRequest).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
-
 			"Error creating device bay",
-
 			utils.FormatAPIError("create device bay", err, httpResp),
 		)
-
 		return
 	}
 
 	// Map response to state
-
 	r.mapResponseToModel(ctx, db, &data, &resp.Diagnostics)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	tflog.Debug(ctx, "Created device bay", map[string]interface{}{
-		"id": db.GetId(),
-
+		"id":   db.GetId(),
 		"name": db.GetName(),
 	})
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Read reads the device bay resource.
-
 func (r *DeviceBayResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data DeviceBayResourceModel
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	dbID, err := utils.ParseID(data.ID.ValueString())
-
 	if err != nil {
 		resp.Diagnostics.AddError(
-
 			"Invalid Device Bay ID",
-
 			fmt.Sprintf("Could not parse device bay ID: %s", err),
 		)
-
 		return
 	}
-
 	tflog.Debug(ctx, "Reading device bay", map[string]interface{}{
 		"id": dbID,
 	})
 
 	db, httpResp, err := r.client.DcimAPI.DcimDeviceBaysRetrieve(ctx, dbID).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
-
 			return
 		}
-
 		resp.Diagnostics.AddError(
-
 			"Error reading device bay",
-
 			utils.FormatAPIError(fmt.Sprintf("read device bay ID %d", dbID), err, httpResp),
 		)
-
 		return
 	}
 
 	// Map response to state
-
 	r.mapResponseToModel(ctx, db, &data, &resp.Diagnostics)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates the device bay resource.
-
 func (r *DeviceBayResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data DeviceBayResourceModel
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	dbID, err := utils.ParseID(data.ID.ValueString())
-
 	if err != nil {
 		resp.Diagnostics.AddError(
-
 			"Invalid Device Bay ID",
-
 			fmt.Sprintf("Could not parse device bay ID: %s", err),
 		)
-
 		return
 	}
 
 	// Build the request
-
 	dbRequest, diags := r.buildRequest(ctx, &data)
-
 	resp.Diagnostics.Append(diags...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	tflog.Debug(ctx, "Updating device bay", map[string]interface{}{
 		"id": dbID,
 	})
-
 	db, httpResp, err := r.client.DcimAPI.DcimDeviceBaysUpdate(ctx, dbID).DeviceBayRequest(*dbRequest).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
-
 			"Error updating device bay",
-
 			utils.FormatAPIError(fmt.Sprintf("update device bay ID %d", dbID), err, httpResp),
 		)
-
 		return
 	}
 
 	// Map response to state
-
 	r.mapResponseToModel(ctx, db, &data, &resp.Diagnostics)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Delete deletes the device bay resource.
-
 func (r *DeviceBayResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data DeviceBayResourceModel
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	dbID, err := utils.ParseID(data.ID.ValueString())
-
 	if err != nil {
 		resp.Diagnostics.AddError(
-
 			"Invalid Device Bay ID",
-
 			fmt.Sprintf("Could not parse device bay ID: %s", err),
 		)
-
 		return
 	}
-
 	tflog.Debug(ctx, "Deleting device bay", map[string]interface{}{
 		"id": dbID,
 	})
 
 	httpResp, err := r.client.DcimAPI.DcimDeviceBaysDestroy(ctx, dbID).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			return
 		}
-
 		resp.Diagnostics.AddError(
-
 			"Error deleting device bay",
-
 			utils.FormatAPIError(fmt.Sprintf("delete device bay ID %d", dbID), err, httpResp),
 		)
-
 		return
 	}
 }
 
 // ImportState imports an existing device bay resource.
-
 func (r *DeviceBayResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // buildRequest builds the API request from the Terraform model.
-
 func (r *DeviceBayResource) buildRequest(ctx context.Context, data *DeviceBayResourceModel) (*netbox.DeviceBayRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Look up device
-
 	deviceRef, lookupDiags := netboxlookup.LookupDevice(ctx, r.client, data.Device.ValueString())
-
 	diags.Append(lookupDiags...)
-
 	if diags.HasError() {
 		return nil, diags
 	}
-
 	dbRequest := netbox.NewDeviceBayRequest(*deviceRef, data.Name.ValueString())
 
 	// Set optional fields
-
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
 		dbRequest.SetLabel(data.Label.ValueString())
 	}
 
 	if !data.InstalledDevice.IsNull() && !data.InstalledDevice.IsUnknown() {
 		installedDeviceRef, lookupDiags := netboxlookup.LookupDevice(ctx, r.client, data.InstalledDevice.ValueString())
-
 		diags.Append(lookupDiags...)
-
 		if diags.HasError() {
 			return nil, diags
 		}
-
 		dbRequest.InstalledDevice = *netbox.NewNullableBriefDeviceRequest(installedDeviceRef)
 	}
 
 	// Handle description, tags, and custom fields
-
 	utils.ApplyDescription(dbRequest, data.Description)
-
 	utils.ApplyMetadataFields(ctx, dbRequest, data.Tags, data.CustomFields, &diags)
-
 	if diags.HasError() {
 		return nil, diags
 	}
-
 	return dbRequest, diags
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
-
 func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.DeviceBay, data *DeviceBayResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", db.GetId()))
-
 	data.Name = types.StringValue(db.GetName())
 
 	// Map device - preserve user's input format
-
 	data.Device = utils.UpdateReferenceAttribute(data.Device, db.Device.GetName(), "", db.Device.GetId())
 
 	// Map label
-
 	if label, ok := db.GetLabelOk(); ok && label != nil && *label != "" {
 		data.Label = types.StringValue(*label)
 	} else {
@@ -429,7 +311,6 @@ func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.D
 	}
 
 	// Map description
-
 	if desc, ok := db.GetDescriptionOk(); ok && desc != nil && *desc != "" {
 		data.Description = types.StringValue(*desc)
 	} else {
@@ -437,7 +318,6 @@ func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.D
 	}
 
 	// Map installed_device - preserve user's input format
-
 	if db.InstalledDevice.IsSet() && db.InstalledDevice.Get() != nil {
 		installedDevice := db.InstalledDevice.Get()
 
@@ -447,44 +327,31 @@ func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.D
 	}
 
 	// Handle tags
-
 	if db.HasTags() && len(db.GetTags()) > 0 {
 		tags := utils.NestedTagsToTagModels(db.GetTags())
-
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
 		diags.Append(tagDiags...)
-
 		if diags.HasError() {
 			return
 		}
-
 		data.Tags = tagsValue
 	} else {
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 	}
 
 	// Handle custom fields
-
 	if db.HasCustomFields() {
 		apiCustomFields := db.GetCustomFields()
-
 		var stateCustomFieldModels []utils.CustomFieldModel
-
 		if !data.CustomFields.IsNull() {
 			data.CustomFields.ElementsAs(ctx, &stateCustomFieldModels, false)
 		}
-
 		customFields := utils.MapToCustomFieldModels(apiCustomFields, stateCustomFieldModels)
-
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
 		diags.Append(cfDiags...)
-
 		if diags.HasError() {
 			return
 		}
-
 		data.CustomFields = customFieldsValue
 	} else {
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)

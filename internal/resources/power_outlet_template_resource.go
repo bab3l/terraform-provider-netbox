@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -107,6 +108,8 @@ func (r *PowerOutletTemplateResource) Schema(ctx context.Context, req resource.S
 				Optional: true,
 
 				Computed: true,
+
+				Default: stringdefault.StaticString(""),
 			},
 
 			"type": schema.StringAttribute{
@@ -517,6 +520,8 @@ func (r *PowerOutletTemplateResource) mapResponseToModel(template *netbox.PowerO
 	}
 
 	// Map label
+
+	// Map label - always set since it's computed
 
 	if label, ok := template.GetLabelOk(); ok && label != nil {
 		data.Label = types.StringValue(*label)
