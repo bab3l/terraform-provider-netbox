@@ -63,6 +63,47 @@ func TestAccContactRoleResource_basic(t *testing.T) {
 
 }
 
+func TestAccContactRoleResource_full(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("test-contact-role-full")
+	slug := testutil.GenerateSlug(name)
+	description := testutil.RandomName("description")
+	updatedDescription := "Updated contact role description"
+	tagName := testutil.RandomName("tf-test-tag")
+	tagSlug := testutil.RandomSlug("tf-test-tag")
+	customFieldName := testutil.RandomCustomFieldName("tf_test_cf")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactRoleCleanup(slug)
+	cleanup.RegisterTagCleanup(tagSlug)
+	cleanup.RegisterCustomFieldCleanup(customFieldName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactRoleResourceConfig_full(name, slug, description, tagName, tagSlug, customFieldName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_contact_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "tags.#", "1"),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "custom_fields.#", "1"),
+				),
+			},
+			{
+				Config: testAccContactRoleResourceConfig_full(name, slug, updatedDescription, tagName, tagSlug, customFieldName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "description", updatedDescription),
+				),
+			},
+		},
+	})
+}
+
 func TestAccContactRoleResource_update(t *testing.T) {
 	t.Parallel()
 
@@ -210,6 +251,40 @@ resource "netbox_contact_role" "test" {
 
 `, name, slug)
 
+}
+
+func testAccContactRoleResourceConfig_full(name, slug, description, tagName, tagSlug, customFieldName string) string {
+	return fmt.Sprintf(`
+resource "netbox_tag" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_custom_field" "test" {
+  name         = %q
+  object_types = ["tenancy.contactrole"]
+  type         = "text"
+}
+
+resource "netbox_contact_role" "test" {
+  name        = %q
+  slug        = %q
+  description = %q
+  tags = [
+    {
+      name = netbox_tag.test.name
+      slug = netbox_tag.test.slug
+    }
+  ]
+  custom_fields = [
+    {
+      name  = netbox_custom_field.test.name
+      type  = "text"
+      value = "test-value"
+    }
+  ]
+}
+`, tagName, tagSlug, customFieldName, name, slug, description)
 }
 
 func TestAccContactRoleResource_externalDeletion(t *testing.T) {

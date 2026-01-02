@@ -120,7 +120,7 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 - Update Test: ✅ TestAccConsoleServerPortResource_update
 - **Status:** COMPLETE ✅
 
-## Batch 4: Resources 16-20
+## Batch 4: Resources 16-20 - COMPLETE ✅
 
 ### 16. console_server_port_template
 - Basic Create: ✅ TestAccConsoleServerPortTemplateResource_basic
@@ -136,9 +136,9 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 
 ### 18. contact_assignment
 - Basic Create: ✅ TestAccContactAssignmentResource_basic
-- Full Create: 🔍 (needs field coverage review)
+- Full Create: ✅ TestAccContactAssignmentResource_full (enhanced: priority, role_id, tags, custom_fields)
 - Update Test: ✅ TestAccContactAssignmentResource_update
-- **Status:** REVIEW NEEDED
+- **Status:** COMPLETE ✅
 
 ### 19. contact_group
 - Basic Create: ✅ TestAccContactGroupResource_basic
@@ -148,9 +148,9 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 
 ### 20. contact_role
 - Basic Create: ✅ TestAccContactRoleResource_basic
-- Full Create: 🔍 (needs field coverage review)
+- Full Create: ✅ TestAccContactRoleResource_full (enhanced: description, tags, custom_fields)
 - Update Test: ✅ TestAccContactRoleResource_update
-- **Status:** REVIEW NEEDED
+- **Status:** COMPLETE ✅
 
 ## Batch 5: Resources 21-25
 
