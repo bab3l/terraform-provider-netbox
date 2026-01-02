@@ -248,7 +248,7 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 - Update Test: ✅ TestAccIKEProposalResource_update
 - **Status:** COMPLETE ✅
 
-## Batch 8: Resources 36-40
+## Batch 8: Resources 36-40 - COMPLETE ✅
 
 ### 36. interface
 - Basic Create: ✅ TestAccInterfaceResource_basic
