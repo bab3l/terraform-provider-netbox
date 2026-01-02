@@ -408,7 +408,7 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 - Update Test: ✅ TestAccPowerPortResource_update
 - **Status:** COMPLETE ✅
 
-## Batch 13: Resources 61-65
+## Batch 13: Resources 61-65 - COMPLETE ✅
 
 ### 61. power_port_template
 - Basic Create: ✅ TestAccPowerPortTemplateResource_basic
@@ -418,9 +418,9 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 
 ### 62. prefix
 - Basic Create: ✅ TestAccPrefixResource_basic
-- Full Create: 🔍 (needs field coverage review)
+- Full Create: ✅ TestAccPrefixResource_full (enhanced with site, tenant, vrf, vlan, role, mark_utilized, tags)
 - Update Test: ✅ TestAccPrefixResource_update
-- **Status:** REVIEW NEEDED
+- **Status:** COMPLETE ✅
 
 ### 63. provider (circuit provider)
 - Basic Create: ✅ TestAccProviderResource_basic
