@@ -22,35 +22,35 @@ func TestDeviceResourceSchema_FieldConsistency(t *testing.T) {
 		t.Fatalf("Schema returned errors: %v", schemaResponse.Diagnostics)
 	}
 
-	// Test that the device schema now has Optional+Computed fields for consistency
+	// Test that the device schema preserves user intent for optional fields
 	testutil.ValidateResourceSchema(t, schemaResponse.Schema.Attributes, testutil.SchemaValidation{
 		Required:         []string{"site", "device_type", "role"},
-		Optional:         []string{"name", "description", "comments", "tenant", "platform", "serial", "asset_tag", "rack", "position", "face", "latitude", "longitude", "vc_position", "vc_priority"},
+		Optional:         []string{"name", "description", "comments", "tenant", "platform", "serial", "asset_tag", "rack", "position", "face", "latitude", "longitude", "airflow", "vc_position", "vc_priority", "tags", "custom_fields"},
 		Computed:         []string{"id"},
-		OptionalComputed: []string{"status", "airflow", "tags", "custom_fields"},
+		OptionalComputed: []string{"status"},
 	})
 }
 
-func TestTagsAttribute_OptionalComputed(t *testing.T) {
+func TestTagsAttribute_Optional(t *testing.T) {
 	t.Parallel()
 
 	attr := nbschema.TagsAttribute()
 	if !attr.Optional {
 		t.Error("TagsAttribute should be Optional")
 	}
-	if !attr.Computed {
-		t.Error("TagsAttribute should be Computed")
+	if attr.Computed {
+		t.Error("TagsAttribute should NOT be Computed - we preserve user's null vs empty intent")
 	}
 }
 
-func TestCustomFieldsAttribute_OptionalComputed(t *testing.T) {
+func TestCustomFieldsAttribute_Optional(t *testing.T) {
 	t.Parallel()
 
 	attr := nbschema.CustomFieldsAttribute()
 	if !attr.Optional {
 		t.Error("CustomFieldsAttribute should be Optional")
 	}
-	if !attr.Computed {
-		t.Error("CustomFieldsAttribute should be Computed")
+	if attr.Computed {
+		t.Error("CustomFieldsAttribute should NOT be Computed - we preserve user's null vs empty intent")
 	}
 }

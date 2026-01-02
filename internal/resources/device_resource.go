@@ -122,9 +122,8 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				},
 			},
 			"airflow": schema.StringAttribute{
-				MarkdownDescription: "Direction of airflow through the device. Valid values: 'front-to-rear', 'rear-to-front', 'left-to-right', 'right-to-left', 'side-to-rear', 'passive', 'mixed'. If not specified, NetBox may assign a default value based on the device type.",
+				MarkdownDescription: "Direction of airflow through the device. Valid values: 'front-to-rear', 'rear-to-front', 'left-to-right', 'right-to-left', 'side-to-rear', 'passive', 'mixed'.",
 				Optional:            true,
-				Computed:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("front-to-rear", "rear-to-front", "left-to-right", "right-to-left", "side-to-rear", "passive", "mixed", ""),
 				},
@@ -737,12 +736,15 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		data.Status = types.StringValue("active")
 	}
 
-	// Handle airflow
-	if device.HasAirflow() && device.Airflow != nil {
-		data.Airflow = types.StringValue(string(device.Airflow.GetValue()))
-	} else if !data.Airflow.IsNull() {
-		data.Airflow = types.StringNull()
+	// Handle airflow - only update if user hasn't configured it (Unknown during creation)
+	if data.Airflow.IsUnknown() {
+		if device.HasAirflow() && device.Airflow != nil {
+			data.Airflow = types.StringValue(string(device.Airflow.GetValue()))
+		} else {
+			data.Airflow = types.StringNull()
+		}
 	}
+	// Otherwise preserve user's configured value (null or explicit value)
 
 	// Handle vc_position
 	if device.HasVcPosition() && device.VcPosition.Get() != nil {
@@ -772,57 +774,35 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags
-	if device.HasTags() && len(device.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(device.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		// If user hasn't configured tags (null), keep null. If user configured empty set, preserve empty set.
-		if data.Tags.IsNull() {
-			data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-		} else {
-			// User had configured tags (possibly empty set), preserve as empty set
-			emptyTags, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, []utils.TagModel{})
+	// Handle tags - only update if user hasn't configured them (Unknown during creation)
+	if data.Tags.IsUnknown() {
+		if device.HasTags() && len(device.GetTags()) > 0 {
+			tags := utils.NestedTagsToTagModels(device.GetTags())
+			tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
 			diags.Append(tagDiags...)
 			if diags.HasError() {
 				return
 			}
-			data.Tags = emptyTags
+			data.Tags = tagsValue
+		} else {
+			data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 		}
 	}
+	// Otherwise preserve user's configured value (null or explicit set)
 
-	// Handle custom fields
-	if device.HasCustomFields() && len(device.GetCustomFields()) > 0 && !data.CustomFields.IsNull() {
-		var stateCustomFields []utils.CustomFieldModel
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		customFields := utils.MapToCustomFieldModels(device.GetCustomFields(), stateCustomFields)
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfValueDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		// If user hasn't configured custom fields (null), keep null. If user configured empty set, preserve empty set.
-		if data.CustomFields.IsNull() {
-			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-		} else {
-			// User had configured custom fields (possibly empty set), preserve as empty set
-			emptyCF, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, []utils.CustomFieldModel{})
-			diags.Append(cfDiags...)
+	// Handle custom fields - only update if user hasn't configured them (Unknown during creation)
+	if data.CustomFields.IsUnknown() {
+		if device.HasCustomFields() && len(device.GetCustomFields()) > 0 {
+			customFields := utils.MapToCustomFieldModels(device.GetCustomFields(), []utils.CustomFieldModel{})
+			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+			diags.Append(cfValueDiags...)
 			if diags.HasError() {
 				return
 			}
-			data.CustomFields = emptyCF
+			data.CustomFields = customFieldsValue
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
 	}
+	// Otherwise preserve user's configured value (null or explicit set)
 }
