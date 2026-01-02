@@ -64,12 +64,17 @@ func TestAccCircuitTerminationResource_full(t *testing.T) {
 	siteSlug := testutil.RandomSlug("tf-test-site-full")
 	description := testutil.RandomName("description")
 	updatedDescription := "Updated circuit termination description"
+	tagName := testutil.RandomName("tf-test-tag")
+	tagSlug := testutil.RandomSlug("tf-test-tag")
+	customFieldName := testutil.RandomCustomFieldName("tf_test_cf")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterProviderCleanup(providerSlug)
 	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
 	cleanup.RegisterCircuitCleanup(circuitCID)
 	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTagCleanup(tagSlug)
+	cleanup.RegisterCustomFieldCleanup(customFieldName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -78,19 +83,29 @@ func TestAccCircuitTerminationResource_full(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCircuitTerminationResourceConfig_full(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, description, 1000000),
+				Config: testAccCircuitTerminationResourceConfig_full(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, description, tagName, tagSlug, customFieldName, 1000000, 512000, "XCON-123", "PP1-Port5", true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_circuit_termination.test", "id"),
 					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "term_side", "A"),
 					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "port_speed", "1000000"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "upstream_speed", "512000"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "xconnect_id", "XCON-123"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "pp_info", "PP1-Port5"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "mark_connected", "true"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "tags.#", "1"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "custom_fields.#", "1"),
 				),
 			},
 			{
-				Config: testAccCircuitTerminationResourceConfig_full(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, updatedDescription, 10000000),
+				Config: testAccCircuitTerminationResourceConfig_full(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, updatedDescription, tagName, tagSlug, customFieldName, 10000000, 5000000, "XCON-456", "PP2-Port10", false),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "description", updatedDescription),
 					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "port_speed", "10000000"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "upstream_speed", "5000000"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "xconnect_id", "XCON-456"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "pp_info", "PP2-Port10"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "mark_connected", "false"),
 				),
 			},
 		},
@@ -106,12 +121,17 @@ func TestAccCircuitTerminationResource_update(t *testing.T) {
 	circuitCID := testutil.RandomName("tf-test-circuit-upd")
 	siteName := testutil.RandomName("tf-test-site-upd")
 	siteSlug := testutil.RandomSlug("tf-test-site-upd")
+	tagName := testutil.RandomName("tf-test-tag-upd")
+	tagSlug := testutil.RandomSlug("tf-test-tag-upd")
+	customFieldName := testutil.RandomCustomFieldName("tf_test_cf_upd")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterProviderCleanup(providerSlug)
 	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
 	cleanup.RegisterCircuitCleanup(circuitCID)
 	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTagCleanup(tagSlug)
+	cleanup.RegisterCustomFieldCleanup(customFieldName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -127,10 +147,14 @@ func TestAccCircuitTerminationResource_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCircuitTerminationResourceConfig_full(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, testutil.Description2, 10000000),
+				Config: testAccCircuitTerminationResourceConfig_full(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, testutil.Description2, tagName, tagSlug, customFieldName, 10000000, 5000000, "XCON-UPDATE", "PP-UPDATE", true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "description", testutil.Description2),
 					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "port_speed", "10000000"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "upstream_speed", "5000000"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "xconnect_id", "XCON-UPDATE"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "pp_info", "PP-UPDATE"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "mark_connected", "true"),
 				),
 			},
 		},
@@ -203,7 +227,7 @@ resource "netbox_circuit_termination" "test" {
 `, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug)
 }
 
-func testAccCircuitTerminationResourceConfig_full(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, description string, portSpeed int) string {
+func testAccCircuitTerminationResourceConfig_full(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, description, tagName, tagSlug, customFieldName string, portSpeed, upstreamSpeed int, xconnectID, ppInfo string, markConnected bool) string {
 	return fmt.Sprintf(`
 resource "netbox_provider" "test" {
   name = %q
@@ -227,14 +251,42 @@ resource "netbox_site" "test" {
   status = "active"
 }
 
-resource "netbox_circuit_termination" "test" {
-  circuit     = netbox_circuit.test.id
-  term_side   = "A"
-  site        = netbox_site.test.id
-  port_speed  = %d
-  description = %q
+resource "netbox_tag" "test" {
+  name = %q
+  slug = %q
 }
-`, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, portSpeed, description)
+
+resource "netbox_custom_field" "test" {
+  name         = %q
+  object_types = ["circuits.circuittermination"]
+  type         = "text"
+}
+
+resource "netbox_circuit_termination" "test" {
+  circuit        = netbox_circuit.test.id
+  term_side      = "A"
+  site           = netbox_site.test.id
+  port_speed     = %d
+  upstream_speed = %d
+  xconnect_id    = %q
+  pp_info        = %q
+  mark_connected = %t
+  description    = %q
+  tags = [
+    {
+      name = netbox_tag.test.name
+      slug = netbox_tag.test.slug
+    }
+  ]
+  custom_fields = [
+    {
+      name  = netbox_custom_field.test.name
+      type  = "text"
+      value = "test-value"
+    }
+  ]
+}
+`, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tagName, tagSlug, customFieldName, portSpeed, upstreamSpeed, xconnectID, ppInfo, markConnected, description)
 }
 
 func TestAccCircuitTerminationResource_import(t *testing.T) {

@@ -56,13 +56,13 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 - Update Test: ✅ TestAccCircuitResource_update
 - **Status:** COMPLETE ✅
 
-## Batch 2: Resources 6-10
+## Batch 2: Resources 6-10 - COMPLETE ✅
 
 ### 6. circuit_termination
 - Basic Create: ✅ TestAccCircuitTerminationResource_basic
-- Full Create: 🔍 (needs field coverage review)
+- Full Create: ✅ TestAccCircuitTerminationResource_full (enhanced: all optional fields including upstream_speed, xconnect_id, pp_info, mark_connected, tags, custom_fields)
 - Update Test: ✅ TestAccCircuitTerminationResource_update
-- **Status:** REVIEW NEEDED
+- **Status:** COMPLETE ✅
 
 ### 7. circuit_type
 - Basic Create: ✅ TestAccCircuitTypeResource_basic
