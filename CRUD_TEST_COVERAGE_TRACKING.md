@@ -440,7 +440,7 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 - Update Test: ✅ TestAccProviderNetworkResource_update
 - **Status:** COMPLETE ✅
 
-## Batch 14: Resources 66-70
+## Batch 14: Resources 66-70 - COMPLETE ✅
 
 ### 66. rack
 - Basic Create: ✅ TestAccRackResource_basic
@@ -450,9 +450,9 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 
 ### 67. rack_reservation
 - Basic Create: ✅ TestAccRackReservationResource_basic
-- Full Create: 🔍 (needs field coverage review)
+- Full Create: ✅ TestAccRackReservationResource_full (created with tenant, comments, tags, custom_fields)
 - Update Test: ✅ TestAccRackReservationResource_update
-- **Status:** REVIEW NEEDED
+- **Status:** COMPLETE ✅
 
 ### 68. rack_role
 - Basic Create: ✅ TestAccRackRoleResource_basic
