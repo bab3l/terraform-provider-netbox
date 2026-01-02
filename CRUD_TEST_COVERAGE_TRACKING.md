@@ -506,6 +506,8 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 
 ## Batch 16: Resources 76-80
 
+## Batch 16: Resources 76-80 - COMPLETE ✅
+
 ### 76. service
 - Basic Create: ✅ TestAccServiceResource_basic
 - Full Create: ✅ TestAccServiceResource_full
@@ -527,8 +529,8 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 ### 79. tag
 - Basic Create: ✅ TestAccTagResource_basic
 - Full Create: ✅ TestAccTagResource_full
-- Update Test: 🔍 (needs verification)
-- **Status:** REVIEW NEEDED
+- Update Test: ✅ TestAccTagResource_full (includes update step)
+- **Status:** COMPLETE ✅
 
 ### 80. tenant
 - Basic Create: ✅ TestAccTenantResource_basic
