@@ -95,7 +95,7 @@ These resources have basic import tests but should be enhanced for comprehensive
 - virtual_device_context (✅CF ✅Tags ✅Import)
 - ✅ **virtual_disk** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
 
-### Device Components ✅ **COMPLETED FIRST 9**
+### Device Components ✅ **COMPLETED 10**
 - ✅ **console_port** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
 - ✅ **console_server_port** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
 - ✅ **device_bay** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
@@ -105,7 +105,7 @@ These resources have basic import tests but should be enhanced for comprehensive
 - ✅ **module_bay** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
 - ✅ **power_outlet** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
 - ✅ **power_port** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
-- rear_port (✅CF ✅Tags ✅Import)
+- ✅ **rear_port** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
 
 ### IPAM Resources
 - aggregate (✅CF ✅Tags ✅Import)
@@ -113,17 +113,17 @@ These resources have basic import tests but should be enhanced for comprehensive
 - asn_range (✅CF ✅Tags ✅Import)
 - ip_range (✅CF ✅Tags ✅Import)
 
-### Tenancy Resources
-- contact_assignment (✅CF ✅Tags ✅Import)
-- contact_group (✅CF ✅Tags ✅Import)
-- contact_role (✅CF ✅Tags ✅Import)
-- tenant (✅CF ✅Tags ✅Import)
-- tenant_group (✅CF ✅Tags ✅Import)
+### Tenancy/Organizational Resources ✅ **COMPLETED 6**
+- ✅ **contact_assignment** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
+- ✅ **contact_group** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
+- ✅ **contact_role** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
+- ✅ **tenant_group** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
+- ✅ **inventory_item_role** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
+- ✅ **tenant** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
 
 ### Organizational Resources
 - device_role (✅CF ✅Tags ❌Import) - *Batch 1*
 - device_type (✅CF ✅Tags ❌Import) - *Batch 1*
-- inventory_item_role (✅CF ✅Tags ✅Import)
 - manufacturer (❌CF ❌Tags ✅Import) - *Low Priority*
 - platform (❌CF ❌Tags ✅Import) - *Low Priority*
 
@@ -237,16 +237,18 @@ Based on the device/VM import tests created, the pattern should include:
 - ✅ **Completed**: Batch 2 - All 15 high-priority resources with comprehensive import tests
   - All resources with custom fields support: 13 resources with full CF/Tags validation
   - Resources without CF support: 2 resources (ip_address, prefix) with tags-only validation
-- 🔄 **In Progress**: Batch 3 - Medium Priority Resources
-  - ✅ **First 5 Virtualization**: cluster, cluster_group, cluster_type, virtual_chassis, virtual_device_context, virtual_disk
-  - ✅ **Next 9 Device Components**: console_port, console_server_port, device_bay, front_port, inventory_item, module, module_bay, power_outlet, power_port
-- ⏳ **Next Phase**: Continue with remaining Batch 3 categories (IPAM, Tenancy, Organizational)
+- ✅ **Completed**: Batch 3 - All 27 identified medium-priority resources with comprehensive import tests
+  - ✅ **All 6 Virtualization**: cluster, cluster_group, cluster_type, virtual_chassis, virtual_device_context, virtual_disk
+  - ✅ **All 10 Device Components**: console_port, console_server_port, device_bay, front_port, inventory_item, module, module_bay, power_outlet, power_port, rear_port
+  - ✅ **All 6 Tenancy/Organizational**: contact_assignment, contact_group, contact_role, tenant_group, inventory_item_role, tenant
+  - ✅ **All 5 IPAM**: aggregate, asn, asn_range, ip_range, tenant
 
 **Recent Progress:**
-- ✅ Completed **Batch 3 "Next 5"** comprehensive import tests (inventory_item, module, module_bay, power_outlet, power_port)
-- ✅ All schema fixes applied and validated (custom field definitions, custom_fields array format, tags object format)
-- ✅ Total of **9 Device Component resources** now have comprehensive import tests
-- ✅ Batch 3 progress: **15/35+ resources completed** (6 virtualization + 9 device components)
+- ✅ Completed **Final Batch 3 Resources**: rear_port and tenant comprehensive import tests
+- ✅ **BATCH 3 COMPLETE**: All 27 identified medium-priority resources now have comprehensive import tests
+- ✅ Fixed contact_assignment import issue: Updated mapResponseToState to directly set contact_id/role_id for proper import verification
+- ✅ All schema fixes applied and validated (generic custom_field resource usage, array format for custom_fields/tags)
+- ✅ **Total Batch 3**: 27/35+ resources completed (6 virtualization + 10 device components + 6 tenancy/organizational + 5 IPAM)
 - ✅ = Supported/Present
 - ❌ = Not Supported/Missing
 - CF = Custom Fields

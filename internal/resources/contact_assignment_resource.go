@@ -393,14 +393,14 @@ func (r *ContactAssignmentResource) mapResponseToState(ctx context.Context, assi
 	data.ID = types.StringValue(fmt.Sprintf("%d", assignment.GetId()))
 	data.ObjectType = types.StringValue(assignment.GetObjectType())
 	data.ObjectID = types.StringValue(fmt.Sprintf("%d", assignment.GetObjectId()))
-	// Contact (required field) - preserve user's input format
+	// Contact (required field)
 	contact := assignment.GetContact()
-	data.Contact = utils.UpdateReferenceAttribute(data.Contact, contact.GetName(), "", contact.GetId())
+	data.Contact = types.StringValue(fmt.Sprintf("%d", contact.GetId()))
 
-	// Role (optional field) - preserve user's input format
+	// Role (optional field)
 	if assignment.HasRole() && assignment.Role.Get() != nil {
 		role := assignment.GetRole()
-		data.Role = utils.UpdateReferenceAttribute(data.Role, role.GetName(), role.GetSlug(), role.GetId())
+		data.Role = types.StringValue(fmt.Sprintf("%d", role.GetId()))
 	} else {
 		data.Role = types.StringNull()
 	}
