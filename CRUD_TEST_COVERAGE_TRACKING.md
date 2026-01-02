@@ -472,7 +472,7 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 - Update Test: ✅ TestAccRearPortResource_update
 - **Status:** COMPLETE ✅
 
-## Batch 15: Resources 71-75
+## Batch 15: Resources 71-75 - COMPLETE ✅
 
 ### 71. rear_port_template
 - Basic Create: ✅ TestAccRearPortTemplateResource_basic
@@ -488,15 +488,15 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 
 ### 73. rir
 - Basic Create: ✅ TestAccRIRResource_basic
-- Full Create: 🔍 (needs field coverage review)
-- Update Test: ✅ TestAccRIRResource_update
-- **Status:** REVIEW NEEDED
+- Full Create: ✅ TestAccRIRResource_full (enhanced with tags, custom_fields)
+- Update Test: ✅ TestAccRIRResource_full (includes update step)
+- **Status:** COMPLETE ✅
 
 ### 74. role
 - Basic Create: ✅ TestAccRoleResource_basic
-- Full Create: ✅ TestAccRoleResource_full
-- Update Test: 🔍 (needs verification)
-- **Status:** REVIEW NEEDED
+- Full Create: ✅ TestAccRoleResource_full (enhanced with tags, custom_fields)
+- Update Test: ✅ TestAccRoleResource_full (includes update step)
+- **Status:** COMPLETE ✅
 
 ### 75. route_target
 - Basic Create: ✅ TestAccRouteTargetResource_basic
