@@ -58,9 +58,9 @@ These resources have basic import tests but need comprehensive coverage for cust
 | Resource | Custom Fields | Tags | Basic Import | File |
 |----------|:-------------:|:----:|:------------:|------|
 | circuit** | ✅ | ✅ | ✅ | circuit_resource_test.go |
-| circuit_termination | ✅ | ✅ | ✅ | circuit_termination_resource_test.go |
-| cable | ✅ | ✅ | ✅ | cable_resource_test.go |
-| l2vpn | ✅ | ✅ | ✅ | l2vpn_resource_test.go |
+| circuit_termination** | ✅ | ✅ | ✅ | circuit_termination_resource_test.go |
+| cable** | ✅ | ✅ | ✅ | cable_resource_test.go |
+| l2vpn** | ✅ | ✅ | ✅ | l2vpn_resource_test.go |
 
 **Note: comprehensive import tests added during this session*
 
