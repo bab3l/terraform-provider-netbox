@@ -312,7 +312,7 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 - Update Test: ✅ TestAccIPSECProposalResource_update
 - **Status:** COMPLETE ✅
 
-## Batch 10: Resources 46-50
+## Batch 10: Resources 46-50 - COMPLETE ✅
 
 ### 46. journal_entry
 - Basic Create: ✅ TestAccJournalEntryResource_basic
