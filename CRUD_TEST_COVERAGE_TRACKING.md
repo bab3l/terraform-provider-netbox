@@ -280,7 +280,7 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 - Update Test: ✅ TestAccInventoryItemTemplateResource_update
 - **Status:** COMPLETE ✅
 
-## Batch 9: Resources 41-45
+## Batch 9: Resources 41-45 - COMPLETE ✅
 
 ### 41. ip_address
 - Basic Create: ✅ TestAccIPAddressResource_basic
