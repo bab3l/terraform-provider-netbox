@@ -308,21 +308,230 @@ func TestAccCircuitResource_import(t *testing.T) {
 
 }
 
-func TestAccConsistency_Circuit(t *testing.T) {
+func TestAccCircuitResource_importWithCustomFieldsAndTags(t *testing.T) {
+	t.Parallel()
 
+	cid := testutil.RandomName("tf-test-circuit")
+	providerSlug := testutil.RandomSlug("tf-test-provider")
+	providerName := providerSlug
+	typeSlug := testutil.RandomSlug("tf-test-circuit-type")
+	typeName := typeSlug
+	tenantName := testutil.RandomName("tf-test-tenant")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitCleanup(cid)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(typeSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckCircuitDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitResourceImportConfig_full(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+				),
+			},
+			{
+				ResourceName:            "netbox_circuit.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"circuit_provider", "type", "tenant", "custom_fields", "tags"},
+			},
+		},
+	})
+}
+
+func testAccCircuitResourceImportConfig_full(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug string) string {
+	// Generate test data for all custom field types
+	textValue := testutil.RandomName("text-value")
+	longtextValue := testutil.RandomName("longtext-value") + "\nThis is a multiline text field for comprehensive testing."
+	intValue := 42 // Fixed value for reproducibility
+	boolValue := true
+	dateValue := testutil.RandomDate()
+	urlValue := testutil.RandomURL("test-url")
+	jsonValue := testutil.RandomJSON()
+
+	// Tag names
+	tag1 := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2 := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	// Custom field names
+	cfText := testutil.RandomCustomFieldName("tf_text")
+	cfLongtext := testutil.RandomCustomFieldName("tf_longtext")
+	cfInteger := testutil.RandomCustomFieldName("tf_integer")
+	cfBoolean := testutil.RandomCustomFieldName("tf_boolean")
+	cfDate := testutil.RandomCustomFieldName("tf_date")
+	cfURL := testutil.RandomCustomFieldName("tf_url")
+	cfJSON := testutil.RandomCustomFieldName("tf_json")
+	return fmt.Sprintf(`
+# Dependencies
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+# Tags
+resource "netbox_tag" "tag1" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %q
+  slug = %q
+}
+
+# Custom Fields for circuits.circuit object type
+resource "netbox_custom_field" "test_text" {
+  name         = %q
+  label        = "Test Text CF"
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "test_longtext" {
+  name         = %q
+  label        = "Test Longtext CF"
+  type         = "longtext"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "test_integer" {
+  name         = %q
+  label        = "Test Integer CF"
+  type         = "integer"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "test_boolean" {
+  name         = %q
+  label        = "Test Boolean CF"
+  type         = "boolean"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "test_date" {
+  name         = %q
+  label        = "Test Date CF"
+  type         = "date"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "test_url" {
+  name         = %q
+  label        = "Test URL CF"
+  type         = "url"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "test_json" {
+  name         = %q
+  label        = "Test JSON CF"
+  type         = "json"
+  object_types = ["circuits.circuit"]
+}
+
+# Circuit with comprehensive custom fields and tags
+resource "netbox_circuit" "test" {
+  cid              = %q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+  status           = "active"
+  tenant           = netbox_tenant.test.id
+
+  tags = [
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    },
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    }
+  ]
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.test_text.name
+      type  = "text"
+      value = %q
+    },
+    {
+      name  = netbox_custom_field.test_longtext.name
+      type  = "longtext"
+      value = %q
+    },
+    {
+      name  = netbox_custom_field.test_integer.name
+      type  = "integer"
+      value = "%d"
+    },
+    {
+      name  = netbox_custom_field.test_boolean.name
+      type  = "boolean"
+      value = "%t"
+    },
+    {
+      name  = netbox_custom_field.test_date.name
+      type  = "date"
+      value = %q
+    },
+    {
+      name  = netbox_custom_field.test_url.name
+      type  = "url"
+      value = %q
+    },
+    {
+      name  = netbox_custom_field.test_json.name
+      type  = "json"
+      value = %q
+    },
+  ]
+
+  depends_on = [
+    netbox_custom_field.test_text,
+    netbox_custom_field.test_longtext,
+    netbox_custom_field.test_integer,
+    netbox_custom_field.test_boolean,
+    netbox_custom_field.test_date,
+    netbox_custom_field.test_url,
+    netbox_custom_field.test_json,
+  ]
+}
+`, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug,
+		tag1, tag1Slug, tag2, tag2Slug,
+		cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
+		cid, textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue)
+}
+
+func TestAccConsistency_Circuit(t *testing.T) {
 	t.Parallel()
 	cid := testutil.RandomName("cid")
-
 	providerName := testutil.RandomName("provider")
-
 	providerSlug := testutil.RandomSlug("provider")
-
 	typeName := testutil.RandomName("type")
-
 	typeSlug := testutil.RandomSlug("type")
-
 	tenantName := testutil.RandomName("tenant")
-
 	tenantSlug := testutil.RandomSlug("tenant")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -332,38 +541,24 @@ func TestAccConsistency_Circuit(t *testing.T) {
 	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccCircuitConsistencyConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
-
 					resource.TestCheckResourceAttrSet("netbox_circuit.test", "circuit_provider"),
-
 					resource.TestCheckResourceAttrSet("netbox_circuit.test", "type"),
-
 					resource.TestCheckResourceAttrSet("netbox_circuit.test", "tenant"),
 				),
 			},
-
 			{
-
 				PlanOnly: true,
-
-				Config: testAccCircuitConsistencyConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
+				Config:   testAccCircuitConsistencyConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
 			},
 		},
 	})
-
 }
 
 func TestAccConsistency_Circuit_LiteralNames(t *testing.T) {
