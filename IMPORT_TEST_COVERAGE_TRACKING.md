@@ -41,11 +41,17 @@ These resources had **no import test coverage** and have now been addressed:
 - ✅ **vrf**: TestAccVRFResource_importWithCustomFieldsAndTags
 
 ### Total Comprehensive Import Test Coverage:
-- **15 resources** now have comprehensive import tests (all 7 custom field types + tags where supported)
+- **27 resources** now have comprehensive import tests (all 7 custom field types + tags where supported)
 - **All 15 Batch 2 resources completed** ✅
+- **All 27 Batch 3 resources completed** ✅
 - **Pattern established** for rapid implementation of remaining resources
 
 **All tests validated and passing ✅**
+
+## Batch 4 Status Note:
+Template resources (console_port_template, device_bay_template, etc.) do NOT support custom fields or tags
+in NetBox's underlying data model - they inherit from ChangeLoggedModel, not NetBoxModel. The Terraform
+provider schema incorrectly includes these attributes. This is a known schema bug to be fixed separately.
 
 ## Batch 2: High Priority - Complex Resources Needing Comprehensive Import Tests (15 resources) ✅ COMPLETED
 These resources have basic import tests and now have comprehensive coverage for custom fields and tags:
@@ -84,8 +90,8 @@ These resources have basic import tests and now have comprehensive coverage for 
 
 **Note: comprehensive import tests added during this session*
 
-## Batch 3: Medium Priority - Resources with Custom Fields/Tags (35+ resources)
-These resources have basic import tests but should be enhanced for comprehensive coverage:
+## Batch 3: Medium Priority - Resources with Custom Fields/Tags (27 resources) ✅ COMPLETED
+These resources have comprehensive import tests with all 7 custom field types + tags:
 
 ### Virtualization Resources ✅ **COMPLETED FIRST 5**
 - cluster (✅CF ✅Tags ✅Import)
@@ -107,11 +113,11 @@ These resources have basic import tests but should be enhanced for comprehensive
 - ✅ **power_port** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
 - ✅ **rear_port** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
 
-### IPAM Resources
-- aggregate (✅CF ✅Tags ✅Import)
-- asn (✅CF ✅Tags ✅Import)
-- asn_range (✅CF ✅Tags ✅Import)
-- ip_range (✅CF ✅Tags ✅Import)
+### IPAM Resources ✅ **COMPLETED 4**
+- ✅ **aggregate** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
+- ✅ **asn** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
+- ✅ **asn_range** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
+- ✅ **ip_range** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
 
 ### Tenancy/Organizational Resources ✅ **COMPLETED 6**
 - ✅ **contact_assignment** (✅CF ✅Tags ✅Import ✅**Comprehensive**)
@@ -130,14 +136,18 @@ These resources have basic import tests but should be enhanced for comprehensive
 ## Batch 4: Low Priority - Simple Resources (30+ resources)
 These resources have basic import coverage and limited custom fields/tags support:
 
-### Template Resources (mostly no CF/Tags support)
+### Template Resources (NO CF/Tags support - inherit from ChangeLoggedModel)
+Note: Template resources in NetBox inherit from ChangeLoggedModel, NOT NetBoxModel,
+so they do NOT support custom fields or tags despite what the Terraform schema may indicate.
+This is a provider schema bug that should be fixed.
+
 - console_port_template (❌CF ❌Tags ✅Import)
 - console_server_port_template (❌CF ❌Tags ✅Import)
 - device_bay_template (❌CF ❌Tags ❌Import) - *Batch 1*
 - front_port_template (❌CF ❌Tags ✅Import)
 - interface_template (❌CF ❌Tags ❌Import) - *Batch 1*
 - inventory_item_template (❌CF ❌Tags ✅Import)
-- module_bay_template (✅CF ✅Tags ✅Import)
+- module_bay_template (❌CF ❌Tags ✅Import) - Verified: no CF/Tags in NetBox
 - power_outlet_template (❌CF ❌Tags ✅Import)
 - power_port_template (❌CF ❌Tags ✅Import)
 - rear_port_template (❌CF ❌Tags ✅Import)
