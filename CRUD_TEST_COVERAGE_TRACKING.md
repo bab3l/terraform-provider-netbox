@@ -88,19 +88,19 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 - Update Test: ✅ TestAccClusterTypeResource_update
 - **Status:** COMPLETE ✅
 
-## Batch 3: Resources 11-15
+## Batch 3: Resources 11-15 - COMPLETE ✅
 
 ### 11. config_context
 - Basic Create: ✅ TestAccConfigContextResource_basic
-- Full Create: 🔍 (needs field coverage review)
+- Full Create: ✅ TestAccConfigContextResource_full (enhanced: weight, is_active, sites, tenants, tags assignment criteria)
 - Update Test: ✅ TestAccConfigContextResource_update
-- **Status:** REVIEW NEEDED
+- **Status:** COMPLETE ✅
 
 ### 12. config_template
 - Basic Create: ✅ TestAccConfigTemplateResource_basic
-- Full Create: 🔍 (needs field coverage review)
+- Full Create: ✅ TestAccConfigTemplateResource_full
 - Update Test: ✅ TestAccConfigTemplateResource_update
-- **Status:** REVIEW NEEDED
+- **Status:** COMPLETE ✅
 
 ### 13. console_port
 - Basic Create: ✅ TestAccConsolePortResource_basic
