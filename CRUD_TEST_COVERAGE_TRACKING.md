@@ -538,7 +538,7 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 - Update Test: ✅ TestAccTenantResource_update
 - **Status:** COMPLETE ✅
 
-## Batch 17: Resources 81-85
+## Batch 17: Resources 81-85 - COMPLETE ✅
 
 ### 81. tenant_group
 - Basic Create: ✅ TestAccTenantGroupResource_basic
@@ -560,15 +560,15 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 
 ### 84. tunnel_termination
 - Basic Create: ✅ TestAccTunnelTerminationResource_basic
-- Full Create: 🔍 (needs field coverage review)
+- Full Create: ✅ TestAccTunnelTerminationResource_full (created with outside_ip, tags, custom_fields)
 - Update Test: ✅ TestAccTunnelTerminationResource_update
-- **Status:** REVIEW NEEDED
+- **Status:** COMPLETE ✅
 
 ### 85. virtual_chassis
 - Basic Create: ✅ TestAccVirtualChassisResource_basic
-- Full Create: ✅ TestAccVirtualChassisResource_full
-- Update Test: 🔍 (needs verification)
-- **Status:** REVIEW NEEDED
+- Full Create: ✅ TestAccVirtualChassisResource_full (enhanced with tags, custom_fields)
+- Update Test: ✅ TestAccVirtualChassisResource_full (includes update step)
+- **Status:** COMPLETE ✅
 
 ## Batch 18: Resources 86-89
 
