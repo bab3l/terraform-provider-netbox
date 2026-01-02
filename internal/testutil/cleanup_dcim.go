@@ -1117,3 +1117,29 @@ func (c *CleanupResource) RegisterVirtualChassisCleanup(name string) {
 	})
 
 }
+
+// RegisterInventoryItemCleanup registers an inventory item for cleanup during test execution.
+
+func (c *CleanupResource) RegisterInventoryItemCleanup(id int32, name string) {
+
+	c.t.Cleanup(func() {
+
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+		defer cancel()
+
+		_, err := c.client.DcimAPI.DcimInventoryItemsDestroy(ctx, id).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to delete inventory item %d (name: %s): %v", id, name, err)
+
+		} else {
+
+			c.t.Logf("Cleanup: successfully deleted inventory item %d (name: %s)", id, name)
+
+		}
+
+	})
+
+}
