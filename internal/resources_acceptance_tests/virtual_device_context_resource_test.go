@@ -90,6 +90,75 @@ func TestAccVirtualDeviceContextResource_basic(t *testing.T) {
 
 }
 
+func TestAccVirtualDeviceContextResource_full(t *testing.T) {
+
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-full")
+	siteSlug := testutil.RandomSlug("tf-test-site-full")
+	mfgName := testutil.RandomName("tf-test-mfg-full")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-full")
+	dtModel := testutil.RandomName("tf-test-dt-full")
+	dtSlug := testutil.RandomSlug("tf-test-dt-full")
+	roleName := testutil.RandomName("tf-test-role-full")
+	roleSlug := testutil.RandomSlug("tf-test-role-full")
+	deviceName := testutil.RandomName("tf-test-device-full")
+	vdcName := testutil.RandomName("tf-test-vdc-full")
+	tenantName := testutil.RandomName("tf-test-tenant-full")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-full")
+	description := testutil.RandomName("description")
+	updatedDescription := testutil.RandomName("updated-description")
+	comments := testutil.RandomName("comments")
+	updatedComments := testutil.RandomName("updated-comments")
+	tagName1 := testutil.RandomName("tag1")
+	tagSlug1 := testutil.RandomSlug("tag1")
+	tagName2 := testutil.RandomName("tag2")
+	tagSlug2 := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckVirtualDeviceContextDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualDeviceContextResourceConfig_fullWithAllFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_device_context.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "name", vdcName),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "identifier", "100"),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "comments", comments),
+					resource.TestCheckResourceAttrSet("netbox_virtual_device_context.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_device_context.test", "primary_ip4"),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "tags.#", "2"),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "custom_fields.#", "1"),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "custom_fields.0.value", "test_value"),
+				),
+			},
+			{
+				Config: testAccVirtualDeviceContextResourceConfig_fullWithAllFieldsUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, updatedDescription, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "identifier", "200"),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "description", updatedDescription),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "comments", updatedComments),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "custom_fields.0.value", "updated_value"),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccVirtualDeviceContextResource_update(t *testing.T) {
 
 	t.Parallel()
@@ -389,6 +458,200 @@ resource "netbox_virtual_device_context" "test" {
 
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName)
 
+}
+
+func testAccVirtualDeviceContextResourceConfig_fullWithAllFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
+	cfName := testutil.RandomCustomFieldName("test_field")
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[5]q
+  slug = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_device" "test" {
+  name = %[9]q
+  device_type = netbox_device_type.test.id
+  role = netbox_device_role.test.id
+  site = netbox_site.test.id
+}
+
+resource "netbox_tenant" "test" {
+  name = %[11]q
+  slug = %[12]q
+}
+
+resource "netbox_tag" "tag1" {
+  name = %[15]q
+  slug = %[16]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[17]q
+  slug = %[18]q
+}
+
+resource "netbox_custom_field" "test_field" {
+  name         = %[19]q
+  object_types = ["dcim.virtualdevicecontext"]
+  type         = "text"
+}
+
+resource "netbox_interface" "test" {
+  name   = "eth0"
+  device = netbox_device.test.id
+  type   = "1000base-t"
+}
+
+resource "netbox_ip_address" "test" {
+  address = "192.0.2.1/32"
+  status  = "active"
+  assigned_object_type = "dcim.interface"
+  assigned_object_id   = netbox_interface.test.id
+}
+
+resource "netbox_virtual_device_context" "test" {
+  name = %[10]q
+  device = netbox_device.test.id
+  status = "active"
+  identifier = 100
+  tenant = netbox_tenant.test.id
+  primary_ip4 = netbox_ip_address.test.id
+  description = %[13]q
+  comments = %[14]q
+
+  tags = [
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    },
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    }
+  ]
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.test_field.name
+      type  = "text"
+      value = "test_value"
+    }
+  ]
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+}
+
+func testAccVirtualDeviceContextResourceConfig_fullWithAllFieldsUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
+	cfName := testutil.RandomCustomFieldName("test_field")
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[5]q
+  slug = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_device" "test" {
+  name = %[9]q
+  device_type = netbox_device_type.test.id
+  role = netbox_device_role.test.id
+  site = netbox_site.test.id
+}
+
+resource "netbox_tenant" "test" {
+  name = %[11]q
+  slug = %[12]q
+}
+
+resource "netbox_tag" "tag1" {
+  name = %[15]q
+  slug = %[16]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[17]q
+  slug = %[18]q
+}
+
+resource "netbox_custom_field" "test_field" {
+  name         = %[19]q
+  object_types = ["dcim.virtualdevicecontext"]
+  type         = "text"
+}
+
+resource "netbox_interface" "test" {
+  name   = "eth0"
+  device = netbox_device.test.id
+  type   = "1000base-t"
+}
+
+resource "netbox_ip_address" "test" {
+  address = "192.0.2.1/32"
+  status  = "active"
+  assigned_object_type = "dcim.interface"
+  assigned_object_id   = netbox_interface.test.id
+}
+
+resource "netbox_virtual_device_context" "test" {
+  name = %[10]q
+  device = netbox_device.test.id
+  status = "active"
+  identifier = 200
+  tenant = netbox_tenant.test.id
+  primary_ip4 = netbox_ip_address.test.id
+  description = %[13]q
+  comments = %[14]q
+
+  tags = [
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    },
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    }
+  ]
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.test_field.name
+      type  = "text"
+      value = "updated_value"
+    }
+  ]
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
 }
 
 func testAccVirtualDeviceContextResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, description string) string {
