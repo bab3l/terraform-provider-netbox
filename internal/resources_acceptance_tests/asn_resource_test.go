@@ -71,8 +71,9 @@ func TestAccASNResource_full(t *testing.T) {
 	t.Parallel()
 
 	rirName := testutil.RandomName("tf-test-rir")
-
 	rirSlug := testutil.RandomSlug("tf-test-rir")
+	tenantName := testutil.RandomName("tf-test-tenant")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant")
 
 	// Generate a random ASN in the private range (64512-65534)
 
@@ -84,6 +85,7 @@ func TestAccASNResource_full(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
 
@@ -98,7 +100,7 @@ func TestAccASNResource_full(t *testing.T) {
 
 			{
 
-				Config: testAccASNResourceConfig_full(rirName, rirSlug, asn, description, testutil.Comments),
+				Config: testAccASNResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, asn, description, testutil.Comments),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -111,12 +113,14 @@ func TestAccASNResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_asn.test", "comments", testutil.Comments),
 
 					resource.TestCheckResourceAttrSet("netbox_asn.test", "rir"),
+
+					resource.TestCheckResourceAttrSet("netbox_asn.test", "tenant"),
 				),
 			},
 
 			{
 
-				Config: testAccASNResourceConfig_full(rirName, rirSlug, asn, updatedDescription, testutil.Comments),
+				Config: testAccASNResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, asn, updatedDescription, testutil.Comments),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -264,31 +268,29 @@ resource "netbox_asn" "test" {
 
 }
 
-func testAccASNResourceConfig_full(rirName, rirSlug string, asn int64, description, comments string) string {
+func testAccASNResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug string, asn int64, description, comments string) string {
 
 	return fmt.Sprintf(`
 
 resource "netbox_rir" "test" {
-
   name = %q
-
   slug = %q
+}
 
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
 }
 
 resource "netbox_asn" "test" {
-
   asn         = %d
-
   rir         = netbox_rir.test.id
-
+  tenant      = netbox_tenant.test.id
   description = %q
-
   comments    = %q
-
 }
 
-`, rirName, rirSlug, asn, description, comments)
+`, rirName, rirSlug, tenantName, tenantSlug, asn, description, comments)
 
 }
 

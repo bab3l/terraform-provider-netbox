@@ -101,17 +101,18 @@ func TestAccAggregateResource_full(t *testing.T) {
 	t.Parallel()
 
 	rirName := testutil.RandomName("tf-test-rir-full")
-
 	rirSlug := testutil.RandomSlug("tf-test-rir-full")
-
+	tenantName := testutil.RandomName("tf-test-tenant-full")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-full")
 	prefix := testutil.RandomIPv4Prefix()
-
 	description := testutil.RandomName("description")
-
 	updatedDescription := "Updated aggregate description"
+	dateAdded := "2024-01-15"
+	updatedDate := "2024-06-20"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
 
@@ -126,7 +127,7 @@ func TestAccAggregateResource_full(t *testing.T) {
 
 			{
 
-				Config: testAccAggregateResourceConfig_full(rirName, rirSlug, prefix, description, testutil.Comments),
+				Config: testAccAggregateResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, prefix, description, testutil.Comments, dateAdded),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -137,16 +138,22 @@ func TestAccAggregateResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_aggregate.test", "description", description),
 
 					resource.TestCheckResourceAttr("netbox_aggregate.test", "comments", testutil.Comments),
+
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "tenant"),
+
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "date_added", dateAdded),
 				),
 			},
 
 			{
 
-				Config: testAccAggregateResourceConfig_full(rirName, rirSlug, prefix, updatedDescription, testutil.Comments),
+				Config: testAccAggregateResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, prefix, updatedDescription, testutil.Comments, updatedDate),
 
 				Check: resource.ComposeTestCheckFunc(
 
 					resource.TestCheckResourceAttr("netbox_aggregate.test", "description", updatedDescription),
+
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "date_added", updatedDate),
 				),
 			},
 		},
@@ -221,31 +228,30 @@ resource "netbox_aggregate" "test" {
 `, rirName, rirSlug, prefix, description)
 }
 
-func testAccAggregateResourceConfig_full(rirName, rirSlug, prefix, description, comments string) string {
+func testAccAggregateResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, prefix, description, comments, dateAdded string) string {
 
 	return fmt.Sprintf(`
 
 resource "netbox_rir" "test" {
-
   name = %q
-
   slug = %q
+}
 
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
 }
 
 resource "netbox_aggregate" "test" {
-
   prefix      = %q
-
   rir         = netbox_rir.test.id
-
+  tenant      = netbox_tenant.test.id
   description = %q
-
   comments    = %q
-
+  date_added  = %q
 }
 
-`, rirName, rirSlug, prefix, description, comments)
+`, rirName, rirSlug, tenantName, tenantSlug, prefix, description, comments, dateAdded)
 
 }
 
