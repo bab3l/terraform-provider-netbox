@@ -184,7 +184,7 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 - Update Test: ✅ TestAccDeviceBayResource_update
 - **Status:** COMPLETE ✅
 
-## Batch 6: Resources 26-30
+## Batch 6: Resources 26-30 - COMPLETE ✅
 
 ### 26. device_bay_template
 - Basic Create: ✅ TestAccDeviceBayTemplateResource_basic
