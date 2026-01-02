@@ -216,7 +216,7 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 - Update Test: ✅ TestAccFHRPGroupResource_update
 - **Status:** COMPLETE ✅
 
-## Batch 7: Resources 31-35
+## Batch 7: Resources 31-35 - COMPLETE ✅
 
 ### 31. fhrp_group_assignment
 - Basic Create: ✅ TestAccFHRPGroupAssignmentResource_basic
