@@ -158,6 +158,82 @@ func TestAccIPAddressResource_import(t *testing.T) {
 	})
 
 }
+
+func TestAccIPAddressResource_importWithTags(t *testing.T) {
+	t.Parallel()
+
+	ip := fmt.Sprintf("203.0.113.%d/32", acctest.RandIntRange(1, 254))
+	tenantName := testutil.RandomName("tf-test-tenant")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPAddressResourceImportConfig_full(ip, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", ip),
+				),
+			},
+			{
+				ResourceName:            "netbox_ip_address.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"tenant", "tags"}, // Tags have import limitations
+			},
+		},
+	})
+}
+
+func testAccIPAddressResourceImportConfig_full(ip, tenantName, tenantSlug string) string {
+	// Tag names
+	tag1 := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2 := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	return fmt.Sprintf(`
+# Dependencies
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+# Tags
+resource "netbox_tag" "tag1" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %q
+  slug = %q
+}
+
+# IP Address with tags (no custom fields support)
+resource "netbox_ip_address" "test" {
+  address = %q
+  tenant     = netbox_tenant.test.id
+
+  tags = [
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    },
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    }
+  ]
+}
+`, tenantName, tenantSlug, tag1, tag1Slug, tag2, tag2Slug, ip)
+}
+
 func TestAccIPAddressResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 

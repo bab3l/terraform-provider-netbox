@@ -410,3 +410,84 @@ resource "netbox_prefix" "test" {
 }
 `, prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName, vlanVid)
 }
+
+func TestAccPrefixResource_importWithTags(t *testing.T) {
+	t.Parallel()
+
+	prefix := testutil.RandomIPv4Prefix()
+	tenantName := testutil.RandomName("tenant")
+	tenantSlug := testutil.RandomSlug("tenant")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckPrefixDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPrefixResourceImportConfig_full(prefix, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
+					// Verify tags are applied
+					resource.TestCheckResourceAttr("netbox_prefix.test", "tags.#", "2"),
+				),
+			},
+			{
+				ResourceName:            "netbox_prefix.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"tenant"}, // Tenant may have lookup inconsistencies
+			},
+		},
+	})
+}
+
+func testAccPrefixResourceImportConfig_full(prefix, tenantName, tenantSlug string) string {
+	// Tag names
+	tag1 := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2 := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	return fmt.Sprintf(`
+# Dependencies
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+# Tags
+resource "netbox_tag" "tag1" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %q
+  slug = %q
+}
+
+# Prefix with tags (no custom fields support)
+resource "netbox_prefix" "test" {
+  prefix = %q
+  tenant = netbox_tenant.test.id
+
+  tags = [
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    },
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    }
+  ]
+}
+`, tenantName, tenantSlug, tag1, tag1Slug, tag2, tag2Slug, prefix)
+}
