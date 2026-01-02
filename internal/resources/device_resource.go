@@ -122,8 +122,9 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				},
 			},
 			"airflow": schema.StringAttribute{
-				MarkdownDescription: "Direction of airflow through the device. Valid values: 'front-to-rear', 'rear-to-front', 'left-to-right', 'right-to-left', 'side-to-rear', 'passive', 'mixed'.",
+				MarkdownDescription: "Direction of airflow through the device. Valid values: 'front-to-rear', 'rear-to-front', 'left-to-right', 'right-to-left', 'side-to-rear', 'passive', 'mixed'. If not specified, NetBox may assign a default value based on the device type.",
 				Optional:            true,
+				Computed:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("front-to-rear", "rear-to-front", "left-to-right", "right-to-left", "side-to-rear", "passive", "mixed", ""),
 				},
@@ -772,7 +773,7 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	}
 
 	// Handle tags
-	if device.HasTags() {
+	if device.HasTags() && len(device.GetTags()) > 0 {
 		tags := utils.NestedTagsToTagModels(device.GetTags())
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
 		diags.Append(tagDiags...)
@@ -781,11 +782,22 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		}
 		data.Tags = tagsValue
 	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+		// If user hasn't configured tags (null), keep null. If user configured empty set, preserve empty set.
+		if data.Tags.IsNull() {
+			data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+		} else {
+			// User had configured tags (possibly empty set), preserve as empty set
+			emptyTags, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, []utils.TagModel{})
+			diags.Append(tagDiags...)
+			if diags.HasError() {
+				return
+			}
+			data.Tags = emptyTags
+		}
 	}
 
 	// Handle custom fields
-	if device.HasCustomFields() && !data.CustomFields.IsNull() {
+	if device.HasCustomFields() && len(device.GetCustomFields()) > 0 && !data.CustomFields.IsNull() {
 		var stateCustomFields []utils.CustomFieldModel
 		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
 		diags.Append(cfDiags...)
@@ -799,7 +811,18 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 			return
 		}
 		data.CustomFields = customFieldsValue
-	} else if data.CustomFields.IsNull() {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	} else {
+		// If user hasn't configured custom fields (null), keep null. If user configured empty set, preserve empty set.
+		if data.CustomFields.IsNull() {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		} else {
+			// User had configured custom fields (possibly empty set), preserve as empty set
+			emptyCF, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, []utils.CustomFieldModel{})
+			diags.Append(cfDiags...)
+			if diags.HasError() {
+				return
+			}
+			data.CustomFields = emptyCF
+		}
 	}
 }

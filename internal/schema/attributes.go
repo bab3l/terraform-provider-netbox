@@ -382,9 +382,10 @@ func FacilityAttribute() schema.StringAttribute {
 
 func TagsAttribute() schema.SetNestedAttribute {
 	return schema.SetNestedAttribute{
-		MarkdownDescription: "Tags assigned to this resource. Tags must already exist in Netbox.",
+		MarkdownDescription: "Tags assigned to this resource. Tags must already exist in Netbox. If not specified, the resource will have no tags.",
 
 		Optional: true,
+		Computed: true,
 
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
@@ -418,9 +419,10 @@ func TagsAttribute() schema.SetNestedAttribute {
 
 func CustomFieldsAttribute() schema.SetNestedAttribute {
 	return schema.SetNestedAttribute{
-		MarkdownDescription: "Custom fields assigned to this resource. Custom fields must be defined in Netbox before use.",
+		MarkdownDescription: "Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. If not specified, the resource will have no custom fields.",
 
 		Optional: true,
+		Computed: true,
 
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
