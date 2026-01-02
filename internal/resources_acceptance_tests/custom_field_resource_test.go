@@ -86,7 +86,7 @@ func TestAccCustomFieldResource_full(t *testing.T) {
 
 			{
 
-				Config: testAccCustomFieldResourceConfig_full(name, description),
+				Config: testAccCustomFieldResourceConfig_full(name, description, "Custom Label", "Group A", 2000, "exact", "if-set", "no", true),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -98,21 +98,51 @@ func TestAccCustomFieldResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_custom_field.test", "description", description),
 
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "label", "Custom Label"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "group_name", "Group A"),
+
 					resource.TestCheckResourceAttr("netbox_custom_field.test", "required", "false"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "search_weight", "2000"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "filter_logic", "exact"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "ui_visible", "if-set"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "ui_editable", "no"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "is_cloneable", "true"),
 
 					resource.TestCheckResourceAttr("netbox_custom_field.test", "validation_minimum", "1"),
 
 					resource.TestCheckResourceAttr("netbox_custom_field.test", "validation_maximum", "100"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "weight", "50"),
 				),
 			},
 
 			{
 
-				Config: testAccCustomFieldResourceConfig_full(name, updatedDescription),
+				Config: testAccCustomFieldResourceConfig_full(name, updatedDescription, "Updated Label", "Group B", 3000, "loose", "always", "yes", false),
 
 				Check: resource.ComposeTestCheckFunc(
 
 					resource.TestCheckResourceAttr("netbox_custom_field.test", "description", updatedDescription),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "label", "Updated Label"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "group_name", "Group B"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "search_weight", "3000"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "filter_logic", "loose"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "ui_visible", "always"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "ui_editable", "yes"),
+
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "is_cloneable", "false"),
 				),
 			},
 		},
@@ -329,7 +359,7 @@ func TestAccCustomFieldResource_digitStartingName(t *testing.T) {
 	})
 }
 
-func testAccCustomFieldResourceConfig_full(name, description string) string {
+func testAccCustomFieldResourceConfig_full(name, description, label, groupName string, searchWeight int, filterLogic, uiVisible, uiEditable string, isCloneable bool) string {
 
 	return fmt.Sprintf(`
 
@@ -343,7 +373,21 @@ resource "netbox_custom_field" "test" {
 
   description        = %q
 
+  label              = %q
+
+  group_name         = %q
+
   required           = false
+
+  search_weight      = %d
+
+  filter_logic       = %q
+
+  ui_visible         = %q
+
+  ui_editable        = %q
+
+  is_cloneable       = %t
 
   validation_minimum = 1
 
@@ -353,7 +397,7 @@ resource "netbox_custom_field" "test" {
 
 }
 
-`, name, description)
+`, name, description, label, groupName, searchWeight, filterLogic, uiVisible, uiEditable, isCloneable)
 
 }
 

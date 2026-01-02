@@ -152,25 +152,25 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 - Update Test: ✅ TestAccContactRoleResource_update
 - **Status:** COMPLETE ✅
 
-## Batch 5: Resources 21-25
+## Batch 5: Resources 21-25 - COMPLETE ✅
 
 ### 21. custom_field
 - Basic Create: ✅ TestAccCustomFieldResource_basic
-- Full Create: 🔍 (needs field coverage review)
+- Full Create: ✅ TestAccCustomFieldResource_full (enhanced: label, group_name, search_weight, filter_logic, ui_visible, ui_editable, is_cloneable)
 - Update Test: ✅ TestAccCustomFieldResource_update
-- **Status:** REVIEW NEEDED
+- **Status:** COMPLETE ✅
 
 ### 22. custom_field_choice_set
 - Basic Create: ✅ TestAccCustomFieldChoiceSetResource_basic
-- Full Create: 🔍 (needs field coverage review)
+- Full Create: ✅ TestAccCustomFieldChoiceSetResource_full
 - Update Test: ✅ TestAccCustomFieldChoiceSetResource_update
-- **Status:** REVIEW NEEDED
+- **Status:** COMPLETE ✅
 
 ### 23. custom_link
 - Basic Create: ✅ TestAccCustomLinkResource_basic
-- Full Create: 🔍 (needs field coverage review)
+- Full Create: ✅ TestAccCustomLinkResource_full
 - Update Test: ✅ TestAccCustomLinkResource_update
-- **Status:** REVIEW NEEDED
+- **Status:** COMPLETE ✅
 
 ### 24. device
 - Basic Create: ✅ TestAccDeviceResource_basic
