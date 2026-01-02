@@ -40,6 +40,12 @@ func TestAccL2VPNTerminationResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_l2vpn_termination.test", "assigned_object_id"),
 				),
 			},
+			{
+				// Test import
+				ResourceName:      "netbox_l2vpn_termination.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

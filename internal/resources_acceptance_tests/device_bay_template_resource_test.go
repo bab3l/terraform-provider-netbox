@@ -48,6 +48,13 @@ func TestAccDeviceBayTemplateResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_device_bay_template.test", "device_type"),
 				),
 			},
+			{
+				// Test import
+				ResourceName:            "netbox_device_bay_template.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"device_type"},
+			},
 		},
 	})
 

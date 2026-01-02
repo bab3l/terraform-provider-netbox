@@ -121,6 +121,41 @@ func RandomIPv6Address() string {
 	return fmt.Sprintf("fd00:%04x:%04x::%x/128", segment1, segment2, host)
 }
 
+// RandomColor generates a random hex color for tags.
+func RandomColor() string {
+	return fmt.Sprintf("%06x", acctest.RandIntRange(0, 16777215))
+}
+
+// RandomEmail generates a random email address for testing.
+func RandomEmail(prefix string) string {
+	return fmt.Sprintf("%s-%s@example.com", prefix, acctest.RandStringFromCharSet(6, acctest.CharSetAlphaNum))
+}
+
+// RandomURL generates a random URL for testing.
+func RandomURL(prefix string) string {
+	return fmt.Sprintf("https://%s-%s.example.com", prefix, acctest.RandStringFromCharSet(6, acctest.CharSetAlphaNum))
+}
+
+// RandomDate generates a random ISO date string for testing.
+func RandomDate() string {
+	year := acctest.RandIntRange(2020, 2025)
+	month := acctest.RandIntRange(1, 12)
+	day := acctest.RandIntRange(1, 28) // Safe day range for all months
+	return fmt.Sprintf("%d-%02d-%02d", year, month, day)
+}
+
+// RandomJSON generates a random JSON object for testing.
+func RandomJSON() string {
+	key := acctest.RandStringFromCharSet(6, acctest.CharSetAlpha)
+	value := acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum)
+	return fmt.Sprintf(`{"test_%s":"%s"}`, key, value)
+}
+
+// RandomCustomFieldName generates a random custom field name (alphanumeric + underscores only).
+func RandomCustomFieldName(prefix string) string {
+	return fmt.Sprintf("%s_%s", prefix, acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum))
+}
+
 // TestAccPreCheck validates the necessary test environment variables exist.
 // It should be called at the beginning of each acceptance test.
 func TestAccPreCheck(t interface {

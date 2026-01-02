@@ -36,6 +36,13 @@ func TestAccInterfaceTemplateResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_interface_template.test", "type", "1000base-t"),
 				),
 			},
+			{
+				// Test import
+				ResourceName:            "netbox_interface_template.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"device_type", "enabled"},
+			},
 		},
 	})
 
