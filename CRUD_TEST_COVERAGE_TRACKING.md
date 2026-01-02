@@ -376,13 +376,13 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 - Update Test: ✅ TestAccPlatformResource_update
 - **Status:** COMPLETE ✅
 
-## Batch 12: Resources 56-60
+## Batch 12: Resources 56-60 - COMPLETE ✅
 
 ### 56. power_feed
 - Basic Create: ✅ TestAccPowerFeedResource_basic
 - Full Create: ✅ TestAccPowerFeedResource_full
-- Update Test: 🔍 (needs verification)
-- **Status:** REVIEW NEEDED
+- Update Test: ✅ TestAccPowerFeedResource_full (includes update step)
+- **Status:** COMPLETE ✅
 
 ### 57. power_outlet
 - Basic Create: ✅ TestAccPowerOutletResource_basic
@@ -399,8 +399,8 @@ This document tracks Create, Read, Update, and Delete test coverage for all NetB
 ### 59. power_panel
 - Basic Create: ✅ TestAccPowerPanelResource_basic
 - Full Create: ✅ TestAccPowerPanelResource_full
-- Update Test: 🔍 (needs verification)
-- **Status:** REVIEW NEEDED
+- Update Test: ✅ TestAccPowerPanelResource_full (includes update step)
+- **Status:** COMPLETE ✅
 
 ### 60. power_port
 - Basic Create: ✅ TestAccPowerPortResource_basic
