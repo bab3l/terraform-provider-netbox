@@ -334,7 +334,8 @@ func TestAccCircuitTerminationResource_import(t *testing.T) {
 }
 
 func TestAccCircuitTerminationResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	providerName := testutil.RandomName("tf-test-provider")
 	providerSlug := testutil.RandomSlug("tf-test-provider")

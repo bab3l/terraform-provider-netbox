@@ -291,7 +291,8 @@ func TestAccVirtualChassisResource_externalDeletion(t *testing.T) {
 }
 
 func TestAccVirtualChassisResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	virtualChassisName := testutil.RandomName("virtual_chassis")
 	tenantName := testutil.RandomName("tenant")

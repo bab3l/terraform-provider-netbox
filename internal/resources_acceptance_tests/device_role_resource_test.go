@@ -230,7 +230,8 @@ func TestAccDeviceRoleResource_externalDeletion(t *testing.T) {
 // TestAccDeviceRoleResource_importWithCustomFieldsAndTags tests importing a device role
 // with custom fields and tags to ensure all data is preserved during import.
 func TestAccDeviceRoleResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	// Generate unique names
 	roleName := testutil.RandomName("tf-test-role-import")

@@ -7,6 +7,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // =====================================================
@@ -97,6 +98,7 @@ func ApplyTags[T TagsSetter](ctx context.Context, request T, tags types.Set, dia
 // Returns any diagnostics from converting the custom field models.
 func ApplyCustomFields[T CustomFieldsSetter](ctx context.Context, request T, customFields types.Set, diags *diag.Diagnostics) {
 	if !IsSet(customFields) {
+		tflog.Debug(ctx, "ApplyCustomFields: customFields is not set (null or unknown), skipping")
 		return
 	}
 
@@ -104,10 +106,19 @@ func ApplyCustomFields[T CustomFieldsSetter](ctx context.Context, request T, cus
 	cfDiags := customFields.ElementsAs(ctx, &models, false)
 	diags.Append(cfDiags...)
 	if diags.HasError() {
+		tflog.Error(ctx, "ApplyCustomFields: Error extracting models", map[string]interface{}{
+			"error": cfDiags,
+		})
 		return
 	}
 
-	request.SetCustomFields(CustomFieldModelsToMap(models))
+	cfMap := CustomFieldModelsToMap(models)
+	tflog.Debug(ctx, "ApplyCustomFields: Setting custom fields", map[string]interface{}{
+		"models_count": len(models),
+		"models":       models,
+		"map":          cfMap,
+	})
+	request.SetCustomFields(cfMap)
 }
 
 // ApplyDescriptiveFields sets both Description and Comments fields on a request.

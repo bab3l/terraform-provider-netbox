@@ -538,7 +538,8 @@ resource "netbox_front_port" "test" {
 }
 
 func TestAccFrontPortResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	portName := testutil.RandomName("front_port")
 	rearPortName := testutil.RandomName("rear_port")

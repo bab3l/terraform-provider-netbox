@@ -410,7 +410,8 @@ func TestAccDeviceTypeResource_externalDeletion(t *testing.T) {
 // TestAccDeviceTypeResource_importWithCustomFieldsAndTags tests importing a device type
 // with custom fields and tags to ensure all data is preserved during import.
 func TestAccDeviceTypeResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	// Generate unique names
 	model := testutil.RandomName("tf-test-dt-import")

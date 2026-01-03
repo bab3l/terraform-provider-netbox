@@ -240,7 +240,8 @@ resource "netbox_module" "test" {
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel)
 }
 func TestAccModuleResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")

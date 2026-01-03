@@ -400,7 +400,8 @@ resource "netbox_inventory_item" "test" {
 }
 
 func TestAccInventoryItemResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	itemName := testutil.RandomName("inventory_item")
 	deviceName := testutil.RandomName("device")

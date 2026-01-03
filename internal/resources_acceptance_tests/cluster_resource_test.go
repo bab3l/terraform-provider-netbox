@@ -574,7 +574,8 @@ resource "netbox_cluster" "test" {
 }
 
 func TestAccClusterResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	clusterName := testutil.RandomName("cluster")
 	clusterTypeName := testutil.RandomName("cluster_type")

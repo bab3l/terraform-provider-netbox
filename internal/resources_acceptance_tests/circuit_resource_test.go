@@ -309,7 +309,8 @@ func TestAccCircuitResource_import(t *testing.T) {
 }
 
 func TestAccCircuitResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	cid := testutil.RandomName("tf-test-circuit")
 	providerSlug := testutil.RandomSlug("tf-test-provider")

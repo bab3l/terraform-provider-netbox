@@ -728,7 +728,8 @@ resource "netbox_rear_port" "test" {
 }
 
 func TestAccRearPortResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")

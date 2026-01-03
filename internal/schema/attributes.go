@@ -415,6 +415,10 @@ func TagsAttribute() schema.SetNestedAttribute {
 }
 
 // CustomFieldsAttribute returns the standard custom fields set attribute for resources.
+// This is Optional-only because:
+// - Users explicitly manage custom field values in their configuration
+// - While NetBox can have defaults for custom fields, the Terraform configuration
+//   is the source of truth for managed resources
 
 func CustomFieldsAttribute() schema.SetNestedAttribute {
 	return schema.SetNestedAttribute{

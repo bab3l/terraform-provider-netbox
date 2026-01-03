@@ -698,7 +698,8 @@ resource "netbox_console_server_port" "test" {
 }
 
 func TestAccConsoleServerPortResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	portName := testutil.RandomName("console_server_port")
 	deviceName := testutil.RandomName("device")

@@ -312,7 +312,8 @@ func TestAccRackResource_import(t *testing.T) {
 }
 
 func TestAccRackResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	siteName := testutil.RandomName("tf-test-rack-site")
 	siteSlug := testutil.RandomSlug("tf-test-rack-site")

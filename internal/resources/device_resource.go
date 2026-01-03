@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -775,6 +776,11 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	}
 
 	// Handle tags - populate from API if available
+	// Determine if we should preserve empty set (config explicitly set it) or use null (config didn't specify)
+	// If state was previously an empty set, we should preserve it as empty set (not null)
+	// to maintain consistency when config has "tags = []"
+	wasTagsExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+
 	if device.HasTags() && len(device.GetTags()) > 0 {
 		tags := utils.NestedTagsToTagModels(device.GetTags())
 		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
@@ -784,7 +790,13 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		}
 		data.Tags = tagsValue
 	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+		// No tags from API
+		if wasTagsExplicitlyEmpty {
+			// Preserve empty set to maintain consistency with config
+			data.Tags = types.SetValueMust(utils.GetTagsAttributeType().ElemType, []attr.Value{})
+		} else {
+			data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+		}
 	}
 
 	// Handle custom fields - populate from API if available
@@ -795,6 +807,12 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		"state_custom_fields_null": data.CustomFields.IsNull(),
 		"state_cf_unknown":         data.CustomFields.IsUnknown(),
 	})
+
+	// Determine if we should preserve empty set (config explicitly set it) or use null (config didn't specify)
+	// If state was previously an empty set, we should preserve it as empty set (not null)
+	// to maintain consistency when config has "custom_fields = []"
+	wasExplicitlyEmpty := !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() && len(data.CustomFields.Elements()) == 0
+
 	if device.HasCustomFields() && len(device.GetCustomFields()) > 0 {
 		// If we have existing state custom fields, use them for type information (Create/Read/Update)
 		// Otherwise infer types from values (Import scenario)
@@ -834,10 +852,24 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 			}
 			data.CustomFields = customFieldsValue
 		} else {
-			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+			// No CF values from API, but check if state was explicitly empty set
+			if wasExplicitlyEmpty {
+				// Preserve empty set to maintain consistency with config
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+			}
 		}
 	} else {
-		tflog.Debug(ctx, "No custom fields from API, setting to null")
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		// No custom fields from API
+		tflog.Debug(ctx, "No custom fields from API")
+		if wasExplicitlyEmpty {
+			// Preserve empty set to maintain consistency with config
+			tflog.Debug(ctx, "Preserving empty custom_fields set")
+			data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+		} else {
+			tflog.Debug(ctx, "Setting custom_fields to null")
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
 	}
 }

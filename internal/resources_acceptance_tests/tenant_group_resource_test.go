@@ -300,7 +300,8 @@ func TestAccTenantGroupResource_externalDeletion(t *testing.T) {
 }
 
 func TestAccTenantGroupResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	groupName := testutil.RandomName("tenant_group")
 	groupSlug := testutil.RandomSlug("tenant_group")

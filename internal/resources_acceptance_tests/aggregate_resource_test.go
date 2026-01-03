@@ -480,7 +480,8 @@ func TestAccAggregateResource_externalDeletion(t *testing.T) {
 }
 
 func TestAccAggregateResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	prefix := testutil.RandomIPv4Prefix()
 	rirName := testutil.RandomName("rir")

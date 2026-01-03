@@ -334,7 +334,8 @@ resource "netbox_ip_range" "test" {
 }
 
 func TestAccIPRangeResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	startAddress := "192.0.2.1"
 	endAddress := "192.0.2.10"

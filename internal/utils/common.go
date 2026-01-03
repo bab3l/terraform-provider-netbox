@@ -420,12 +420,9 @@ type CustomFieldModel struct {
 
 func CustomFieldsToMap(customFields []CustomFieldModel) map[string]interface{} {
 
-	if len(customFields) == 0 {
-
-		return nil
-
-	}
-
+	// Always return a map, even if empty. An empty map {} means "no custom fields" which is
+	// different from nil. When custom_fields = [] is explicitly set in config, we want to send
+	// an empty map to NetBox to clear all custom fields.
 	result := make(map[string]interface{})
 
 	for _, cf := range customFields {

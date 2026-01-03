@@ -1088,7 +1088,8 @@ resource "netbox_vm_interface" "test" {
 // TestAccVMInterfaceResource_importWithCustomFieldsAndTags tests importing a VM interface
 // with custom fields and tags to ensure all data is preserved during import.
 func TestAccVMInterfaceResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	// Generate unique names
 	clusterTypeName := testutil.RandomName("tf-test-ct-import")

@@ -467,7 +467,8 @@ resource "netbox_power_port" "test" {
 }
 
 func TestAccPowerPortResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	powerPortName := testutil.RandomName("power_port")
 	deviceName := testutil.RandomName("device")

@@ -539,7 +539,8 @@ func TestAccModuleBayResource_external_deletion(t *testing.T) {
 }
 
 func TestAccModuleBayResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+	// that would affect other tests of the same resource type running in parallel.
 
 	bayName := testutil.RandomName("module_bay")
 	deviceName := testutil.RandomName("device")

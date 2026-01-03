@@ -10,8 +10,14 @@ import (
 
 // TestAccDeviceResource_importWithCustomFieldsAndTags tests importing a pre-existing device
 // that has various custom field types and tags properly imports all data.
+//
+// IMPORTANT: This test must NOT run in parallel with other device tests because:
+// NetBox custom fields are GLOBAL - when this test creates custom fields for "dcim.device",
+// they appear on ALL device objects in the system. When this test deletes its custom fields
+// during cleanup, other tests' devices may still have references to them, causing
+// "Unknown field name" errors when those tests try to update their devices.
 func TestAccDeviceResource_importWithCustomFieldsAndTags(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() intentionally omitted - see function comment above
 
 	// Generate unique names
 	deviceName := testutil.RandomName("tf-test-device-import")
