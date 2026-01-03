@@ -287,8 +287,9 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 
 ### Batch 11: Modules (3 resources) ✅
 **Resources:** module, module_bay, module_type
-**Line Changes:** module_resource.go -33 lines, module_bay_resource.go -33 lines, module_type_resource.go -33 lines (net -81 lines)
-**Build Status:** SUCCESS
+**Line Changes:** -33, -33, -33 (net -81 lines)
+**Test Results:** 17/17 tests passed
+**Commit:** f9a82c9
 
 ### Batch 12: Power (2 resources)
 **Resources:** power_feed, power_panel (if not in Batch 7)
