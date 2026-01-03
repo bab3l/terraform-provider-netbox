@@ -607,40 +607,10 @@ func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox
 	}
 
 	// Map tags
-
-	if result.HasTags() && len(result.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(result.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	data.Tags = utils.PopulateTagsFromAPI(ctx, result.HasTags(), result.GetTags(), data.Tags, diags)
 
 	// Map custom fields
-
-	if result.HasCustomFields() && len(result.GetCustomFields()) > 0 {
-		var existingModels []utils.CustomFieldModel
-
-		if !data.CustomFields.IsNull() {
-			elemDiags := data.CustomFields.ElementsAs(ctx, &existingModels, false)
-
-			diags.Append(elemDiags...)
-		}
-
-		customFields := utils.MapToCustomFieldModels(result.GetCustomFields(), existingModels)
-
-		cfValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfDiags...)
-
-		data.CustomFields = cfValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, result.HasCustomFields(), result.GetCustomFields(), data.CustomFields, diags)
 
 	// Map display_name
 }
