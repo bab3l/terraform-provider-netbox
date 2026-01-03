@@ -392,8 +392,44 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 ### Batch 28: Miscellaneous (3 resources)
 **Resources:** platform, fhrp_group, fhrp_group_assignment
 
-### Batch 29: Templates (10 resources)
-**Resources:** All `*_template` resources (console_port_template, etc.)
+### Batch 29: Templates (11 resources) ⚠️ PARTIAL
+**Resources:** All `*_template` resources
+**Status:** 9/11 have PlanOnly, 2 need completion
+**Remaining:** interface_template, service_template (need PlanOnly steps added)
+
+### Batch 30: PlanOnly Fixes - IPAM Supporting (4 resources)
+**Resources:** rir, role, route_target, vrf
+**Focus:** Add PlanOnly steps to ALL test functions (basic, update, import)
+**Note:** These resources may already use unified helpers - verify and add missing PlanOnly steps only
+
+```bash
+# Test command
+$env:TF_ACC="1"; go test -v -run 'TestAcc(RIR|Role|RouteTarget|VRF)Resource' ./internal/resources_acceptance_tests/ -timeout 30m
+```
+
+### Batch 31: PlanOnly Fixes - Tenancy (2 resources)
+**Resources:** tenant, tenant_group
+**Focus:** Add PlanOnly steps to ALL test functions (basic, update, import)
+**Note:** These resources already use PopulateCustomFieldsFromMap - just need PlanOnly steps
+
+```bash
+# Test command
+$env:TF_ACC="1"; go test -v -run 'TestAcc(Tenant|TenantGroup)Resource' ./internal/resources_acceptance_tests/ -timeout 30m
+```
+
+### Batch 32: PlanOnly Fixes - Remaining Resources (3 resources)
+**Resources:** webhook, interface_template, service_template
+**Focus:** Add PlanOnly steps to ALL test functions (basic, update, import)
+
+```bash
+# Test command
+$env:TF_ACC="1"; go test -v -run 'TestAcc(Webhook|InterfaceTemplate|ServiceTemplate)Resource' ./internal/resources_acceptance_tests/ -timeout 30m
+```
+
+### Batch 33: Missing Test Files (2 resources) ⚠️
+**Resources:** event_rule, notification_group
+**Status:** Test files don't exist yet
+**Action:** Either create comprehensive test files OR document as known gap
 
 ---
 
@@ -558,15 +594,17 @@ NetBox custom fields are **GLOBAL** - when a test creates a custom field for `dc
 | Phase | Work | Duration |
 |-------|------|----------|
 | Phase 1 | Helper consolidation | ✅ COMPLETE |
-| Phase 2-4 | Resource migration (101 resources) | ~25-30 hours |
+| Phase 2-4 | Resource migration (Batches 1-29) | ~25-30 hours (76% complete) |
+| Batches 30-33 | PlanOnly test fixes | ~2-3 hours |
 | Phase 5 | Test enhancements (~250 tests) | Included above |
 | Phase 6 | Verification | 2 hours |
 | Phase 7 | Cleanup | 30 minutes |
-| **TOTAL** | | **~28-33 hours** |
+| **TOTAL** | | **~30-36 hours** |
 
 **Per-resource estimate:** 15-20 minutes average
 - Simple resources (no CF/Tags): 5-10 minutes
 - Complex resources (with CF/Tags): 20-30 minutes
+- PlanOnly-only fixes: 10-15 minutes
 
 ---
 
@@ -574,13 +612,21 @@ NetBox custom fields are **GLOBAL** - when a test creates a custom field for `dc
 
 ### Completed
 - [x] Phase 1: Helper function consolidation
-- [x] device_resource.go helper migration
+- [x] Batches 1-24: 76 resources migrated, 4 skipped (meta resources)
 
 ### In Progress
-- [ ] Batch 1: device (test updates)
+- [ ] Batch 25: Events & Automation (next)
 
-### Pending
-- [ ] Batches 2-29 (100 resources)
+### Pending - Helper Migration
+- [ ] Batches 25-29 (21 resources need helper migration)
+
+### Pending - PlanOnly Test Fixes
+- [ ] Batch 30: IPAM Supporting (4 resources - rir, role, route_target, vrf)
+- [ ] Batch 31: Tenancy (2 resources - tenant, tenant_group)
+- [ ] Batch 32: Remaining (3 resources - webhook, interface_template, service_template)
+- [ ] Batch 33: Missing Test Files (2 resources - event_rule, notification_group)
+
+### Final
 - [ ] Phase 6: Verification
 - [ ] Phase 7: Cleanup
 
