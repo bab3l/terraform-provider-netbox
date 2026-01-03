@@ -325,6 +325,10 @@ func TestAccCircuitTerminationResource_import(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"circuit", "site"},
 			},
+			{
+				Config:   testAccCircuitTerminationResourceConfig_basic(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -342,6 +346,28 @@ func TestAccCircuitTerminationResource_importWithCustomFieldsAndTags(t *testing.
 	tenantName := testutil.RandomName("tf-test-tenant")
 	tenantSlug := testutil.RandomSlug("tf-test-tenant")
 
+	// Generate all random values for custom fields and tags
+	textValue := testutil.RandomName("text-value")
+	longtextValue := testutil.RandomName("longtext-value") + "\nThis is a multiline text field for comprehensive testing."
+	intValue := 42
+	boolValue := true
+	dateValue := testutil.RandomDate()
+	urlValue := testutil.RandomURL("test-url")
+	jsonValue := testutil.RandomJSON()
+
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cfText := testutil.RandomCustomFieldName("tf_text")
+	cfLongtext := testutil.RandomCustomFieldName("tf_longtext")
+	cfInteger := testutil.RandomCustomFieldName("tf_integer")
+	cfBoolean := testutil.RandomCustomFieldName("tf_boolean")
+	cfDate := testutil.RandomCustomFieldName("tf_date")
+	cfURL := testutil.RandomCustomFieldName("tf_url")
+	cfJSON := testutil.RandomCustomFieldName("tf_json")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterProviderCleanup(providerSlug)
 	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
@@ -356,7 +382,12 @@ func TestAccCircuitTerminationResource_importWithCustomFieldsAndTags(t *testing.
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCircuitTerminationResourceImportConfig_full(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tenantName, tenantSlug),
+				Config: testAccCircuitTerminationResourceImportConfig_full(
+					providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tenantName, tenantSlug,
+					textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue,
+					tag1Name, tag1Slug, tag2Name, tag2Slug,
+					cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
+				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_circuit_termination.test", "id"),
 					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "term_side", "A"),
@@ -368,35 +399,25 @@ func TestAccCircuitTerminationResource_importWithCustomFieldsAndTags(t *testing.
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"circuit", "site", "custom_fields", "tags"},
 			},
+			{
+				Config: testAccCircuitTerminationResourceImportConfig_full(
+					providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tenantName, tenantSlug,
+					textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue,
+					tag1Name, tag1Slug, tag2Name, tag2Slug,
+					cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
+				),
+				PlanOnly: true,
+			},
 		},
 	})
 }
 
-func testAccCircuitTerminationResourceImportConfig_full(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tenantName, tenantSlug string) string {
-	// Generate test data for all custom field types
-	textValue := testutil.RandomName("text-value")
-	longtextValue := testutil.RandomName("longtext-value") + "\nThis is a multiline text field for comprehensive testing."
-	intValue := 42 // Fixed value for reproducibility
-	boolValue := true
-	dateValue := testutil.RandomDate()
-	urlValue := testutil.RandomURL("test-url")
-	jsonValue := testutil.RandomJSON()
-
-	// Tag names
-	tag1 := testutil.RandomName("tag1")
-	tag1Slug := testutil.RandomSlug("tag1")
-	tag2 := testutil.RandomName("tag2")
-	tag2Slug := testutil.RandomSlug("tag2")
-
-	// Custom field names
-	cfText := testutil.RandomCustomFieldName("tf_text")
-	cfLongtext := testutil.RandomCustomFieldName("tf_longtext")
-	cfInteger := testutil.RandomCustomFieldName("tf_integer")
-	cfBoolean := testutil.RandomCustomFieldName("tf_boolean")
-	cfDate := testutil.RandomCustomFieldName("tf_date")
-	cfURL := testutil.RandomCustomFieldName("tf_url")
-	cfJSON := testutil.RandomCustomFieldName("tf_json")
-
+func testAccCircuitTerminationResourceImportConfig_full(
+	providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tenantName, tenantSlug string,
+	textValue, longtextValue string, intValue int, boolValue bool, dateValue, urlValue, jsonValue string,
+	tag1Name, tag1Slug, tag2Name, tag2Slug string,
+	cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON string,
+) string {
 	return fmt.Sprintf(`
 # Dependencies
 resource "netbox_provider" "test" {
@@ -554,7 +575,7 @@ resource "netbox_circuit_termination" "test" {
   ]
 }
 `, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tenantName, tenantSlug,
-		tag1, tag1Slug, tag2, tag2Slug,
+		tag1Name, tag1Slug, tag2Name, tag2Slug,
 		cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
 		textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue)
 }

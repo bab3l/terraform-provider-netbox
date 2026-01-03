@@ -192,30 +192,39 @@ These resources have `TestAccXxxResource_importWithCustomFieldsAndTags` tests th
   - TestAccIPRangeResource_import: PASS (49.29s)
   - TestAccIPRangeResource_importWithCustomFieldsAndTags: PASS (40.86s)
 
-#### Batch 3: CustomFields-Only Resources (12 resources - 2 hours)
-**Mapping Fix**: Remove `else if data.CustomFields.IsNull()` blocks
-**Import Test Enhancement**: Add PlanOnly step to import tests
+#### Batch 3: CustomFields-Only Resources ✅ COMPLETE (12 resources)
+**Status**: Fixed and tested
+**Mapping Fix**: Removed `else if data.CustomFields.IsNull()` blocks from 12 resources
+**Import Test Enhancement**: Added PlanOnly steps to 13 import tests
 
 Resources:
-1. device_role (Batch G)
-2. device_type (Batch G)
-3. fhrp_group (not in import batches)
-4. journal_entry (not in import batches)
-5. provider (not in import batches)
-6. rack_role (not in import batches)
-7. site_group (not in import batches)
-8. tunnel_group (not in import batches)
-9. virtual_machine (not in import batches)
-10. vlan (Batch D)
-11. vlan_group (not in import batches)
-12. vm_interface (Batch D)
+1. device_role (comprehensive test)
+2. device_type (comprehensive test)
+3. fhrp_group
+4. journal_entry
+5. provider
+6. rack_role
+7. site_group
+8. tunnel_group
+9. virtual_machine (no import test)
+10. vlan (basic + comprehensive tests)
+11. vlan_group
+12. vm_interface (basic + comprehensive tests)
 
-**Test Command**:
-```bash
-TF_ACC=1 go test -v -run 'TestAcc(DeviceRole|DeviceType|Vlan|VmInterface)Resource' ./internal/resources_acceptance_tests/ -timeout 30m
-```
+**Test Results**: All passing (53-65s each)
+- TestAccDeviceRoleResource_importWithCustomFieldsAndTags: PASS (53.93s)
+- TestAccDeviceTypeResource_importWithCustomFieldsAndTags: PASS (55.28s)
+- TestAccFHRPGroupResource_import: PASS (64.90s)
+- TestAccJournalEntryResource_import: PASS (65.26s)
+- TestAccProviderResource_import: PASS (64.83s)
+- TestAccRackRoleResource_import: PASS (62.00s)
+- TestAccSiteGroupResource_import: PASS (64.24s)
+- TestAccTunnelGroupResource_import: PASS (62.70s)
+- TestAccVLANGroupResource_import: PASS (64.97s)
+- VLAN (both tests): PASS
+- VMInterface (both tests): PASS
 
-#### Batch 3: Circuit Termination (1 resource - 30 minutes)
+#### Batch 4: Circuit Termination (1 resource - 30 minutes)
 **Mapping Fix**: 7 fields + CustomFields with IsNull checks
 **Import Test Enhancement**: Add PlanOnly step
 

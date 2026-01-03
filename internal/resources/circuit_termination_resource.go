@@ -421,8 +421,6 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 	// Map Site - preserve user's input format
 	if site, ok := termination.GetSiteOk(); ok && site != nil && site.Id != 0 {
 		data.Site = utils.UpdateReferenceAttribute(data.Site, site.GetName(), site.GetSlug(), site.Id)
-	} else if data.Site.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.Site = types.StringNull()
 	}
@@ -430,8 +428,6 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 	// Map ProviderNetwork - preserve user's input format
 	if pn, ok := termination.GetProviderNetworkOk(); ok && pn != nil && pn.Id != 0 {
 		data.ProviderNetwork = utils.UpdateReferenceAttribute(data.ProviderNetwork, pn.GetName(), "", pn.Id)
-	} else if data.ProviderNetwork.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.ProviderNetwork = types.StringNull()
 	}
@@ -439,8 +435,6 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 	// Map port_speed
 	if portSpeed, ok := termination.GetPortSpeedOk(); ok && portSpeed != nil {
 		data.PortSpeed = types.Int64Value(int64(*portSpeed))
-	} else if data.PortSpeed.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.PortSpeed = types.Int64Null()
 	}
@@ -448,8 +442,6 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 	// Map upstream_speed
 	if upstreamSpeed, ok := termination.GetUpstreamSpeedOk(); ok && upstreamSpeed != nil {
 		data.UpstreamSpeed = types.Int64Value(int64(*upstreamSpeed))
-	} else if data.UpstreamSpeed.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.UpstreamSpeed = types.Int64Null()
 	}
@@ -457,8 +449,6 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 	// Map xconnect_id
 	if xconnectID, ok := termination.GetXconnectIdOk(); ok && xconnectID != nil && *xconnectID != "" {
 		data.XconnectID = types.StringValue(*xconnectID)
-	} else if data.XconnectID.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.XconnectID = types.StringNull()
 	}
@@ -466,8 +456,6 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 	// Map pp_info
 	if ppInfo, ok := termination.GetPpInfoOk(); ok && ppInfo != nil && *ppInfo != "" {
 		data.PPInfo = types.StringValue(*ppInfo)
-	} else if data.PPInfo.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.PPInfo = types.StringNull()
 	}
@@ -475,8 +463,6 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 	// Map description
 	if description, ok := termination.GetDescriptionOk(); ok && description != nil && *description != "" {
 		data.Description = types.StringValue(*description)
-	} else if data.Description.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.Description = types.StringNull()
 	}
