@@ -765,39 +765,12 @@ func (r *WirelessLinkResource) mapToState(ctx context.Context, result *netbox.Wi
 		data.Comments = types.StringNull()
 	}
 
-	// Map tags
-
-	if result.HasTags() {
-		tags := utils.NestedTagsToTagModels(result.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Handle tags using consolidated helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, result.HasTags(), result.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Map custom fields
-
-	if result.HasCustomFields() {
-		var existingModels []utils.CustomFieldModel
-
-		if !data.CustomFields.IsNull() {
-			cfDiags := data.CustomFields.ElementsAs(ctx, &existingModels, false)
-
-			diags.Append(cfDiags...)
-		}
-
-		customFields := utils.MapToCustomFieldModels(result.GetCustomFields(), existingModels)
-
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfDiags...)
-
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Handle custom fields using consolidated helper
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, result.HasCustomFields(), result.GetCustomFields(), data.CustomFields, diags)
 }

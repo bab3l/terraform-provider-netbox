@@ -488,47 +488,12 @@ func (r *WirelessLANGroupResource) mapResponseToModel(ctx context.Context, group
 		data.Parent = types.StringNull()
 	}
 
-	// Handle tags
-
-	if group.HasTags() && len(group.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(group.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Handle tags using consolidated helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, group.HasTags(), group.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Handle custom fields
-
-	if group.HasCustomFields() {
-		apiCustomFields := group.GetCustomFields()
-
-		var stateCustomFieldModels []utils.CustomFieldModel
-
-		if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-			data.CustomFields.ElementsAs(ctx, &stateCustomFieldModels, false)
-		}
-
-		customFields := utils.MapToCustomFieldModels(apiCustomFields, stateCustomFieldModels)
-
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Handle custom fields using consolidated helper
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, group.HasCustomFields(), group.GetCustomFields(), data.CustomFields, diags)
 }

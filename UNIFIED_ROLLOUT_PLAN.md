@@ -355,8 +355,11 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Test Results:** 12/12 tests passed
 **Commit:** 1ab0fdb
 
-### Batch 22: Wireless (3 resources)
+### Batch 22: Wireless (3 resources) ✅
 **Resources:** wireless_lan, wireless_lan_group, wireless_link
+**Line Changes:** -35, -35, -27 (net -97 lines)
+**Test Results:** 14/14 tests passed
+**Commit:** Pending
 
 ### Batch 23: Services (2 resources)
 **Resources:** service, service_template
