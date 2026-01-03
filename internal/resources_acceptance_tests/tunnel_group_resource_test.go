@@ -166,6 +166,10 @@ func TestAccTunnelGroupResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccTunnelGroupResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

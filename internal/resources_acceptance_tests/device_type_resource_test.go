@@ -473,6 +473,15 @@ func TestAccDeviceTypeResource_importWithCustomFieldsAndTags(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_device_type.test", "model", model),
 				),
 			},
+			{
+				Config: testAccDeviceTypeResourceImportConfig_full(
+					model, slug, manufacturerName, manufacturerSlug,
+					tag1Name, tag1Slug, tag1Color, tag2Name, tag2Slug, tag2Color,
+					cfText, cfTextValue, cfLongtext, cfLongtextValue, cfIntegerName, cfIntegerValue,
+					cfBoolean, cfBooleanValue, cfDate, cfDateValue, cfURL, cfURLValue, cfJSON, cfJSONValue,
+				),
+				PlanOnly: true,
+			},
 		},
 	})
 }

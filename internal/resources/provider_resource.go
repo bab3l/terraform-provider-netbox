@@ -176,8 +176,6 @@ func (r *ProviderResource) mapProviderToState(ctx context.Context, provider *net
 		}
 
 		data.CustomFields = customFieldsValue
-	} else if data.CustomFields.IsNull() {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }
 

@@ -291,6 +291,15 @@ func TestAccDeviceRoleResource_importWithCustomFieldsAndTags(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_device_role.test", "name", roleName),
 				),
 			},
+			{
+				Config: testAccDeviceRoleResourceImportConfig_full(
+					roleName, roleSlug,
+					tag1Name, tag1Slug, tag1Color, tag2Name, tag2Slug, tag2Color,
+					cfText, cfTextValue, cfLongtext, cfLongtextValue, cfIntegerName, cfIntegerValue,
+					cfBoolean, cfBooleanValue, cfDate, cfDateValue, cfURL, cfURLValue, cfJSON, cfJSONValue,
+				),
+				PlanOnly: true,
+			},
 		},
 	})
 }

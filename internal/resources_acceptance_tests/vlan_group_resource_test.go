@@ -199,6 +199,10 @@ func TestAccVLANGroupResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccVLANGroupResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

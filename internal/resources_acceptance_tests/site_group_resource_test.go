@@ -134,6 +134,10 @@ func TestAccSiteGroupResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccSiteGroupResourceConfig_import(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

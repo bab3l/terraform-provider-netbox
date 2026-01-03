@@ -351,8 +351,6 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 		}
 
 		data.CustomFields = customFieldsValue
-	} else if data.CustomFields.IsNull() {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }
 

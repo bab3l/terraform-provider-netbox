@@ -215,6 +215,10 @@ func TestAccRackRoleResource_import(t *testing.T) {
 
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccRackRoleResourceConfig_basic(rackRoleName, rackRoleSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 

@@ -148,6 +148,10 @@ func TestAccJournalEntryResource_import(t *testing.T) {
 
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccJournalEntryResourceConfig_basic(siteName, siteSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 

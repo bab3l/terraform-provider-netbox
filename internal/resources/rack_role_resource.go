@@ -574,7 +574,5 @@ func (r *RackRoleResource) mapRackRoleToState(ctx context.Context, rackRole *net
 		}
 
 		data.CustomFields = customFieldsValue
-	} else if data.CustomFields.IsNull() {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

@@ -308,8 +308,6 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 		}
 
 		data.CustomFields = customFieldsValue
-	} else if data.CustomFields.IsNull() {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }
 

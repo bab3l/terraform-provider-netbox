@@ -176,6 +176,10 @@ func TestAccVLANResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccVLANResourceConfig_basic(name, vid),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -508,6 +512,10 @@ func TestAccVLANResource_importWithCustomFieldsAndTags(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"tenant", "custom_fields"}, // Tenant may have lookup inconsistencies, custom fields have import limitations
+			},
+			{
+				Config:   testAccVLANResourceImportConfig_full(vlanName, int(vid), tenantName, tenantSlug),
+				PlanOnly: true,
 			},
 		},
 	})

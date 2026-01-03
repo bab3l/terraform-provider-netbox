@@ -342,7 +342,5 @@ func (r *JournalEntryResource) mapJournalEntryToState(ctx context.Context, journ
 			return
 		}
 		data.CustomFields = customFieldsValue
-	} else if data.CustomFields.IsNull() {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

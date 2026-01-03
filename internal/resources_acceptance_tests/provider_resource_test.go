@@ -204,6 +204,10 @@ func TestAccProviderResource_import(t *testing.T) {
 
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccProviderResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 

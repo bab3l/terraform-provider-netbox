@@ -235,6 +235,10 @@ func TestAccFHRPGroupResource_import(t *testing.T) {
 
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccFHRPGroupResourceConfig_basic(protocol, groupID),
+				PlanOnly: true,
+			},
 		},
 	})
 

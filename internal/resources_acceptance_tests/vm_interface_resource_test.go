@@ -254,6 +254,10 @@ func TestAccVMInterfaceResource_import(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"virtual_machine"},
 			},
+			{
+				Config:   testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -1147,6 +1151,15 @@ func TestAccVMInterfaceResource_importWithCustomFieldsAndTags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
 				),
+			},
+			{
+				Config: testAccVMInterfaceResourceImportConfig_full(
+					clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName,
+					tag1Name, tag1Slug, tag1Color, tag2Name, tag2Slug, tag2Color,
+					cfText, cfTextValue, cfLongtext, cfLongtextValue, cfIntegerName, cfIntegerValue,
+					cfBoolean, cfBooleanValue, cfDate, cfDateValue, cfURL, cfURLValue, cfJSON, cfJSONValue,
+				),
+				PlanOnly: true,
 			},
 		},
 	})
