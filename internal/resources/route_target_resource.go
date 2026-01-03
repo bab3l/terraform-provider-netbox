@@ -446,43 +446,6 @@ func (r *RouteTargetResource) mapRouteTargetToState(ctx context.Context, rt *net
 		data.Comments = types.StringNull()
 	}
 
-	// Tags
-
-	if len(rt.Tags) > 0 {
-		tags := utils.NestedTagsToTagModels(rt.Tags)
-
-		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
-
-	// Custom Fields
-
-	switch {
-	case len(rt.CustomFields) > 0 && !data.CustomFields.IsNull():
-
-		var stateCustomFields []utils.CustomFieldModel
-
-		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		customFields := utils.MapToCustomFieldModels(rt.CustomFields, stateCustomFields)
-
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		data.CustomFields = customFieldsValue
-
-	case len(rt.CustomFields) > 0:
-
-		customFields := utils.MapToCustomFieldModels(rt.CustomFields, []utils.CustomFieldModel{})
-
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		data.CustomFields = customFieldsValue
-
-	default:
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.Tags = utils.PopulateTagsFromAPI(ctx, len(rt.Tags) > 0, rt.Tags, data.Tags, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, len(rt.CustomFields) > 0, rt.CustomFields, data.CustomFields, diags)
 }

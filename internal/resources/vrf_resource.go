@@ -474,11 +474,11 @@ func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *
 	)
 
 	// Tags
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, vrf.HasTags(), vrf.GetTags(), diags)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, vrf.HasTags(), vrf.GetTags(), data.Tags, diags)
 	if diags.HasError() {
 		return
 	}
 
 	// Custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, vrf.HasCustomFields(), vrf.GetCustomFields(), data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, vrf.HasCustomFields(), vrf.GetCustomFields(), data.CustomFields, diags)
 }
