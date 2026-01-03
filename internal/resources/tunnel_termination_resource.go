@@ -568,52 +568,12 @@ func (r *TunnelTerminationResource) mapTunnelTerminationToState(ctx context.Cont
 		data.OutsideIP = types.StringNull()
 	}
 
-	// Handle display_name
-	// Handle tags
-
-	if tunnelTermination.HasTags() && len(tunnelTermination.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(tunnelTermination.GetTags())
-
-		tagsValue, tagsDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagsDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Handle tags using consolidated helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, tunnelTermination.HasTags(), tunnelTermination.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Handle custom fields
-
-	if tunnelTermination.HasCustomFields() && len(tunnelTermination.GetCustomFields()) > 0 {
-		var existingCustomFields []utils.CustomFieldModel
-
-		if !data.CustomFields.IsNull() {
-			cfDiags := data.CustomFields.ElementsAs(ctx, &existingCustomFields, false)
-
-			diags.Append(cfDiags...)
-
-			if diags.HasError() {
-				return
-			}
-		}
-
-		customFields := utils.MapToCustomFieldModels(tunnelTermination.GetCustomFields(), existingCustomFields)
-
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Handle custom fields using consolidated helper
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, tunnelTermination.HasCustomFields(), tunnelTermination.GetCustomFields(), data.CustomFields, diags)
 }

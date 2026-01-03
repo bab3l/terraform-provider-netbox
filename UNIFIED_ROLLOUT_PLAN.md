@@ -336,10 +336,12 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Line Changes:** -17, -17 (net -34 lines)
 **Test Results:** 10/10 tests passed
 **Commit:** b3f1ba4
-**Commit:** [Pending]
 
-### Batch 19: VPN - Tunnels (3 resources)
+### Batch 19: VPN - Tunnels (3 resources) ✅
 **Resources:** tunnel, tunnel_group, tunnel_termination
+**Line Changes:** -42, -36, -41 (net -119 lines)
+**Test Results:** 19/19 tests passed
+**Commit:** Pending
 
 ### Batch 20: VPN - IPSec (3 resources)
 **Resources:** ipsec_policy, ipsec_profile, ipsec_proposal

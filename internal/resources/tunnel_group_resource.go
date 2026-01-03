@@ -420,47 +420,12 @@ func (r *TunnelGroupResource) mapTunnelGroupToState(ctx context.Context, tunnelG
 		data.Description = types.StringNull()
 	}
 
-	// Tags
-
-	if len(tunnelGroup.Tags) > 0 {
-		tags := utils.NestedTagsToTagModels(tunnelGroup.Tags)
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Handle tags using consolidated helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, len(tunnelGroup.Tags) > 0, tunnelGroup.Tags, data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Custom fields
-
-	if tunnelGroup.CustomFields != nil && !data.CustomFields.IsNull() {
-		var stateCustomFields []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		customFields := utils.MapToCustomFieldModels(tunnelGroup.CustomFields, stateCustomFields)
-
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfValueDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.CustomFields = customFieldsValue
-	}
+	// Handle custom fields using consolidated helper
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, tunnelGroup.CustomFields != nil, tunnelGroup.CustomFields, data.CustomFields, diags)
 }
