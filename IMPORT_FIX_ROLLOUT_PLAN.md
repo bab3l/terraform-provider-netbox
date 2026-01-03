@@ -564,3 +564,113 @@ After all batches are complete and tested:
 - Optional fields remain Optional (NOT Computed)
 - Import should be done with config matching the resource's actual state
 - The fix ensures state accurately reflects NetBox, Terraform handles config matching
+
+## Phase 5: Helper Function Consolidation (NEW)
+
+### Overview
+
+Consolidate the complex custom fields and tags handling into reusable helper functions to reduce code duplication and ensure consistent behavior across all resources.
+
+### New Helper Functions Created
+
+#### 1. `PopulateCustomFieldsFromAPI` (in `internal/utils/state_helpers.go`)
+
+```go
+// PopulateCustomFieldsFromAPI converts Netbox custom fields to a Terraform Set value.
+// This is the comprehensive helper that handles all custom fields scenarios:
+//   - Normal Create/Read/Update: Uses state type information to preserve field types
+//   - Import: Infers types from API values when state is null/unknown
+//   - Empty preservation: Maintains explicit empty sets (custom_fields = []) vs null
+func PopulateCustomFieldsFromAPI(ctx context.Context, hasCustomFields bool, customFieldsMap map[string]interface{}, stateCustomFields types.Set, diags *diag.Diagnostics) types.Set
+```
+
+**Usage (replaces ~60 lines of inline code):**
+```go
+data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, device.HasCustomFields(), device.GetCustomFields(), data.CustomFields, diags)
+```
+
+#### 2. `PopulateTagsFromAPI` (in `internal/utils/state_helpers.go`)
+
+```go
+// PopulateTagsFromAPI converts Netbox NestedTag slice to a Terraform Set value.
+// This is the comprehensive helper that handles all tags scenarios:
+//   - Normal Create/Read/Update: Converts API tags to TagModels
+//   - Import: Same behavior (tags don't need type inference like custom fields)
+//   - Empty preservation: Maintains explicit empty sets (tags = []) vs null
+func PopulateTagsFromAPI(ctx context.Context, hasTags bool, tags []netbox.NestedTag, stateTags types.Set, diags *diag.Diagnostics) types.Set
+```
+
+**Usage (replaces ~20 lines of inline code):**
+```go
+data.Tags = utils.PopulateTagsFromAPI(ctx, device.HasTags(), device.GetTags(), data.Tags, diags)
+```
+
+### Migration Status
+
+#### Resources Using `PopulateCustomFieldsFromMap` (simple migration - 13 resources)
+
+These resources just need to change from `PopulateCustomFieldsFromMap` to `PopulateCustomFieldsFromAPI`:
+
+| Resource | File | Status |
+|----------|------|--------|
+| asn | asn_resource.go | Pending |
+| circuit_type | circuit_type_resource.go | Pending |
+| cluster | cluster_resource.go | Pending |
+| cluster_group | cluster_group_resource.go | Pending |
+| cluster_type | cluster_type_resource.go | Pending |
+| ip_range | ip_range_resource.go | Pending |
+| region | region_resource.go | Pending |
+| rir | rir_resource.go | Pending |
+| role | role_resource.go | Pending |
+| site | site_resource.go | Pending |
+| tenant | tenant_resource.go | Pending |
+| tenant_group | tenant_group_resource.go | Pending |
+| vrf | vrf_resource.go | Pending |
+
+#### Resources Using Inline `MapToCustomFieldModels` (more significant refactoring - 28 resources)
+
+These resources have inline custom field handling that should be replaced with the new helper:
+
+| Resource | File | Status |
+|----------|------|--------|
+| cable | cable_resource.go | Pending |
+| circuit | circuit_resource.go | Pending |
+| circuit_group | circuit_group_resource.go | Pending |
+| contact_assignment | contact_assignment_resource.go | Pending |
+| contact_group | contact_group_resource.go | Pending |
+| contact_role | contact_role_resource.go | Pending |
+| device | device_resource.go | ✅ DONE |
+| device_role | device_role_resource.go | Pending |
+| device_type | device_type_resource.go | Pending |
+| event_rule | event_rule_resource.go | Pending |
+| interface | interface_resource.go | Pending |
+| l2vpn | l2vpn_resource.go | Pending |
+| l2vpn_termination | l2vpn_termination_resource.go | Pending |
+| location | location_resource.go | Pending |
+| provider | provider_resource.go | Pending |
+| rack_reservation | rack_reservation_resource.go | Pending |
+| rack_role | rack_role_resource.go | Pending |
+| service_template | service_template_resource.go | Pending |
+| site_group | site_group_resource.go | Pending |
+| tunnel | tunnel_resource.go | Pending |
+| tunnel_termination | tunnel_termination_resource.go | Pending |
+| virtual_device_context | virtual_device_context_resource.go | Pending |
+| virtual_machine | virtual_machine_resource.go | Pending |
+| vlan | vlan_resource.go | Pending |
+| vlan_group | vlan_group_resource.go | Pending |
+| vm_interface | vm_interface_resource.go | Pending |
+| wireless_link | wireless_link_resource.go | Pending |
+
+### Benefits of Consolidation
+
+1. **Reduced Code Duplication**: ~80 lines per resource → 2-4 lines
+2. **Consistent Behavior**: All resources handle import, empty sets, and type inference the same way
+3. **Easier Maintenance**: Bug fixes and improvements only need to be made in one place
+4. **Better Testing**: Helper functions can be unit tested independently
+
+### Deprecated Functions
+
+The following functions are now deprecated but kept for backwards compatibility:
+
+- `PopulateCustomFieldsFromMap` - Use `PopulateCustomFieldsFromAPI` instead
+- `PopulateTagsFromNestedTags` - Use `PopulateTagsFromAPI` instead

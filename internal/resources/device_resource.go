@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -775,101 +774,12 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags - populate from API if available
-	// Determine if we should preserve empty set (config explicitly set it) or use null (config didn't specify)
-	// If state was previously an empty set, we should preserve it as empty set (not null)
-	// to maintain consistency when config has "tags = []"
-	wasTagsExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-
-	if device.HasTags() && len(device.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(device.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		// No tags from API
-		if wasTagsExplicitlyEmpty {
-			// Preserve empty set to maintain consistency with config
-			data.Tags = types.SetValueMust(utils.GetTagsAttributeType().ElemType, []attr.Value{})
-		} else {
-			data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-		}
+	// Handle tags using consolidated helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, device.HasTags(), device.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Handle custom fields - populate from API if available
-	tflog.Debug(ctx, "Checking device custom fields", map[string]interface{}{
-		"has_custom_fields":        device.HasCustomFields(),
-		"custom_fields_len":        len(device.GetCustomFields()),
-		"custom_fields":            device.GetCustomFields(),
-		"state_custom_fields_null": data.CustomFields.IsNull(),
-		"state_cf_unknown":         data.CustomFields.IsUnknown(),
-	})
-
-	// Determine if we should preserve empty set (config explicitly set it) or use null (config didn't specify)
-	// If state was previously an empty set, we should preserve it as empty set (not null)
-	// to maintain consistency when config has "custom_fields = []"
-	wasExplicitlyEmpty := !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() && len(data.CustomFields.Elements()) == 0
-
-	if device.HasCustomFields() && len(device.GetCustomFields()) > 0 {
-		// If we have existing state custom fields, use them for type information (Create/Read/Update)
-		// Otherwise infer types from values (Import scenario)
-		var customFields []utils.CustomFieldModel
-		if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-			// Extract existing state to get type information
-			var stateCF []utils.CustomFieldModel
-			cfDiags := data.CustomFields.ElementsAs(ctx, &stateCF, false)
-			tflog.Debug(ctx, "Extracted state custom fields", map[string]interface{}{
-				"has_errors":     cfDiags.HasError(),
-				"state_cf_count": len(stateCF),
-			})
-			if !cfDiags.HasError() && len(stateCF) > 0 {
-				customFields = utils.MapToCustomFieldModels(device.GetCustomFields(), stateCF)
-				tflog.Debug(ctx, "Used MapToCustomFieldModels", map[string]interface{}{
-					"result_count": len(customFields),
-				})
-			} else {
-				tflog.Debug(ctx, "State CF extraction failed or empty, falling back to BuildFromAPI")
-				customFields = utils.BuildCustomFieldModelsFromAPI(device.GetCustomFields())
-			}
-		} else {
-			// Import scenario - infer types from API values
-			tflog.Debug(ctx, "State CF is null/unknown, using BuildFromAPI")
-			customFields = utils.BuildCustomFieldModelsFromAPI(device.GetCustomFields())
-		}
-
-		tflog.Debug(ctx, "Mapped/built custom fields", map[string]interface{}{
-			"custom_fields_count": len(customFields),
-			"custom_fields":       customFields,
-		})
-		if len(customFields) > 0 {
-			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-			diags.Append(cfValueDiags...)
-			if diags.HasError() {
-				return
-			}
-			data.CustomFields = customFieldsValue
-		} else {
-			// No CF values from API, but check if state was explicitly empty set
-			if wasExplicitlyEmpty {
-				// Preserve empty set to maintain consistency with config
-				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
-			} else {
-				data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-			}
-		}
-	} else {
-		// No custom fields from API
-		tflog.Debug(ctx, "No custom fields from API")
-		if wasExplicitlyEmpty {
-			// Preserve empty set to maintain consistency with config
-			tflog.Debug(ctx, "Preserving empty custom_fields set")
-			data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
-		} else {
-			tflog.Debug(ctx, "Setting custom_fields to null")
-			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-		}
-	}
+	// Handle custom fields using consolidated helper
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, device.HasCustomFields(), device.GetCustomFields(), data.CustomFields, diags)
 }
