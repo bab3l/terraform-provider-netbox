@@ -494,6 +494,10 @@ func TestAccASNRangeResource_import(t *testing.T) {
 
 				ImportStateVerifyIgnore: []string{"rir"},
 			},
+			{
+				Config:   testAccASNRangeResourceConfig_basic(name, slug, rirName, rirSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 
@@ -741,8 +745,10 @@ func TestAccASNRangeResource_importWithCustomFieldsAndTags(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"rir", "custom_fields", "tags", "tenant"},
-			},
-		},
+			}, {
+				Config:   testAccASNRangeResourceImportConfig_full(rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
+			}},
 	})
 }
 

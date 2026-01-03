@@ -460,6 +460,10 @@ func TestAccASNResource_importWithCustomFieldsAndTags(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"rir", "custom_fields", "tags", "tenant"},
 			},
+			{
+				Config:   testAccASNResourceImportConfig_full(asn, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

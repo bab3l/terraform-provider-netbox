@@ -174,6 +174,10 @@ func TestAccIPRangeResource_import(t *testing.T) {
 
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccIPRangeResourceConfig_basic(startAddress, endAddress),
+				PlanOnly: true,
+			},
 		},
 	})
 

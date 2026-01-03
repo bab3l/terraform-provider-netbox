@@ -525,6 +525,63 @@ func TestAccAggregateResource_importWithCustomFieldsAndTags(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"rir", "custom_fields", "tags", "tenant"},
 			},
+			// Enhancement 1: Verify no changes after import
+			{
+				Config:   testAccAggregateResourceImportConfig_full(prefix, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+// Enhancement 2: Test import with full optional fields
+// This verifies that import correctly populates all fields from the API.
+func TestAccAggregateResource_importPreservesOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	prefix := testutil.RandomIPv4Prefix()
+	rirName := testutil.RandomName("rir")
+	rirSlug := testutil.RandomSlug("rir")
+	tenantName := testutil.RandomName("tenant")
+	tenantSlug := testutil.RandomSlug("tenant")
+	description := testutil.RandomName("description")
+	comments := testutil.RandomName("comments")
+	dateAdded := "2024-01-01"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create resource with ALL optional fields
+			{
+				Config: testAccAggregateResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, prefix, description, comments, dateAdded),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "id"),
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "prefix", prefix),
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "tenant"),
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "comments", comments),
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "date_added", dateAdded),
+				),
+			},
+			// Step 2: Import with SAME full config - verifies import preserves all fields
+			{
+				Config:            testAccAggregateResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, prefix, description, comments, dateAdded),
+				ResourceName:      "netbox_aggregate.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// Note: tenant format may change (ID->name/slug), rir is always lookup
+				ImportStateVerifyIgnore: []string{"rir", "tenant"},
+			},
+			// Step 3: Verify no changes after import
+			{
+				Config:   testAccAggregateResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, prefix, description, comments, dateAdded),
+				PlanOnly: true,
+			},
 		},
 	})
 }

@@ -347,8 +347,6 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 	// Map tenant
 	if tenant, ok := aggregate.GetTenantOk(); ok && tenant != nil && tenant.Id != 0 {
 		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
-	} else if data.Tenant.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.Tenant = types.StringNull()
 	}
@@ -356,8 +354,6 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 	// Map date_added
 	if dateAdded := aggregate.GetDateAdded(); dateAdded != "" {
 		data.DateAdded = types.StringValue(dateAdded)
-	} else if data.DateAdded.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.DateAdded = types.StringNull()
 	}
@@ -365,8 +361,6 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 	// Map description
 	if description, ok := aggregate.GetDescriptionOk(); ok && description != nil && *description != "" {
 		data.Description = types.StringValue(*description)
-	} else if data.Description.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.Description = types.StringNull()
 	}
@@ -374,8 +368,6 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 	// Map comments
 	if comments, ok := aggregate.GetCommentsOk(); ok && comments != nil && *comments != "" {
 		data.Comments = types.StringValue(*comments)
-	} else if data.Comments.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.Comments = types.StringNull()
 	}

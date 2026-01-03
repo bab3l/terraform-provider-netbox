@@ -2219,20 +2219,20 @@ func TestUpdateReferenceAttribute(t *testing.T) {
 			expectedValue: "provider-name",
 		},
 		{
-			name:          "Set to ID when unknown (during create)",
+			name:          "Set to name when unknown (during create)",
 			currentValue:  types.StringUnknown(),
 			apiID:         456,
 			apiName:       "new-provider",
 			apiSlug:       "new-provider-slug",
-			expectedValue: "456",
+			expectedValue: "new-provider", // NEW: prefer name over ID
 		},
 		{
-			name:          "Set to ID when unknown (during create)",
+			name:          "Set to name when unknown (during create)",
 			currentValue:  types.StringUnknown(),
 			apiID:         456,
 			apiName:       "new-provider",
 			apiSlug:       "new-provider-slug",
-			expectedValue: "456",
+			expectedValue: "new-provider", // NEW: prefer name over ID
 		},
 		{
 			name:          "Set to slug when unknown and no name available",
@@ -2251,12 +2251,12 @@ func TestUpdateReferenceAttribute(t *testing.T) {
 			expectedValue: "456",
 		},
 		{
-			name:          "Keep null when current is null",
+			name:          "Populate name when current is null (import scenario)",
 			currentValue:  types.StringNull(),
 			apiID:         789,
 			apiName:       "provider",
 			apiSlug:       "provider-slug",
-			expectedValue: "", // null value should remain null
+			expectedValue: "provider", // NEW: populate with name during import
 		},
 		{
 			name:          "Preserve non-numeric value when reference changed but value is not numeric",
