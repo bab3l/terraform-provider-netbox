@@ -99,14 +99,9 @@ func (r *ClusterTypeResource) mapClusterTypeToState(ctx context.Context, cluster
 		data.Description,
 	)
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, clusterType.HasTags(), clusterType.GetTags(), diags)
-	if diags.HasError() {
-		return
-	}
-
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, clusterType.HasCustomFields(), clusterType.GetCustomFields(), data.CustomFields, diags)
+	// Populate tags and custom fields using unified helpers
+	data.Tags = utils.PopulateTagsFromAPI(ctx, clusterType.HasTags(), clusterType.GetTags(), data.Tags, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, clusterType.HasCustomFields(), clusterType.GetCustomFields(), data.CustomFields, diags)
 }
 
 // Create creates a new cluster type resource.

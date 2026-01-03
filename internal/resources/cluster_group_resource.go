@@ -255,12 +255,7 @@ func (r *ClusterGroupResource) mapClusterGroupToState(ctx context.Context, clust
 	data.Slug = types.StringValue(clusterGroup.GetSlug())
 	data.Description = utils.StringFromAPI(clusterGroup.HasDescription(), clusterGroup.GetDescription, data.Description)
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), diags)
-	if diags.HasError() {
-		return
-	}
-
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, clusterGroup.HasCustomFields(), clusterGroup.GetCustomFields(), data.CustomFields, diags)
+	// Populate tags and custom fields using unified helpers
+	data.Tags = utils.PopulateTagsFromAPI(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), data.Tags, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, clusterGroup.HasCustomFields(), clusterGroup.GetCustomFields(), data.CustomFields, diags)
 }

@@ -220,12 +220,14 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 	}
 
 	// Site
-
-	if vm.Site.IsSet() && vm.Site.Get() != nil {
+	// Only populate site if it was originally configured (not null in the state/plan)
+	// The API may return a site inherited from the cluster, but we shouldn't populate it
+	// if the user didn't explicitly configure it
+	if vm.Site.IsSet() && vm.Site.Get() != nil && !data.Site.IsNull() {
 		siteObj := vm.Site.Get()
-
 		data.Site = utils.UpdateReferenceAttribute(data.Site, siteObj.GetName(), siteObj.GetSlug(), siteObj.GetId())
-	} else {
+	} else if data.Site.IsNull() {
+		// Keep it null if it was null before (not configured by user)
 		data.Site = types.StringNull()
 	}
 
@@ -233,8 +235,12 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 	if vm.Cluster.IsSet() && vm.Cluster.Get() != nil {
 		clusterObj := vm.Cluster.Get()
-
-		data.Cluster = utils.UpdateReferenceAttribute(data.Cluster, clusterObj.GetName(), "", clusterObj.GetId())
+		// During import, data.Cluster is null, so use ID for consistency with typical config usage
+		if data.Cluster.IsNull() {
+			data.Cluster = types.StringValue(fmt.Sprintf("%d", clusterObj.GetId()))
+		} else {
+			data.Cluster = utils.UpdateReferenceAttribute(data.Cluster, clusterObj.GetName(), "", clusterObj.GetId())
+		}
 	} else {
 		data.Cluster = types.StringNull()
 	}
@@ -309,49 +315,9 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags
-
-	if vm.HasTags() {
-		tags := utils.NestedTagsToTagModels(vm.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
-
-	// Handle custom fields
-
-	if vm.HasCustomFields() && !data.CustomFields.IsNull() {
-		var stateCustomFields []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		customFields := utils.MapToCustomFieldModels(vm.GetCustomFields(), stateCustomFields)
-
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfValueDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.CustomFields = customFieldsValue
-	}
+	// Populate tags and custom fields using unified helpers
+	data.Tags = utils.PopulateTagsFromAPI(ctx, vm.HasTags(), vm.GetTags(), data.Tags, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, vm.HasCustomFields(), vm.GetCustomFields(), data.CustomFields, diags)
 }
 
 // buildVirtualMachineRequest builds a WritableVirtualMachineWithConfigContextRequest from the resource model.

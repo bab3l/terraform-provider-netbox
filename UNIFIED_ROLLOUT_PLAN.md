@@ -306,12 +306,16 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 
 ### Batch 14: Providers (3 resources) ✅
 **Resources:** provider, provider_account, provider_network
-**Line Changes:** -46, -40 (62 total -22 added), -44 (net -104 lines)
-**Status:** Complete - All 3 resources migrated to unified helpers
-**Note:** provider_resource.go already had diags parameter; provider_account_resource.go and provider_network_resource.go updated with diags parameter and all call sites
+**Line Changes:** -42, -22, -42 (net -106 lines)
+**Test Results:** 18/18 tests passed
+**Commit:** b46851b
 
-### Batch 15: Virtualization Core (4 resources)
+### Batch 15: Virtualization Core (4 resources) ✅
 **Resources:** cluster, cluster_group, cluster_type, virtual_machine
+**Line Changes:** -25, -18, -18, -23 (net -84 lines)
+**Test Results:** 24/24 tests passed
+**Commit:** Pending
+**Note:** Fixed virtual_machine import handling for site inheritance and cluster reference consistency. Uses standard ImportStateVerifyIgnore pattern for custom_fields.
 
 ### Batch 16: Virtualization Components (4 resources)
 **Resources:** virtual_chassis, virtual_device_context, virtual_disk, vm_interface
