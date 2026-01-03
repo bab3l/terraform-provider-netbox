@@ -343,8 +343,10 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Test Results:** 19/19 tests passed
 **Commit:** ed755ba
 
-### Batch 20: VPN - IPSec (3 resources)
+### Batch 20: VPN - IPSec (3 resources) ✅
 **Resources:** ipsec_policy, ipsec_profile, ipsec_proposal
+**Line Changes:** -19, -19, -19 (net -57 lines)
+**Test Results:** Tests not run (per instructions)
 
 ### Batch 21: VPN - IKE (2 resources)
 **Resources:** ike_policy, ike_proposal
