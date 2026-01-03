@@ -268,8 +268,11 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Commits:** 287bade, c523a1a
 **Note:** Fixed rack_reservation import issue - now uses ID format during import for consistency
 
-### Batch 8: Device Types & Roles (3 resources)
+### Batch 8: Device Types & Roles (3 resources) ✅
 **Resources:** device_type, device_role, manufacturer
+**Test Results:** 18/18 tests passed
+**Commit:** a999d1b
+**Note:** Added full Tags/CustomFields support to manufacturer (previously missing)
 
 ### Batch 9: Device Components - Ports (6 resources)
 **Resources:** console_port, console_server_port, front_port, rear_port, power_port, power_outlet

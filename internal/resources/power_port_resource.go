@@ -585,46 +585,8 @@ func (r *PowerPortResource) mapResponseToModel(ctx context.Context, powerPort *n
 	}
 
 	// Handle tags
-
-	if powerPort.HasTags() && len(powerPort.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(powerPort.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	data.Tags = utils.PopulateTagsFromAPI(ctx, powerPort.HasTags(), powerPort.GetTags(), data.Tags, diags)
 
 	// Handle custom fields
-
-	if powerPort.HasCustomFields() {
-		apiCustomFields := powerPort.GetCustomFields()
-
-		var stateCustomFieldModels []utils.CustomFieldModel
-
-		if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-			data.CustomFields.ElementsAs(ctx, &stateCustomFieldModels, false)
-		}
-
-		customFields := utils.MapToCustomFieldModels(apiCustomFields, stateCustomFieldModels)
-
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, powerPort.HasCustomFields(), powerPort.GetCustomFields(), data.CustomFields, diags)
 }
