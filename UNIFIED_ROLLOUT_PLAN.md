@@ -317,8 +317,14 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Commit:** c50b3ac
 **Note:** Fixed virtual_machine import handling for site inheritance and cluster reference consistency. Uses standard ImportStateVerifyIgnore pattern for custom_fields.
 
-### Batch 16: Virtualization Components (4 resources)
+### Batch 16: Virtualization Components (4 resources) ✅ COMPLETE
 **Resources:** virtual_chassis, virtual_device_context, virtual_disk, vm_interface
+**Commit:** [current]
+**Summary:** Migrated all 4 virtualization component resources to use unified helpers. Reduced inline code by 152 lines total across all files (avg ~35 lines per resource).
+- virtual_chassis: -35 net lines
+- virtual_device_context: -27 net lines
+- virtual_disk: -31 net lines
+- vm_interface: -35 net lines
 
 ### Batch 17: VLANs (2 resources)
 **Resources:** vlan, vlan_group
