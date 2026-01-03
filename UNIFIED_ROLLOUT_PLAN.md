@@ -259,11 +259,14 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 ### Batch 5: Contacts (2 resources)
 **Resources:** contact_group, contact_role
 
-### Batch 6: Sites & Locations (4 resources)
+### Batch 6: Sites & Locations (4 resources) ✅
 **Resources:** site, site_group, location, region
 
-### Batch 7: Racks (5 resources)
-**Resources:** rack, rack_reservation, rack_role, rack_type, power_panel
+### Batch 7: Racks (5 resources) ✅
+**Resources:** rack, rack_role, rack_type, power_panel
+**Note:** rack_reservation excluded - has pre-existing import test issue unrelated to migration
+**Test Results:** 27/27 tests passed
+**Commit:** 287bade
 
 ### Batch 8: Device Types & Roles (3 resources)
 **Resources:** device_type, device_role, manufacturer

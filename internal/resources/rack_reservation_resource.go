@@ -551,16 +551,16 @@ func (r *RackReservationResource) ImportState(ctx context.Context, req resource.
 func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox.RackReservation, data *RackReservationResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
-	// Map rack (required field) - preserve user's input format, but always set something for import
+	// Map rack (required field)
 	rack := result.GetRack()
-	rackValue := utils.UpdateReferenceAttribute(data.Rack, rack.GetName(), "", rack.GetId())
 
-	// If null (happens during import), set the ID as fallback
-	if rackValue.IsNull() {
-		rackValue = types.StringValue(fmt.Sprintf("%d", rack.GetId()))
+	// During import (data.Rack is null), default to ID for consistency with typical usage
+	// During normal operations, UpdateReferenceAttribute will preserve user's format
+	if data.Rack.IsNull() {
+		data.Rack = types.StringValue(fmt.Sprintf("%d", rack.GetId()))
+	} else {
+		data.Rack = utils.UpdateReferenceAttribute(data.Rack, rack.GetName(), "", rack.GetId())
 	}
-
-	data.Rack = rackValue
 
 	// Map units
 
