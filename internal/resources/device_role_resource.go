@@ -113,34 +113,10 @@ func (r *DeviceRoleResource) mapDeviceRoleToState(ctx context.Context, deviceRol
 	}
 
 	// Handle tags
-	if deviceRole.HasTags() {
-		tags := utils.NestedTagsToTagModels(deviceRole.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	data.Tags = utils.PopulateTagsFromAPI(ctx, deviceRole.HasTags(), deviceRole.GetTags(), data.Tags, diags)
 
 	// Handle custom fields
-	if deviceRole.HasCustomFields() && !data.CustomFields.IsNull() {
-		var stateCustomFields []utils.CustomFieldModel
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		customFields := utils.MapToCustomFieldModels(deviceRole.GetCustomFields(), stateCustomFields)
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfValueDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, deviceRole.HasCustomFields(), deviceRole.GetCustomFields(), data.CustomFields, diags)
 }
 
 func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

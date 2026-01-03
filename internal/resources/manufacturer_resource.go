@@ -9,6 +9,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -28,10 +29,12 @@ type ManufacturerResource struct {
 }
 
 type ManufacturerResourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Slug        types.String `tfsdk:"slug"`
-	Description types.String `tfsdk:"description"`
+	ID           types.String `tfsdk:"id"`
+	Name         types.String `tfsdk:"name"`
+	Slug         types.String `tfsdk:"slug"`
+	Description  types.String `tfsdk:"description"`
+	Tags         types.Set    `tfsdk:"tags"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 func (r *ManufacturerResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -50,6 +53,9 @@ func (r *ManufacturerResource) Schema(ctx context.Context, req resource.SchemaRe
 
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("manufacturer"))
+
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Implement Configure, Create, Read, Update, Delete, ImportState methods here.
@@ -81,6 +87,13 @@ func (r *ManufacturerResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Apply description
 	utils.ApplyDescription(&manufacturerRequest, data.Description)
+
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &manufacturerRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersCreate(ctx).ManufacturerRequest(manufacturerRequest).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
@@ -98,7 +111,10 @@ func (r *ManufacturerResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Map response to state using helpers
-	r.mapManufacturerToState(manufacturer, &data)
+	r.mapManufacturerToState(ctx, manufacturer, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	tflog.Debug(ctx, "Created manufacturer", map[string]interface{}{
 		"id":   data.ID.ValueString(),
 		"name": data.Name.ValueString(),
@@ -135,7 +151,10 @@ func (r *ManufacturerResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// Map response to state using helpers
-	r.mapManufacturerToState(manufacturer, &data)
+	r.mapManufacturerToState(ctx, manufacturer, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -159,6 +178,13 @@ func (r *ManufacturerResource) Update(ctx context.Context, req resource.UpdateRe
 
 	// Apply description
 	utils.ApplyDescription(&manufacturerRequest, data.Description)
+
+	// Handle tags and custom_fields
+	utils.ApplyMetadataFields(ctx, &manufacturerRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersUpdate(ctx, manufacturerIDInt).ManufacturerRequest(manufacturerRequest).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
@@ -171,7 +197,10 @@ func (r *ManufacturerResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// Map response to state using helpers
-	r.mapManufacturerToState(manufacturer, &data)
+	r.mapManufacturerToState(ctx, manufacturer, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -208,9 +237,15 @@ func (r *ManufacturerResource) ImportState(ctx context.Context, req resource.Imp
 }
 
 // mapManufacturerToState maps API response to Terraform state using state helpers.
-func (r *ManufacturerResource) mapManufacturerToState(manufacturer *netbox.Manufacturer, data *ManufacturerResourceModel) {
+func (r *ManufacturerResource) mapManufacturerToState(ctx context.Context, manufacturer *netbox.Manufacturer, data *ManufacturerResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", manufacturer.GetId()))
 	data.Name = types.StringValue(manufacturer.GetName())
 	data.Slug = types.StringValue(manufacturer.GetSlug())
 	data.Description = utils.StringFromAPI(manufacturer.HasDescription(), manufacturer.GetDescription, data.Description)
+
+	// Handle tags
+	data.Tags = utils.PopulateTagsFromAPI(ctx, manufacturer.HasTags(), manufacturer.GetTags(), data.Tags, diags)
+
+	// Handle custom fields
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, manufacturer.HasCustomFields(), manufacturer.GetCustomFields(), data.CustomFields, diags)
 }

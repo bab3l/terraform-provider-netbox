@@ -263,10 +263,10 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Resources:** site, site_group, location, region
 
 ### Batch 7: Racks (5 resources) ✅
-**Resources:** rack, rack_role, rack_type, power_panel
-**Note:** rack_reservation excluded - has pre-existing import test issue unrelated to migration
-**Test Results:** 27/27 tests passed
-**Commit:** 287bade
+**Resources:** rack, rack_role, rack_type, power_panel, rack_reservation
+**Test Results:** 32/32 tests passed
+**Commits:** 287bade, c523a1a
+**Note:** Fixed rack_reservation import issue - now uses ID format during import for consistency
 
 ### Batch 8: Device Types & Roles (3 resources)
 **Resources:** device_type, device_role, manufacturer
