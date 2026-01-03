@@ -399,11 +399,11 @@ func (r *TenantResource) mapTenantToState(ctx context.Context, tenant *netbox.Te
 	data.Comments = utils.StringFromAPI(tenant.HasComments(), tenant.GetComments, data.Comments)
 
 	// Handle tags
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, tenant.HasTags(), tenant.GetTags(), diags)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, tenant.HasTags(), tenant.GetTags(), data.Tags, diags)
 	if diags.HasError() {
 		return
 	}
 
 	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, tenant.HasCustomFields(), tenant.GetCustomFields(), data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, tenant.HasCustomFields(), tenant.GetCustomFields(), data.CustomFields, diags)
 }

@@ -11,6 +11,7 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -344,13 +345,6 @@ func (r *ContactResource) mapContactToState(ctx context.Context, contact *netbox
 	}
 
 	// Handle tags
-	if contact.HasTags() {
-		tags := utils.NestedTagsToTagModels(contact.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		if !tagDiags.HasError() {
-			data.Tags = tagsValue
-		}
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	var diags diag.Diagnostics
+	data.Tags = utils.PopulateTagsFromAPI(ctx, contact.HasTags(), contact.GetTags(), data.Tags, &diags)
 }

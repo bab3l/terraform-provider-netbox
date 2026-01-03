@@ -418,27 +418,8 @@ func (r *ContactAssignmentResource) mapResponseToState(ctx context.Context, assi
 	}
 
 	// Tags
-	if assignment.HasTags() && len(assignment.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(assignment.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	data.Tags = utils.PopulateTagsFromAPI(ctx, assignment.HasTags() && len(assignment.GetTags()) > 0, assignment.GetTags(), data.Tags, diags)
 
 	// Custom fields
-	if assignment.HasCustomFields() && len(assignment.GetCustomFields()) > 0 {
-		var existingModels []utils.CustomFieldModel
-		if !data.CustomFields.IsNull() {
-			cfDiags := data.CustomFields.ElementsAs(ctx, &existingModels, false)
-			diags.Append(cfDiags...)
-		}
-		customFields := utils.MapToCustomFieldModels(assignment.GetCustomFields(), existingModels)
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, assignment.HasCustomFields() && len(assignment.GetCustomFields()) > 0, assignment.GetCustomFields(), data.CustomFields, diags)
 }
