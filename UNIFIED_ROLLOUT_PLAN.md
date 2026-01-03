@@ -314,7 +314,7 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Resources:** cluster, cluster_group, cluster_type, virtual_machine
 **Line Changes:** -25, -18, -18, -23 (net -84 lines)
 **Test Results:** 24/24 tests passed
-**Commit:** Pending
+**Commit:** c50b3ac
 **Note:** Fixed virtual_machine import handling for site inheritance and cluster reference consistency. Uses standard ImportStateVerifyIgnore pattern for custom_fields.
 
 ### Batch 16: Virtualization Components (4 resources)
