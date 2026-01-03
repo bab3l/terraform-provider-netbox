@@ -335,7 +335,7 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Resources:** l2vpn, l2vpn_termination
 **Line Changes:** -17, -17 (net -34 lines)
 **Test Results:** 10/10 tests passed
-**Commit:** Pending
+**Commit:** b3f1ba4
 **Commit:** [Pending]
 
 ### Batch 19: VPN - Tunnels (3 resources)
