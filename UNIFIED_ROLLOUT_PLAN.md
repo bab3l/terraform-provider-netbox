@@ -348,13 +348,12 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Line Changes:** -19, -19, -19 (net -57 lines)
 **Test Results:** 15/15 tests passed
 **Commit:** 86f30b4
-**Line Changes:** -19, -19, -19 (net -57 lines)
-**Test Results:** Tests not run (per instructions)
-**Commit:** a7375e9
 
-### Batch 21: VPN - IKE (2 resources) ✅ COMPLETE
+### Batch 21: VPN - IKE (2 resources) ✅
 **Resources:** ike_policy, ike_proposal
-**Commit:** 7be669152ea271f71e61ca1c5c99a064c7e4aad2
+**Line Changes:** -18, -18 (net -36 lines)
+**Test Results:** 12/12 tests passed
+**Commit:** Pending
 
 ### Batch 22: Wireless (3 resources)
 **Resources:** wireless_lan, wireless_lan_group, wireless_link
