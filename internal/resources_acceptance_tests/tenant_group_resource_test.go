@@ -141,6 +141,10 @@ func TestAccTenantGroupResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccTenantGroupResourceConfig_import(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -338,6 +342,10 @@ func TestAccTenantGroupResource_importWithCustomFieldsAndTags(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
+			},
+			{
+				Config:   testAccTenantGroupResourceImportConfig_full(groupName, groupSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
 			},
 		},
 	})

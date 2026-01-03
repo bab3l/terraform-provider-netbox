@@ -224,18 +224,22 @@ Resources:
 - VLAN (both tests): PASS
 - VMInterface (both tests): PASS
 
-#### Batch 4: Circuit Termination (1 resource - 30 minutes)
-**Mapping Fix**: 7 fields + CustomFields with IsNull checks
-**Import Test Enhancement**: Add PlanOnly step
+#### Batch 4: Circuit Termination ✅ COMPLETE (1 resource)
+**Status**: Fixed and tested
+**Mapping Fix**: Removed IsNull checks from 7 fields (Site, ProviderNetwork, PortSpeed, UpstreamSpeed, XconnectID, PPInfo, Description)
+**Import Test Enhancement**: Added PlanOnly validation to both import tests
 
-Resource: circuit_termination (Batch H)
+Resource: circuit_termination
 
-**Test Command**:
-```bash
-TF_ACC=1 go test -v -run 'TestAccCircuitTerminationResource' ./internal/resources_acceptance_tests/ -timeout 15m
-```
+**Test Results**: All passing (65-69s each)
+- TestAccCircuitTerminationResource_import: PASS (69.38s)
+- TestAccCircuitTerminationResource_importWithCustomFieldsAndTags: PASS (65.67s)
 
-#### Batch 4: Import Test Enhancements Only - Tenancy/Org (5 resources - 1 hour)
+Note: Comprehensive test was refactored to pass random values as parameters
+rather than generating them inside the config function, ensuring consistent
+values across create and PlanOnly validation steps.
+
+#### Batch 5: Import Test Enhancements Only - Tenancy/Org (5 resources - 1 hour)
 **No Mapping Changes** - Just add PlanOnly steps
 
 Resources (Batch B):

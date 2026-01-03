@@ -14,6 +14,7 @@ func TestAccInventoryItemRoleResource_basic(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-role")
+	slug := testutil.RandomSlug("role")
 
 	resource.Test(t, resource.TestCase{
 
@@ -25,7 +26,7 @@ func TestAccInventoryItemRoleResource_basic(t *testing.T) {
 
 			{
 
-				Config: testAccInventoryItemRoleResourceConfig_basic(name),
+				Config: testAccInventoryItemRoleResourceConfig_basic(name, slug),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -80,6 +81,7 @@ func TestAccInventoryItemRoleResource_update(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-role-update")
+	slug := testutil.RandomSlug("role")
 
 	resource.Test(t, resource.TestCase{
 
@@ -91,7 +93,7 @@ func TestAccInventoryItemRoleResource_update(t *testing.T) {
 
 			{
 
-				Config: testAccInventoryItemRoleResourceConfig_basic(name),
+				Config: testAccInventoryItemRoleResourceConfig_basic(name, slug),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -124,6 +126,7 @@ func TestAccInventoryItemRoleResource_import(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-role")
+	slug := testutil.RandomSlug("role")
 
 	resource.Test(t, resource.TestCase{
 
@@ -135,7 +138,7 @@ func TestAccInventoryItemRoleResource_import(t *testing.T) {
 
 			{
 
-				Config: testAccInventoryItemRoleResourceConfig_basic(name),
+				Config: testAccInventoryItemRoleResourceConfig_basic(name, slug),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -151,6 +154,10 @@ func TestAccInventoryItemRoleResource_import(t *testing.T) {
 
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccInventoryItemRoleResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 
@@ -160,13 +167,14 @@ func TestAccInventoryItemRoleResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-role-id")
+	slug := testutil.RandomSlug("role")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInventoryItemRoleResourceConfig_basic(name),
+				Config: testAccInventoryItemRoleResourceConfig_basic(name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_role.test", "id"),
 					resource.TestCheckResourceAttr("netbox_inventory_item_role.test", "name", name),
@@ -177,7 +185,7 @@ func TestAccInventoryItemRoleResource_IDPreservation(t *testing.T) {
 
 }
 
-func testAccInventoryItemRoleResourceConfig_basic(name string) string {
+func testAccInventoryItemRoleResourceConfig_basic(name, slug string) string {
 
 	return fmt.Sprintf(`
 
@@ -189,7 +197,7 @@ resource "netbox_inventory_item_role" "test" {
 
 }
 
-`, name, testutil.RandomSlug("role"))
+`, name, slug)
 
 }
 
@@ -244,13 +252,14 @@ func TestAccConsistency_InventoryItemRole_LiteralNames(t *testing.T) {
 func TestAccInventoryItemRoleResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 	name := testutil.RandomName("tf-test-inv-role-ext-del")
+	slug := testutil.RandomSlug("role")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInventoryItemRoleResourceConfig_basic(name),
+				Config: testAccInventoryItemRoleResourceConfig_basic(name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_role.test", "id"),
 					resource.TestCheckResourceAttr("netbox_inventory_item_role.test", "name", name),
@@ -273,7 +282,7 @@ func TestAccInventoryItemRoleResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted inventory_item_role with ID: %d", itemID)
 				},
-				Config: testAccInventoryItemRoleResourceConfig_basic(name),
+				Config: testAccInventoryItemRoleResourceConfig_basic(name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_role.test", "id"),
 				),
@@ -334,6 +343,10 @@ func TestAccInventoryItemRoleResource_importWithCustomFieldsAndTags(t *testing.T
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
+			},
+			{
+				Config:   testAccInventoryItemRoleResourceImportConfig_full(roleName, roleSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
 			},
 		},
 	})

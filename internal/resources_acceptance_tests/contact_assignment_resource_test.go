@@ -599,6 +599,10 @@ func TestAccContactAssignmentResource_importWithCustomFieldsAndTags(t *testing.T
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"custom_fields", "tags", "contact_id", "role_id"},
 			},
+			{
+				Config:   testAccContactAssignmentResourceImportConfig_full(contactName, "", contactGroupName, contactGroupSlug, contactRoleName, contactRoleSlug, siteName, siteSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

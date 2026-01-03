@@ -301,6 +301,10 @@ func TestAccContactGroupResource_importWithCustomFieldsAndTags(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
 			},
+			{
+				Config:   testAccContactGroupResourceImportConfig_full(groupName, groupSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
