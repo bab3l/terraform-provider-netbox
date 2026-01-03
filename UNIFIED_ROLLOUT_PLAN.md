@@ -189,36 +189,36 @@ These need full migration (helper functions + test updates):
 ### Resources WITHOUT Custom Fields/Tags (33 resources)
 These only need PlanOnly test updates (no helper migration):
 
-| # | Resource | Notes |
-|---|----------|-------|
-| 1 | circuit_type | Tags only via different pattern |
-| 2 | cluster | Uses different pattern |
-| 3 | cluster_group | Uses PopulateCustomFieldsFromMap |
-| 4 | cluster_type | Uses PopulateCustomFieldsFromMap |
-| 5 | config_context | No CF/Tags |
-| 6 | config_template | No CF/Tags |
-| 7 | console_port_template | Template - no CF/Tags |
-| 8 | console_server_port_template | Template - no CF/Tags |
-| 9 | custom_field | Meta resource |
-| 10 | custom_field_choice_set | Meta resource |
-| 11 | custom_link | No CF/Tags |
-| 12 | device_bay_template | Template - no CF/Tags |
-| 13 | export_template | No CF/Tags |
-| 14 | fhrp_group_assignment | Assignment only |
-| 15 | front_port_template | Template - no CF/Tags |
-| 16 | interface_template | Template - no CF/Tags |
-| 17 | inventory_item_template | Template - no CF/Tags |
-| 18 | manufacturer | No CF/Tags |
-| 19 | module_bay_template | Template - no CF/Tags |
-| 20 | notification_group | No CF/Tags |
-| 21 | platform | No CF/Tags |
-| 22 | power_outlet_template | Template - no CF/Tags |
-| 23 | power_port_template | Template - no CF/Tags |
-| 24 | rear_port_template | Template - no CF/Tags |
-| 25 | region | Uses PopulateCustomFieldsFromMap |
-| 26 | rir | Uses PopulateCustomFieldsFromMap |
-| 27 | role | Uses PopulateCustomFieldsFromMap |
-| 28 | tag | Meta resource |
+| # | Resource | Notes | Status |
+|---|----------|-------|--------|
+| 1 | circuit_type | Tags only via different pattern | ✅ Batch 13 |
+| 2 | cluster | Uses different pattern | ✅ Batch 15 |
+| 3 | cluster_group | Uses PopulateCustomFieldsFromMap | ✅ Batch 15 |
+| 4 | cluster_type | Uses PopulateCustomFieldsFromMap | ✅ Batch 15 |
+| 5 | config_context | No CF/Tags | Pending |
+| 6 | config_template | No CF/Tags | Pending |
+| 7 | console_port_template | Template - no CF/Tags | Pending |
+| 8 | console_server_port_template | Template - no CF/Tags | Pending |
+| 9 | custom_field | Meta resource - defines CFs, doesn't use them | ✅ Batch 24 - SKIPPED |
+| 10 | custom_field_choice_set | Meta resource - choice sets for CFs | ✅ Batch 24 - SKIPPED |
+| 11 | custom_link | Configuration resource - no CF/Tags | ✅ Batch 24 - SKIPPED |
+| 12 | device_bay_template | Template - no CF/Tags | Pending |
+| 13 | export_template | No CF/Tags | Pending |
+| 14 | fhrp_group_assignment | Assignment only | Pending |
+| 15 | front_port_template | Template - no CF/Tags | Pending |
+| 16 | interface_template | Template - no CF/Tags | Pending |
+| 17 | inventory_item_template | Template - no CF/Tags | Pending |
+| 18 | manufacturer | No CF/Tags | ✅ Batch 8 |
+| 19 | module_bay_template | Template - no CF/Tags | Pending |
+| 20 | notification_group | No CF/Tags | Pending |
+| 21 | platform | No CF/Tags | Pending |
+| 22 | power_outlet_template | Template - no CF/Tags | Pending |
+| 23 | power_port_template | Template - no CF/Tags | Pending |
+| 24 | rear_port_template | Template - no CF/Tags | Pending |
+| 25 | region | Uses PopulateCustomFieldsFromMap | ✅ Batch 6 |
+| 26 | rir | Uses PopulateCustomFieldsFromMap | Pending |
+| 27 | role | Uses PopulateCustomFieldsFromMap | Pending |
+| 28 | tag | Meta resource - defines tags, doesn't use them | ✅ Batch 24 - SKIPPED |
 
 ---
 
@@ -367,8 +367,18 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Test Results:** 10/10 tests passed
 **Commit:** 4f9110c
 
-### Batch 24: Extras (4 resources)
+### Batch 24: Extras (4 resources) ⏭️ SKIPPED
 **Resources:** custom_field, custom_field_choice_set, custom_link, tag
+**Status:** All 4 resources are meta/infrastructure resources that define the tagging and custom fields system itself. None have tags or custom_fields attributes in their schemas, so no migration needed.
+**Note:** These resources don't participate as consumers in the tagging/custom fields system - they define it.
+**Line Changes:** N/A (all resources skipped - no tags/custom_fields)
+**Status:** SKIPPED - All resources are meta resources that define tags/custom fields themselves but don't use them
+**Details:**
+- custom_field: Meta resource - defines custom fields for other resources (no tags/CF in schema)
+- custom_field_choice_set: Meta resource - defines choice sets for custom fields (no tags/CF in schema)
+- custom_link: Configuration resource - defines UI links (no tags/CF in schema)
+- tag: Meta resource - defines tags themselves (no tags/CF in schema)
+**Verification:** Project compiles successfully (`go build .`)
 
 ### Batch 25: Events & Automation (3 resources)
 **Resources:** event_rule, webhook, journal_entry
