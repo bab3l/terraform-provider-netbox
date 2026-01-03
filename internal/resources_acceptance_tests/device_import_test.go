@@ -70,9 +70,10 @@ func TestAccDeviceResource_importWithCustomFieldsAndTags(t *testing.T) {
 			},
 			{
 				// Import the device and verify all fields are preserved
-				ResourceName:      "netbox_device.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "netbox_device.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"device_type", "role", "site"}, // These use IDs after import but slugs in config
 				// The import should preserve all custom fields and tags
 				Check: resource.ComposeTestCheckFunc(
 					// Verify basic fields
