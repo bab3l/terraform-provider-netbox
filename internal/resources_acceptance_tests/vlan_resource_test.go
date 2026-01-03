@@ -485,9 +485,31 @@ func TestAccVLANResource_importWithCustomFieldsAndTags(t *testing.T) {
 	tenantName := testutil.RandomName("tenant")
 	tenantSlug := testutil.RandomSlug("tenant")
 
+	// Generate random names once for the entire test
+	cfText := testutil.RandomCustomFieldName("cf_text")
+	cfLongtext := testutil.RandomCustomFieldName("cf_longtext")
+	cfInteger := testutil.RandomCustomFieldName("cf_integer")
+	cfBoolean := testutil.RandomCustomFieldName("cf_boolean")
+	cfDate := testutil.RandomCustomFieldName("cf_date")
+	cfUrl := testutil.RandomCustomFieldName("cf_url")
+	cfJson := testutil.RandomCustomFieldName("cf_json")
+	tag1 := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2 := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVLANCleanup(vid)
 	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterCustomFieldCleanup(cfText)
+	cleanup.RegisterCustomFieldCleanup(cfLongtext)
+	cleanup.RegisterCustomFieldCleanup(cfInteger)
+	cleanup.RegisterCustomFieldCleanup(cfBoolean)
+	cleanup.RegisterCustomFieldCleanup(cfDate)
+	cleanup.RegisterCustomFieldCleanup(cfUrl)
+	cleanup.RegisterCustomFieldCleanup(cfJson)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -497,7 +519,7 @@ func TestAccVLANResource_importWithCustomFieldsAndTags(t *testing.T) {
 		CheckDestroy: testutil.CheckVLANDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVLANResourceImportConfig_full(vlanName, int(vid), tenantName, tenantSlug),
+				Config: testAccVLANResourceImportConfig_full(vlanName, int(vid), tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vlan.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vlan.test", "name", vlanName),
@@ -515,28 +537,14 @@ func TestAccVLANResource_importWithCustomFieldsAndTags(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"tenant", "custom_fields"}, // Tenant may have lookup inconsistencies, custom fields have import limitations
 			},
 			{
-				Config:   testAccVLANResourceImportConfig_full(vlanName, int(vid), tenantName, tenantSlug),
+				Config:   testAccVLANResourceImportConfig_full(vlanName, int(vid), tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
 				PlanOnly: true,
 			},
 		},
 	})
 }
 
-func testAccVLANResourceImportConfig_full(vlanName string, vid int, tenantName, tenantSlug string) string {
-	// Custom field names with underscore format
-	cfText := testutil.RandomCustomFieldName("cf_text")
-	cfLongtext := testutil.RandomCustomFieldName("cf_longtext")
-	cfInteger := testutil.RandomCustomFieldName("cf_integer")
-	cfBoolean := testutil.RandomCustomFieldName("cf_boolean")
-	cfDate := testutil.RandomCustomFieldName("cf_date")
-	cfUrl := testutil.RandomCustomFieldName("cf_url")
-	cfJson := testutil.RandomCustomFieldName("cf_json")
-
-	// Tag names
-	tag1 := testutil.RandomName("tag1")
-	tag1Slug := testutil.RandomSlug("tag1")
-	tag2 := testutil.RandomName("tag2")
-	tag2Slug := testutil.RandomSlug("tag2")
+func testAccVLANResourceImportConfig_full(vlanName string, vid int, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug string) string {
 
 	return fmt.Sprintf(`
 # Dependencies
