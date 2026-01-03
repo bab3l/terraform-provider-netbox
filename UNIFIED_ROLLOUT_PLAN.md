@@ -319,7 +319,7 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 
 ### Batch 16: Virtualization Components (4 resources) ✅ COMPLETE
 **Resources:** virtual_chassis, virtual_device_context, virtual_disk, vm_interface
-**Commit:** [current]
+**Commit:** 9e93aa21cff226e9dcdcfb67e334c7cf0d3d9133
 **Summary:** Migrated all 4 virtualization component resources to use unified helpers. Reduced inline code by 152 lines total across all files (avg ~35 lines per resource).
 - virtual_chassis: -35 net lines
 - virtual_device_context: -27 net lines
