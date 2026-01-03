@@ -279,11 +279,16 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Test Results:** 36/36 tests passed
 **Commit:** 6cc36f1
 
-### Batch 10: Device Components - Other (4 resources)
+### Batch 10: Device Components - Other (4 resources) ✅
 **Resources:** device_bay, interface, inventory_item, inventory_item_role
+**Line Changes:** -22, -24, -22, -22 (net -90 lines)
+**Test Results:** 26/26 tests passed
+**Commit:** 8b2b42e
 
-### Batch 11: Modules (3 resources)
+### Batch 11: Modules (3 resources) ✅
 **Resources:** module, module_bay, module_type
+**Line Changes:** module_resource.go -33 lines, module_bay_resource.go -33 lines, module_type_resource.go -33 lines (net -81 lines)
+**Build Status:** SUCCESS
 
 ### Batch 12: Power (2 resources)
 **Resources:** power_feed, power_panel (if not in Batch 7)
