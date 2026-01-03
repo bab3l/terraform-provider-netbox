@@ -122,6 +122,11 @@ func TestAccDeviceResource_update(t *testing.T) {
 				),
 			},
 			{
+				// Verify no drift after create
+				Config:   testAccDeviceResourceConfig_basic(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccDeviceResourceConfig_updated(deviceNameUpdated, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceNameUpdated),
@@ -131,6 +136,11 @@ func TestAccDeviceResource_update(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_device.test", "tags.#", "0"),
 					resource.TestCheckResourceAttr("netbox_device.test", "custom_fields.#", "0"),
 				),
+			},
+			{
+				// Verify no drift after update
+				Config:   testAccDeviceResourceConfig_updated(deviceNameUpdated, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
+				PlanOnly: true,
 			},
 		},
 	})

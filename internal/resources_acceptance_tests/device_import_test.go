@@ -121,6 +121,17 @@ func TestAccDeviceResource_importWithCustomFieldsAndTags(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_device.test", "custom_fields.6.value", cfJSONValue),
 				),
 			},
+			{
+				// Verify no drift after import
+				Config: testAccDeviceResourceImportConfig_full(
+					deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug,
+					deviceRoleName, deviceRoleSlug, siteName, siteSlug,
+					tag1Name, tag1Slug, tag1Color, tag2Name, tag2Slug, tag2Color,
+					cfText, cfTextValue, cfLongtext, cfLongtextValue, cfIntegerName, cfIntegerValue,
+					cfBoolean, cfBooleanValue, cfDate, cfDateValue, cfURL, cfURLValue, cfJSON, cfJSONValue,
+				),
+				PlanOnly: true,
+			},
 		},
 	})
 }

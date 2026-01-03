@@ -90,7 +90,7 @@ For EVERY test function in `*_resource_test.go`:
 1. **Basic Test (`TestAccXxxResource_basic`)**: Add PlanOnly step after create
 2. **Update Test (`TestAccXxxResource_update`)**: Add PlanOnly step after each update
 3. **Import Test (`TestAccXxxResource_import`)**: Add PlanOnly step after import
-4. **Import with CF Test (`TestAccXxxResource_importWithCustomFieldsAndTags`)**: 
+4. **Import with CF Test (`TestAccXxxResource_importWithCustomFieldsAndTags`)**:
    - Add PlanOnly step after import
    - Remove `t.Parallel()` (custom fields are global in NetBox)
 
@@ -226,16 +226,16 @@ These only need PlanOnly test updates (no helper migration):
 
 Resources are organized into batches by functional area for efficient context switching.
 
-### Batch 1: Reference Implementation ✅ PARTIAL
+### Batch 1: Reference Implementation ✅ COMPLETE
 **Resource:** device
-**Status:** Helper migration complete, needs test updates
+**Status:** Complete! Ready for replication
 
 - [x] Migrate to `PopulateCustomFieldsFromAPI`
 - [x] Migrate to `PopulateTagsFromAPI`
-- [ ] Add PlanOnly to basic test
-- [ ] Add PlanOnly to update test
-- [ ] Add PlanOnly to import tests
-- [ ] Remove t.Parallel() from CF import test
+- [x] Add PlanOnly to basic test (already had it)
+- [x] Add PlanOnly to update test
+- [x] Add PlanOnly to import tests
+- [x] Remove t.Parallel() from CF import test (already removed)
 
 ### Batch 2: IPAM Core (6 resources)
 **Resources:** aggregate, asn, asn_range, ip_address, ip_range, prefix
@@ -348,7 +348,7 @@ For each resource, complete this checklist:
 
 #### Test Changes (`xxx_resource_test.go`)
 - [ ] **Basic test**: Add PlanOnly step after create
-- [ ] **Update test**: Add PlanOnly step after each update  
+- [ ] **Update test**: Add PlanOnly step after each update
 - [ ] **Import test**: Add PlanOnly step after import
 - [ ] **CF Import test**: Add PlanOnly step + remove `t.Parallel()`
 - [ ] All tests pass
@@ -420,7 +420,7 @@ func TestAccXxxResource_update(t *testing.T) {
 func TestAccXxxResource_importWithCustomFieldsAndTags(t *testing.T) {
     // NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
     // that would affect other tests of the same resource type running in parallel.
-    
+
     resource.Test(t, resource.TestCase{
         // ...
         Steps: []resource.TestStep{

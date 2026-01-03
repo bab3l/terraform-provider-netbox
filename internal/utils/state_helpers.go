@@ -503,8 +503,8 @@ func CustomFieldsFromAPI(ctx context.Context, hasCustomFields bool, getCustomFie
 }
 
 // PopulateTagsFromNestedTags converts Netbox NestedTag slice to a Terraform Set value.
-// DEPRECATED: Use PopulateTagsFromAPI instead, which handles empty set preservation.
-// This function is kept for backwards compatibility.
+// This function is kept for backwards compatibility during migration to PopulateTagsFromAPI.
+// TODO: Mark as deprecated after all resources migrate to PopulateTagsFromAPI (Batches 2-29).
 //
 // Example:
 //
@@ -562,8 +562,8 @@ func PopulateTagsFromAPI(ctx context.Context, hasTags bool, tags []netbox.Nested
 }
 
 // PopulateCustomFieldsFromMap converts Netbox custom fields map to a Terraform Set value.
-// DEPRECATED: Use PopulateCustomFieldsFromAPI instead, which handles import scenarios correctly.
-// This function is kept for backwards compatibility but will return null during import.
+// This function is kept for backwards compatibility during migration to PopulateCustomFieldsFromAPI.
+// TODO: Mark as deprecated after all resources migrate to PopulateCustomFieldsFromAPI (Batches 2-29).
 //
 // Example:
 //
