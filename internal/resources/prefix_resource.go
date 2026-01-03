@@ -687,14 +687,6 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 	}
 
 	// Tags
-
-	if len(prefix.Tags) > 0 {
-		tags := utils.NestedTagsToTagModels(prefix.Tags)
-
-		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	var diags diag.Diagnostics
+	data.Tags = utils.PopulateTagsFromAPI(ctx, len(prefix.Tags) > 0, prefix.Tags, data.Tags, &diags)
 }

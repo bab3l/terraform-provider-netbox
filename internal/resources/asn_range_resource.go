@@ -427,29 +427,11 @@ func (r *ASNRangeResource) mapASNRangeToState(ctx context.Context, asnRange *net
 	}
 
 	// Tags
-	if len(asnRange.Tags) > 0 {
-		tags := utils.NestedTagsToTagModels(asnRange.Tags)
-		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, len(asnRange.Tags) > 0, asnRange.Tags, data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
 	// Custom Fields
-	switch {
-	case len(asnRange.CustomFields) > 0 && !data.CustomFields.IsNull():
-		var stateCustomFields []utils.CustomFieldModel
-		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-		customFields := utils.MapToCustomFieldModels(asnRange.CustomFields, stateCustomFields)
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		data.CustomFields = customFieldsValue
-
-	case len(asnRange.CustomFields) > 0:
-		customFields := utils.MapToCustomFieldModels(asnRange.CustomFields, []utils.CustomFieldModel{})
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		data.CustomFields = customFieldsValue
-
-	default:
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, len(asnRange.CustomFields) > 0, asnRange.CustomFields, data.CustomFields, diags)
 }

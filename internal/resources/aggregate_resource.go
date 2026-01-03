@@ -336,6 +336,8 @@ func (r *AggregateResource) buildCreateRequest(ctx context.Context, data *Aggreg
 
 // mapResponseToModel maps the API response to the Terraform model.
 func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *netbox.Aggregate, data *AggregateResourceModel) {
+	var diags diag.Diagnostics
+
 	data.ID = types.StringValue(fmt.Sprintf("%d", aggregate.GetId()))
 	data.Prefix = types.StringValue(aggregate.GetPrefix())
 
@@ -373,29 +375,11 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 	}
 
 	// Tags
-	if len(aggregate.Tags) > 0 {
-		tags := utils.NestedTagsToTagModels(aggregate.Tags)
-		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, len(aggregate.Tags) > 0, aggregate.Tags, data.Tags, &diags)
+	if diags.HasError() {
+		return
 	}
 
 	// Custom Fields
-	switch {
-	case len(aggregate.CustomFields) > 0 && !data.CustomFields.IsNull():
-		var stateCustomFields []utils.CustomFieldModel
-		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-		customFields := utils.MapToCustomFieldModels(aggregate.CustomFields, stateCustomFields)
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		data.CustomFields = customFieldsValue
-
-	case len(aggregate.CustomFields) > 0:
-		customFields := utils.MapToCustomFieldModels(aggregate.CustomFields, []utils.CustomFieldModel{})
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		data.CustomFields = customFieldsValue
-
-	default:
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, len(aggregate.CustomFields) > 0, aggregate.CustomFields, data.CustomFields, &diags)
 }

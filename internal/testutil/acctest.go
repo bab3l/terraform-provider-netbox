@@ -88,13 +88,14 @@ func RandomIPv4Prefix() string {
 
 // RandomIPv6Prefix generates a random IPv6 prefix using ULA (Unique Local Address).
 // Uses fd00:xxxx:xxxx::/48 format.
+// Returns normalized format (without leading zeros) to match Netbox API behavior.
 func RandomIPv6Prefix() string {
 	// Use fd00:xxxx:xxxx::/48 format (ULA)
 	segment1 := acctest.RandIntRange(0, 65535)
 
 	segment2 := acctest.RandIntRange(0, 65535)
 
-	return fmt.Sprintf("fd00:%04x:%04x::/48", segment1, segment2)
+	return fmt.Sprintf("fd00:%x:%x::/48", segment1, segment2)
 }
 
 // RandomIPv4Address generates a random private IPv4 address with CIDR notation.
