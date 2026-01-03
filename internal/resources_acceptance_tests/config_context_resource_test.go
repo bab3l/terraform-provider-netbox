@@ -54,6 +54,11 @@ func TestAccConfigContextResource_basic(t *testing.T) {
 
 				ImportStateVerify: true,
 			},
+
+			{
+				Config:   testAccConfigContextResourceConfig_basic(name),
+				PlanOnly: true,
+			},
 		},
 	})
 

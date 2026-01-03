@@ -301,6 +301,11 @@ func TestAccRackResource_import(t *testing.T) {
 
 				ImportStateVerifyIgnore: []string{"site"},
 			},
+
+			{
+				Config:   testAccRackResourceConfig_import(siteName, siteSlug, rackName),
+				PlanOnly: true,
+			},
 		},
 	})
 
@@ -315,37 +320,7 @@ func TestAccRackResource_importWithCustomFieldsAndTags(t *testing.T) {
 	tenantName := testutil.RandomName("tf-test-tenant")
 	tenantSlug := testutil.RandomSlug("tf-test-tenant")
 
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterRackCleanup(rackName)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterTenantCleanup(tenantSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckRackDestroy, testutil.CheckSiteDestroy),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRackResourceImportConfig_full(siteName, siteSlug, rackName, tenantName, tenantSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
-					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
-				),
-			},
-			{
-				ResourceName:            "netbox_rack.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"site", "tenant", "custom_fields", "tags"},
-			},
-		},
-	})
-}
-
-func testAccRackResourceImportConfig_full(siteName, siteSlug, rackName, tenantName, tenantSlug string) string {
-	// Generate test data for all custom field types
+	// Generate test data for all custom field types (once, used in all steps)
 	textValue := testutil.RandomName("text-value")
 	longtextValue := testutil.RandomName("longtext-value") + "\nThis is a multiline text field for comprehensive testing."
 	intValue := 42 // Fixed value for reproducibility
@@ -368,6 +343,52 @@ func testAccRackResourceImportConfig_full(siteName, siteSlug, rackName, tenantNa
 	cfDate := testutil.RandomCustomFieldName("tf_date")
 	cfURL := testutil.RandomCustomFieldName("tf_url")
 	cfJSON := testutil.RandomCustomFieldName("tf_json")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackCleanup(rackName)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckRackDestroy, testutil.CheckSiteDestroy),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackResourceImportConfig_full(siteName, siteSlug, rackName, tenantName, tenantSlug,
+					tag1, tag1Slug, tag2, tag2Slug,
+					cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
+					textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
+				),
+			},
+			{
+				ResourceName:            "netbox_rack.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"site", "tenant", "custom_fields", "tags"},
+			},
+			{
+				Config: testAccRackResourceImportConfig_full(siteName, siteSlug, rackName, tenantName, tenantSlug,
+					tag1, tag1Slug, tag2, tag2Slug,
+					cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
+					textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func testAccRackResourceImportConfig_full(
+	siteName, siteSlug, rackName, tenantName, tenantSlug string,
+	tag1, tag1Slug, tag2, tag2Slug string,
+	cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON string,
+	textValue, longtextValue string, intValue int, boolValue bool, dateValue, urlValue, jsonValue string,
+) string {
 
 	return fmt.Sprintf(`
 # Dependencies

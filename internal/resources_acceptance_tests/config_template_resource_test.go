@@ -58,6 +58,11 @@ func TestAccConfigTemplateResource_basic(t *testing.T) {
 
 				ImportStateVerify: true,
 			},
+
+			{
+				Config:   testAccConfigTemplateResourceConfig_basic(name, templateCode),
+				PlanOnly: true,
+			},
 		},
 	})
 

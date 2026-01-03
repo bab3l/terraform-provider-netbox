@@ -45,6 +45,10 @@ func TestAccDeviceResource_basic(t *testing.T) {
 				// Note: some fields may use slugs in config but IDs in state after import
 				ImportStateVerifyIgnore: []string{"device_type", "role", "site"},
 			},
+			{
+				Config:   testAccDeviceResourceConfig_basic(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

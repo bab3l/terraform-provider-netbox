@@ -790,19 +790,16 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	}
 	// Otherwise preserve user's configured value (null or explicit set)
 
-	// Handle custom fields - only update if user hasn't configured them (Unknown during creation)
-	if data.CustomFields.IsUnknown() {
-		if device.HasCustomFields() && len(device.GetCustomFields()) > 0 {
-			customFields := utils.MapToCustomFieldModels(device.GetCustomFields(), []utils.CustomFieldModel{})
-			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-			diags.Append(cfValueDiags...)
-			if diags.HasError() {
-				return
-			}
-			data.CustomFields = customFieldsValue
-		} else {
-			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	// Handle custom fields - populate from API if available
+	if device.HasCustomFields() && len(device.GetCustomFields()) > 0 {
+		customFields := utils.MapToCustomFieldModels(device.GetCustomFields(), []utils.CustomFieldModel{})
+		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		diags.Append(cfValueDiags...)
+		if diags.HasError() {
+			return
 		}
+		data.CustomFields = customFieldsValue
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
-	// Otherwise preserve user's configured value (null or explicit set)
 }
