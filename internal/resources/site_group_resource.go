@@ -15,6 +15,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -409,34 +410,9 @@ func (r *SiteGroupResource) mapSiteGroupToState(ctx context.Context, siteGroup *
 
 	// Handle display_name
 	// Handle tags
-
-	if siteGroup.HasTags() {
-		tags := utils.NestedTagsToTagModels(siteGroup.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		if !tagDiags.HasError() {
-			data.Tags = tagsValue
-		}
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	var diags diag.Diagnostics
+	data.Tags = utils.PopulateTagsFromAPI(ctx, siteGroup.HasTags(), siteGroup.GetTags(), data.Tags, &diags)
 
 	// Handle custom fields - preserve state structure
-
-	if siteGroup.HasCustomFields() && !data.CustomFields.IsNull() {
-		var stateCustomFields []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		if !cfDiags.HasError() {
-			customFields := utils.MapToCustomFieldModels(siteGroup.GetCustomFields(), stateCustomFields)
-
-			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-			if !cfValueDiags.HasError() {
-				data.CustomFields = customFieldsValue
-			}
-		}
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, siteGroup.HasCustomFields(), siteGroup.GetCustomFields(), data.CustomFields, &diags)
 }

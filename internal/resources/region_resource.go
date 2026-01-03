@@ -392,8 +392,8 @@ func (r *RegionResource) mapRegionToState(ctx context.Context, region *netbox.Re
 	data.Description = utils.StringFromAPI(region.HasDescription(), region.GetDescription, data.Description)
 
 	// Handle tags
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, region.HasTags(), region.GetTags(), diags)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, region.HasTags(), region.GetTags(), data.Tags, diags)
 
 	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, region.HasCustomFields(), region.GetCustomFields(), data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, region.HasCustomFields(), region.GetCustomFields(), data.CustomFields, diags)
 }

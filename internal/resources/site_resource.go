@@ -430,8 +430,8 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 	data.Comments = utils.StringFromAPI(site.HasComments(), site.GetComments, data.Comments)
 
 	// Handle tags
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, site.HasTags(), site.GetTags(), diags)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, site.HasTags(), site.GetTags(), data.Tags, diags)
 
 	// Handle custom fields - preserve state structure
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, site.HasCustomFields(), site.GetCustomFields(), data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, site.HasCustomFields(), site.GetCustomFields(), data.CustomFields, diags)
 }
