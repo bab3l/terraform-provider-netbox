@@ -331,8 +331,12 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Commit:** a354573
 **Note:** Fixed vlan import test to pass random names as parameters instead of regenerating them inside config function.
 
-### Batch 18: VPN - L2 (2 resources)
+### Batch 18: VPN - L2 (2 resources) ✅
 **Resources:** l2vpn, l2vpn_termination
+**Line Changes:** -17, -17 (net -34 lines)
+**Test Results:** 10/10 tests passed
+**Commit:** Pending
+**Commit:** [Pending]
 
 ### Batch 19: VPN - Tunnels (3 resources)
 **Resources:** tunnel, tunnel_group, tunnel_termination
