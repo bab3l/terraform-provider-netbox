@@ -379,14 +379,10 @@ func (r *CircuitGroupAssignmentResource) mapResponseToState(ctx context.Context,
 		data.Priority = types.StringNull()
 	}
 
-	// Tags
-	if assignment.HasTags() && len(assignment.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(assignment.GetTags())
-		tagsValue, d := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(d...)
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Populate tags using unified helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, assignment.HasTags(), assignment.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
 	// Custom fields - circuit group assignments don't have custom fields in the response

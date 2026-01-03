@@ -178,7 +178,7 @@ func (r *CircuitTerminationResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Map response to model
-	r.mapResponseToModel(ctx, termination, &data)
+	r.mapResponseToModel(ctx, termination, &data, &resp.Diagnostics)
 	tflog.Debug(ctx, "Created circuit termination", map[string]interface{}{
 		"id": data.ID.ValueString(),
 	})
@@ -227,7 +227,7 @@ func (r *CircuitTerminationResource) Read(ctx context.Context, req resource.Read
 	}
 
 	// Map response to model
-	r.mapResponseToModel(ctx, termination, &data)
+	r.mapResponseToModel(ctx, termination, &data, &resp.Diagnostics)
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -273,7 +273,7 @@ func (r *CircuitTerminationResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Map response to model
-	r.mapResponseToModel(ctx, termination, &data)
+	r.mapResponseToModel(ctx, termination, &data, &resp.Diagnostics)
 	tflog.Debug(ctx, "Updated circuit termination", map[string]interface{}{
 		"id": data.ID.ValueString(),
 	})
@@ -409,7 +409,7 @@ func (r *CircuitTerminationResource) buildCreateRequest(ctx context.Context, dat
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
-func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, termination *netbox.CircuitTermination, data *CircuitTerminationResourceModel) {
+func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, termination *netbox.CircuitTermination, data *CircuitTerminationResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", termination.GetId()))
 	data.TermSide = types.StringValue(string(termination.GetTermSide()))
 
@@ -474,30 +474,7 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 		data.MarkConnected = types.BoolValue(false)
 	}
 
-	// Tags
-	if len(termination.Tags) > 0 {
-		tags := utils.NestedTagsToTagModels(termination.Tags)
-		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
-
-	// Custom Fields
-	switch {
-	case len(termination.CustomFields) > 0 && !data.CustomFields.IsNull():
-		var stateCustomFields []utils.CustomFieldModel
-		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-		customFields := utils.MapToCustomFieldModels(termination.CustomFields, stateCustomFields)
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		data.CustomFields = customFieldsValue
-
-	case len(termination.CustomFields) > 0:
-		customFields := utils.MapToCustomFieldModels(termination.CustomFields, []utils.CustomFieldModel{})
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		data.CustomFields = customFieldsValue
-
-	default:
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Populate tags and custom fields using unified helpers
+	data.Tags = utils.PopulateTagsFromAPI(ctx, len(termination.Tags) > 0, termination.Tags, data.Tags, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, len(termination.CustomFields) > 0, termination.CustomFields, data.CustomFields, diags)
 }

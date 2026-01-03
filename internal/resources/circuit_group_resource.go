@@ -330,28 +330,11 @@ func (r *CircuitGroupResource) mapResponseToState(ctx context.Context, group *ne
 		data.TenantID = types.StringNull()
 	}
 
-	// Tags
-	if group.HasTags() && len(group.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(group.GetTags())
-		tagsValue, d := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(d...)
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Populate tags and custom fields using unified helpers
+	data.Tags = utils.PopulateTagsFromAPI(ctx, group.HasTags(), group.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Custom fields
-	if group.HasCustomFields() && len(group.GetCustomFields()) > 0 {
-		var existingModels []utils.CustomFieldModel
-		if !data.CustomFields.IsNull() {
-			d := data.CustomFields.ElementsAs(ctx, &existingModels, false)
-			diags.Append(d...)
-		}
-		customFields := utils.MapToCustomFieldModels(group.GetCustomFields(), existingModels)
-		customFieldsValue, d := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(d...)
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, group.HasCustomFields(), group.GetCustomFields(), data.CustomFields, diags)
 }

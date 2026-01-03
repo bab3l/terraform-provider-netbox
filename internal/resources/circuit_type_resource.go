@@ -330,9 +330,11 @@ func (r *CircuitTypeResource) mapCircuitTypeToState(ctx context.Context, circuit
 		data.Color = types.StringNull()
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, circuitType.HasTags(), circuitType.GetTags(), diags)
+	// Populate tags and custom fields using unified helpers
+	data.Tags = utils.PopulateTagsFromAPI(ctx, circuitType.HasTags(), circuitType.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
+	}
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, circuitType.HasCustomFields(), circuitType.GetCustomFields(), data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, circuitType.HasCustomFields(), circuitType.GetCustomFields(), data.CustomFields, diags)
 }
