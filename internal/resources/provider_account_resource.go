@@ -182,7 +182,11 @@ func (r *ProviderAccountResource) Create(ctx context.Context, req resource.Creat
 
 	// Map response to model
 
-	r.mapResponseToModel(ctx, providerAccount, &data)
+	r.mapResponseToModel(ctx, providerAccount, &data, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, "Created provider account", map[string]interface{}{
 		"id": data.ID.ValueString(),
@@ -252,7 +256,11 @@ func (r *ProviderAccountResource) Read(ctx context.Context, req resource.ReadReq
 
 	// Map response to model
 
-	r.mapResponseToModel(ctx, providerAccount, &data)
+	r.mapResponseToModel(ctx, providerAccount, &data, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Save updated data into Terraform state
 
@@ -318,7 +326,11 @@ func (r *ProviderAccountResource) Update(ctx context.Context, req resource.Updat
 
 	// Map response to model
 
-	r.mapResponseToModel(ctx, providerAccount, &data)
+	r.mapResponseToModel(ctx, providerAccount, &data, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, "Updated provider account", map[string]interface{}{
 		"id": data.ID.ValueString(),
@@ -430,7 +442,7 @@ func (r *ProviderAccountResource) buildCreateRequest(ctx context.Context, data *
 
 // mapResponseToModel maps the API response to the Terraform model.
 
-func (r *ProviderAccountResource) mapResponseToModel(ctx context.Context, providerAccount *netbox.ProviderAccount, data *ProviderAccountResourceModel) {
+func (r *ProviderAccountResource) mapResponseToModel(ctx context.Context, providerAccount *netbox.ProviderAccount, data *ProviderAccountResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", providerAccount.GetId()))
 
 	data.Account = types.StringValue(providerAccount.GetAccount())
@@ -453,43 +465,7 @@ func (r *ProviderAccountResource) mapResponseToModel(ctx context.Context, provid
 
 	data.Comments = utils.StringFromAPI(providerAccount.HasComments(), providerAccount.GetComments, data.Comments)
 
-	// Tags
-
-	if len(providerAccount.Tags) > 0 {
-		tags := utils.NestedTagsToTagModels(providerAccount.Tags)
-
-		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
-
-	// Custom Fields
-
-	switch {
-	case len(providerAccount.CustomFields) > 0 && !data.CustomFields.IsNull():
-
-		var stateCustomFields []utils.CustomFieldModel
-
-		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		customFields := utils.MapToCustomFieldModels(providerAccount.CustomFields, stateCustomFields)
-
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		data.CustomFields = customFieldsValue
-
-	case len(providerAccount.CustomFields) > 0:
-
-		customFields := utils.MapToCustomFieldModels(providerAccount.CustomFields, []utils.CustomFieldModel{})
-
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		data.CustomFields = customFieldsValue
-
-	default:
-
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Populate tags and custom fields using unified helpers
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, providerAccount.HasTags(), providerAccount.GetTags(), diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, providerAccount.HasCustomFields(), providerAccount.GetCustomFields(), data.CustomFields, diags)
 }

@@ -300,17 +300,15 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 
 ### Batch 13: Circuits (5 resources) ✅
 **Resources:** circuit, circuit_group, circuit_group_assignment, circuit_termination, circuit_type
-**Line Changes:**
-- circuit_resource.go: +5/-30 (net -25 lines)
-- circuit_group_resource.go: +5/-22 (net -17 lines)
-- circuit_group_assignment_resource.go: +4/-8 (net -4 lines)
-- circuit_termination_resource.go: +7/-30 (net -23 lines, added diags parameter)
-- circuit_type_resource.go: +6/-4 (net +2 lines, migrated from deprecated helpers)
-**Total:** 27 lines added, 94 lines removed (net -67 lines)
-**Status:** Complete - All 5 resources migrated to unified helpers
+**Line Changes:** -25, -17, -4, -23, +2 (net -67 lines)
+**Test Results:** 35/35 tests passed
+**Commit:** aecf4c6
 
-### Batch 14: Providers (3 resources)
+### Batch 14: Providers (3 resources) ✅
 **Resources:** provider, provider_account, provider_network
+**Line Changes:** -46, -40 (62 total -22 added), -44 (net -104 lines)
+**Status:** Complete - All 3 resources migrated to unified helpers
+**Note:** provider_resource.go already had diags parameter; provider_account_resource.go and provider_network_resource.go updated with diags parameter and all call sites
 
 ### Batch 15: Virtualization Core (4 resources)
 **Resources:** cluster, cluster_group, cluster_type, virtual_machine
