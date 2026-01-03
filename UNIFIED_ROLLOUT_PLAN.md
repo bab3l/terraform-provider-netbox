@@ -321,7 +321,7 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Resources:** virtual_chassis, virtual_device_context, virtual_disk, vm_interface
 **Line Changes:** -35, -27, -31, -35 (net -128 lines)
 **Test Results:** 28/28 tests passed
-**Commit:** Pending
+**Commit:** 08f2322
 **Note:** All resources successfully migrated to unified helpers. Special handling for virtual_disk which uses pointer checks instead of Has* methods.
 **Commit:** 9e93aa21cff226e9dcdcfb67e334c7cf0d3d9133
 **Summary:** Migrated all 4 virtualization component resources to use unified helpers. Reduced inline code by 152 lines total across all files (avg ~35 lines per resource).
