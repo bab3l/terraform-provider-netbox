@@ -317,8 +317,12 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Commit:** c50b3ac
 **Note:** Fixed virtual_machine import handling for site inheritance and cluster reference consistency. Uses standard ImportStateVerifyIgnore pattern for custom_fields.
 
-### Batch 16: Virtualization Components (4 resources) ✅ COMPLETE
+### Batch 16: Virtualization Components (4 resources) ✅
 **Resources:** virtual_chassis, virtual_device_context, virtual_disk, vm_interface
+**Line Changes:** -35, -27, -31, -35 (net -128 lines)
+**Test Results:** 28/28 tests passed
+**Commit:** Pending
+**Note:** All resources successfully migrated to unified helpers. Special handling for virtual_disk which uses pointer checks instead of Has* methods.
 **Commit:** 9e93aa21cff226e9dcdcfb67e334c7cf0d3d9133
 **Summary:** Migrated all 4 virtualization component resources to use unified helpers. Reduced inline code by 152 lines total across all files (avg ~35 lines per resource).
 - virtual_chassis: -35 net lines
