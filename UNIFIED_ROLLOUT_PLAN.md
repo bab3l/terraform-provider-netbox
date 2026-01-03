@@ -354,7 +354,7 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 
 ### Batch 21: VPN - IKE (2 resources) ✅ COMPLETE
 **Resources:** ike_policy, ike_proposal
-**Commit:** [insert hash]
+**Commit:** 7be669152ea271f71e61ca1c5c99a064c7e4aad2
 
 ### Batch 22: Wireless (3 resources)
 **Resources:** wireless_lan, wireless_lan_group, wireless_link
