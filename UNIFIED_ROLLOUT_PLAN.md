@@ -365,7 +365,7 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Resources:** service, service_template
 **Line Changes:** -36, -32 (net -68 lines)
 **Test Results:** 10/10 tests passed
-**Commit:** Pending
+**Commit:** 4f9110c
 
 ### Batch 24: Extras (4 resources)
 **Resources:** custom_field, custom_field_choice_set, custom_link, tag
