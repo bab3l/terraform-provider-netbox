@@ -428,30 +428,12 @@ func (r *IKEPolicyResource) mapIKEPolicyToState(ctx context.Context, ike *netbox
 		data.Comments = types.StringNull()
 	}
 
-	// Tags
-	if len(ike.Tags) > 0 {
-		tags := utils.NestedTagsToTagModels(ike.Tags)
-		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Handle tags using consolidated helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, ike.HasTags(), ike.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Custom Fields
-	switch {
-	case len(ike.CustomFields) > 0 && !data.CustomFields.IsNull():
-		var stateCustomFields []utils.CustomFieldModel
-		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-		customFields := utils.MapToCustomFieldModels(ike.CustomFields, stateCustomFields)
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		data.CustomFields = customFieldsValue
-
-	case len(ike.CustomFields) > 0:
-		customFields := utils.MapToCustomFieldModels(ike.CustomFields, []utils.CustomFieldModel{})
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		data.CustomFields = customFieldsValue
-
-	default:
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Handle custom fields using consolidated helper
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, ike.HasCustomFields(), ike.GetCustomFields(), data.CustomFields, diags)
 }
