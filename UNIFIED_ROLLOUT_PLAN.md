@@ -274,8 +274,10 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Commit:** a999d1b
 **Note:** Added full Tags/CustomFields support to manufacturer (previously missing)
 
-### Batch 9: Device Components - Ports (6 resources)
+### Batch 9: Device Components - Ports (6 resources) ✅
 **Resources:** console_port, console_server_port, front_port, rear_port, power_port, power_outlet
+**Test Results:** 36/36 tests passed
+**Commit:** 6cc36f1
 
 ### Batch 10: Device Components - Other (4 resources)
 **Resources:** device_bay, interface, inventory_item, inventory_item_role
