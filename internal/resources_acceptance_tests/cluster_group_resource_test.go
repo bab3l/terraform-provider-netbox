@@ -116,6 +116,9 @@ func TestAccClusterGroupResource_update(t *testing.T) {
 	name := testutil.RandomName("tf-test-cluster-group")
 	slug := testutil.RandomSlug("tf-test-cluster-group")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterGroupCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -154,6 +157,9 @@ func TestAccClusterGroupResource_externalDeletion(t *testing.T) {
 
 	name := testutil.RandomName("test-cluster-group-del")
 	slug := testutil.GenerateSlug(name)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
