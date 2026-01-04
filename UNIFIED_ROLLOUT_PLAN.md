@@ -367,18 +367,18 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Test Results:** 10/10 tests passed
 **Commit:** 4f9110c
 
-### Batch 24: Extras (4 resources) ⏭️ SKIPPED
+### Batch 24: Extras (4 resources) ✅
 **Resources:** custom_field, custom_field_choice_set, custom_link, tag
-**Status:** All 4 resources are meta/infrastructure resources that define the tagging and custom fields system itself. None have tags or custom_fields attributes in their schemas, so no migration needed.
-**Note:** These resources don't participate as consumers in the tagging/custom fields system - they define it.
-**Line Changes:** N/A (all resources skipped - no tags/custom_fields)
-**Status:** SKIPPED - All resources are meta resources that define tags/custom fields themselves but don't use them
-**Details:**
-- custom_field: Meta resource - defines custom fields for other resources (no tags/CF in schema)
-- custom_field_choice_set: Meta resource - defines choice sets for custom fields (no tags/CF in schema)
-- custom_link: Configuration resource - defines UI links (no tags/CF in schema)
-- tag: Meta resource - defines tags themselves (no tags/CF in schema)
-**Verification:** Project compiles successfully (`go build .`)
+**Status:** Meta/infrastructure resources that define the tagging and custom fields system
+**Helper Migration:** N/A - These resources don't have tags/custom_fields attributes (they define them for other resources)
+**PlanOnly Test Updates:** ✅ COMPLETE - Added PlanOnly steps to all applicable test functions
+**Changes:**
+- Added PlanOnly steps after Create in basic/full/IDPreservation tests
+- Added PlanOnly steps after both Create and Update in update tests
+- Fixed test function structure and syntax issues
+**Test Results:** 15/15 tests passed
+**Commit:** 515d3d2
+**Note:** These resources don't participate as consumers in the tagging/custom fields system - they define it, so no helper migration was needed. However, ALL acceptance tests still require PlanOnly validation per Phase 2 requirements.
 
 ### Batch 25: Events & Automation (3 resources)
 **Resources:** event_rule, webhook, journal_entry
