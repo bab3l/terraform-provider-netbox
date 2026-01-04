@@ -70,6 +70,10 @@ func TestAccTenantGroupResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_tenant_group.test", "description", description),
 				),
 			},
+			{
+				Config:   testAccTenantGroupResourceConfig_full(name, slug, description),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -101,11 +105,19 @@ func TestAccTenantGroupResource_update(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccTenantGroupResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccTenantGroupResourceConfig_basic(updatedName, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_tenant_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_tenant_group.test", "name", updatedName),
 				),
+			},
+			{
+				Config:   testAccTenantGroupResourceConfig_basic(updatedName, slug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -172,6 +184,10 @@ func TestAccTenantGroupResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_tenant_group.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_tenant_group.test", "slug", slug),
 				),
+			},
+			{
+				Config:   testAccTenantGroupResourceConfig_basic(name, slug),
+				PlanOnly: true,
 			},
 		},
 	})
