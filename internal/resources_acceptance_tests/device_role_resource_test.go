@@ -190,6 +190,9 @@ func TestAccDeviceRoleResource_externalDeletion(t *testing.T) {
 	name := testutil.RandomName("test-device-role-del")
 	slug := testutil.GenerateSlug(name)
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceRoleCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,

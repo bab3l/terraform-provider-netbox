@@ -256,6 +256,7 @@ func TestAccDeviceTypeResource_externalDeletion(t *testing.T) {
 	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
 
 	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(slug)
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
