@@ -64,7 +64,7 @@ func TestAccConsistency_ClusterGroup_LiteralNames(t *testing.T) {
 		CheckDestroy: testutil.CheckClusterGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccClusterGroupConsistencyLiteralNamesConfig(name, slug),
+				Config: testAccClusterGroupResourceConfig_basic(name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_cluster_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_cluster_group.test", "name", name),
@@ -72,7 +72,7 @@ func TestAccConsistency_ClusterGroup_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccClusterGroupConsistencyLiteralNamesConfig(name, slug),
+				Config:   testAccClusterGroupResourceConfig_basic(name, slug),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_cluster_group.test", "id"),
@@ -138,15 +138,6 @@ func TestAccClusterGroupResource_update(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccClusterGroupConsistencyLiteralNamesConfig(name, slug string) string {
-	return fmt.Sprintf(`
-resource "netbox_cluster_group" "test" {
-  name = %q
-  slug = %q
-}
-`, name, slug)
 }
 
 func testAccClusterGroupResourceConfig_basic(name, slug string) string {
