@@ -242,6 +242,13 @@ func TestAccConsoleServerPortResource_externalDeletion(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-device-ext-del")
 	consoleServerPortName := testutil.RandomName("tf-test-csp-ext-del")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -270,10 +277,8 @@ func TestAccConsoleServerPortResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted console_server_port with ID: %d", itemID)
 				},
-				Config: testAccConsoleServerPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, consoleServerPortName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_console_server_port.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
