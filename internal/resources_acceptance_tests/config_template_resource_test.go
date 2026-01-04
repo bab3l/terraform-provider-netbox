@@ -176,19 +176,19 @@ func TestAccConfigTemplateResource_update(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigTemplateResourceConfig_withDescription(name, testutil.Description1),
+				Config: testAccConfigTemplateResourceConfig_full(name, "{{ device.name }}", testutil.Description1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_config_template.test", "description", testutil.Description1),
 				),
 			},
 			{
-				Config: testAccConfigTemplateResourceConfig_withDescription(name, testutil.Description2),
+				Config: testAccConfigTemplateResourceConfig_full(name, "{{ device.name }}", testutil.Description2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_config_template.test", "description", testutil.Description2),
 				),
 			},
 			{
-				Config:   testAccConfigTemplateResourceConfig_withDescription(name, testutil.Description2),
+				Config:   testAccConfigTemplateResourceConfig_full(name, "{{ device.name }}", testutil.Description2),
 				PlanOnly: true,
 			},
 		},
@@ -263,14 +263,4 @@ resource "netbox_config_template" "test" {
   description   = %q
 }
 `, name, templateCode, description)
-}
-
-func testAccConfigTemplateResourceConfig_withDescription(name string, description string) string {
-	return fmt.Sprintf(`
-resource "netbox_config_template" "test" {
-  name          = %[1]q
-  template_code = "{{ device.name }}"
-  description   = %[2]q
-}
-`, name, description)
 }
