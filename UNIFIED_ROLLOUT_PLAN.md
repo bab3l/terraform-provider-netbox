@@ -472,23 +472,32 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Note:** These resources already use PopulateCustomFieldsFromMap - just need PlanOnly steps
 
 ```bash
-# Test command
-$env:TF_ACC="1"; go test -v -run 'TestAcc(Tenant|TenantGroup)Resource' ./internal/resources_acceptance_tests/ -timeout 30m
-```
+### Batch 31: PlanOnly Fixes - Tenancy (2 resources) ✅ COMPLETE
+**Resources:** tenant, tenant_group
+**Code Migration:** None (resources already use unified helpers)
+**Line Changes:** -443 lines (removed old test code, added PlanOnly validation)
+**Test Results:** 14/14 tests passed (7 tenant + 7 tenant_group tests)
+**PlanOnly Coverage:**
+- tenant_resource_test.go: Added 7 PlanOnly steps (4 test functions) ✅
+- tenant_group_resource_test.go: Added 5 PlanOnly steps (3 test functions) ✅
+**Total:** 12 PlanOnly steps added to 7 test functions
+**Commit:** c38c572
+**Code Quality:**
+- All random name generation verified as deterministic ✅
+- Custom field names use underscores (via RandomCustomFieldName) ✅
+- No PlanOnly added to external deletion tests ✅
+- Proper TAB indentation maintained ✅
+**Notes:** 🎉 This completes the FINAL batch of actual resource PlanOnly additions! Both resources already had unified helpers integrated. Remaining batches (32-33) are cleanup for resources without test files.
 
-### Batch 32: PlanOnly Fixes - Remaining Resources (3 resources)
-**Resources:** webhook, interface_template, service_template
-**Focus:** Add PlanOnly steps to ALL test functions (basic, update, import)
-
-```bash
-# Test command
-$env:TF_ACC="1"; go test -v -run 'TestAcc(Webhook|InterfaceTemplate|ServiceTemplate)Resource' ./internal/resources_acceptance_tests/ -timeout 30m
-```
+### Batch 32: Documentation - Remaining Resources (3 resources)
+**Resources:** webhook, interface_template (consistency tests), service_template (consistency tests)
+**Status:** Already complete - all have PlanOnly coverage
+**Notes:** These were completed in earlier batches. Batch 29 added PlanOnly to interface_template and service_template. Webhook was handled in Batch 25.
 
 ### Batch 33: Missing Test Files (2 resources) ⚠️
 **Resources:** event_rule, notification_group
 **Status:** Test files don't exist yet
-**Action:** Either create comprehensive test files OR document as known gap
+**Action:** Document as known gap - these resources need test files created
 
 ---
 
@@ -669,22 +678,24 @@ NetBox custom fields are **GLOBAL** - when a test creates a custom field for `dc
 
 ## Progress Tracking
 
-### Completed
+### Completed ✅
 - [x] Phase 1: Helper function consolidation
-- [x] Batches 1-30: 99 resources processed (81 migrated, 18 PlanOnly-only)
+- [x] Phase 2: Complete Resource Migration (Batches 1-31)
+- [x] **Batches 1-31: 101 resources processed (81 migrated, 20 PlanOnly-only)**
   - Batches 1-26: 78 resources migrated, 4 skipped (meta resources)
   - Batch 27: 2 resources analyzed (no tags/custom_fields needed)
   - Batch 28: 3 resources (1 migrated, 2 no tags/custom_fields)
   - Batch 29: 11 template resources (PlanOnly validation completed)
   - Batch 30: 4 IPAM Supporting resources (PlanOnly validation + bug fixes)
+  - Batch 31: 2 Tenancy resources (PlanOnly validation - FINAL resource batch!)
 
-### In Progress
-- [ ] Batch 31: Tenancy - PlanOnly Fixes (next - 2 resources)
+### Documentation & Cleanup
+- [x] Batch 32: Remaining resources already have PlanOnly coverage (webhook, interface_template, service_template)
+- [ ] Batch 33: Document missing test files (event_rule, notification_group)
 
-### Pending - PlanOnly Test Fixes
-- [ ] Batch 31: Tenancy (2 resources - tenant, tenant_group)
-- [ ] Batch 32: Remaining (3 resources - webhook, consistency tests)
-- [ ] Batch 33: Missing Test Files (2 resources - event_rule, notification_group)
+### Final Steps
+- [ ] Phase 6: Final Verification
+- [ ] Phase 7: Documentation Update
 
 ### Final
 - [ ] Phase 6: Verification
