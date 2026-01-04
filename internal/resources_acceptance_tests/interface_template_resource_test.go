@@ -37,11 +37,19 @@ func TestAccInterfaceTemplateResource_basic(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccInterfaceTemplateResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+			{
 				// Test import
 				ResourceName:            "netbox_interface_template.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device_type", "enabled"},
+			},
+			{
+				Config:   testAccInterfaceTemplateResourceConfig_basic(name),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -85,6 +93,10 @@ func TestAccInterfaceTemplateResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_interface_template.test", "description", "Test interface template with full options"),
 				),
 			},
+			{
+				Config:   testAccInterfaceTemplateResourceConfig_full(name),
+				PlanOnly: true,
+			},
 		},
 	})
 
@@ -116,6 +128,10 @@ func TestAccConsistency_InterfaceTemplate(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_interface_template.test", "type", "1000base-t"),
 				),
+			},
+			{
+				Config:   testAccInterfaceTemplateResourceConfig_consistency_device_type_id(name),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -149,6 +165,10 @@ func TestAccConsistency_InterfaceTemplate_LiteralNames(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_interface_template.test", "type", "1000base-t"),
 				),
 			},
+			{
+				Config:   testAccInterfaceTemplateResourceConfig_consistency_device_type_slug(name),
+				PlanOnly: true,
+			},
 		},
 	})
 
@@ -170,6 +190,10 @@ func TestAccInterfaceTemplateResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_interface_template.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_interface_template.test", "type", "1000base-t"),
 				),
+			},
+			{
+				Config:   testAccInterfaceTemplateResourceConfig_basic(name),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -203,6 +227,10 @@ func TestAccInterfaceTemplateResource_update(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_interface_template.test", "description", testutil.Description1),
 				),
 			},
+			{
+				Config:   testAccInterfaceTemplateResourceConfig_update(name, testutil.Description1),
+				PlanOnly: true,
+			},
 
 			{
 
@@ -212,6 +240,10 @@ func TestAccInterfaceTemplateResource_update(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_interface_template.test", "description", testutil.Description2),
 				),
+			},
+			{
+				Config:   testAccInterfaceTemplateResourceConfig_update(name, testutil.Description2),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -372,7 +404,7 @@ resource "netbox_device_type" "test" {
 
 }
 
-`, name+"-mfr", testutil.RandomSlug("mfr"), name+"-model", testutil.RandomSlug("device"))
+`, name+"-mfr", name+"-mfr-slug", name+"-model", name+"-model-slug")
 
 }
 

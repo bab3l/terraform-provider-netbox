@@ -10,7 +10,6 @@ import (
 )
 
 func TestInterfaceTemplateResource(t *testing.T) {
-
 	t.Parallel()
 
 	r := resources.NewInterfaceTemplateResource()
@@ -20,7 +19,6 @@ func TestInterfaceTemplateResource(t *testing.T) {
 }
 
 func TestInterfaceTemplateResourceSchema(t *testing.T) {
-
 	t.Parallel()
 
 	r := resources.NewInterfaceTemplateResource()
@@ -40,7 +38,6 @@ func TestInterfaceTemplateResourceSchema(t *testing.T) {
 }
 
 func TestInterfaceTemplateResourceMetadata(t *testing.T) {
-
 	t.Parallel()
 
 	r := resources.NewInterfaceTemplateResource()
@@ -48,7 +45,6 @@ func TestInterfaceTemplateResourceMetadata(t *testing.T) {
 }
 
 func TestInterfaceTemplateResourceConfigure(t *testing.T) {
-
 	t.Parallel()
 
 	r := resources.NewInterfaceTemplateResource()

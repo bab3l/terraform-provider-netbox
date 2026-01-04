@@ -27,7 +27,6 @@ func TestPrefixResourceSchema(t *testing.T) {
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
 	r.Schema(context.Background(), schemaRequest, schemaResponse)
-
 	if schemaResponse.Diagnostics.HasError() {
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
 	}
@@ -44,17 +43,13 @@ func TestPrefixResourceSchema(t *testing.T) {
 }
 
 func TestPrefixResourceMetadata(t *testing.T) {
-
 	t.Parallel()
-
 	r := resources.NewPrefixResource()
 	testutil.ValidateResourceMetadata(t, r, "netbox", "netbox_prefix")
 }
 
 func TestPrefixResourceConfigure(t *testing.T) {
-
 	t.Parallel()
-
 	r := resources.NewPrefixResource().(*resources.PrefixResource)
 	testutil.ValidateResourceConfigure(t, r)
 }
