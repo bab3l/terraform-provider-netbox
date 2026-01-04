@@ -179,6 +179,10 @@ func TestAccFrontPortTemplateResource_externalDeletion(t *testing.T) {
 	frontPortName := testutil.RandomName("front-port-ext-del")
 	rearPortName := testutil.RandomName("rear-port-ext-del")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -207,10 +211,8 @@ func TestAccFrontPortTemplateResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted front_port_template with ID: %d", itemID)
 				},
-				Config: testAccFrontPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, frontPortTypeStandard),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_front_port_template.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

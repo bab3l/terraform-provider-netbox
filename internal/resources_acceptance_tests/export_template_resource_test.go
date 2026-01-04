@@ -209,6 +209,9 @@ func TestAccExportTemplateResource_externalDeletion(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-expt-extdel")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterExportTemplateCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
