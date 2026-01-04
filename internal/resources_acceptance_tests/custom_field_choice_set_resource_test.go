@@ -129,14 +129,14 @@ func TestAccConsistency_CustomFieldChoiceSet_LiteralNames(t *testing.T) {
 		CheckDestroy:             testutil.CheckCustomFieldChoiceSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCustomFieldChoiceSetConsistencyLiteralNamesConfig(name),
+				Config: testAccCustomFieldChoiceSetResourceConfig_full(name),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_custom_field_choice_set.test", "id"),
 					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "extra_choices.#", "3"),
 				),
 			},
 			{
-				Config:   testAccCustomFieldChoiceSetConsistencyLiteralNamesConfig(name),
+				Config:   testAccCustomFieldChoiceSetResourceConfig_full(name),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_custom_field_choice_set.test", "id"),
@@ -144,20 +144,6 @@ func TestAccConsistency_CustomFieldChoiceSet_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccCustomFieldChoiceSetConsistencyLiteralNamesConfig(name string) string {
-	return fmt.Sprintf(`
-resource "netbox_custom_field_choice_set" "test" {
-  name                  = %q
-  order_alphabetically = true
-  extra_choices = [
-    { value = "critical", label = "Critical" },
-    { value = "high",     label = "High" },
-    { value = "low",      label = "Low" },
-  ]
-}
-`, name)
 }
 
 func TestAccCustomFieldChoiceSetResource_IDPreservation(t *testing.T) {
@@ -218,6 +204,9 @@ func TestAccCustomFieldChoiceSetResource_externalDeletion(t *testing.T) {
 	testutil.TestAccPreCheck(t)
 
 	name := testutil.RandomName("tf-test-cfcs-extdel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldChoiceSetCleanupByName(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

@@ -125,7 +125,7 @@ func TestAccConsistency_CustomField_LiteralNames(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCustomFieldConsistencyLiteralNamesConfig(name),
+				Config: testAccCustomFieldResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_custom_field.test", "id"),
 					resource.TestCheckResourceAttr("netbox_custom_field.test", "name", name),
@@ -133,7 +133,7 @@ func TestAccConsistency_CustomField_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccCustomFieldConsistencyLiteralNamesConfig(name),
+				Config:   testAccCustomFieldResourceConfig_basic(name),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_custom_field.test", "id"),
@@ -141,16 +141,6 @@ func TestAccConsistency_CustomField_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccCustomFieldConsistencyLiteralNamesConfig(name string) string {
-	return fmt.Sprintf(`
-resource "netbox_custom_field" "test" {
-  name         = %q
-  type         = "text"
-  object_types = ["dcim.site"]
-}
-`, name)
 }
 
 func TestAccCustomFieldResource_IDPreservation(t *testing.T) {

@@ -157,7 +157,7 @@ func TestAccConsistency_CustomLink_LiteralNames(t *testing.T) {
 		CheckDestroy:             testutil.CheckCustomLinkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCustomLinkConsistencyLiteralNamesConfig(name),
+				Config: testAccCustomLinkResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_text", "View in External System"),
@@ -165,7 +165,7 @@ func TestAccConsistency_CustomLink_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccCustomLinkConsistencyLiteralNamesConfig(name),
+				Config:   testAccCustomLinkResourceConfig_basic(name),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_custom_link.test", "id"),
@@ -173,17 +173,6 @@ func TestAccConsistency_CustomLink_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccCustomLinkConsistencyLiteralNamesConfig(name string) string {
-	return fmt.Sprintf(`
-resource "netbox_custom_link" "test" {
-  name       = %q
-  link_text  = "View in External System"
-  link_url   = "https://example.com/device/{{ object.name }}"
-  object_types = ["dcim.device"]
-}
-`, name)
 }
 
 func testAccCustomLinkResourceConfig_basic(name string) string {
@@ -218,6 +207,9 @@ func TestAccCustomLinkResource_externalDeletion(t *testing.T) {
 	testutil.TestAccPreCheck(t)
 
 	name := testutil.RandomName("tf-test-cl-extdel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomLinkCleanupByName(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
