@@ -389,6 +389,13 @@ func TestAccCircuitGroupAssignmentResource_externalDeletion(t *testing.T) {
 	circuitTypeSlug := testutil.RandomSlug("tf-test-cga-type-ext-del")
 	circuitCid := testutil.RandomSlug("tf-test-cga-ckt-ext-del")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitGroupAssignmentCleanup(groupName)
+	cleanup.RegisterCircuitGroupCleanup(groupName)
+	cleanup.RegisterCircuitCleanup(circuitCid)
+	cleanup.RegisterProviderCleanup(providerName)
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeName)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -396,33 +403,8 @@ func TestAccCircuitGroupAssignmentResource_externalDeletion(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
-resource "netbox_circuit_group" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_provider" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_circuit_type" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_circuit" "test" {
-  cid              = %q
-  circuit_provider = netbox_provider.test.id
-  type             = netbox_circuit_type.test.id
-}
-
-resource "netbox_circuit_group_assignment" "test" {
-  group_id   = netbox_circuit_group.test.name
-  circuit_id = netbox_circuit.test.cid
-}
-`, groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid),
+				Config: testAccCircuitGroupAssignmentResourceConfigLiteralNames(
+					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "id"),
 				),
@@ -445,6 +427,7 @@ resource "netbox_circuit_group_assignment" "test" {
 					}
 					t.Logf("Successfully externally deleted circuit group assignment with ID: %d", itemID)
 				},
+
 				RefreshState:       true,
 				ExpectNonEmptyPlan: true,
 			},

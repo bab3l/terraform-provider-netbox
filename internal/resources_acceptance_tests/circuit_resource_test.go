@@ -402,6 +402,11 @@ func TestAccCircuitResource_externalDeletion(t *testing.T) {
 	typeName := testutil.RandomName("tf-test-circuit-type")
 	typeSlug := testutil.RandomSlug("circuit-type")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitCleanup(cid)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(typeSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -409,22 +414,7 @@ func TestAccCircuitResource_externalDeletion(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
-resource "netbox_provider" "test" {
-  name = %q
-  slug = %q
-}
-resource "netbox_circuit_type" "test" {
-  name = %q
-  slug = %q
-}
-resource "netbox_circuit" "test" {
-  cid                = %q
-  circuit_provider   = netbox_provider.test.id
-  type               = netbox_circuit_type.test.id
-  status             = "active"
-}
-`, providerName, providerSlug, typeName, typeSlug, cid),
+				Config: testAccCircuitResourceConfig_basic(cid, providerName, providerSlug, typeName, typeSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
 				),
@@ -447,25 +437,8 @@ resource "netbox_circuit" "test" {
 					}
 					t.Logf("Successfully externally deleted circuit with ID: %d", itemID)
 				},
-				Config: fmt.Sprintf(`
-resource "netbox_provider" "test" {
-  name = %q
-  slug = %q
-}
-resource "netbox_circuit_type" "test" {
-  name = %q
-  slug = %q
-}
-resource "netbox_circuit" "test" {
-  cid                = %q
-  circuit_provider   = netbox_provider.test.id
-  type               = netbox_circuit_type.test.id
-  status             = "active"
-}
-`, providerName, providerSlug, typeName, typeSlug, cid),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

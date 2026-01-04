@@ -227,8 +227,13 @@ resource "netbox_circuit_group" "test" {
 
 func TestAccCircuitGroupResource_externalDeletion(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-circuit-group-ext-del")
 	slug := testutil.RandomSlug("circuit-group-ext-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitGroupCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -236,12 +241,7 @@ func TestAccCircuitGroupResource_externalDeletion(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
-resource "netbox_circuit_group" "test" {
-  name = %q
-  slug = %q
-}
-`, name, slug),
+				Config: testAccCircuitGroupResourceConfig_basic(name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_circuit_group.test", "id"),
 				),
