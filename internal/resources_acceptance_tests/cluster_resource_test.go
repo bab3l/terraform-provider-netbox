@@ -147,7 +147,7 @@ func TestAccClusterResource_import(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccClusterResourceConfig_import(clusterTypeName, clusterTypeSlug, clusterName),
+				Config: testAccClusterResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),
 					resource.TestCheckResourceAttr("netbox_cluster.test", "name", clusterName),
@@ -270,20 +270,6 @@ resource "netbox_cluster" "test" {
   comments    = %q
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, description, comments)
-}
-
-func testAccClusterResourceConfig_import(clusterTypeName, clusterTypeSlug, clusterName string) string {
-	return fmt.Sprintf(`
-resource "netbox_cluster_type" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_cluster" "test" {
-  name = %q
-  type = netbox_cluster_type.test.id
-}
-`, clusterTypeName, clusterTypeSlug, clusterName)
 }
 
 func testAccClusterConsistencyLiteralNamesConfig(clusterName, clusterTypeName, clusterTypeSlug, groupName, groupSlug, siteName, siteSlug, tenantName, tenantSlug string) string {
