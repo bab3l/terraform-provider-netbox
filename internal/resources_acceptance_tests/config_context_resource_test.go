@@ -176,6 +176,9 @@ func TestAccConfigContextResource_update(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-ctx-upd")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigContextCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -205,6 +208,9 @@ func TestAccConfigContextResource_externalDeletion(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 	name := testutil.RandomName("tf-test-ctx-extdel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigContextCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
