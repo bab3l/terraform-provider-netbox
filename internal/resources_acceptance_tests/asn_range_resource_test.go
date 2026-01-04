@@ -250,6 +250,7 @@ resource "netbox_asn_range" "test" {
 `, rirName, rirSlug, name, slug)
 }
 
+// Test with ID references.
 func testAccASNRangeResourceConfig_full(name, slug, rirName, rirSlug, tenantName, tenantSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_rir" "test" {
@@ -376,6 +377,7 @@ func TestAccConsistency_ASNRange(t *testing.T) {
 	})
 }
 
+// Test with mixed references (id and name).
 func testAccASNRangeConsistencyConfig(rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_rir" "test" {

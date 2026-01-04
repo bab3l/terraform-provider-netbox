@@ -113,6 +113,12 @@ func TestAccIPAddressResource_importWithTags(t *testing.T) {
 	tenantName := testutil.RandomName("tf-test-tenant")
 	tenantSlug := testutil.RandomSlug("tf-test-tenant")
 
+	// Tag names
+	tag1 := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2 := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterTenantCleanup(tenantSlug)
 
@@ -121,7 +127,7 @@ func TestAccIPAddressResource_importWithTags(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIPAddressResourceImportConfig_full(ip, tenantName, tenantSlug),
+				Config: testAccIPAddressResourceImportConfig_full(ip, tenantName, tenantSlug, tag1, tag1Slug, tag2, tag2Slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
 					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", ip),
@@ -137,13 +143,7 @@ func TestAccIPAddressResource_importWithTags(t *testing.T) {
 	})
 }
 
-func testAccIPAddressResourceImportConfig_full(ip, tenantName, tenantSlug string) string {
-	// Tag names
-	tag1 := testutil.RandomName("tag1")
-	tag1Slug := testutil.RandomSlug("tag1")
-	tag2 := testutil.RandomName("tag2")
-	tag2Slug := testutil.RandomSlug("tag2")
-
+func testAccIPAddressResourceImportConfig_full(ip, tenantName, tenantSlug, tag1, tag1Slug, tag2, tag2Slug string) string {
 	return fmt.Sprintf(`
 # Dependencies
 resource "netbox_tenant" "test" {

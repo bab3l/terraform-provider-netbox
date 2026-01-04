@@ -206,37 +206,6 @@ func TestAccCircuitResource_importWithCustomFieldsAndTags(t *testing.T) {
 	tenantName := testutil.RandomName("tf-test-tenant")
 	tenantSlug := testutil.RandomSlug("tf-test-tenant")
 
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterCircuitCleanup(cid)
-	cleanup.RegisterProviderCleanup(providerSlug)
-	cleanup.RegisterCircuitTypeCleanup(typeSlug)
-	cleanup.RegisterTenantCleanup(tenantSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCircuitDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCircuitResourceImportConfig_full(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
-					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
-				),
-			},
-			{
-				ResourceName:            "netbox_circuit.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"circuit_provider", "type", "tenant", "custom_fields", "tags"},
-			},
-		},
-	})
-}
-
-func testAccCircuitResourceImportConfig_full(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug string) string {
 	// Generate test data for all custom field types
 	textValue := testutil.RandomName("text-value")
 	longtextValue := testutil.RandomName("longtext-value") + "\nThis is a multiline text field for comprehensive testing."
@@ -260,6 +229,48 @@ func testAccCircuitResourceImportConfig_full(cid, providerName, providerSlug, ty
 	cfDate := testutil.RandomCustomFieldName("tf_date")
 	cfURL := testutil.RandomCustomFieldName("tf_url")
 	cfJSON := testutil.RandomCustomFieldName("tf_json")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitCleanup(cid)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(typeSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckCircuitDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitResourceImportConfig_full(
+					cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug,
+					textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue,
+					tag1, tag1Slug, tag2, tag2Slug,
+					cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+				),
+			},
+			{
+				ResourceName:            "netbox_circuit.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"circuit_provider", "type", "tenant", "custom_fields", "tags"},
+			},
+		},
+	})
+}
+
+func testAccCircuitResourceImportConfig_full(
+	cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug string,
+	textValue, longtextValue string, intValue int, boolValue bool, dateValue, urlValue, jsonValue string,
+	tag1, tag1Slug, tag2, tag2Slug string,
+	cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON string,
+) string {
 	return fmt.Sprintf(`
 # Dependencies
 resource "netbox_provider" "test" {

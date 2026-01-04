@@ -129,37 +129,6 @@ func TestAccLocationResource_importWithCustomFieldsAndTags(t *testing.T) {
 	tenantName := testutil.RandomName("tf-test-tenant")
 	tenantSlug := testutil.RandomSlug("tf-test-tenant")
 
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterLocationCleanup(slug)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterTenantCleanup(tenantSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckLocationDestroy, testutil.CheckSiteDestroy),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccLocationResourceImportConfig_full(siteName, siteSlug, name, slug, tenantName, tenantSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_location.test", "id"),
-					resource.TestCheckResourceAttr("netbox_location.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_location.test", "slug", slug),
-				),
-			},
-			{
-				ResourceName:            "netbox_location.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"site", "tenant", "custom_fields", "tags"},
-			},
-		},
-	})
-}
-
-func testAccLocationResourceImportConfig_full(siteName, siteSlug, name, slug, tenantName, tenantSlug string) string {
 	// Generate test data for all custom field types
 	textValue := testutil.RandomName("text-value")
 	longtextValue := testutil.RandomName("longtext-value") + "\nThis is a multiline text field for comprehensive testing."
@@ -184,6 +153,47 @@ func testAccLocationResourceImportConfig_full(siteName, siteSlug, name, slug, te
 	cfURL := testutil.RandomCustomFieldName("tf_url")
 	cfJSON := testutil.RandomCustomFieldName("tf_json")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterLocationCleanup(slug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckLocationDestroy, testutil.CheckSiteDestroy),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccLocationResourceImportConfig_full(
+					siteName, siteSlug, name, slug, tenantName, tenantSlug,
+					textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue,
+					tag1, tag1Slug, tag2, tag2Slug,
+					cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_location.test", "id"),
+					resource.TestCheckResourceAttr("netbox_location.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_location.test", "slug", slug),
+				),
+			},
+			{
+				ResourceName:            "netbox_location.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"site", "tenant", "custom_fields", "tags"},
+			},
+		},
+	})
+}
+
+func testAccLocationResourceImportConfig_full(
+	siteName, siteSlug, name, slug, tenantName, tenantSlug string,
+	textValue, longtextValue string, intValue int, boolValue bool, dateValue, urlValue, jsonValue string,
+	tag1, tag1Slug, tag2, tag2Slug string,
+	cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON string,
+) string {
 	return fmt.Sprintf(`
 # Dependencies
 resource "netbox_site" "test" {

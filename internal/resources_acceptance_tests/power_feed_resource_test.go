@@ -128,35 +128,6 @@ func TestAccPowerFeedResource_importWithCustomFieldsAndTags(t *testing.T) {
 	tenantName := testutil.RandomName("tf-test-tenant")
 	tenantSlug := testutil.RandomSlug("tf-test-tenant")
 
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterTenantCleanup(tenantSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccPowerFeedResourceImportConfig_full(siteName, siteSlug, panelName, feedName, tenantName, tenantSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_power_feed.test", "id"),
-					resource.TestCheckResourceAttr("netbox_power_feed.test", "name", feedName),
-					resource.TestCheckResourceAttr("netbox_power_feed.test", "status", "active"),
-				),
-			},
-			{
-				ResourceName:            "netbox_power_feed.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"power_panel", "tenant", "custom_fields", "tags"},
-			},
-		},
-	})
-}
-
-func testAccPowerFeedResourceImportConfig_full(siteName, siteSlug, panelName, feedName, tenantName, tenantSlug string) string {
 	// Generate test data for all custom field types
 	textValue := testutil.RandomName("text-value")
 	longtextValue := testutil.RandomName("longtext-value") + "\nThis is a multiline text field for comprehensive testing."
@@ -181,6 +152,45 @@ func testAccPowerFeedResourceImportConfig_full(siteName, siteSlug, panelName, fe
 	cfURL := testutil.RandomCustomFieldName("tf_url")
 	cfJSON := testutil.RandomCustomFieldName("tf_json")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerFeedResourceImportConfig_full(
+					siteName, siteSlug, panelName, feedName, tenantName, tenantSlug,
+					textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue,
+					tag1, tag1Slug, tag2, tag2Slug,
+					cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_feed.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "name", feedName),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "status", "active"),
+				),
+			},
+			{
+				ResourceName:            "netbox_power_feed.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"power_panel", "tenant", "custom_fields", "tags"},
+			},
+		},
+	})
+}
+
+func testAccPowerFeedResourceImportConfig_full(
+	siteName, siteSlug, panelName, feedName, tenantName, tenantSlug string,
+	textValue, longtextValue string, intValue int, boolValue bool, dateValue, urlValue, jsonValue string,
+	tag1, tag1Slug, tag2, tag2Slug string,
+	cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON string,
+) string {
 	return fmt.Sprintf(`
 # Dependencies
 resource "netbox_site" "test" {

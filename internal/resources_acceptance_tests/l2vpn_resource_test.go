@@ -81,34 +81,6 @@ func TestAccL2vpnResource_importWithCustomFieldsAndTags(t *testing.T) {
 	tenantName := testutil.RandomName("tf-test-tenant")
 	tenantSlug := testutil.RandomSlug("tf-test-tenant")
 
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterTenantCleanup(tenantSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccL2vpnResourceImportConfig_full(name, slug, tenantName, tenantSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_l2vpn.test", "slug", slug),
-					resource.TestCheckResourceAttr("netbox_l2vpn.test", "type", "vxlan"),
-				),
-			},
-			{
-				ResourceName:            "netbox_l2vpn.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"display_name", "tenant", "custom_fields", "tags"},
-			},
-		},
-	})
-}
-
-func testAccL2vpnResourceImportConfig_full(name, slug, tenantName, tenantSlug string) string {
 	// Generate test data for all custom field types
 	textValue := testutil.RandomName("text-value")
 	longtextValue := testutil.RandomName("longtext-value") + "\nThis is a multiline text field for comprehensive testing."
@@ -133,6 +105,44 @@ func testAccL2vpnResourceImportConfig_full(name, slug, tenantName, tenantSlug st
 	cfURL := testutil.RandomCustomFieldName("tf_url")
 	cfJSON := testutil.RandomCustomFieldName("tf_json")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccL2vpnResourceImportConfig_full(
+					name, slug, tenantName, tenantSlug,
+					textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue,
+					tag1, tag1Slug, tag2, tag2Slug,
+					cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "type", "vxlan"),
+				),
+			},
+			{
+				ResourceName:            "netbox_l2vpn.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"display_name", "tenant", "custom_fields", "tags"},
+			},
+		},
+	})
+}
+
+func testAccL2vpnResourceImportConfig_full(
+	name, slug, tenantName, tenantSlug string,
+	textValue, longtextValue string, intValue int, boolValue bool, dateValue, urlValue, jsonValue string,
+	tag1, tag1Slug, tag2, tag2Slug string,
+	cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON string,
+) string {
 	return fmt.Sprintf(`
 # Dependencies
 resource "netbox_tenant" "test" {

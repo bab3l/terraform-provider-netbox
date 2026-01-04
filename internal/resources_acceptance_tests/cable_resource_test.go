@@ -208,38 +208,6 @@ func TestAccCableResource_importWithCustomFieldsAndTags(t *testing.T) {
 	tenantName := testutil.RandomName("tf-test-tenant")
 	tenantSlug := testutil.RandomSlug("tf-test-tenant")
 
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterManufacturerCleanup(mfgSlug)
-	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
-	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
-	cleanup.RegisterDeviceCleanup(deviceName + "-a")
-	cleanup.RegisterDeviceCleanup(deviceName + "-b")
-	cleanup.RegisterTenantCleanup(tenantSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCableResourceImportConfig_full(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tenantName, tenantSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_cable.test", "id"),
-					resource.TestCheckResourceAttr("netbox_cable.test", "status", "connected"),
-					resource.TestCheckResourceAttr("netbox_cable.test", "type", "cat6"),
-				),
-			},
-			{
-				ResourceName:            "netbox_cable.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
-			},
-		},
-	})
-}
-
-func testAccCableResourceImportConfig_full(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tenantName, tenantSlug string) string {
 	// Generate test data for all custom field types
 	textValue := testutil.RandomName("text-value")
 	longtextValue := testutil.RandomName("longtext-value") + "\nThis is a multiline text field for comprehensive testing."
@@ -264,6 +232,48 @@ func testAccCableResourceImportConfig_full(siteName, siteSlug, deviceName, mfgNa
 	cfURL := testutil.RandomCustomFieldName("tf_url")
 	cfJSON := testutil.RandomCustomFieldName("tf_json")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceCleanup(deviceName + "-a")
+	cleanup.RegisterDeviceCleanup(deviceName + "-b")
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCableResourceImportConfig_full(
+					siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tenantName, tenantSlug,
+					textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue,
+					tag1, tag1Slug, tag2, tag2Slug,
+					cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cable.test", "id"),
+					resource.TestCheckResourceAttr("netbox_cable.test", "status", "connected"),
+					resource.TestCheckResourceAttr("netbox_cable.test", "type", "cat6"),
+				),
+			},
+			{
+				ResourceName:            "netbox_cable.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
+			},
+		},
+	})
+}
+
+func testAccCableResourceImportConfig_full(
+	siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tenantName, tenantSlug string,
+	textValue, longtextValue string, intValue int, boolValue bool, dateValue, urlValue, jsonValue string,
+	tag1, tag1Slug, tag2, tag2Slug string,
+	cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON string,
+) string {
 	return fmt.Sprintf(`
 # Infrastructure dependencies
 resource "netbox_site" "test" {
