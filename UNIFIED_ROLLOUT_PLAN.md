@@ -432,10 +432,20 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Commit:** b77bc17
 **Notes:** Only fhrp_group needed helper migration. Platform and fhrp_group_assignment only needed PlanOnly validation.
 
-### Batch 29: Templates (11 resources) ⚠️ PARTIAL
-**Resources:** All `*_template` resources
-**Status:** 9/11 have PlanOnly, 2 need completion
-**Remaining:** interface_template, service_template (need PlanOnly steps added)
+### Batch 29: Templates (11 resources) ✅ COMPLETE
+**Resources:** All `*_template` resources (focus: interface_template, service_template)
+**Code Migration:**
+- interface_template: No tags/custom_fields support (PlanOnly only)
+- service_template: Already migrated to unified helpers (PlanOnly only)
+- Other 9 template resources: Already complete from previous batches
+**Line Changes:** 0 lines (bug fix: -36 lines removing RandomSlug, +33 lines adding deterministic slugs)
+**Test Results:** 13/13 tests passed (8 interface_template + 5 service_template)
+**PlanOnly Coverage:**
+- interface_template_resource_test.go: Added 9 PlanOnly steps (6 test functions) ✅
+- service_template_resource_test.go: Added 9 PlanOnly steps (5 test functions) ✅
+**Commit:** 73b6f2e
+**Bug Fix:** interface_template prereqs used RandomSlug() causing config drift between test steps - replaced with deterministic slug names based on test name
+**Notes:** This batch completes the template resources category. All 11 template resources now have complete PlanOnly coverage.
 
 ### Batch 30: PlanOnly Fixes - IPAM Supporting (4 resources)
 **Resources:** rir, role, route_target, vrf
@@ -652,21 +662,19 @@ NetBox custom fields are **GLOBAL** - when a test creates a custom field for `dc
 
 ### Completed
 - [x] Phase 1: Helper function consolidation
-- [x] Batches 1-28: 84 resources processed (81 migrated, 3 skipped)
+- [x] Batches 1-29: 95 resources processed (81 migrated, 14 PlanOnly-only)
   - Batches 1-26: 78 resources migrated, 4 skipped (meta resources)
   - Batch 27: 2 resources analyzed (no tags/custom_fields needed)
   - Batch 28: 3 resources (1 migrated, 2 no tags/custom_fields)
+  - Batch 29: 11 template resources (PlanOnly validation completed)
 
 ### In Progress
-- [ ] Batch 29: Templates (next - 11 resources)
-
-### Pending - Helper Migration
-- [ ] Batch 29 (11 resources need helper migration)
+- [ ] Batch 30: IPAM Supporting - PlanOnly Fixes (next - 4 resources)
 
 ### Pending - PlanOnly Test Fixes
 - [ ] Batch 30: IPAM Supporting (4 resources - rir, role, route_target, vrf)
 - [ ] Batch 31: Tenancy (2 resources - tenant, tenant_group)
-- [ ] Batch 32: Remaining (3 resources - webhook, interface_template, service_template)
+- [ ] Batch 32: Remaining (3 resources - webhook, interface_template consistency tests, service_template consistency tests)
 - [ ] Batch 33: Missing Test Files (2 resources - event_rule, notification_group)
 
 ### Final
