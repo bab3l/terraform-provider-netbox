@@ -70,6 +70,11 @@ func TestAccTagResource_full(t *testing.T) {
 				),
 			},
 			{
+				// Verify no changes after create
+				Config:   testAccTagResourceFull(name, slug, color, description),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccTagResourceFull(updatedName, updatedSlug, updatedColor, updatedDescription),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tag.test", "name", updatedName),
@@ -78,12 +83,16 @@ func TestAccTagResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_tag.test", "description", updatedDescription),
 				),
 			},
+			{
+				// Verify no changes after update
+				Config:   testAccTagResourceFull(updatedName, updatedSlug, updatedColor, updatedDescription),
+				PlanOnly: true,
+			},
 		},
 	})
 }
 
 func TestAccTagResource_withObjectTypes(t *testing.T) {
-
 	t.Parallel()
 	name := testutil.RandomName("tag")
 	slug := testutil.RandomSlug("tag")
@@ -103,14 +112,19 @@ func TestAccTagResource_withObjectTypes(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_tag.test", "object_types.#", "2"),
 				),
 			},
+			{
+				// Verify no changes after create
+				Config:   testAccTagResourceWithObjectTypes(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
 
 func TestAccTagResource_IDPreservation(t *testing.T) {
 	t.Parallel()
-	name := testutil.RandomName("tf-test-tag-id")
-	slug := testutil.RandomSlug("tf-test-tag-id")
+	name := testutil.RandomName("tag-id")
+	slug := testutil.RandomSlug("tag-id")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -122,6 +136,11 @@ func TestAccTagResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_tag.test", "id"),
 					resource.TestCheckResourceAttr("netbox_tag.test", "name", name),
 				),
+			},
+			{
+				// Verify no changes after create
+				Config:   testAccTagResourceBasic(name, slug),
+				PlanOnly: true,
 			},
 		},
 	})

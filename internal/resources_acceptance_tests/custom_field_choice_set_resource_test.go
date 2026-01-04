@@ -42,6 +42,12 @@ func TestAccCustomFieldChoiceSetResource_basic(t *testing.T) {
 			},
 
 			{
+				// Verify no changes after create
+				Config:   testAccCustomFieldChoiceSetResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+
+			{
 
 				ResourceName: "netbox_custom_field_choice_set.test",
 
@@ -88,6 +94,12 @@ func TestAccCustomFieldChoiceSetResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "extra_choices.#", "3"),
 				),
 			},
+
+			{
+				// Verify no changes after create
+				Config:   testAccCustomFieldChoiceSetResourceConfig_full(name),
+				PlanOnly: true,
+			},
 		},
 	})
 
@@ -126,6 +138,12 @@ func TestAccCustomFieldChoiceSetResource_update(t *testing.T) {
 			},
 
 			{
+				// Verify no changes after create
+				Config:   testAccCustomFieldChoiceSetResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+
+			{
 
 				Config: testAccCustomFieldChoiceSetResourceConfig_basic(updatedName),
 
@@ -133,6 +151,12 @@ func TestAccCustomFieldChoiceSetResource_update(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "name", updatedName),
 				),
+			},
+
+			{
+				// Verify no changes after update
+				Config:   testAccCustomFieldChoiceSetResourceConfig_basic(updatedName),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -226,6 +250,11 @@ func TestAccCustomFieldChoiceSetResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_custom_field_choice_set.test", "id"),
 					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "name", name),
 				),
+			},
+			{
+				// Verify no changes after create
+				Config:   testAccCustomFieldChoiceSetResourceConfig_basic(name),
+				PlanOnly: true,
 			},
 		},
 	})

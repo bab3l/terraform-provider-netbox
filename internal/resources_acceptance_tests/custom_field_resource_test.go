@@ -49,6 +49,12 @@ func TestAccCustomFieldResource_basic(t *testing.T) {
 			},
 
 			{
+				// Verify no changes after create
+				Config:   testAccCustomFieldResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+
+			{
 
 				ResourceName: "netbox_custom_field.test",
 
@@ -123,6 +129,12 @@ func TestAccCustomFieldResource_full(t *testing.T) {
 			},
 
 			{
+				// Verify no changes after create
+				Config:   testAccCustomFieldResourceConfig_full(name, description, "Custom Label", "Group A", 2000, "exact", "if-set", "no", true),
+				PlanOnly: true,
+			},
+
+			{
 
 				Config: testAccCustomFieldResourceConfig_full(name, updatedDescription, "Updated Label", "Group B", 3000, "loose", "always", "yes", false),
 
@@ -144,6 +156,12 @@ func TestAccCustomFieldResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_custom_field.test", "is_cloneable", "false"),
 				),
+			},
+
+			{
+				// Verify no changes after update
+				Config:   testAccCustomFieldResourceConfig_full(name, updatedDescription, "Updated Label", "Group B", 3000, "loose", "always", "yes", false),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -232,15 +250,20 @@ func TestAccCustomFieldResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_custom_field.test", "name", name),
 				),
 			},
+			{
+				// Verify no changes after create
+				Config:   testAccCustomFieldResourceConfig_basic(name),
+				PlanOnly: true,
+			},
 		},
 	})
 }
 
-func TestAccCustomFieldResource_update(t *testing.T) {
+func TestAccCustomFieldResource_DescriptionUpdate(t *testing.T) {
 	t.Parallel()
-	testutil.TestAccPreCheck(t)
-
 	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -253,10 +276,20 @@ func TestAccCustomFieldResource_update(t *testing.T) {
 				),
 			},
 			{
+				// Verify no changes after create
+				Config:   testAccCustomFieldResourceConfig_withDescription(name, testutil.Description1),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccCustomFieldResourceConfig_withDescription(name, testutil.Description2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_custom_field.test", "description", testutil.Description2),
 				),
+			},
+			{
+				// Verify no changes after update
+				Config:   testAccCustomFieldResourceConfig_withDescription(name, testutil.Description2),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -264,9 +297,9 @@ func TestAccCustomFieldResource_update(t *testing.T) {
 
 func TestAccCustomFieldResource_externalDeletion(t *testing.T) {
 	t.Parallel()
-	testutil.TestAccPreCheck(t)
-
 	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
