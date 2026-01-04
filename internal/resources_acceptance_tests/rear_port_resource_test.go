@@ -331,6 +331,13 @@ func TestAccRearPortResource_externalDeletion(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-device-ext-del")
 	rearPortName := testutil.RandomName("tf-test-rp-ext-del")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -359,10 +366,8 @@ func TestAccRearPortResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted rear_port with ID: %d", itemID)
 				},
-				Config: testAccRearPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_rear_port.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
