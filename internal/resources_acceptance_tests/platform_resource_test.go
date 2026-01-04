@@ -43,6 +43,10 @@ func TestAccPlatformResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_platform.test", "manufacturer", manufacturerSlug),
 				),
 			},
+			{
+				Config:   testAccPlatformResourceConfig_basic(platformName, platformSlug, manufacturerName, manufacturerSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -80,6 +84,10 @@ func TestAccPlatformResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_platform.test", "description", description),
 				),
 			},
+			{
+				Config:   testAccPlatformResourceConfig_full(platformName, platformSlug, manufacturerName, manufacturerSlug, description),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -115,11 +123,19 @@ func TestAccPlatformResource_update(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccPlatformResourceConfig_basic(platformName, platformSlug, manufacturerName, manufacturerSlug),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccPlatformResourceConfig_basic(updatedName, platformSlug, manufacturerName, manufacturerSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_platform.test", "id"),
 					resource.TestCheckResourceAttr("netbox_platform.test", "name", updatedName),
 				),
+			},
+			{
+				Config:   testAccPlatformResourceConfig_basic(updatedName, platformSlug, manufacturerName, manufacturerSlug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -181,6 +197,10 @@ func TestAccPlatformResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_platform.test", "id"),
 					resource.TestCheckResourceAttr("netbox_platform.test", "name", platformName),
 				),
+			},
+			{
+				Config:   testAccPlatformResourceConfig_basic(platformName, platformSlug, manufacturerName, manufacturerSlug),
+				PlanOnly: true,
 			},
 		},
 	})

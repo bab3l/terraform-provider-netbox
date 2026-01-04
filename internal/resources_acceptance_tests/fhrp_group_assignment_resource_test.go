@@ -76,6 +76,10 @@ func TestAccFHRPGroupAssignmentResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "interface_id"),
 				),
 			},
+			{
+				Config:   testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -286,6 +290,10 @@ func TestAccFHRPGroupAssignmentResource_full(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"group_id", "interface_id", "display_name"},
+			},
+			{
+				Config:   testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
+				PlanOnly: true,
 			},
 		},
 	})

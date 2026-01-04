@@ -362,33 +362,12 @@ func (r *FHRPGroupResource) mapFHRPGroupToState(ctx context.Context, fhrpGroup *
 		data.Comments = types.StringNull()
 	}
 
-	// Tags
-	if len(fhrpGroup.Tags) > 0 {
-		tags := utils.NestedTagsToTagModels(fhrpGroup.Tags)
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Handle tags using consolidated helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, fhrpGroup.HasTags(), fhrpGroup.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Custom Fields
-	if fhrpGroup.CustomFields != nil && !data.CustomFields.IsNull() {
-		var stateCustomFields []utils.CustomFieldModel
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		customFields := utils.MapToCustomFieldModels(fhrpGroup.CustomFields, stateCustomFields)
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfValueDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	}
+	// Handle custom fields using consolidated helper
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, fhrpGroup.HasCustomFields(), fhrpGroup.GetCustomFields(), data.CustomFields, diags)
 }

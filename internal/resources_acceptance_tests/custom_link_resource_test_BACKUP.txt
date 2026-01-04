@@ -1,0 +1,310 @@
+package resources_acceptance_tests
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+)
+
+func TestAccCustomLinkResource_basic(t *testing.T) {
+
+	t.Parallel()
+
+	name := testutil.RandomName("cl")
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		CheckDestroy: testutil.CheckCustomLinkDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCustomLinkResourceConfig_basic(name),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_text", "View in External System"),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_url", "https://example.com/device/{{ object.name }}"),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "object_types.#", "1"),
+				),
+			},
+
+			{
+					// Verify no changes after create
+					Config:   testAccCustomLinkResourceConfig_basic(name),
+					PlanOnly: true,
+				},
+
+				{
+	cleanup.RegisterCustomLinkCleanupByName(name)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		CheckDestroy: testutil.CheckCustomLinkDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCustomLinkResourceConfig_basic(name),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_custom_link.test", "id"),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_text", "View in External System"),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_url", "https://example.com/device/{{ object.name }}"),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "object_types.#", "1"),
+				),
+			},
+
+				{
+					// Verify no changes after create
+					Config:   testAccCustomLinkResourceConfig_basic(name),
+					PlanOnly: true,
+				},
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		CheckDestroy: testutil.CheckCustomLinkDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCustomLinkResourceConfig_full(name),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "enabled", "true"),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "weight", "50"),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "group_name", "External Links"),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "button_class", "blue"),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "new_window", "true"),
+				),
+			},
+
+				{
+					// Verify no changes after create
+					Config:   testAccCustomLinkResourceConfig_full(name),
+					PlanOnly: true,
+				},
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		CheckDestroy: testutil.CheckCustomLinkDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCustomLinkResourceConfig_basic(name),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
+				),
+			},
+
+			{
+					// Verify no changes after create
+					Config:   testAccCustomLinkResourceConfig_basic(name),
+					PlanOnly: true,
+				},
+
+				{
+
+					Config: testAccCustomLinkResourceConfig_basic(updatedName),
+
+					Check: resource.ComposeTestCheckFunc(
+
+						resource.TestCheckResourceAttr("netbox_custom_link.test", "name", updatedName),
+					),
+				},
+
+				{
+					// Verify no changes after update
+					Config:   testAccCustomLinkResourceConfig_basic(updatedName),
+					PlanOnly: true,
+	cleanup.RegisterCustomLinkCleanupByName(name)
+
+	resource.Test(t, resource.TestCase{
+
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		CheckDestroy: testutil.CheckCustomLinkDestroy,
+
+		Steps: []resource.TestStep{
+
+			{
+
+				Config: testAccCustomLinkConsistencyLiteralNamesConfig(name),
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_text", "View in External System"),
+
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_url", "https://example.com/device/{{ object.name }}"),
+				),
+			},
+
+			{
+
+				Config: testAccCustomLinkConsistencyLiteralNamesConfig(name),
+
+				PlanOnly: true,
+
+				Check: resource.ComposeTestCheckFunc(
+
+					resource.TestCheckResourceAttrSet("netbox_custom_link.test", "id"),
+				),
+			},
+		},
+	})
+
+}
+
+func testAccCustomLinkConsistencyLiteralNamesConfig(name string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_custom_link" "test" {
+
+  name       = %q
+
+  link_text  = "View in External System"
+
+  link_url   = "https://example.com/device/{{ object.name }}"
+
+  object_types = ["dcim.device"]
+
+}
+
+`, name)
+
+}
+
+func testAccCustomLinkResourceConfig_basic(name string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_custom_link" "test" {
+
+  name         = "%s"
+
+  object_types = ["dcim.device"]
+
+  link_text    = "View in External System"
+
+  link_url     = "https://example.com/device/{{ object.name }}"
+
+}
+
+`, name)
+
+}
+
+func testAccCustomLinkResourceConfig_full(name string) string {
+
+	return fmt.Sprintf(`
+
+resource "netbox_custom_link" "test" {
+
+  name         = "%s"
+
+  object_types = ["dcim.device", "dcim.site"]
+
+  enabled      = true
+
+  link_text    = "View Details"
+
+  link_url     = "https://example.com/{{ object.name }}"
+
+  weight       = 50
+
+  group_name   = "External Links"
+
+  button_class = "blue"
+
+  new_window   = true
+
+}
+
+`, name)
+
+}
+
+func TestAccCustomLinkResource_externalDeletion(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	name := testutil.RandomName("tf-test-cl-extdel")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomLinkResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_custom_link.test", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					client, err := testutil.GetSharedClient()
+					if err != nil {
+						t.Fatalf("Failed to get shared client: %v", err)
+					}
+
+					// Find custom link by name
+					items, _, err := client.ExtrasAPI.ExtrasCustomLinksList(context.Background()).Name([]string{name}).Execute()
+					if err != nil {
+						t.Fatalf("Failed to list custom links: %v", err)
+					}
+					if items == nil || len(items.Results) == 0 {
+						t.Fatalf("Custom link not found with name: %s", name)
+					}
+
+					// Delete the custom link
+					itemID := items.Results[0].Id
+					_, err = client.ExtrasAPI.ExtrasCustomLinksDestroy(context.Background(), itemID).Execute()
+					if err != nil {
+						t.Fatalf("Failed to delete custom link: %v", err)
+					}
+
+					t.Logf("Successfully externally deleted custom link with ID: %d", itemID)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}

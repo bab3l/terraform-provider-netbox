@@ -44,6 +44,10 @@ func TestAccFHRPGroupResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "group_id", fmt.Sprintf("%d", groupID)),
 				),
 			},
+			{
+				Config:   testAccFHRPGroupResourceConfig_basic(protocol, groupID),
+				PlanOnly: true,
+			},
 		},
 	})
 
@@ -94,6 +98,10 @@ func TestAccFHRPGroupResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "auth_key", authKey),
 				),
 			},
+			{
+				Config:   testAccFHRPGroupResourceConfig_full(protocol, groupID, name, description, authType, authKey),
+				PlanOnly: true,
+			},
 		},
 	})
 
@@ -130,6 +138,11 @@ func TestAccFHRPGroupResource_update(t *testing.T) {
 			},
 
 			{
+				Config:   testAccFHRPGroupResourceConfig_basic(protocol, groupID),
+				PlanOnly: true,
+			},
+
+			{
 
 				Config: testAccFHRPGroupResourceConfig_full(protocol, groupID, updatedName, "Updated description", "md5", "newsecret456"),
 
@@ -147,6 +160,10 @@ func TestAccFHRPGroupResource_update(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "auth_key", "newsecret456"),
 				),
+			},
+			{
+				Config:   testAccFHRPGroupResourceConfig_full(protocol, groupID, updatedName, "Updated description", "md5", "newsecret456"),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -341,6 +358,10 @@ func TestAccFHRPGroupResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "protocol", protocol),
 					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "group_id", fmt.Sprintf("%d", groupID)),
 				),
+			},
+			{
+				Config:   testAccFHRPGroupResourceConfig_basic(protocol, groupID),
+				PlanOnly: true,
 			},
 		},
 	})
