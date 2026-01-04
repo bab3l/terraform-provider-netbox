@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccCircuitTerminationResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	providerName := testutil.RandomName("tf-test-provider")
 	providerSlug := testutil.RandomSlug("tf-test-provider")
 	circuitTypeName := testutil.RandomName("tf-test-ct")
@@ -53,8 +53,8 @@ func TestAccCircuitTerminationResource_basic(t *testing.T) {
 }
 
 func TestAccCircuitTerminationResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	providerName := testutil.RandomName("tf-test-provider-full")
 	providerSlug := testutil.RandomSlug("tf-test-provider-full")
 	circuitTypeName := testutil.RandomName("tf-test-ct-full")
@@ -114,6 +114,7 @@ func TestAccCircuitTerminationResource_full(t *testing.T) {
 
 func TestAccCircuitTerminationResource_update(t *testing.T) {
 	t.Parallel()
+
 	providerName := testutil.RandomName("tf-test-provider-upd")
 	providerSlug := testutil.RandomSlug("tf-test-provider-upd")
 	circuitTypeName := testutil.RandomName("tf-test-ct-upd")
@@ -290,8 +291,8 @@ resource "netbox_circuit_termination" "test" {
 }
 
 func TestAccCircuitTerminationResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	providerName := testutil.RandomName("tf-test-provider")
 	providerSlug := testutil.RandomSlug("tf-test-provider")
 	circuitTypeName := testutil.RandomName("tf-test-ct")
@@ -671,19 +672,23 @@ resource "netbox_provider" "test" {
   name = %q
   slug = %q
 }
+
 resource "netbox_circuit_type" "test" {
   name = %q
   slug = %q
 }
+
 resource "netbox_circuit" "test" {
   cid              = %q
   circuit_provider = netbox_provider.test.id
   type             = netbox_circuit_type.test.id
 }
+
 resource "netbox_site" "test" {
   name = %q
   slug = %q
 }
+
 resource "netbox_circuit_termination" "test" {
   circuit   = netbox_circuit.test.cid
   term_side = "A"

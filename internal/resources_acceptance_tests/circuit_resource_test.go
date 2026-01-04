@@ -449,20 +449,14 @@ func TestAccConsistency_Circuit(t *testing.T) {
 }
 
 func TestAccConsistency_Circuit_LiteralNames(t *testing.T) {
-
 	t.Parallel()
+
 	cid := testutil.RandomName("cid")
-
 	providerName := testutil.RandomName("provider")
-
 	providerSlug := testutil.RandomSlug("provider")
-
 	typeName := testutil.RandomName("type")
-
 	typeSlug := testutil.RandomSlug("type")
-
 	tenantName := testutil.RandomName("tenant")
-
 	tenantSlug := testutil.RandomSlug("tenant")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -472,148 +466,88 @@ func TestAccConsistency_Circuit_LiteralNames(t *testing.T) {
 	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccCircuitConsistencyLiteralNamesConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
-
 					resource.TestCheckResourceAttr("netbox_circuit.test", "circuit_provider", providerSlug),
-
 					resource.TestCheckResourceAttr("netbox_circuit.test", "type", typeSlug),
-
 					resource.TestCheckResourceAttr("netbox_circuit.test", "tenant", tenantName),
 				),
 			},
-
 			{
-
 				// Critical: Verify no drift when refreshing state
-
 				PlanOnly: true,
-
-				Config: testAccCircuitConsistencyLiteralNamesConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
+				Config:   testAccCircuitConsistencyLiteralNamesConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
 			},
 		},
 	})
-
 }
 
 func testAccCircuitResourceConfig_basic(cid, providerName, providerSlug, typeName, typeSlug string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_provider" "test" {
-
   name = %q
-
   slug = %q
-
 }
 
 resource "netbox_circuit_type" "test" {
-
   name = %q
-
   slug = %q
-
 }
 
 resource "netbox_circuit" "test" {
-
   cid              = %q
-
   circuit_provider = netbox_provider.test.slug
-
   type             = netbox_circuit_type.test.slug
-
 }
-
 `, providerName, providerSlug, typeName, typeSlug, cid)
-
 }
 
 func testAccCircuitResourceConfig_full(cid, providerName, providerSlug, typeName, typeSlug, description, comments string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_provider" "test" {
-
   name = %q
-
   slug = %q
-
 }
 
 resource "netbox_circuit_type" "test" {
-
   name = %q
-
   slug = %q
-
 }
 
 resource "netbox_circuit" "test" {
-
   cid              = %q
-
   circuit_provider = netbox_provider.test.slug
-
   type             = netbox_circuit_type.test.slug
-
   status           = "active"
-
   description      = %q
-
   comments         = %q
-
   commit_rate      = 10000
-
 }
-
 `, providerName, providerSlug, typeName, typeSlug, cid, description, comments)
-
 }
 
 func testAccCircuitResourceConfig_withDescription(cid, providerName, providerSlug, typeName, typeSlug, description string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_provider" "test" {
-
   name = %q
-
   slug = %q
-
 }
 
 resource "netbox_circuit_type" "test" {
-
   name = %q
-
   slug = %q
-
 }
 
 resource "netbox_circuit" "test" {
-
   cid              = %q
-
   circuit_provider = netbox_provider.test.slug
-
   type             = netbox_circuit_type.test.slug
-
   description      = %q
-
 }
 
 `, providerName, providerSlug, typeName, typeSlug, cid, description)
@@ -621,104 +555,68 @@ resource "netbox_circuit" "test" {
 }
 
 func testAccCircuitConsistencyConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_provider" "test" {
-
   name = "%[2]s"
-
   slug = "%[3]s"
-
 }
 
 resource "netbox_circuit_type" "test" {
-
   name = "%[4]s"
-
   slug = "%[5]s"
-
 }
 
 resource "netbox_tenant" "test" {
-
   name = "%[6]s"
-
   slug = "%[7]s"
-
 }
 
 resource "netbox_circuit" "test" {
-
   cid = "%[1]s"
-
   circuit_provider = netbox_provider.test.slug
-
   type = netbox_circuit_type.test.slug
-
   tenant = netbox_tenant.test.name
-
 }
-
 `, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
-
 }
 
 func testAccCircuitConsistencyLiteralNamesConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_provider" "test" {
-
   name = "%[2]s"
-
   slug = "%[3]s"
-
 }
 
 resource "netbox_circuit_type" "test" {
-
   name = "%[4]s"
-
   slug = "%[5]s"
-
 }
 
 resource "netbox_tenant" "test" {
-
   name = "%[6]s"
-
   slug = "%[7]s"
-
 }
 
 resource "netbox_circuit" "test" {
-
   cid = "%[1]s"
-
   # Use literal string names to mimic existing user state
-
   circuit_provider = "%[3]s"
-
   type = "%[5]s"
-
   tenant = "%[6]s"
-
   depends_on = [netbox_provider.test, netbox_circuit_type.test, netbox_tenant.test]
-
 }
-
 `, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
-
 }
 
 func TestAccCircuitResource_externalDeletion(t *testing.T) {
 	t.Parallel()
+
 	cid := testutil.RandomName("tf-test-circuit-ext-del")
 	providerName := testutil.RandomName("tf-test-provider")
 	providerSlug := testutil.RandomSlug("provider")
 	typeName := testutil.RandomName("tf-test-circuit-type")
 	typeSlug := testutil.RandomSlug("circuit-type")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){

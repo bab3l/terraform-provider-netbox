@@ -14,8 +14,8 @@ import (
 )
 
 func TestAccL2VPNTerminationResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	l2vpnName := testutil.RandomName("tf-test-l2vpn-term")
 	vlanVID := testutil.RandomVID()
 
@@ -101,8 +101,8 @@ resource "netbox_l2vpn_termination" "test" {
 }
 
 func TestAccConsistency_L2VPNTermination_LiteralNames(t *testing.T) {
-
 	t.Parallel()
+
 	l2vpnName := testutil.RandomName("tf-test-l2vpn-lit")
 	vlanVID := testutil.RandomVID()
 

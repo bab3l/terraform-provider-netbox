@@ -13,7 +13,6 @@ import (
 )
 
 func TestAccConfigContextResource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-config-context")
@@ -22,46 +21,30 @@ func TestAccConfigContextResource_basic(t *testing.T) {
 	cleanup.RegisterConfigContextCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccConfigContextResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_config_context.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_config_context.test", "name", name),
-
 					resource.TestCheckResourceAttr("netbox_config_context.test", "data", "{\"foo\":\"bar\"}"),
 				),
 			},
-
 			{
-
-				ResourceName: "netbox_config_context.test",
-
-				ImportState: true,
-
+				ResourceName:      "netbox_config_context.test",
+				ImportState:       true,
 				ImportStateVerify: true,
 			},
-
 			{
 				Config:   testAccConfigContextResourceConfig_basic(name),
 				PlanOnly: true,
 			},
 		},
 	})
-
 }
 
 func TestAccConfigContextResource_full(t *testing.T) {
@@ -121,7 +104,6 @@ func TestAccConfigContextResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_ConfigContext_LiteralNames(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-config-context-lit")
@@ -130,64 +112,42 @@ func TestAccConsistency_ConfigContext_LiteralNames(t *testing.T) {
 	cleanup.RegisterConfigContextCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccConfigContextConsistencyLiteralNamesConfig(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_config_context.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_config_context.test", "name", name),
-
 					resource.TestCheckResourceAttr("netbox_config_context.test", "data", "{\"foo\":\"bar\"}"),
 				),
 			},
-
 			{
-
-				Config: testAccConfigContextConsistencyLiteralNamesConfig(name),
-
+				Config:   testAccConfigContextConsistencyLiteralNamesConfig(name),
 				PlanOnly: true,
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_config_context.test", "id"),
 				),
 			},
 		},
 	})
-
 }
 
 func testAccConfigContextConsistencyLiteralNamesConfig(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_config_context" "test" {
-
   name = %q
-
   data = "{\"foo\":\"bar\"}"
-
 }
-
 `, name)
-
 }
 
 func TestAccConfigContextResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("config-context")
 
 	resource.Test(t, resource.TestCase{
@@ -211,6 +171,7 @@ func TestAccConfigContextResource_IDPreservation(t *testing.T) {
 
 func TestAccConfigContextResource_update(t *testing.T) {
 	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 
 	name := testutil.RandomName("tf-test-ctx-upd")
@@ -241,8 +202,8 @@ func TestAccConfigContextResource_update(t *testing.T) {
 
 func TestAccConfigContextResource_externalDeletion(t *testing.T) {
 	t.Parallel()
-	testutil.TestAccPreCheck(t)
 
+	testutil.TestAccPreCheck(t)
 	name := testutil.RandomName("tf-test-ctx-extdel")
 
 	resource.Test(t, resource.TestCase{
@@ -290,17 +251,11 @@ func TestAccConfigContextResource_externalDeletion(t *testing.T) {
 func testAccConfigContextResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`
-
 resource "netbox_config_context" "test" {
-
   name = %q
-
   data = "{\"foo\":\"bar\"}"
-
 }
-
 `, name)
-
 }
 
 func testAccConfigContextResourceConfig_withDescription(name string, description string) string {

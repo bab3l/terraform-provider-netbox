@@ -10,8 +10,8 @@ import (
 )
 
 func TestAccExportTemplateResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("export-template")
 
 	resource.Test(t, resource.TestCase{
@@ -51,8 +51,8 @@ func TestAccExportTemplateResource_basic(t *testing.T) {
 }
 
 func TestAccExportTemplateResource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("exp-tmpl-id")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -80,8 +80,8 @@ func TestAccExportTemplateResource_IDPreservation(t *testing.T) {
 }
 
 func TestAccExportTemplateResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("export-template")
 
 	resource.Test(t, resource.TestCase{
@@ -145,6 +145,7 @@ resource "netbox_export_template" "test" {
 
 func TestAccConsistency_ExportTemplate_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-export-template-lit")
 	description := testutil.RandomName("description")
 

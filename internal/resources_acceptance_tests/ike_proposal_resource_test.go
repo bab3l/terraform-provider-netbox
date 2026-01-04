@@ -13,6 +13,7 @@ func TestAccIKEProposalResource_basic(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-proposal")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -36,6 +37,7 @@ func TestAccIKEProposalResource_full(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-proposal-full")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -62,6 +64,7 @@ func TestAccIKEProposalResource_update(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-proposal-update")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -91,6 +94,7 @@ func TestAccIKEProposalResource_import(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-proposal")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -115,6 +119,7 @@ func TestAccIKEProposalResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-proposal-extdel")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -156,6 +161,7 @@ func TestAccIKEProposalResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-proposal-id")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -213,6 +219,7 @@ resource "netbox_ike_proposal" "test" {
 
 func TestAccConsistency_IKEProposal_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-ike-proposal-lit")
 
 	resource.Test(t, resource.TestCase{

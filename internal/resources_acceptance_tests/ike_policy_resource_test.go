@@ -13,6 +13,7 @@ func TestAccIKEPolicyResource_basic(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-policy")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -34,6 +35,7 @@ func TestAccIKEPolicyResource_full(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-ike-policy-full")
 	proposalName := testutil.RandomName("tf-test-ike-proposal-for-policy")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -58,6 +60,7 @@ func TestAccIKEPolicyResource_update(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-policy-update")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -87,6 +90,7 @@ func TestAccIKEPolicyResource_import(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-policy")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -111,6 +115,7 @@ func TestAccIKEPolicyResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-policy-extdel")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -152,6 +157,7 @@ func TestAccIKEPolicyResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-policy-id")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -209,6 +215,7 @@ resource "netbox_ike_policy" "test" {
 
 func TestAccConsistency_IKEPolicy_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-ike-policy-lit")
 
 	resource.Test(t, resource.TestCase{

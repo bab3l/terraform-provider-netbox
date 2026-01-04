@@ -10,8 +10,8 @@ import (
 )
 
 func TestAccDeviceResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 	deviceName := testutil.RandomName("tf-test-device")
 	manufacturerName := testutil.RandomName("tf-test-manufacturer")
@@ -96,8 +96,8 @@ func TestAccDeviceResource_full(t *testing.T) {
 }
 
 func TestAccDeviceResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names
 	deviceName := testutil.RandomName("tf-test-device")
 	deviceNameUpdated := testutil.RandomName("tf-test-device-updated")
@@ -147,8 +147,8 @@ func TestAccDeviceResource_update(t *testing.T) {
 }
 
 func TestAccDeviceResource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 	deviceName := testutil.RandomName("dev-id")
 	manufacturerName := testutil.RandomName("mfr-dev")
@@ -187,8 +187,8 @@ func TestAccDeviceResource_IDPreservation(t *testing.T) {
 }
 
 func TestAccConsistency_Device(t *testing.T) {
-
 	t.Parallel()
+
 	deviceName := testutil.RandomName("device")
 	deviceTypeName := testutil.RandomName("device-type")
 	deviceTypeSlug := testutil.RandomSlug("device-type")
@@ -230,8 +230,8 @@ func TestAccConsistency_Device(t *testing.T) {
 }
 
 func TestAccConsistency_Device_LiteralNames(t *testing.T) {
-
 	t.Parallel()
+
 	deviceName := testutil.RandomName("device")
 	deviceTypeName := testutil.RandomName("device-type")
 	deviceTypeSlug := testutil.RandomSlug("device-type")
@@ -273,8 +273,7 @@ func TestAccConsistency_Device_LiteralNames(t *testing.T) {
 	})
 }
 
-// Helper functions to generate test configurations
-
+// Helper functions to generate test configurations.
 func testAccDeviceResourceConfig_basic(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
@@ -466,6 +465,7 @@ resource "netbox_device" "test" {
 }
 func TestAccDeviceResource_externalDeletion(t *testing.T) {
 	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 	deviceName := testutil.RandomName("tf-test-device-ext-del")
 	manufacturerName := testutil.RandomName("tf-test-manufacturer")

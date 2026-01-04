@@ -11,6 +11,7 @@ import (
 
 func TestAccCustomLinkResource_basic(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("cl")
 
 	resource.Test(t, resource.TestCase{
@@ -43,7 +44,9 @@ func TestAccCustomLinkResource_basic(t *testing.T) {
 
 func TestAccCustomLinkResource_full(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("cl")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterCustomLinkCleanupByName(name)
 
@@ -113,7 +116,9 @@ func TestAccCustomLinkResource_update(t *testing.T) {
 
 func TestAccCustomLinkResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("cl-id")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterCustomLinkCleanupByName(name)
 
@@ -140,7 +145,9 @@ func TestAccCustomLinkResource_IDPreservation(t *testing.T) {
 
 func TestAccConsistency_CustomLink_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("cl-lit")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterCustomLinkCleanupByName(name)
 
@@ -169,73 +176,41 @@ func TestAccConsistency_CustomLink_LiteralNames(t *testing.T) {
 }
 
 func testAccCustomLinkConsistencyLiteralNamesConfig(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_custom_link" "test" {
-
   name       = %q
-
   link_text  = "View in External System"
-
   link_url   = "https://example.com/device/{{ object.name }}"
-
   object_types = ["dcim.device"]
-
 }
-
 `, name)
-
 }
 
 func testAccCustomLinkResourceConfig_basic(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_custom_link" "test" {
-
   name         = "%s"
-
   object_types = ["dcim.device"]
-
   link_text    = "View in External System"
-
   link_url     = "https://example.com/device/{{ object.name }}"
-
 }
-
 `, name)
-
 }
 
 func testAccCustomLinkResourceConfig_full(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_custom_link" "test" {
-
   name         = "%s"
-
   object_types = ["dcim.device", "dcim.site"]
-
   enabled      = true
-
   link_text    = "View Details"
-
   link_url     = "https://example.com/{{ object.name }}"
-
   weight       = 50
-
   group_name   = "External Links"
-
   button_class = "blue"
-
   new_window   = true
-
 }
-
 `, name)
-
 }
 
 func TestAccCustomLinkResource_externalDeletion(t *testing.T) {

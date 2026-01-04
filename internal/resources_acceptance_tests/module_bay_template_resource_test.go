@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccModuleBayTemplateResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	mfgName := testutil.RandomName("tf-test-mfg")
 	mfgSlug := testutil.RandomSlug("tf-test-mfg")
 	dtModel := testutil.RandomName("tf-test-dt")
@@ -50,8 +50,8 @@ func TestAccModuleBayTemplateResource_basic(t *testing.T) {
 }
 
 func TestAccModuleBayTemplateResource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
+
 	mfgName := testutil.RandomName("mfg-mbt")
 	mfgSlug := testutil.GenerateSlug(mfgName)
 	dtModel := testutil.RandomName("dt-mbt")
@@ -78,8 +78,8 @@ func TestAccModuleBayTemplateResource_IDPreservation(t *testing.T) {
 }
 
 func TestAccModuleBayTemplateResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	mfgName := testutil.RandomName("tf-test-mfg")
 	mfgSlug := testutil.RandomSlug("tf-test-mfg")
 	dtModel := testutil.RandomName("tf-test-dt")
@@ -115,8 +115,8 @@ func TestAccModuleBayTemplateResource_full(t *testing.T) {
 }
 
 func TestAccModuleBayTemplateResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	mfgName := testutil.RandomName("tf-test-mfg")
 	mfgSlug := testutil.RandomSlug("tf-test-mfg")
 	dtModel := testutil.RandomName("tf-test-dt")

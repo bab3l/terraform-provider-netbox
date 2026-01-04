@@ -10,8 +10,8 @@ import (
 )
 
 func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("test-fhrp-assign")
 	interfaceName := testutil.RandomName("eth")
 
@@ -46,7 +46,6 @@ func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 }
 
 func TestAccFHRPGroupAssignmentResource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("fga-id")
@@ -56,23 +55,14 @@ func TestAccFHRPGroupAssignmentResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterFHRPGroupAssignmentCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "id"),
-
 					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "group_id"),
-
 					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "interface_id"),
 				),
 			},

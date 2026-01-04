@@ -11,6 +11,7 @@ import (
 
 func TestAccDeviceRoleResource_basic(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-device-role")
 	slug := testutil.RandomSlug("tf-test-dr")
 
@@ -38,8 +39,10 @@ func TestAccDeviceRoleResource_basic(t *testing.T) {
 
 func TestAccDeviceRoleResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("dr-id")
 	slug := testutil.GenerateSlug(name)
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterDeviceRoleCleanup(slug)
 
@@ -64,16 +67,12 @@ func TestAccDeviceRoleResource_full(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-device-role-full")
-
 	slug := testutil.RandomSlug("tf-test-dr-full")
-
 	description := testutil.RandomName("description")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDeviceRoleResourceConfig_full(name, slug, description, "aa1409", false),

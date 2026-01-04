@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccPowerOutletResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.RandomSlug("tf-test-site")
 	mfgName := testutil.RandomName("tf-test-mfg")
@@ -57,8 +57,8 @@ func TestAccPowerOutletResource_basic(t *testing.T) {
 }
 
 func TestAccPowerOutletResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site-full")
 	siteSlug := testutil.RandomSlug("tf-test-site-full")
 	mfgName := testutil.RandomName("tf-test-mfg-full")
@@ -106,6 +106,7 @@ func TestAccPowerOutletResource_full(t *testing.T) {
 
 func TestAccPowerOutletResource_update(t *testing.T) {
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site-update")
 	siteSlug := testutil.RandomSlug("tf-test-site-update")
 	mfgName := testutil.RandomName("tf-test-mfg-update")
@@ -147,6 +148,7 @@ func TestAccPowerOutletResource_update(t *testing.T) {
 
 func TestAccPowerOutletResource_externalDeletion(t *testing.T) {
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site-ext-del")
 	siteSlug := testutil.RandomSlug("tf-test-site-ext-del")
 	mfgName := testutil.RandomName("tf-test-mfg-ext-del")
@@ -197,6 +199,7 @@ func TestAccPowerOutletResource_externalDeletion(t *testing.T) {
 
 func TestAccPowerOutletResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site-id")
 	siteSlug := testutil.RandomSlug("tf-test-site-id")
 	mfgName := testutil.RandomName("tf-test-mfg-id")
@@ -313,8 +316,8 @@ resource "netbox_power_outlet" "test" {
 }
 
 func TestAccConsistency_PowerOutlet(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	manufacturerName := testutil.RandomName("manufacturer")

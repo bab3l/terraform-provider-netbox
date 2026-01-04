@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccDeviceBayResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.RandomSlug("tf-test-site")
 	mfgName := testutil.RandomName("tf-test-mfg")
@@ -55,8 +55,8 @@ func TestAccDeviceBayResource_basic(t *testing.T) {
 }
 
 func TestAccDeviceBayResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site-full")
 	siteSlug := testutil.RandomSlug("tf-test-site-full")
 	mfgName := testutil.RandomName("tf-test-mfg-full")
@@ -101,8 +101,8 @@ func TestAccDeviceBayResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_DeviceBay(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	manufacturerName := testutil.RandomName("manufacturer")
@@ -139,8 +139,8 @@ func TestAccConsistency_DeviceBay(t *testing.T) {
 }
 
 func TestAccConsistency_DeviceBay_LiteralNames(t *testing.T) {
-
 	t.Parallel()
+
 	manufacturerName := testutil.RandomName("manufacturer")
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
 	deviceTypeName := testutil.RandomName("device-type")
