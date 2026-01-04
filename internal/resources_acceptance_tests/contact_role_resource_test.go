@@ -159,14 +159,14 @@ func TestAccConsistency_ContactRole_LiteralNames(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccContactRoleConsistencyLiteralNamesConfig(name, slug),
+				Config: testAccContactRoleResourceConfig(name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_contact_role.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_contact_role.test", "slug", slug),
 				),
 			},
 			{
-				Config:   testAccContactRoleConsistencyLiteralNamesConfig(name, slug),
+				Config:   testAccContactRoleResourceConfig(name, slug),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_contact_role.test", "id"),
@@ -174,15 +174,6 @@ func TestAccConsistency_ContactRole_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccContactRoleConsistencyLiteralNamesConfig(name, slug string) string {
-	return fmt.Sprintf(`
-resource "netbox_contact_role" "test" {
-  name = %q
-  slug = %q
-}
-`, name, slug)
 }
 
 func testAccContactRoleResourceConfig(name, slug string) string {

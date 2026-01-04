@@ -118,14 +118,14 @@ func TestAccConsistency_ContactGroup_LiteralNames(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccContactGroupConsistencyLiteralNamesConfig(name, slug),
+				Config: testAccContactGroupResourceConfig(name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_contact_group.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_contact_group.test", "slug", slug),
 				),
 			},
 			{
-				Config:   testAccContactGroupConsistencyLiteralNamesConfig(name, slug),
+				Config:   testAccContactGroupResourceConfig(name, slug),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_contact_group.test", "id"),
@@ -133,15 +133,6 @@ func TestAccConsistency_ContactGroup_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccContactGroupConsistencyLiteralNamesConfig(name, slug string) string {
-	return fmt.Sprintf(`
-resource "netbox_contact_group" "test" {
-  name = %q
-  slug = %q
-}
-`, name, slug)
 }
 
 func testAccContactGroupResourceConfig(name, slug string) string {
