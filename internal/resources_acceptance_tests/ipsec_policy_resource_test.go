@@ -108,6 +108,9 @@ func TestAccIPSECPolicyResource_externalDeletion(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-ipsec-policy-extdel")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -136,10 +139,8 @@ func TestAccIPSECPolicyResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted IPSec policy with ID: %d", itemID)
 				},
-				Config: testAccIPSECPolicyResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

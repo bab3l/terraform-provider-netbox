@@ -116,6 +116,9 @@ func TestAccIKEPolicyResource_externalDeletion(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-ike-policy-extdel")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEPolicyCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -144,10 +147,8 @@ func TestAccIKEPolicyResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted IKE policy with ID: %d", itemID)
 				},
-				Config: testAccIKEPolicyResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_ike_policy.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

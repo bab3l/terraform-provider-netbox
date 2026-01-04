@@ -107,6 +107,9 @@ func TestAccIPSECProfileResource_externalDeletion(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-ipsec-prof-extdel")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProfileCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -135,10 +138,8 @@ func TestAccIPSECProfileResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted IPSec profile with ID: %d", itemID)
 				},
-				Config: testAccIPSECProfileResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_ipsec_profile.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
