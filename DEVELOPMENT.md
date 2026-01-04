@@ -66,6 +66,61 @@ export NETBOX_API_TOKEN="your-api-token"
 export TF_LOG=DEBUG  # Enable debug logging
 ```
 
+## Running Tests
+
+### Test Architecture
+This provider uses a split test architecture:
+- **Parallel-safe tests** in `internal/resources_acceptance_tests/` - Run concurrently (fast)
+- **Custom field tests** in `internal/resources_acceptance_tests_customfields/` - Run serially (slow)
+
+Custom field tests are separated because NetBox custom fields are global per content type. Running them in parallel causes database deadlocks and race conditions.
+
+### Development Workflow
+
+#### Fast Development Cycle (30-40 minutes)
+```bash
+make test-acceptance
+```
+Runs ~150 parallel-safe acceptance tests. **Use this for rapid iteration.**
+
+#### Full Test Suite (2-3 hours)
+```bash
+make test-acceptance-all
+```
+Runs both parallel and serial tests. **Run before submitting PRs.**
+
+#### Custom Field Tests Only (60-90 minutes)
+```bash
+make test-acceptance-customfields
+```
+Runs only the custom field tests serially.
+
+#### Unit Tests Only (1-2 minutes)
+```bash
+make test-fast
+```
+Runs unit tests without requiring NetBox.
+
+### Running Individual Tests
+```bash
+# Parallel test (no build tag needed)
+go test ./internal/resources_acceptance_tests -run TestAccSiteResource_basic -v
+
+# Custom field test (requires build tag)
+TF_ACC=1 go test -tags=customfields ./internal/resources_acceptance_tests_customfields -run TestAccSiteResource_importWithCustomFieldsAndTags -v
+```
+
+### Why Split Tests?
+NetBox custom fields are defined globally per object type (e.g., `dcim.device`, `ipam.aggregate`). When multiple tests create/delete custom fields for the same object type in parallel:
+- Database deadlocks occur
+- Race conditions cause test failures
+- Tests become non-deterministic
+
+By separating custom field tests into a package with build tag `customfields`, we:
+- Speed up normal development (skip slow serial tests)
+- Prevent conflicts (serial execution via `-p 1` flag)
+- Make CI more efficient (run parallel and serial suites separately)
+
 ## Debugging
 
 To debug the provider:
