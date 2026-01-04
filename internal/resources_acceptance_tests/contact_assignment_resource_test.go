@@ -19,6 +19,11 @@ func TestAccContactAssignmentResource_basic(t *testing.T) {
 	randomSlug := testutil.RandomSlug("test-ca")
 	contactEmail := fmt.Sprintf("%s@example.com", testutil.RandomSlug("ca-basic"))
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(randomSlug + "-site")
+	cleanup.RegisterContactCleanup(contactEmail)
+	cleanup.RegisterContactRoleCleanup(randomSlug + "-role")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -232,33 +237,6 @@ resource "netbox_contact_assignment" "test" {
 `, name, slug, name, email, name, slug)
 }
 
-func testAccContactAssignmentResourceWithEmail(name, slug, email string) string {
-	return fmt.Sprintf(`
-resource "netbox_site" "test" {
-  name   = "%s-site"
-  slug   = "%s-site"
-  status = "active"
-}
-
-resource "netbox_contact" "test" {
-  name  = "%s-contact"
-  email = "%s"
-}
-
-resource "netbox_contact_role" "test" {
-  name = "%s-role"
-  slug = "%s-role"
-}
-
-resource "netbox_contact_assignment" "test" {
-  object_type = "dcim.site"
-  object_id   = netbox_site.test.id
-  contact_id  = netbox_contact.test.id
-  role_id     = netbox_contact_role.test.id
-}
-`, name, slug, name, email, name, slug)
-}
-
 func testAccContactAssignmentResourceConfig_full(name, slug, email, tagName, tagSlug, customFieldName, priority string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
@@ -413,7 +391,7 @@ func TestAccContactAssignmentResource_externalDeletion(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccContactAssignmentResourceWithEmail(name, slug, contactEmail),
+				Config: testAccContactAssignmentResourceBasicWithEmail(name, slug, contactEmail),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "id"),
 					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "object_type", "dcim.site"),
