@@ -407,6 +407,7 @@ resource "netbox_circuit_termination" "test" {
 
 func TestAccCircuitTerminationResource_externalDeletion(t *testing.T) {
 	t.Parallel()
+
 	providerName := testutil.RandomName("tf-test-provider-ext-del")
 	providerSlug := testutil.RandomSlug("tf-test-provider-ext-del")
 	circuitTypeName := testutil.RandomName("tf-test-ct-ext-del")
@@ -414,6 +415,13 @@ func TestAccCircuitTerminationResource_externalDeletion(t *testing.T) {
 	circuitCID := testutil.RandomName("tf-test-circuit-ext-del")
 	siteName := testutil.RandomName("tf-test-site-ext-del")
 	siteSlug := testutil.RandomSlug("tf-test-site-ext-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
+	cleanup.RegisterCircuitCleanup(circuitCID)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -421,34 +429,7 @@ func TestAccCircuitTerminationResource_externalDeletion(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
-resource "netbox_provider" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_circuit_type" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_circuit" "test" {
-  cid              = %q
-  circuit_provider = netbox_provider.test.id
-  type             = netbox_circuit_type.test.id
-}
-
-resource "netbox_site" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_circuit_termination" "test" {
-  circuit   = netbox_circuit.test.cid
-  term_side = "A"
-  site      = netbox_site.test.slug
-}
-`, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug),
+				Config: testAccCircuitTerminationResourceConfig_basic(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_circuit_termination.test", "id"),
 				),
