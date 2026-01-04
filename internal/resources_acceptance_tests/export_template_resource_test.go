@@ -34,6 +34,11 @@ func TestAccExportTemplateResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_export_template.test", "description", "Updated description"),
 				),
 			},
+			// PlanOnly: verify plan stability
+			{
+				Config:   testAccExportTemplateResourceConfig_updated(name),
+				PlanOnly: true,
+			},
 			// Test import
 			{
 				ResourceName:            "netbox_export_template.test",
@@ -65,6 +70,11 @@ func TestAccExportTemplateResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_export_template.test", "object_types.#", "1"),
 				),
 			},
+			// PlanOnly: verify plan stability
+			{
+				Config:   testAccExportTemplateResourceConfig_basic(name),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -88,6 +98,11 @@ func TestAccExportTemplateResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_export_template.test", "file_extension", "csv"),
 					resource.TestCheckResourceAttr("netbox_export_template.test", "as_attachment", "true"),
 				),
+			},
+			// PlanOnly: verify plan stability
+			{
+				Config:   testAccExportTemplateResourceConfig_full(name),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -177,6 +192,11 @@ func TestAccExportTemplateResource_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_export_template.test", "description", testutil.Description2),
 				),
+			},
+			// PlanOnly: verify plan stability
+			{
+				Config:   testAccExportTemplateResourceConfig_withDescription(name, testutil.Description2),
+				PlanOnly: true,
 			},
 		},
 	})

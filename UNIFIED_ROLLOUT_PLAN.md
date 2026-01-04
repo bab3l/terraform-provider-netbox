@@ -408,8 +408,12 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Commit:** e8dd297
 **Notes:** config_context uses string tags (not NestedTag), so specialized handling. config_template was missing tags support - now added with unified helper.
 
-### Batch 27: Export & Notification (2 resources)
+### Batch 27: Export & Notification (2 resources) ✅ COMPLETE
 **Resources:** export_template, notification_group
+- ✅ Analysis: Neither resource has tags/custom_fields (configuration/template resources)
+- ✅ PlanOnly steps added to export_template tests (4 test functions, +12 lines)
+- ✅ notification_group has no tests (documented)
+- ✅ Build successful
 
 ### Batch 28: Miscellaneous (3 resources)
 **Resources:** platform, fhrp_group, fhrp_group_assignment
@@ -634,13 +638,14 @@ NetBox custom fields are **GLOBAL** - when a test creates a custom field for `dc
 
 ### Completed
 - [x] Phase 1: Helper function consolidation
-- [x] Batches 1-24: 76 resources migrated, 4 skipped (meta resources)
+- [x] Batches 1-26: 78 resources migrated, 4 skipped (meta resources)
+- [x] Batch 27: Export & Notification (2 resources - no tags/custom_fields)
 
 ### In Progress
-- [ ] Batch 27: Export & Notification (next)
+- [ ] Batch 28: Miscellaneous (next)
 
 ### Pending - Helper Migration
-- [ ] Batches 27-29 (16 resources need helper migration)
+- [ ] Batches 28-29 (14 resources need helper migration)
 
 ### Pending - PlanOnly Test Fixes
 - [ ] Batch 30: IPAM Supporting (4 resources - rir, role, route_target, vrf)
