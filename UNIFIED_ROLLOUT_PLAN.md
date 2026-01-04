@@ -414,9 +414,23 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 - ✅ PlanOnly steps added to export_template tests (4 test functions, +12 lines)
 - ✅ notification_group has no tests (documented)
 - ✅ Build successful
+**Test Results:** 5/5 tests passed
+**Commit:** c826b8d
 
-### Batch 28: Miscellaneous (3 resources)
+### Batch 28: Miscellaneous (3 resources) ✅ COMPLETE
 **Resources:** platform, fhrp_group, fhrp_group_assignment
+**Code Migration:**
+- fhrp_group: Migrated to PopulateTagsFromAPI + PopulateCustomFieldsFromAPI (-21 lines)
+- platform: No tags/custom_fields support
+- fhrp_group_assignment: No tags/custom_fields support
+**Line Changes:** -21 lines
+**Test Results:** 17/17 tests passed (6 fhrp_group + 5 fhrp_group_assignment + 6 platform)
+**PlanOnly Coverage:**
+- fhrp_group_resource_test.go: Added 5 PlanOnly steps ✅
+- fhrp_group_assignment_resource_test.go: Added 2 PlanOnly steps ✅
+- platform_resource_test.go: Added 5 PlanOnly steps ✅
+**Commit:** b77bc17
+**Notes:** Only fhrp_group needed helper migration. Platform and fhrp_group_assignment only needed PlanOnly validation.
 
 ### Batch 29: Templates (11 resources) ⚠️ PARTIAL
 **Resources:** All `*_template` resources
@@ -638,14 +652,16 @@ NetBox custom fields are **GLOBAL** - when a test creates a custom field for `dc
 
 ### Completed
 - [x] Phase 1: Helper function consolidation
-- [x] Batches 1-26: 78 resources migrated, 4 skipped (meta resources)
-- [x] Batch 27: Export & Notification (2 resources - no tags/custom_fields)
+- [x] Batches 1-28: 84 resources processed (81 migrated, 3 skipped)
+  - Batches 1-26: 78 resources migrated, 4 skipped (meta resources)
+  - Batch 27: 2 resources analyzed (no tags/custom_fields needed)
+  - Batch 28: 3 resources (1 migrated, 2 no tags/custom_fields)
 
 ### In Progress
-- [ ] Batch 28: Miscellaneous (next)
+- [ ] Batch 29: Templates (next - 11 resources)
 
 ### Pending - Helper Migration
-- [ ] Batches 28-29 (14 resources need helper migration)
+- [ ] Batch 29 (11 resources need helper migration)
 
 ### Pending - PlanOnly Test Fixes
 - [ ] Batch 30: IPAM Supporting (4 resources - rir, role, route_target, vrf)
