@@ -8,6 +8,7 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -191,7 +192,7 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Map response to state
-	r.mapWebhookToState(ctx, webhook, &data)
+	r.mapWebhookToState(ctx, webhook, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Created webhook", map[string]interface{}{
 		"id":   data.ID.ValueString(),
@@ -225,7 +226,7 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	r.mapWebhookToState(ctx, webhook, &data)
+	r.mapWebhookToState(ctx, webhook, &data, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -294,7 +295,7 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	r.mapWebhookToState(ctx, webhook, &data)
+	r.mapWebhookToState(ctx, webhook, &data, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Updated webhook", map[string]interface{}{
 		"id":   data.ID.ValueString(),
@@ -339,7 +340,7 @@ func (r *WebhookResource) ImportState(ctx context.Context, req resource.ImportSt
 }
 
 // mapWebhookToState maps a Netbox Webhook to the Terraform state model.
-func (r *WebhookResource) mapWebhookToState(ctx context.Context, webhook *netbox.Webhook, data *WebhookResourceModel) {
+func (r *WebhookResource) mapWebhookToState(ctx context.Context, webhook *netbox.Webhook, data *WebhookResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", webhook.GetId()))
 	data.Name = types.StringValue(webhook.GetName())
 	data.PayloadURL = types.StringValue(webhook.GetPayloadUrl())
@@ -400,14 +401,9 @@ func (r *WebhookResource) mapWebhookToState(ctx context.Context, webhook *netbox
 	}
 
 	// Map display_name
-	// Handle tags
-	if webhook.HasTags() {
-		tags := utils.NestedTagsToTagModels(webhook.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		if !tagDiags.HasError() {
-			data.Tags = tagsValue
-		}
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Handle tags using consolidated helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, webhook.HasTags(), webhook.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 }
