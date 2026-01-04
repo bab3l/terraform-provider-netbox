@@ -143,7 +143,7 @@ func TestAccConsistency_ConfigTemplate_LiteralNames(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigTemplateConsistencyLiteralNamesConfig(name, templateCode, description),
+				Config: testAccConfigTemplateResourceConfig_full(name, templateCode, description),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_config_template.test", "id"),
 					resource.TestCheckResourceAttr("netbox_config_template.test", "name", name),
@@ -152,7 +152,7 @@ func TestAccConsistency_ConfigTemplate_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccConfigTemplateConsistencyLiteralNamesConfig(name, templateCode, description),
+				Config:   testAccConfigTemplateResourceConfig_full(name, templateCode, description),
 				PlanOnly: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_config_template.test", "id"),
@@ -167,6 +167,9 @@ func TestAccConfigTemplateResource_update(t *testing.T) {
 	testutil.TestAccPreCheck(t)
 
 	name := testutil.RandomName("tf-test-tmpl-upd")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -197,6 +200,9 @@ func TestAccConfigTemplateResource_externalDeletion(t *testing.T) {
 	testutil.TestAccPreCheck(t)
 
 	name := testutil.RandomName("tf-test-tmpl-extdel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -238,16 +244,6 @@ func TestAccConfigTemplateResource_externalDeletion(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccConfigTemplateConsistencyLiteralNamesConfig(name, templateCode, description string) string {
-	return fmt.Sprintf(`
-resource "netbox_config_template" "test" {
-  name          = %q
-  template_code = %q
-  description   = %q
-}
-`, name, templateCode, description)
 }
 
 func testAccConfigTemplateResourceConfig_basic(name, templateCode string) string {
