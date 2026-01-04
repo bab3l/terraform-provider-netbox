@@ -395,8 +395,18 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Commit:** c730321
 **Notes:** webhook only has tags (no custom_fields), event_rule resource exists but has no acceptance tests
 
-### Batch 26: Config & Templates (2 resources)
+### Batch 26: Config & Templates (2 resources) ✅
 **Resources:** config_context, config_template
+**Line Changes:**
+- config_context: ~0 lines (improved tags handling consistency)
+- config_template: +12 lines (added tags attribute + helper support)
+- Net change: +12 lines (feature addition)
+**Test Results:** 10/10 tests passed
+**PlanOnly Coverage:**
+- config_context: Added 3 PlanOnly steps ✅
+- config_template: Added 3 PlanOnly steps ✅
+**Commit:** e8dd297
+**Notes:** config_context uses string tags (not NestedTag), so specialized handling. config_template was missing tags support - now added with unified helper.
 
 ### Batch 27: Export & Notification (2 resources)
 **Resources:** export_template, notification_group
@@ -627,10 +637,10 @@ NetBox custom fields are **GLOBAL** - when a test creates a custom field for `dc
 - [x] Batches 1-24: 76 resources migrated, 4 skipped (meta resources)
 
 ### In Progress
-- [ ] Batch 26: Config & Templates (next)
+- [ ] Batch 27: Export & Notification (next)
 
 ### Pending - Helper Migration
-- [ ] Batches 26-29 (18 resources need helper migration)
+- [ ] Batches 27-29 (16 resources need helper migration)
 
 ### Pending - PlanOnly Test Fixes
 - [ ] Batch 30: IPAM Supporting (4 resources - rir, role, route_target, vrf)
