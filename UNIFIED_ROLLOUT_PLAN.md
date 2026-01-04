@@ -380,8 +380,20 @@ $env:TF_ACC="1"; go test -v -run 'TestAcc(Aggregate|ASN|ASNRange|IPAddress|IPRan
 **Commit:** 515d3d2
 **Note:** These resources don't participate as consumers in the tagging/custom fields system - they define it, so no helper migration was needed. However, ALL acceptance tests still require PlanOnly validation per Phase 2 requirements.
 
-### Batch 25: Events & Automation (3 resources)
+### Batch 25: Events & Automation (3 resources) ✅
 **Resources:** event_rule, webhook, journal_entry
+**Line Changes:**
+- event_rule: -30 lines
+- webhook: -11 lines
+- journal_entry: -21 lines
+- Net reduction: -62 lines
+**Test Results:** 11/11 tests passed
+**PlanOnly Coverage:**
+- webhook: Added PlanOnly to 5 test functions ✅
+- journal_entry: Already had complete coverage ✅
+- event_rule: No test file exists (documented for Batch 33)
+**Commit:** c730321
+**Notes:** webhook only has tags (no custom_fields), event_rule resource exists but has no acceptance tests
 
 ### Batch 26: Config & Templates (2 resources)
 **Resources:** config_context, config_template
@@ -615,10 +627,10 @@ NetBox custom fields are **GLOBAL** - when a test creates a custom field for `dc
 - [x] Batches 1-24: 76 resources migrated, 4 skipped (meta resources)
 
 ### In Progress
-- [ ] Batch 25: Events & Automation (next)
+- [ ] Batch 26: Config & Templates (next)
 
 ### Pending - Helper Migration
-- [ ] Batches 25-29 (21 resources need helper migration)
+- [ ] Batches 26-29 (18 resources need helper migration)
 
 ### Pending - PlanOnly Test Fixes
 - [ ] Batch 30: IPAM Supporting (4 resources - rir, role, route_target, vrf)
