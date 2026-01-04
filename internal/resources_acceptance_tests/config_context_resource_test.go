@@ -112,6 +112,10 @@ func TestAccConfigContextResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_config_context.test", "data", "{\"dns_servers\":[\"8.8.8.8\",\"8.8.4.4\"]}"),
 				),
 			},
+			{
+				Config:   testAccConfigContextResourceConfig_full(name, updatedDescription, siteName, siteSlug, tenantName, tenantSlug, tagName, tagSlug, 2000, false, "{\"dns_servers\":[\"8.8.8.8\",\"8.8.4.4\"]}"),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -197,6 +201,10 @@ func TestAccConfigContextResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_config_context.test", "name", name),
 				),
 			},
+			{
+				Config:   testAccConfigContextResourceConfig_basic(name),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -222,6 +230,10 @@ func TestAccConfigContextResource_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_config_context.test", "description", testutil.Description2),
 				),
+			},
+			{
+				Config:   testAccConfigContextResourceConfig_withDescription(name, testutil.Description2),
+				PlanOnly: true,
 			},
 		},
 	})

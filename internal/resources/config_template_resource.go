@@ -11,6 +11,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -41,6 +42,7 @@ type ConfigTemplateResourceModel struct {
 	Description  types.String `tfsdk:"description"`
 	TemplateCode types.String `tfsdk:"template_code"`
 	DataPath     types.String `tfsdk:"data_path"`
+	Tags         types.Set    `tfsdk:"tags"`
 }
 
 // Metadata returns the resource type name.
@@ -72,6 +74,7 @@ func (r *ConfigTemplateResource) Schema(ctx context.Context, req resource.Schema
 				MarkdownDescription: "Path to remote file (relative to data source root). Read-only.",
 				Computed:            true,
 			},
+			"tags": nbschema.TagsAttribute(),
 		},
 	}
 
@@ -111,6 +114,13 @@ func (r *ConfigTemplateResource) Create(ctx context.Context, req resource.Create
 
 	// Set optional fields
 	utils.ApplyDescription(apiReq, data.Description)
+
+	var diags diag.Diagnostics
+	utils.ApplyTags(ctx, apiReq, data.Tags, &diags)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
 
 	tflog.Debug(ctx, "Creating config template", map[string]interface{}{
 		"name": data.Name.ValueString(),
@@ -184,6 +194,13 @@ func (r *ConfigTemplateResource) Update(ctx context.Context, req resource.Update
 	// Set optional fields
 	utils.ApplyDescription(apiReq, data.Description)
 
+	var diags diag.Diagnostics
+	utils.ApplyTags(ctx, apiReq, data.Tags, &diags)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
 	tflog.Debug(ctx, "Updating config template", map[string]interface{}{
 		"id": templateID,
 	})
@@ -256,4 +273,7 @@ func (r *ConfigTemplateResource) mapResponseToModel(template *netbox.ConfigTempl
 
 	// Map data path (read-only)
 	data.DataPath = types.StringValue(template.GetDataPath())
+
+	// Handle tags using consolidated helper - pass empty diags since this is called in a context with resp available
+	data.Tags = utils.PopulateTagsFromAPI(context.Background(), template.HasTags(), template.GetTags(), data.Tags, &diag.Diagnostics{})
 }

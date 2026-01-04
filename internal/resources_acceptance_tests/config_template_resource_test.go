@@ -103,6 +103,10 @@ func TestAccConfigTemplateResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_config_template.test", "template_code", templateCode),
 				),
 			},
+			{
+				Config:   testAccConfigTemplateResourceConfig_basic(name, templateCode),
+				PlanOnly: true,
+			},
 		},
 	})
 
@@ -167,6 +171,10 @@ func TestAccConfigTemplateResource_full(t *testing.T) {
 
 					resource.TestCheckResourceAttr("netbox_config_template.test", "description", updatedDescription),
 				),
+			},
+			{
+				Config:   testAccConfigTemplateResourceConfig_full(updatedName, updatedTemplateCode, updatedDescription),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -250,6 +258,10 @@ func TestAccConfigTemplateResource_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_config_template.test", "description", testutil.Description2),
 				),
+			},
+			{
+				Config:   testAccConfigTemplateResourceConfig_withDescription(name, testutil.Description2),
+				PlanOnly: true,
 			},
 		},
 	})
