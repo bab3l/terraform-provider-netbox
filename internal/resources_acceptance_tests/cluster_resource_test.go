@@ -313,6 +313,10 @@ func TestAccClusterResource_externalDeletion(t *testing.T) {
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type")
 	clusterName := testutil.RandomName("tf-test-cluster-ext-del")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -320,16 +324,7 @@ func TestAccClusterResource_externalDeletion(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
-resource "netbox_cluster_type" "test" {
-  name = %q
-  slug = %q
-}
-resource "netbox_cluster" "test" {
-  name = %q
-  type = netbox_cluster_type.test.id
-}
-`, clusterTypeName, clusterTypeSlug, clusterName),
+				Config: testAccClusterResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),
 				),
@@ -352,19 +347,8 @@ resource "netbox_cluster" "test" {
 					}
 					t.Logf("Successfully externally deleted cluster with ID: %d", itemID)
 				},
-				Config: fmt.Sprintf(`
-resource "netbox_cluster_type" "test" {
-  name = %q
-  slug = %q
-}
-resource "netbox_cluster" "test" {
-  name = %q
-  type = netbox_cluster_type.test.id
-}
-`, clusterTypeName, clusterTypeSlug, clusterName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
