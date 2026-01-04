@@ -21,6 +21,10 @@ func TestAccConsolePortTemplateResource_basic(t *testing.T) {
 	deviceTypeSlug := testutil.RandomSlug("dt")
 	name := testutil.RandomName("console")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -86,6 +90,10 @@ func TestAccConsolePortTemplateResource_full(t *testing.T) {
 	updatedName := testutil.RandomName("console-upd")
 	updatedLabel := testutil.RandomName("label-upd")
 	updatedDescription := testutil.RandomName("description-upd")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -191,6 +199,10 @@ func TestAccConsolePortTemplateResource_update(t *testing.T) {
 	label1 := "Initial Label"
 	label2 := "Updated Label"
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -224,6 +236,10 @@ func TestAccConsolePortTemplateResource_externalDeletion(t *testing.T) {
 	deviceTypeSlug := testutil.RandomSlug("dt-ext-del")
 	name := testutil.RandomName("console-ext-del")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -252,10 +268,8 @@ func TestAccConsolePortTemplateResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted console_port_template with ID: %d", itemID)
 				},
-				Config: testAccConsolePortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_console_port_template.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
