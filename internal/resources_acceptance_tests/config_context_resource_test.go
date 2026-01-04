@@ -118,7 +118,7 @@ func TestAccConsistency_ConfigContext_LiteralNames(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigContextConsistencyLiteralNamesConfig(name),
+				Config: testAccConfigContextResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_config_context.test", "id"),
 					resource.TestCheckResourceAttr("netbox_config_context.test", "name", name),
@@ -126,7 +126,7 @@ func TestAccConsistency_ConfigContext_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccConfigContextConsistencyLiteralNamesConfig(name),
+				Config:   testAccConfigContextResourceConfig_basic(name),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_config_context.test", "id"),
@@ -136,19 +136,13 @@ func TestAccConsistency_ConfigContext_LiteralNames(t *testing.T) {
 	})
 }
 
-func testAccConfigContextConsistencyLiteralNamesConfig(name string) string {
-	return fmt.Sprintf(`
-resource "netbox_config_context" "test" {
-  name = %q
-  data = "{\"foo\":\"bar\"}"
-}
-`, name)
-}
-
 func TestAccConfigContextResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("config-context")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigContextCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
