@@ -166,6 +166,10 @@ func TestAccDeviceBayTemplateResource_external_deletion(t *testing.T) {
 	deviceTypeName := testutil.RandomName("dt-ext-del")
 	deviceTypeSlug := testutil.RandomSlug("dt-ext-del")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -268,7 +272,7 @@ func TestAccConsistency_DeviceBayTemplate_LiteralNames(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDeviceBayTemplateConsistencyLiteralNamesConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, label, description),
+				Config: testAccDeviceBayTemplateResourceConfig_updated(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, label, description),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_device_bay_template.test", "id"),
 					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "name", name),
@@ -277,7 +281,7 @@ func TestAccConsistency_DeviceBayTemplate_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccDeviceBayTemplateConsistencyLiteralNamesConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, label, description),
+				Config:   testAccDeviceBayTemplateResourceConfig_updated(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, label, description),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_device_bay_template.test", "id"),
@@ -285,29 +289,6 @@ func TestAccConsistency_DeviceBayTemplate_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccDeviceBayTemplateConsistencyLiteralNamesConfig(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, label, description string) string {
-	return fmt.Sprintf(`
-resource "netbox_manufacturer" "test" {
-  name = %[1]q
-  slug = %[2]q
-}
-
-resource "netbox_device_type" "test" {
-  model          = %[3]q
-  slug           = %[4]q
-  manufacturer   = netbox_manufacturer.test.id
-  subdevice_role = "parent"
-}
-
-resource "netbox_device_bay_template" "test" {
-  device_type = netbox_device_type.test.id
-  name        = %[5]q
-  label       = %[6]q
-  description = %[7]q
-}
-`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, description)
 }
 
 func testAccDeviceBayTemplateResourceConfig_updated(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, label, description string) string {
