@@ -122,6 +122,9 @@ func TestAccFHRPGroupResource_external_deletion(t *testing.T) {
 	protocol := fhrpGroupProtocol
 	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -151,10 +154,8 @@ func TestAccFHRPGroupResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted fhrp_group with ID: %d", itemID)
 				},
-				Config: testAccFHRPGroupResourceConfig_basic(protocol, groupID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_fhrp_group.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

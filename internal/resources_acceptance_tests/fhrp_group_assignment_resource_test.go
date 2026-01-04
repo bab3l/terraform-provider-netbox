@@ -320,6 +320,13 @@ func TestAccFHRPGroupAssignmentResource_external_deletion(t *testing.T) {
 	name := testutil.RandomName("test-fhrp-assign-extdel")
 	interfaceName := testutil.RandomName("eth")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(name + "-site")
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
+	cleanup.RegisterDeviceRoleCleanup(name + "-role")
+	cleanup.RegisterDeviceCleanup(name + "-device")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -365,10 +372,8 @@ func TestAccFHRPGroupAssignmentResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted FHRP group assignment with ID: %d", assignmentID)
 				},
-				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
