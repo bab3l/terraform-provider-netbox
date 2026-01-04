@@ -3,6 +3,7 @@ package resources_acceptance_tests
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
@@ -46,6 +47,10 @@ func TestAccRoleResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_role.test", "weight", "1000"),
 				),
 			},
+			{
+				Config:   testAccRoleResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 
 			{
 
@@ -54,6 +59,10 @@ func TestAccRoleResource_basic(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+			},
+			{
+				Config:   testAccRoleResourceConfig_basic(name, slug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -104,6 +113,10 @@ func TestAccRoleResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_role.test", "custom_fields.0.value", "test_value"),
 				),
 			},
+			{
+				Config:   testAccRoleResourceConfig_full(name, slug, description, 100, tagName1, tagSlug1, tagName2, tagSlug2),
+				PlanOnly: true,
+			},
 
 			{
 
@@ -116,6 +129,10 @@ func TestAccRoleResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_role.test", "weight", "200"),
 					resource.TestCheckResourceAttr("netbox_role.test", "custom_fields.0.value", "updated_value"),
 				),
+			},
+			{
+				Config:   testAccRoleResourceConfig_fullUpdate(name, slug, updatedDescription, 200, tagName1, tagSlug1, tagName2, tagSlug2),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -138,6 +155,10 @@ func TestAccRoleResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
 				),
 			},
+			{
+				Config:   testAccRoleResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -159,7 +180,7 @@ resource "netbox_role" "test" {
 }
 
 func testAccRoleResourceConfig_full(name, slug, description string, weight int, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
-	cfName := testutil.RandomCustomFieldName("test_field")
+	cfName := fmt.Sprintf("test_field_%s", strings.ReplaceAll(slug, "-", "_"))
 	return fmt.Sprintf(`
 
 resource "netbox_tag" "tag1" {
@@ -209,7 +230,7 @@ resource "netbox_role" "test" {
 }
 
 func testAccRoleResourceConfig_fullUpdate(name, slug, description string, weight int, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
-	cfName := testutil.RandomCustomFieldName("test_field")
+	cfName := fmt.Sprintf("test_field_%s", strings.ReplaceAll(slug, "-", "_"))
 	return fmt.Sprintf(`
 
 resource "netbox_tag" "tag1" {

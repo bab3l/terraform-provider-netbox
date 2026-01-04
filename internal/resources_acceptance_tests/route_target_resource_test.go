@@ -68,6 +68,10 @@ func TestAccRouteTargetResource_full(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_route_target.test", "tenant"),
 				),
 			},
+			{
+				Config:   testAccRouteTargetResourceConfig_full(name, tenantName, tenantSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -94,12 +98,20 @@ func TestAccRouteTargetResource_update(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccRouteTargetResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccRouteTargetResourceConfig_updated(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
 					resource.TestCheckResourceAttr("netbox_route_target.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_route_target.test", "description", "Updated description"),
 				),
+			},
+			{
+				Config:   testAccRouteTargetResourceConfig_updated(name),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -127,9 +139,17 @@ func TestAccRouteTargetResource_import(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccRouteTargetResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+			{
 				ResourceName:      "netbox_route_target.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config:   testAccRouteTargetResourceConfig_basic(name),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -172,6 +192,10 @@ func TestAccRouteTargetResource_externalDeletion(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
 				),
+			},
+			{
+				Config:   testAccRouteTargetResourceConfig_basic(name),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -224,6 +248,10 @@ func TestAccRouteTargetResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
 					resource.TestCheckResourceAttr("netbox_route_target.test", "name", name),
 				),
+			},
+			{
+				Config:   testAccRouteTargetResourceConfig_basic(name),
+				PlanOnly: true,
 			},
 		},
 	})

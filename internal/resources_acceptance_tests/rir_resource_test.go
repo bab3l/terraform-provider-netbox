@@ -3,6 +3,7 @@ package resources_acceptance_tests
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
@@ -46,6 +47,10 @@ func TestAccRIRResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_rir.test", "is_private", "false"),
 				),
 			},
+			{
+				Config:   testAccRIRResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 
 			{
 
@@ -54,6 +59,10 @@ func TestAccRIRResource_basic(t *testing.T) {
 				ImportState: true,
 
 				ImportStateVerify: true,
+			},
+			{
+				Config:   testAccRIRResourceConfig_basic(name, slug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -104,6 +113,10 @@ func TestAccRIRResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_rir.test", "custom_fields.0.value", "test_value"),
 				),
 			},
+			{
+				Config:   testAccRIRResourceConfig_full(name, slug, description, true, tagName1, tagSlug1, tagName2, tagSlug2),
+				PlanOnly: true,
+			},
 
 			{
 
@@ -116,6 +129,10 @@ func TestAccRIRResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_rir.test", "is_private", "false"),
 					resource.TestCheckResourceAttr("netbox_rir.test", "custom_fields.0.value", "updated_value"),
 				),
+			},
+			{
+				Config:   testAccRIRResourceConfig_fullUpdate(name, slug, updatedDescription, false, tagName1, tagSlug1, tagName2, tagSlug2),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -138,6 +155,10 @@ func TestAccRIRResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_rir.test", "name", name),
 				),
 			},
+			{
+				Config:   testAccRIRResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -159,7 +180,7 @@ resource "netbox_rir" "test" {
 }
 
 func testAccRIRResourceConfig_full(name, slug, description string, isPrivate bool, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
-	cfName := testutil.RandomCustomFieldName("test_field")
+	cfName := fmt.Sprintf("test_field_%s", strings.ReplaceAll(slug, "-", "_"))
 	return fmt.Sprintf(`
 
 resource "netbox_tag" "tag1" {
@@ -208,7 +229,7 @@ resource "netbox_rir" "test" {
 }
 
 func testAccRIRResourceConfig_fullUpdate(name, slug, description string, isPrivate bool, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
-	cfName := testutil.RandomCustomFieldName("test_field")
+	cfName := fmt.Sprintf("test_field_%s", strings.ReplaceAll(slug, "-", "_"))
 	return fmt.Sprintf(`
 
 resource "netbox_tag" "tag1" {
@@ -311,11 +332,19 @@ func TestAccRIRResource_update(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccRIRResourceConfig_update(name, slug, testutil.Description1),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccRIRResourceConfig_update(name, slug, testutil.Description2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_rir.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_rir.test", "description", testutil.Description2),
 				),
+			},
+			{
+				Config:   testAccRIRResourceConfig_update(name, slug, testutil.Description2),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -359,6 +388,10 @@ func TestAccRIRResource_external_deletion(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_rir.test", "id"),
 				),
+			},
+			{
+				Config:   testAccRIRResourceConfig_basic(name, slug),
+				PlanOnly: true,
 			},
 		},
 	})

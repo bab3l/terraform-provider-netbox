@@ -3,6 +3,7 @@ package resources_acceptance_tests
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
@@ -36,6 +37,10 @@ func TestAccVRFResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vrf.test", "name", name),
 				),
+			},
+			{
+				Config:   testAccVRFResourceConfig_basic(name),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -71,6 +76,10 @@ func TestAccVRFResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_vrf.test", "enforce_unique", "true"),
 				),
 			},
+			{
+				Config:   testAccVRFResourceConfig_full(name, rd, description),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -103,6 +112,10 @@ func TestAccVRFResource_update(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccVRFResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccVRFResourceConfig_full(updatedName, "65000:200", "Updated description"),
 
 				Check: resource.ComposeTestCheckFunc(
@@ -111,6 +124,10 @@ func TestAccVRFResource_update(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_vrf.test", "rd", "65000:200"),
 					resource.TestCheckResourceAttr("netbox_vrf.test", "description", "Updated description"),
 				),
+			},
+			{
+				Config:   testAccVRFResourceConfig_full(updatedName, "65000:200", "Updated description"),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -179,9 +196,17 @@ func TestAccVRFResource_import(t *testing.T) {
 				Config: testAccVRFResourceConfig_basic(name),
 			},
 			{
+				Config:   testAccVRFResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+			{
 				ResourceName:      "netbox_vrf.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config:   testAccVRFResourceConfig_basic(name),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -208,6 +233,10 @@ func TestAccVRFResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vrf.test", "name", name),
 				),
+			},
+			{
+				Config:   testAccVRFResourceConfig_basic(name),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -363,30 +392,38 @@ func TestAccVRFResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccVRFResourceImportConfig_full(vrfName, tenantName, tenantSlug),
+				PlanOnly: true,
+			},
+			{
 				ResourceName:            "netbox_vrf.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"tenant", "custom_fields"}, // Tenant may have lookup inconsistencies, custom fields have import limitations
+			},
+			{
+				Config:   testAccVRFResourceImportConfig_full(vrfName, tenantName, tenantSlug),
+				PlanOnly: true,
 			},
 		},
 	})
 }
 
 func testAccVRFResourceImportConfig_full(vrfName, tenantName, tenantSlug string) string {
-	// Custom field names with underscore format
-	cfText := testutil.RandomCustomFieldName("cf_text")
-	cfLongtext := testutil.RandomCustomFieldName("cf_longtext")
-	cfInteger := testutil.RandomCustomFieldName("cf_integer")
-	cfBoolean := testutil.RandomCustomFieldName("cf_boolean")
-	cfDate := testutil.RandomCustomFieldName("cf_date")
-	cfUrl := testutil.RandomCustomFieldName("cf_url")
-	cfJson := testutil.RandomCustomFieldName("cf_json")
+	// Custom field names with underscore format - deterministic based on vrfName
+	cfText := fmt.Sprintf("cf_text_%s", strings.ReplaceAll(vrfName, "-", "_"))
+	cfLongtext := fmt.Sprintf("cf_longtext_%s", strings.ReplaceAll(vrfName, "-", "_"))
+	cfInteger := fmt.Sprintf("cf_integer_%s", strings.ReplaceAll(vrfName, "-", "_"))
+	cfBoolean := fmt.Sprintf("cf_boolean_%s", strings.ReplaceAll(vrfName, "-", "_"))
+	cfDate := fmt.Sprintf("cf_date_%s", strings.ReplaceAll(vrfName, "-", "_"))
+	cfUrl := fmt.Sprintf("cf_url_%s", strings.ReplaceAll(vrfName, "-", "_"))
+	cfJson := fmt.Sprintf("cf_json_%s", strings.ReplaceAll(vrfName, "-", "_"))
 
-	// Tag names
-	tag1 := testutil.RandomName("tag1")
-	tag1Slug := testutil.RandomSlug("tag1")
-	tag2 := testutil.RandomName("tag2")
-	tag2Slug := testutil.RandomSlug("tag2")
+	// Tag names - deterministic based on vrfName (no random generation)
+	tag1 := fmt.Sprintf("tag1_%s", vrfName)
+	tag1Slug := fmt.Sprintf("tag1_%s", strings.ReplaceAll(vrfName, "-", "_"))
+	tag2 := fmt.Sprintf("tag2_%s", vrfName)
+	tag2Slug := fmt.Sprintf("tag2_%s", strings.ReplaceAll(vrfName, "-", "_"))
 
 	return fmt.Sprintf(`
 # Dependencies
