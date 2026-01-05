@@ -12,15 +12,12 @@ import (
 )
 
 func TestAccServiceTemplateDataSource_byID(t *testing.T) {
-
 	t.Parallel()
-
 	testutil.TestAccPreCheck(t)
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	name := testutil.RandomName("test-svc-tmpl-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterServiceTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{
@@ -45,15 +42,12 @@ func TestAccServiceTemplateDataSource_byID(t *testing.T) {
 }
 
 func TestAccServiceTemplateDataSource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
-
 	testutil.TestAccPreCheck(t)
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	name := testutil.RandomName("test-svc-tmpl-ds-id")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterServiceTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{
@@ -76,15 +70,12 @@ func TestAccServiceTemplateDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccServiceTemplateDataSource_byName(t *testing.T) {
-
 	t.Parallel()
-
 	testutil.TestAccPreCheck(t)
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	name := testutil.RandomName("test-svc-tmpl-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterServiceTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{

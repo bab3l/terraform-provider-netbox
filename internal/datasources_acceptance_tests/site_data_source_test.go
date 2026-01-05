@@ -12,54 +12,36 @@ import (
 )
 
 func TestAccSiteDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	// Generate unique names to avoid conflicts between test runs
-
 	name := testutil.RandomName("tf-test-site-ds")
-
 	slug := testutil.RandomSlug("tf-test-site-ds")
 
 	// Register cleanup to ensure resource is deleted even if test fails
-
 	cleanup := testutil.NewCleanupResource(t)
-
 	cleanup.RegisterSiteCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.CheckSiteDestroy,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccSiteDataSourceConfig(name, slug),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("data.netbox_site.test", "id"),
-
 					resource.TestCheckResourceAttr("data.netbox_site.test", "name", name),
-
 					resource.TestCheckResourceAttr("data.netbox_site.test", "slug", slug),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccSiteDataSource_byID(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-site-ds")
@@ -69,38 +51,25 @@ func TestAccSiteDataSource_byID(t *testing.T) {
 	cleanup.RegisterSiteCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.CheckSiteDestroy,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccSiteDataSourceConfigByID(name, slug),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("data.netbox_site.test", "id"),
-
 					resource.TestCheckResourceAttr("data.netbox_site.test", "name", name),
-
 					resource.TestCheckResourceAttr("data.netbox_site.test", "slug", slug),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccSiteDataSource_byName(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-site-ds")
@@ -110,34 +79,22 @@ func TestAccSiteDataSource_byName(t *testing.T) {
 	cleanup.RegisterSiteCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.CheckSiteDestroy,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccSiteDataSourceConfigByName(name, slug),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("data.netbox_site.test", "id"),
-
 					resource.TestCheckResourceAttr("data.netbox_site.test", "name", name),
-
 					resource.TestCheckResourceAttr("data.netbox_site.test", "slug", slug),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccSiteDataSource_IDPreservation(t *testing.T) {
@@ -168,91 +125,54 @@ func TestAccSiteDataSource_IDPreservation(t *testing.T) {
 }
 
 func testAccSiteDataSourceConfig(name, slug string) string {
-
 	return fmt.Sprintf(`
-
 terraform {
-
   required_providers {
-
     netbox = {
-
       source = "bab3l/netbox"
-
       version = ">= 0.1.0"
-
     }
-
   }
-
 }
 
 provider "netbox" {}
 
 resource "netbox_site" "test" {
-
   name   = %q
-
   slug   = %q
-
   status = "active"
-
 }
 
 data "netbox_site" "test" {
-
   slug = netbox_site.test.slug
-
 }
-
 `, name, slug)
-
 }
 
 func testAccSiteDataSourceConfigByID(name, slug string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_site" "test" {
-
   name   = %q
-
   slug   = %q
-
   status = "active"
-
 }
 
 data "netbox_site" "test" {
-
   id = netbox_site.test.id
-
 }
-
 `, name, slug)
-
 }
 
 func testAccSiteDataSourceConfigByName(name, slug string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_site" "test" {
-
   name   = %q
-
   slug   = %q
-
   status = "active"
-
 }
 
 data "netbox_site" "test" {
-
   name = netbox_site.test.name
-
 }
-
 `, name, slug)
-
 }

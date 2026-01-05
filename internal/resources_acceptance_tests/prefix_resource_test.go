@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccPrefixResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	prefix := testutil.RandomIPv4Prefix()
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -422,8 +422,8 @@ resource "netbox_prefix" "test" {
 }
 
 func TestAccPrefixResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	prefix := testutil.RandomIPv4Prefix()
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -453,8 +453,8 @@ func TestAccPrefixResource_import(t *testing.T) {
 }
 
 func TestAccConsistency_Prefix(t *testing.T) {
-
 	t.Parallel()
+
 	prefix := testutil.RandomIPv4Prefix()
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
@@ -512,8 +512,8 @@ resource "netbox_prefix" "test" {
 }
 
 func TestAccConsistency_Prefix_LiteralNames(t *testing.T) {
-
 	t.Parallel()
+
 	prefix := testutil.RandomIPv4Prefix()
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
@@ -577,6 +577,10 @@ func TestAccPrefixResource_importWithTags(t *testing.T) {
 	prefix := testutil.RandomIPv4Prefix()
 	tenantName := testutil.RandomName("tenant")
 	tenantSlug := testutil.RandomSlug("tenant")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterPrefixCleanup(prefix)
@@ -590,7 +594,7 @@ func TestAccPrefixResource_importWithTags(t *testing.T) {
 		CheckDestroy: testutil.CheckPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPrefixResourceImportConfig_full(prefix, tenantName, tenantSlug),
+				Config: testAccPrefixResourceImportConfig_full(prefix, tenantName, tenantSlug, tag1Name, tag1Slug, tag2Name, tag2Slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
 					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
@@ -608,13 +612,7 @@ func TestAccPrefixResource_importWithTags(t *testing.T) {
 	})
 }
 
-func testAccPrefixResourceImportConfig_full(prefix, tenantName, tenantSlug string) string {
-	// Tag names
-	tag1 := testutil.RandomName("tag1")
-	tag1Slug := testutil.RandomSlug("tag1")
-	tag2 := testutil.RandomName("tag2")
-	tag2Slug := testutil.RandomSlug("tag2")
-
+func testAccPrefixResourceImportConfig_full(prefix, tenantName, tenantSlug, tag1Name, tag1Slug, tag2Name, tag2Slug string) string {
 	return fmt.Sprintf(`
 # Dependencies
 resource "netbox_tenant" "test" {
@@ -649,5 +647,5 @@ resource "netbox_prefix" "test" {
     }
   ]
 }
-`, tenantName, tenantSlug, tag1, tag1Slug, tag2, tag2Slug, prefix)
+`, tenantName, tenantSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, prefix)
 }
