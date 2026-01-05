@@ -567,6 +567,14 @@ func TestAccCableResource_externalDeletion(t *testing.T) {
 	interfaceNameA := testutil.RandomName("eth")
 	interfaceNameB := testutil.RandomName("eth")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceCleanup(deviceName + "-a")
+	cleanup.RegisterDeviceCleanup(deviceName + "-b")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,

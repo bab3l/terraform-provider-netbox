@@ -275,6 +275,9 @@ func TestAccCustomFieldResource_digitStartingName(t *testing.T) {
 
 	name := fmt.Sprintf("%s_%s", "4me", acctest.RandString(8))
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,

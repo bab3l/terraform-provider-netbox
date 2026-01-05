@@ -14,6 +14,9 @@ func TestAccCustomLinkResource_basic(t *testing.T) {
 
 	name := testutil.RandomName("cl")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomLinkCleanupByName(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,

@@ -17,6 +17,9 @@ func TestAccCustomFieldChoiceSetResource_basic(t *testing.T) {
 
 	name := testutil.RandomName("cfcs")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldChoiceSetCleanupByName(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -150,6 +153,9 @@ func TestAccCustomFieldChoiceSetResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("custom-field-choice-set-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldChoiceSetCleanupByName(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
