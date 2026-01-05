@@ -68,6 +68,10 @@ func TestAccFrontPortTemplateResource_full(t *testing.T) {
 	rearPortName := testutil.RandomName("rear-port")
 	color := testutil.Color
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -113,6 +117,10 @@ func TestAccConsistency_FrontPortTemplate_LiteralNames(t *testing.T) {
 	resourceName := testutil.RandomName("front_port")
 	rearPortTemplateName := testutil.RandomName("rear-port")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -127,43 +135,6 @@ func TestAccConsistency_FrontPortTemplate_LiteralNames(t *testing.T) {
 			{
 				PlanOnly: true,
 				Config:   testAccFrontPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName, rearPortTemplateName),
-			},
-		},
-	})
-}
-
-func TestAccFrontPortTemplateResource_update(t *testing.T) {
-	t.Parallel()
-
-	manufacturerName := testutil.RandomName("mfr-update")
-	manufacturerSlug := testutil.RandomSlug("mfr-update")
-	deviceTypeName := testutil.RandomName("dt-update")
-	deviceTypeSlug := testutil.RandomSlug("dt-update")
-	frontPortName := testutil.RandomName("front-port-update")
-	rearPortName := testutil.RandomName("rear-port-update")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
-	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFrontPortTemplateResourceFullSimple(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, "Label1", testutil.Description1),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_front_port_template.test", "id"),
-					resource.TestCheckResourceAttr("netbox_front_port_template.test", "label", "Label1"),
-					resource.TestCheckResourceAttr("netbox_front_port_template.test", "description", testutil.Description1),
-				),
-			},
-			{
-				Config: testAccFrontPortTemplateResourceFullSimple(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, "Label2", testutil.Description2),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_front_port_template.test", "label", "Label2"),
-					resource.TestCheckResourceAttr("netbox_front_port_template.test", "description", testutil.Description2),
-				),
 			},
 		},
 	})
@@ -218,35 +189,99 @@ func TestAccFrontPortTemplateResource_externalDeletion(t *testing.T) {
 	})
 }
 
-func TestAccFrontPortTemplateResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	manufacturerName := testutil.RandomName("mfr-id")
-	manufacturerSlug := testutil.RandomSlug("mfr-id")
-	deviceTypeName := testutil.RandomName("dt-id")
-	deviceTypeSlug := testutil.RandomSlug("dt-id")
-	frontPortName := testutil.RandomName("front-port-id")
-	portType := frontPortTypeStandard
-	rearPortName := testutil.RandomName("rear-port-id")
+// TestAccFrontPortTemplateResource_Label tests comprehensive scenarios for front port template label field.
+// This validates that Optional+Computed string fields with empty string defaults work correctly.
+func TestAccFrontPortTemplateResource_Label(t *testing.T) {
+	manufacturerName := testutil.RandomName("tf-test-manufacturer-fpt-label")
+	manufacturerSlug := testutil.RandomSlug("tf-test-manufacturer-fpt-label")
+	deviceTypeName := testutil.RandomName("tf-test-device-type-fpt-label")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-device-type-fpt-label")
+	rearPortName := testutil.RandomName("tf-test-rear-port-fpt-label")
+	frontPortName := testutil.RandomName("tf-test-front-port-fpt-label")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFrontPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, portType),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_front_port_template.test", "id"),
-					resource.TestCheckResourceAttr("netbox_front_port_template.test", "name", frontPortName),
-					resource.TestCheckResourceAttr("netbox_front_port_template.test", "type", portType),
-				),
-			},
+	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
+		ResourceName:   "netbox_front_port_template",
+		OptionalField:  "label",
+		DefaultValue:   "",
+		FieldTestValue: "FP-01",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckFrontPortTemplateDestroy,
+			testutil.CheckRearPortTemplateDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		BaseConfig: func() string {
+			return testAccFrontPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, "label", "")
+		},
+		WithFieldConfig: func(value string) string {
+			return testAccFrontPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, "label", value)
 		},
 	})
+}
+
+// TestAccFrontPortTemplateResource_Color tests comprehensive scenarios for front port template color field.
+// This validates that Optional+Computed string fields with empty string defaults work correctly.
+func TestAccFrontPortTemplateResource_Color(t *testing.T) {
+	manufacturerName := testutil.RandomName("tf-test-manufacturer-fpt-color")
+	manufacturerSlug := testutil.RandomSlug("tf-test-manufacturer-fpt-color")
+	deviceTypeName := testutil.RandomName("tf-test-device-type-fpt-color")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-device-type-fpt-color")
+	rearPortName := testutil.RandomName("tf-test-rear-port-fpt-color")
+	frontPortName := testutil.RandomName("tf-test-front-port-fpt-color")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
+		ResourceName:   "netbox_front_port_template",
+		OptionalField:  "color",
+		DefaultValue:   "",
+		FieldTestValue: "aa1409",
+		BaseConfig: func() string {
+			return testAccFrontPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, "color", "")
+		},
+		WithFieldConfig: func(value string) string {
+			return testAccFrontPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, "color", value)
+		},
+	})
+}
+
+func testAccFrontPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, optionalFieldName, optionalFieldValue string) string {
+	optionalField := ""
+	if optionalFieldValue != "" {
+		optionalField = fmt.Sprintf("\n  %s = %q", optionalFieldName, optionalFieldValue)
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_rear_port_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %q
+  type        = "8p8c"
+}
+
+resource "netbox_front_port_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %q
+  type        = "8p8c"
+  rear_port   = netbox_rear_port_template.test.name%s
+}
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, optionalField)
 }
 
 func testAccFrontPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, portType string) string {
@@ -309,38 +344,6 @@ resource "netbox_front_port_template" "test" {
   description        = %q
 }
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, portType, frontPortName, portType, rearPortPosition, label, color, description)
-}
-
-func testAccFrontPortTemplateResourceFullSimple(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, label, description string) string {
-	return fmt.Sprintf(`
-resource "netbox_manufacturer" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_device_type" "test" {
-  manufacturer = netbox_manufacturer.test.id
-  model        = %q
-  slug         = %q
-}
-
-resource "netbox_rear_port_template" "test" {
-  device_type = netbox_device_type.test.id
-  name        = %q
-  type        = "lc"
-  positions   = 4
-}
-
-resource "netbox_front_port_template" "test" {
-  device_type        = netbox_device_type.test.id
-  name               = %q
-  type               = "lc"
-  rear_port          = netbox_rear_port_template.test.name
-  rear_port_position = 1
-  label              = %q
-  description        = %q
-}
-`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, label, description)
 }
 
 func testAccFrontPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName, rearPortTemplateName string) string {
