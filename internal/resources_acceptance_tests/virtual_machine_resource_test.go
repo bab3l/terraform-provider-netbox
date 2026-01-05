@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -26,10 +23,8 @@ func TestAccVirtualMachineResource_basic(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVirtualMachineDestroy,
 			testutil.CheckClusterDestroy,
@@ -63,10 +58,8 @@ func TestAccVirtualMachineResource_full(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVirtualMachineDestroy,
 			testutil.CheckClusterDestroy,
@@ -106,10 +99,8 @@ func TestAccVirtualMachineResource_update(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVirtualMachineDestroy,
 			testutil.CheckClusterDestroy,
@@ -147,10 +138,8 @@ func TestAccConsistency_VirtualMachine_LiteralNames(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVirtualMachineConsistencyLiteralNamesConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName),
@@ -181,10 +170,8 @@ func TestAccVirtualMachineResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVirtualMachineDestroy,
 			testutil.CheckClusterDestroy,
@@ -264,10 +251,8 @@ func TestAccConsistency_VirtualMachine_PlatformNamePersistence(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVirtualMachineDestroy,
 			testutil.CheckPlatformDestroy,

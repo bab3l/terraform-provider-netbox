@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -22,11 +19,9 @@ func TestAccManufacturerResource_basic(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckManufacturerDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckManufacturerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccManufacturerResourceConfig_basic(name, slug),
@@ -51,11 +46,9 @@ func TestAccManufacturerResource_full(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckManufacturerDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckManufacturerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccManufacturerResourceConfig_full(name, slug, description),
@@ -81,11 +74,9 @@ func TestAccManufacturerResource_update(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckManufacturerDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckManufacturerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccManufacturerResourceConfig_basic(name, slug),
@@ -115,11 +106,9 @@ func TestAccManufacturerResource_import(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckManufacturerDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckManufacturerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccManufacturerResourceConfig_import(name, slug),
@@ -149,11 +138,9 @@ func TestAccConsistency_Manufacturer_LiteralNames(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckManufacturerDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckManufacturerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccManufacturerConsistencyLiteralNamesConfig(name, slug, description),
@@ -190,6 +177,9 @@ func TestAccManufacturerResource_IDPreservation(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-manufacturer-id")
 	slug := testutil.RandomSlug("tf-test-manufacturer-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

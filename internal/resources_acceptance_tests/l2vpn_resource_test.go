@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -17,10 +14,14 @@ func TestAccL2VPNResource_basic(t *testing.T) {
 	t.Parallel()
 
 	name := acctest.RandomWithPrefix("test-l2vpn")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
+	cleanup.RegisterL2VPNCleanup(name + "-updated")
+
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccL2VPNResourceConfig_basic(name),
@@ -52,10 +53,13 @@ func TestAccL2VPNResource_full(t *testing.T) {
 	t.Parallel()
 
 	name := acctest.RandomWithPrefix("test-l2vpn")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccL2VPNResourceConfig_full(name),
@@ -113,10 +117,12 @@ func TestAccL2VPNResource_IDPreservation(t *testing.T) {
 
 	name := acctest.RandomWithPrefix("test-l2vpn-id")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccL2VPNResourceConfig_basic(name),
@@ -135,10 +141,12 @@ func TestAccConsistency_L2VPN_LiteralNames(t *testing.T) {
 
 	name := "test-l2vpn-lit"
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccL2VPNResourceConfig_basic(name),
@@ -162,12 +170,15 @@ func TestAccConsistency_L2VPN_LiteralNames(t *testing.T) {
 
 func TestAccL2VPNResource_update(t *testing.T) {
 	t.Parallel()
+
 	name := acctest.RandomWithPrefix("test-l2vpn")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccL2VPNResourceConfig_updateInitial(name),

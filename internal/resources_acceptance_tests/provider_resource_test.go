@@ -17,6 +17,7 @@ func TestAccProviderResource_basic(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-provider")
 	slug := testutil.RandomSlug("tf-test-provider")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterProviderCleanup(slug)
 

@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -24,11 +21,9 @@ func TestAccRackRoleResource_basic(t *testing.T) {
 	cleanup.RegisterRackRoleCleanup(rackRoleSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckRackRoleDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackRoleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackRoleResourceConfig_basic(rackRoleName, rackRoleSlug),
@@ -56,11 +51,9 @@ func TestAccRackRoleResource_full(t *testing.T) {
 	cleanup.RegisterRackRoleCleanup(rackRoleSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckRackRoleDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackRoleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackRoleResourceConfig_full(rackRoleName, rackRoleSlug, description, color),
@@ -89,11 +82,9 @@ func TestAccRackRoleResource_update(t *testing.T) {
 	cleanup.RegisterRackRoleCleanup(rackRoleSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckRackRoleDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackRoleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackRoleResourceConfig_basic(rackRoleName, rackRoleSlug),
@@ -125,11 +116,9 @@ func TestAccRackRoleResource_import(t *testing.T) {
 	cleanup.RegisterRackRoleCleanup(rackRoleSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckRackRoleDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackRoleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackRoleResourceConfig_basic(rackRoleName, rackRoleSlug),
@@ -152,6 +141,9 @@ func TestAccConsistency_RackRole(t *testing.T) {
 
 	rackRoleName := testutil.RandomName("rack-role")
 	rackRoleSlug := testutil.RandomSlug("rack-role")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackRoleCleanup(rackRoleSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -182,11 +174,9 @@ func TestAccRackRoleResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterRackRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckRackRoleDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackRoleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackRoleResourceConfig_basic(name, slug),
@@ -232,11 +222,9 @@ func TestAccConsistency_RackRole_LiteralNames(t *testing.T) {
 	cleanup.RegisterRackRoleCleanup(rackRoleSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckRackRoleDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackRoleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackRoleResourceConfig_full(rackRoleName, rackRoleSlug, description, color),
@@ -278,11 +266,9 @@ func TestAccRackRoleResource_externalDeletion(t *testing.T) {
 	cleanup.RegisterRackRoleCleanup(rackRoleSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckRackRoleDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackRoleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackRoleResourceConfig_basic(rackRoleName, rackRoleSlug),

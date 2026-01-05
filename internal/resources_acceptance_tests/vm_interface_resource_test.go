@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -30,10 +27,8 @@ func TestAccVMInterfaceResource_basic(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVMInterfaceDestroy,
 			testutil.CheckVirtualMachineDestroy,
@@ -70,12 +65,8 @@ func TestAccVMInterfaceResource_full(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVMInterfaceDestroy,
 			testutil.CheckVirtualMachineDestroy,
@@ -116,10 +107,8 @@ func TestAccConsistency_VMInterface_LiteralNames(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVMInterfaceConsistencyLiteralNamesConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
@@ -153,12 +142,8 @@ func TestAccVMInterfaceResource_update(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVMInterfaceDestroy,
 			testutil.CheckVirtualMachineDestroy,
@@ -284,10 +269,8 @@ func TestAccVMInterfaceResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVMInterfaceDestroy,
 			testutil.CheckVirtualMachineDestroy,
@@ -367,9 +350,17 @@ func TestAccConsistency_VMInterface(t *testing.T) {
 	interfaceName := "eth0"
 	macAddress := "AA:BB:CC:DD:EE:FF" // Uppercase to test case sensitivity
 	vlanName := testutil.RandomName("vlan")
-	vlanVid := 100
+	vlanVid := int32(100)
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVMInterfaceCleanup(interfaceName, vmName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterVLANCleanup(vlanVid)
+	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -392,7 +383,7 @@ func TestAccConsistency_VMInterface(t *testing.T) {
 	})
 }
 
-func testAccVMInterfaceConsistencyConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName string, vlanVid int, siteName, siteSlug string) string {
+func testAccVMInterfaceConsistencyConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName string, vlanVid int32, siteName, siteSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_cluster_type" "test" {
   name = "%[3]s"

@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -23,11 +20,9 @@ func TestAccTunnelResource_basic(t *testing.T) {
 	cleanup.RegisterTunnelCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelResourceConfig_basic(name),
@@ -53,11 +48,9 @@ func TestAccTunnelResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterTunnelCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelResourceConfig_basic(name),
@@ -84,11 +77,9 @@ func TestAccTunnelResource_full(t *testing.T) {
 	cleanup.RegisterTunnelCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelResourceConfig_full(name, description),
@@ -117,11 +108,9 @@ func TestAccTunnelResource_update(t *testing.T) {
 	cleanup.RegisterTunnelCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelResourceConfig_basic(name),
@@ -153,11 +142,9 @@ func TestAccTunnelResource_import(t *testing.T) {
 	cleanup.RegisterTunnelCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelResourceConfig_basic(name),
@@ -175,6 +162,9 @@ func TestAccTunnelResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-tunnel-extdel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -222,10 +212,8 @@ func TestAccConsistency_Tunnel_LiteralNames(t *testing.T) {
 	cleanup.RegisterTunnelCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelConsistencyLiteralNamesConfig(name),
@@ -271,4 +259,53 @@ resource "netbox_tunnel" "test" {
   encapsulation = "gre"
 }
 `, name)
+}
+
+// TestAccTunnelResource_StatusComprehensive tests comprehensive scenarios for tunnel status field.
+// This validates that Optional+Computed fields work correctly across all scenarios.
+func TestAccTunnelResource_StatusComprehensive(t *testing.T) {
+	t.Parallel()
+
+	// Generate unique names for this test run
+	tunnelName := testutil.RandomName("tf-test-tunnel-status")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelCleanup(tunnelName)
+
+	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
+		ResourceName:   "netbox_tunnel",
+		OptionalField:  "status",
+		DefaultValue:   "active",
+		FieldTestValue: "planned",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckTunnelDestroy,
+			testutil.CheckTunnelGroupDestroy,
+		),
+		BaseConfig: func() string {
+			return testAccTunnelResourceConfig_statusBase(tunnelName)
+		},
+		WithFieldConfig: func(value string) string {
+			return testAccTunnelResourceConfig_statusWithField(tunnelName, value)
+		},
+	})
+}
+
+func testAccTunnelResourceConfig_statusBase(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_tunnel" "test" {
+	name          = %[1]q
+	encapsulation = "gre"
+	# status field intentionally omitted - should get default "active"
+}
+`, name)
+}
+
+func testAccTunnelResourceConfig_statusWithField(name, status string) string {
+	return fmt.Sprintf(`
+resource "netbox_tunnel" "test" {
+	name          = %[1]q
+	encapsulation = "gre"
+	status        = %[2]q
+}
+`, name, status)
 }

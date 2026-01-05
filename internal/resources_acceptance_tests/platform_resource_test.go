@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -25,10 +22,8 @@ func TestAccPlatformResource_basic(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckPlatformDestroy,
 			testutil.CheckManufacturerDestroy,
@@ -65,10 +60,8 @@ func TestAccPlatformResource_full(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckPlatformDestroy,
 			testutil.CheckManufacturerDestroy,
@@ -106,10 +99,8 @@ func TestAccPlatformResource_update(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckPlatformDestroy,
 			testutil.CheckManufacturerDestroy,
@@ -154,10 +145,8 @@ func TestAccPlatformResource_import(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckPlatformDestroy,
 			testutil.CheckManufacturerDestroy,
@@ -187,6 +176,10 @@ func TestAccPlatformResource_IDPreservation(t *testing.T) {
 	platformSlug := testutil.RandomSlug("tf-test-platform-id")
 	manufacturerName := testutil.RandomName("manufacturer")
 	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPlatformCleanup(platformSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -273,10 +266,8 @@ func TestAccConsistency_Platform_LiteralNames(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckPlatformDestroy,
 			testutil.CheckManufacturerDestroy,

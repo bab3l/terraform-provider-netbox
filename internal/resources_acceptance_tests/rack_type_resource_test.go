@@ -24,10 +24,8 @@ func TestAccRackTypeResource_basic(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackTypeResourceConfig_basic(mfgName, mfgSlug, model, slug),
@@ -62,10 +60,8 @@ func TestAccRackTypeResource_full(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackTypeResourceConfig_full(mfgName, mfgSlug, model, slug, description, 42, 19),
@@ -96,6 +92,9 @@ func TestAccConsistency_RackType_LiteralNames(t *testing.T) {
 	mfgSlug := testutil.RandomSlug("manufacturer")
 	model := testutil.RandomName("rack-type")
 	slug := testutil.RandomSlug("rack-type")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -129,10 +128,8 @@ func TestAccRackTypeResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackTypeResourceConfig_basic(manufacturerName, manufacturerSlug, model, slug),
@@ -213,10 +210,8 @@ func TestAccRackTypeResource_update(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackTypeResourceConfig_basic(mfgName, mfgSlug, model, slug),
