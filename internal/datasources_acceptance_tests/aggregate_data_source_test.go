@@ -9,7 +9,6 @@ import (
 )
 
 func TestAccAggregateDataSource_byID(t *testing.T) {
-
 	t.Parallel()
 
 	rirName := testutil.RandomName("rir")
@@ -37,7 +36,6 @@ func TestAccAggregateDataSource_byID(t *testing.T) {
 }
 
 func TestAccAggregateDataSource_byPrefix(t *testing.T) {
-
 	t.Parallel()
 
 	rirName := testutil.RandomName("rir")
@@ -65,7 +63,6 @@ func TestAccAggregateDataSource_byPrefix(t *testing.T) {
 }
 
 func TestAccAggregateDataSource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
 
 	rirName := testutil.RandomName("rir-agg-id")

@@ -10,7 +10,6 @@ import (
 )
 
 func TestAccASNDataSource_byID(t *testing.T) {
-
 	t.Parallel()
 
 	rirName := testutil.RandomName("rir")
@@ -38,7 +37,6 @@ func TestAccASNDataSource_byID(t *testing.T) {
 }
 
 func TestAccASNDataSource_byASN(t *testing.T) {
-
 	t.Parallel()
 
 	rirName := testutil.RandomName("rir")
@@ -66,7 +64,6 @@ func TestAccASNDataSource_byASN(t *testing.T) {
 }
 
 func TestAccASNDataSource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
 
 	rirName := testutil.RandomName("rir-asn-id")

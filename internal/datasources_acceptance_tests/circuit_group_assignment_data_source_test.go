@@ -15,6 +15,7 @@ import (
 
 func TestAccCircuitGroupAssignmentDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 	groupName := testutil.RandomName("tf-test-cga-ds-id-group")
 	groupSlug := testutil.RandomSlug("tf-test-cga-ds-id-grp")
@@ -54,8 +55,8 @@ func TestAccCircuitGroupAssignmentDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccCircuitGroupAssignmentDataSource_byID(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 	groupName := testutil.RandomName("tf-test-cga-ds-group")
 	groupSlug := testutil.RandomSlug("tf-test-cga-ds-grp")
@@ -95,8 +96,8 @@ func TestAccCircuitGroupAssignmentDataSource_byID(t *testing.T) {
 }
 
 func TestAccCircuitGroupAssignmentDataSource_withPriority(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names
 	groupName := testutil.RandomName("tf-test-cga-ds-grp-pri")
 	groupSlug := testutil.RandomSlug("tf-test-cga-ds-grp-pri")

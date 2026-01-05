@@ -9,7 +9,6 @@ import (
 )
 
 func TestAccCableDataSource_byID(t *testing.T) {
-
 	t.Parallel()
 
 	siteName := testutil.RandomName("site")

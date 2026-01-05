@@ -12,7 +12,6 @@ import (
 )
 
 func TestAccASNRangeDataSource_byID(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-asnrange-ds")
@@ -49,7 +48,6 @@ func TestAccASNRangeDataSource_byID(t *testing.T) {
 }
 
 func TestAccASNRangeDataSource_byName(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-asnrange-ds")
@@ -86,7 +84,6 @@ func TestAccASNRangeDataSource_byName(t *testing.T) {
 }
 
 func TestAccASNRangeDataSource_bySlug(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-asnrange-ds")
@@ -123,7 +120,6 @@ func TestAccASNRangeDataSource_bySlug(t *testing.T) {
 }
 
 func TestAccASNRangeDataSource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("asnr-ds-id")
@@ -136,194 +132,115 @@ func TestAccASNRangeDataSource_IDPreservation(t *testing.T) {
 	cleanup.RegisterRIRCleanup(rirSlug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccASNRangeDataSourceConfig(name, slug, rirName, rirSlug),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("data.netbox_asn_range.test", "id"),
-
 					resource.TestCheckResourceAttr("data.netbox_asn_range.test", "name", name),
-
 					resource.TestCheckResourceAttr("data.netbox_asn_range.test", "slug", slug),
 				),
 			},
 		},
 	})
-
 }
 
 func testAccASNRangeDataSourceConfig(name, slug, rirName, rirSlug string) string {
-
 	return fmt.Sprintf(`
-
 terraform {
-
   required_providers {
-
     netbox = {
-
       source = "bab3l/netbox"
-
       version = ">= 0.1.0"
-
     }
-
   }
-
 }
 
 provider "netbox" {}
 
 resource "netbox_rir" "test" {
-
   name = %q
-
   slug = %q
-
 }
 
 resource "netbox_asn_range" "test" {
-
   name  = %q
-
   slug  = %q
-
   rir   = netbox_rir.test.id
-
   start = 64512
-
   end   = 64520
-
 }
 
 data "netbox_asn_range" "test" {
-
   slug = netbox_asn_range.test.slug
-
 }
-
 `, rirName, rirSlug, name, slug)
-
 }
 
 func testAccASNRangeDataSourceConfigByID(name, slug, rirName, rirSlug string) string {
-
 	return fmt.Sprintf(`
-
 terraform {
-
   required_providers {
-
     netbox = {
-
       source = "bab3l/netbox"
-
       version = ">= 0.1.0"
-
     }
-
   }
-
 }
 
 provider "netbox" {}
 
 resource "netbox_rir" "test" {
-
   name = %q
-
   slug = %q
-
 }
 
 resource "netbox_asn_range" "test" {
-
   name  = %q
-
   slug  = %q
-
   rir   = netbox_rir.test.id
-
   start = 64512
-
   end   = 64520
-
 }
 
 data "netbox_asn_range" "by_id" {
-
   id = netbox_asn_range.test.id
-
 }
-
 `, rirName, rirSlug, name, slug)
-
 }
 
 func testAccASNRangeDataSourceConfigByName(name, slug, rirName, rirSlug string) string {
-
 	return fmt.Sprintf(`
-
 terraform {
-
   required_providers {
-
     netbox = {
-
       source = "bab3l/netbox"
-
       version = ">= 0.1.0"
-
     }
-
   }
-
 }
 
 provider "netbox" {}
 
 resource "netbox_rir" "test" {
-
   name = %q
-
   slug = %q
-
 }
 
 resource "netbox_asn_range" "test" {
-
   name  = %q
-
   slug  = %q
-
   rir   = netbox_rir.test.id
-
   start = 64512
-
   end   = 64520
-
 }
 
 data "netbox_asn_range" "by_name" {
-
   name = netbox_asn_range.test.name
-
 }
-
 `, rirName, rirSlug, name, slug)
-
 }
-
-// Device Bay Template Data Source Tests

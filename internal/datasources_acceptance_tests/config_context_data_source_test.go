@@ -11,10 +11,9 @@ import (
 func TestAccConfigContextDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
-	cleanup := testutil.NewCleanupResource(t)
-
 	name := testutil.RandomName("cc-ds-id-context")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterConfigContextCleanup(name)
 
 	resource.Test(t, resource.TestCase{
@@ -40,13 +39,11 @@ func TestAccConfigContextDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccConfigContextDataSource_byID(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	name := testutil.RandomName("test-config-context")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterConfigContextCleanup(name)
 
 	resource.Test(t, resource.TestCase{

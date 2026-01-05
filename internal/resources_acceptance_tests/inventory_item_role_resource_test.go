@@ -164,7 +164,7 @@ func TestAccConsistency_InventoryItemRole_LiteralNames(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInventoryItemRoleConsistencyLiteralNamesConfig(name, slug),
+				Config: testAccInventoryItemRoleResourceConfig_basic(name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_role.test", "id"),
 					resource.TestCheckResourceAttr("netbox_inventory_item_role.test", "name", name),
@@ -172,7 +172,7 @@ func TestAccConsistency_InventoryItemRole_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccInventoryItemRoleConsistencyLiteralNamesConfig(name, slug),
+				Config:   testAccInventoryItemRoleResourceConfig_basic(name, slug),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_role.test", "id"),
@@ -225,14 +225,3 @@ func TestAccInventoryItemRoleResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
-
-func testAccInventoryItemRoleConsistencyLiteralNamesConfig(name, slug string) string {
-	return fmt.Sprintf(`
-resource "netbox_inventory_item_role" "test" {
-  name = %q
-  slug = %q
-}
-`, name, slug)
-}
-
-// NOTE: Custom field tests for inventory_item_role resource are in resources_acceptance_tests_customfields package

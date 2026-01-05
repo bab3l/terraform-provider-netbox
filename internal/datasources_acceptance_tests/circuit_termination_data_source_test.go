@@ -50,7 +50,6 @@ func TestAccCircuitTerminationDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccCircuitTerminationDataSource_byID(t *testing.T) {
-
 	t.Parallel()
 
 	siteName := testutil.RandomName("site")
