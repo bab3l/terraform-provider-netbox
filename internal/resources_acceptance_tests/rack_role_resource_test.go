@@ -293,7 +293,7 @@ func TestAccConsistency_RackRole_LiteralNames(t *testing.T) {
 
 			{
 
-				Config: testAccRackRoleConsistencyLiteralNamesConfig(rackRoleName, rackRoleSlug, description, color),
+				Config: testAccRackRoleResourceConfig_full(rackRoleName, rackRoleSlug, description, color),
 
 				Check: resource.ComposeTestCheckFunc(
 
@@ -309,7 +309,7 @@ func TestAccConsistency_RackRole_LiteralNames(t *testing.T) {
 
 			{
 
-				Config: testAccRackRoleConsistencyLiteralNamesConfig(rackRoleName, rackRoleSlug, description, color),
+				Config: testAccRackRoleResourceConfig_full(rackRoleName, rackRoleSlug, description, color),
 
 				PlanOnly: true,
 
@@ -320,26 +320,6 @@ func TestAccConsistency_RackRole_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-
-}
-
-func testAccRackRoleConsistencyLiteralNamesConfig(name, slug, description, color string) string {
-
-	return fmt.Sprintf(`
-
-resource "netbox_rack_role" "test" {
-
-  name        = %q
-
-  slug        = %q
-
-  description = %q
-
-  color       = %q
-
-}
-
-`, name, slug, description, color)
 
 }
 

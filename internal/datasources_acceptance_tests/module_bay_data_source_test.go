@@ -11,8 +11,6 @@ import (
 func TestAccModuleBayDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
-	cleanup := testutil.NewCleanupResource(t)
-
 	siteName := testutil.RandomName("tf-test-module-bay-site-ds-id")
 	siteSlug := testutil.GenerateSlug(siteName)
 	deviceRoleName := testutil.RandomName("tf-test-module-bay-role-ds-id")
@@ -24,6 +22,7 @@ func TestAccModuleBayDataSource_IDPreservation(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-module-bay-device-ds-id")
 	moduleBayName := testutil.RandomName("module-bay-id")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
@@ -54,10 +53,7 @@ func TestAccModuleBayDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccModuleBayDataSource_basic(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	siteName := testutil.RandomName("tf-test-module-bay-site-ds")
 	siteSlug := testutil.GenerateSlug(siteName)
@@ -70,6 +66,7 @@ func TestAccModuleBayDataSource_basic(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-module-bay-device-ds")
 	moduleBayName := testutil.RandomName("module-bay")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
@@ -101,10 +98,7 @@ func TestAccModuleBayDataSource_basic(t *testing.T) {
 }
 
 func TestAccModuleBayDataSource_byDeviceAndName(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	siteName := testutil.RandomName("tf-test-module-bay-site-ds")
 	siteSlug := testutil.GenerateSlug(siteName)
@@ -117,6 +111,7 @@ func TestAccModuleBayDataSource_byDeviceAndName(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-module-bay-device-ds")
 	moduleBayName := testutil.RandomName("module-bay")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
 	cleanup.RegisterManufacturerCleanup(mfgSlug)

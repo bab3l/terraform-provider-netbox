@@ -37,7 +37,6 @@ func TestAccModuleTypeDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccModuleTypeDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	mfgName := testutil.RandomName("mfg")
@@ -66,7 +65,6 @@ func TestAccModuleTypeDataSource_basic(t *testing.T) {
 }
 
 func TestAccModuleTypeDataSource_byModelAndManufacturer(t *testing.T) {
-
 	t.Parallel()
 
 	mfgName1 := testutil.RandomName("mfg1")

@@ -283,7 +283,7 @@ func TestAccConsistency_Region_LiteralNames(t *testing.T) {
 		CheckDestroy: testutil.CheckRegionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRegionConsistencyLiteralNamesConfig(name, slug, description),
+				Config: testAccRegionResourceConfig_full(name, slug, description),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_region.test", "id"),
 					resource.TestCheckResourceAttr("netbox_region.test", "name", name),
@@ -292,7 +292,7 @@ func TestAccConsistency_Region_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccRegionConsistencyLiteralNamesConfig(name, slug, description),
+				Config:   testAccRegionResourceConfig_full(name, slug, description),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_region.test", "id"),
@@ -300,16 +300,6 @@ func TestAccConsistency_Region_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccRegionConsistencyLiteralNamesConfig(name, slug, description string) string {
-	return fmt.Sprintf(`
-resource "netbox_region" "test" {
-  name        = %q
-  slug        = %q
-  description = %q
-}
-`, name, slug, description)
 }
 
 func testAccRegionResourceConfig_import(name, slug string) string {

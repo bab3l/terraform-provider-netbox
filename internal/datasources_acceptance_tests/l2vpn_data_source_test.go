@@ -13,8 +13,11 @@ import (
 )
 
 func TestAccL2VPNDataSource_IDPreservation(t *testing.T) {
-	cleanup := testutil.NewCleanupResource(t)
+	t.Parallel()
+
 	name := acctest.RandomWithPrefix("test-l2vpn-ds-id")
+
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterL2VPNCleanup(name)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -37,11 +40,11 @@ func TestAccL2VPNDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccL2VPNDataSource_byID(t *testing.T) {
-
-	cleanup := testutil.NewCleanupResource(t)
+	t.Parallel()
 
 	name := acctest.RandomWithPrefix("test-l2vpn-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterL2VPNCleanup(name)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -65,11 +68,10 @@ func TestAccL2VPNDataSource_byID(t *testing.T) {
 }
 
 func TestAccL2VPNDataSource_byName(t *testing.T) {
-
-	cleanup := testutil.NewCleanupResource(t)
-
+	t.Parallel()
 	name := acctest.RandomWithPrefix("test-l2vpn-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterL2VPNCleanup(name)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -122,11 +124,10 @@ data "netbox_l2vpn" "test" {
 }
 
 func TestAccL2VPNDataSource_bySlug(t *testing.T) {
-
-	cleanup := testutil.NewCleanupResource(t)
-
+	t.Parallel()
 	name := acctest.RandomWithPrefix("test-l2vpn-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterL2VPNCleanup(name)
 
 	resource.ParallelTest(t, resource.TestCase{

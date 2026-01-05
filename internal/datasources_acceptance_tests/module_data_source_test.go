@@ -52,7 +52,6 @@ func TestAccModuleDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccModuleDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	siteName := testutil.RandomName("site")
@@ -97,7 +96,6 @@ func TestAccModuleDataSource_basic(t *testing.T) {
 }
 
 func TestAccModuleDataSource_byDeviceAndSerial(t *testing.T) {
-
 	t.Parallel()
 
 	siteName := testutil.RandomName("site")
