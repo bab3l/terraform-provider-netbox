@@ -143,7 +143,7 @@ func TestAccConsistency_Interface_LiteralNames(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInterfaceResourceConfig_consistency_device_id(name),
+				Config: testAccInterfaceResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_interface.test", "id"),
 					resource.TestCheckResourceAttr("netbox_interface.test", "name", name),
@@ -226,17 +226,6 @@ func testAccInterfaceResourceConfig_consistency_device_name(name string) string 
 
 resource "netbox_interface" "test" {
   device = netbox_device.test.name
-  name   = %q
-  type   = "1000base-t"
-}
-`, testAccInterfaceResourcePrereqs(name), name)
-}
-
-func testAccInterfaceResourceConfig_consistency_device_id(name string) string {
-	return fmt.Sprintf(`
-%s
-resource "netbox_interface" "test" {
-  device = netbox_device.test.id
   name   = %q
   type   = "1000base-t"
 }

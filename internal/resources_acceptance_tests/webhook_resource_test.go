@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccWebhookResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 	randomName := testutil.RandomName("test-webhook")
 
@@ -27,7 +27,6 @@ func TestAccWebhookResource_basic(t *testing.T) {
 			// Create and Read testing
 			{
 				Config: testAccWebhookResource(randomName, "https://example.com/webhook1"),
-
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_webhook.test", "name", randomName),
 					resource.TestCheckResourceAttr("netbox_webhook.test", "payload_url", "https://example.com/webhook1"),
@@ -56,7 +55,6 @@ func TestAccWebhookResource_basic(t *testing.T) {
 			// Update and Read testing
 			{
 				Config: testAccWebhookResource(randomName, "https://example.com/webhook2"),
-
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_webhook.test", "name", randomName),
 					resource.TestCheckResourceAttr("netbox_webhook.test", "payload_url", "https://example.com/webhook2"),
@@ -73,21 +71,19 @@ func TestAccWebhookResource_basic(t *testing.T) {
 }
 
 func TestAccWebhookResource_full(t *testing.T) {
-
 	t.Parallel()
 	testutil.TestAccPreCheck(t)
+
 	randomName := testutil.RandomName("test-webhook-full")
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
 			// Create with all fields
 			{
 				Config: testAccWebhookResourceFull(randomName),
-
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_webhook.test", "name", randomName),
 					resource.TestCheckResourceAttr("netbox_webhook.test", "payload_url", "https://example.com/webhook"),
@@ -111,6 +107,7 @@ func TestAccWebhookResource_full(t *testing.T) {
 func TestAccWebhookResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 	testutil.TestAccPreCheck(t)
+
 	randomName := testutil.RandomName("test-webhook-id")
 
 	resource.Test(t, resource.TestCase{
@@ -159,6 +156,7 @@ resource "netbox_webhook" "test" {
 
 func TestAccConsistency_Webhook_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("webhook")
 
 	resource.Test(t, resource.TestCase{

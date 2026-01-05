@@ -13,25 +13,22 @@ import (
 )
 
 func TestAccVRFResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-vrf")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVRFCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.CheckVRFDestroy,
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVRFResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vrf.test", "name", name),
@@ -46,27 +43,24 @@ func TestAccVRFResource_basic(t *testing.T) {
 }
 
 func TestAccVRFResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-vrf-full")
 	rd := "65000:100"
 	description := "Test VRF with all fields"
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVRFCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.CheckVRFDestroy,
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVRFResourceConfig_full(name, rd, description),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vrf.test", "name", name),
@@ -84,27 +78,24 @@ func TestAccVRFResource_full(t *testing.T) {
 }
 
 func TestAccVRFResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-vrf-update")
 	updatedName := testutil.RandomName("tf-test-vrf-updated")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVRFCleanup(name)
 	cleanup.RegisterVRFCleanup(updatedName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.CheckVRFDestroy,
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVRFResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vrf.test", "name", name),
@@ -116,7 +107,6 @@ func TestAccVRFResource_update(t *testing.T) {
 			},
 			{
 				Config: testAccVRFResourceConfig_full(updatedName, "65000:200", "Updated description"),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vrf.test", "name", updatedName),
@@ -181,15 +171,13 @@ func TestAccVRFResource_externalDeletion(t *testing.T) {
 }
 
 func TestAccVRFResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	name := "test-vrf-" + testutil.GenerateSlug("vrf")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVRFResourceConfig_basic(name),
@@ -261,7 +249,6 @@ resource "netbox_vrf" "test" {
 }
 
 func TestAccConsistency_VRF(t *testing.T) {
-
 	t.Parallel()
 
 	vrfName := testutil.RandomName("vrf")
@@ -269,14 +256,11 @@ func TestAccConsistency_VRF(t *testing.T) {
 	tenantSlug := testutil.RandomSlug("tenant")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVRFConsistencyConfig(vrfName, tenantName, tenantSlug),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_vrf.test", "name", vrfName),
 					resource.TestCheckResourceAttr("netbox_vrf.test", "tenant", tenantName),
@@ -284,8 +268,7 @@ func TestAccConsistency_VRF(t *testing.T) {
 			},
 			{
 				PlanOnly: true,
-
-				Config: testAccVRFConsistencyConfig(vrfName, tenantName, tenantSlug),
+				Config:   testAccVRFConsistencyConfig(vrfName, tenantName, tenantSlug),
 			},
 		},
 	})
@@ -307,6 +290,7 @@ resource "netbox_vrf" "test" {
 
 func TestAccConsistency_VRF_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	vrfName := testutil.RandomName("vrf-lit")
 	tenantName := testutil.RandomName("tenant-lit")
 	tenantSlug := testutil.RandomSlug("tenant-lit")

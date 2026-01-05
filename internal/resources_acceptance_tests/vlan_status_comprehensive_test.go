@@ -9,7 +9,6 @@ import (
 // TestAccVlanResource_StatusOptionalField tests comprehensive scenarios for VLAN status.
 // This validates that Optional+Computed fields work correctly across all scenarios.
 func TestAccVlanResource_StatusOptionalField(t *testing.T) {
-
 	// Generate unique names for this test run
 	vlanName := testutil.RandomName("tf-test-vlan-status")
 

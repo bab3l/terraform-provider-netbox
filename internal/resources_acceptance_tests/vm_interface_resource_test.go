@@ -15,13 +15,14 @@ import (
 // NOTE: Custom field tests for VM interface resource are in resources_acceptance_tests_customfields package
 
 func TestAccVMInterfaceResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type")
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type")
 	clusterName := testutil.RandomName("tf-test-cluster")
 	vmName := testutil.RandomName("tf-test-vm")
 	ifaceName := testutil.InterfaceName
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
 	cleanup.RegisterVirtualMachineCleanup(vmName)
@@ -30,22 +31,18 @@ func TestAccVMInterfaceResource_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVMInterfaceDestroy,
 			testutil.CheckVirtualMachineDestroy,
 			testutil.CheckClusterDestroy,
 			testutil.CheckClusterTypeDestroy,
 		),
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
@@ -57,14 +54,15 @@ func TestAccVMInterfaceResource_basic(t *testing.T) {
 }
 
 func TestAccVMInterfaceResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type-full")
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-full")
 	clusterName := testutil.RandomName("tf-test-cluster-full")
 	vmName := testutil.RandomName("tf-test-vm-full")
 	const ifaceName = "eth0"
 	description := "Test VM interface with all fields"
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
 	cleanup.RegisterVirtualMachineCleanup(vmName)
@@ -104,6 +102,7 @@ func TestAccVMInterfaceResource_full(t *testing.T) {
 
 func TestAccConsistency_VMInterface_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	clusterTypeName := testutil.RandomName("ct")
 	clusterTypeSlug := testutil.RandomSlug("ct")
 	clusterName := testutil.RandomName("cluster")
@@ -137,14 +136,15 @@ func TestAccConsistency_VMInterface_LiteralNames(t *testing.T) {
 }
 
 func TestAccVMInterfaceResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type-update")
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-update")
 	clusterName := testutil.RandomName("tf-test-cluster-update")
 	vmName := testutil.RandomName("tf-test-vm-update")
 	const ifaceName = "eth0"
 	updatedIfaceName := "eth1"
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
 	cleanup.RegisterVMInterfaceCleanup(updatedIfaceName, vmName)
@@ -237,8 +237,8 @@ func TestAccVMInterfaceResource_external_deletion(t *testing.T) {
 }
 
 func TestAccVMInterfaceResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	clusterTypeName := "test-cluster-type-" + testutil.GenerateSlug("ct")
 	clusterTypeSlug := testutil.GenerateSlug("ct")
 	clusterName := "test-cluster-" + testutil.GenerateSlug("cluster")
@@ -270,11 +270,13 @@ func TestAccVMInterfaceResource_import(t *testing.T) {
 
 func TestAccVMInterfaceResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type-id")
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-id")
 	clusterName := testutil.RandomName("tf-test-cluster-id")
 	vmName := testutil.RandomName("tf-test-vm-id")
 	ifaceName := testutil.RandomName("eth-id")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
 	cleanup.RegisterVirtualMachineCleanup(vmName)
@@ -283,22 +285,18 @@ func TestAccVMInterfaceResource_IDPreservation(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVMInterfaceDestroy,
 			testutil.CheckVirtualMachineDestroy,
 			testutil.CheckClusterDestroy,
 			testutil.CheckClusterTypeDestroy,
 		),
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
@@ -360,7 +358,6 @@ resource "netbox_vm_interface" "test" {
 }
 
 func TestAccConsistency_VMInterface(t *testing.T) {
-
 	t.Parallel()
 
 	vmName := testutil.RandomName("vm")
@@ -375,14 +372,11 @@ func TestAccConsistency_VMInterface(t *testing.T) {
 	siteSlug := testutil.RandomSlug("site")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVMInterfaceConsistencyConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName, vlanVid, siteName, siteSlug),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", interfaceName),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mac_address", macAddress),
@@ -392,8 +386,7 @@ func TestAccConsistency_VMInterface(t *testing.T) {
 			{
 				// Verify no drift
 				PlanOnly: true,
-
-				Config: testAccVMInterfaceConsistencyConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName, vlanVid, siteName, siteSlug),
+				Config:   testAccVMInterfaceConsistencyConfig(vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName, vlanVid, siteName, siteSlug),
 			},
 		},
 	})

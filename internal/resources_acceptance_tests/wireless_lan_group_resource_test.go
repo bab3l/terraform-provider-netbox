@@ -13,22 +13,19 @@ import (
 )
 
 func TestAccWirelessLANGroupResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-wlan-group")
 	slug := testutil.RandomSlug("tf-test-wlan-group")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccWirelessLANGroupResourceConfig_basic(name, slug),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_wireless_lan_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_wireless_lan_group.test", "name", name),
@@ -45,8 +42,8 @@ func TestAccWirelessLANGroupResource_basic(t *testing.T) {
 }
 
 func TestAccWirelessLANGroupResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-wlan-group-full")
 	slug := testutil.RandomSlug("tf-test-wlan-group-full")
 	description := "Test wireless LAN group with all fields"
@@ -54,15 +51,12 @@ func TestAccWirelessLANGroupResource_full(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccWirelessLANGroupResourceConfig_full(name, slug, description),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_wireless_lan_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_wireless_lan_group.test", "name", name),
@@ -72,7 +66,6 @@ func TestAccWirelessLANGroupResource_full(t *testing.T) {
 			},
 			{
 				Config: testAccWirelessLANGroupResourceConfig_full(name, slug, updatedDescription),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_wireless_lan_group.test", "description", updatedDescription),
 				),
@@ -83,6 +76,7 @@ func TestAccWirelessLANGroupResource_full(t *testing.T) {
 
 func TestAccWirelessLANGroupResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-wlan-group-id")
 	slug := testutil.RandomSlug("tf-test-wlan-group-id")
 

@@ -10,19 +10,15 @@ import (
 )
 
 func TestAggregateDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewAggregateDataSource()
 
+	d := datasources.NewAggregateDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
-
 	testutil.ValidateDataSourceSchema(t, resp.Schema.Attributes, testutil.DataSourceValidation{
 		LookupAttrs:   []string{},
 		ComputedAttrs: []string{},
@@ -30,15 +26,15 @@ func TestAggregateDataSourceSchema(t *testing.T) {
 }
 
 func TestAggregateDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewAggregateDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_aggregate")
 }
 
 func TestAggregateDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewAggregateDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

@@ -15,8 +15,8 @@ const (
 )
 
 func TestAccWirelessLinkResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("test-site-wireless")
 	siteSlug := testutil.GenerateSlug(siteName)
 	deviceName := testutil.RandomName("test-device-wireless")
@@ -24,14 +24,11 @@ func TestAccWirelessLinkResource_basic(t *testing.T) {
 	interfaceNameB := wirelessInterfaceNameB
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccWirelessLinkResourceConfig(siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_wireless_link.test", "status", "connected"),
 					resource.TestCheckResourceAttr("netbox_wireless_link.test", "ssid", "Test SSID"),
@@ -49,6 +46,7 @@ func TestAccWirelessLinkResource_basic(t *testing.T) {
 
 func TestAccWirelessLinkResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	siteName := testutil.RandomName("site-wl-id")
 	siteSlug := testutil.GenerateSlug(siteName)
 	deviceName := testutil.RandomName("device-wl-id")
@@ -56,14 +54,11 @@ func TestAccWirelessLinkResource_IDPreservation(t *testing.T) {
 	interfaceNameB := wirelessInterfaceNameB
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccWirelessLinkResourceConfig(siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_wireless_link.test", "id"),
 					resource.TestCheckResourceAttr("netbox_wireless_link.test", "status", "connected"),

@@ -85,7 +85,7 @@ func TestAccConsistency_InterfaceTemplate(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInterfaceTemplateResourceConfig_consistency_device_type_id(name),
+				Config: testAccInterfaceTemplateResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_interface_template.test", "id"),
 					resource.TestCheckResourceAttr("netbox_interface_template.test", "name", name),
@@ -93,7 +93,7 @@ func TestAccConsistency_InterfaceTemplate(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccInterfaceTemplateResourceConfig_consistency_device_type_id(name),
+				Config:   testAccInterfaceTemplateResourceConfig_basic(name),
 				PlanOnly: true,
 			},
 		},
@@ -110,7 +110,7 @@ func TestAccConsistency_InterfaceTemplate_LiteralNames(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInterfaceTemplateResourceConfig_consistency_device_type_slug(name),
+				Config: testAccInterfaceTemplateResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_interface_template.test", "id"),
 					resource.TestCheckResourceAttr("netbox_interface_template.test", "name", name),
@@ -118,7 +118,7 @@ func TestAccConsistency_InterfaceTemplate_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccInterfaceTemplateResourceConfig_consistency_device_type_slug(name),
+				Config:   testAccInterfaceTemplateResourceConfig_basic(name),
 				PlanOnly: true,
 			},
 		},
@@ -255,31 +255,6 @@ resource "netbox_interface_template" "test" {
   poe_mode    = "pd"
   poe_type    = "type2-ieee802.3at"
   description = "Test interface template with full options"
-}
-`, testAccInterfaceTemplateResourcePrereqs(name), name)
-}
-
-func testAccInterfaceTemplateResourceConfig_consistency_device_type_id(name string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "netbox_interface_template" "test" {
-  device_type = netbox_device_type.test.id
-  name        = %q
-  type        = "1000base-t"
-}
-`, testAccInterfaceTemplateResourcePrereqs(name), name)
-}
-
-func testAccInterfaceTemplateResourceConfig_consistency_device_type_slug(name string) string {
-	return fmt.Sprintf(`
-
-%s
-
-resource "netbox_interface_template" "test" {
-  device_type = netbox_device_type.test.id
-  name        = %q
-  type        = "1000base-t"
 }
 `, testAccInterfaceTemplateResourcePrereqs(name), name)
 }
