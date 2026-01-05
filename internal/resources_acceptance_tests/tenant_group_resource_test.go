@@ -15,8 +15,8 @@ import (
 // NOTE: Custom field tests for tenant group resource are in resources_acceptance_tests_customfields package
 
 func TestAccTenantGroupResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 	name := testutil.RandomName("tf-test-tenant-group")
 	slug := testutil.RandomSlug("tf-test-tg")
@@ -45,8 +45,8 @@ func TestAccTenantGroupResource_basic(t *testing.T) {
 }
 
 func TestAccTenantGroupResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tenant-group-full")
 	slug := testutil.RandomSlug("tf-test-tg-full")
@@ -81,8 +81,8 @@ func TestAccTenantGroupResource_full(t *testing.T) {
 }
 
 func TestAccTenantGroupResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tenant-group-update")
 	slug := testutil.RandomSlug("tf-test-tg-upd")
@@ -126,8 +126,8 @@ func TestAccTenantGroupResource_update(t *testing.T) {
 }
 
 func TestAccTenantGroupResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 	name := testutil.RandomName("tf-test-tenant-group-import")
 	slug := testutil.RandomSlug("tf-test-tenant-group-imp")
@@ -207,6 +207,7 @@ resource "netbox_tenant_group" "test" {
 
 func TestAccConsistency_TenantGroup_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-tenant-group-lit")
 	slug := testutil.RandomSlug("tf-test-tenant-group-lit")
 	description := testutil.RandomName("description")

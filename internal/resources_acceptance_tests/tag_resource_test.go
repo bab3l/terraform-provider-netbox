@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccTagResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tag")
 	slug := testutil.RandomSlug("tag")
 
@@ -42,8 +42,8 @@ func TestAccTagResource_basic(t *testing.T) {
 }
 
 func TestAccTagResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tag")
 	slug := testutil.RandomSlug("tag")
 	color := testutil.ColorOrange
@@ -94,6 +94,7 @@ func TestAccTagResource_full(t *testing.T) {
 
 func TestAccTagResource_withObjectTypes(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tag")
 	slug := testutil.RandomSlug("tag")
 
@@ -123,6 +124,7 @@ func TestAccTagResource_withObjectTypes(t *testing.T) {
 
 func TestAccTagResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tag-id")
 	slug := testutil.RandomSlug("tag-id")
 
@@ -157,6 +159,7 @@ resource "netbox_tag" "test" {
 
 func TestAccConsistency_Tag_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tag-lit")
 	slug := testutil.RandomSlug("tag-lit")
 	color := testutil.ColorOrange

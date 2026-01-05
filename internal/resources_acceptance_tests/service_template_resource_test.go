@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccServiceTemplateResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("service-template")
 
 	resource.Test(t, resource.TestCase{
@@ -62,8 +62,8 @@ func TestAccServiceTemplateResource_basic(t *testing.T) {
 }
 
 func TestAccServiceTemplateResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("service-template")
 
 	resource.Test(t, resource.TestCase{
@@ -111,6 +111,7 @@ resource "netbox_service_template" "test" {
 
 func TestAccServiceTemplateResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("service-template-id")
 
 	resource.Test(t, resource.TestCase{

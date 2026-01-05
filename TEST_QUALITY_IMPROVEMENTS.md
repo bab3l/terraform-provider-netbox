@@ -60,13 +60,13 @@ cleanup.RegisterContactCleanup(email)
 
 ## Progress Summary
 - **Total Files**: 99
-- **Completed**: 81/99 (82%)
+- **Completed**: 83/99 (84%)
   - Phase 1: 14 files (initial improvements)
   - Phase 2: 51 files (18 with external_deletion tests + 33 reviewed, no external_deletion)
-  - Phase 3: 16 files (reviewed for cleanup and duplicate configs)
-- **Remaining**: 18 files
+  - Phase 3: 18 files (reviewed for cleanup and duplicate configs)
+- **Remaining**: 16 files
 
-## Completed Files (81)
+## Completed Files (83)
 
 ### Phase 1: Initial Improvements (14 files)
 - ✅ circuit_type_resource_test.go
@@ -188,22 +188,27 @@ cleanup.RegisterContactCleanup(email)
 - ✅ rear_port_template_resource_test.go (cleanup present, Consistency configs test different behaviors)
 - **Note**: Tests require NetBox server running (Docker not available after laptop crash)
 
-## Remaining Files (18) - Organized by Category
+### Batch 25: FHRP Resources (2 files) - ✅ REVIEWED - No changes needed
+- ✅ fhrp_group_resource_test.go (cleanup present, 3 distinct config functions)
+- ✅ fhrp_group_assignment_resource_test.go (cleanup present, 3 distinct config functions)
+- **Tests**: 9/10 tests passed (1 pre-existing test infrastructure issue - IDPreservation)
+
+## Remaining Files (16) - Organized by Category
 
 **Note**: The following files need review for:
 - Missing cleanup registrations
 - Duplicate config functions
 
-### Batch 1 (Phase 3): FHRP Resources (2 files) - ⚠️ May already be complete
+### Batch 1 (Phase 3): IKE & IPSec Resources (5 files)
 ### Batch 2 (Phase 3): Device Resources (3 files)
 - device_resource_test.go
 - device_role_resource_test.go
 - device_type_resource_test.go
 
-### Batch 3 (Phase 3): IKE & IPSec Resources (5 files)
+### Batch 3 (Phase 3): Interface Resources (2 files) - ⚠️ interface_template may be complete
 - export_template_resource_test.go
 
-### Batch 4 (Phase 3): Interface Resources (2 files) - ⚠️ interface_template may be complete
+### Batch 4 (Phase 3): Power Resources (6 files) - ⚠️ No external_deletion tests found
 ### Batch 2 (Phase 3): FHRP Resources (2 files) - ⚠️ May already be complete
 - fhrp_group_resource_test.go
 - fhrp_group_assignment_resource_test.go

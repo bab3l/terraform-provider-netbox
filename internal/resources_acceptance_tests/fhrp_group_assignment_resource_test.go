@@ -53,6 +53,12 @@ func TestAccFHRPGroupAssignmentResource_IDPreservation(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterFHRPGroupAssignmentCleanup(name)
+	cleanup.RegisterFHRPGroupCleanup("vrrp2", 1)
+	cleanup.RegisterDeviceCleanup(name + "-device")
+	cleanup.RegisterDeviceRoleCleanup(name + "-role")
+	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterSiteCleanup(name + "-site")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

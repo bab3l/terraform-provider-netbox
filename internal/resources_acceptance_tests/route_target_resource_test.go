@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccRouteTargetResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("65000:100")
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRouteTargetCleanup(name)
@@ -38,8 +38,8 @@ func TestAccRouteTargetResource_basic(t *testing.T) {
 }
 
 func TestAccRouteTargetResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("65000:200")
 	tenantName := testutil.RandomName("tf-test-tenant")
 	tenantSlug := testutil.RandomSlug("tf-test-tenant")
@@ -77,9 +77,10 @@ func TestAccRouteTargetResource_full(t *testing.T) {
 }
 
 func TestAccRouteTargetResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("65000:300")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRouteTargetCleanup(name)
 
@@ -118,9 +119,10 @@ func TestAccRouteTargetResource_update(t *testing.T) {
 }
 
 func TestAccRouteTargetResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("65000:100")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRouteTargetCleanup(name)
 
@@ -202,8 +204,8 @@ func TestAccRouteTargetResource_externalDeletion(t *testing.T) {
 }
 
 func TestAccConsistency_RouteTarget_LiteralNames(t *testing.T) {
-
 	t.Parallel()
+
 	rtName := testutil.RandomName("65000:100")
 	tenantName := testutil.RandomName("tenant")
 	tenantSlug := testutil.RandomSlug("tenant")

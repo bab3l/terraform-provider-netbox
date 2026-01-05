@@ -304,229 +304,135 @@ resource "netbox_rack" "test" {
 }
 
 // testAccRackResourceConfig_basic returns a basic test configuration.
-
 func testAccRackResourceConfig_basic(siteName, siteSlug, rackName string) string {
-
 	return fmt.Sprintf(`
-
 terraform {
-
   required_providers {
-
     netbox = {
-
       source = "bab3l/netbox"
-
       version = ">= 0.1.0"
-
     }
-
   }
-
 }
 
 provider "netbox" {}
 
 resource "netbox_site" "test" {
-
   name   = %q
-
   slug   = %q
-
   status = "active"
-
 }
 
 resource "netbox_rack" "test" {
-
   name = %q
-
   site = netbox_site.test.id
-
 }
-
 `, siteName, siteSlug, rackName)
-
 }
 
 // testAccRackResourceConfig_full returns a test configuration with all fields.
-
 func testAccRackResourceConfig_full(siteName, siteSlug, rackName, description string) string {
-
 	return fmt.Sprintf(`
-
 terraform {
-
   required_providers {
-
     netbox = {
-
       source = "bab3l/netbox"
-
       version = ">= 0.1.0"
-
     }
-
   }
-
 }
 
 provider "netbox" {}
 
 resource "netbox_site" "test" {
-
   name   = %q
-
   slug   = %q
-
   status = "active"
-
 }
 
 resource "netbox_rack" "test" {
-
   name        = %q
-
   site        = netbox_site.test.id
-
   status      = "active"
-
   u_height    = 42
-
   width       = 19
-
   description = %q
-
 }
-
 `, siteName, siteSlug, rackName, description)
-
 }
 
 // testAccRackResourceConfig_withLocation returns a test configuration with location.
-
 func testAccRackResourceConfig_withLocation(siteName, siteSlug, locationName, locationSlug, rackName string) string {
-
 	return fmt.Sprintf(`
-
 terraform {
-
   required_providers {
-
     netbox = {
-
       source = "bab3l/netbox"
-
       version = ">= 0.1.0"
-
     }
-
   }
-
 }
 
 provider "netbox" {}
 
 resource "netbox_site" "test" {
-
   name   = %q
-
   slug   = %q
-
   status = "active"
-
 }
 
 resource "netbox_location" "test" {
-
   name = %q
-
   slug = %q
-
   site = netbox_site.test.id
-
 }
 
 resource "netbox_rack" "test" {
-
   name     = %q
-
   site     = netbox_site.test.id
-
   location = netbox_location.test.id
-
 }
-
 `, siteName, siteSlug, locationName, locationSlug, rackName)
-
 }
 
 func testAccRackResourceConfig_import(siteName, siteSlug, rackName string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_site" "test" {
-
   name = %[1]q
-
   slug = %[2]q
-
 }
 
 resource "netbox_rack" "test" {
-
   name = %[3]q
-
   site = netbox_site.test.id
-
 }
-
 `, siteName, siteSlug, rackName)
-
 }
 
 func testAccRackConsistencyConfig(rackName, siteName, siteSlug, tenantName, tenantSlug, roleName, roleSlug string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_site" "test" {
-
   name = "%[2]s"
-
   slug = "%[3]s"
-
 }
 
 resource "netbox_tenant" "test" {
-
   name = "%[4]s"
-
   slug = "%[5]s"
-
 }
 
 resource "netbox_rack_role" "test" {
-
   name = "%[6]s"
-
   slug = "%[7]s"
-
 }
 
 resource "netbox_rack" "test" {
-
   name = "%[1]s"
-
   site = netbox_site.test.name
-
   tenant = netbox_tenant.test.name
-
   role = netbox_rack_role.test.name
-
 }
-
 `, rackName, siteName, siteSlug, tenantName, tenantSlug, roleName, roleSlug)
-
 }
 
 func TestAccRackResource_externalDeletion(t *testing.T) {

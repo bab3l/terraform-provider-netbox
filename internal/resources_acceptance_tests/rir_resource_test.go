@@ -14,36 +14,23 @@ import (
 )
 
 func TestAccRIRResource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-rir")
-
 	slug := testutil.RandomSlug("tf-test-rir")
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccRIRResourceConfig_basic(name, slug),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_rir.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_rir.test", "name", name),
-
 					resource.TestCheckResourceAttr("netbox_rir.test", "slug", slug),
-
 					resource.TestCheckResourceAttr("netbox_rir.test", "is_private", "false"),
 				),
 			},
@@ -51,13 +38,9 @@ func TestAccRIRResource_basic(t *testing.T) {
 				Config:   testAccRIRResourceConfig_basic(name, slug),
 				PlanOnly: true,
 			},
-
 			{
-
-				ResourceName: "netbox_rir.test",
-
-				ImportState: true,
-
+				ResourceName:      "netbox_rir.test",
+				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			{
@@ -66,11 +49,9 @@ func TestAccRIRResource_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccRIRResource_full(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-rir-full")
@@ -83,30 +64,18 @@ func TestAccRIRResource_full(t *testing.T) {
 	tagSlug2 := testutil.RandomSlug("tag2")
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccRIRResourceConfig_full(name, slug, description, true, tagName1, tagSlug1, tagName2, tagSlug2),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_rir.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_rir.test", "name", name),
-
 					resource.TestCheckResourceAttr("netbox_rir.test", "slug", slug),
-
 					resource.TestCheckResourceAttr("netbox_rir.test", "description", description),
-
 					resource.TestCheckResourceAttr("netbox_rir.test", "is_private", "true"),
 					resource.TestCheckResourceAttr("netbox_rir.test", "tags.#", "2"),
 					resource.TestCheckResourceAttr("netbox_rir.test", "custom_fields.#", "1"),
@@ -117,15 +86,10 @@ func TestAccRIRResource_full(t *testing.T) {
 				Config:   testAccRIRResourceConfig_full(name, slug, description, true, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
-
 			{
-
 				Config: testAccRIRResourceConfig_fullUpdate(name, slug, updatedDescription, false, tagName1, tagSlug1, tagName2, tagSlug2),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_rir.test", "description", updatedDescription),
-
 					resource.TestCheckResourceAttr("netbox_rir.test", "is_private", "false"),
 					resource.TestCheckResourceAttr("netbox_rir.test", "custom_fields.0.value", "updated_value"),
 				),
@@ -136,11 +100,11 @@ func TestAccRIRResource_full(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccRIRResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-rir-id")
 	slug := testutil.RandomSlug("tf-test-rir-id")
 
@@ -164,25 +128,17 @@ func TestAccRIRResource_IDPreservation(t *testing.T) {
 }
 
 func testAccRIRResourceConfig_basic(name, slug string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_rir" "test" {
-
   name = %q
-
   slug = %q
-
 }
-
 `, name, slug)
-
 }
 
 func testAccRIRResourceConfig_full(name, slug, description string, isPrivate bool, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	cfName := fmt.Sprintf("test_field_%s", strings.ReplaceAll(slug, "-", "_"))
 	return fmt.Sprintf(`
-
 resource "netbox_tag" "tag1" {
   name = %[5]q
   slug = %[6]q
@@ -231,7 +187,6 @@ resource "netbox_rir" "test" {
 func testAccRIRResourceConfig_fullUpdate(name, slug, description string, isPrivate bool, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	cfName := fmt.Sprintf("test_field_%s", strings.ReplaceAll(slug, "-", "_"))
 	return fmt.Sprintf(`
-
 resource "netbox_tag" "tag1" {
   name = %[5]q
   slug = %[6]q
@@ -279,6 +234,7 @@ resource "netbox_rir" "test" {
 
 func TestAccConsistency_RIR_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-rir-lit")
 	slug := testutil.RandomSlug("tf-test-rir-lit")
 

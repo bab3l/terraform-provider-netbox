@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccTunnelResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 	name := testutil.RandomName("tf-test-tunnel")
 
@@ -43,8 +43,8 @@ func TestAccTunnelResource_basic(t *testing.T) {
 }
 
 func TestAccTunnelResource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names
 	name := testutil.RandomName("tnl-id")
 
@@ -73,8 +73,8 @@ func TestAccTunnelResource_IDPreservation(t *testing.T) {
 }
 
 func TestAccTunnelResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tunnel-full")
 	description := testutil.RandomName("description")
@@ -106,8 +106,8 @@ func TestAccTunnelResource_full(t *testing.T) {
 }
 
 func TestAccTunnelResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tunnel-upd")
 	updatedDescription := testutil.Description2
@@ -143,8 +143,8 @@ func TestAccTunnelResource_update(t *testing.T) {
 }
 
 func TestAccTunnelResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tunnel-imp")
 
@@ -215,6 +215,7 @@ func TestAccTunnelResource_externalDeletion(t *testing.T) {
 
 func TestAccConsistency_Tunnel_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tunnel")
 
 	cleanup := testutil.NewCleanupResource(t)

@@ -13,164 +13,104 @@ import (
 )
 
 func TestAccRackRoleResource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	// Generate unique names to avoid conflicts between test runs
-
 	rackRoleName := testutil.RandomName("tf-test-rack-role")
-
 	rackRoleSlug := testutil.RandomSlug("tf-test-rack-role")
 
 	// Register cleanup to ensure resources are deleted even if test fails
-
 	cleanup := testutil.NewCleanupResource(t)
-
 	cleanup.RegisterRackRoleCleanup(rackRoleSlug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.CheckRackRoleDestroy,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccRackRoleResourceConfig_basic(rackRoleName, rackRoleSlug),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_rack_role.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_rack_role.test", "name", rackRoleName),
-
 					resource.TestCheckResourceAttr("netbox_rack_role.test", "slug", rackRoleSlug),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccRackRoleResource_full(t *testing.T) {
-
 	t.Parallel()
 
 	// Generate unique names
-
 	rackRoleName := testutil.RandomName("tf-test-rack-role-full")
-
 	rackRoleSlug := testutil.RandomSlug("tf-test-rack-role-f")
-
 	description := testutil.RandomName("description")
-
 	color := testutil.ColorOrange
 
 	// Register cleanup
-
 	cleanup := testutil.NewCleanupResource(t)
-
 	cleanup.RegisterRackRoleCleanup(rackRoleSlug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.CheckRackRoleDestroy,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccRackRoleResourceConfig_full(rackRoleName, rackRoleSlug, description, color),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_rack_role.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_rack_role.test", "name", rackRoleName),
-
 					resource.TestCheckResourceAttr("netbox_rack_role.test", "slug", rackRoleSlug),
-
 					resource.TestCheckResourceAttr("netbox_rack_role.test", "description", description),
-
 					resource.TestCheckResourceAttr("netbox_rack_role.test", "color", color),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccRackRoleResource_update(t *testing.T) {
-
 	t.Parallel()
 
 	// Generate unique names
-
 	rackRoleName := testutil.RandomName("tf-test-rack-role-upd")
-
 	rackRoleSlug := testutil.RandomSlug("tf-test-rack-role-u")
-
 	updatedDescription := testutil.Description2
 
 	// Register cleanup
-
 	cleanup := testutil.NewCleanupResource(t)
-
 	cleanup.RegisterRackRoleCleanup(rackRoleSlug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.CheckRackRoleDestroy,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccRackRoleResourceConfig_basic(rackRoleName, rackRoleSlug),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_rack_role.test", "name", rackRoleName),
 				),
 			},
-
 			{
-
 				Config: testAccRackRoleResourceConfig_full(rackRoleName, rackRoleSlug, updatedDescription, "00bcd4"),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_rack_role.test", "name", rackRoleName),
-
 					resource.TestCheckResourceAttr("netbox_rack_role.test", "description", updatedDescription),
-
 					resource.TestCheckResourceAttr("netbox_rack_role.test", "color", "00bcd4"),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccRackRoleResource_import(t *testing.T) {

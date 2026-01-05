@@ -16,8 +16,8 @@ import (
 // NOTE: Custom field tests for site resource are in resources_acceptance_tests_customfields package
 
 func TestAccSiteResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site")
 	slug := testutil.RandomSlug("tf-test-site")
 
@@ -45,8 +45,8 @@ func TestAccSiteResource_basic(t *testing.T) {
 }
 
 func TestAccSiteResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site-full")
 	slug := testutil.RandomSlug("tf-test-site-full")
 	description := testutil.RandomName("description")
@@ -76,8 +76,8 @@ func TestAccSiteResource_full(t *testing.T) {
 }
 
 func TestAccSiteResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site-update")
 	slug := testutil.RandomSlug("tf-test-site-upd")
 	updatedName := testutil.RandomName("tf-test-site-updated")
@@ -111,8 +111,8 @@ func TestAccSiteResource_update(t *testing.T) {
 }
 
 func TestAccSiteResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site-import")
 	slug := testutil.RandomSlug("tf-test-site-imp")
 
@@ -143,8 +143,8 @@ func TestAccSiteResource_import(t *testing.T) {
 }
 
 func TestAccConsistency_Site(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	regionName := testutil.RandomName("region")
@@ -177,6 +177,7 @@ func TestAccConsistency_Site(t *testing.T) {
 
 func TestAccConsistency_Site_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site-lit")
 	siteSlug := testutil.RandomSlug("tf-test-site-lit")
 
@@ -205,6 +206,7 @@ func TestAccConsistency_Site_LiteralNames(t *testing.T) {
 
 func TestAccSiteResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site-id")
 	slug := testutil.RandomSlug("tf-test-site-id")
 
