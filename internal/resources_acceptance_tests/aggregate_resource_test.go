@@ -326,6 +326,7 @@ func TestAccAggregateResource_externalDeletion(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterAggregateCleanup(prefix)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -355,10 +356,8 @@ func TestAccAggregateResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted aggregate with ID: %d", itemID)
 				},
-				Config: testAccAggregateResourceConfig_basic(rirName, rirSlug, prefix),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

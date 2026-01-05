@@ -643,6 +643,54 @@ func (c *CleanupResource) RegisterRIRCleanup(slug string) {
 
 }
 
+// RegisterAggregateCleanup registers a cleanup function that will delete
+
+// an aggregate by prefix after the test completes.
+
+func (c *CleanupResource) RegisterAggregateCleanup(prefix string) {
+
+	c.t.Cleanup(func() {
+
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamAggregatesList(ctx).Prefix(prefix).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to list aggregates with prefix %s: %v", prefix, err)
+
+			return
+
+		}
+
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+
+			c.t.Logf("Cleanup: aggregate with prefix %s not found (already deleted)", prefix)
+
+			return
+
+		}
+
+		id := list.Results[0].GetId()
+
+		_, err = c.client.IpamAPI.IpamAggregatesDestroy(ctx, id).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to delete aggregate %d (prefix: %s): %v", id, prefix, err)
+
+		} else {
+
+			c.t.Logf("Cleanup: successfully deleted aggregate %d (prefix: %s)", id, prefix)
+
+		}
+
+	})
+
+}
+
 // RegisterRouteTargetCleanup registers a cleanup function that will delete
 
 // a route target by name after the test completes.
