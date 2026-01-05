@@ -9,8 +9,8 @@ import (
 )
 
 func TestAccRearPortDataSource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("test-rear-port-id")
 	manufacturerName := testutil.RandomName("test-manufacturer-rp-id")
 	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
@@ -50,8 +50,8 @@ func TestAccRearPortDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccRearPortDataSource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("test-rear-port")
 	manufacturerName := testutil.RandomName("test-manufacturer-rp")
 	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
@@ -93,8 +93,8 @@ func TestAccRearPortDataSource_basic(t *testing.T) {
 }
 
 func TestAccRearPortDataSource_byDeviceAndName(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("test-rear-port")
 	manufacturerName := testutil.RandomName("test-manufacturer-rp")
 	manufacturerSlug := testutil.GenerateSlug(manufacturerName)

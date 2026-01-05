@@ -9,7 +9,6 @@ import (
 )
 
 func TestAccProviderDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("provider")
@@ -35,7 +34,6 @@ func TestAccProviderDataSource_basic(t *testing.T) {
 }
 
 func TestAccProviderDataSource_bySlug(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("provider")
@@ -61,7 +59,6 @@ func TestAccProviderDataSource_bySlug(t *testing.T) {
 }
 
 func TestAccProviderDataSource_byName(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("provider")

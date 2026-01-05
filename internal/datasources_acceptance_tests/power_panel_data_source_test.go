@@ -11,12 +11,11 @@ import (
 func TestAccPowerPanelDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
-	cleanup := testutil.NewCleanupResource(t)
-
 	siteName := testutil.RandomName("tf-test-power-panel-site-id")
 	siteSlug := testutil.GenerateSlug(siteName)
 	powerPanelName := testutil.RandomName("tf-test-power-panel-id")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterPowerPanelCleanup(powerPanelName)
 
@@ -40,15 +39,13 @@ func TestAccPowerPanelDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccPowerPanelDataSource_basic(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	siteName := testutil.RandomName("tf-test-power-panel-site")
 	siteSlug := testutil.GenerateSlug(siteName)
 	powerPanelName := testutil.RandomName("tf-test-power-panel")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterPowerPanelCleanup(powerPanelName)
 
@@ -72,15 +69,13 @@ func TestAccPowerPanelDataSource_basic(t *testing.T) {
 }
 
 func TestAccPowerPanelDataSource_byNameAndSite(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	siteName := testutil.RandomName("tf-test-power-panel-site")
 	siteSlug := testutil.GenerateSlug(siteName)
 	powerPanelName := testutil.RandomName("tf-test-power-panel")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterPowerPanelCleanup(powerPanelName)
 

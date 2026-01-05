@@ -9,7 +9,6 @@ import (
 )
 
 func TestAccPrefixDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	prefix := testutil.RandomIPv4Prefix()
@@ -34,7 +33,6 @@ func TestAccPrefixDataSource_basic(t *testing.T) {
 }
 
 func TestAccPrefixDataSource_byID(t *testing.T) {
-
 	t.Parallel()
 
 	prefix := testutil.RandomIPv4Prefix()

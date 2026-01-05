@@ -9,7 +9,6 @@ import (
 )
 
 func TestAccRackTypeDataSource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
 
 	mfrName := testutil.RandomName("mfr-id")
@@ -37,7 +36,6 @@ func TestAccRackTypeDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccRackTypeDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	mfrName := testutil.RandomName("mfr")
@@ -65,7 +63,6 @@ func TestAccRackTypeDataSource_basic(t *testing.T) {
 }
 
 func TestAccRackTypeDataSource_bySlug(t *testing.T) {
-
 	t.Parallel()
 
 	mfrName := testutil.RandomName("mfr")
@@ -93,7 +90,6 @@ func TestAccRackTypeDataSource_bySlug(t *testing.T) {
 }
 
 func TestAccRackTypeDataSource_byModel(t *testing.T) {
-
 	t.Parallel()
 
 	mfrName := testutil.RandomName("mfr")

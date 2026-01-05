@@ -46,78 +46,48 @@ func TestAccRackRoleDataSource_byID(t *testing.T) {
 	slug := testutil.RandomSlug("tf-test-rr-ds")
 
 	// Register cleanup
-
 	cleanup := testutil.NewCleanupResource(t)
-
 	cleanup.RegisterRackRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.CheckRackRoleDestroy,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccRackRoleDataSourceConfig(name, slug),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("data.netbox_rack_role.test", "id"),
-
 					resource.TestCheckResourceAttr("data.netbox_rack_role.test", "name", name),
-
 					resource.TestCheckResourceAttr("data.netbox_rack_role.test", "slug", slug),
 				),
 			},
 		},
 	})
-
 }
 
 func testAccRackRoleDataSourceConfig(name, slug string) string {
-
 	return fmt.Sprintf(`
-
 terraform {
-
   required_providers {
-
     netbox = {
-
       source = "bab3l/netbox"
-
       version = ">= 0.1.0"
-
     }
-
   }
-
 }
 
 provider "netbox" {}
 
 resource "netbox_rack_role" "test" {
-
   name = %q
-
   slug = %q
-
 }
 
 data "netbox_rack_role" "test" {
-
   slug = netbox_rack_role.test.slug
-
 }
-
 `, name, slug)
-
 }

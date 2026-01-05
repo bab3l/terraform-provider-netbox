@@ -33,7 +33,6 @@ func TestAccProviderNetworkDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccProviderNetworkDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	providerName := testutil.RandomName("tf-test-provider")
@@ -57,7 +56,6 @@ func TestAccProviderNetworkDataSource_basic(t *testing.T) {
 }
 
 func TestAccProviderNetworkDataSource_byName(t *testing.T) {
-
 	t.Parallel()
 
 	providerName := testutil.RandomName("tf-test-provider")

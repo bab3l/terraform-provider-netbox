@@ -197,7 +197,7 @@ func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 		CheckDestroy: testutil.CheckSiteGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSiteGroupConsistencyLiteralNamesConfig(name, slug, description),
+				Config: testAccSiteGroupResourceConfig_full(name, slug, description),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_site_group.test", "name", name),
@@ -206,7 +206,7 @@ func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccSiteGroupConsistencyLiteralNamesConfig(name, slug, description),
+				Config:   testAccSiteGroupResourceConfig_full(name, slug, description),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
@@ -214,16 +214,6 @@ func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccSiteGroupConsistencyLiteralNamesConfig(name, slug, description string) string {
-	return fmt.Sprintf(`
-resource "netbox_site_group" "test" {
-  name        = %q
-  slug        = %q
-  description = %q
-}
-`, name, slug, description)
 }
 
 func testAccSiteGroupResourceConfig_full(name, slug, description string) string {

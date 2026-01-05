@@ -9,7 +9,6 @@ import (
 )
 
 func TestAccPowerOutletDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	siteName := testutil.RandomName("site")
@@ -52,7 +51,6 @@ func TestAccPowerOutletDataSource_basic(t *testing.T) {
 }
 
 func TestAccPowerOutletDataSource_byDeviceAndName(t *testing.T) {
-
 	t.Parallel()
 
 	siteName := testutil.RandomName("site")

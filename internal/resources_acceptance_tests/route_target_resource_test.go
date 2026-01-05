@@ -162,6 +162,9 @@ func TestAccRouteTargetResource_externalDeletion(t *testing.T) {
 
 	name := testutil.RandomName("65000:999")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRouteTargetCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -190,14 +193,8 @@ func TestAccRouteTargetResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted route target with ID: %d", itemID)
 				},
-				Config: testAccRouteTargetResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
-				),
-			},
-			{
-				Config:   testAccRouteTargetResourceConfig_basic(name),
-				PlanOnly: true,
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

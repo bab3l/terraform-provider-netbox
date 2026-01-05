@@ -9,14 +9,12 @@ import (
 )
 
 func TestAccRoleDataSource_basic(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	roleName := testutil.RandomName("test-role-ds")
 	roleSlug := testutil.GenerateSlug(roleName)
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRoleCleanup(roleSlug)
 
 	resource.Test(t, resource.TestCase{
@@ -38,14 +36,12 @@ func TestAccRoleDataSource_basic(t *testing.T) {
 }
 
 func TestAccRoleDataSource_byName(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	roleName := testutil.RandomName("test-role-ds")
 	roleSlug := testutil.GenerateSlug(roleName)
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRoleCleanup(roleSlug)
 
 	resource.Test(t, resource.TestCase{
@@ -67,14 +63,12 @@ func TestAccRoleDataSource_byName(t *testing.T) {
 }
 
 func TestAccRoleDataSource_bySlug(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	roleName := testutil.RandomName("test-role-ds")
 	roleSlug := testutil.GenerateSlug(roleName)
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRoleCleanup(roleSlug)
 
 	resource.Test(t, resource.TestCase{
@@ -97,9 +91,11 @@ func TestAccRoleDataSource_bySlug(t *testing.T) {
 
 func TestAccRoleDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
-	cleanup := testutil.NewCleanupResource(t)
+
 	roleName := testutil.RandomName("role-ds-id")
 	roleSlug := testutil.GenerateSlug(roleName)
+
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRoleCleanup(roleSlug)
 
 	resource.Test(t, resource.TestCase{
