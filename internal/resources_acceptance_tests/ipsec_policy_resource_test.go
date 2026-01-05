@@ -14,6 +14,9 @@ func TestAccIPSECPolicyResource_basic(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-ipsec-policy")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -33,6 +36,9 @@ func TestAccIPSECPolicyResource_full(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-policy-full")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -55,6 +61,9 @@ func TestAccIPSECPolicyResource_update(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-policy-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -83,6 +92,9 @@ func TestAccIPSECPolicyResource_import(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-policy")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -150,6 +162,9 @@ func TestAccIPSecPolicyResource_IDPreservation(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-ipsec-policy-id")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -186,6 +201,9 @@ func TestAccConsistency_IPSECPolicy_LiteralNames(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-policy-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

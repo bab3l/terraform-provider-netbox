@@ -14,6 +14,10 @@ func TestAccExportTemplateResource_basic(t *testing.T) {
 
 	name := testutil.RandomName("export-template")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterExportTemplateCleanup(name)
+	cleanup.RegisterExportTemplateCleanup(name + "-updated")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -84,6 +88,9 @@ func TestAccExportTemplateResource_full(t *testing.T) {
 
 	name := testutil.RandomName("export-template")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterExportTemplateCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -149,6 +156,9 @@ func TestAccConsistency_ExportTemplate_LiteralNames(t *testing.T) {
 	name := testutil.RandomName("tf-test-export-template-lit")
 	description := testutil.RandomName("description")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterExportTemplateCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -177,6 +187,9 @@ func TestAccExportTemplateResource_update(t *testing.T) {
 	testutil.TestAccPreCheck(t)
 
 	name := testutil.RandomName("tf-test-expt-upd")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterExportTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

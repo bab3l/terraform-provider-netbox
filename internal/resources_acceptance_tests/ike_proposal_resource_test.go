@@ -14,6 +14,9 @@ func TestAccIKEProposalResource_basic(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-ike-proposal")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEProposalCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -37,6 +40,9 @@ func TestAccIKEProposalResource_full(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-proposal-full")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEProposalCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -64,6 +70,9 @@ func TestAccIKEProposalResource_update(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-proposal-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEProposalCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -94,6 +103,9 @@ func TestAccIKEProposalResource_import(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-proposal")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEProposalCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -163,6 +175,9 @@ func TestAccIKEProposalResource_IDPreservation(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-ike-proposal-id")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEProposalCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -222,6 +237,9 @@ func TestAccConsistency_IKEProposal_LiteralNames(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-proposal-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEProposalCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

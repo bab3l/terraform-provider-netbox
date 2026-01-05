@@ -15,6 +15,9 @@ func TestAccInventoryItemRoleResource_basic(t *testing.T) {
 	name := testutil.RandomName("tf-test-inv-role")
 	slug := testutil.RandomSlug("role")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterInventoryItemRoleCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -35,6 +38,9 @@ func TestAccInventoryItemRoleResource_full(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-role-full")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterInventoryItemRoleCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -58,6 +64,9 @@ func TestAccInventoryItemRoleResource_update(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-inv-role-update")
 	slug := testutil.RandomSlug("role")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterInventoryItemRoleCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -88,6 +97,9 @@ func TestAccInventoryItemRoleResource_import(t *testing.T) {
 	name := testutil.RandomName("tf-test-inv-role")
 	slug := testutil.RandomSlug("role")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterInventoryItemRoleCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -116,6 +128,9 @@ func TestAccInventoryItemRoleResource_IDPreservation(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-inv-role-id")
 	slug := testutil.RandomSlug("role")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterInventoryItemRoleCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -158,6 +173,9 @@ func TestAccConsistency_InventoryItemRole_LiteralNames(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-inv-role-lit")
 	slug := testutil.RandomSlug("tf-test-inv-role-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterInventoryItemRoleCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

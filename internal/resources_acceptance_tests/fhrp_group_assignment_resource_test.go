@@ -15,6 +15,14 @@ func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 	name := testutil.RandomName("test-fhrp-assign")
 	interfaceName := testutil.RandomName("eth")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(name + "-site")
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
+	cleanup.RegisterDeviceRoleCleanup(name + "-role")
+	cleanup.RegisterDeviceCleanup(name + "-device")
+	cleanup.RegisterFHRPGroupCleanup("vrrp2", 1)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -187,6 +195,14 @@ func TestAccConsistency_FHRPGroupAssignment_LiteralNames(t *testing.T) {
 	name := testutil.RandomName("test-fhrp-assign-lit")
 	interfaceName := testutil.RandomName("eth")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(name + "-site")
+	cleanup.RegisterManufacturerCleanup(name + "-mfg")
+	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
+	cleanup.RegisterDeviceRoleCleanup(name + "-role")
+	cleanup.RegisterDeviceCleanup(name + "-device")
+	cleanup.RegisterFHRPGroupCleanup("vrrp2", 1)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -267,6 +283,14 @@ func TestAccFHRPGroupAssignmentResource_full(t *testing.T) {
 	name := testutil.RandomName("test-fhrp-assign-full")
 	interfaceName := testutil.RandomName("eth")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(name + "-site")
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
+	cleanup.RegisterDeviceRoleCleanup(name + "-role")
+	cleanup.RegisterDeviceCleanup(name + "-device")
+	cleanup.RegisterFHRPGroupCleanup("vrrp2", 1)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -300,6 +324,14 @@ func TestAccFHRPGroupAssignmentResource_update(t *testing.T) {
 	name := testutil.RandomName("test-fhrp-assign-upd")
 	interfaceName := testutil.RandomName("eth")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(name + "-site")
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
+	cleanup.RegisterDeviceRoleCleanup(name + "-role")
+	cleanup.RegisterDeviceCleanup(name + "-device")
+	cleanup.RegisterFHRPGroupCleanup("vrrp2", 1)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -332,6 +364,7 @@ func TestAccFHRPGroupAssignmentResource_external_deletion(t *testing.T) {
 	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
 	cleanup.RegisterDeviceRoleCleanup(name + "-role")
 	cleanup.RegisterDeviceCleanup(name + "-device")
+	cleanup.RegisterFHRPGroupCleanup("vrrp2", 1)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

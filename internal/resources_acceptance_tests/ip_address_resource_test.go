@@ -15,6 +15,9 @@ func TestAccIPAddressResource_basic(t *testing.T) {
 
 	ip := fmt.Sprintf("192.0.%d.%d/24", 100+acctest.RandIntRange(0, 50), acctest.RandIntRange(1, 254))
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(ip)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -34,6 +37,9 @@ func TestAccIPAddressResource_full(t *testing.T) {
 	t.Parallel()
 
 	ip := fmt.Sprintf("10.0.%d.%d/32", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(ip)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -58,6 +64,10 @@ func TestAccIPAddressResource_update(t *testing.T) {
 
 	ip1 := fmt.Sprintf("172.16.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
 	ip2 := fmt.Sprintf("172.16.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(ip1)
+	cleanup.RegisterIPAddressCleanup(ip2)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -86,6 +96,9 @@ func TestAccIPAddressResource_import(t *testing.T) {
 	t.Parallel()
 
 	ip := fmt.Sprintf("203.0.113.%d/32", acctest.RandIntRange(1, 254))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(ip)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -120,7 +133,10 @@ func TestAccIPAddressResource_importWithTags(t *testing.T) {
 	tag2Slug := testutil.RandomSlug("tag2")
 
 	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(ip)
 	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -186,6 +202,9 @@ func TestAccIPAddressResource_IDPreservation(t *testing.T) {
 
 	ip := fmt.Sprintf("192.0.%d.%d/24", 200+acctest.RandIntRange(0, 50), acctest.RandIntRange(1, 254))
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(ip)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -224,6 +243,9 @@ func TestAccConsistency_IPAddress_LiteralNames(t *testing.T) {
 	t.Parallel()
 
 	address := fmt.Sprintf("10.200.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -401,6 +423,20 @@ resource "netbox_ip_address" "test" {
 `, tenantName, tenantSlug, address)
 }
 
+func testAccIPAddressConfig_tenantByID(tenantName, tenantSlug, address string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_ip_address" "test" {
+  address = %[3]q
+  tenant  = netbox_tenant.test.id
+}
+`, tenantName, tenantSlug, address)
+}
+
 // TestAccIPAddress_TenantByID verifies that when a tenant is specified by ID,
 // the state stores the ID correctly.
 func TestAccIPAddress_TenantByID(t *testing.T) {
@@ -424,55 +460,6 @@ func TestAccIPAddress_TenantByID(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
 					// When specified by ID, tenant should be stored as ID
-					resource.TestCheckResourceAttrPair("netbox_ip_address.test", "tenant", "netbox_tenant.test", "id"),
-				),
-			},
-			// Step 2: Plan only - verify no changes detected
-			{
-				PlanOnly: true,
-				Config:   testAccIPAddressConfig_tenantByID(tenantName, tenantSlug, address),
-			},
-		},
-	})
-}
-
-func testAccIPAddressConfig_tenantByID(tenantName, tenantSlug, address string) string {
-	return fmt.Sprintf(`
-resource "netbox_tenant" "test" {
-  name = %[1]q
-  slug = %[2]q
-}
-
-resource "netbox_ip_address" "test" {
-  address = %[3]q
-  tenant  = netbox_tenant.test.id
-}
-`, tenantName, tenantSlug, address)
-}
-
-// TestAccIPAddress_TenantReferenceByID_StoresID verifies that when a tenant is referenced
-// by ID in config (like netbox_tenant.test.id), the state stores the ID consistently.
-func TestAccIPAddress_TenantReferenceByID_StoresID(t *testing.T) {
-	t.Parallel()
-
-	tenantName := testutil.RandomName("tf-test-tenant-ref")
-	tenantSlug := testutil.RandomSlug("tf-test-tenant-ref")
-	address := fmt.Sprintf("10.203.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterIPAddressCleanup(address)
-	cleanup.RegisterTenantCleanup(tenantSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Step 1: Create with tenant referenced by ID
-			{
-				Config: testAccIPAddressConfig_tenantByID(tenantName, tenantSlug, address),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
-					// When config uses .id, state should store the ID
 					resource.TestCheckResourceAttrPair("netbox_ip_address.test", "tenant", "netbox_tenant.test", "id"),
 				),
 			},

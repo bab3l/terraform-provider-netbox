@@ -15,6 +15,9 @@ func TestAccDeviceRoleResource_basic(t *testing.T) {
 	name := testutil.RandomName("tf-test-device-role")
 	slug := testutil.RandomSlug("tf-test-dr")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceRoleCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -70,6 +73,9 @@ func TestAccDeviceRoleResource_full(t *testing.T) {
 	slug := testutil.RandomSlug("tf-test-dr-full")
 	description := testutil.RandomName("description")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceRoleCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -94,6 +100,9 @@ func TestAccDeviceRoleResource_update(t *testing.T) {
 	name := testutil.RandomName("tf-test-device-role-update")
 	slug := testutil.RandomSlug("tf-test-dr-upd")
 	updatedName := testutil.RandomName("tf-test-device-role-updated")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

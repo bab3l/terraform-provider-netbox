@@ -17,6 +17,10 @@ func TestAccDeviceTypeResource_basic(t *testing.T) {
 	manufacturerName := testutil.RandomName("tf-test-manufacturer")
 	manufacturerSlug := testutil.RandomSlug("tf-test-mfr")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(slug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -82,6 +86,10 @@ func TestAccDeviceTypeResource_full(t *testing.T) {
 	manufacturerName := testutil.RandomName("tf-test-manufacturer")
 	manufacturerSlug := testutil.RandomSlug("tf-test-mfr")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(slug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -113,6 +121,10 @@ func TestAccDeviceTypeResource_update(t *testing.T) {
 	manufacturerName := testutil.RandomName("tf-test-manufacturer")
 	manufacturerSlug := testutil.RandomSlug("tf-test-mfr")
 	updatedModel := testutil.RandomName("tf-test-device-type-updated")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(slug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

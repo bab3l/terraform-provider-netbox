@@ -24,6 +24,13 @@ func TestAccFrontPortResource_basic(t *testing.T) {
 	rearPortName := testutil.RandomName("tf-test-rp")
 	frontPortName := testutil.RandomName("tf-test-fp")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -60,6 +67,13 @@ func TestAccFrontPortResource_full(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-device")
 	rearPortName := testutil.RandomName("tf-test-rp")
 	frontPortName := testutil.RandomName("tf-test-fp")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -183,6 +197,13 @@ func TestAccFrontPortResource_update(t *testing.T) {
 	rearPortName := testutil.RandomName("tf-test-rp-update")
 	frontPortName := testutil.RandomName("tf-test-fp-update")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -277,6 +298,13 @@ func TestAccFrontPortResource_IDPreservation(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-device-id")
 	rearPortName := testutil.RandomName("tf-test-rp-id")
 	frontPortName := testutil.RandomName("tf-test-fp-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

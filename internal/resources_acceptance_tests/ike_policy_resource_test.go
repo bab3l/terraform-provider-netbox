@@ -14,6 +14,9 @@ func TestAccIKEPolicyResource_basic(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-ike-policy")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEPolicyCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -35,6 +38,10 @@ func TestAccIKEPolicyResource_full(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-ike-policy-full")
 	proposalName := testutil.RandomName("tf-test-ike-proposal-for-policy")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEPolicyCleanup(name)
+	cleanup.RegisterIKEProposalCleanup(proposalName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -60,6 +67,9 @@ func TestAccIKEPolicyResource_update(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-policy-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEPolicyCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -90,6 +100,9 @@ func TestAccIKEPolicyResource_import(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-policy")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEPolicyCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -159,6 +172,9 @@ func TestAccIKEPolicyResource_IDPreservation(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-ike-policy-id")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEPolicyCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -218,6 +234,9 @@ func TestAccConsistency_IKEPolicy_LiteralNames(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ike-policy-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEPolicyCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

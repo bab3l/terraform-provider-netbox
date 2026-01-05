@@ -14,6 +14,11 @@ func TestAccIPSECProfileResource_basic(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-ipsec-prof")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProfileCleanup(name)
+	cleanup.RegisterIKEPolicyCleanup(name + "-ike-policy")
+	cleanup.RegisterIPSecPolicyCleanup(name + "-ipsec-policy")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -34,6 +39,12 @@ func TestAccIPSECProfileResource_full(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-prof-full")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProfileCleanup(name)
+	cleanup.RegisterIKEPolicyCleanup(name + "-ike-policy")
+	cleanup.RegisterIPSecPolicyCleanup(name + "-ipsec-policy")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -55,6 +66,11 @@ func TestAccIPSECProfileResource_update(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-prof-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProfileCleanup(name)
+	cleanup.RegisterIKEPolicyCleanup(name + "-ike-policy")
+	cleanup.RegisterIPSecPolicyCleanup(name + "-ipsec-policy")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -82,6 +98,11 @@ func TestAccIPSECProfileResource_import(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-prof")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProfileCleanup(name)
+	cleanup.RegisterIKEPolicyCleanup(name + "-ike-policy")
+	cleanup.RegisterIPSecPolicyCleanup(name + "-ipsec-policy")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -149,6 +170,11 @@ func TestAccIPSecProfileResource_IDPreservation(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-ipsec-profile-id")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProfileCleanup(name)
+	cleanup.RegisterIKEPolicyCleanup(name + "-ike-policy")
+	cleanup.RegisterIPSecPolicyCleanup(name + "-ipsec-policy")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -211,6 +237,11 @@ func TestAccConsistency_IPSECProfile_LiteralNames(t *testing.T) {
 	ikePolicyName := testutil.RandomName("tf-test-ike-policy")
 	ipsecPolicyName := testutil.RandomName("tf-test-ipsec-policy")
 	ipsecProfileName := testutil.RandomName("tf-test-ipsec-profile-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProfileCleanup(ipsecProfileName)
+	cleanup.RegisterIKEPolicyCleanup(ikePolicyName)
+	cleanup.RegisterIPSecPolicyCleanup(ipsecPolicyName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

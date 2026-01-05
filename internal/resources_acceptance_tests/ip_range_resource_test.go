@@ -20,6 +20,9 @@ func TestAccIPRangeResource_basic(t *testing.T) {
 	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
 	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPRangeCleanup(startAddress)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -46,6 +49,9 @@ func TestAccIPRangeResource_full(t *testing.T) {
 	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
 	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
 	description := testutil.RandomName("ip-range-desc")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPRangeCleanup(startAddress)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -75,6 +81,9 @@ func TestAccIPRangeResource_update(t *testing.T) {
 	startAddress2 := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet2)
 	endAddress2 := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet2)
 	description := testutil.RandomName("ip-range-desc")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPRangeCleanup(startAddress2)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -107,6 +116,9 @@ func TestAccIPRangeResource_import(t *testing.T) {
 	endOctet := startOctet + 10
 	startAddress := fmt.Sprintf("10.%d.%d.%d/32", secondOctet, thirdOctet, startOctet)
 	endAddress := fmt.Sprintf("10.%d.%d.%d/32", secondOctet, thirdOctet, endOctet)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPRangeCleanup(startAddress)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -190,6 +202,9 @@ func TestAccIPRangeResource_IDPreservation(t *testing.T) {
 	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
 	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPRangeCleanup(startAddress)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -233,6 +248,9 @@ func TestAccConsistency_IPRange_LiteralNames(t *testing.T) {
 	endOctet := startOctet + 10
 	startAddress := fmt.Sprintf("172.16.%d.10", startOctet)
 	endAddress := fmt.Sprintf("172.16.%d.20", endOctet)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPRangeCleanup(startAddress)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

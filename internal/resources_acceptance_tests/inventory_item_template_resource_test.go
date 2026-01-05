@@ -14,6 +14,10 @@ func TestAccInventoryItemTemplateResource_basic(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-inv-template")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
+	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -35,6 +39,10 @@ func TestAccInventoryItemTemplateResource_IDPreservation(t *testing.T) {
 
 	name := testutil.RandomName("iit-id")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
+	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -55,6 +63,10 @@ func TestAccInventoryItemTemplateResource_full(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-template-full")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
+	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -78,6 +90,10 @@ func TestAccInventoryItemTemplateResource_update(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-template-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
+	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -106,6 +122,10 @@ func TestAccInventoryItemTemplateResource_import(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-template")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
+	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -171,6 +191,10 @@ func TestAccConsistency_InventoryItemTemplate_LiteralNames(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-template-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterDeviceTypeCleanup(name + "-model")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

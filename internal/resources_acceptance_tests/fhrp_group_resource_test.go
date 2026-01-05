@@ -21,6 +21,9 @@ func TestAccFHRPGroupResource_basic(t *testing.T) {
 	protocol := "vrrp2"
 	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -50,6 +53,9 @@ func TestAccFHRPGroupResource_full(t *testing.T) {
 	description := testutil.RandomName("description")
 	authType := "plaintext"
 	authKey := "secretkey123"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -81,6 +87,9 @@ func TestAccFHRPGroupResource_update(t *testing.T) {
 	protocol := fhrpGroupProtocol
 	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
 	updatedName := testutil.RandomName("tf-test-fhrp-updated")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -166,6 +175,9 @@ func TestAccFHRPGroupResource_import(t *testing.T) {
 
 	protocol := "vrrp2"
 	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -260,6 +272,9 @@ func TestAccFHRPGroupResource_IDPreservation(t *testing.T) {
 
 	protocol := fhrpGroupProtocol
 	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

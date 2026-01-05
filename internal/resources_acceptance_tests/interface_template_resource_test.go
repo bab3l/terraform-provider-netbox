@@ -188,6 +188,8 @@ func TestAccInterfaceTemplateResource_external_deletion(t *testing.T) {
 // TestAccInterfaceTemplateResource_EnabledComprehensive tests comprehensive scenarios for interface template enabled field.
 // This validates that Optional+Computed boolean fields work correctly across all scenarios.
 func TestAccInterfaceTemplateResource_EnabledComprehensive(t *testing.T) {
+	t.Parallel()
+
 	manufacturerName := testutil.RandomName("tf-test-mfr-int-tpl")
 	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-int-tpl")
 	deviceTypeName := testutil.RandomName("tf-test-dev-type-int-tpl")
