@@ -262,6 +262,9 @@ func TestAccManufacturerResource_externalDeletion(t *testing.T) {
 	name := testutil.RandomName("test-manufacturer-del")
 	slug := testutil.GenerateSlug(name)
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,

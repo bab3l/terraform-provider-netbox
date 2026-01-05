@@ -342,6 +342,7 @@ func TestAccPlatformResource_externalDeletion(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterPlatformCleanup(platformSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
