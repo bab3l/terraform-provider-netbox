@@ -173,42 +173,6 @@ func TestAccConsistency_RearPortTemplate_LiteralNames(t *testing.T) {
 	})
 }
 
-func TestAccRearPortTemplateResource_update(t *testing.T) {
-	t.Parallel()
-
-	manufacturerName := testutil.RandomName("mfr-update")
-	manufacturerSlug := testutil.RandomSlug("mfr-update")
-	deviceTypeName := testutil.RandomName("dt-update")
-	deviceTypeSlug := testutil.RandomSlug("dt-update")
-	rearPortName := testutil.RandomName("rear-port-update")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
-	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRearPortTemplateResourceFullSimple(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, "Label1", testutil.Description1),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_rear_port_template.test", "id"),
-					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "label", "Label1"),
-					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "description", testutil.Description1),
-				),
-			},
-			{
-				Config: testAccRearPortTemplateResourceFullSimple(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, "Label2", testutil.Description2),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "label", "Label2"),
-					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "description", testutil.Description2),
-				),
-			},
-		},
-	})
-}
-
 func TestAccRearPortTemplateResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
@@ -255,39 +219,6 @@ func TestAccRearPortTemplateResource_externalDeletion(t *testing.T) {
 			},
 		},
 	})
-}
-
-func TestAccRearPortTemplateResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	manufacturerName := testutil.RandomName("mfr-id")
-	manufacturerSlug := testutil.RandomSlug("mfr-id")
-	deviceTypeName := testutil.RandomName("dt-id")
-	deviceTypeSlug := testutil.RandomSlug("dt-id")
-	name := testutil.RandomName("rear-port-id")
-	portType := "8p8c"
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
-	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRearPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, portType),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_rear_port_template.test", "id"),
-					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "type", portType),
-				),
-			},
-		},
-	})
-
 }
 
 func testAccRearPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, portType string) string {
@@ -381,7 +312,17 @@ resource "netbox_rear_port_template" "test" {
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceTypeSlug, resourceName)
 }
 
-func testAccRearPortTemplateResourceFullSimple(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, label, description string) string {
+// testAccRearPortTemplateResourceWithOptionalField generates config with an optional field set or omitted.
+func testAccRearPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name string, optionalFieldName, optionalFieldValue string) string {
+	optionalField := ""
+	if optionalFieldValue != "" {
+		if optionalFieldName == "positions" {
+			optionalField = fmt.Sprintf("\n  %s   = %s", optionalFieldName, optionalFieldValue)
+		} else {
+			optionalField = fmt.Sprintf("\n  %s       = %q", optionalFieldName, optionalFieldValue)
+		}
+	}
+
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
   name = %q
@@ -397,12 +338,9 @@ resource "netbox_device_type" "test" {
 resource "netbox_rear_port_template" "test" {
   device_type = netbox_device_type.test.id
   name        = %q
-  type        = "lc"
-  positions   = 4
-  label       = %q
-  description = %q
+  type        = "8p8c"%s
 }
-`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, label, description)
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, optionalField)
 }
 
 // TestAccRearPortTemplateResource_Label tests comprehensive scenarios for rear port template label field.
@@ -430,46 +368,10 @@ func TestAccRearPortTemplateResource_Label(t *testing.T) {
 			testutil.CheckManufacturerDestroy,
 		),
 		BaseConfig: func() string {
-			return `
-resource "netbox_manufacturer" "test" {
-	name = "` + manufacturerName + `"
-	slug = "` + manufacturerSlug + `"
-}
-
-resource "netbox_device_type" "test" {
-	manufacturer = netbox_manufacturer.test.id
-	model        = "` + deviceTypeName + `"
-	slug         = "` + deviceTypeSlug + `"
-}
-
-resource "netbox_rear_port_template" "test" {
-	device_type = netbox_device_type.test.id
-	name        = "` + rearPortTemplateName + `"
-	type        = "8p8c"
-	# label field intentionally omitted - should get default ""
-}
-`
+			return testAccRearPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortTemplateName, "label", "")
 		},
 		WithFieldConfig: func(value string) string {
-			return `
-resource "netbox_manufacturer" "test" {
-	name = "` + manufacturerName + `"
-	slug = "` + manufacturerSlug + `"
-}
-
-resource "netbox_device_type" "test" {
-	manufacturer = netbox_manufacturer.test.id
-	model        = "` + deviceTypeName + `"
-	slug         = "` + deviceTypeSlug + `"
-}
-
-resource "netbox_rear_port_template" "test" {
-	device_type = netbox_device_type.test.id
-	name        = "` + rearPortTemplateName + `"
-	type        = "8p8c"
-	label       = "` + value + `"
-}
-`
+			return testAccRearPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortTemplateName, "label", value)
 		},
 	})
 }
@@ -494,46 +396,10 @@ func TestAccRearPortTemplateResource_Color(t *testing.T) {
 		DefaultValue:   "",
 		FieldTestValue: "aa1409",
 		BaseConfig: func() string {
-			return `
-resource "netbox_manufacturer" "test" {
-	name = "` + manufacturerName + `"
-	slug = "` + manufacturerSlug + `"
-}
-
-resource "netbox_device_type" "test" {
-	manufacturer = netbox_manufacturer.test.id
-	model        = "` + deviceTypeName + `"
-	slug         = "` + deviceTypeSlug + `"
-}
-
-resource "netbox_rear_port_template" "test" {
-	device_type = netbox_device_type.test.id
-	name        = "` + rearPortTemplateName + `"
-	type        = "8p8c"
-	# color field intentionally omitted - should get default ""
-}
-`
+			return testAccRearPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortTemplateName, "color", "")
 		},
 		WithFieldConfig: func(value string) string {
-			return `
-resource "netbox_manufacturer" "test" {
-	name = "` + manufacturerName + `"
-	slug = "` + manufacturerSlug + `"
-}
-
-resource "netbox_device_type" "test" {
-	manufacturer = netbox_manufacturer.test.id
-	model        = "` + deviceTypeName + `"
-	slug         = "` + deviceTypeSlug + `"
-}
-
-resource "netbox_rear_port_template" "test" {
-	device_type = netbox_device_type.test.id
-	name        = "` + rearPortTemplateName + `"
-	type        = "8p8c"
-	color       = "` + value + `"
-}
-`
+			return testAccRearPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortTemplateName, "color", value)
 		},
 	})
 }
@@ -558,46 +424,10 @@ func TestAccRearPortTemplateResource_Positions(t *testing.T) {
 		DefaultValue:   "1",
 		FieldTestValue: "4",
 		BaseConfig: func() string {
-			return `
-resource "netbox_manufacturer" "test" {
-	name = "` + manufacturerName + `"
-	slug = "` + manufacturerSlug + `"
-}
-
-resource "netbox_device_type" "test" {
-	manufacturer = netbox_manufacturer.test.id
-	model        = "` + deviceTypeName + `"
-	slug         = "` + deviceTypeSlug + `"
-}
-
-resource "netbox_rear_port_template" "test" {
-	device_type = netbox_device_type.test.id
-	name        = "` + rearPortTemplateName + `"
-	type        = "8p8c"
-	# positions field intentionally omitted - should get default 1
-}
-`
+			return testAccRearPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortTemplateName, "positions", "")
 		},
 		WithFieldConfig: func(value string) string {
-			return `
-resource "netbox_manufacturer" "test" {
-	name = "` + manufacturerName + `"
-	slug = "` + manufacturerSlug + `"
-}
-
-resource "netbox_device_type" "test" {
-	manufacturer = netbox_manufacturer.test.id
-	model        = "` + deviceTypeName + `"
-	slug         = "` + deviceTypeSlug + `"
-}
-
-resource "netbox_rear_port_template" "test" {
-	device_type = netbox_device_type.test.id
-	name        = "` + rearPortTemplateName + `"
-	type        = "8p8c"
-	positions   = ` + value + `
-}
-`
+			return testAccRearPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortTemplateName, "positions", value)
 		},
 	})
 }
