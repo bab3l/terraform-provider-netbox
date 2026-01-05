@@ -224,7 +224,7 @@ func TestAccConsistency_IKEPolicy_LiteralNames(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIKEPolicyConsistencyLiteralNamesConfig(name),
+				Config: testAccIKEPolicyResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ike_policy.test", "id"),
 					resource.TestCheckResourceAttr("netbox_ike_policy.test", "name", name),
@@ -232,7 +232,7 @@ func TestAccConsistency_IKEPolicy_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccIKEPolicyConsistencyLiteralNamesConfig(name),
+				Config:   testAccIKEPolicyResourceConfig_basic(name),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ike_policy.test", "id"),
@@ -240,13 +240,4 @@ func TestAccConsistency_IKEPolicy_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccIKEPolicyConsistencyLiteralNamesConfig(name string) string {
-	return fmt.Sprintf(`
-resource "netbox_ike_policy" "test" {
-  name    = %q
-  version = 2
-}
-`, name)
 }

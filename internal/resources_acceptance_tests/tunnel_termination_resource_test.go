@@ -86,8 +86,8 @@ func TestAccTunnelTerminationResource_full(t *testing.T) {
 }
 
 func TestAccTunnelTerminationResource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
+
 	tunnelName := testutil.RandomName("tnl-term-id")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -115,8 +115,8 @@ func TestAccTunnelTerminationResource_IDPreservation(t *testing.T) {
 }
 
 func TestAccTunnelTerminationResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	tunnelName := testutil.RandomName("tf-test-tunnel-for-term-upd")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -147,8 +147,8 @@ func TestAccTunnelTerminationResource_update(t *testing.T) {
 }
 
 func TestAccTunnelTerminationResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	tunnelName := testutil.RandomName("tf-test-tunnel-for-term-imp")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -333,6 +333,7 @@ resource "netbox_tunnel_termination" "test" {
 
 func TestAccConsistency_TunnelTermination_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	tunnelName := testutil.RandomName("tunnel")
 
 	cleanup := testutil.NewCleanupResource(t)

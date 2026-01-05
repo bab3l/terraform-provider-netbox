@@ -192,14 +192,14 @@ func TestAccConsistency_IPSECPolicy_LiteralNames(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIPSECPolicyConsistencyLiteralNamesConfig(name),
+				Config: testAccIPSECPolicyResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "name", name),
 				),
 			},
 			{
-				Config:   testAccIPSECPolicyConsistencyLiteralNamesConfig(name),
+				Config:   testAccIPSECPolicyResourceConfig_basic(name),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
@@ -207,12 +207,4 @@ func TestAccConsistency_IPSECPolicy_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccIPSECPolicyConsistencyLiteralNamesConfig(name string) string {
-	return fmt.Sprintf(`
-resource "netbox_ipsec_policy" "test" {
-  name = %q
-}
-`, name)
 }
