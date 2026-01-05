@@ -154,7 +154,7 @@ func TestAccConsistency_ExportTemplate_LiteralNames(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccExportTemplateConsistencyLiteralNamesConfig(name, description),
+				Config: testAccExportTemplateResourceConfig_withDescription(name, description),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_export_template.test", "id"),
 					resource.TestCheckResourceAttr("netbox_export_template.test", "name", name),
@@ -162,7 +162,7 @@ func TestAccConsistency_ExportTemplate_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccExportTemplateConsistencyLiteralNamesConfig(name, description),
+				Config:   testAccExportTemplateResourceConfig_withDescription(name, description),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_export_template.test", "id"),
@@ -252,17 +252,6 @@ func TestAccExportTemplateResource_externalDeletion(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccExportTemplateConsistencyLiteralNamesConfig(name, description string) string {
-	return `
-resource "netbox_export_template" "test" {
-  name           = "` + name + `"
-  object_types   = ["dcim.site"]
-  template_code  = "name,slug\n{% for site in queryset %}{{ site.name }},{{ site.id }}\n{% endfor %}"
-  description    = "` + description + `"
-}
-`
 }
 
 func testAccExportTemplateResourceConfig_withDescription(name string, description string) string {

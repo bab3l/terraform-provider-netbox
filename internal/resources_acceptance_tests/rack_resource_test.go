@@ -13,361 +13,226 @@ import (
 )
 
 func TestAccRackResource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	// Generate unique names to avoid conflicts between test runs
-
 	siteName := testutil.RandomName("tf-test-rack-site")
-
 	siteSlug := testutil.RandomSlug("tf-test-rack-site")
-
 	rackName := testutil.RandomName("tf-test-rack")
 
 	// Register cleanup to ensure resources are deleted even if test fails
-
 	cleanup := testutil.NewCleanupResource(t)
-
 	cleanup.RegisterRackCleanup(rackName)
-
 	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckRackDestroy, testutil.CheckSiteDestroy),
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccRackResourceConfig_basic(siteName, siteSlug, rackName),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
-
 					resource.TestCheckResourceAttrPair("netbox_rack.test", "site", "netbox_site.test", "id"),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccRackResource_full(t *testing.T) {
-
 	t.Parallel()
 
 	// Generate unique names
-
 	siteName := testutil.RandomName("tf-test-rack-site-full")
-
 	siteSlug := testutil.RandomSlug("tf-test-rack-s-full")
-
 	rackName := testutil.RandomName("tf-test-rack-full")
-
 	description := testutil.RandomName("description")
 
 	// Register cleanup
-
 	cleanup := testutil.NewCleanupResource(t)
-
 	cleanup.RegisterRackCleanup(rackName)
-
 	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckRackDestroy, testutil.CheckSiteDestroy),
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccRackResourceConfig_full(siteName, siteSlug, rackName, description),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
-
 					resource.TestCheckResourceAttr("netbox_rack.test", "status", "active"),
-
 					resource.TestCheckResourceAttr("netbox_rack.test", "description", description),
-
 					resource.TestCheckResourceAttr("netbox_rack.test", "u_height", "42"),
-
 					resource.TestCheckResourceAttr("netbox_rack.test", "width", "19"),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccRackResource_update(t *testing.T) {
-
 	t.Parallel()
 
 	// Generate unique names
-
 	siteName := testutil.RandomName("tf-test-rack-site-upd")
-
 	siteSlug := testutil.RandomSlug("tf-test-rack-s-upd")
-
 	rackName := testutil.RandomName("tf-test-rack-upd")
-
 	updatedName := testutil.RandomName("tf-test-rack-upd-name")
 
 	// Register cleanup (use original name for initial cleanup, register updated name too)
-
 	cleanup := testutil.NewCleanupResource(t)
-
 	cleanup.RegisterRackCleanup(rackName)
-
 	cleanup.RegisterRackCleanup(updatedName)
-
 	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckRackDestroy, testutil.CheckSiteDestroy),
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccRackResourceConfig_basic(siteName, siteSlug, rackName),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
 				),
 			},
-
 			{
-
 				Config: testAccRackResourceConfig_basic(siteName, siteSlug, updatedName),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", updatedName),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccRackResource_withLocation(t *testing.T) {
-
 	t.Parallel()
 
 	// Generate unique names
-
 	siteName := testutil.RandomName("tf-test-rack-site-loc")
-
 	siteSlug := testutil.RandomSlug("tf-test-rack-s-loc")
-
 	locationName := testutil.RandomName("tf-test-rack-location")
-
 	locationSlug := testutil.RandomSlug("tf-test-rack-loc")
-
 	rackName := testutil.RandomName("tf-test-rack-with-loc")
 
 	// Register cleanup (rack first, then location, then site due to dependency)
-
 	cleanup := testutil.NewCleanupResource(t)
-
 	cleanup.RegisterRackCleanup(rackName)
-
 	cleanup.RegisterLocationCleanup(locationSlug)
-
 	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckRackDestroy, testutil.CheckLocationDestroy, testutil.CheckSiteDestroy),
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccRackResourceConfig_withLocation(siteName, siteSlug, locationName, locationSlug, rackName),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
-
 					resource.TestCheckResourceAttrPair("netbox_rack.test", "location", "netbox_location.test", "id"),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccRackResource_import(t *testing.T) {
-
 	t.Parallel()
 
 	// Generate unique names to avoid conflicts between test runs
-
 	siteName := testutil.RandomName("tf-test-rack-site")
-
 	siteSlug := testutil.RandomSlug("tf-test-rack-site")
-
 	rackName := testutil.RandomName("tf-test-rack")
 
 	// Register cleanup to ensure resources are deleted even if test fails
-
 	cleanup := testutil.NewCleanupResource(t)
-
 	cleanup.RegisterRackCleanup(rackName)
-
 	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.ComposeCheckDestroy(testutil.CheckRackDestroy, testutil.CheckSiteDestroy),
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccRackResourceConfig_import(siteName, siteSlug, rackName),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
-
 					resource.TestCheckResourceAttrPair("netbox_rack.test", "site", "netbox_site.test", "id"),
 				),
 			},
-
 			{
-
-				ResourceName: "netbox_rack.test",
-
-				ImportState: true,
-
-				ImportStateVerify: true,
-
+				ResourceName:            "netbox_rack.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"site"},
 			},
-
 			{
 				Config:   testAccRackResourceConfig_import(siteName, siteSlug, rackName),
 				PlanOnly: true,
 			},
 		},
 	})
-
 }
 
-// NOTE: Custom field tests for rack resource are in resources_acceptance_tests_customfields package
-
+// NOTE: Custom field tests for rack resource are in resources_acceptance_tests_customfields package.
 func TestAccConsistency_Rack(t *testing.T) {
-
 	t.Parallel()
 
 	rackName := testutil.RandomName("rack")
-
 	siteName := testutil.RandomName("site")
-
 	siteSlug := testutil.RandomSlug("site")
-
 	tenantName := testutil.RandomName("tenant")
-
 	tenantSlug := testutil.RandomSlug("tenant")
-
 	roleName := testutil.RandomName("role")
-
 	roleSlug := testutil.RandomSlug("role")
 
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccRackConsistencyConfig(rackName, siteName, siteSlug, tenantName, tenantSlug, roleName, roleSlug),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
-
 					resource.TestCheckResourceAttr("netbox_rack.test", "site", siteName),
-
 					resource.TestCheckResourceAttr("netbox_rack.test", "tenant", tenantName),
-
 					resource.TestCheckResourceAttr("netbox_rack.test", "role", roleName),
 				),
 			},
-
 			{
-
 				PlanOnly: true,
-
-				Config: testAccRackConsistencyConfig(rackName, siteName, siteSlug, tenantName, tenantSlug, roleName, roleSlug),
+				Config:   testAccRackConsistencyConfig(rackName, siteName, siteSlug, tenantName, tenantSlug, roleName, roleSlug),
 			},
 		},
 	})
-
 }
 
 func TestAccConsistency_Rack_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	rackName := testutil.RandomName("tf-test-rack-lit")
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.RandomSlug("tf-test-site")

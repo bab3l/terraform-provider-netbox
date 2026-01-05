@@ -60,13 +60,13 @@ cleanup.RegisterContactCleanup(email)
 
 ## Progress Summary
 - **Total Files**: 99
-- **Completed**: 76/99 (77%)
+- **Completed**: 77/99 (78%)
   - Phase 1: 14 files (initial improvements)
   - Phase 2: 51 files (18 with external_deletion tests + 33 reviewed, no external_deletion)
-  - Phase 3: 11 files (reviewed for cleanup and duplicate configs)
-- **Remaining**: 23 files
+  - Phase 3: 12 files (reviewed for cleanup and duplicate configs)
+- **Remaining**: 22 files
 
-## Completed Files (76)
+## Completed Files (77)
 
 ### Phase 1: Initial Improvements (14 files)
 - ✅ circuit_type_resource_test.go
@@ -174,22 +174,29 @@ cleanup.RegisterContactCleanup(email)
 - ✅ device_type_resource_test.go (cleanup present, 4 distinct configs)
 - **Tests**: 17 tests passed (263.94s)
 
-## Remaining Files (23) - Organized by Category
+### Batch 23: Export & Template Resources (1 file) - ✅ FIXED - Removed duplicate config
+- ✅ export_template_resource_test.go (cleanup present, removed duplicate ConsistencyLiteralNames config)
+  - Removed: testAccExportTemplateConsistencyLiteralNamesConfig (duplicate of _withDescription)
+  - Consolidated to use testAccExportTemplateResourceConfig_withDescription
+  - Saved 11 lines of code
+- **Tests**: 6 tests passed (91.32s + 44.00s consistency)
+
+## Remaining Files (22) - Organized by Category
 
 **Note**: The following files need review for:
 - Missing cleanup registrations
 - Duplicate config functions
 
-### Batch 1 (Phase 3): Export & Template Resources (1 file)
+### Batch 1 (Phase 3): Front & Rear Port Resources (4 files)
 ### Batch 2 (Phase 3): Device Resources (3 files)
 - device_resource_test.go
 - device_role_resource_test.go
 - device_type_resource_test.go
 
-### Batch 3 (Phase 3): Front & Rear Port Resources (4 files)
+### Batch 3 (Phase 3): FHRP Resources (2 files) - ⚠️ May already be complete
 - export_template_resource_test.go
 
-### Batch 4 (Phase 3): FHRP Resources (2 files) - ⚠️ May already be complete
+### Batch 4 (Phase 3): IKE & IPSec Resources (5 files)
 - front_port_resource_test.go
 - front_port_template_resource_test.go
 - rear_port_resource_test.go
