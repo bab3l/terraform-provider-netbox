@@ -13,7 +13,6 @@ import (
 )
 
 func TestAccProviderAccountResource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	providerName := testutil.RandomName("tf-test-provider")

@@ -19,6 +19,9 @@ func TestAccRoleResource_basic(t *testing.T) {
 	name := testutil.RandomName("tf-test-role")
 	slug := testutil.RandomSlug("tf-test-role")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRoleCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -63,6 +66,11 @@ func TestAccRoleResource_full(t *testing.T) {
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRoleCleanup(slug)
+	cleanup.RegisterTagCleanup(tagSlug1)
+	cleanup.RegisterTagCleanup(tagSlug2)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -96,31 +104,6 @@ func TestAccRoleResource_full(t *testing.T) {
 			},
 			{
 				Config:   testAccRoleResourceConfig_fullUpdate(name, slug, updatedDescription, 200, tagName1, tagSlug1, tagName2, tagSlug2),
-				PlanOnly: true,
-			},
-		},
-	})
-}
-
-func TestAccRoleResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-role-id")
-	slug := testutil.RandomSlug("tf-test-role-id")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoleResourceConfig_basic(name, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_role.test", "id"),
-					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
-				),
-			},
-			{
-				Config:   testAccRoleResourceConfig_basic(name, slug),
 				PlanOnly: true,
 			},
 		},
@@ -237,6 +220,9 @@ func TestAccConsistency_Role_LiteralNames(t *testing.T) {
 	slug := testutil.RandomSlug("tf-test-role-lit")
 	description := testutil.RandomName("description")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRoleCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -279,6 +265,9 @@ func TestAccRoleResource_externalDeletion(t *testing.T) {
 	name := testutil.RandomName("tf-test-role-del")
 	slug := testutil.RandomSlug("tf-test-role-del")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRoleCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -313,4 +302,62 @@ func TestAccRoleResource_externalDeletion(t *testing.T) {
 			},
 		},
 	})
+}
+
+// TestAccRoleResource_Weight tests comprehensive scenarios for role weight field.
+// This validates that Optional+Computed int64 fields with proper defaults work correctly.
+func TestAccRoleResource_Weight(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-role-weight")
+	slug := testutil.RandomSlug("tf-test-role-weight")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoleResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_role.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_role.test", "weight", "1000"),
+				),
+			},
+			{
+				Config:   testAccRoleResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
+			{
+				Config: testAccRoleResourceConfig_withWeight(name, slug, 2000),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_role.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_role.test", "weight", "2000"),
+				),
+			},
+			{
+				Config:   testAccRoleResourceConfig_withWeight(name, slug, 2000),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func testAccRoleResourceConfig_withWeight(name, slug string, weight int) string {
+	return fmt.Sprintf(`
+resource "netbox_role" "test" {
+  name   = %q
+  slug   = %q
+  weight = %d
+}
+`, name, slug, weight)
 }

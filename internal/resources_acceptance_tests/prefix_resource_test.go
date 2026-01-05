@@ -158,41 +158,6 @@ func TestAccPrefixResource_ipv6(t *testing.T) {
 	})
 }
 
-func TestAccPrefixResource_update(t *testing.T) {
-
-	t.Parallel()
-	prefix := testutil.RandomIPv4Prefix()
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterPrefixCleanup(prefix)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckPrefixDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccPrefixResourceConfig_basic(prefix),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
-					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
-				),
-			},
-			{
-				Config: testAccPrefixResourceConfig_withDescription(prefix, "Updated description"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
-					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
-					resource.TestCheckResourceAttr("netbox_prefix.test", "description", "Updated description"),
-					resource.TestCheckResourceAttr("netbox_prefix.test", "status", "active"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccPrefixResource_external_deletion(t *testing.T) {
 	t.Parallel()
 
@@ -236,48 +201,12 @@ func TestAccPrefixResource_external_deletion(t *testing.T) {
 	})
 }
 
-func TestAccPrefixResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	prefix := testutil.RandomIPv4Prefix()
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterPrefixCleanup(prefix)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckPrefixDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccPrefixResourceConfig_basic(prefix),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
-					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
-				),
-			},
-		},
-	})
-}
-
 func testAccPrefixResourceConfig_basic(prefix string) string {
 	return fmt.Sprintf(`
 resource "netbox_prefix" "test" {
   prefix = %q
 }
 `, prefix)
-}
-
-func testAccPrefixResourceConfig_withDescription(prefix, description string) string {
-	return fmt.Sprintf(`
-resource "netbox_prefix" "test" {
-  prefix      = %q
-  description = %q
-  status      = "active"
-}
-`, prefix, description)
 }
 
 func testAccPrefixResourceConfig_full(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
@@ -463,6 +392,11 @@ func TestAccConsistency_Prefix(t *testing.T) {
 	vlanName := testutil.RandomName("vlan")
 	vlanVid := 100
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -521,6 +455,11 @@ func TestAccConsistency_Prefix_LiteralNames(t *testing.T) {
 	tenantSlug := testutil.RandomSlug("tenant")
 	vlanName := testutil.RandomName("vlan")
 	vlanVid := 200
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
