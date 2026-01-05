@@ -60,13 +60,13 @@ cleanup.RegisterContactCleanup(email)
 
 ## Progress Summary
 - **Total Files**: 99
-- **Completed**: 73/99 (74%)
+- **Completed**: 76/99 (77%)
   - Phase 1: 14 files (initial improvements)
   - Phase 2: 51 files (18 with external_deletion tests + 33 reviewed, no external_deletion)
-  - Phase 3: 8 files (reviewed for cleanup and duplicate configs)
-- **Remaining**: 26 files
+  - Phase 3: 11 files (reviewed for cleanup and duplicate configs)
+- **Remaining**: 23 files
 
-## Completed Files (73)
+## Completed Files (76)
 
 ### Phase 1: Initial Improvements (14 files)
 - ✅ circuit_type_resource_test.go
@@ -168,28 +168,34 @@ cleanup.RegisterContactCleanup(email)
 - ✅ custom_link_resource_test.go (cleanup present, basic + full configs)
 - **Tests**: 15 tests passed (175.92s)
 
-## Remaining Files (26) - Organized by Category
+### Batch 22: Device Resources (3 files) - ✅ REVIEWED - No changes needed
+- ✅ device_resource_test.go (cleanup present, 5 distinct configs including Consistency variants)
+- ✅ device_role_resource_test.go (cleanup present, 3 distinct configs)
+- ✅ device_type_resource_test.go (cleanup present, 4 distinct configs)
+- **Tests**: 17 tests passed (263.94s)
+
+## Remaining Files (23) - Organized by Category
 
 **Note**: The following files need review for:
 - Missing cleanup registrations
 - Duplicate config functions
 
-### Batch 1 (Phase 3): Device Resources (3 files)
+### Batch 1 (Phase 3): Export & Template Resources (1 file)
 ### Batch 2 (Phase 3): Device Resources (3 files)
 - device_resource_test.go
 - device_role_resource_test.go
 - device_type_resource_test.go
 
-### Batch 3 (Phase 3): Export & Template Resources (1 file)
+### Batch 3 (Phase 3): Front & Rear Port Resources (4 files)
 - export_template_resource_test.go
 
-### Batch 4 (Phase 3): Front & Rear Port Resources (4 files)
+### Batch 4 (Phase 3): FHRP Resources (2 files) - ⚠️ May already be complete
 - front_port_resource_test.go
 - front_port_template_resource_test.go
 - rear_port_resource_test.go
 - rear_port_template_resource_test.go
 
-### Batch 5 (Phase 3): FHRP Resources (2 files) - ⚠️ May already be complete
+### Batch 5 (Phase 3): IKE & IPSec Resources (5 files)
 - fhrp_group_resource_test.go
 - fhrp_group_assignment_resource_test.go
 
