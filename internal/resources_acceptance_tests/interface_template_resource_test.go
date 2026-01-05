@@ -191,6 +191,10 @@ func TestAccInterfaceTemplateResource_external_deletion(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-interface-template-ext-del")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -219,10 +223,8 @@ func TestAccInterfaceTemplateResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted interface_template with ID: %d", itemID)
 				},
-				Config: testAccInterfaceTemplateResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_interface_template.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
