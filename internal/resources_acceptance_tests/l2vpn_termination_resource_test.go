@@ -293,6 +293,7 @@ func TestAccL2VPNTerminationResource_external_deletion(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVLANCleanup(vlanVID)
+	cleanup.RegisterL2VPNCleanup(l2vpnName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -336,10 +337,8 @@ func TestAccL2VPNTerminationResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted l2vpn termination with ID: %d", itemID)
 				},
-				Config: testAccL2VPNTerminationResourceConfig_externalDeletion(l2vpnName, vlanVID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_l2vpn_termination.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

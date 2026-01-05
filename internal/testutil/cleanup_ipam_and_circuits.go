@@ -1653,6 +1653,54 @@ func (c *CleanupResource) RegisterL2VPNCleanup(name string) {
 
 }
 
+// RegisterL2VPNTerminationCleanup registers a cleanup function that will delete
+
+// an L2VPN termination by L2VPN ID after the test completes.
+
+func (c *CleanupResource) RegisterL2VPNTerminationCleanup(l2vpnID int32) {
+
+	c.t.Cleanup(func() {
+
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+		defer cancel()
+
+		list, resp, err := c.client.VpnAPI.VpnL2vpnTerminationsList(ctx).L2vpnId([]int32{l2vpnID}).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to list L2VPN terminations with L2VPN ID %d: %v", l2vpnID, err)
+
+			return
+
+		}
+
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+
+			c.t.Logf("Cleanup: L2VPN termination with L2VPN ID %d not found (already deleted)", l2vpnID)
+
+			return
+
+		}
+
+		id := list.Results[0].GetId()
+
+		_, err = c.client.VpnAPI.VpnL2vpnTerminationsDestroy(ctx, id).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to delete L2VPN termination %d (L2VPN ID: %d): %v", id, l2vpnID, err)
+
+		} else {
+
+			c.t.Logf("Cleanup: successfully deleted L2VPN termination %d (L2VPN ID: %d)", id, l2vpnID)
+
+		}
+
+	})
+
+}
+
 // ============================================================================
 
 // VIRTUALIZATION API CLEANUPS
