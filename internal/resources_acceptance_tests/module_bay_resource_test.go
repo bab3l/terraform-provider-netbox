@@ -259,14 +259,14 @@ func TestAccConsistency_ModuleBay_LiteralNames(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccModuleBayConsistencyLiteralNamesConfig(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName),
+				Config: testAccModuleBayResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_module_bay.test", "id"),
 					resource.TestCheckResourceAttr("netbox_module_bay.test", "name", bayName),
 				),
 			},
 			{
-				Config:   testAccModuleBayConsistencyLiteralNamesConfig(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName),
+				Config:   testAccModuleBayResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_module_bay.test", "id"),
@@ -274,45 +274,6 @@ func TestAccConsistency_ModuleBay_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccModuleBayConsistencyLiteralNamesConfig(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName string) string {
-	return fmt.Sprintf(`
-resource "netbox_site" "test" {
-  name   = %q
-  slug   = %q
-  status = "active"
-}
-
-resource "netbox_manufacturer" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_device_type" "test" {
-  manufacturer = netbox_manufacturer.test.id
-  model        = %q
-  slug         = %q
-}
-
-resource "netbox_device_role" "test" {
-  name  = %q
-  slug  = %q
-  color = "aa1409"
-}
-
-resource "netbox_device" "test" {
-  name        = %q
-  device_type = netbox_device_type.test.id
-  role        = netbox_device_role.test.id
-  site        = netbox_site.test.id
-}
-
-resource "netbox_module_bay" "test" {
-  device = netbox_device.test.id
-  name   = %q
-}
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName)
 }
 
 func TestAccModuleBayResource_update(t *testing.T) {

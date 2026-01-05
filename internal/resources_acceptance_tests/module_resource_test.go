@@ -137,14 +137,14 @@ func TestAccConsistency_Module_LiteralNames(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccModuleConsistencyLiteralNamesConfig(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
+				Config: testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_module.test", "id"),
 				),
 			},
 			{
 				PlanOnly: true,
-				Config:   testAccModuleConsistencyLiteralNamesConfig(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
+				Config:   testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
 			},
 		},
 	})
@@ -464,54 +464,4 @@ resource "netbox_module" "test" {
   serial      = %q
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, serial)
-}
-
-func testAccModuleConsistencyLiteralNamesConfig(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel string) string {
-	return fmt.Sprintf(`
-resource "netbox_site" "test" {
-  name   = %[1]q
-  slug   = %[2]q
-  status = "active"
-}
-
-resource "netbox_manufacturer" "test" {
-  name = %[3]q
-  slug = %[4]q
-}
-
-resource "netbox_device_type" "test" {
-  manufacturer = netbox_manufacturer.test.id
-  model        = %[5]q
-  slug         = %[6]q
-}
-
-resource "netbox_device_role" "test" {
-  name  = %[7]q
-  slug  = %[8]q
-  color = "aa1409"
-}
-
-resource "netbox_device" "test" {
-  name        = %[9]q
-  device_type = netbox_device_type.test.id
-  role        = netbox_device_role.test.id
-  site        = netbox_site.test.id
-}
-
-resource "netbox_module_bay" "test" {
-  device = netbox_device.test.id
-  name   = %[10]q
-}
-
-resource "netbox_module_type" "test" {
-  manufacturer = netbox_manufacturer.test.id
-  model        = %[11]q
-}
-
-resource "netbox_module" "test" {
-  device      = netbox_device.test.id
-  module_bay  = netbox_module_bay.test.id
-  module_type = netbox_module_type.test.id
-}
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel)
 }

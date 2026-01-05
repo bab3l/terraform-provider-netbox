@@ -285,14 +285,14 @@ func TestAccConsistency_ModuleBayTemplate_LiteralNames(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccModuleBayTemplateConsistencyLiteralNamesConfig(mfgName, mfgSlug, dtModel, dtSlug, templateName),
+				Config: testAccModuleBayTemplateResourceConfig_basic(mfgName, mfgSlug, dtModel, dtSlug, templateName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_module_bay_template.test", "id"),
 					resource.TestCheckResourceAttr("netbox_module_bay_template.test", "name", templateName),
 				),
 			},
 			{
-				Config:   testAccModuleBayTemplateConsistencyLiteralNamesConfig(mfgName, mfgSlug, dtModel, dtSlug, templateName),
+				Config:   testAccModuleBayTemplateResourceConfig_basic(mfgName, mfgSlug, dtModel, dtSlug, templateName),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_module_bay_template.test", "id"),
@@ -300,26 +300,4 @@ func TestAccConsistency_ModuleBayTemplate_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccModuleBayTemplateConsistencyLiteralNamesConfig(mfgName, mfgSlug, dtModel, dtSlug, templateName string) string {
-	return fmt.Sprintf(`
-provider "netbox" {}
-
-resource "netbox_manufacturer" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_device_type" "test" {
-  model        = %q
-  slug         = %q
-  manufacturer = netbox_manufacturer.test.id
-}
-
-resource "netbox_module_bay_template" "test" {
-  name        = %q
-  device_type = netbox_device_type.test.id
-}
-`, mfgName, mfgSlug, dtModel, dtSlug, templateName)
 }
