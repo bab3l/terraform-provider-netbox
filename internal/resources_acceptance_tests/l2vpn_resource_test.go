@@ -141,7 +141,7 @@ func TestAccConsistency_L2VPN_LiteralNames(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccL2VPNConsistencyLiteralNamesConfig(name),
+				Config: testAccL2VPNResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
 					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
@@ -150,7 +150,7 @@ func TestAccConsistency_L2VPN_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccL2VPNConsistencyLiteralNamesConfig(name),
+				Config:   testAccL2VPNResourceConfig_basic(name),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
@@ -158,16 +158,6 @@ func TestAccConsistency_L2VPN_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccL2VPNConsistencyLiteralNamesConfig(name string) string {
-	return fmt.Sprintf(`
-resource "netbox_l2vpn" "test" {
-  name = %q
-  slug = %q
-  type = "vxlan"
-}
-`, name, name)
 }
 
 func TestAccL2VPNResource_update(t *testing.T) {

@@ -46,7 +46,6 @@ func TestAccDeviceBayDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccDeviceBayDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	siteSlug := testutil.RandomSlug("site")
@@ -126,7 +125,6 @@ data "netbox_device_bay" "test" {
 }
 
 func TestAccDeviceBayDataSource_byDeviceAndName(t *testing.T) {
-
 	t.Parallel()
 
 	siteSlug := testutil.RandomSlug("site")

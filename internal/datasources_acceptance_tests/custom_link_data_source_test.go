@@ -13,6 +13,7 @@ import (
 
 func TestAccCustomLinkDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("cl-id")
 
 	resource.Test(t, resource.TestCase{
@@ -34,8 +35,8 @@ func TestAccCustomLinkDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccCustomLinkDataSource_byID(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("cl")
 
 	resource.Test(t, resource.TestCase{
@@ -58,8 +59,8 @@ func TestAccCustomLinkDataSource_byID(t *testing.T) {
 }
 
 func TestAccCustomLinkDataSource_byName(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("cl")
 
 	resource.Test(t, resource.TestCase{
