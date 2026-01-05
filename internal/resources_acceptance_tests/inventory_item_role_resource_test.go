@@ -188,6 +188,9 @@ func TestAccInventoryItemRoleResource_externalDeletion(t *testing.T) {
 	name := testutil.RandomName("tf-test-inv-role-ext-del")
 	slug := testutil.RandomSlug("role")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterInventoryItemRoleCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -216,10 +219,8 @@ func TestAccInventoryItemRoleResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted inventory_item_role with ID: %d", itemID)
 				},
-				Config: testAccInventoryItemRoleResourceConfig_basic(name, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_inventory_item_role.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

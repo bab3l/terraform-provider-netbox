@@ -220,6 +220,13 @@ func TestAccInventoryItemResource_externalDeletion(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-inv-item-ext-del")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(name)
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterDeviceTypeCleanup(name + "-model")
+	cleanup.RegisterDeviceRoleCleanup(name)
+	cleanup.RegisterDeviceCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -248,10 +255,8 @@ func TestAccInventoryItemResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted inventory_item with ID: %d", itemID)
 				},
-				Config: testAccInventoryItemResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_inventory_item.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

@@ -1143,3 +1143,51 @@ func (c *CleanupResource) RegisterInventoryItemCleanup(id int32, name string) {
 	})
 
 }
+
+// RegisterInventoryItemRoleCleanup registers a cleanup function that will delete
+
+// an inventory item role by name after the test completes.
+
+func (c *CleanupResource) RegisterInventoryItemRoleCleanup(name string) {
+
+	c.t.Cleanup(func() {
+
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimInventoryItemRolesList(ctx).NameIc([]string{name}).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to list inventory item roles with name %s: %v", name, err)
+
+			return
+
+		}
+
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+
+			c.t.Logf("Cleanup: inventory item role with name %s not found (already deleted)", name)
+
+			return
+
+		}
+
+		id := list.Results[0].GetId()
+
+		_, err = c.client.DcimAPI.DcimInventoryItemRolesDestroy(ctx, id).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to delete inventory item role %d (name: %s): %v", id, name, err)
+
+		} else {
+
+			c.t.Logf("Cleanup: successfully deleted inventory item role %d (name: %s)", id, name)
+
+		}
+
+	})
+
+}
