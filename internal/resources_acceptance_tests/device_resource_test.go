@@ -69,6 +69,13 @@ func TestAccDeviceResource_full(t *testing.T) {
 	serial := testutil.RandomName("SN")
 	assetTag := testutil.RandomName("AT")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -95,95 +102,86 @@ func TestAccDeviceResource_full(t *testing.T) {
 	})
 }
 
-func TestAccDeviceResource_update(t *testing.T) {
+// TestAccDeviceResource_StatusOptionalField tests comprehensive scenarios for the device status optional field.
+// This validates that Optional+Computed fields work correctly across all scenarios.
+func TestAccDeviceResource_StatusOptionalField(t *testing.T) {
 	t.Parallel()
 
-	// Generate unique names
-	deviceName := testutil.RandomName("tf-test-device")
-	deviceNameUpdated := testutil.RandomName("tf-test-device-updated")
-	manufacturerName := testutil.RandomName("tf-test-manufacturer")
-	manufacturerSlug := testutil.RandomSlug("tf-test-mfr")
-	deviceTypeModel := testutil.RandomName("tf-test-device-type")
-	deviceTypeSlug := testutil.RandomSlug("tf-test-dt")
-	deviceRoleName := testutil.RandomName("tf-test-device-role")
-	deviceRoleSlug := testutil.RandomSlug("tf-test-dr")
-	siteName := testutil.RandomName("tf-test-site")
-	siteSlug := testutil.RandomSlug("tf-test-site")
+	siteName := testutil.RandomName("tf-test-site-device-status")
+	siteSlug := testutil.RandomSlug("tf-test-site-device-status")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer-device-status")
+	manufacturerSlug := testutil.RandomSlug("tf-test-manufacturer-device-status")
+	deviceRoleName := testutil.RandomName("tf-test-device-role-status")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-device-role-status")
+	deviceTypeName := testutil.RandomName("tf-test-device-type-status")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-device-type-status")
+	deviceName := testutil.RandomName("tf-test-device-status")
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDeviceResourceConfig_basic(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceName),
-					resource.TestCheckResourceAttr("netbox_device.test", "status", "active"),
-				),
-			},
-			{
-				// Verify no drift after create
-				Config:   testAccDeviceResourceConfig_basic(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
-				PlanOnly: true,
-			},
-			{
-				Config: testAccDeviceResourceConfig_updated(deviceNameUpdated, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceNameUpdated),
-					resource.TestCheckResourceAttr("netbox_device.test", "status", "staged"),
-					resource.TestCheckResourceAttr("netbox_device.test", "description", "Updated description"),
-					// Verify field consistency during updates
-					resource.TestCheckResourceAttr("netbox_device.test", "tags.#", "0"),
-					resource.TestCheckResourceAttr("netbox_device.test", "custom_fields.#", "0"),
-				),
-			},
-			{
-				// Verify no drift after update
-				Config:   testAccDeviceResourceConfig_updated(deviceNameUpdated, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
-				PlanOnly: true,
-			},
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
+		ResourceName:   "netbox_device",
+		OptionalField:  "status",
+		DefaultValue:   "active",
+		FieldTestValue: "planned",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckSiteDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		BaseConfig: func() string {
+			return testAccDeviceResourceWithOptionalField(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, "status", "")
+		},
+		WithFieldConfig: func(value string) string {
+			return testAccDeviceResourceWithOptionalField(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, "status", value)
 		},
 	})
 }
 
-func TestAccDeviceResource_IDPreservation(t *testing.T) {
-	t.Parallel()
+func testAccDeviceResourceWithOptionalField(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, optionalFieldName, optionalFieldValue string) string {
+	optionalField := ""
+	if optionalFieldValue != "" {
+		optionalField = fmt.Sprintf("\n  %s = %q", optionalFieldName, optionalFieldValue)
+	}
 
-	// Generate unique names to avoid conflicts between test runs
-	deviceName := testutil.RandomName("dev-id")
-	manufacturerName := testutil.RandomName("mfr-dev")
-	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
-	deviceTypeModel := testutil.RandomName("dt-dev")
-	deviceTypeSlug := testutil.GenerateSlug(deviceTypeModel)
-	deviceRoleName := testutil.RandomName("dr-dev")
-	deviceRoleSlug := testutil.GenerateSlug(deviceRoleName)
-	siteName := testutil.RandomName("site-dev")
-	siteSlug := testutil.GenerateSlug(siteName)
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
 
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterDeviceCleanup(deviceName)
-	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
-	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDeviceResourceConfig_basic(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_device.test", "id"),
-					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceName),
-					resource.TestCheckResourceAttrSet("netbox_device.test", "device_type"),
-					resource.TestCheckResourceAttrSet("netbox_device.test", "role"),
-					resource.TestCheckResourceAttrSet("netbox_device.test", "site"),
-					resource.TestCheckResourceAttr("netbox_device.test", "status", "active"),
-				),
-			},
-		},
-	})
+resource "netbox_device_role" "test" {
+  name    = %q
+  slug    = %q
+  color   = "aa1409"
+  vm_role = false
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_device" "test" {
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+  name        = %q%s
+}
+`, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, optionalField)
 }
 
 func TestAccConsistency_Device(t *testing.T) {
@@ -346,43 +344,6 @@ resource "netbox_device" "test" {
   custom_fields = []
 }
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, serial, assetTag)
-}
-
-func testAccDeviceResourceConfig_updated(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug string) string {
-	return fmt.Sprintf(`
-resource "netbox_manufacturer" "test" {
-  name = %[1]q
-  slug = %[2]q
-}
-
-resource "netbox_device_type" "test" {
-  manufacturer = netbox_manufacturer.test.id
-  model        = %[3]q
-  slug         = %[4]q
-}
-
-resource "netbox_device_role" "test" {
-  name = %[5]q
-  slug = %[6]q
-}
-
-resource "netbox_site" "test" {
-  name   = %[7]q
-  slug   = %[8]q
-  status = "active"
-}
-
-resource "netbox_device" "test" {
-  name        = %[9]q
-  device_type = netbox_device_type.test.id
-  role        = netbox_device_role.test.id
-  site        = netbox_site.test.id
-  status      = "staged"
-  description = "Updated description"
-  tags        = []
-  custom_fields = []
-}
-`, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName)
 }
 
 func testAccDeviceConsistencyConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, tenantName, tenantSlug string) string {
