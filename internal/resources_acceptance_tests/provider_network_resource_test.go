@@ -220,14 +220,14 @@ func TestAccConsistency_ProviderNetwork_LiteralNames(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccProviderNetworkConsistencyLiteralNamesConfig(providerName, providerSlug, networkName),
+				Config: testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, networkName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_provider_network.test", "id"),
 					resource.TestCheckResourceAttr("netbox_provider_network.test", "name", networkName),
 				),
 			},
 			{
-				Config:   testAccProviderNetworkConsistencyLiteralNamesConfig(providerName, providerSlug, networkName),
+				Config:   testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, networkName),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_provider_network.test", "id"),
@@ -237,25 +237,15 @@ func TestAccConsistency_ProviderNetwork_LiteralNames(t *testing.T) {
 	})
 }
 
-func testAccProviderNetworkConsistencyLiteralNamesConfig(providerName, providerSlug, networkName string) string {
-	return fmt.Sprintf(`
-resource "netbox_provider" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_provider_network" "test" {
-  circuit_provider = netbox_provider.test.id
-  name             = %q
-}
-`, providerName, providerSlug, networkName)
-}
-
 func TestAccProviderNetworkResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 	providerName := testutil.RandomName("tf-test-provider-ext-del")
 	providerSlug := testutil.RandomSlug("provider-ext-del")
 	networkName := testutil.RandomName("tf-test-network-ext-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -263,16 +253,7 @@ func TestAccProviderNetworkResource_externalDeletion(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
-resource "netbox_provider" "test" {
-  name = %q
-  slug = %q
-}
-resource "netbox_provider_network" "test" {
-  circuit_provider = netbox_provider.test.id
-  name             = %q
-}
-`, providerName, providerSlug, networkName),
+				Config: testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, networkName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_provider_network.test", "id"),
 				),

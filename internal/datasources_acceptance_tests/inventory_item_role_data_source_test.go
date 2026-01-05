@@ -30,7 +30,6 @@ func TestAccInventoryItemRoleDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccInventoryItemRoleDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-item-role")

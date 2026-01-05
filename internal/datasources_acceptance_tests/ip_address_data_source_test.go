@@ -9,7 +9,6 @@ import (
 )
 
 func TestAccIPAddressDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	ipAddress := testutil.RandomIPv4Prefix()

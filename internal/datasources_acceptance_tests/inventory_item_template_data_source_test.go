@@ -10,6 +10,7 @@ import (
 
 func TestAccInventoryItemTemplateDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("test-inventory-item-template-id")
 	manufacturerName := testutil.RandomName("test-manufacturer-iit-id")
 	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
@@ -41,6 +42,7 @@ func TestAccInventoryItemTemplateDataSource_IDPreservation(t *testing.T) {
 
 func TestAccInventoryItemTemplateDataSource_byID(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("test-inventory-item-template")
 	manufacturerName := testutil.RandomName("test-manufacturer-iit")
 	manufacturerSlug := testutil.GenerateSlug(manufacturerName)

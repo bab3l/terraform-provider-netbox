@@ -177,14 +177,14 @@ func TestAccConsistency_Provider_LiteralNames(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccProviderConsistencyLiteralNamesConfig(name, slug),
+				Config: testAccProviderResourceConfig_basic(name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_provider.test", "name", name),
 				),
 			},
 			{
 				PlanOnly: true,
-				Config:   testAccProviderConsistencyLiteralNamesConfig(name, slug),
+				Config:   testAccProviderResourceConfig_basic(name, slug),
 			},
 		},
 	})
@@ -220,20 +220,14 @@ func TestAccProviderResource_IDPreservation(t *testing.T) {
 	})
 }
 
-func testAccProviderConsistencyLiteralNamesConfig(name, slug string) string {
-	return fmt.Sprintf(`
-resource "netbox_provider" "test" {
-  name = %[1]q
-  slug = %[2]q
-}
-`, name, slug)
-}
-
 func TestAccProviderResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-provider-ext-del")
 	slug := testutil.RandomSlug("provider-ext-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -242,12 +236,7 @@ func TestAccProviderResource_externalDeletion(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
-resource "netbox_provider" "test" {
-  name = %q
-  slug = %q
-}
-`, name, slug),
+				Config: testAccProviderResourceConfig_basic(name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_provider.test", "id"),
 				),
