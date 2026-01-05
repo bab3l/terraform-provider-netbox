@@ -230,14 +230,14 @@ func TestAccConsistency_IPAddress_LiteralNames(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIPAddressConsistencyLiteralNamesConfig(address),
+				Config: testAccIPAddressResourceConfig_basic(address),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
 					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
 				),
 			},
 			{
-				Config:   testAccIPAddressConsistencyLiteralNamesConfig(address),
+				Config:   testAccIPAddressResourceConfig_basic(address),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
@@ -287,14 +287,6 @@ func TestAccIPAddressResource_externalDeletion(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccIPAddressConsistencyLiteralNamesConfig(address string) string {
-	return fmt.Sprintf(`
-resource "netbox_ip_address" "test" {
-  address = %q
-}
-`, address)
 }
 
 func TestAccReferenceNamePersistence_IPAddress_TenantVRF(t *testing.T) {

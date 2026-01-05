@@ -239,7 +239,7 @@ func TestAccConsistency_IPRange_LiteralNames(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIPRangeConsistencyLiteralNamesConfig(startAddress, endAddress),
+				Config: testAccIPRangeResourceConfig_basic(startAddress, endAddress),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
 					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", startAddress),
@@ -247,7 +247,7 @@ func TestAccConsistency_IPRange_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccIPRangeConsistencyLiteralNamesConfig(startAddress, endAddress),
+				Config:   testAccIPRangeResourceConfig_basic(startAddress, endAddress),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
@@ -256,14 +256,3 @@ func TestAccConsistency_IPRange_LiteralNames(t *testing.T) {
 		},
 	})
 }
-
-func testAccIPRangeConsistencyLiteralNamesConfig(startAddress, endAddress string) string {
-	return fmt.Sprintf(`
-resource "netbox_ip_range" "test" {
-  start_address = %q
-  end_address   = %q
-}
-`, startAddress, endAddress)
-}
-
-// NOTE: Custom field tests for IP Range resource are in resources_acceptance_tests_customfields package

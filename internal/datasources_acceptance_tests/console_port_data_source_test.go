@@ -52,7 +52,6 @@ func TestAccConsolePortDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccConsolePortDataSource_byID(t *testing.T) {
-
 	t.Parallel()
 
 	siteName := testutil.RandomName("site")
@@ -96,7 +95,6 @@ func TestAccConsolePortDataSource_byID(t *testing.T) {
 }
 
 func TestAccConsolePortDataSource_byDeviceAndName(t *testing.T) {
-
 	t.Parallel()
 
 	siteName := testutil.RandomName("site")

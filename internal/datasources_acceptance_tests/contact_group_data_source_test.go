@@ -10,6 +10,7 @@ import (
 
 func TestAccContactGroupDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("test-contact-group-ds-id")
 	slug := testutil.GenerateSlug(name)
 
@@ -35,6 +36,7 @@ func TestAccContactGroupDataSource_IDPreservation(t *testing.T) {
 
 func TestAccContactGroupDataSource_byID(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("test-contact-group")
 	slug := testutil.GenerateSlug(name)
 
@@ -60,6 +62,7 @@ func TestAccContactGroupDataSource_byID(t *testing.T) {
 
 func TestAccContactGroupDataSource_byName(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("test-contact-group")
 	slug := testutil.GenerateSlug(name)
 
@@ -85,6 +88,7 @@ func TestAccContactGroupDataSource_byName(t *testing.T) {
 
 func TestAccContactGroupDataSource_bySlug(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("test-contact-group")
 	slug := testutil.GenerateSlug(name)
 

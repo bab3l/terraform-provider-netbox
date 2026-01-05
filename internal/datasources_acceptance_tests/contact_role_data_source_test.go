@@ -11,12 +11,10 @@ import (
 func TestAccContactRoleDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
-	cleanup := testutil.NewCleanupResource(t)
-
 	name := testutil.RandomName("test-contact-role-ds-id")
-
 	slug := testutil.GenerateSlug(name)
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterContactRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
@@ -39,15 +37,12 @@ func TestAccContactRoleDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccContactRoleDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
-	cleanup := testutil.NewCleanupResource(t)
-
 	name := testutil.RandomName("test-contact-role")
-
 	slug := testutil.GenerateSlug(name)
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterContactRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
@@ -83,15 +78,12 @@ data "netbox_contact_role" "test" {
 `, name, slug)
 }
 func TestAccContactRoleDataSource_byName(t *testing.T) {
-
 	t.Parallel()
 
-	cleanup := testutil.NewCleanupResource(t)
-
 	name := testutil.RandomName("test-contact-role")
-
 	slug := testutil.GenerateSlug(name)
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterContactRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
@@ -127,15 +119,12 @@ data "netbox_contact_role" "test" {
 }
 
 func TestAccContactRoleDataSource_bySlug(t *testing.T) {
-
 	t.Parallel()
 
-	cleanup := testutil.NewCleanupResource(t)
-
 	name := testutil.RandomName("test-contact-role")
-
 	slug := testutil.GenerateSlug(name)
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterContactRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
