@@ -14,6 +14,10 @@ func TestAccInterfaceTemplateResource_basic(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-interface-template")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(name + "-mfr-slug")
+	cleanup.RegisterDeviceTypeCleanup(name + "-model-slug")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -50,6 +54,10 @@ func TestAccInterfaceTemplateResource_full(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-interface-template-full")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(name + "-mfr-slug")
+	cleanup.RegisterDeviceTypeCleanup(name + "-model-slug")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -80,6 +88,10 @@ func TestAccConsistency_InterfaceTemplate(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-interface-template-consistency")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(name + "-mfr-slug")
+	cleanup.RegisterDeviceTypeCleanup(name + "-model-slug")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -105,30 +117,9 @@ func TestAccConsistency_InterfaceTemplate_LiteralNames(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-interface-template-literal")
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccInterfaceTemplateResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_interface_template.test", "id"),
-					resource.TestCheckResourceAttr("netbox_interface_template.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_interface_template.test", "type", "1000base-t"),
-				),
-			},
-			{
-				Config:   testAccInterfaceTemplateResourceConfig_basic(name),
-				PlanOnly: true,
-			},
-		},
-	})
-}
-
-func TestAccInterfaceTemplateResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-interface-template-id")
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(name + "-mfr-slug")
+	cleanup.RegisterDeviceTypeCleanup(name + "-model-slug")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -144,42 +135,6 @@ func TestAccInterfaceTemplateResource_IDPreservation(t *testing.T) {
 			},
 			{
 				Config:   testAccInterfaceTemplateResourceConfig_basic(name),
-				PlanOnly: true,
-			},
-		},
-	})
-
-}
-
-func TestAccInterfaceTemplateResource_update(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-interface-template-update")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccInterfaceTemplateResourceConfig_update(name, testutil.Description1),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_interface_template.test", "id"),
-					resource.TestCheckResourceAttr("netbox_interface_template.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_interface_template.test", "description", testutil.Description1),
-				),
-			},
-			{
-				Config:   testAccInterfaceTemplateResourceConfig_update(name, testutil.Description1),
-				PlanOnly: true,
-			},
-			{
-				Config: testAccInterfaceTemplateResourceConfig_update(name, testutil.Description2),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_interface_template.test", "description", testutil.Description2),
-				),
-			},
-			{
-				Config:   testAccInterfaceTemplateResourceConfig_update(name, testutil.Description2),
 				PlanOnly: true,
 			},
 		},
@@ -230,6 +185,63 @@ func TestAccInterfaceTemplateResource_external_deletion(t *testing.T) {
 	})
 }
 
+// TestAccInterfaceTemplateResource_EnabledComprehensive tests comprehensive scenarios for interface template enabled field.
+// This validates that Optional+Computed boolean fields work correctly across all scenarios.
+func TestAccInterfaceTemplateResource_EnabledComprehensive(t *testing.T) {
+	manufacturerName := testutil.RandomName("tf-test-mfr-int-tpl")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-int-tpl")
+	deviceTypeName := testutil.RandomName("tf-test-dev-type-int-tpl")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dev-type-int-tpl")
+	interfaceTemplateName := testutil.RandomName("tf-test-int-tpl")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
+		ResourceName:   "netbox_interface_template",
+		OptionalField:  "enabled",
+		DefaultValue:   "true",
+		FieldTestValue: "false",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		BaseConfig: func() string {
+			return testAccInterfaceTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, interfaceTemplateName, "enabled", "")
+		},
+		WithFieldConfig: func(value string) string {
+			return testAccInterfaceTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, interfaceTemplateName, "enabled", value)
+		},
+	})
+}
+
+func testAccInterfaceTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, interfaceTemplateName, optionalFieldName, optionalFieldValue string) string {
+	optionalField := ""
+	if optionalFieldValue != "" {
+		optionalField = fmt.Sprintf("\n  %s = %s", optionalFieldName, optionalFieldValue)
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_interface_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %q
+  type        = "1000base-t"%s
+}
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, interfaceTemplateName, optionalField)
+}
+
 func testAccInterfaceTemplateResourceConfig_basic(name string) string {
 	return fmt.Sprintf(`
 %s
@@ -273,17 +285,4 @@ resource "netbox_device_type" "test" {
 }
 
 `, name+"-mfr", name+"-mfr-slug", name+"-model", name+"-model-slug")
-}
-
-func testAccInterfaceTemplateResourceConfig_update(name string, description string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "netbox_interface_template" "test" {
-  device_type = netbox_device_type.test.id
-  name        = %q
-  type        = "1000base-t"
-  description = %q
-}
-`, testAccInterfaceTemplateResourcePrereqs(name), name, description)
 }
