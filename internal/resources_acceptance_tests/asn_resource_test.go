@@ -193,10 +193,8 @@ func TestAccASNResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted asn with ID: %d", itemID)
 				},
-				Config: testAccASNResourceConfig_basic(rirName, rirSlug, asn),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_asn.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

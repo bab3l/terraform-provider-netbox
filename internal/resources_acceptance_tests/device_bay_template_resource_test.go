@@ -198,10 +198,8 @@ func TestAccDeviceBayTemplateResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted device_bay_template with ID: %d", itemID)
 				},
-				Config: testAccDeviceBayTemplateResourceConfig_basic(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_device_bay_template.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

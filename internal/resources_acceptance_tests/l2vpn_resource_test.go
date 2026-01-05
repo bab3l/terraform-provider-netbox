@@ -230,6 +230,9 @@ func TestAccL2VPNResource_external_deletion(t *testing.T) {
 
 	name := acctest.RandomWithPrefix("test-l2vpn")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -260,10 +263,8 @@ func TestAccL2VPNResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted l2vpn with ID: %d", itemID)
 				},
-				Config: testAccL2VPNResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

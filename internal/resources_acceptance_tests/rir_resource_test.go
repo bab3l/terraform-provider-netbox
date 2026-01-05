@@ -384,14 +384,8 @@ func TestAccRIRResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted rir with ID: %d", itemID)
 				},
-				Config: testAccRIRResourceConfig_basic(name, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_rir.test", "id"),
-				),
-			},
-			{
-				Config:   testAccRIRResourceConfig_basic(name, slug),
-				PlanOnly: true,
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

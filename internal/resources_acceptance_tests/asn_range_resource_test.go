@@ -189,10 +189,8 @@ func TestAccASNRangeResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted ASN range with ID: %d", itemID)
 				},
-				Config: testAccASNRangeResourceConfig_basic(name, slug, rirName, rirSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
