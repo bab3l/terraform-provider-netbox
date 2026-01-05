@@ -15,6 +15,9 @@ func TestAccJournalEntryResource_basic(t *testing.T) {
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.GenerateSlug(siteName)
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -34,6 +37,9 @@ func TestAccJournalEntryResource_full(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-journal")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(testutil.RandomSlug("site"))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -56,6 +62,9 @@ func TestAccJournalEntryResource_update(t *testing.T) {
 
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.GenerateSlug(siteName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -84,6 +93,9 @@ func TestAccJournalEntryResource_import(t *testing.T) {
 
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.GenerateSlug(siteName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -183,6 +195,9 @@ func TestAccConsistency_JournalEntry_LiteralNames(t *testing.T) {
 	siteName := testutil.RandomName("tf-test-site-lit")
 	siteSlug := testutil.RandomSlug("tf-test-site-lit")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -279,4 +294,65 @@ func TestAccJournalEntryResource_externalDeletion(t *testing.T) {
 			},
 		},
 	})
+}
+
+// TestAccJournalEntryResource_Kind tests comprehensive scenarios for journal entry kind field.
+// This validates that Optional+Computed string fields with proper defaults work correctly.
+func TestAccJournalEntryResource_Kind(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-journal")
+	siteSlug := testutil.RandomSlug("tf-test-site-journal")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
+		ResourceName:   "netbox_journal_entry",
+		OptionalField:  "kind",
+		DefaultValue:   "info",
+		FieldTestValue: "warning",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckJournalEntryDestroy,
+			testutil.CheckSiteDestroy,
+		),
+		BaseConfig: func() string {
+			return testAccJournalEntryResourceConfig_kindBase(siteName, siteSlug)
+		},
+		WithFieldConfig: func(value string) string {
+			return testAccJournalEntryResourceConfig_kindWithField(siteName, siteSlug, value)
+		},
+	})
+}
+
+func testAccJournalEntryResourceConfig_kindBase(siteName, siteSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_journal_entry" "test" {
+  assigned_object_type = "dcim.site"
+  assigned_object_id   = netbox_site.test.id
+  comments             = "Test journal entry for kind field validation"
+  # kind field intentionally omitted - should get default "info"
+}
+`, siteName, siteSlug)
+}
+
+func testAccJournalEntryResourceConfig_kindWithField(siteName, siteSlug, kindValue string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_journal_entry" "test" {
+  assigned_object_type = "dcim.site"
+  assigned_object_id   = netbox_site.test.id
+  comments             = "Test journal entry for kind field validation"
+  kind                 = %[3]q
+}
+`, siteName, siteSlug, kindValue)
 }
