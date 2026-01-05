@@ -226,6 +226,9 @@ func TestAccJournalEntryResource_externalDeletion(t *testing.T) {
 	siteName := testutil.RandomName("tf-test-site-je-extdel")
 	siteSlug := testutil.GenerateSlug(siteName)
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
