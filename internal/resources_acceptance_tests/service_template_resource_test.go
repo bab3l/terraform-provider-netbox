@@ -229,14 +229,8 @@ func TestAccServiceTemplateResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted service template with ID: %d", itemID)
 				},
-				Config: testAccServiceTemplateResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_service_template.test", "id"),
-				),
-			},
-			{
-				Config:   testAccServiceTemplateResourceConfig_basic(name),
-				PlanOnly: true,
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

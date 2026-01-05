@@ -297,10 +297,8 @@ func TestAccServiceResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted service with ID: %d", itemID)
 				},
-				Config: testAccServiceResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_service.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

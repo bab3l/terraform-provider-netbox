@@ -195,6 +195,12 @@ func TestAccVMInterfaceResource_external_deletion(t *testing.T) {
 	vmName := testutil.RandomName("tf-test-vm-ext-del")
 	ifaceName := testutil.RandomName("eth-ext-del")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -223,10 +229,8 @@ func TestAccVMInterfaceResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted vm_interface with ID: %d", itemID)
 				},
-				Config: testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
