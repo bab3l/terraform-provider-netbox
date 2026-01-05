@@ -252,6 +252,9 @@ func TestAccIPAddressResource_externalDeletion(t *testing.T) {
 
 	ip := fmt.Sprintf("192.0.%d.%d/24", acctest.RandIntRange(100, 150), acctest.RandIntRange(1, 254))
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(ip)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -279,10 +282,8 @@ func TestAccIPAddressResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted IP address with ID: %d", itemID)
 				},
-				Config: testAccIPAddressResourceConfig_basic(ip),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

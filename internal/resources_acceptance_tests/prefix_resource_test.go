@@ -198,6 +198,9 @@ func TestAccPrefixResource_external_deletion(t *testing.T) {
 
 	prefix := testutil.RandomIPv4Prefix()
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -226,10 +229,8 @@ func TestAccPrefixResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted prefix with ID: %d", itemID)
 				},
-				Config: testAccPrefixResourceConfig_basic(prefix),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

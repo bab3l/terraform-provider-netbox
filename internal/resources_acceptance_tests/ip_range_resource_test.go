@@ -141,6 +141,9 @@ func TestAccIPRangeResource_external_deletion(t *testing.T) {
 	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
 	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPRangeCleanup(startAddress)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -170,10 +173,8 @@ func TestAccIPRangeResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted IP range with ID: %d", itemID)
 				},
-				Config: testAccIPRangeResourceConfig_basic(startAddress, endAddress),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

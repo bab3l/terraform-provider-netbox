@@ -499,6 +499,54 @@ func (c *CleanupResource) RegisterIPAddressCleanup(address string) {
 
 }
 
+// RegisterIPRangeCleanup registers a cleanup function that will delete
+
+// an IP range by start address after the test completes.
+
+func (c *CleanupResource) RegisterIPRangeCleanup(startAddress string) {
+
+	c.t.Cleanup(func() {
+
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamIpRangesList(ctx).StartAddress([]string{startAddress}).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to list IP ranges with start address %s: %v", startAddress, err)
+
+			return
+
+		}
+
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+
+			c.t.Logf("Cleanup: IP range with start address %s not found (already deleted)", startAddress)
+
+			return
+
+		}
+
+		id := list.Results[0].GetId()
+
+		_, err = c.client.IpamAPI.IpamIpRangesDestroy(ctx, id).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to delete IP range %d (start address: %s): %v", id, startAddress, err)
+
+		} else {
+
+			c.t.Logf("Cleanup: successfully deleted IP range %d (start address: %s)", id, startAddress)
+
+		}
+
+	})
+
+}
+
 // RegisterASNRangeCleanup registers a cleanup function that will delete
 
 // an ASN range by name after the test completes.
