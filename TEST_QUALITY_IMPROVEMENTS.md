@@ -58,115 +58,151 @@ cleanup.RegisterContactCleanup(email)
 - Update all references to use the remaining function
 - Verify both functions are truly identical before removing
 
-## Completed Files (14)
+## Progress Summary
+- **Total Files**: 99
+- **Completed**: 70/99 (71%)
+  - Phase 1: 14 files (initial improvements)
+  - Phase 2: 51 files (18 with external_deletion tests + 33 reviewed, no external_deletion)
+  - Phase 3: 5 files (reviewed for cleanup and duplicate configs)
+- **Remaining**: 29 files
 
-### Circuit Resources
+## Completed Files (70)
+
+### Phase 1: Initial Improvements (14 files)
 - ✅ circuit_type_resource_test.go
 - ✅ circuit_termination_resource_test.go
 - ✅ circuit_resource_test.go
 - ✅ circuit_group_resource_test.go
 - ✅ circuit_group_assignment_resource_test.go
 - ✅ cable_resource_test.go
-
-### Cluster Resources
 - ✅ cluster_group_resource_test.go
 - ✅ cluster_resource_test.go
 - ✅ cluster_type_resource_test.go
-
-### Config Resources
 - ✅ config_context_resource_test.go
 - ✅ config_template_resource_test.go
-
-### Console Resources
 - ✅ console_port_template_resource_test.go
 - ✅ console_server_port_resource_test.go
 - ✅ console_server_port_template_resource_test.go
-
-### Contact Resources
 - ✅ contact_assignment_resource_test.go
 
-## Remaining Files (85) - Organized by Category
+### Phase 2: External Deletion Pattern Fixes (Batches 10-18) - 18 files with external_deletion tests
+**Focus**: Fixed RefreshState pattern and added missing cleanup registrations
 
-### Batch 1: Contact Resources (2 files)
-- contact_resource_test.go
-- contact_role_resource_test.go
-- contact_group_resource_test.go
+#### Batch 10: Inventory Item Resources (3 files) - Commit: 1dcc1c9
+- ✅ inventory_item_resource_test.go (added 5 cleanups + RefreshState fix)
+- ✅ inventory_item_role_resource_test.go (added 1 cleanup + RefreshState fix) - Created RegisterInventoryItemRoleCleanup
+- ✅ inventory_item_template_resource_test.go (added 2 cleanups + RefreshState fix)
 
-### Batch 2: Console & Device Bay Resources (3 files)
-- console_port_resource_test.go
-- device_bay_resource_test.go
-- device_bay_template_resource_test.go
+#### Batch 11: IP Address & Range Resources (3 files) - Commit: 436925e
+- ✅ ip_address_resource_test.go (added 1 cleanup + RefreshState fix)
+- ✅ ip_range_resource_test.go (added 1 cleanup + RefreshState fix) - Created RegisterIPRangeCleanup
+- ✅ prefix_resource_test.go (added 1 cleanup + RefreshState fix)
 
-### Batch 3: Custom Field & Link Resources (3 files)
+#### Batch 12: Aggregate Resource (1 file with external_deletion) - Commit: b48eb88
+- ✅ aggregate_resource_test.go (added 1 cleanup + RefreshState fix) - Created RegisterAggregateCleanup
+- ℹ️ Note: asn_resource_test.go, asn_range_resource_test.go, and rir_resource_test.go were found to have external_deletion tests later and were fixed in Batch 18
+
+#### Batch 13: Journal & Location Resources (2 files, 1 changed) - Commit: c4bc363
+- ✅ journal_entry_resource_test.go (added site cleanup, already had RefreshState)
+- ⏭️ location_resource_test.go (already correct, no changes needed)
+
+#### Batch 14: L2VPN Termination Resource (1 file with external_deletion) - Commit: d4c5af6
+- ✅ l2vpn_termination_resource_test.go (added l2vpn cleanup + RefreshState fix) - Created RegisterL2VPNTerminationCleanup
+- ℹ️ Note: l2vpn_resource_test.go was found to have external_deletion test later and was fixed in Batch 18
+
+#### Batch 15: Manufacturer & Platform Resources (2 files) - Commit: bc925ea
+- ✅ manufacturer_resource_test.go (added manufacturer cleanup, already had RefreshState)
+- ✅ platform_resource_test.go (added platform cleanup, already had RefreshState)
+
+#### Batch 16: Module Resources (4 files) - Commit: ef287e5
+- ✅ module_bay_template_resource_test.go (added 2 cleanups + RefreshState fix)
+- ✅ module_type_resource_test.go (RefreshState fix only, cleanup already present)
+- ✅ module_resource_test.go (RefreshState fix only, all cleanups already present)
+- ✅ module_bay_resource_test.go (added 5 cleanups + RefreshState fix)
+
+#### Batch 17: Service & VM Interface Resources (3 files) - Commit: bbe40e5
+- ✅ service_resource_test.go (RefreshState fix only, cleanup already present)
+- ✅ service_template_resource_test.go (RefreshState fix only, no dependencies)
+- ✅ vm_interface_resource_test.go (added 4 cleanups + RefreshState fix)
+
+#### Batch 18: ASN, RIR, Device Bay Template, L2VPN (5 files) - Commit: 335b284
+- ✅ asn_range_resource_test.go (RefreshState fix, cleanup already present)
+- ✅ asn_resource_test.go (RefreshState fix, cleanup already present)
+- ✅ device_bay_template_resource_test.go (RefreshState fix, cleanup already present)
+- ✅ l2vpn_resource_test.go (added l2vpn cleanup + RefreshState fix)
+- ✅ rir_resource_test.go (RefreshState fix, no dependencies)
+
+### Summary of External Deletion Test Improvements
+**Total files with external_deletion tests: 18**
+**All 18 files now use correct RefreshState pattern ✅**
+
+**New Cleanup Methods Created:**
+1. RegisterInventoryItemRoleCleanup (Batch 10)
+2. RegisterIPRangeCleanup (Batch 11)
+3. RegisterAggregateCleanup (Batch 12)
+4. RegisterL2VPNTerminationCleanup (Batch 14)
+
+**Files Updated in Phase 2:** 18 files
+- 18 files fixed to use RefreshState pattern
+- 14 files had missing cleanup registrations added
+- 4 files already had cleanup but needed RefreshState fix
+- 100% test pass rate maintained throughout
+
+## Phase 3: Review Remaining Files for Cleanup & Duplicate Configs (34 files)
+**Focus**: Verify cleanup registration is complete and identify/remove duplicate config functions
+
+### Batch 19: Contact Resources (3 files) - ✅ REVIEWED - No changes needed
+- ✅ contact_resource_test.go (cleanup present, configs test different behaviors)
+- ✅ contact_role_resource_test.go (cleanup present, basic + _full configs are different)
+- ✅ contact_group_resource_test.go (cleanup present, single config function)
+- **Tests**: 14 tests passed (122.06s)
+
+### Batch 20: Console & Device Bay Resources (2 files) - ✅ REVIEWED - No changes needed
+- ✅ console_port_resource_test.go (cleanup present, Consistency configs test different behaviors)
+- ✅ device_bay_resource_test.go (cleanup present, Consistency configs test different behaviors)
+- **Tests**: 10 tests passed (94.10s)
+
+## Remaining Files (29) - Organized by Category
+
+**Note**: The following files need review for:
+- Missing cleanup registrations
+- Duplicate config functions
+
+### Batch 1 (Phase 3): Custom Field & Link Resources (3 files)
 - custom_field_resource_test.go
 - custom_field_choice_set_resource_test.go
 - custom_link_resource_test.go
 
-### Batch 4: Device Resources (3 files)
+### Batch 2 (Phase 3): Device Resources (3 files)
 - device_resource_test.go
 - device_role_resource_test.go
 - device_type_resource_test.go
 
-### Batch 5: Export & Template Resources (2 files)
+### Batch 3 (Phase 3): Export & Template Resources (1 file)
 - export_template_resource_test.go
-- service_template_resource_test.go
 
-### Batch 6: Front & Rear Port Resources (4 files)
+### Batch 4 (Phase 3): Front & Rear Port Resources (4 files)
 - front_port_resource_test.go
 - front_port_template_resource_test.go
 - rear_port_resource_test.go
 - rear_port_template_resource_test.go
 
-### Batch 7: FHRP Resources (2 files)
+### Batch 5 (Phase 3): FHRP Resources (2 files) - ⚠️ May already be complete
 - fhrp_group_resource_test.go
 - fhrp_group_assignment_resource_test.go
 
-### Batch 8: IKE & IPSec Resources (5 files)
+### Batch 6 (Phase 3): IKE & IPSec Resources (5 files)
 - ike_policy_resource_test.go
 - ike_proposal_resource_test.go
 - ipsec_policy_resource_test.go
 - ipsec_profile_resource_test.go
 - ipsec_proposal_resource_test.go
 
-### Batch 9: Interface Resources (2 files)
+### Batch 7 (Phase 3): Interface Resources (2 files) - ⚠️ interface_template may be complete
 - interface_resource_test.go
 - interface_template_resource_test.go
 
-### Batch 10: Inventory Item Resources (3 files)
-- inventory_item_resource_test.go
-- inventory_item_role_resource_test.go
-- inventory_item_template_resource_test.go
-
-### Batch 11: IP Address & Range Resources (3 files)
-- ip_address_resource_test.go
-- ip_range_resource_test.go
-- prefix_resource_test.go
-
-### Batch 12: ASN & Aggregate Resources (4 files)
-- asn_resource_test.go
-- asn_range_resource_test.go
-- aggregate_resource_test.go
-- rir_resource_test.go
-
-### Batch 13: Journal & Location Resources (2 files)
-- journal_entry_resource_test.go
-- location_resource_test.go
-
-### Batch 14: L2VPN Resources (2 files)
-- l2vpn_resource_test.go
-- l2vpn_termination_resource_test.go
-
-### Batch 15: Manufacturer & Platform Resources (2 files)
-- manufacturer_resource_test.go
-- platform_resource_test.go
-
-### Batch 16: Module Resources (4 files)
-- module_resource_test.go
-- module_type_resource_test.go
-- module_bay_resource_test.go
-- module_bay_template_resource_test.go
-
-### Batch 17: Power Resources (6 files)
+### Batch 8 (Phase 3): Power Resources (6 files) - ⚠️ No external_deletion tests found
 - power_feed_resource_test.go
 - power_outlet_resource_test.go
 - power_outlet_template_resource_test.go
@@ -174,57 +210,13 @@ cleanup.RegisterContactCleanup(email)
 - power_port_resource_test.go
 - power_port_template_resource_test.go
 
-### Batch 18: Provider Resources (3 files)
+### Batch 9 (Phase 3): Provider Resources (3 files)
 - provider_resource_test.go
 - provider_account_resource_test.go
 - provider_network_resource_test.go
 
-### Batch 19: Rack Resources (5 files)
-- rack_resource_test.go
-- rack_role_resource_test.go
-- rack_type_resource_test.go
-- rack_reservation_resource_test.go
-- region_resource_test.go
-
-### Batch 20: Route & Role Resources (2 files)
-- route_target_resource_test.go
-- role_resource_test.go
-
-### Batch 21: Service Resources (2 files)
-- service_resource_test.go
-- service_template_resource_test.go (duplicate - see Batch 5)
-
-### Batch 22: Site Resources (2 files)
-- site_resource_test.go
-- site_group_resource_test.go
-
-### Batch 23: Tag & Tenant Resources (3 files)
-- tag_resource_test.go
-- tenant_resource_test.go
-- tenant_group_resource_test.go
-
-### Batch 24: Tunnel Resources (3 files)
-- tunnel_resource_test.go
-- tunnel_group_resource_test.go
-- tunnel_termination_resource_test.go
-
-### Batch 25: Virtual Resources (5 files)
-- virtual_chassis_resource_test.go
-- virtual_device_context_resource_test.go
-- virtual_disk_resource_test.go
-- virtual_machine_resource_test.go
-- vm_interface_resource_test.go
-
-### Batch 26: VLAN & VRF Resources (3 files)
-- vlan_resource_test.go
-- vlan_group_resource_test.go
-- vrf_resource_test.go
-
-### Batch 27: Webhook & Wireless Resources (4 files)
-- webhook_resource_test.go
-- wireless_lan_resource_test.go
-- wireless_lan_group_resource_test.go
-- wireless_link_resource_test.go
+### Remaining Miscellaneous Resources
+(Files that need review for cleanup registration and duplicate config functions)
 
 ## Workflow for Each Batch
 
@@ -255,8 +247,13 @@ cleanup.RegisterContactCleanup(email)
 - ✅ 100% build success rate
 - ✅ 100% pre-commit hook success rate
 - ✅ 100% test pass rate
-- 🎯 All 99 resource test files improved
-- 📊 Current Progress: 14/99 (14%)
+- ✅ All 18 files with external_deletion tests now use correct RefreshState pattern
+- 📊 Current Progress: 65/99 (66%)
+  - Phase 1 (Initial): 14 files
+  - Phase 2 (External Deletion Fixes - Batches 10-18): 18 files with external_deletion tests
+  - Phase 2 (Other files reviewed): 33 files checked (no external_deletion tests found)
+  - **Total Improved**: 65 files
+  - **Remaining**: 34 files (need review for cleanup registration and duplicate configs)
 
 ## Notes
 
