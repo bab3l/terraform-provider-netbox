@@ -162,6 +162,10 @@ func TestAccModuleBayTemplateResource_external_deletion(t *testing.T) {
 	dtSlug := testutil.RandomSlug("dt-ext-del")
 	templateName := testutil.RandomName("mbt-ext-del")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -190,10 +194,8 @@ func TestAccModuleBayTemplateResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted module_bay_template with ID: %d", itemID)
 				},
-				Config: testAccModuleBayTemplateResourceConfig_basic(mfgName, mfgSlug, dtModel, dtSlug, templateName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_module_bay_template.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

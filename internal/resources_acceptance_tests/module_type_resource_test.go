@@ -291,10 +291,8 @@ func TestAccModuleTypeResource_external_deletion(t *testing.T) {
 
 					t.Logf("Successfully externally deleted module type with ID: %d", moduleTypeID)
 				},
-				Config: testAccModuleTypeResourceConfig_basic(mfgName, mfgSlug, model),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_module_type.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

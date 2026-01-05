@@ -408,10 +408,8 @@ func TestAccModuleResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted module with ID: %d", moduleID)
 				},
-				Config: testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_module.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
