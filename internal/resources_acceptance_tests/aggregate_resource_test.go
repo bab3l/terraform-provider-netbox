@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccAggregateResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	rirName := testutil.RandomName("tf-test-rir")
 	rirSlug := testutil.RandomSlug("tf-test-rir")
 	prefix := testutil.RandomIPv4Prefix()
