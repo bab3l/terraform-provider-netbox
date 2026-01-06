@@ -6,10 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -23,10 +20,8 @@ func TestAccRoleResource_basic(t *testing.T) {
 	cleanup.RegisterRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRoleResourceConfig_basic(name, slug),
@@ -72,10 +67,8 @@ func TestAccRoleResource_full(t *testing.T) {
 	cleanup.RegisterTagCleanup(tagSlug2)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRoleResourceConfig_full(name, slug, description, 100, tagName1, tagSlug1, tagName2, tagSlug2),
@@ -224,10 +217,8 @@ func TestAccConsistency_Role_LiteralNames(t *testing.T) {
 	cleanup.RegisterRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRoleConsistencyLiteralNamesConfig(name, slug, description),
@@ -316,11 +307,9 @@ func TestAccRoleResource_Weight(t *testing.T) {
 	cleanup.RegisterRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckRoleDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRoleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRoleResourceConfig_basic(name, slug),

@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -35,10 +32,8 @@ func TestAccModuleResource_basic(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
@@ -84,10 +79,8 @@ func TestAccModuleResource_full(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccModuleResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description),
@@ -131,10 +124,8 @@ func TestAccConsistency_Module_LiteralNames(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
@@ -173,10 +164,8 @@ func TestAccModuleResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
@@ -318,10 +307,8 @@ func TestAccModuleResource_update(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccModuleResourceConfig_serial(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, "SERIAL1"),
@@ -363,10 +350,8 @@ func TestAccModuleResource_external_deletion(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),

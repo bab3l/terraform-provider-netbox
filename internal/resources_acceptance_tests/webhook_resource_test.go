@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -19,9 +16,7 @@ func TestAccWebhookResource_basic(t *testing.T) {
 	randomName := testutil.RandomName("test-webhook")
 
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 
 		Steps: []resource.TestStep{
 			// Create and Read testing
@@ -77,9 +72,7 @@ func TestAccWebhookResource_full(t *testing.T) {
 	randomName := testutil.RandomName("test-webhook-full")
 
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create with all fields
 			{
@@ -111,9 +104,7 @@ func TestAccWebhookResource_IDPreservation(t *testing.T) {
 	randomName := testutil.RandomName("test-webhook-id")
 
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccWebhookResource(randomName, "https://example.com/webhook"),

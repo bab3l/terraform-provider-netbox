@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -22,11 +19,9 @@ func TestAccTunnelTerminationResource_basic(t *testing.T) {
 	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelTerminationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelTerminationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelTerminationResourceConfig_basic(tunnelName),
@@ -56,11 +51,9 @@ func TestAccTunnelTerminationResource_full(t *testing.T) {
 	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelTerminationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelTerminationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelTerminationResourceConfig_full(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress),
@@ -96,11 +89,9 @@ func TestAccTunnelTerminationResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelTerminationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelTerminationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelTerminationResourceConfig_basic(tunnelName),
@@ -125,11 +116,9 @@ func TestAccTunnelTerminationResource_update(t *testing.T) {
 	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelTerminationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelTerminationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelTerminationResourceConfig_withRole(tunnelName, "peer"),
@@ -157,11 +146,9 @@ func TestAccTunnelTerminationResource_import(t *testing.T) {
 	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelTerminationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelTerminationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelTerminationResourceConfig_basic(tunnelName),
@@ -342,10 +329,8 @@ func TestAccConsistency_TunnelTermination_LiteralNames(t *testing.T) {
 	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelTerminationConsistencyLiteralNamesConfig(tunnelName),

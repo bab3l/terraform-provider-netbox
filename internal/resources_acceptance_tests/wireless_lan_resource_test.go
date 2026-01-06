@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -18,10 +15,8 @@ func TestAccWirelessLANResource_basic(t *testing.T) {
 	ssid := testutil.RandomName("tf-test-ssid")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccWirelessLANResourceConfig_basic(ssid),
@@ -50,10 +45,8 @@ func TestAccWirelessLANResource_full(t *testing.T) {
 	updatedDescription := "Updated wireless LAN description"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccWirelessLANResourceConfig_full(ssid, groupName, groupSlug, description, "active"),
@@ -81,10 +74,8 @@ func TestAccWirelessLANResource_IDPreservation(t *testing.T) {
 	ssid := testutil.RandomName("tf-test-ssid-id")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccWirelessLANResourceConfig_basic(ssid),

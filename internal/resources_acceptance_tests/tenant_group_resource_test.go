@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -26,11 +23,9 @@ func TestAccTenantGroupResource_basic(t *testing.T) {
 	cleanup.RegisterTenantGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTenantGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTenantGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTenantGroupResourceConfig_basic(name, slug),
@@ -57,11 +52,9 @@ func TestAccTenantGroupResource_full(t *testing.T) {
 	cleanup.RegisterTenantGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTenantGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTenantGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTenantGroupResourceConfig_full(name, slug, description),
@@ -93,11 +86,9 @@ func TestAccTenantGroupResource_update(t *testing.T) {
 	cleanup.RegisterTenantGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTenantGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTenantGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTenantGroupResourceConfig_basic(name, slug),
@@ -137,11 +128,9 @@ func TestAccTenantGroupResource_import(t *testing.T) {
 	cleanup.RegisterTenantGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTenantGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTenantGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTenantGroupResourceConfig_import(name, slug),
@@ -173,11 +162,9 @@ func TestAccTenantGroupResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterTenantGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTenantGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTenantGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTenantGroupResourceConfig_basic(name, slug),
@@ -216,11 +203,9 @@ func TestAccConsistency_TenantGroup_LiteralNames(t *testing.T) {
 	cleanup.RegisterTenantGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTenantGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTenantGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTenantGroupConsistencyLiteralNamesConfig(name, slug, description),
@@ -280,11 +265,9 @@ func TestAccTenantGroupResource_externalDeletion(t *testing.T) {
 	cleanup.RegisterTenantGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTenantGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTenantGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTenantGroupResourceConfig_basic(name, slug),

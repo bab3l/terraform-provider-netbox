@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -30,10 +27,8 @@ func TestAccVirtualDiskResource_basic(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVirtualDiskDestroy,
 			testutil.CheckVirtualMachineDestroy,
@@ -70,10 +65,8 @@ func TestAccVirtualDiskResource_full(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVirtualDiskDestroy,
 			testutil.CheckVirtualMachineDestroy,
@@ -111,10 +104,8 @@ func TestAccVirtualDiskResource_update(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVirtualDiskDestroy,
 			testutil.CheckVirtualMachineDestroy,
@@ -159,10 +150,8 @@ func TestAccVirtualDiskResource_import(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVirtualDiskDestroy,
 			testutil.CheckVirtualMachineDestroy,
@@ -259,10 +248,8 @@ func TestAccVirtualDiskResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckVirtualDiskDestroy,
 			testutil.CheckVirtualMachineDestroy,

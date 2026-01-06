@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -24,11 +21,9 @@ func TestAccClusterTypeResource_basic(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckClusterTypeDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckClusterTypeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccClusterTypeResourceConfig_basic(name, slug),
@@ -52,11 +47,9 @@ func TestAccClusterTypeResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckClusterTypeDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckClusterTypeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccClusterTypeResourceConfig_basic(name, slug),
@@ -81,11 +74,9 @@ func TestAccClusterTypeResource_full(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckClusterTypeDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckClusterTypeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccClusterTypeResourceConfig_full(name, slug, description),
@@ -111,11 +102,9 @@ func TestAccClusterTypeResource_update(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckClusterTypeDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckClusterTypeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccClusterTypeResourceConfig_basic(name, slug),
@@ -144,11 +133,9 @@ func TestAccClusterTypeResource_import(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckClusterTypeDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckClusterTypeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccClusterTypeResourceConfig_basic(name, slug),
@@ -178,11 +165,9 @@ func TestAccConsistency_ClusterType_LiteralNames(t *testing.T) {
 	cleanup.RegisterClusterTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckClusterTypeDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckClusterTypeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccClusterTypeResourceConfig_full(name, slug, description),

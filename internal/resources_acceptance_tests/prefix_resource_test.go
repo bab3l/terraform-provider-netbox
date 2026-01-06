@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -21,11 +18,9 @@ func TestAccPrefixResource_basic(t *testing.T) {
 	cleanup.RegisterPrefixCleanup(prefix)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckPrefixDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPrefixResourceConfig_basic(prefix),
@@ -65,11 +60,9 @@ func TestAccPrefixResource_full(t *testing.T) {
 	cleanup.RegisterRoleCleanup(roleSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckPrefixDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPrefixResourceConfig_full(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2),
@@ -111,10 +104,8 @@ func TestAccPrefixResource_withVRF(t *testing.T) {
 	cleanup.RegisterVRFCleanup(vrfName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckPrefixDestroy,
 			testutil.CheckVRFDestroy,
@@ -141,11 +132,9 @@ func TestAccPrefixResource_ipv6(t *testing.T) {
 	cleanup.RegisterPrefixCleanup(prefix)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckPrefixDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPrefixResourceConfig_basic(prefix),
@@ -359,11 +348,9 @@ func TestAccPrefixResource_import(t *testing.T) {
 	cleanup.RegisterPrefixCleanup(prefix)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckPrefixDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPrefixResourceConfig_basic(prefix),
@@ -526,11 +513,9 @@ func TestAccPrefixResource_importWithTags(t *testing.T) {
 	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckPrefixDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPrefixResourceImportConfig_full(prefix, tenantName, tenantSlug, tag1Name, tag1Slug, tag2Name, tag2Slug),

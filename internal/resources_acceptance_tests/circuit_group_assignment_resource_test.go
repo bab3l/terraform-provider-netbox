@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -31,11 +28,9 @@ func TestAccCircuitGroupAssignmentResource_basic(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(circuitTypeName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCircuitGroupAssignmentDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitGroupAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitGroupAssignmentResourceConfig_basic(
@@ -69,11 +64,9 @@ func TestAccCircuitGroupAssignmentResource_full(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(circuitTypeName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCircuitGroupAssignmentDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitGroupAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitGroupAssignmentResourceConfig_withPriority(
@@ -106,11 +99,9 @@ func TestAccCircuitGroupAssignmentResource_withPriority(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(circuitTypeName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCircuitGroupAssignmentDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitGroupAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitGroupAssignmentResourceConfig_withPriority(
@@ -143,11 +134,9 @@ func TestAccCircuitGroupAssignmentResource_update(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(circuitTypeName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCircuitGroupAssignmentDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitGroupAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitGroupAssignmentResourceConfig_basic(
@@ -186,11 +175,9 @@ func TestAccCircuitGroupAssignmentResource_import(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(circuitTypeName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCircuitGroupAssignmentDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitGroupAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitGroupAssignmentResourceConfig_basic(
@@ -225,11 +212,9 @@ func TestAccCircuitGroupAssignmentResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(circuitTypeName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCircuitGroupAssignmentDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitGroupAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitGroupAssignmentResourceConfig_basic(
@@ -324,11 +309,9 @@ func TestAccConsistency_CircuitGroupAssignment_LiteralNames(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCircuitGroupAssignmentDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitGroupAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitGroupAssignmentResourceConfigLiteralNames(
@@ -397,10 +380,8 @@ func TestAccCircuitGroupAssignmentResource_externalDeletion(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(circuitTypeName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitGroupAssignmentResourceConfigLiteralNames(

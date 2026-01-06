@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -24,11 +21,9 @@ func TestAccTunnelGroupResource_basic(t *testing.T) {
 	cleanup.RegisterTunnelGroupCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelGroupResourceConfig_basic(name, slug),
@@ -54,11 +49,9 @@ func TestAccTunnelGroupResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterTunnelGroupCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelGroupResourceConfig_basic(name, slug),
@@ -85,11 +78,9 @@ func TestAccTunnelGroupResource_full(t *testing.T) {
 	cleanup.RegisterTunnelGroupCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelGroupResourceConfig_full(name, slug, description),
@@ -117,11 +108,9 @@ func TestAccTunnelGroupResource_update(t *testing.T) {
 	cleanup.RegisterTunnelGroupCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelGroupResourceConfig_basic(name, slug),
@@ -152,11 +141,9 @@ func TestAccTunnelGroupResource_import(t *testing.T) {
 	cleanup.RegisterTunnelGroupCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelGroupResourceConfig_basic(name, slug),
@@ -227,10 +214,8 @@ func TestAccConsistency_TunnelGroup_LiteralNames(t *testing.T) {
 	cleanup.RegisterTunnelGroupCleanup(name)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelGroupConsistencyLiteralNamesConfig(name, slug),
