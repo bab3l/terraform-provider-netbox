@@ -5,6 +5,7 @@ package testutil
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -57,7 +58,7 @@ func CheckSiteGroupDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("site group with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -109,7 +110,7 @@ func CheckSiteDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("site with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -161,7 +162,7 @@ func CheckManufacturerDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("manufacturer with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -213,7 +214,7 @@ func CheckPlatformDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("platform with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -265,7 +266,7 @@ func CheckRegionDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("region with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -317,7 +318,7 @@ func CheckLocationDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("location with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -369,7 +370,7 @@ func CheckRackDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("rack with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -421,7 +422,7 @@ func CheckDeviceRoleDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("device role with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -473,7 +474,7 @@ func CheckRackRoleDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("rack role with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -525,7 +526,7 @@ func CheckDeviceTypeDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("device type with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -575,7 +576,7 @@ func CheckDeviceDestroy(s *terraform.State) error {
 
 			}
 
-			if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 				return fmt.Errorf("device with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -595,7 +596,7 @@ func CheckDeviceDestroy(s *terraform.State) error {
 
 				_, resp, err := client.DcimAPI.DcimDevicesRetrieve(ctx, idInt).Execute()
 
-				if err == nil && resp.StatusCode == 200 {
+				if err == nil && resp.StatusCode == http.StatusOK {
 
 					return fmt.Errorf("device with ID %s still exists", id)
 
@@ -645,7 +646,7 @@ func CheckInterfaceDestroy(s *terraform.State) error {
 
 				_, resp, err := client.DcimAPI.DcimInterfacesRetrieve(ctx, idInt).Execute()
 
-				if err == nil && resp.StatusCode == 200 {
+				if err == nil && resp.StatusCode == http.StatusOK {
 
 					return fmt.Errorf("interface with ID %s still exists", id)
 
@@ -703,7 +704,7 @@ func CheckRearPortTemplateDestroy(s *terraform.State) error {
 
 		_, resp, err := client.DcimAPI.DcimRearPortTemplatesRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("rear port template with ID %d still exists", id)
 
@@ -757,7 +758,7 @@ func CheckFrontPortTemplateDestroy(s *terraform.State) error {
 
 		_, resp, err := client.DcimAPI.DcimFrontPortTemplatesRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("front port template with ID %d still exists", id)
 
@@ -811,7 +812,7 @@ func CheckRearPortDestroy(s *terraform.State) error {
 
 		_, resp, err := client.DcimAPI.DcimRearPortsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("rear port with ID %d still exists", id)
 
@@ -865,7 +866,7 @@ func CheckFrontPortDestroy(s *terraform.State) error {
 
 		_, resp, err := client.DcimAPI.DcimFrontPortsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("front port with ID %d still exists", id)
 
@@ -917,7 +918,7 @@ func CheckDeviceBayTemplateDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("device bay template with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -971,7 +972,7 @@ func CheckRackReservationDestroy(s *terraform.State) error {
 
 		_, resp, err := client.DcimAPI.DcimRackReservationsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("rack reservation with ID %d still exists", id)
 
@@ -1025,7 +1026,7 @@ func CheckVirtualDeviceContextDestroy(s *terraform.State) error {
 
 		_, resp, err := client.DcimAPI.DcimVirtualDeviceContextsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("virtual device context with ID %d still exists", id)
 
@@ -1079,7 +1080,7 @@ func CheckModuleBayTemplateDestroy(s *terraform.State) error {
 
 		_, resp, err := client.DcimAPI.DcimModuleBayTemplatesRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("module bay template with ID %d still exists", id)
 
@@ -1133,7 +1134,7 @@ func CheckInventoryItemTemplateDestroy(s *terraform.State) error {
 
 		_, resp, err := client.DcimAPI.DcimInventoryItemTemplatesRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("inventory item template with ID %d still exists", id)
 
@@ -1185,7 +1186,7 @@ func CheckPowerPanelDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("power panel with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1237,7 +1238,7 @@ func CheckPowerFeedDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("power feed with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1289,7 +1290,7 @@ func CheckModuleBayDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("module bay with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1341,7 +1342,7 @@ func CheckVirtualChassisDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("virtual chassis with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1392,7 +1393,7 @@ func CheckPowerOutletDestroy(s *terraform.State) error {
 			continue
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 			return fmt.Errorf("power outlet with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 		}
 	}
@@ -1425,7 +1426,7 @@ func CheckPowerPortDestroy(s *terraform.State) error {
 			continue
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 			return fmt.Errorf("power port with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 		}
 	}
