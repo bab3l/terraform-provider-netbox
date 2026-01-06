@@ -136,17 +136,15 @@ func (r *VMInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 				Optional: true,
 			},
 
-			"untagged_vlan": schema.StringAttribute{
-				MarkdownDescription: "The name or ID of the untagged VLAN (for access or tagged mode).",
+			"untagged_vlan": nbschema.ReferenceAttributeWithDiffSuppress(
+				"vlan",
+				"The name or ID of the untagged VLAN (for access or tagged mode).",
+			),
 
-				Optional: true,
-			},
-
-			"vrf": schema.StringAttribute{
-				MarkdownDescription: "The name or ID of the VRF assigned to this interface.",
-
-				Optional: true,
-			},
+			"vrf": nbschema.ReferenceAttributeWithDiffSuppress(
+				"vrf",
+				"The name or ID of the VRF assigned to this interface.",
+			),
 		},
 	}
 
@@ -158,7 +156,6 @@ func (r *VMInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 }
 
 // Configure sets up the resource with the provider client.
-
 func (r *VMInterfaceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
