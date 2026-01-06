@@ -70,14 +70,14 @@ func (r *InterfaceTemplateResource) Schema(ctx context.Context, req resource.Sch
 					int32planmodifier.UseStateForUnknown(),
 				},
 			},
-			"device_type": schema.StringAttribute{
-				MarkdownDescription: "The device type ID or slug. Either device_type or module_type must be specified.",
-				Optional:            true,
-			},
-			"module_type": schema.StringAttribute{
-				MarkdownDescription: "The module type ID or model name. Either device_type or module_type must be specified.",
-				Optional:            true,
-			},
+			"device_type": nbschema.ReferenceAttributeWithDiffSuppress(
+				"device_type",
+				"The device type ID or slug. Either device_type or module_type must be specified.",
+			),
+			"module_type": nbschema.ReferenceAttributeWithDiffSuppress(
+				"module_type",
+				"The module type ID or model name. Either device_type or module_type must be specified.",
+			),
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the interface template. Use {module} as a substitution for the module bay position when attached to a module type.",
 				Required:            true,

@@ -66,13 +66,10 @@ func (r *DeviceBayTemplateResource) Schema(ctx context.Context, req resource.Sch
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"device_type": schema.StringAttribute{
-				MarkdownDescription: "The ID or slug of the device type this template belongs to.",
-				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
+			"device_type": nbschema.RequiredReferenceAttributeWithDiffSuppress(
+				"device_type",
+				"The ID or slug of the device type this template belongs to.",
+			),
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the device bay template. Use {module} as a substitution for the module bay position when attached to a module type.",
 				Required:            true,
