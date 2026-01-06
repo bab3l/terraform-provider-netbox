@@ -1,4 +1,4 @@
-package datasources_acceptance_tests
+package datasources_unit_tests
 
 import (
 	"context"
