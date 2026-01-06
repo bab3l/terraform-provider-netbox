@@ -1,6 +1,52 @@
 # Changelog
 
-## v0.0.10 (TBD)
+## v0.0.12 (2026-01-06)
+
+### Code Quality Improvements
+
+#### HTTP Status Code Standardization
+*   **Replaced 185 HTTP status code literals with named constants**
+    - Datasources: 20 files updated (200 → http.StatusOK, 404 → http.StatusNotFound)
+    - Test utilities: 4 files updated (cleanup_dcim.go, cleanup_ipam_and_circuits.go, check_destroy_dcim.go, check_destroy_ipam_and_circuits.go)
+    - Improved code readability and maintainability
+    - Consistent error handling patterns across codebase
+
+#### Provider Factory Consolidation
+*   **Centralized provider initialization across 115 test files**
+    - Replaced 400 inline ProtoV6ProviderFactories declarations with testutil.TestAccProtoV6ProviderFactories
+    - Removed ~1,100 lines of duplicate boilerplate code
+    - Single source of truth for provider configuration
+    - Files updated:
+      - resources_acceptance_tests: 56 files
+      - datasources_acceptance_tests: 39 files
+      - resources_acceptance_tests_customfields: 20 files
+
+#### Bug Fixes
+*   **Fixed acceptance test IP address conflicts**
+    - Updated virtual_device_context and tunnel_termination tests
+    - Replaced hardcoded IPs with testutil.RandomIPv4Address()
+    - Tests now run reliably without collision errors
+
+### Technical Details
+
+#### Files Modified
+*   **24 files** - HTTP status code constant updates (20 datasources + 4 testutil)
+*   **115 test files** - Provider factory pattern consolidation
+*   **2 test files** - Random IP address generation
+
+#### Benefits
+*   **Code Maintainability**: Centralized patterns easier to update
+*   **Readability**: Named constants vs magic numbers
+*   **Test Reliability**: Random IPs prevent test collisions
+*   **Developer Experience**: Less boilerplate, clearer intent
+
+## v0.0.11 (2025-12-30)
+
+### Features & Improvements
+
+See v0.0.10 release notes below for full details on the Terraform Integration Test Suite.
+
+## v0.0.10 (2025-12-29)
 
 ### Features & Improvements
 
