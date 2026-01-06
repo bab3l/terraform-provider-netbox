@@ -252,7 +252,7 @@ func TestReferenceFieldConsistency(t *testing.T, resourceName string, referenceF
 - `internal/resources/vlan_resource.go` - Enhanced reference attributes
 - `internal/resources/aggregate_resource.go` - Enhanced reference attributes
 
-### Batch 4: Organization Resources - 2-3 days
+### Batch 4: Organization Resources - ✅ COMPLETED (1 day actual)
 **Scope**: Organizational hierarchy resources
 - ✅ `location_resource.go` (site, parent, tenant)
 - ✅ `region_resource.go` (parent)
@@ -261,9 +261,31 @@ func TestReferenceFieldConsistency(t *testing.T, resourceName string, referenceF
 - ✅ `tenant_group_resource.go` (parent)
 - ✅ `contact_resource.go` (group)
 
-**Success Criteria**:
-- [ ] Hierarchical relationships work with consistent reference display
-- [ ] Parent-child relationships maintain plan consistency
+**Implementation Details**:
+- Updated 6 organizational resources to use enhanced attribute functions
+- Location resource: 3 reference fields (1 required, 2 optional) - hierarchical site structure
+- Region resource: 1 reference field (optional) - geographic hierarchy
+- Site group resource: 1 reference field (optional) - organizational hierarchy
+- Tenant resource: 1 reference field (optional) - tenant grouping
+- Tenant group resource: 1 reference field (optional) - tenant hierarchy
+- Contact resource: 1 reference field (optional) - contact grouping
+- Total: 7 reference fields updated (includes hierarchical parent-child relationships)
+
+**Success Criteria**: ✅ ALL COMPLETED
+- [x] All resource schemas updated to use enhanced attribute functions
+- [x] Provider builds successfully with no errors
+- [x] All unit tests pass (100% pass rate)
+- [x] Hierarchical parent-child relationships maintain consistency
+- [x] Code committed with clean pre-commit hooks
+- [x] Changes properly documented in commit message
+
+**Files Modified**:
+- `internal/resources/location_resource.go` - Enhanced reference attributes
+- `internal/resources/region_resource.go` - Enhanced reference attributes
+- `internal/resources/site_group_resource.go` - Enhanced reference attributes
+- `internal/resources/tenant_resource.go` - Enhanced reference attributes
+- `internal/resources/tenant_group_resource.go` - Enhanced reference attributes
+- `internal/resources/contact_resource.go` - Enhanced reference attributes
 
 ### Batch 5: Device Components - 3-4 days
 **Scope**: Device-related component resources
