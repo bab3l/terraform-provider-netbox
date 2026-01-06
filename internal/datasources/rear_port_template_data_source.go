@@ -156,76 +156,51 @@ func (d *RearPortTemplateDataSource) Read(ctx context.Context, req datasource.Re
 			moduleTypeID := data.ModuleType.ValueInt32()
 			listReq = listReq.ModuleTypeId([]*int32{&moduleTypeID})
 		}
-
 		response, httpResp, err := listReq.Execute()
-
 		defer utils.CloseResponseBody(httpResp)
-
 		if err != nil {
 			resp.Diagnostics.AddError(
-
 				"Error reading rear port template",
-
 				utils.FormatAPIError(fmt.Sprintf("read rear port template by name %s", name), err, httpResp),
 			)
-
 			return
 		}
-
 		count := int(response.GetCount())
-
 		if count == 0 {
 			resp.Diagnostics.AddError(
-
 				"Rear Port Template Not Found",
-
 				fmt.Sprintf("No rear port template found with name: %s", name),
 			)
-
 			return
 		}
-
 		if count > 1 {
 			resp.Diagnostics.AddError(
-
 				"Multiple Rear Port Templates Found",
-
 				fmt.Sprintf("Found %d rear port templates with name %s. Please specify device_type or module_type to narrow results, or use ID.", count, name),
 			)
-
 			return
 		}
-
 		template = &response.GetResults()[0]
 
 	default:
-
 		resp.Diagnostics.AddError(
-
 			"Missing Required Attribute",
-
 			"Either 'id' or 'name' must be specified to lookup a rear port template.",
 		)
-
 		return
 	}
 
 	// Map response to model
-
 	d.mapResponseToModel(template, &data)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
-
 func (d *RearPortTemplateDataSource) mapResponseToModel(template *netbox.RearPortTemplate, data *RearPortTemplateDataSourceModel) {
 	data.ID = types.Int32Value(template.GetId())
-
 	data.Name = types.StringValue(template.GetName())
 
 	// Map device type
-
 	if template.DeviceType.IsSet() && template.DeviceType.Get() != nil {
 		data.DeviceType = types.Int32Value(template.DeviceType.Get().Id)
 	} else {
@@ -233,7 +208,6 @@ func (d *RearPortTemplateDataSource) mapResponseToModel(template *netbox.RearPor
 	}
 
 	// Map module type
-
 	if template.ModuleType.IsSet() && template.ModuleType.Get() != nil {
 		data.ModuleType = types.Int32Value(template.ModuleType.Get().Id)
 	} else {
@@ -241,11 +215,9 @@ func (d *RearPortTemplateDataSource) mapResponseToModel(template *netbox.RearPor
 	}
 
 	// Map type
-
 	data.Type = types.StringValue(string(template.Type.GetValue()))
 
 	// Map label
-
 	if label, ok := template.GetLabelOk(); ok && label != nil && *label != "" {
 		data.Label = types.StringValue(*label)
 	} else {
@@ -253,7 +225,6 @@ func (d *RearPortTemplateDataSource) mapResponseToModel(template *netbox.RearPor
 	}
 
 	// Map color
-
 	if color, ok := template.GetColorOk(); ok && color != nil && *color != "" {
 		data.Color = types.StringValue(*color)
 	} else {
@@ -261,7 +232,6 @@ func (d *RearPortTemplateDataSource) mapResponseToModel(template *netbox.RearPor
 	}
 
 	// Map positions
-
 	if positions, ok := template.GetPositionsOk(); ok && positions != nil {
 		data.Positions = types.Int32Value(*positions)
 	} else {
@@ -269,7 +239,6 @@ func (d *RearPortTemplateDataSource) mapResponseToModel(template *netbox.RearPor
 	}
 
 	// Map description
-
 	if desc, ok := template.GetDescriptionOk(); ok && desc != nil && *desc != "" {
 		data.Description = types.StringValue(*desc)
 	} else {
@@ -277,7 +246,6 @@ func (d *RearPortTemplateDataSource) mapResponseToModel(template *netbox.RearPor
 	}
 
 	// Map display_name
-
 	if template.GetDisplay() != "" {
 		data.DisplayName = types.StringValue(template.GetDisplay())
 	} else {
