@@ -92,11 +92,7 @@ func (r *PowerPortResource) Schema(ctx context.Context, req resource.SchemaReque
 				},
 			},
 
-			"device": schema.StringAttribute{
-				MarkdownDescription: "The device this power port belongs to (ID or name).",
-
-				Required: true,
-			},
+			"device": nbschema.RequiredReferenceAttributeWithDiffSuppress("device", "ID or name of the device this power port belongs to. Required."),
 
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the power port.",
