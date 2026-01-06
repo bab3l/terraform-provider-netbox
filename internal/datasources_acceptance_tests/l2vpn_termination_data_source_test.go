@@ -13,8 +13,6 @@ import (
 )
 
 func TestAccL2VPNTerminationDataSource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
 	name := acctest.RandomWithPrefix("test-l2vpn-term-ds-id")
 	siteSlug := acctest.RandomWithPrefix("site-id")
 	deviceRoleSlug := acctest.RandomWithPrefix("role-id")
@@ -49,8 +47,6 @@ func TestAccL2VPNTerminationDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccL2VPNTerminationDataSource_byID(t *testing.T) {
-	t.Parallel()
-
 	name := acctest.RandomWithPrefix("test-l2vpn-term-ds")
 	siteSlug := acctest.RandomWithPrefix("site")
 	deviceRoleSlug := acctest.RandomWithPrefix("role")
