@@ -606,129 +606,282 @@ func TestAccDeviceResource_CustomFieldsCompleteRemoval(t *testing.T) {
 ### Batch 2: Device Resource (Pilot Implementation) ✅ COMPLETE
 **Priority**: CRITICAL
 **Files**: 2 files
-**Estimated Time**: 3-4 hours
-**Status**: ✅ Committed (d2629a5)
+**Estimated Time**: 8-10 hours (actual)
+**Status**: ✅ ALL TESTS PASSING! Committed (d2629a5 + Read() fixes + test rewrites)
 **Completion Date**: 2026-01-06
+
+#### Implementation Approach - What Actually Happened:
+
+**Phase 1: Core Bug Fix (d2629a5)**
+1. Updated `device_resource.go` Update() to use `ApplyCommonFieldsWithMerge`
+2. Fixed Read() method to preserve null/empty custom_fields state
+3. Initial tests showed primary bug fixed but revealed framework constraints
+
+**Phase 2: Filter-to-Owned Pattern Discovery**
+- Discovered Terraform framework limitation: Optional+Computed Sets require plan/state structure match
+- Cannot add unowned fields to state (would cause drift/inconsistency)
+- Pivoted to "filter-to-owned" pattern: state shows only fields declared in config
+
+**Phase 3: Helper Function Update**
+- Added `PopulateCustomFieldsFilteredToOwned()` to `state_helpers.go`
+- Updated Create()/Update() to use filtered population
+- Fixed Read() to preserve original state (null vs empty set distinction)
+
+**Phase 4: Test Rewrite & Consolidation**
+- Rewrote all tests to match filter-to-owned behavior expectations
+- Consolidated 2 test files into 1 (`device_resource_test.go`)
+- Reduced from 1211 lines to 958 lines (21% reduction)
+- Fixed import test to handle null custom_fields correctly
+
+#### Final Test Results (5 tests, all passing):
+- ✅ **TestAccDeviceResource_CustomFieldsPreservation** (19.30s)
+  - Core bug fix verified: custom fields preserved when omitted from config
+- ✅ **TestAccDeviceResource_CustomFieldsFilterToOwned** (15.41s)
+  - 4-step test verifying filter-to-owned pattern works correctly
+- ✅ **TestAccDeviceResource_CustomFieldsExplicitRemoval** (7.65s)
+  - Removing field from config preserves it in NetBox, removes from state
+- ✅ **TestAccDeviceResource_CustomFieldsEmptyList** (7.87s)
+  - Empty list clears all custom fields in NetBox
+- ✅ **TestAccDeviceResource_importWithCustomFieldsAndTags** (6.65s)
+  - Import works correctly with filter-to-owned pattern
+
+**Total Test Time**: 55.8 seconds
 
 #### Completed Work:
 1. ✅ `internal/resources/device_resource.go`:
-   - Update() method reads both state and plan
-   - Changed `var data` to `var state, plan`
-   - All field references updated from `data` to `plan`
-   - Replaced `ApplyCommonFields` with `ApplyCommonFieldsWithMerge`
-   - Passes both plan and state custom fields for merge
-   - Final state mapping uses `plan` variable
+   - **Update() method**: Uses `ApplyCommonFieldsWithMerge`
+   - **Read() method**: Preserves null/empty set state (critical for drift prevention)
+   - **Create() method**: Uses `PopulateCustomFieldsFilteredToOwned`
+   - **Update() method**: Uses `PopulateCustomFieldsFilteredToOwned`
 
-2. ✅ `internal/resources_acceptance_tests_customfields/device_custom_fields_preservation_test.go` (NEW FILE - 735 lines):
-   - Moved from resources_acceptance_tests to resources_acceptance_tests_customfields
-   - Added `//go:build customfields` tag
-   - Changed package to `resources_acceptance_tests_customfields`
-   - 4 comprehensive test functions:
-     * TestAccDeviceResource_CustomFieldsPreservation (3 steps)
-     * TestAccDeviceResource_CustomFieldsPartialManagement (3 steps)
-     * TestAccDeviceResource_CustomFieldsExplicitRemoval (2 steps)
-     * TestAccDeviceResource_CustomFieldsCompleteRemoval (2 steps)
-   - Helper config functions for each test scenario
-   - Uses testutil functions for assertions
+2. ✅ `internal/utils/state_helpers.go`:
+   - Added `PopulateCustomFieldsFilteredToOwned()` (50 lines)
+   - Implements filter-to-owned pattern for framework compatibility
 
-**Next Step**: Run acceptance tests against local NetBox instance to verify fix
+3. ✅ `internal/resources_acceptance_tests_customfields/device_resource_test.go` (NEW FILE - 958 lines):
+   - Comprehensive documentation of filter-to-owned pattern (50+ lines)
+   - 5 test functions covering all scenarios
+   - Consolidated helper config functions with reuse
+   - Uses `//go:build customfields` tag for serial execution
+
+#### Filter-to-Owned Pattern Semantics:
+
+| Config State | Terraform State | NetBox State | Behavior |
+|-------------|----------------|--------------|----------|
+| `custom_fields` omitted | `null` or `[]` | All fields preserved | No changes to NetBox |
+| `custom_fields = []` | `[]` | All fields cleared | Explicit clear all |
+| `custom_fields = [a, b]` | `[a, b]` only | `[a, b]` + unowned preserved | Merge: owned managed, unowned preserved |
+| Remove `b` from config | `[a]` only | `[a]` + `b` preserved | Field `b` preserved in NetBox, invisible to TF |
+
+**Key Insight**: This pattern works WITH the framework, not against it. State accurately reflects what Terraform manages, while NetBox preserves everything else.
+
+#### Gating Checks for Batch 2: ✅ ALL MET
+- [x] Device resource Update() uses merge-aware helpers
+- [x] Device resource Create()/Update() use filter-to-owned population
+- [x] Device resource Read() preserves original custom_fields state
+- [x] All 5 device custom fields tests passing (no failures)
+- [x] Tests consolidated into single file (device_resource_test.go)
+- [x] Filter-to-owned pattern documented in test file
+- [x] Import test works correctly with null custom_fields
+- [x] Build succeeds with no errors or warnings
+- [x] Total test time < 60 seconds
 
 ### Batch 3: High-Priority Resources (IPAM Core)
 **Priority**: HIGH
-**Files**: 15-20 files
+**Files**: ~30 files (14 resources + 14 tests + helpers)
+**Estimated Time**: 6-8 hours
+**Status**: 🔄 READY TO START
+
+Update resources that commonly use custom fields in production. Each resource needs both the resource file and a test file updated.
+
+#### Resources to Update (14 total):
+- `ip_address_resource.go` + `ip_address_resource_test.go`
+- `prefix_resource.go` + `prefix_resource_test.go`
+- `vlan_resource.go` + `vlan_resource_test.go`
+- `vrf_resource.go` + `vrf_resource_test.go`
+- `aggregate_resource.go` + `aggregate_resource_test.go`
+- `asn_resource.go` + `asn_resource_test.go`
+- `asn_range_resource.go` + `asn_range_resource_test.go`
+- `ip_range_resource.go` + `ip_range_resource_test.go`
+- `l2vpn_resource.go` + `l2vpn_resource_test.go`
+- `vlan_group_resource.go` + `vlan_group_resource_test.go`
+- `rir_resource.go` + `rir_resource_test.go`
+- `circuit_resource.go` + `circuit_resource_test.go`
+- `circuit_termination_resource.go` + `circuit_termination_resource_test.go`
+- `provider_resource.go` (circuits) + `provider_resource_test.go`
+
+#### Implementation Steps Per Resource:
+: Update Resource File** (~20 min per resource)
+
+1. Locate the Update() method
+2. Change `var data ModelType` to `var state, plan ModelType`
+3. Add `req.State.Get(ctx, &state)...` after plan.Get
+4. Update all field references from `data.Field` to `plan.Field`
+5. Update Create() method:
+   - Use `utils.PopulateCustomFieldsFilteredToOwned()` instead of `PopulateCustomFieldsFromAPI()`
+6. Update Update() method:
+   - Replace `ApplyCommonFields` with `ApplyCommonFieldsWithMerge`
+   - OR replace `ApplyCustomFields` with `ApplyCustomFieldsWithMerge`
+   - Pass both `plan.CustomFields` and `state.CustomFields`
+   - Use `utils.PopulateCustomFieldsFilteredToOwned()` when mapping response
+7. Update Read() method:
+   - Add logic to preserve original custom_fields state (null vs empty)
+   - Use pattern from device_resource.go lines 387-407
+
+**Step 2: Create/Update Test File** (~20-30 min per resource)
+
+For NEW test file in `internal/resources_acceptance_tests_customfields/`:
+1. Create `<resource>_resource_test.go`
+2. Add `//go:build customfields` tag
+3. Set package to `resources_acceptance_tests_customfields`
+4. Copy test structure from `device_resource_test.go` as template
+5. Implement 3-5 tests:
+   - TestAcc<Resource>Resource_CustomFieldsPreservation (required)
+   - TestAcc<Resource>Resource_CustomFieldsFilterToOwned (optional but recommended)
+   - TestAcc<Resource>Resource_importWithCustomFields (required)
+6. Create helper config generator functions
+7. Use testutil random name generators
+
+For EXISTING test file:
+1. Move to `resources_acceptance_tests_customfields/` directory
+2. Add `//go:build customfields` tag
+3. Update package name
+4. Add new custom fields tests
+5. Ensure existing tests still pass
+
+**Step 3: Run Tests** (~5 min per resource)
+
+```bash
+go test -tags=customfields ./internal/resources_acceptance_tests_customfields/... -v -timeout 30m -run "TestAcc<Resource>Resource"
+```
+
+Verify:
+- All new custom fields tests pass
+- All existing tests still pass
+- No drift detected
+- Import works correctly
+
+#### Implementation Priority Order:
+
+**Phase A (Most Critical - 4 hours)**:
+1. ip_address (most common)
+2. prefix (most common)
+3. vlan (high usage)
+4. circuit (high usage)
+
+**Phase B (Important - 2 hours)**:
+5. vrf
+6. aggregate
+7. asn
+
+**Phase C (Remaining - 2 hours)**:
+8. asn_range
+9. ip_range
+10. l2vpn
+11. vlan_group
+12. rir
+13. circuit_termination
+14. provider
+
+#### Gating Checks for Batch 3:
+- [ ] All 14 resource files updated with merge-aware helpers
+- [ ] All 14 resources use `PopulateCustomFieldsFilteredToOwned()` in Create/Update
+- [ ] All 14 resou
+**Files**: ~50 files (25 resources + 25 tests)
+**Estimated Time**: 8-12 hours
+**Status**: 🔜 PENDING
+
+Update remaining DCIM resources with high custom field usage.
+
+#### Resources to Update (25 total):
+- `site_resource.go` + `site_resource_test.go`
+- `location_rVirtualization Resources
+**Priority**: MEDIUM
+**Files**: ~20 files (10 resources + 10 tests)
 **Estimated Time**: 4-6 hours
+**Status**: 🔜 PENDING
 
-Update resources that commonly use custom fields in production:
+#### Resources to Update (10 total):
+- `virtual_machine_resource.go` + `virtual_machine_resource_test.go`
+- `cluster_resource.go` + `cluster_resource_test.go`
+- `cluster_tyTenancy & Contact Resources
+**Priority**: MEDIUM
+**Files**: ~16 files (8 resources + 8 tests)
+**Estimated Time**: 3-5 hours
+**Status**: 🔜 PENDING
 
-#### Resources to Update:
-- `ip_address_resource.go`
-- `prefix_resource.go`
-- `vlan_resource.go`
-- `vrf_resource.go`
-- `aggregate_resource.go`
-- `asn_resource.go`
-- `asn_range_resource.go`
-- `ip_range_resource.go`
-- `l2vpn_resource.go`
-- `vlan_group_resource.go`
-- `rir_resource.go`
-- `circuit_resource.go`
-- `circuit_termination_resource.go`
-- `provider_resource.go`
+#### Resources to Update (8 total):
+- `tenant_resource.go` + `tenant_resource_test.go`
+- `tenant_group_resource.go` + `tenant_group_resource_test.go`
+- `contact_resource.go` + `contact_resource_test.go`
+- `contact_group_resource.go` + `contact_group_resource_test.go`
+- `contact_role_resource.go` + `contact_role_resource_test.go`
+- `contact_assignment_resource.go` + `contact_assignment_resource_test.go`
 
-#### Implementation Pattern:
+#### Gating Checks for Batch 6:
+- [ ] All 8 resource files updated
+- [ ] All 8 test files created/updated
+- [ ] All tests passing (16+ new tests)
+- [ ] No regressions
+- [ ] Build succeeds
+- [ ] Total test time < 8 minut files created/updated
+- [ ] All tests passing (20+ new tests)
+- [ ] No regressions in existing tests
+- [ ] Build sVPN, Wireless & Extras
+**Priority**: LOW
+**Files**: ~24 files (12 resources + 12 tests)
+**Estimated Time**: 4-6 hours
+**Status**: 🔜 PENDING
 
-**Step 1**: Check how resource currently applies custom fields:
+#### Resources to Update (12 total):
+- `tunnel_resource.go` + `tunnel_resource_test.go`
+- `tunnel_group_resource.go` + `tunnel_group_resource_test.go`
+- `tunnel_termination_resource.go` + `tunnel_termination_resource_test.go`
+- `wireless_lan_resource.go` + `wireless_lan_resource_test.go`
+- `wireless_lan_group_resource.go` + `wireless_lan_group_resource_test.go`
+- `wireless_link_resource.go` + `wireless_link_resource_test.go`
+- `config_context_resource.go` (if has custom fields) + test
+- `config_template_resource.go` (if has custom fields) + test
+- `journal_entry_resource.go` (if has custom fields) + test
 
-**Pattern A: Uses `ApplyCommonFields`**:
-```go
-// OLD:
-utils.ApplyCommonFields(ctx, &request, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+#### Gating Checks for Batch 7:
+- [ ] All ~12 resource files updated
+- [ ] All ~12 test files created/updated
+- [ ] All tests passing (24+ new tests)
+- [ ] No regressions
+- [ ] Build succeeds
+- [ ] Total test time < 12 minutes `front_port_resource_test.go`
+- `rear_port_resource.go` + `rear_port_resource_test.go`
+- `cable_resource.go` + `cable_resource_test.go`
+- `power_feed_resource.go` + `power_feed_resource_test.go`
+- `virtual_chassis_resource.go` + `virtual_chassis_resource_test.go`
+- `device_role_resource.go` + `device_role_resource_test.go`
+- `platform_resource.go` + `platform_resource_test.go`
+- `manufacturer_resource.go` + `manufacturer_resource_test.go`
+- `site_group_resource.go` + `site_group_resource_test.go`
+- `rack_reservation_resource.go` + `rack_reservation_resource_test.go`
+- `location_type_resource.go` (if exists) + test
 
-// NEW:
-var state, plan IPAddressResourceModel
-resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+#### Implementation Steps:
+Same pattern as Batch 3 (see above for details):
+1. Update resource file (Create, Update, Read methods)
+2. Create/update test file with filter-to-owned tests
+3. Run and verify tests
 
-utils.ApplyCommonFieldsWithMerge(ctx, &request,
-    plan.Description, plan.Comments,
-    plan.Tags, state.Tags,
-    plan.CustomFields, state.CustomFields,
-    &resp.Diagnostics)
-```
-
-**Pattern B: Uses `ApplyCustomFields` directly**:
-```go
-// OLD:
-utils.ApplyCustomFields(ctx, &request, data.CustomFields, &resp.Diagnostics)
-
-// NEW:
-var state, plan PrefixResourceModel
-resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-
-utils.ApplyCustomFieldsWithMerge(ctx, &request, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
-```
-
-**Step 2**: Update the Update() method:
-1. Change `var data ModelType` to `var state, plan ModelType`
-2. Add `req.State.Get(ctx, &state)...`
-3. Change `req.Plan.Get(ctx, &data)...` to `req.Plan.Get(ctx, &plan)...`
-4. Update all references from `data.Field` to `plan.Field`
-5. Replace `ApplyCustomFields` with `ApplyCustomFieldsWithMerge`
-6. Pass both `plan.CustomFields` and `state.CustomFields`
-
-**Step 3**: Add basic acceptance test for each resource:
-```go
-// TestAcc<Resource>Resource_CustomFieldsPreservation
-// Minimal test: Create with custom fields, update without, verify preserved
-```
-
-#### Automation Helper Script:
-
-Create PowerShell script to identify which pattern each resource uses:
-
-```powershell
-# scripts/identify-custom-field-patterns.ps1
-$resources = Get-ChildItem "internal/resources/*_resource.go"
-foreach ($file in $resources) {
-    $content = Get-Content $file -Raw
-    if ($content -match "ApplyCommonFields") {
-        Write-Host "$($file.Name): Uses ApplyCommonFields (Pattern A)"
-    } elseif ($content -match "ApplyCustomFields") {
-        Write-Host "$($file.Name): Uses ApplyCustomFields (Pattern B)"
-    } else {
-        Write-Host "$($file.Name): No custom fields helper"
-    }
-}
-```
-
-**Success Criteria**:
-- [ ] All IPAM core resources use merge-aware helpers
-- [ ] State is read in Update() for all resources
-- [ ] At least 1 acceptance test per resource verifies preservation
-- [ ] grep -r "ApplyCustomFields\[" shows zero matches in updated files (all use WithMerge version)
-- [ ] All existing acceptance tests still pass
+#### Gating Checks for Batch 4:
+- [ ] All 25 resource files updated with merge-aware helpers
+- [ ] All 25 resources use `PopulateCustomFieldsFilteredToOwned()`
+- [ ] All 25 resources preserve null/empty state in Read()
+- [ ] All 25 test files created/updated
+- [ ] Each test file has minimum 2 tests (preservation + import)
+- [ ] All new custom fields tests passing (50+ new tests)
+- [ ] All existing resource tests still passing
+- [ ] Build succeeds with no errors or warnings
+- [ ] Old helper usage eliminated in updated files
+- [ ] Total test time for batch < 20 minutess for old helpers in updated files:
+  - `grep -r "ApplyCustomFields\[^W\]" internal/resources/<resource>_resource.go` = 0 matches
+  - `grep -r "PopulateCustomFieldsFromAPI" internal/resources/<resource>_resource.go` = 0 matches
+- [ ] Total test time for batch < 15 minutes still pass
 - [ ] Build succeeds with no errors
 
 ### Batch 4: DCIM Resources

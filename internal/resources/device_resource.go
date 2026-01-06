@@ -323,11 +323,23 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 		"name": device.GetName(),
 	})
 
+	// Save the plan's custom fields before mapping (for filter-to-owned pattern)
+	planCustomFields := data.CustomFields
+
 	// Map response to state
 	r.mapDeviceToState(ctx, device, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for custom fields:
+	// Only return custom fields that the user declared in their config.
+	// This prevents the framework from seeing extra fields from the API.
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, device.GetCustomFields(), &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -372,10 +384,25 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Map response to state
+	// Preserve the custom_fields value from before mapping (for unmanaged/cleared fields)
+	originalCustomFields := data.CustomFields
+
 	r.mapDeviceToState(ctx, device, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// If custom_fields was null or empty before (not managed or explicitly cleared),
+	// restore that state after mapping.
+	// This prevents Terraform from trying to manage fields that aren't in the configuration.
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		tflog.Debug(ctx, "Custom fields unmanaged/cleared, preserving original state during Read", map[string]interface{}{
+			"was_null":  originalCustomFields.IsNull(),
+			"was_empty": !originalCustomFields.IsNull() && len(originalCustomFields.Elements()) == 0,
+		})
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -552,11 +579,25 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		"name": device.GetName(),
 	})
 
+	// Save the plan's custom fields before mapping (for filter-to-owned pattern)
+	planCustomFields := plan.CustomFields
+
 	// Map response to state
 	r.mapDeviceToState(ctx, device, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for custom fields:
+	// Only return custom fields that the user declared in their config.
+	// This prevents the framework from seeing extra fields from the API.
+	// The ApplyCommonFieldsWithMerge already preserved unmanaged fields in the API,
+	// we just don't expose them in state.
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, device.GetCustomFields(), &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

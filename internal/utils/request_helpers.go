@@ -196,9 +196,9 @@ func (d CommonFieldsData) ApplyTo(ctx context.Context, request FullCommonFieldsS
 // This is the merge-aware version of ApplyCustomFields for Update operations.
 //
 // Behavior:
-//   - If plan has custom_fields: Merge plan + state, send merged map
-//   - If plan is null/unknown: Send state values to preserve them
-//   - If both null: Send empty map (safe default)
+//   - If plan is null/unknown: Preserve ALL state values (don't manage)
+//   - If plan is empty set []: Remove all custom fields (explicit removal)
+//   - If plan has values: Merge plan + state, send merged map (partial management)
 //
 // This enables partial custom field management where users can manage some fields
 // in Terraform while preserving others managed externally (NetBox UI, automation, etc.)
@@ -216,39 +216,54 @@ func ApplyCustomFieldsWithMerge[T CustomFieldsSetter](
 	stateCustomFields types.Set,
 	diags *diag.Diagnostics,
 ) {
-	// User specified custom_fields in config - merge with existing state
-	if IsSet(planCustomFields) {
-		tflog.Debug(ctx, "ApplyCustomFieldsWithMerge: Merging plan with state")
-		merged := MergeCustomFieldSets(ctx, planCustomFields, stateCustomFields, diags)
-		if diags.HasError() {
+	// User omitted custom_fields (null/unknown) - preserve ALL existing state values
+	if !IsSet(planCustomFields) {
+		if IsSet(stateCustomFields) {
+			tflog.Debug(ctx, "ApplyCustomFieldsWithMerge: Preserving state (plan is null)")
+			// Reuse existing conversion helper
+			var stateModels []CustomFieldModel
+			cfDiags := stateCustomFields.ElementsAs(ctx, &stateModels, false)
+			diags.Append(cfDiags...)
+			if diags.HasError() {
+				return
+			}
+			// Reuse existing helper to convert models to map
+			stateMap := CustomFieldModelsToMap(stateModels)
+			tflog.Debug(ctx, "ApplyCustomFieldsWithMerge: Preserved state custom fields", map[string]interface{}{
+				"count": len(stateModels),
+			})
+			request.SetCustomFields(stateMap)
 			return
 		}
-		request.SetCustomFields(merged)
+		// Both null - send empty map (safe default, means "no custom fields")
+		tflog.Debug(ctx, "ApplyCustomFieldsWithMerge: Both plan and state null, sending empty map")
+		request.SetCustomFields(map[string]interface{}{})
 		return
 	}
 
-	// User omitted custom_fields - preserve ALL existing state values
-	if IsSet(stateCustomFields) {
-		tflog.Debug(ctx, "ApplyCustomFieldsWithMerge: Preserving state (plan is null)")
-		// Reuse existing conversion helper
-		var stateModels []CustomFieldModel
-		cfDiags := stateCustomFields.ElementsAs(ctx, &stateModels, false)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		// Reuse existing helper to convert models to map
-		stateMap := CustomFieldModelsToMap(stateModels)
-		tflog.Debug(ctx, "ApplyCustomFieldsWithMerge: Preserved state custom fields", map[string]interface{}{
-			"count": len(stateModels),
-		})
-		request.SetCustomFields(stateMap)
+	// User specified custom_fields in config (including empty set)
+	// Check if plan is an empty set - this means explicit removal of ALL custom fields
+	var planModels []CustomFieldModel
+	planDiags := planCustomFields.ElementsAs(ctx, &planModels, false)
+	diags.Append(planDiags...)
+	if diags.HasError() {
 		return
 	}
 
-	// Both null - send empty map (safe default, means "no custom fields")
-	tflog.Debug(ctx, "ApplyCustomFieldsWithMerge: Both plan and state null, sending empty map")
-	request.SetCustomFields(map[string]interface{}{})
+	if len(planModels) == 0 {
+		// Empty set in plan = explicit request to remove all custom fields
+		tflog.Debug(ctx, "ApplyCustomFieldsWithMerge: Plan has empty set, removing all custom fields")
+		request.SetCustomFields(map[string]interface{}{})
+		return
+	}
+
+	// Plan has values - merge with existing state
+	tflog.Debug(ctx, "ApplyCustomFieldsWithMerge: Merging plan with state")
+	merged := MergeCustomFieldSets(ctx, planCustomFields, stateCustomFields, diags)
+	if diags.HasError() {
+		return
+	}
+	request.SetCustomFields(merged)
 }
 
 // MergeCustomFieldSets merges plan custom fields with state custom fields.
