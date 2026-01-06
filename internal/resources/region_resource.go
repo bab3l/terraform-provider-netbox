@@ -68,7 +68,7 @@ func (r *RegionResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 			"slug": nbschema.SlugAttribute("region"),
 
-			"parent": nbschema.ReferenceAttribute("parent region", "ID or slug of the parent region. Leave empty for top-level regions. This enables hierarchical organization of geographic areas."),
+			"parent": nbschema.ReferenceAttributeWithDiffSuppress("parent region", "ID or slug of the parent region. Leave empty for top-level regions. This enables hierarchical organization of geographic areas."),
 		},
 	}
 
