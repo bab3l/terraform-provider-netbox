@@ -4,6 +4,7 @@ package testutil
 
 import (
 	"context"
+	"net/http"
 	"time"
 )
 
@@ -35,7 +36,7 @@ func (c *CleanupResource) RegisterTenantGroupCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: tenant group with slug %s not found (already deleted)", slug)
 
@@ -83,7 +84,7 @@ func (c *CleanupResource) RegisterTenantCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: tenant with slug %s not found (already deleted)", slug)
 
@@ -131,7 +132,7 @@ func (c *CleanupResource) RegisterContactGroupCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: contact group with slug %s not found (already deleted)", slug)
 
@@ -179,7 +180,7 @@ func (c *CleanupResource) RegisterContactCleanup(email string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: contact with email %s not found (already deleted)", email)
 
@@ -227,7 +228,7 @@ func (c *CleanupResource) RegisterContactRoleCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: contact role with slug %s not found (already deleted)", slug)
 
@@ -281,7 +282,7 @@ func (c *CleanupResource) RegisterVRFCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: VRF with name %s not found (already deleted)", name)
 
@@ -329,7 +330,7 @@ func (c *CleanupResource) RegisterVLANGroupCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: VLAN group with slug %s not found (already deleted)", slug)
 
@@ -377,7 +378,7 @@ func (c *CleanupResource) RegisterVLANCleanup(vid int32) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: VLAN with VID %d not found (already deleted)", vid)
 
@@ -425,7 +426,7 @@ func (c *CleanupResource) RegisterPrefixCleanup(prefix string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: prefix with CIDR %s not found (already deleted)", prefix)
 
@@ -473,7 +474,7 @@ func (c *CleanupResource) RegisterIPAddressCleanup(address string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: IP address %s not found (already deleted)", address)
 
@@ -521,7 +522,7 @@ func (c *CleanupResource) RegisterIPRangeCleanup(startAddress string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: IP range with start address %s not found (already deleted)", startAddress)
 
@@ -569,7 +570,7 @@ func (c *CleanupResource) RegisterASNRangeCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: ASN range with name %s not found (already deleted)", name)
 
@@ -617,7 +618,7 @@ func (c *CleanupResource) RegisterRIRCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: RIR with slug %s not found (already deleted)", slug)
 
@@ -665,7 +666,7 @@ func (c *CleanupResource) RegisterAggregateCleanup(prefix string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: aggregate with prefix %s not found (already deleted)", prefix)
 
@@ -713,7 +714,7 @@ func (c *CleanupResource) RegisterRouteTargetCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: route target with name %s not found (already deleted)", name)
 
@@ -753,7 +754,7 @@ func (c *CleanupResource) RegisterFHRPGroupCleanup(protocol string, groupID int3
 
 		list, resp, err := c.client.IpamAPI.IpamFhrpGroupsList(ctx).Protocol([]string{protocol}).GroupId([]int32{groupID}).Execute()
 
-		if err != nil || resp.StatusCode != 200 || list.Count == 0 {
+		if err != nil || resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: FHRP group with protocol %s and group_id %d not found: %v", protocol, groupID, err)
 
@@ -819,7 +820,7 @@ func (c *CleanupResource) RegisterRoleCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: role with slug %s not found (already deleted)", slug)
 
@@ -867,7 +868,7 @@ func (c *CleanupResource) RegisterServiceCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: service with name %s not found (already deleted)", name)
 
@@ -915,7 +916,7 @@ func (c *CleanupResource) RegisterServiceTemplateCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: service template with name %s not found (already deleted)", name)
 
@@ -969,7 +970,7 @@ func (c *CleanupResource) RegisterProviderCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: provider with slug %s not found (already deleted)", slug)
 
@@ -1017,7 +1018,7 @@ func (c *CleanupResource) RegisterCircuitTypeCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: circuit type with slug %s not found (already deleted)", slug)
 
@@ -1065,7 +1066,7 @@ func (c *CleanupResource) RegisterCircuitCleanup(cid string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: circuit with CID %s not found (already deleted)", cid)
 
@@ -1113,7 +1114,7 @@ func (c *CleanupResource) RegisterCircuitGroupCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: circuit group with name %s not found (already deleted)", name)
 
@@ -1155,7 +1156,7 @@ func (c *CleanupResource) RegisterCircuitGroupAssignmentCleanup(groupName string
 
 		groupList, resp, err := c.client.CircuitsAPI.CircuitsCircuitGroupsList(ctx).Name([]string{groupName}).Execute()
 
-		if err != nil || resp.StatusCode != 200 || groupList.Count == 0 {
+		if err != nil || resp.StatusCode != http.StatusOK || groupList.Count == 0 {
 
 			c.t.Logf("Cleanup: circuit group with name %s not found, cannot cleanup assignments", groupName)
 
@@ -1225,7 +1226,7 @@ func (c *CleanupResource) RegisterIKEProposalCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: IKE proposal with name %s not found (already deleted)", name)
 
@@ -1273,7 +1274,7 @@ func (c *CleanupResource) RegisterIKEPolicyCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: IKE policy with name %s not found (already deleted)", name)
 
@@ -1321,7 +1322,7 @@ func (c *CleanupResource) RegisterIPSecProposalCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: IPSec proposal with name %s not found (already deleted)", name)
 
@@ -1369,7 +1370,7 @@ func (c *CleanupResource) RegisterIPSecPolicyCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: IPSec policy with name %s not found (already deleted)", name)
 
@@ -1417,7 +1418,7 @@ func (c *CleanupResource) RegisterIPSecProfileCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: IPSec profile with name %s not found (already deleted)", name)
 
@@ -1465,7 +1466,7 @@ func (c *CleanupResource) RegisterTunnelGroupCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: tunnel group with name %s not found (already deleted)", name)
 
@@ -1513,7 +1514,7 @@ func (c *CleanupResource) RegisterTunnelCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: tunnel with name %s not found (already deleted)", name)
 
@@ -1563,7 +1564,7 @@ func (c *CleanupResource) RegisterTunnelTerminationCleanup(tunnelName string) {
 
 		}
 
-		if resp.StatusCode != 200 || tunnelList.Count == 0 {
+		if resp.StatusCode != http.StatusOK || tunnelList.Count == 0 {
 
 			c.t.Logf("Cleanup: tunnel with name %s not found (already deleted)", tunnelName)
 
@@ -1627,7 +1628,7 @@ func (c *CleanupResource) RegisterL2VPNCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: L2VPN with name %s not found (already deleted)", name)
 
@@ -1675,7 +1676,7 @@ func (c *CleanupResource) RegisterL2VPNTerminationCleanup(l2vpnID int32) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: L2VPN termination with L2VPN ID %d not found (already deleted)", l2vpnID)
 
@@ -1729,7 +1730,7 @@ func (c *CleanupResource) RegisterClusterTypeCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: cluster type with slug %s not found (already deleted)", slug)
 
@@ -1777,7 +1778,7 @@ func (c *CleanupResource) RegisterClusterCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: cluster with name %s not found (already deleted)", name)
 
@@ -1825,7 +1826,7 @@ func (c *CleanupResource) RegisterVirtualMachineCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: virtual machine with name %s not found (already deleted)", name)
 
@@ -1865,7 +1866,7 @@ func (c *CleanupResource) RegisterVMInterfaceCleanup(name string, vmName string)
 
 		// First check if the parent VM exists
 		vmList, vmResp, vmErr := c.client.VirtualizationAPI.VirtualizationVirtualMachinesList(ctx).Name([]string{vmName}).Execute()
-		if vmErr != nil || vmResp.StatusCode != 200 || vmList.Count == 0 {
+		if vmErr != nil || vmResp.StatusCode != http.StatusOK || vmList.Count == 0 {
 			// VM doesn't exist, so interface is cascade-deleted
 			c.t.Logf("Cleanup: VM interface with name %s not cleaned up (parent VM %s already deleted)", name, vmName)
 			return
@@ -1875,7 +1876,7 @@ func (c *CleanupResource) RegisterVMInterfaceCleanup(name string, vmName string)
 
 		if err != nil {
 			// 404 means the interface doesn't exist
-			if resp != nil && resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				c.t.Logf("Cleanup: VM interface with name %s on VM %s not found (already deleted)", name, vmName)
 				return
 			}
@@ -1886,7 +1887,7 @@ func (c *CleanupResource) RegisterVMInterfaceCleanup(name string, vmName string)
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: VM interface with name %s on VM %s not found (already deleted)", name, vmName)
 
@@ -1934,7 +1935,7 @@ func (c *CleanupResource) RegisterVirtualDiskCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: virtual disk with name %s not found (already deleted)", name)
 
@@ -1982,7 +1983,7 @@ func (c *CleanupResource) RegisterClusterGroupCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: cluster group with slug %s not found (already deleted)", slug)
 
@@ -2064,7 +2065,7 @@ func (c *CleanupResource) RegisterWirelessLANCleanup(ssid string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: wireless LAN with SSID %s not found (already deleted)", ssid)
 
@@ -2112,7 +2113,7 @@ func (c *CleanupResource) RegisterWirelessLANGroupCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: wireless LAN group with slug %s not found (already deleted)", slug)
 
@@ -2250,7 +2251,7 @@ func (c *CleanupResource) RegisterTagCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: tag with slug %s not found (already deleted)", slug)
 
@@ -2298,7 +2299,7 @@ func (c *CleanupResource) RegisterWebhookCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: webhook with name %s not found (already deleted)", name)
 
@@ -2346,7 +2347,7 @@ func (c *CleanupResource) RegisterExportTemplateCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: export template with name %s not found (already deleted)", name)
 
@@ -2394,7 +2395,7 @@ func (c *CleanupResource) RegisterConfigTemplateCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: config template with name %s not found (already deleted)", name)
 
@@ -2442,7 +2443,7 @@ func (c *CleanupResource) RegisterConfigContextCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: config context with name %s not found (already deleted)", name)
 
@@ -2476,7 +2477,7 @@ func (c *CleanupResource) RegisterCustomFieldCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: custom field with name %s not found (already deleted)", name)
 
@@ -2524,7 +2525,7 @@ func (c *CleanupResource) RegisterCustomFieldChoiceSetCleanupByName(name string)
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: custom field choice set with name %s not found (already deleted)", name)
 
@@ -2572,7 +2573,7 @@ func (c *CleanupResource) RegisterCustomLinkCleanupByName(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: custom link with name %s not found (already deleted)", name)
 

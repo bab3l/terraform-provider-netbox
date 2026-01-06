@@ -4,6 +4,7 @@ package testutil
 
 import (
 	"context"
+	"net/http"
 	"time"
 )
 
@@ -33,7 +34,7 @@ func (c *CleanupResource) RegisterSiteGroupCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: site group with slug %s not found (already deleted)", slug)
 
@@ -83,7 +84,7 @@ func (c *CleanupResource) RegisterSiteCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: site with slug %s not found (already deleted)", slug)
 
@@ -131,7 +132,7 @@ func (c *CleanupResource) RegisterManufacturerCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: manufacturer with slug %s not found (already deleted)", slug)
 
@@ -179,7 +180,7 @@ func (c *CleanupResource) RegisterPlatformCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: platform with slug %s not found (already deleted)", slug)
 
@@ -227,7 +228,7 @@ func (c *CleanupResource) RegisterRegionCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: region with slug %s not found (already deleted)", slug)
 
@@ -275,7 +276,7 @@ func (c *CleanupResource) RegisterLocationCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: location with slug %s not found (already deleted)", slug)
 
@@ -323,7 +324,7 @@ func (c *CleanupResource) RegisterRackCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: rack with name %s not found (already deleted)", name)
 
@@ -371,7 +372,7 @@ func (c *CleanupResource) RegisterDeviceRoleCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: device role with slug %s not found (already deleted)", slug)
 
@@ -419,7 +420,7 @@ func (c *CleanupResource) RegisterRackRoleCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: rack role with slug %s not found (already deleted)", slug)
 
@@ -467,7 +468,7 @@ func (c *CleanupResource) RegisterDeviceTypeCleanup(slug string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: device type with slug %s not found (already deleted)", slug)
 
@@ -515,7 +516,7 @@ func (c *CleanupResource) RegisterDeviceCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: device with name %s not found (already deleted)", name)
 
@@ -555,7 +556,7 @@ func (c *CleanupResource) RegisterInterfaceCleanup(name string, deviceName strin
 
 		// First check if the parent device exists
 		deviceList, deviceResp, deviceErr := c.client.DcimAPI.DcimDevicesList(ctx).Name([]string{deviceName}).Execute()
-		if deviceErr != nil || deviceResp.StatusCode != 200 || len(deviceList.Results) == 0 {
+		if deviceErr != nil || deviceResp.StatusCode != http.StatusOK || len(deviceList.Results) == 0 {
 			// Device doesn't exist, so interface is cascade-deleted
 			c.t.Logf("Cleanup: interface with name %s not cleaned up (parent device %s already deleted)", name, deviceName)
 			return
@@ -565,7 +566,7 @@ func (c *CleanupResource) RegisterInterfaceCleanup(name string, deviceName strin
 
 		if err != nil {
 			// 404 means the interface doesn't exist
-			if resp != nil && resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				c.t.Logf("Cleanup: interface with name %s on device %s not found (already deleted)", name, deviceName)
 				return
 			}
@@ -576,7 +577,7 @@ func (c *CleanupResource) RegisterInterfaceCleanup(name string, deviceName strin
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: interface with name %s on device %s not found (already deleted)", name, deviceName)
 
@@ -618,7 +619,7 @@ func (c *CleanupResource) RegisterRearPortTemplateCleanup(name string, deviceTyp
 
 		list, resp, err := c.client.DcimAPI.DcimRearPortTemplatesList(ctx).Name([]string{name}).DeviceTypeId([]*int32{&dtID}).Execute()
 
-		if err != nil || resp.StatusCode != 200 || list.Count == 0 {
+		if err != nil || resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: rear port template with name %s and device type %d not found: %v", name, deviceTypeID, err)
 
@@ -660,7 +661,7 @@ func (c *CleanupResource) RegisterFrontPortTemplateCleanup(name string, deviceTy
 
 		list, resp, err := c.client.DcimAPI.DcimFrontPortTemplatesList(ctx).Name([]string{name}).DeviceTypeId([]*int32{&dtID}).Execute()
 
-		if err != nil || resp.StatusCode != 200 || list.Count == 0 {
+		if err != nil || resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: front port template with name %s and device type %d not found: %v", name, deviceTypeID, err)
 
@@ -700,7 +701,7 @@ func (c *CleanupResource) RegisterRearPortCleanup(name string, deviceID int32) {
 
 		list, resp, err := c.client.DcimAPI.DcimRearPortsList(ctx).Name([]string{name}).DeviceId([]int32{deviceID}).Execute()
 
-		if err != nil || resp.StatusCode != 200 || list.Count == 0 {
+		if err != nil || resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: rear port with name %s and device %d not found: %v", name, deviceID, err)
 
@@ -740,7 +741,7 @@ func (c *CleanupResource) RegisterFrontPortCleanup(name string, deviceID int32) 
 
 		list, resp, err := c.client.DcimAPI.DcimFrontPortsList(ctx).Name([]string{name}).DeviceId([]int32{deviceID}).Execute()
 
-		if err != nil || resp.StatusCode != 200 || list.Count == 0 {
+		if err != nil || resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: front port with name %s and device %d not found: %v", name, deviceID, err)
 
@@ -788,7 +789,7 @@ func (c *CleanupResource) RegisterDeviceBayTemplateCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: device bay template with name %s not found (already deleted)", name)
 
@@ -948,7 +949,7 @@ func (c *CleanupResource) RegisterPowerPanelCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: power panel with name %s not found (already deleted)", name)
 
@@ -996,7 +997,7 @@ func (c *CleanupResource) RegisterPowerFeedCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: power feed with name %s not found (already deleted)", name)
 
@@ -1044,7 +1045,7 @@ func (c *CleanupResource) RegisterModuleBayCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: module bay with name %s not found (already deleted)", name)
 
@@ -1092,7 +1093,7 @@ func (c *CleanupResource) RegisterVirtualChassisCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list.Count == 0 {
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
 
 			c.t.Logf("Cleanup: virtual chassis with name %s not found (already deleted)", name)
 
@@ -1166,7 +1167,7 @@ func (c *CleanupResource) RegisterInventoryItemRoleCleanup(name string) {
 
 		}
 
-		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
 
 			c.t.Logf("Cleanup: inventory item role with name %s not found (already deleted)", name)
 

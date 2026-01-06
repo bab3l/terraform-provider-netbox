@@ -197,18 +197,14 @@ func (d *IKEPolicyDataSource) Read(ctx context.Context, req datasource.ReadReque
 }
 
 // mapIKEPolicyToState maps an IKEPolicy API response to the Terraform state model.
-
 func (d *IKEPolicyDataSource) mapIKEPolicyToState(ike *netbox.IKEPolicy, data *IKEPolicyDataSourceModel) {
 	// ID
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", ike.Id))
 
 	// Name
-
 	data.Name = types.StringValue(ike.Name)
 
 	// Description
-
 	if ike.Description != nil && *ike.Description != "" {
 		data.Description = types.StringValue(*ike.Description)
 	} else {
@@ -216,7 +212,6 @@ func (d *IKEPolicyDataSource) mapIKEPolicyToState(ike *netbox.IKEPolicy, data *I
 	}
 
 	// Version
-
 	if ike.Version.Value != nil {
 		data.Version = types.Int64Value(int64(*ike.Version.Value))
 	} else {
@@ -224,7 +219,6 @@ func (d *IKEPolicyDataSource) mapIKEPolicyToState(ike *netbox.IKEPolicy, data *I
 	}
 
 	// Mode
-
 	if ike.Mode != nil && ike.Mode.Value != nil && *ike.Mode.Value != "" {
 		data.Mode = types.StringValue(string(*ike.Mode.Value))
 	} else {
@@ -232,23 +226,18 @@ func (d *IKEPolicyDataSource) mapIKEPolicyToState(ike *netbox.IKEPolicy, data *I
 	}
 
 	// Proposals
-
 	if len(ike.Proposals) > 0 {
 		proposalIDs := make([]int64, len(ike.Proposals))
-
 		for i, proposal := range ike.Proposals {
 			proposalIDs[i] = int64(proposal.Id)
 		}
-
 		proposalsValue, _ := types.ListValueFrom(context.Background(), types.Int64Type, proposalIDs)
-
 		data.Proposals = proposalsValue
 	} else {
 		data.Proposals = types.ListNull(types.Int64Type)
 	}
 
 	// Comments
-
 	if ike.Comments != nil && *ike.Comments != "" {
 		data.Comments = types.StringValue(*ike.Comments)
 	} else {
@@ -263,16 +252,12 @@ func (d *IKEPolicyDataSource) mapIKEPolicyToState(ike *netbox.IKEPolicy, data *I
 	}
 
 	// Tags
-
 	if len(ike.Tags) > 0 {
 		tags := make([]string, len(ike.Tags))
-
 		for i, tag := range ike.Tags {
 			tags[i] = tag.Name
 		}
-
 		tagsValue, _ := types.ListValueFrom(context.Background(), types.StringType, tags)
-
 		data.Tags = tagsValue
 	} else {
 		data.Tags = types.ListNull(types.StringType)
