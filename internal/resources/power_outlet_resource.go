@@ -71,10 +71,10 @@ func (r *PowerOutletResource) Schema(ctx context.Context, req resource.SchemaReq
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"device": schema.StringAttribute{
-				MarkdownDescription: "The device this power outlet belongs to (ID or name).",
-				Required:            true,
-			},
+			"device": nbschema.RequiredReferenceAttributeWithDiffSuppress(
+				"device",
+				"The device this power outlet belongs to (ID or name).",
+			),
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the power outlet.",
 				Required:            true,
