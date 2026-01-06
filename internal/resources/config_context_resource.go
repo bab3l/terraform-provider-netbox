@@ -543,7 +543,13 @@ func mapConfigContextResponseToModel(ctx context.Context, result *netbox.ConfigC
 	data.Clusters = clustersToSet(ctx, result.Clusters)
 	data.TenantGroups = tenantGroupsToSet(ctx, result.TenantGroups)
 	data.Tenants = tenantsToSet(ctx, result.Tenants)
-	data.Tags = tagsSlugToSet(ctx, result.Tags)
+
+	// Handle tags using unified helper (ConfigContext uses string tags, not NestedTag)
+	if len(result.Tags) > 0 {
+		data.Tags = tagsSlugToSet(ctx, result.Tags)
+	} else {
+		data.Tags = types.SetNull(types.StringType)
+	}
 }
 
 // Helper functions to convert API response arrays to types.Set.

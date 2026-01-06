@@ -499,6 +499,54 @@ func (c *CleanupResource) RegisterIPAddressCleanup(address string) {
 
 }
 
+// RegisterIPRangeCleanup registers a cleanup function that will delete
+
+// an IP range by start address after the test completes.
+
+func (c *CleanupResource) RegisterIPRangeCleanup(startAddress string) {
+
+	c.t.Cleanup(func() {
+
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamIpRangesList(ctx).StartAddress([]string{startAddress}).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to list IP ranges with start address %s: %v", startAddress, err)
+
+			return
+
+		}
+
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+
+			c.t.Logf("Cleanup: IP range with start address %s not found (already deleted)", startAddress)
+
+			return
+
+		}
+
+		id := list.Results[0].GetId()
+
+		_, err = c.client.IpamAPI.IpamIpRangesDestroy(ctx, id).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to delete IP range %d (start address: %s): %v", id, startAddress, err)
+
+		} else {
+
+			c.t.Logf("Cleanup: successfully deleted IP range %d (start address: %s)", id, startAddress)
+
+		}
+
+	})
+
+}
+
 // RegisterASNRangeCleanup registers a cleanup function that will delete
 
 // an ASN range by name after the test completes.
@@ -588,6 +636,54 @@ func (c *CleanupResource) RegisterRIRCleanup(slug string) {
 		} else {
 
 			c.t.Logf("Cleanup: successfully deleted RIR %d (slug: %s)", id, slug)
+
+		}
+
+	})
+
+}
+
+// RegisterAggregateCleanup registers a cleanup function that will delete
+
+// an aggregate by prefix after the test completes.
+
+func (c *CleanupResource) RegisterAggregateCleanup(prefix string) {
+
+	c.t.Cleanup(func() {
+
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+		defer cancel()
+
+		list, resp, err := c.client.IpamAPI.IpamAggregatesList(ctx).Prefix(prefix).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to list aggregates with prefix %s: %v", prefix, err)
+
+			return
+
+		}
+
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+
+			c.t.Logf("Cleanup: aggregate with prefix %s not found (already deleted)", prefix)
+
+			return
+
+		}
+
+		id := list.Results[0].GetId()
+
+		_, err = c.client.IpamAPI.IpamAggregatesDestroy(ctx, id).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to delete aggregate %d (prefix: %s): %v", id, prefix, err)
+
+		} else {
+
+			c.t.Logf("Cleanup: successfully deleted aggregate %d (prefix: %s)", id, prefix)
 
 		}
 
@@ -1550,6 +1646,54 @@ func (c *CleanupResource) RegisterL2VPNCleanup(name string) {
 		} else {
 
 			c.t.Logf("Cleanup: successfully deleted L2VPN %d (name: %s)", id, name)
+
+		}
+
+	})
+
+}
+
+// RegisterL2VPNTerminationCleanup registers a cleanup function that will delete
+
+// an L2VPN termination by L2VPN ID after the test completes.
+
+func (c *CleanupResource) RegisterL2VPNTerminationCleanup(l2vpnID int32) {
+
+	c.t.Cleanup(func() {
+
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+		defer cancel()
+
+		list, resp, err := c.client.VpnAPI.VpnL2vpnTerminationsList(ctx).L2vpnId([]int32{l2vpnID}).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to list L2VPN terminations with L2VPN ID %d: %v", l2vpnID, err)
+
+			return
+
+		}
+
+		if resp.StatusCode != 200 || list == nil || len(list.Results) == 0 {
+
+			c.t.Logf("Cleanup: L2VPN termination with L2VPN ID %d not found (already deleted)", l2vpnID)
+
+			return
+
+		}
+
+		id := list.Results[0].GetId()
+
+		_, err = c.client.VpnAPI.VpnL2vpnTerminationsDestroy(ctx, id).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to delete L2VPN termination %d (L2VPN ID: %d): %v", id, l2vpnID, err)
+
+		} else {
+
+			c.t.Logf("Cleanup: successfully deleted L2VPN termination %d (L2VPN ID: %d)", id, l2vpnID)
 
 		}
 

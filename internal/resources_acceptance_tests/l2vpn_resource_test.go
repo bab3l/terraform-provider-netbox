@@ -5,22 +5,23 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccL2VPNResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := acctest.RandomWithPrefix("test-l2vpn")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
+	cleanup.RegisterL2VPNCleanup(name + "-updated")
+
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccL2VPNResourceConfig_basic(name),
@@ -49,13 +50,16 @@ func TestAccL2VPNResource_basic(t *testing.T) {
 }
 
 func TestAccL2VPNResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	name := acctest.RandomWithPrefix("test-l2vpn")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccL2VPNResourceConfig_full(name),
@@ -71,6 +75,8 @@ func TestAccL2VPNResource_full(t *testing.T) {
 		},
 	})
 }
+
+// NOTE: Custom field tests for l2vpn resource are in resources_acceptance_tests_customfields package
 
 func testAccL2VPNResourceConfig_basic(name string) string {
 	return fmt.Sprintf(`
@@ -111,10 +117,12 @@ func TestAccL2VPNResource_IDPreservation(t *testing.T) {
 
 	name := acctest.RandomWithPrefix("test-l2vpn-id")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccL2VPNResourceConfig_basic(name),
@@ -130,15 +138,18 @@ func TestAccL2VPNResource_IDPreservation(t *testing.T) {
 
 func TestAccConsistency_L2VPN_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := "test-l2vpn-lit"
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccL2VPNConsistencyLiteralNamesConfig(name),
+				Config: testAccL2VPNResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
 					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
@@ -147,7 +158,7 @@ func TestAccConsistency_L2VPN_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccL2VPNConsistencyLiteralNamesConfig(name),
+				Config:   testAccL2VPNResourceConfig_basic(name),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
@@ -157,24 +168,17 @@ func TestAccConsistency_L2VPN_LiteralNames(t *testing.T) {
 	})
 }
 
-func testAccL2VPNConsistencyLiteralNamesConfig(name string) string {
-	return fmt.Sprintf(`
-resource "netbox_l2vpn" "test" {
-  name = %q
-  slug = %q
-  type = "vxlan"
-}
-`, name, name)
-}
-
 func TestAccL2VPNResource_update(t *testing.T) {
 	t.Parallel()
+
 	name := acctest.RandomWithPrefix("test-l2vpn")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccL2VPNResourceConfig_updateInitial(name),
@@ -224,7 +228,11 @@ resource "netbox_l2vpn" "test" {
 
 func TestAccL2VPNResource_external_deletion(t *testing.T) {
 	t.Parallel()
+
 	name := acctest.RandomWithPrefix("test-l2vpn")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -256,10 +264,8 @@ func TestAccL2VPNResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted l2vpn with ID: %d", itemID)
 				},
-				Config: testAccL2VPNResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

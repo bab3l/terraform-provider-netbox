@@ -447,37 +447,14 @@ func (r *LocationResource) mapLocationToState(ctx context.Context, location *net
 	}
 
 	// Handle tags
-
-	if location.HasTags() {
-		tags := utils.NestedTagsToTagModels(location.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, location.HasTags(), location.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
 	// Handle custom fields
-	if location.HasCustomFields() {
-		var existingModels []utils.CustomFieldModel
-		if !data.CustomFields.IsNull() {
-			cfDiags := data.CustomFields.ElementsAs(ctx, &existingModels, false)
-			diags.Append(cfDiags...)
-			if diags.HasError() {
-				return
-			}
-		}
-		customFields := utils.MapToCustomFieldModels(location.GetCustomFields(), existingModels)
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, location.HasCustomFields(), location.GetCustomFields(), data.CustomFields, diags)
+	if diags.HasError() {
+		return
 	}
 }

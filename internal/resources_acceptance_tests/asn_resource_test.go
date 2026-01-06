@@ -14,118 +14,80 @@ import (
 )
 
 func TestAccASNResource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	rirName := testutil.RandomName("tf-test-rir")
-
 	rirSlug := testutil.RandomSlug("tf-test-rir")
-
 	// Generate a random ASN in the private range (64512-65534)
-
 	asn := int64(acctest.RandIntRange(64512, 65534))
-
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccASNResourceConfig_basic(rirName, rirSlug, asn),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_asn.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
 				),
 			},
-
 			{
-
-				ResourceName: "netbox_asn.test",
-
-				ImportState: true,
-
-				ImportStateVerify: true,
-
+				ResourceName:            "netbox_asn.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"rir"},
 			},
 		},
 	})
-
 }
 
 func TestAccASNResource_full(t *testing.T) {
-
 	t.Parallel()
 
 	rirName := testutil.RandomName("tf-test-rir")
-
 	rirSlug := testutil.RandomSlug("tf-test-rir")
+	tenantName := testutil.RandomName("tf-test-tenant")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant")
 
 	// Generate a random ASN in the private range (64512-65534)
-
 	asn := int64(acctest.RandIntRange(64512, 65534))
-
 	description := testutil.RandomName("description")
-
 	updatedDescription := "Updated ASN description"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
-
 			{
-
-				Config: testAccASNResourceConfig_full(rirName, rirSlug, asn, description, testutil.Comments),
-
+				Config: testAccASNResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, asn, description, testutil.Comments),
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_asn.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
-
 					resource.TestCheckResourceAttr("netbox_asn.test", "description", description),
-
 					resource.TestCheckResourceAttr("netbox_asn.test", "comments", testutil.Comments),
-
 					resource.TestCheckResourceAttrSet("netbox_asn.test", "rir"),
+					resource.TestCheckResourceAttrSet("netbox_asn.test", "tenant"),
 				),
 			},
-
 			{
-
-				Config: testAccASNResourceConfig_full(rirName, rirSlug, asn, updatedDescription, testutil.Comments),
-
+				Config: testAccASNResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, asn, updatedDescription, testutil.Comments),
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_asn.test", "description", updatedDescription),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccASNResource_IDPreservation(t *testing.T) {
@@ -231,108 +193,73 @@ func TestAccASNResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted asn with ID: %d", itemID)
 				},
-				Config: testAccASNResourceConfig_basic(rirName, rirSlug, asn),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_asn.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 
 func testAccASNResourceConfig_basic(rirName, rirSlug string, asn int64) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_rir" "test" {
-
   name = %q
-
   slug = %q
-
 }
 
 resource "netbox_asn" "test" {
-
   asn = %d
-
   rir = netbox_rir.test.id
-
 }
-
 `, rirName, rirSlug, asn)
-
 }
 
-func testAccASNResourceConfig_full(rirName, rirSlug string, asn int64, description, comments string) string {
-
+func testAccASNResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug string, asn int64, description, comments string) string {
 	return fmt.Sprintf(`
-
 resource "netbox_rir" "test" {
-
   name = %q
-
   slug = %q
+}
 
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
 }
 
 resource "netbox_asn" "test" {
-
   asn         = %d
-
   rir         = netbox_rir.test.id
-
+  tenant      = netbox_tenant.test.id
   description = %q
-
   comments    = %q
-
 }
-
-`, rirName, rirSlug, asn, description, comments)
-
+`, rirName, rirSlug, tenantName, tenantSlug, asn, description, comments)
 }
 
 func testAccASNResourceConfig_update(rirName, rirSlug string, asn int64, description string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_rir" "test" {
-
   name = %q
-
   slug = %q
-
 }
 
 resource "netbox_asn" "test" {
-
   asn         = %d
-
   rir         = netbox_rir.test.id
-
   description = %q
-
 }
-
 `, rirName, rirSlug, asn, description)
-
 }
 
 // TestAccConsistency_ASN_LiteralNames tests that reference attributes specified as literal string names
-
 // are preserved and do not cause drift when the API returns numeric IDs.
-
 func TestAccConsistency_ASN_LiteralNames(t *testing.T) {
-
 	t.Parallel()
+
 	asn := int64(65100)
-
 	rirName := testutil.RandomName("rir")
-
 	rirSlug := testutil.RandomSlug("rir")
-
 	tenantName := testutil.RandomName("tenant")
-
 	tenantSlug := testutil.RandomSlug("tenant")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -340,74 +267,46 @@ func TestAccConsistency_ASN_LiteralNames(t *testing.T) {
 	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccASNConsistencyLiteralNamesConfig(asn, rirName, rirSlug, tenantName, tenantSlug),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
-
 					resource.TestCheckResourceAttr("netbox_asn.test", "rir", rirSlug),
-
 					resource.TestCheckResourceAttr("netbox_asn.test", "tenant", tenantName),
 				),
 			},
-
 			{
-
 				// Critical: Verify no drift when refreshing state
-
 				PlanOnly: true,
-
-				Config: testAccASNConsistencyLiteralNamesConfig(asn, rirName, rirSlug, tenantName, tenantSlug),
+				Config:   testAccASNConsistencyLiteralNamesConfig(asn, rirName, rirSlug, tenantName, tenantSlug),
 			},
 		},
 	})
-
 }
 
 func testAccASNConsistencyLiteralNamesConfig(asn int64, rirName, rirSlug, tenantName, tenantSlug string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_rir" "test" {
-
   name = "%[2]s"
-
   slug = "%[3]s"
-
 }
 
 resource "netbox_tenant" "test" {
-
   name = "%[4]s"
-
   slug = "%[5]s"
-
 }
 
 resource "netbox_asn" "test" {
-
   asn = %[1]d
-
   # Use literal string names to mimic existing user state
-
   rir = "%[3]s"
-
   tenant = "%[4]s"
-
   depends_on = [netbox_rir.test, netbox_tenant.test]
-
 }
-
 `, asn, rirName, rirSlug, tenantName, tenantSlug)
-
 }
+
+// NOTE: Custom field tests for ASN resource are in resources_acceptance_tests_customfields package

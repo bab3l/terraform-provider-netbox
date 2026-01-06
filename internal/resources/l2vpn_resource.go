@@ -492,28 +492,12 @@ func (r *L2VPNResource) mapResponseToState(ctx context.Context, l2vpn *netbox.L2
 		data.ExportTargets = types.SetNull(types.StringType)
 	}
 
-	// Tags
-	if l2vpn.HasTags() && len(l2vpn.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(l2vpn.GetTags())
-		tagsValue, d := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(d...)
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Handle tags using consolidated helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, l2vpn.HasTags(), l2vpn.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Custom fields
-	if l2vpn.HasCustomFields() && len(l2vpn.GetCustomFields()) > 0 {
-		var existingModels []utils.CustomFieldModel
-		if !data.CustomFields.IsNull() {
-			d := data.CustomFields.ElementsAs(ctx, &existingModels, false)
-			diags.Append(d...)
-		}
-		customFields := utils.MapToCustomFieldModels(l2vpn.GetCustomFields(), existingModels)
-		customFieldsValue, d := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(d...)
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Handle custom fields using consolidated helper
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, l2vpn.HasCustomFields(), l2vpn.GetCustomFields(), data.CustomFields, diags)
 }

@@ -33,17 +33,12 @@ func TestAccConsolePortTemplateDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccConsolePortTemplateDataSource_byID(t *testing.T) {
-
 	t.Parallel()
 
 	mfgName := testutil.RandomName("tf-test-mfg")
-
 	mfgSlug := testutil.GenerateSlug(mfgName)
-
 	deviceTypeModel := testutil.RandomName("tf-test-dt")
-
 	deviceTypeSlug := testutil.RandomSlug("device-type")
-
 	portTemplateName := testutil.RandomName("console-port")
 
 	resource.Test(t, resource.TestCase{
@@ -64,17 +59,12 @@ func TestAccConsolePortTemplateDataSource_byID(t *testing.T) {
 }
 
 func TestAccConsolePortTemplateDataSource_byDeviceTypeAndName(t *testing.T) {
-
 	t.Parallel()
 
 	mfgName := testutil.RandomName("tf-test-mfg")
-
 	mfgSlug := testutil.GenerateSlug(mfgName)
-
 	deviceTypeModel := testutil.RandomName("tf-test-dt")
-
 	deviceTypeSlug := testutil.RandomSlug("device-type")
-
 	portTemplateName := testutil.RandomName("console-port")
 
 	resource.Test(t, resource.TestCase{

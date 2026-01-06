@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccServiceTemplateResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("service-template")
 
 	resource.Test(t, resource.TestCase{
@@ -32,6 +32,10 @@ func TestAccServiceTemplateResource_basic(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccServiceTemplateResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccServiceTemplateResourceConfig_updated(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_service_template.test", "name", name+"-updated"),
@@ -41,17 +45,25 @@ func TestAccServiceTemplateResource_basic(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccServiceTemplateResourceConfig_updated(name),
+				PlanOnly: true,
+			},
+			{
 				ResourceName:      "netbox_service_template.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config:   testAccServiceTemplateResourceConfig_updated(name),
+				PlanOnly: true,
 			},
 		},
 	})
 }
 
 func TestAccServiceTemplateResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("service-template")
 
 	resource.Test(t, resource.TestCase{
@@ -67,6 +79,10 @@ func TestAccServiceTemplateResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_service_template.test", "description", "Test description"),
 					resource.TestCheckResourceAttr("netbox_service_template.test", "comments", "Test comments"),
 				),
+			},
+			{
+				Config:   testAccServiceTemplateResourceConfig_full(name),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -95,6 +111,7 @@ resource "netbox_service_template" "test" {
 
 func TestAccServiceTemplateResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("service-template-id")
 
 	resource.Test(t, resource.TestCase{
@@ -107,6 +124,10 @@ func TestAccServiceTemplateResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_service_template.test", "id"),
 					resource.TestCheckResourceAttr("netbox_service_template.test", "name", name),
 				),
+			},
+			{
+				Config:   testAccServiceTemplateResourceConfig_basic(name),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -141,11 +162,19 @@ func TestAccServiceTemplateResource_update(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccServiceTemplateResourceConfig_withDescription(name, testutil.Description1),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccServiceTemplateResourceConfig_withDescription(name, testutil.Description2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_service_template.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_service_template.test", "description", testutil.Description2),
 				),
+			},
+			{
+				Config:   testAccServiceTemplateResourceConfig_withDescription(name, testutil.Description2),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -181,6 +210,10 @@ func TestAccServiceTemplateResource_external_deletion(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccServiceTemplateResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+			{
 				PreConfig: func() {
 					client, err := testutil.GetSharedClient()
 					if err != nil {
@@ -197,10 +230,8 @@ func TestAccServiceTemplateResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted service template with ID: %d", itemID)
 				},
-				Config: testAccServiceTemplateResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_service_template.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

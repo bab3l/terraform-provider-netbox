@@ -314,41 +314,8 @@ func (r *ContactGroupResource) mapContactGroupToState(ctx context.Context, conta
 	}
 
 	// Handle tags
-	if contactGroup.HasTags() {
-		tags := utils.NestedTagsToTagModels(contactGroup.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if !diags.HasError() {
-			data.Tags = tagsValue
-		}
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	data.Tags = utils.PopulateTagsFromAPI(ctx, contactGroup.HasTags(), contactGroup.GetTags(), data.Tags, diags)
 
 	// Handle custom fields
-	switch {
-	case contactGroup.HasCustomFields() && !data.CustomFields.IsNull():
-		var stateCustomFields []utils.CustomFieldModel
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-		diags.Append(cfDiags...)
-		if !diags.HasError() {
-			customFields := utils.MapToCustomFieldModels(contactGroup.GetCustomFields(), stateCustomFields)
-			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-			diags.Append(cfValueDiags...)
-			if !diags.HasError() {
-				data.CustomFields = customFieldsValue
-			}
-		}
-
-	case contactGroup.HasCustomFields():
-		customFields := utils.MapToCustomFieldModels(contactGroup.GetCustomFields(), []utils.CustomFieldModel{})
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfValueDiags...)
-		if !diags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-
-	default:
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, contactGroup.HasCustomFields(), contactGroup.GetCustomFields(), data.CustomFields, diags)
 }

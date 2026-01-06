@@ -5,16 +5,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccPowerOutletResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.RandomSlug("tf-test-site")
 	mfgName := testutil.RandomName("tf-test-mfg")
@@ -34,10 +31,8 @@ func TestAccPowerOutletResource_basic(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPowerOutletResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName),
@@ -57,8 +52,8 @@ func TestAccPowerOutletResource_basic(t *testing.T) {
 }
 
 func TestAccPowerOutletResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site-full")
 	siteSlug := testutil.RandomSlug("tf-test-site-full")
 	mfgName := testutil.RandomName("tf-test-mfg-full")
@@ -80,10 +75,8 @@ func TestAccPowerOutletResource_full(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPowerOutletResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, description),
@@ -106,6 +99,7 @@ func TestAccPowerOutletResource_full(t *testing.T) {
 
 func TestAccPowerOutletResource_update(t *testing.T) {
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site-update")
 	siteSlug := testutil.RandomSlug("tf-test-site-update")
 	mfgName := testutil.RandomName("tf-test-mfg-update")
@@ -147,6 +141,7 @@ func TestAccPowerOutletResource_update(t *testing.T) {
 
 func TestAccPowerOutletResource_externalDeletion(t *testing.T) {
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site-ext-del")
 	siteSlug := testutil.RandomSlug("tf-test-site-ext-del")
 	mfgName := testutil.RandomName("tf-test-mfg-ext-del")
@@ -157,6 +152,13 @@ func TestAccPowerOutletResource_externalDeletion(t *testing.T) {
 	roleSlug := testutil.RandomSlug("tf-test-role-ext-del")
 	deviceName := testutil.RandomName("tf-test-device-ext-del")
 	powerOutletName := testutil.RandomName("tf-test-po-ext-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -197,6 +199,7 @@ func TestAccPowerOutletResource_externalDeletion(t *testing.T) {
 
 func TestAccPowerOutletResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site-id")
 	siteSlug := testutil.RandomSlug("tf-test-site-id")
 	mfgName := testutil.RandomName("tf-test-mfg-id")
@@ -216,10 +219,8 @@ func TestAccPowerOutletResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPowerOutletResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName),
@@ -313,8 +314,8 @@ resource "netbox_power_outlet" "test" {
 }
 
 func TestAccConsistency_PowerOutlet(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	manufacturerName := testutil.RandomName("manufacturer")
@@ -325,6 +326,13 @@ func TestAccConsistency_PowerOutlet(t *testing.T) {
 	deviceRoleSlug := testutil.RandomSlug("device-role")
 	deviceName := testutil.RandomName("device")
 	powerOutletName := testutil.RandomName("power-outlet")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -396,6 +404,13 @@ func TestAccConsistency_PowerOutlet_LiteralNames(t *testing.T) {
 	deviceName := testutil.RandomName("device")
 	resourceName := testutil.RandomName("power_outlet")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -456,3 +471,5 @@ resource "netbox_power_outlet" "test" {
 }
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, deviceName, resourceName)
 }
+
+// NOTE: Custom field tests for power_outlet resource are in resources_acceptance_tests_customfields package

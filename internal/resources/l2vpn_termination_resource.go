@@ -332,28 +332,12 @@ func (r *L2VPNTerminationResource) mapResponseToState(ctx context.Context, termi
 	data.AssignedObjectType = types.StringValue(termination.GetAssignedObjectType())
 	data.AssignedObjectID = types.Int64Value(termination.GetAssignedObjectId())
 
-	// Tags
-	if termination.HasTags() && len(termination.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(termination.GetTags())
-		tagsValue, d := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(d...)
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Handle tags using consolidated helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, termination.HasTags(), termination.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Custom fields
-	if termination.HasCustomFields() && len(termination.GetCustomFields()) > 0 {
-		var existingModels []utils.CustomFieldModel
-		if !data.CustomFields.IsNull() {
-			d := data.CustomFields.ElementsAs(ctx, &existingModels, false)
-			diags.Append(d...)
-		}
-		customFields := utils.MapToCustomFieldModels(termination.GetCustomFields(), existingModels)
-		customFieldsValue, d := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(d...)
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Handle custom fields using consolidated helper
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, termination.HasCustomFields(), termination.GetCustomFields(), data.CustomFields, diags)
 }

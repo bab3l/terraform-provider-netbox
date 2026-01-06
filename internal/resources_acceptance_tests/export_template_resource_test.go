@@ -10,9 +10,13 @@ import (
 )
 
 func TestAccExportTemplateResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("export-template")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterExportTemplateCleanup(name)
+	cleanup.RegisterExportTemplateCleanup(name + "-updated")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -34,6 +38,11 @@ func TestAccExportTemplateResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_export_template.test", "description", "Updated description"),
 				),
 			},
+			// PlanOnly: verify plan stability
+			{
+				Config:   testAccExportTemplateResourceConfig_updated(name),
+				PlanOnly: true,
+			},
 			// Test import
 			{
 				ResourceName:            "netbox_export_template.test",
@@ -46,8 +55,8 @@ func TestAccExportTemplateResource_basic(t *testing.T) {
 }
 
 func TestAccExportTemplateResource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("exp-tmpl-id")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -65,14 +74,22 @@ func TestAccExportTemplateResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_export_template.test", "object_types.#", "1"),
 				),
 			},
+			// PlanOnly: verify plan stability
+			{
+				Config:   testAccExportTemplateResourceConfig_basic(name),
+				PlanOnly: true,
+			},
 		},
 	})
 }
 
 func TestAccExportTemplateResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("export-template")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterExportTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -88,6 +105,11 @@ func TestAccExportTemplateResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_export_template.test", "file_extension", "csv"),
 					resource.TestCheckResourceAttr("netbox_export_template.test", "as_attachment", "true"),
 				),
+			},
+			// PlanOnly: verify plan stability
+			{
+				Config:   testAccExportTemplateResourceConfig_full(name),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -130,15 +152,19 @@ resource "netbox_export_template" "test" {
 
 func TestAccConsistency_ExportTemplate_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-export-template-lit")
 	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterExportTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccExportTemplateConsistencyLiteralNamesConfig(name, description),
+				Config: testAccExportTemplateResourceConfig_withDescription(name, description),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_export_template.test", "id"),
 					resource.TestCheckResourceAttr("netbox_export_template.test", "name", name),
@@ -146,7 +172,7 @@ func TestAccConsistency_ExportTemplate_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccExportTemplateConsistencyLiteralNamesConfig(name, description),
+				Config:   testAccExportTemplateResourceConfig_withDescription(name, description),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_export_template.test", "id"),
@@ -161,6 +187,9 @@ func TestAccExportTemplateResource_update(t *testing.T) {
 	testutil.TestAccPreCheck(t)
 
 	name := testutil.RandomName("tf-test-expt-upd")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterExportTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -178,6 +207,11 @@ func TestAccExportTemplateResource_update(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_export_template.test", "description", testutil.Description2),
 				),
 			},
+			// PlanOnly: verify plan stability
+			{
+				Config:   testAccExportTemplateResourceConfig_withDescription(name, testutil.Description2),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -187,6 +221,9 @@ func TestAccExportTemplateResource_externalDeletion(t *testing.T) {
 	testutil.TestAccPreCheck(t)
 
 	name := testutil.RandomName("tf-test-expt-extdel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterExportTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -228,17 +265,6 @@ func TestAccExportTemplateResource_externalDeletion(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccExportTemplateConsistencyLiteralNamesConfig(name, description string) string {
-	return `
-resource "netbox_export_template" "test" {
-  name           = "` + name + `"
-  object_types   = ["dcim.site"]
-  template_code  = "name,slug\n{% for site in queryset %}{{ site.name }},{{ site.id }}\n{% endfor %}"
-  description    = "` + description + `"
-}
-`
 }
 
 func testAccExportTemplateResourceConfig_withDescription(name string, description string) string {

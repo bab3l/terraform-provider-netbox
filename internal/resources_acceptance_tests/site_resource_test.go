@@ -3,7 +3,6 @@ package resources_acceptance_tests
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
@@ -13,9 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccSiteResource_basic(t *testing.T) {
+// NOTE: Custom field tests for site resource are in resources_acceptance_tests_customfields package
 
+func TestAccSiteResource_basic(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site")
 	slug := testutil.RandomSlug("tf-test-site")
 
@@ -43,8 +44,8 @@ func TestAccSiteResource_basic(t *testing.T) {
 }
 
 func TestAccSiteResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site-full")
 	slug := testutil.RandomSlug("tf-test-site-full")
 	description := testutil.RandomName("description")
@@ -74,8 +75,8 @@ func TestAccSiteResource_full(t *testing.T) {
 }
 
 func TestAccSiteResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site-update")
 	slug := testutil.RandomSlug("tf-test-site-upd")
 	updatedName := testutil.RandomName("tf-test-site-updated")
@@ -109,8 +110,8 @@ func TestAccSiteResource_update(t *testing.T) {
 }
 
 func TestAccSiteResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site-import")
 	slug := testutil.RandomSlug("tf-test-site-imp")
 
@@ -141,8 +142,8 @@ func TestAccSiteResource_import(t *testing.T) {
 }
 
 func TestAccConsistency_Site(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	regionName := testutil.RandomName("region")
@@ -175,6 +176,7 @@ func TestAccConsistency_Site(t *testing.T) {
 
 func TestAccConsistency_Site_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site-lit")
 	siteSlug := testutil.RandomSlug("tf-test-site-lit")
 
@@ -183,7 +185,7 @@ func TestAccConsistency_Site_LiteralNames(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSiteConsistencyLiteralNamesConfig(siteName, siteSlug),
+				Config: testAccSiteResourceConfig_basic(siteName, siteSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site.test", "id"),
 					resource.TestCheckResourceAttr("netbox_site.test", "name", siteName),
@@ -191,7 +193,7 @@ func TestAccConsistency_Site_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccSiteConsistencyLiteralNamesConfig(siteName, siteSlug),
+				Config:   testAccSiteResourceConfig_basic(siteName, siteSlug),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site.test", "id"),
@@ -203,6 +205,7 @@ func TestAccConsistency_Site_LiteralNames(t *testing.T) {
 
 func TestAccSiteResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site-id")
 	slug := testutil.RandomSlug("tf-test-site-id")
 
@@ -226,16 +229,6 @@ func TestAccSiteResource_IDPreservation(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccSiteConsistencyLiteralNamesConfig(siteName, siteSlug string) string {
-	return fmt.Sprintf(`
-resource "netbox_site" "test" {
-  name   = %q
-  slug   = %q
-  status = "active"
-}
-`, siteName, siteSlug)
 }
 
 func testAccSiteResourceConfig_basic(name, slug string) string {
@@ -300,6 +293,10 @@ func TestAccSiteResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 	name := testutil.RandomName("tf-test-site-ext-del")
 	slug := testutil.RandomSlug("site")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -307,13 +304,7 @@ func TestAccSiteResource_externalDeletion(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
-resource "netbox_site" "test" {
-  name = %q
-  slug = %q
-  status = "active"
-}
-`, name, slug),
+				Config: testAccSiteResourceConfig_basic(name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site.test", "id"),
 				),
@@ -335,15 +326,8 @@ resource "netbox_site" "test" {
 					}
 					t.Logf("Successfully externally deleted site with ID: %d", itemID)
 				},
-				Config: fmt.Sprintf(`
-resource "netbox_site" "test" {
-  name = %q
-  slug = %q
-  status = "active"
-}
-`, name, slug),
-				ExpectError: regexp.MustCompile("(?i)(404|not found|no site)"),
-				Check:       resource.ComposeTestCheckFunc(),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

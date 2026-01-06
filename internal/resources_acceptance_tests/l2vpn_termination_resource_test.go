@@ -14,8 +14,8 @@ import (
 )
 
 func TestAccL2VPNTerminationResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	l2vpnName := testutil.RandomName("tf-test-l2vpn-term")
 	vlanVID := testutil.RandomVID()
 
@@ -39,6 +39,12 @@ func TestAccL2VPNTerminationResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_l2vpn_termination.test", "l2vpn"),
 					resource.TestCheckResourceAttrSet("netbox_l2vpn_termination.test", "assigned_object_id"),
 				),
+			},
+			{
+				// Test import
+				ResourceName:      "netbox_l2vpn_termination.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -95,8 +101,8 @@ resource "netbox_l2vpn_termination" "test" {
 }
 
 func TestAccConsistency_L2VPNTermination_LiteralNames(t *testing.T) {
-
 	t.Parallel()
+
 	l2vpnName := testutil.RandomName("tf-test-l2vpn-lit")
 	vlanVID := testutil.RandomVID()
 
@@ -113,14 +119,14 @@ func TestAccConsistency_L2VPNTermination_LiteralNames(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccL2VPNTerminationConsistencyLiteralNamesConfig(l2vpnName, vlanVID),
+				Config: testAccL2VPNTerminationResourceConfig_basic(l2vpnName, vlanVID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_l2vpn_termination.test", "id"),
 					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "assigned_object_type", "ipam.vlan"),
 				),
 			},
 			{
-				Config:   testAccL2VPNTerminationConsistencyLiteralNamesConfig(l2vpnName, vlanVID),
+				Config:   testAccL2VPNTerminationResourceConfig_basic(l2vpnName, vlanVID),
 				PlanOnly: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_l2vpn_termination.test", "id"),
@@ -128,27 +134,6 @@ func TestAccConsistency_L2VPNTermination_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccL2VPNTerminationConsistencyLiteralNamesConfig(l2vpnName string, vlanVID int32) string {
-	return fmt.Sprintf(`
-resource "netbox_l2vpn" "test" {
-  name = %q
-  slug = %q
-  type = "vxlan"
-}
-
-resource "netbox_vlan" "test" {
-  name = %q
-  vid  = %d
-}
-
-resource "netbox_l2vpn_termination" "test" {
-  l2vpn                = netbox_l2vpn.test.id
-  assigned_object_type = "ipam.vlan"
-  assigned_object_id   = netbox_vlan.test.id
-}
-`, l2vpnName, l2vpnName, l2vpnName, vlanVID)
 }
 
 func TestAccL2VPNTerminationResource_full(t *testing.T) {
@@ -287,6 +272,7 @@ func TestAccL2VPNTerminationResource_external_deletion(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVLANCleanup(vlanVID)
+	cleanup.RegisterL2VPNCleanup(l2vpnName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -330,10 +316,8 @@ func TestAccL2VPNTerminationResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted l2vpn termination with ID: %d", itemID)
 				},
-				Config: testAccL2VPNTerminationResourceConfig_externalDeletion(l2vpnName, vlanVID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_l2vpn_termination.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

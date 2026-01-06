@@ -546,34 +546,8 @@ func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceTyp
 	}
 
 	// Handle tags
-	if deviceType.HasTags() {
-		tags := utils.NestedTagsToTagModels(deviceType.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	data.Tags = utils.PopulateTagsFromAPI(ctx, deviceType.HasTags(), deviceType.GetTags(), data.Tags, diags)
 
 	// Handle custom fields
-	if deviceType.HasCustomFields() && !data.CustomFields.IsNull() {
-		var stateCustomFields []utils.CustomFieldModel
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		customFields := utils.MapToCustomFieldModels(deviceType.GetCustomFields(), stateCustomFields)
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfValueDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else if data.CustomFields.IsNull() {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, deviceType.HasCustomFields(), deviceType.GetCustomFields(), data.CustomFields, diags)
 }

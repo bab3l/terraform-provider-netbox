@@ -3,6 +3,7 @@ package resources_acceptance_tests
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/provider"
@@ -13,170 +14,214 @@ import (
 )
 
 func TestAccRoleResource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-role")
-
 	slug := testutil.RandomSlug("tf-test-role")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRoleCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccRoleResourceConfig_basic(name, slug),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_role.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
-
 					resource.TestCheckResourceAttr("netbox_role.test", "slug", slug),
-
 					resource.TestCheckResourceAttr("netbox_role.test", "weight", "1000"),
 				),
 			},
-
 			{
-
-				ResourceName: "netbox_role.test",
-
-				ImportState: true,
-
+				Config:   testAccRoleResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
+			{
+				ResourceName:      "netbox_role.test",
+				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config:   testAccRoleResourceConfig_basic(name, slug),
+				PlanOnly: true,
 			},
 		},
 	})
-
 }
 
 func TestAccRoleResource_full(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-role-full")
-
 	slug := testutil.RandomSlug("tf-test-role-full")
-
 	description := testutil.RandomName("description")
-
 	updatedDescription := "Updated IPAM role description"
+	tagName1 := testutil.RandomName("tag1")
+	tagSlug1 := testutil.RandomSlug("tag1")
+	tagName2 := testutil.RandomName("tag2")
+	tagSlug2 := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRoleCleanup(slug)
+	cleanup.RegisterTagCleanup(tagSlug1)
+	cleanup.RegisterTagCleanup(tagSlug2)
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
-
 			{
-
-				Config: testAccRoleResourceConfig_full(name, slug, description, 100),
-
+				Config: testAccRoleResourceConfig_full(name, slug, description, 100, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_role.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
-
 					resource.TestCheckResourceAttr("netbox_role.test", "slug", slug),
-
 					resource.TestCheckResourceAttr("netbox_role.test", "description", description),
-
 					resource.TestCheckResourceAttr("netbox_role.test", "weight", "100"),
+					resource.TestCheckResourceAttr("netbox_role.test", "tags.#", "2"),
+					resource.TestCheckResourceAttr("netbox_role.test", "custom_fields.#", "1"),
+					resource.TestCheckResourceAttr("netbox_role.test", "custom_fields.0.value", "test_value"),
 				),
 			},
-
 			{
-
-				Config: testAccRoleResourceConfig_full(name, slug, updatedDescription, 200),
-
+				Config:   testAccRoleResourceConfig_full(name, slug, description, 100, tagName1, tagSlug1, tagName2, tagSlug2),
+				PlanOnly: true,
+			},
+			{
+				Config: testAccRoleResourceConfig_fullUpdate(name, slug, updatedDescription, 200, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_role.test", "description", updatedDescription),
-
 					resource.TestCheckResourceAttr("netbox_role.test", "weight", "200"),
+					resource.TestCheckResourceAttr("netbox_role.test", "custom_fields.0.value", "updated_value"),
 				),
 			},
-		},
-	})
-
-}
-
-func TestAccRoleResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-	name := testutil.RandomName("tf-test-role-id")
-	slug := testutil.RandomSlug("tf-test-role-id")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
 			{
-				Config: testAccRoleResourceConfig_basic(name, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_role.test", "id"),
-					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
-				),
+				Config:   testAccRoleResourceConfig_fullUpdate(name, slug, updatedDescription, 200, tagName1, tagSlug1, tagName2, tagSlug2),
+				PlanOnly: true,
 			},
 		},
 	})
 }
 
 func testAccRoleResourceConfig_basic(name, slug string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_role" "test" {
-
   name = %q
-
   slug = %q
-
 }
-
 `, name, slug)
-
 }
 
-func testAccRoleResourceConfig_full(name, slug, description string, weight int) string {
-
+func testAccRoleResourceConfig_full(name, slug, description string, weight int, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
+	cfName := fmt.Sprintf("test_field_%s", strings.ReplaceAll(slug, "-", "_"))
 	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_custom_field" "test_field" {
+  name         = %[9]q
+  object_types = ["ipam.role"]
+  type         = "text"
+}
 
 resource "netbox_role" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  description = %[3]q
+  weight      = %[4]d
 
-  name        = %q
+  tags = [
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    },
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    }
+  ]
 
-  slug        = %q
-
-  description = %q
-
-  weight      = %d
-
+  custom_fields = [
+    {
+      name  = netbox_custom_field.test_field.name
+      type  = "text"
+      value = "test_value"
+    }
+  ]
+}
+`, name, slug, description, weight, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
 }
 
-`, name, slug, description, weight)
-
+func testAccRoleResourceConfig_fullUpdate(name, slug, description string, weight int, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
+	cfName := fmt.Sprintf("test_field_%s", strings.ReplaceAll(slug, "-", "_"))
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[5]q
+  slug = %[6]q
 }
+
+resource "netbox_tag" "tag2" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_custom_field" "test_field" {
+  name         = %[9]q
+  object_types = ["ipam.role"]
+  type         = "text"
+}
+
+resource "netbox_role" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  description = %[3]q
+  weight      = %[4]d
+
+  tags = [
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    },
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    }
+  ]
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.test_field.name
+      type  = "text"
+      value = "updated_value"
+    }
+  ]
+}
+`, name, slug, description, weight, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+}
+
 func TestAccConsistency_Role_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-role-lit")
 	slug := testutil.RandomSlug("tf-test-role-lit")
 	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -220,6 +265,9 @@ func TestAccRoleResource_externalDeletion(t *testing.T) {
 	name := testutil.RandomName("tf-test-role-del")
 	slug := testutil.RandomSlug("tf-test-role-del")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRoleCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -254,4 +302,62 @@ func TestAccRoleResource_externalDeletion(t *testing.T) {
 			},
 		},
 	})
+}
+
+// TestAccRoleResource_Weight tests comprehensive scenarios for role weight field.
+// This validates that Optional+Computed int64 fields with proper defaults work correctly.
+func TestAccRoleResource_Weight(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-role-weight")
+	slug := testutil.RandomSlug("tf-test-role-weight")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoleResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_role.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_role.test", "weight", "1000"),
+				),
+			},
+			{
+				Config:   testAccRoleResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
+			{
+				Config: testAccRoleResourceConfig_withWeight(name, slug, 2000),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_role.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_role.test", "weight", "2000"),
+				),
+			},
+			{
+				Config:   testAccRoleResourceConfig_withWeight(name, slug, 2000),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func testAccRoleResourceConfig_withWeight(name, slug string, weight int) string {
+	return fmt.Sprintf(`
+resource "netbox_role" "test" {
+  name   = %q
+  slug   = %q
+  weight = %d
+}
+`, name, slug, weight)
 }

@@ -47,7 +47,6 @@ func TestAccL2VPNTerminationDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccL2VPNTerminationDataSource_byID(t *testing.T) {
-
 	name := acctest.RandomWithPrefix("test-l2vpn-term-ds")
 	siteSlug := acctest.RandomWithPrefix("site")
 	deviceRoleSlug := acctest.RandomWithPrefix("role")

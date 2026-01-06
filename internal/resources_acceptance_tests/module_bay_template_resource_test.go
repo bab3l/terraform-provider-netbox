@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccModuleBayTemplateResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	mfgName := testutil.RandomName("tf-test-mfg")
 	mfgSlug := testutil.RandomSlug("tf-test-mfg")
 	dtModel := testutil.RandomName("tf-test-dt")
@@ -50,8 +50,8 @@ func TestAccModuleBayTemplateResource_basic(t *testing.T) {
 }
 
 func TestAccModuleBayTemplateResource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
+
 	mfgName := testutil.RandomName("mfg-mbt")
 	mfgSlug := testutil.GenerateSlug(mfgName)
 	dtModel := testutil.RandomName("dt-mbt")
@@ -78,8 +78,8 @@ func TestAccModuleBayTemplateResource_IDPreservation(t *testing.T) {
 }
 
 func TestAccModuleBayTemplateResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	mfgName := testutil.RandomName("tf-test-mfg")
 	mfgSlug := testutil.RandomSlug("tf-test-mfg")
 	dtModel := testutil.RandomName("tf-test-dt")
@@ -115,8 +115,8 @@ func TestAccModuleBayTemplateResource_full(t *testing.T) {
 }
 
 func TestAccModuleBayTemplateResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	mfgName := testutil.RandomName("tf-test-mfg")
 	mfgSlug := testutil.RandomSlug("tf-test-mfg")
 	dtModel := testutil.RandomName("tf-test-dt")
@@ -162,6 +162,10 @@ func TestAccModuleBayTemplateResource_external_deletion(t *testing.T) {
 	dtSlug := testutil.RandomSlug("dt-ext-del")
 	templateName := testutil.RandomName("mbt-ext-del")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -190,10 +194,8 @@ func TestAccModuleBayTemplateResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted module_bay_template with ID: %d", itemID)
 				},
-				Config: testAccModuleBayTemplateResourceConfig_basic(mfgName, mfgSlug, dtModel, dtSlug, templateName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_module_bay_template.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -283,14 +285,14 @@ func TestAccConsistency_ModuleBayTemplate_LiteralNames(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccModuleBayTemplateConsistencyLiteralNamesConfig(mfgName, mfgSlug, dtModel, dtSlug, templateName),
+				Config: testAccModuleBayTemplateResourceConfig_basic(mfgName, mfgSlug, dtModel, dtSlug, templateName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_module_bay_template.test", "id"),
 					resource.TestCheckResourceAttr("netbox_module_bay_template.test", "name", templateName),
 				),
 			},
 			{
-				Config:   testAccModuleBayTemplateConsistencyLiteralNamesConfig(mfgName, mfgSlug, dtModel, dtSlug, templateName),
+				Config:   testAccModuleBayTemplateResourceConfig_basic(mfgName, mfgSlug, dtModel, dtSlug, templateName),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_module_bay_template.test", "id"),
@@ -298,26 +300,4 @@ func TestAccConsistency_ModuleBayTemplate_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccModuleBayTemplateConsistencyLiteralNamesConfig(mfgName, mfgSlug, dtModel, dtSlug, templateName string) string {
-	return fmt.Sprintf(`
-provider "netbox" {}
-
-resource "netbox_manufacturer" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_device_type" "test" {
-  model        = %q
-  slug         = %q
-  manufacturer = netbox_manufacturer.test.id
-}
-
-resource "netbox_module_bay_template" "test" {
-  name        = %q
-  device_type = netbox_device_type.test.id
-}
-`, mfgName, mfgSlug, dtModel, dtSlug, templateName)
 }

@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccTunnelGroupResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 	name := testutil.RandomName("tf-test-tunnel-group")
 	slug := testutil.RandomSlug("tf-test-tunnel-grp")
@@ -43,8 +43,8 @@ func TestAccTunnelGroupResource_basic(t *testing.T) {
 }
 
 func TestAccTunnelGroupResource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names
 	name := testutil.RandomName("tg-id")
 	slug := testutil.GenerateSlug(name)
@@ -73,8 +73,8 @@ func TestAccTunnelGroupResource_IDPreservation(t *testing.T) {
 }
 
 func TestAccTunnelGroupResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tunnel-group-full")
 	slug := testutil.RandomSlug("tf-test-tg-full")
@@ -105,8 +105,8 @@ func TestAccTunnelGroupResource_full(t *testing.T) {
 }
 
 func TestAccTunnelGroupResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tunnel-group-upd")
 	slug := testutil.RandomSlug("tf-test-tg-upd")
@@ -141,8 +141,8 @@ func TestAccTunnelGroupResource_update(t *testing.T) {
 }
 
 func TestAccTunnelGroupResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tunnel-group-imp")
 	slug := testutil.RandomSlug("tf-test-tg-imp")
@@ -165,6 +165,10 @@ func TestAccTunnelGroupResource_import(t *testing.T) {
 				ResourceName:      "netbox_tunnel_group.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config:   testAccTunnelGroupResourceConfig_basic(name, slug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -215,6 +219,7 @@ func TestAccTunnelGroupResource_externalDeletion(t *testing.T) {
 
 func TestAccConsistency_TunnelGroup_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tg")
 	slug := testutil.RandomSlug("tg")
 

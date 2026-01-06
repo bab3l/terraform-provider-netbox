@@ -5,16 +5,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccPlatformResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	platformName := testutil.RandomName("tf-test-platform")
 	platformSlug := testutil.RandomSlug("tf-test-plat")
 	manufacturerName := testutil.RandomName("tf-test-mfr-for-platform")
@@ -25,10 +22,8 @@ func TestAccPlatformResource_basic(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckPlatformDestroy,
 			testutil.CheckManufacturerDestroy,
@@ -43,13 +38,17 @@ func TestAccPlatformResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_platform.test", "manufacturer", manufacturerSlug),
 				),
 			},
+			{
+				Config:   testAccPlatformResourceConfig_basic(platformName, platformSlug, manufacturerName, manufacturerSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
 
 func TestAccPlatformResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	platformName := testutil.RandomName("tf-test-platform-full")
 	platformSlug := testutil.RandomSlug("tf-test-plat-full")
 	manufacturerName := testutil.RandomName("tf-test-mfr-for-plat-full")
@@ -61,10 +60,8 @@ func TestAccPlatformResource_full(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckPlatformDestroy,
 			testutil.CheckManufacturerDestroy,
@@ -80,13 +77,17 @@ func TestAccPlatformResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_platform.test", "description", description),
 				),
 			},
+			{
+				Config:   testAccPlatformResourceConfig_full(platformName, platformSlug, manufacturerName, manufacturerSlug, description),
+				PlanOnly: true,
+			},
 		},
 	})
 }
 
 func TestAccPlatformResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	platformName := testutil.RandomName("tf-test-platform-update")
 	platformSlug := testutil.RandomSlug("tf-test-plat-upd")
 	manufacturerName := testutil.RandomName("tf-test-mfr-for-plat-upd")
@@ -98,10 +99,8 @@ func TestAccPlatformResource_update(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckPlatformDestroy,
 			testutil.CheckManufacturerDestroy,
@@ -115,19 +114,27 @@ func TestAccPlatformResource_update(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccPlatformResourceConfig_basic(platformName, platformSlug, manufacturerName, manufacturerSlug),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccPlatformResourceConfig_basic(updatedName, platformSlug, manufacturerName, manufacturerSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_platform.test", "id"),
 					resource.TestCheckResourceAttr("netbox_platform.test", "name", updatedName),
 				),
 			},
+			{
+				Config:   testAccPlatformResourceConfig_basic(updatedName, platformSlug, manufacturerName, manufacturerSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
 
 func TestAccPlatformResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	platformName := testutil.RandomName("tf-test-platform-import")
 	platformSlug := testutil.RandomSlug("tf-test-plat-imp")
 	manufacturerName := testutil.RandomName("tf-test-mfr-imp")
@@ -138,10 +145,8 @@ func TestAccPlatformResource_import(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckPlatformDestroy,
 			testutil.CheckManufacturerDestroy,
@@ -166,10 +171,15 @@ func TestAccPlatformResource_import(t *testing.T) {
 
 func TestAccPlatformResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	platformName := testutil.RandomName("tf-test-platform-id")
 	platformSlug := testutil.RandomSlug("tf-test-platform-id")
 	manufacturerName := testutil.RandomName("manufacturer")
 	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPlatformCleanup(platformSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -181,6 +191,10 @@ func TestAccPlatformResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_platform.test", "id"),
 					resource.TestCheckResourceAttr("netbox_platform.test", "name", platformName),
 				),
+			},
+			{
+				Config:   testAccPlatformResourceConfig_basic(platformName, platformSlug, manufacturerName, manufacturerSlug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -239,8 +253,8 @@ resource "netbox_platform" "test" {
 `, manufacturerName, manufacturerSlug, platformName, platformSlug, description)
 }
 func TestAccConsistency_Platform_LiteralNames(t *testing.T) {
-
 	t.Parallel()
+
 	platformName := testutil.RandomName("tf-test-platform-lit")
 	platformSlug := testutil.RandomSlug("tf-test-plat-lit")
 	manufacturerName := testutil.RandomName("tf-test-mfr-for-platform-lit")
@@ -252,10 +266,8 @@ func TestAccConsistency_Platform_LiteralNames(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckPlatformDestroy,
 			testutil.CheckManufacturerDestroy,
@@ -321,6 +333,7 @@ func TestAccPlatformResource_externalDeletion(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterPlatformCleanup(platformSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

@@ -9,7 +9,6 @@ import (
 )
 
 func TestAccClusterTypeDataSource_byID(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("cluster-type")
@@ -36,7 +35,6 @@ func TestAccClusterTypeDataSource_byID(t *testing.T) {
 }
 
 func TestAccClusterTypeDataSource_byName(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("cluster-type")
@@ -63,7 +61,6 @@ func TestAccClusterTypeDataSource_byName(t *testing.T) {
 }
 
 func TestAccClusterTypeDataSource_bySlug(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("cluster-type")

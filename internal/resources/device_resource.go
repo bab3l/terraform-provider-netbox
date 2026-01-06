@@ -736,12 +736,15 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		data.Status = types.StringValue("active")
 	}
 
-	// Handle airflow
-	if device.HasAirflow() && device.Airflow != nil {
-		data.Airflow = types.StringValue(string(device.Airflow.GetValue()))
-	} else if !data.Airflow.IsNull() {
-		data.Airflow = types.StringNull()
+	// Handle airflow - only update if user hasn't configured it (Unknown during creation)
+	if data.Airflow.IsUnknown() {
+		if device.HasAirflow() && device.Airflow != nil {
+			data.Airflow = types.StringValue(string(device.Airflow.GetValue()))
+		} else {
+			data.Airflow = types.StringNull()
+		}
 	}
+	// Otherwise preserve user's configured value (null or explicit value)
 
 	// Handle vc_position
 	if device.HasVcPosition() && device.VcPosition.Get() != nil {
@@ -771,35 +774,12 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags
-	if device.HasTags() {
-		tags := utils.NestedTagsToTagModels(device.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Handle tags using consolidated helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, device.HasTags(), device.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Handle custom fields
-	if device.HasCustomFields() && !data.CustomFields.IsNull() {
-		var stateCustomFields []utils.CustomFieldModel
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		customFields := utils.MapToCustomFieldModels(device.GetCustomFields(), stateCustomFields)
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfValueDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else if data.CustomFields.IsNull() {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Handle custom fields using consolidated helper
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, device.HasCustomFields(), device.GetCustomFields(), data.CustomFields, diags)
 }

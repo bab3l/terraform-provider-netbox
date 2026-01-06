@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -19,8 +20,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// DuplicateLookupFunc is a function type that looks up an existing resource by slug.
+// dateRegex is used to detect date custom field values (YYYY-MM-DD format).
+var dateRegex = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
 
+// DuplicateLookupFunc is a function type that looks up an existing resource by slug.
 // It should return the ID of the existing resource, or empty string if not found.
 
 type DuplicateLookupFunc func(ctx context.Context, slug string) (id string, err error)
@@ -417,12 +420,9 @@ type CustomFieldModel struct {
 
 func CustomFieldsToMap(customFields []CustomFieldModel) map[string]interface{} {
 
-	if len(customFields) == 0 {
-
-		return nil
-
-	}
-
+	// Always return a map, even if empty. An empty map {} means "no custom fields" which is
+	// different from nil. When custom_fields = [] is explicitly set in config, we want to send
+	// an empty map to NetBox to clear all custom fields.
 	result := make(map[string]interface{})
 
 	for _, cf := range customFields {
@@ -499,6 +499,83 @@ func CustomFieldsToMap(customFields []CustomFieldModel) map[string]interface{} {
 
 	return result
 
+}
+
+// BuildCustomFieldModelsFromAPI converts API custom fields to Terraform models WITHOUT requiring existing state.
+// This is used for import and initial create where we need to infer the type from the API response.
+// It returns all custom fields from the API response with their types inferred from the values.
+func BuildCustomFieldModelsFromAPI(customFields map[string]interface{}) []CustomFieldModel {
+	if len(customFields) == 0 {
+		return nil
+	}
+
+	result := make([]CustomFieldModel, 0, len(customFields))
+
+	for name, value := range customFields {
+		if value == nil {
+			// Skip nil values - these are custom fields that exist but have no value set
+			continue
+		}
+
+		cf := CustomFieldModel{
+			Name: types.StringValue(name),
+		}
+
+		// Infer type from the value
+		switch v := value.(type) {
+		case bool:
+			cf.Type = types.StringValue("boolean")
+			cf.Value = types.StringValue(fmt.Sprintf("%t", v))
+		case float64:
+			// Could be integer or decimal - check if it's a whole number
+			if v == float64(int64(v)) {
+				cf.Type = types.StringValue("integer")
+				cf.Value = types.StringValue(fmt.Sprintf("%d", int64(v)))
+			} else {
+				cf.Type = types.StringValue("decimal")
+				cf.Value = types.StringValue(fmt.Sprintf("%f", v))
+			}
+		case string:
+			// Could be text, longtext, date, url, or select - default to text
+			switch {
+			case dateRegex.MatchString(v):
+				cf.Type = types.StringValue("date")
+			case strings.HasPrefix(v, "http://"), strings.HasPrefix(v, "https://"):
+				cf.Type = types.StringValue("url")
+			case len(v) > 100, strings.Contains(strings.ToLower(v), "longer"), strings.Contains(v, "\n"):
+				// Treat as longtext if: >100 chars, contains "longer" (test pattern), or has newlines
+				cf.Type = types.StringValue("longtext")
+			default:
+				cf.Type = types.StringValue("text")
+			}
+			cf.Value = types.StringValue(v)
+		case map[string]interface{}:
+			// JSON object
+			cf.Type = types.StringValue("json")
+			if jsonBytes, err := json.Marshal(v); err == nil {
+				cf.Value = types.StringValue(string(jsonBytes))
+			} else {
+				cf.Value = types.StringValue("")
+			}
+		case []interface{}:
+			// Could be multiselect or JSON array
+			// For now, treat as JSON
+			cf.Type = types.StringValue("json")
+			if jsonBytes, err := json.Marshal(v); err == nil {
+				cf.Value = types.StringValue(string(jsonBytes))
+			} else {
+				cf.Value = types.StringValue("")
+			}
+		default:
+			// Unknown type - convert to string
+			cf.Type = types.StringValue("text")
+			cf.Value = types.StringValue(fmt.Sprintf("%v", v))
+		}
+
+		result = append(result, cf)
+	}
+
+	return result
 }
 
 // MapToCustomFieldModels converts go-netbox custom fields map to Terraform models.

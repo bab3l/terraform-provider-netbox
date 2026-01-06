@@ -14,8 +14,9 @@ import (
 func TestAccJournalEntryDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
-	cleanup := testutil.NewCleanupResource(t)
 	siteName := testutil.RandomName("tf-test-site-journal-ds-id")
+
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(testutil.GenerateSlug(siteName))
 
 	resource.Test(t, resource.TestCase{
@@ -39,79 +40,51 @@ func TestAccJournalEntryDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccJournalEntryDataSource_byID(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	siteName := testutil.RandomName("tf-test-site-journal-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(testutil.GenerateSlug(siteName))
 
 	resource.Test(t, resource.TestCase{
-
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.ComposeCheckDestroy(
 			testutil.CheckSiteDestroy,
 			testutil.CheckJournalEntryDestroy,
 		),
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccJournalEntryDataSourceConfig_byID(siteName),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("data.netbox_journal_entry.test", "id"),
-
 					resource.TestCheckResourceAttr("data.netbox_journal_entry.test", "assigned_object_type", "dcim.site"),
-
 					resource.TestCheckResourceAttr("data.netbox_journal_entry.test", "comments", "Test journal entry for data source"),
-
 					resource.TestCheckResourceAttr("data.netbox_journal_entry.test", "kind", "info"),
 				),
 			},
 		},
 	})
-
 }
 
 func testAccJournalEntryDataSourceConfig_byID(siteName string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_site" "test" {
-
   name = %q
-
   slug = %q
-
 }
 
 resource "netbox_journal_entry" "test" {
-
   assigned_object_type = "dcim.site"
-
   assigned_object_id   = netbox_site.test.id
-
   comments             = "Test journal entry for data source"
-
 }
 
 data "netbox_journal_entry" "test" {
-
   id = netbox_journal_entry.test.id
-
 }
-
 `, siteName, testutil.GenerateSlug(siteName))
-
 }

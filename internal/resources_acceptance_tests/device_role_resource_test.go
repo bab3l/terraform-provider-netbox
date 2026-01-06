@@ -11,8 +11,12 @@ import (
 
 func TestAccDeviceRoleResource_basic(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-device-role")
 	slug := testutil.RandomSlug("tf-test-dr")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -26,14 +30,22 @@ func TestAccDeviceRoleResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_device_role.test", "slug", slug),
 				),
 			},
+			{
+				// Test import
+				ResourceName:      "netbox_device_role.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccDeviceRoleResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("dr-id")
 	slug := testutil.GenerateSlug(name)
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterDeviceRoleCleanup(slug)
 
@@ -58,16 +70,15 @@ func TestAccDeviceRoleResource_full(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-device-role-full")
-
 	slug := testutil.RandomSlug("tf-test-dr-full")
-
 	description := testutil.RandomName("description")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceRoleCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDeviceRoleResourceConfig_full(name, slug, description, "aa1409", false),
@@ -89,6 +100,9 @@ func TestAccDeviceRoleResource_update(t *testing.T) {
 	name := testutil.RandomName("tf-test-device-role-update")
 	slug := testutil.RandomSlug("tf-test-dr-upd")
 	updatedName := testutil.RandomName("tf-test-device-role-updated")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -185,6 +199,9 @@ func TestAccDeviceRoleResource_externalDeletion(t *testing.T) {
 	name := testutil.RandomName("test-device-role-del")
 	slug := testutil.GenerateSlug(name)
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceRoleCleanup(slug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -220,3 +237,5 @@ func TestAccDeviceRoleResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+// NOTE: Custom field tests for device_role resource are in resources_acceptance_tests_customfields package

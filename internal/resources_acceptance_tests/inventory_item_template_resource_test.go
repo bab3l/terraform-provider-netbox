@@ -10,259 +10,191 @@ import (
 )
 
 func TestAccInventoryItemTemplateResource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-template")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
+	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
+
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccInventoryItemTemplateResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "name", name),
-
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "device_type"),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccInventoryItemTemplateResource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("iit-id")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
+	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
+
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccInventoryItemTemplateResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "name", name),
-
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "device_type"),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccInventoryItemTemplateResource_full(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-template-full")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
+	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
+
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccInventoryItemTemplateResourceConfig_full(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "name", name),
-
 					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "label", "Template Label"),
-
 					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "part_id", "PART-001"),
-
 					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "description", "Test template description"),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccInventoryItemTemplateResource_update(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-template-update")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
+	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
+
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccInventoryItemTemplateResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "name", name),
 				),
 			},
-
 			{
-
 				Config: testAccInventoryItemTemplateResourceConfig_full(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "label", "Template Label"),
-
 					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "description", "Test template description"),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccInventoryItemTemplateResource_import(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-template")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
+	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
+
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccInventoryItemTemplateResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "id"),
 				),
 			},
-
 			{
-
-				ResourceName: "netbox_inventory_item_template.test",
-
-				ImportState: true,
-
-				ImportStateVerify: true,
-
+				ResourceName:            "netbox_inventory_item_template.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device_type"},
 			},
 		},
 	})
-
 }
 
 func testAccInventoryItemTemplateResourceConfig_basic(name string) string {
-
 	return fmt.Sprintf(`
-
 %s
 
 resource "netbox_inventory_item_template" "test" {
-
   device_type = netbox_device_type.test.id
-
   name        = %q
-
 }
-
 `, testAccInventoryItemTemplateResourcePrereqs(name), name)
-
 }
 
 func testAccInventoryItemTemplateResourceConfig_full(name string) string {
-
 	return fmt.Sprintf(`
-
 %s
 
 resource "netbox_inventory_item_template" "test" {
-
   device_type = netbox_device_type.test.id
-
   name        = %q
-
   label       = "Template Label"
-
   part_id     = "PART-001"
-
   description = "Test template description"
-
 }
-
 `, testAccInventoryItemTemplateResourcePrereqs(name), name)
-
 }
 
 func testAccInventoryItemTemplateResourcePrereqs(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_manufacturer" "test" {
-
   name = %q
-
   slug = %q
-
 }
 
 resource "netbox_device_type" "test" {
-
   manufacturer = netbox_manufacturer.test.id
-
   model        = %q
-
   slug         = %q
-
 }
-
 `, name+"-mfr", testutil.RandomSlug("mfr"), name+"-model", testutil.RandomSlug("device"))
-
 }
 
 func TestAccConsistency_InventoryItemTemplate_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-inv-template-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterDeviceTypeCleanup(name + "-model")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -288,7 +220,12 @@ func TestAccConsistency_InventoryItemTemplate_LiteralNames(t *testing.T) {
 
 func TestAccInventoryItemTemplateResource_externalDeletion(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-inv-template-ext-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterDeviceTypeCleanup(name + "-model")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -318,10 +255,8 @@ func TestAccInventoryItemTemplateResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted inventory_item_template with ID: %d", itemID)
 				},
-				Config: testAccInventoryItemTemplateResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

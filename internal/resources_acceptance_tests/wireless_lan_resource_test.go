@@ -13,21 +13,18 @@ import (
 )
 
 func TestAccWirelessLANResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	ssid := testutil.RandomName("tf-test-ssid")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccWirelessLANResourceConfig_basic(ssid),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_wireless_lan.test", "id"),
 					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "ssid", ssid),
@@ -44,8 +41,8 @@ func TestAccWirelessLANResource_basic(t *testing.T) {
 }
 
 func TestAccWirelessLANResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	ssid := testutil.RandomName("tf-test-ssid-full")
 	groupName := testutil.RandomName("tf-test-wlan-group")
 	groupSlug := testutil.RandomSlug("tf-test-wlan-group")
@@ -54,15 +51,12 @@ func TestAccWirelessLANResource_full(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccWirelessLANResourceConfig_full(ssid, groupName, groupSlug, description, "active"),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_wireless_lan.test", "id"),
 					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "ssid", ssid),
@@ -72,7 +66,6 @@ func TestAccWirelessLANResource_full(t *testing.T) {
 			},
 			{
 				Config: testAccWirelessLANResourceConfig_full(ssid, groupName, groupSlug, updatedDescription, "disabled"),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "description", updatedDescription),
 					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "status", "disabled"),
@@ -84,6 +77,7 @@ func TestAccWirelessLANResource_full(t *testing.T) {
 
 func TestAccWirelessLANResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	ssid := testutil.RandomName("tf-test-ssid-id")
 
 	resource.Test(t, resource.TestCase{
@@ -211,7 +205,6 @@ resource "netbox_wireless_lan" "test" {
 }
 
 func TestAccConsistency_WirelessLAN(t *testing.T) {
-
 	t.Parallel()
 
 	wlanName := testutil.RandomName("wlan")
@@ -222,14 +215,11 @@ func TestAccConsistency_WirelessLAN(t *testing.T) {
 	tenantSlug := testutil.RandomSlug("tenant")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccWirelessLANConsistencyConfig(wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "ssid", ssid),
 					resource.TestCheckResourceAttrSet("netbox_wireless_lan.test", "group"),
@@ -238,8 +228,7 @@ func TestAccConsistency_WirelessLAN(t *testing.T) {
 			},
 			{
 				PlanOnly: true,
-
-				Config: testAccWirelessLANConsistencyConfig(wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug),
+				Config:   testAccWirelessLANConsistencyConfig(wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug),
 			},
 		},
 	})

@@ -15,7 +15,6 @@ import (
 
 func TestAccContactAssignmentDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
-
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("test-contact-ds-id")
@@ -49,7 +48,6 @@ func TestAccContactAssignmentDataSource_IDPreservation(t *testing.T) {
 
 func TestAccContactAssignmentDataSource_byID(t *testing.T) {
 	t.Parallel()
-
 	testutil.TestAccPreCheck(t)
 
 	randomName := testutil.RandomName("test-contact-ds")
@@ -62,97 +60,58 @@ func TestAccContactAssignmentDataSource_byID(t *testing.T) {
 	cleanup.RegisterContactCleanup(contactEmail)
 
 	resource.Test(t, resource.TestCase{
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.ComposeCheckDestroy(
-
 			testutil.CheckSiteDestroy,
 		),
-
 		Steps: []resource.TestStep{
-
 			// Create resource and read via data source
-
 			{
-
 				Config: testAccContactAssignmentDataSourceConfigWithEmail(randomName, randomSlug, siteSlug, contactEmail),
-
 				Check: resource.ComposeAggregateTestCheckFunc(
-
 					resource.TestCheckResourceAttrPair(
-
 						"data.netbox_contact_assignment.test", "id",
-
 						"netbox_contact_assignment.test", "id"),
-
 					resource.TestCheckResourceAttrPair(
-
 						"data.netbox_contact_assignment.test", "contact_id",
-
 						"netbox_contact_assignment.test", "contact_id"),
-
 					resource.TestCheckResourceAttr(
-
 						"data.netbox_contact_assignment.test", "object_type", "dcim.site"),
 				),
 			},
 		},
 	})
-
 }
 
 func testAccContactAssignmentDataSourceConfigWithEmail(name, slug, siteSlug, email string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_site" "test" {
-
   name   = "%s"
-
   slug   = "%s"
-
   status = "active"
-
 }
 
 resource "netbox_contact" "test" {
-
   name  = "%s-contact"
-
   email = "%s"
-
 }
 
 resource "netbox_contact_role" "test" {
-
   name = "%s-role"
-
   slug = "%s-role"
-
 }
 
 resource "netbox_contact_assignment" "test" {
-
   object_type = "dcim.site"
-
   object_id   = netbox_site.test.id
-
   contact_id  = netbox_contact.test.id
-
   role_id     = netbox_contact_role.test.id
-
 }
 
 data "netbox_contact_assignment" "test" {
-
   id = netbox_contact_assignment.test.id
-
 }
-
 `, siteSlug, siteSlug, name, email, name, slug)
-
 }

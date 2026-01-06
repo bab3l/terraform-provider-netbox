@@ -414,34 +414,7 @@ func (r *ModuleTypeResource) mapResponseToModel(ctx context.Context, moduleType 
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags
-	if moduleType.HasTags() && len(moduleType.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(moduleType.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
-
-	// Handle custom fields
-	if moduleType.HasCustomFields() {
-		apiCustomFields := moduleType.GetCustomFields()
-		var stateCustomFieldModels []utils.CustomFieldModel
-		if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-			data.CustomFields.ElementsAs(ctx, &stateCustomFieldModels, false)
-		}
-		customFields := utils.MapToCustomFieldModels(apiCustomFields, stateCustomFieldModels)
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Populate tags and custom fields using unified helpers
+	data.Tags = utils.PopulateTagsFromAPI(ctx, moduleType.HasTags(), moduleType.GetTags(), data.Tags, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, moduleType.HasCustomFields(), moduleType.GetCustomFields(), data.CustomFields, diags)
 }

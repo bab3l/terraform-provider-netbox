@@ -9,7 +9,6 @@ import (
 )
 
 func TestAccCircuitDataSource_byID(t *testing.T) {
-
 	t.Parallel()
 
 	providerName := testutil.RandomName("provider")

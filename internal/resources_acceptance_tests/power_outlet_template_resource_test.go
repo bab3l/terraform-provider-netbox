@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -56,8 +53,8 @@ resource "netbox_power_outlet_template" "test" {
 }
 
 func TestAccPowerOutletTemplateResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	manufacturerName := testutil.RandomName("mfr")
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
@@ -69,10 +66,8 @@ func TestAccPowerOutletTemplateResource_basic(t *testing.T) {
 	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPowerOutletTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),
@@ -92,8 +87,8 @@ func TestAccPowerOutletTemplateResource_basic(t *testing.T) {
 }
 
 func TestAccPowerOutletTemplateResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	manufacturerName := testutil.RandomName("mfr")
 	manufacturerSlug := testutil.RandomSlug("mfr")
 	deviceTypeName := testutil.RandomName("dt")
@@ -111,10 +106,8 @@ func TestAccPowerOutletTemplateResource_full(t *testing.T) {
 	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPowerOutletTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, outletType, description),
@@ -139,13 +132,17 @@ func TestAccPowerOutletTemplateResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_PowerOutletTemplate_LiteralNames(t *testing.T) {
-
 	t.Parallel()
+
 	manufacturerName := testutil.RandomName("manufacturer")
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
 	deviceTypeName := testutil.RandomName("device-type")
 	deviceTypeSlug := testutil.RandomSlug("device-type")
 	resourceName := testutil.RandomName("power_outlet")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -167,6 +164,7 @@ func TestAccConsistency_PowerOutletTemplate_LiteralNames(t *testing.T) {
 }
 func TestAccPowerOutletTemplateResource_update(t *testing.T) {
 	t.Parallel()
+
 	manufacturerName := testutil.RandomName("mfr-update")
 	manufacturerSlug := testutil.RandomSlug("mfr-update")
 	deviceTypeName := testutil.RandomName("dt-update")
@@ -205,6 +203,10 @@ func TestAccPowerOutletTemplateResource_externalDeletion(t *testing.T) {
 	deviceTypeName := testutil.RandomName("dt-ext-del")
 	deviceTypeSlug := testutil.RandomSlug("dt-ext-del")
 	name := testutil.RandomName("power-outlet-ext-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -256,10 +258,8 @@ func TestAccPowerOutletTemplateResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPowerOutletTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),
@@ -291,4 +291,82 @@ resource "netbox_power_outlet_template" "test" {
   depends_on = [netbox_device_type.test]
 }
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceTypeSlug, resourceName)
+}
+
+// TestAccPowerOutletTemplateResource_Label tests comprehensive scenarios for power outlet template label field.
+// This validates that Optional+Computed string fields with empty string defaults work correctly.
+func TestAccPowerOutletTemplateResource_Label(t *testing.T) {
+	t.Parallel()
+
+	// Generate unique names for this test run
+	manufacturerName := testutil.RandomName("tf-test-mfr-pwr-out-tpl")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-pwr-out-tpl")
+	deviceTypeName := testutil.RandomName("tf-test-dev-type-pwr-out-tpl")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dev-type-pwr-out-tpl")
+	powerOutletTemplateName := testutil.RandomName("tf-test-pwr-out-tpl")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
+		ResourceName:   "netbox_power_outlet_template",
+		OptionalField:  "label",
+		DefaultValue:   "",
+		FieldTestValue: "Outlet-01",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		BaseConfig: func() string {
+			return testAccPowerOutletTemplateResourceConfig_labelBase(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, powerOutletTemplateName)
+		},
+		WithFieldConfig: func(value string) string {
+			return testAccPowerOutletTemplateResourceConfig_labelWithField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, powerOutletTemplateName, value)
+		},
+	})
+}
+
+func testAccPowerOutletTemplateResourceConfig_labelBase(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, powerOutletTemplateName string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %q
+	slug         = %q
+}
+
+resource "netbox_power_outlet_template" "test" {
+	device_type = netbox_device_type.test.id
+	name        = %q
+	type        = "iec-60320-c13"
+	# label field intentionally omitted - should get default ""
+}
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, powerOutletTemplateName)
+}
+
+func testAccPowerOutletTemplateResourceConfig_labelWithField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, powerOutletTemplateName, labelValue string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %q
+	slug         = %q
+}
+
+resource "netbox_power_outlet_template" "test" {
+	device_type = netbox_device_type.test.id
+	name        = %q
+	type        = "iec-60320-c13"
+	label       = %q
+}
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, powerOutletTemplateName, labelValue)
 }

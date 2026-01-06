@@ -643,34 +643,8 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 	}
 
 	// Tags
-	if iface.HasTags() {
-		tags := utils.NestedTagsToTagModels(iface.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if !tagDiags.HasError() {
-			data.Tags = tagsValue
-		} else {
-			data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-		}
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	data.Tags = utils.PopulateTagsFromAPI(ctx, iface.HasTags(), iface.GetTags(), data.Tags, diags)
 
 	// Custom Fields
-	if iface.HasCustomFields() {
-		var existingCustomFields []utils.CustomFieldModel
-		if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-			data.CustomFields.ElementsAs(ctx, &existingCustomFields, false)
-		}
-		customFields := utils.MapToCustomFieldModels(iface.GetCustomFields(), existingCustomFields)
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		} else {
-			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, iface.HasCustomFields(), iface.GetCustomFields(), data.CustomFields, diags)
 }

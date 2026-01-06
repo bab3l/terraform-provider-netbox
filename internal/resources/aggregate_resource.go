@@ -336,6 +336,8 @@ func (r *AggregateResource) buildCreateRequest(ctx context.Context, data *Aggreg
 
 // mapResponseToModel maps the API response to the Terraform model.
 func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *netbox.Aggregate, data *AggregateResourceModel) {
+	var diags diag.Diagnostics
+
 	data.ID = types.StringValue(fmt.Sprintf("%d", aggregate.GetId()))
 	data.Prefix = types.StringValue(aggregate.GetPrefix())
 
@@ -347,8 +349,6 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 	// Map tenant
 	if tenant, ok := aggregate.GetTenantOk(); ok && tenant != nil && tenant.Id != 0 {
 		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
-	} else if data.Tenant.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.Tenant = types.StringNull()
 	}
@@ -356,8 +356,6 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 	// Map date_added
 	if dateAdded := aggregate.GetDateAdded(); dateAdded != "" {
 		data.DateAdded = types.StringValue(dateAdded)
-	} else if data.DateAdded.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.DateAdded = types.StringNull()
 	}
@@ -365,8 +363,6 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 	// Map description
 	if description, ok := aggregate.GetDescriptionOk(); ok && description != nil && *description != "" {
 		data.Description = types.StringValue(*description)
-	} else if data.Description.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.Description = types.StringNull()
 	}
@@ -374,36 +370,16 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 	// Map comments
 	if comments, ok := aggregate.GetCommentsOk(); ok && comments != nil && *comments != "" {
 		data.Comments = types.StringValue(*comments)
-	} else if data.Comments.IsNull() {
-		// Keep null if it was null
 	} else {
 		data.Comments = types.StringNull()
 	}
 
 	// Tags
-	if len(aggregate.Tags) > 0 {
-		tags := utils.NestedTagsToTagModels(aggregate.Tags)
-		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, len(aggregate.Tags) > 0, aggregate.Tags, data.Tags, &diags)
+	if diags.HasError() {
+		return
 	}
 
 	// Custom Fields
-	switch {
-	case len(aggregate.CustomFields) > 0 && !data.CustomFields.IsNull():
-		var stateCustomFields []utils.CustomFieldModel
-		data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-		customFields := utils.MapToCustomFieldModels(aggregate.CustomFields, stateCustomFields)
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		data.CustomFields = customFieldsValue
-
-	case len(aggregate.CustomFields) > 0:
-		customFields := utils.MapToCustomFieldModels(aggregate.CustomFields, []utils.CustomFieldModel{})
-		customFieldsValue, _ := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		data.CustomFields = customFieldsValue
-
-	default:
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, len(aggregate.CustomFields) > 0, aggregate.CustomFields, data.CustomFields, &diags)
 }

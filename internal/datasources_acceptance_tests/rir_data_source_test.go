@@ -9,7 +9,6 @@ import (
 )
 
 func TestAccRIRDataSource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
 
 	rirName := testutil.RandomName("rir-id")
@@ -35,7 +34,6 @@ func TestAccRIRDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccRIRDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	rirName := testutil.RandomName("rir")
@@ -61,7 +59,6 @@ func TestAccRIRDataSource_basic(t *testing.T) {
 }
 
 func TestAccRIRDataSource_byName(t *testing.T) {
-
 	t.Parallel()
 
 	rirName := testutil.RandomName("rir")
@@ -87,7 +84,6 @@ func TestAccRIRDataSource_byName(t *testing.T) {
 }
 
 func TestAccRIRDataSource_bySlug(t *testing.T) {
-
 	t.Parallel()
 
 	rirName := testutil.RandomName("rir")

@@ -33,7 +33,6 @@ func TestAccIPRangeDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccIPRangeDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	secondOctet := acctest.RandIntRange(1, 50)
@@ -72,7 +71,6 @@ data "netbox_ip_range" "test" {
 }
 
 func TestAccIPRangeDataSource_byAddresses(t *testing.T) {
-
 	t.Parallel()
 
 	secondOctet := acctest.RandIntRange(51, 100)

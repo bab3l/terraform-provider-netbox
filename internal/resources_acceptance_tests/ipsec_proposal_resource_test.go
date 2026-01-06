@@ -10,160 +10,121 @@ import (
 )
 
 func TestAccIPSECProposalResource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-prop")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProposalCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccIPSECProposalResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_ipsec_proposal.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "name", name),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccIPSECProposalResource_full(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-prop-full")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProposalCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccIPSECProposalResourceConfig_full(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_ipsec_proposal.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "name", name),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "encryption_algorithm", "aes-128-cbc"),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "authentication_algorithm", "hmac-sha256"),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "description", "Test IPsec proposal"),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccIPSECProposalResource_update(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-prop-update")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProposalCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccIPSECProposalResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_ipsec_proposal.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "name", name),
 				),
 			},
-
 			{
-
 				Config: testAccIPSECProposalResourceConfig_full(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_ipsec_proposal.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "name", name),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "encryption_algorithm", "aes-128-cbc"),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "authentication_algorithm", "hmac-sha256"),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "description", "Test IPsec proposal"),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccIPSECProposalResource_import(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-prop")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProposalCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccIPSECProposalResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_ipsec_proposal.test", "id"),
 				),
 			},
-
 			{
-
-				ResourceName: "netbox_ipsec_proposal.test",
-
-				ImportState: true,
-
+				ResourceName:      "netbox_ipsec_proposal.test",
+				ImportState:       true,
 				ImportStateVerify: true,
 			},
 		},
 	})
-
 }
 
 func TestAccIPSECProposalResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-prop-extdel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProposalCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -193,10 +154,8 @@ func TestAccIPSECProposalResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted IPSec proposal with ID: %d", itemID)
 				},
-				Config: testAccIPSECProposalResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_ipsec_proposal.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -204,6 +163,9 @@ func TestAccIPSECProposalResource_externalDeletion(t *testing.T) {
 func TestAccIPSecProposalResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 	name := testutil.RandomName("tf-test-ipsec-proposal-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProposalCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -220,58 +182,46 @@ func TestAccIPSecProposalResource_IDPreservation(t *testing.T) {
 	})
 }
 func testAccIPSECProposalResourceConfig_basic(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_ipsec_proposal" "test" {
-
   name                     = %q
-
   encryption_algorithm     = "aes-128-cbc"
-
 }
-
 `, name)
-
 }
 
 func testAccIPSECProposalResourceConfig_full(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_ipsec_proposal" "test" {
-
   name                     = %q
-
   encryption_algorithm     = "aes-128-cbc"
-
   authentication_algorithm = "hmac-sha256"
-
   description              = "Test IPsec proposal"
-
 }
-
 `, name)
-
 }
 
 func TestAccConsistency_IPSECProposal_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-ipsec-proposal-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProposalCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIPSECProposalConsistencyLiteralNamesConfig(name),
+				Config: testAccIPSECProposalResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ipsec_proposal.test", "id"),
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "name", name),
 				),
 			},
 			{
-				Config:   testAccIPSECProposalConsistencyLiteralNamesConfig(name),
+				Config:   testAccIPSECProposalResourceConfig_basic(name),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ipsec_proposal.test", "id"),
@@ -279,13 +229,4 @@ func TestAccConsistency_IPSECProposal_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccIPSECProposalConsistencyLiteralNamesConfig(name string) string {
-	return fmt.Sprintf(`
-resource "netbox_ipsec_proposal" "test" {
-  name                 = %q
-  encryption_algorithm = "aes-128-cbc"
-}
-`, name)
 }

@@ -6,21 +6,31 @@ import (
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("test-fhrp-assign")
 	interfaceName := testutil.RandomName("eth")
+	groupID := int32(acctest.RandIntRange(100, 254)) // nolint:gosec
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(name + "-site")
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
+	cleanup.RegisterDeviceRoleCleanup(name + "-role")
+	cleanup.RegisterDeviceCleanup(name + "-device")
+	cleanup.RegisterFHRPGroupCleanup("vrrp2", groupID)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
+				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName, groupID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "interface_type", "dcim.interface"),
 					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "priority", "100"),
@@ -30,7 +40,7 @@ func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccFHRPGroupAssignmentResourceConfig_updated(name, interfaceName),
+				Config: testAccFHRPGroupAssignmentResourceConfig_updated(name, interfaceName, groupID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "priority", "200"),
 				),
@@ -46,41 +56,42 @@ func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 }
 
 func TestAccFHRPGroupAssignmentResource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("fga-id")
 	interfaceName := "eth0"
+	groupID := int32(acctest.RandIntRange(100, 254)) // nolint:gosec
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterFHRPGroupAssignmentCleanup(name)
+	cleanup.RegisterFHRPGroupCleanup("vrrp2", groupID)
+	cleanup.RegisterDeviceCleanup(name + "-device")
+	cleanup.RegisterDeviceRoleCleanup(name + "-role")
+	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterSiteCleanup(name + "-site")
 
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
-				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
-
+				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName, groupID),
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "id"),
-
 					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "group_id"),
-
 					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "interface_id"),
 				),
+			},
+			{
+				Config:   testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName, groupID),
+				PlanOnly: true,
 			},
 		},
 	})
 }
 
-func testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName string) string {
+func testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName string, groupID int32) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = "%[1]s-site"
@@ -131,7 +142,7 @@ resource "netbox_fhrp_group_assignment" "test" {
 `, name, interfaceName)
 }
 
-func testAccFHRPGroupAssignmentResourceConfig_updated(name, interfaceName string) string {
+func testAccFHRPGroupAssignmentResourceConfig_updated(name, interfaceName string, groupID int32) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = "%[1]s-site"
@@ -170,7 +181,7 @@ resource "netbox_interface" "test" {
 
 resource "netbox_fhrp_group" "test" {
   protocol = "vrrp2"
-  group_id = 1
+  group_id = %[3]d
 }
 
 resource "netbox_fhrp_group_assignment" "test" {
@@ -179,20 +190,29 @@ resource "netbox_fhrp_group_assignment" "test" {
   interface_id   = netbox_interface.test.id
   priority       = 200
 }
-`, name, interfaceName)
+`, name, interfaceName, groupID)
 }
 
 func TestAccConsistency_FHRPGroupAssignment_LiteralNames(t *testing.T) {
 	t.Parallel()
 	name := testutil.RandomName("test-fhrp-assign-lit")
 	interfaceName := testutil.RandomName("eth")
+	groupID := int32(acctest.RandIntRange(100, 254)) // nolint:gosec
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(name + "-site")
+	cleanup.RegisterManufacturerCleanup(name + "-mfg")
+	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
+	cleanup.RegisterDeviceRoleCleanup(name + "-role")
+	cleanup.RegisterDeviceCleanup(name + "-device")
+	cleanup.RegisterFHRPGroupCleanup("vrrp2", groupID)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccFHRPGroupAssignmentConsistencyLiteralNamesConfig(name, interfaceName),
+				Config: testAccFHRPGroupAssignmentConsistencyLiteralNamesConfig(name, interfaceName, groupID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "id"),
 					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "interface_type", "dcim.interface"),
@@ -200,7 +220,7 @@ func TestAccConsistency_FHRPGroupAssignment_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccFHRPGroupAssignmentConsistencyLiteralNamesConfig(name, interfaceName),
+				Config:   testAccFHRPGroupAssignmentConsistencyLiteralNamesConfig(name, interfaceName, groupID),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "id"),
@@ -210,7 +230,7 @@ func TestAccConsistency_FHRPGroupAssignment_LiteralNames(t *testing.T) {
 	})
 }
 
-func testAccFHRPGroupAssignmentConsistencyLiteralNamesConfig(name, interfaceName string) string {
+func testAccFHRPGroupAssignmentConsistencyLiteralNamesConfig(name, interfaceName string, groupID int32) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name   = "%[1]s-site"
@@ -250,7 +270,7 @@ resource "netbox_interface" "test" {
 
 resource "netbox_fhrp_group" "test" {
   protocol = "vrrp2"
-  group_id = 1
+  group_id = %[3]d
 }
 
 resource "netbox_fhrp_group_assignment" "test" {
@@ -259,20 +279,29 @@ resource "netbox_fhrp_group_assignment" "test" {
   interface_id   = netbox_interface.test.id
   priority       = 100
 }
-`, name, interfaceName)
+`, name, interfaceName, groupID)
 }
 
 func TestAccFHRPGroupAssignmentResource_full(t *testing.T) {
 	t.Parallel()
 	name := testutil.RandomName("test-fhrp-assign-full")
 	interfaceName := testutil.RandomName("eth")
+	groupID := int32(acctest.RandIntRange(100, 254)) // nolint:gosec
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(name + "-site")
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
+	cleanup.RegisterDeviceRoleCleanup(name + "-role")
+	cleanup.RegisterDeviceCleanup(name + "-device")
+	cleanup.RegisterFHRPGroupCleanup("vrrp2", groupID)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
+				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName, groupID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "interface_type", "dcim.interface"),
 					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "priority", "100"),
@@ -287,6 +316,10 @@ func TestAccFHRPGroupAssignmentResource_full(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"group_id", "interface_id", "display_name"},
 			},
+			{
+				Config:   testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName, groupID),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -295,19 +328,28 @@ func TestAccFHRPGroupAssignmentResource_update(t *testing.T) {
 	t.Parallel()
 	name := testutil.RandomName("test-fhrp-assign-upd")
 	interfaceName := testutil.RandomName("eth")
+	groupID := int32(acctest.RandIntRange(100, 254)) // nolint:gosec
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(name + "-site")
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
+	cleanup.RegisterDeviceRoleCleanup(name + "-role")
+	cleanup.RegisterDeviceCleanup(name + "-device")
+	cleanup.RegisterFHRPGroupCleanup("vrrp2", groupID)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
+				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName, groupID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "priority", "100"),
 				),
 			},
 			{
-				Config: testAccFHRPGroupAssignmentResourceConfig_updated(name, interfaceName),
+				Config: testAccFHRPGroupAssignmentResourceConfig_updated(name, interfaceName, groupID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_fhrp_group_assignment.test", "priority", "200"),
 				),
@@ -321,13 +363,22 @@ func TestAccFHRPGroupAssignmentResource_external_deletion(t *testing.T) {
 
 	name := testutil.RandomName("test-fhrp-assign-extdel")
 	interfaceName := testutil.RandomName("eth")
+	groupID := int32(acctest.RandIntRange(100, 254)) // nolint:gosec
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(name + "-site")
+	cleanup.RegisterManufacturerCleanup(name + "-mfr")
+	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
+	cleanup.RegisterDeviceRoleCleanup(name + "-role")
+	cleanup.RegisterDeviceCleanup(name + "-device")
+	cleanup.RegisterFHRPGroupCleanup("vrrp2", groupID)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
+				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName, groupID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "id"),
 				),
@@ -367,10 +418,8 @@ func TestAccFHRPGroupAssignmentResource_external_deletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted FHRP group assignment with ID: %d", assignmentID)
 				},
-				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

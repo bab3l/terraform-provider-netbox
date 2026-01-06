@@ -50,7 +50,6 @@ func TestAccInventoryItemDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccInventoryItemDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	siteName := testutil.RandomName("site")
@@ -133,7 +132,6 @@ data "netbox_inventory_item" "test" {
 }
 
 func TestAccInventoryItemDataSource_byNameAndDevice(t *testing.T) {
-
 	t.Parallel()
 
 	siteName := testutil.RandomName("site")

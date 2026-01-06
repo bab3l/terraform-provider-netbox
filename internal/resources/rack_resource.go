@@ -13,6 +13,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -688,28 +689,14 @@ func (r *RackResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	// Preserve state custom fields for proper mapping
-
-	stateCustomFields := data.CustomFields
-
 	// Map response to state
 
 	mapRackToState(ctx, rack, &data)
 
-	// Restore custom fields from state (needed for proper type handling)
-
-	if !stateCustomFields.IsNull() && !stateCustomFields.IsUnknown() {
-		var stateCF []utils.CustomFieldModel
-
-		if diags := stateCustomFields.ElementsAs(ctx, &stateCF, false); !diags.HasError() && len(stateCF) > 0 {
-			if cfMap := rack.GetCustomFields(); cfMap != nil {
-				mappedCF := utils.MapToCustomFieldModels(cfMap, stateCF)
-
-				if len(mappedCF) > 0 {
-					data.CustomFields, _ = types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, mappedCF)
-				}
-			}
-		}
+	// Map custom fields
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, rack.HasCustomFields(), rack.GetCustomFields(), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -1344,16 +1331,8 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 	}
 
 	// Map tags
-
-	if tags := rack.GetTags(); len(tags) > 0 {
-		tagModels := utils.NestedTagsToTagModels(tags)
-
-		if tagSet, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tagModels); !diags.HasError() {
-			data.Tags = tagSet
-		}
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	var diags diag.Diagnostics
+	data.Tags = utils.PopulateTagsFromAPI(ctx, rack.HasTags(), rack.GetTags(), data.Tags, &diags)
 
 	// Note: Custom fields are handled separately in Read to preserve type information
 }

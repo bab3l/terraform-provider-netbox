@@ -11,16 +11,12 @@ import (
 func TestAccRackReservationDataSource_byID(t *testing.T) {
 	t.Parallel()
 
-	cleanup := testutil.NewCleanupResource(t)
-
 	siteName := testutil.RandomName("test-site-rr")
-
 	siteSlug := testutil.GenerateSlug(siteName)
-
 	rackName := testutil.RandomName("test-rack-rr")
-
 	description := "Test Rack Reservation Description"
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterRackCleanup(rackName)
 
@@ -43,12 +39,12 @@ func TestAccRackReservationDataSource_byID(t *testing.T) {
 func TestAccRackReservationDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
-	cleanup := testutil.NewCleanupResource(t)
 	siteName := testutil.RandomName("test-site-rr-id")
 	siteSlug := testutil.GenerateSlug(siteName)
 	rackName := testutil.RandomName("test-rack-rr-id")
 	description := "Test Rack Reservation IDPreservation"
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterRackCleanup(rackName)
 

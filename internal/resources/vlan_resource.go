@@ -597,49 +597,12 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 		data.Comments = types.StringNull()
 	}
 
-	// Tags
-
-	if vlan.HasTags() {
-		tags := utils.NestedTagsToTagModels(vlan.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Handle tags using consolidated helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, vlan.HasTags(), vlan.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Custom fields
-
-	if vlan.HasCustomFields() && !data.CustomFields.IsNull() {
-		var stateCustomFields []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		customFields := utils.MapToCustomFieldModels(vlan.GetCustomFields(), stateCustomFields)
-
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfValueDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.CustomFields = customFieldsValue
-	} else if data.CustomFields.IsNull() {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Handle custom fields using consolidated helper
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, vlan.HasCustomFields(), vlan.GetCustomFields(), data.CustomFields, diags)
 }

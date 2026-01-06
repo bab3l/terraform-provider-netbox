@@ -11,14 +11,13 @@ import (
 func TestAccModuleBayTemplateDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
-	cleanup := testutil.NewCleanupResource(t)
-
 	name := testutil.RandomName("test-module-bay-template-id")
 	manufacturerName := testutil.RandomName("test-manufacturer-mbt-id")
 	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
 	deviceTypeName := testutil.RandomName("test-device-type-mbt-id")
 	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 
@@ -43,18 +42,13 @@ func TestAccModuleBayTemplateDataSource_IDPreservation(t *testing.T) {
 func TestAccModuleBayTemplateDataSource_byID(t *testing.T) {
 	t.Parallel()
 
-	cleanup := testutil.NewCleanupResource(t)
-
 	name := testutil.RandomName("test-module-bay-template")
-
 	manufacturerName := testutil.RandomName("test-manufacturer-mbt")
-
 	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
-
 	deviceTypeName := testutil.RandomName("test-device-type-mbt")
-
 	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
 	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 

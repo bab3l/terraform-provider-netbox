@@ -370,9 +370,12 @@ func (r *ASNResource) mapResponseToModel(ctx context.Context, asn *netbox.ASN, d
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, asn.HasTags(), asn.GetTags(), diags)
+	// Tags
+	data.Tags = utils.PopulateTagsFromAPI(ctx, asn.HasTags(), asn.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
+	}
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, asn.HasCustomFields(), asn.GetCustomFields(), data.CustomFields, diags)
+	// Custom Fields
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, asn.HasCustomFields(), asn.GetCustomFields(), data.CustomFields, diags)
 }

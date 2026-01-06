@@ -442,8 +442,8 @@ func (r *TenantGroupResource) mapTenantGroupToState(ctx context.Context, tenantG
 	data.Parent = parentResult.Reference
 
 	// Handle tags
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), diags)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), data.Tags, diags)
 
 	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, tenantGroup.HasCustomFields(), tenantGroup.GetCustomFields(), data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, tenantGroup.HasCustomFields(), tenantGroup.GetCustomFields(), data.CustomFields, diags)
 }

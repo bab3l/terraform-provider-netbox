@@ -413,33 +413,8 @@ func (r *ConsolePortResource) mapResponseToModel(ctx context.Context, consolePor
 	}
 
 	// Handle tags
-	if consolePort.HasTags() && len(consolePort.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(consolePort.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	data.Tags = utils.PopulateTagsFromAPI(ctx, consolePort.HasTags(), consolePort.GetTags(), data.Tags, diags)
 
 	// Handle custom fields
-	if consolePort.HasCustomFields() {
-		apiCustomFields := consolePort.GetCustomFields()
-		var stateCustomFieldModels []utils.CustomFieldModel
-		if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-			data.CustomFields.ElementsAs(ctx, &stateCustomFieldModels, false)
-		}
-		customFields := utils.MapToCustomFieldModels(apiCustomFields, stateCustomFieldModels)
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, consolePort.HasCustomFields(), consolePort.GetCustomFields(), data.CustomFields, diags)
 }

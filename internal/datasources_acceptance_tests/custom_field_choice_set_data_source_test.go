@@ -35,7 +35,6 @@ func TestAccCustomFieldChoiceSetDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccCustomFieldChoiceSetDataSource_byID(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("cfcs")
@@ -59,7 +58,6 @@ func TestAccCustomFieldChoiceSetDataSource_byID(t *testing.T) {
 }
 
 func TestAccCustomFieldChoiceSetDataSource_byName(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("cfcs")

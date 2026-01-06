@@ -327,33 +327,8 @@ func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.D
 	}
 
 	// Handle tags
-	if db.HasTags() && len(db.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(db.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	data.Tags = utils.PopulateTagsFromAPI(ctx, db.HasTags(), db.GetTags(), data.Tags, diags)
 
 	// Handle custom fields
-	if db.HasCustomFields() {
-		apiCustomFields := db.GetCustomFields()
-		var stateCustomFieldModels []utils.CustomFieldModel
-		if !data.CustomFields.IsNull() {
-			data.CustomFields.ElementsAs(ctx, &stateCustomFieldModels, false)
-		}
-		customFields := utils.MapToCustomFieldModels(apiCustomFields, stateCustomFieldModels)
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, db.HasCustomFields(), db.GetCustomFields(), data.CustomFields, diags)
 }

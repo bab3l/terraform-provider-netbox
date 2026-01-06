@@ -134,51 +134,9 @@ func (r *ProviderResource) mapProviderToState(ctx context.Context, provider *net
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags
-
-	if provider.HasTags() {
-		tags := utils.NestedTagsToTagModels(provider.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
-
-	// Handle custom fields
-
-	if provider.HasCustomFields() && !data.CustomFields.IsNull() {
-		var stateCustomFields []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		customFields := utils.MapToCustomFieldModels(provider.GetCustomFields(), stateCustomFields)
-
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfValueDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.CustomFields = customFieldsValue
-	} else if data.CustomFields.IsNull() {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Populate tags and custom fields using unified helpers
+	data.Tags = utils.PopulateTagsFromNestedTags(ctx, provider.HasTags(), provider.GetTags(), diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, provider.HasCustomFields(), provider.GetCustomFields(), data.CustomFields, diags)
 }
 
 // Create creates a new provider resource.

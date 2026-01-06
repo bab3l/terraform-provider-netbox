@@ -9,10 +9,7 @@ import (
 )
 
 func TestAccServiceDataSource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	siteName := testutil.RandomName("tf-test-service-site-ds-id")
 	siteSlug := testutil.GenerateSlug(siteName)
@@ -25,6 +22,7 @@ func TestAccServiceDataSource_IDPreservation(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-service-device-ds-id")
 	serviceName := testutil.RandomName("tf-test-service-id")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
@@ -56,10 +54,7 @@ func TestAccServiceDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccServiceDataSource_basic(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	siteName := testutil.RandomName("tf-test-service-site-ds")
 	siteSlug := testutil.GenerateSlug(siteName)
@@ -72,6 +67,7 @@ func TestAccServiceDataSource_basic(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-service-device-ds")
 	serviceName := testutil.RandomName("tf-test-service")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
@@ -103,10 +99,7 @@ func TestAccServiceDataSource_basic(t *testing.T) {
 }
 
 func TestAccServiceDataSource_byNameAndDevice(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	siteName := testutil.RandomName("tf-test-service-site-ds")
 	siteSlug := testutil.GenerateSlug(siteName)
@@ -119,6 +112,7 @@ func TestAccServiceDataSource_byNameAndDevice(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-service-device-ds")
 	serviceName := testutil.RandomName("tf-test-service")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
 	cleanup.RegisterManufacturerCleanup(mfgSlug)

@@ -7,7 +7,5 @@ import (
 )
 
 func TestMain(m *testing.M) {
-
 	resource.TestMain(m)
-
 }

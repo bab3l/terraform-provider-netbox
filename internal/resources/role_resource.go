@@ -489,8 +489,8 @@ func (r *RoleResource) mapResponseToModel(ctx context.Context, role *netbox.Role
 	}
 
 	// Handle tags
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, role.HasTags(), role.GetTags(), diags)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, role.HasTags(), role.GetTags(), data.Tags, diags)
 
 	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, role.HasCustomFields(), role.GetCustomFields(), data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, role.HasCustomFields(), role.GetCustomFields(), data.CustomFields, diags)
 }

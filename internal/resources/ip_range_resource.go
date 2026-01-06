@@ -481,11 +481,11 @@ func (r *IPRangeResource) mapIPRangeToState(ctx context.Context, ipRange *netbox
 	}
 
 	// Tags
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, len(ipRange.Tags) > 0, ipRange.Tags, diags)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, len(ipRange.Tags) > 0, ipRange.Tags, data.Tags, diags)
 	if diags.HasError() {
 		return
 	}
 
 	// Custom Fields
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, len(ipRange.CustomFields) > 0, ipRange.CustomFields, data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, len(ipRange.CustomFields) > 0, ipRange.CustomFields, data.CustomFields, diags)
 }

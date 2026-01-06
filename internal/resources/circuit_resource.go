@@ -500,36 +500,11 @@ func (r *CircuitResource) mapCircuitToState(ctx context.Context, circuit *netbox
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags
-	if circuit.HasTags() {
-		tags := utils.NestedTagsToTagModels(circuit.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Populate tags and custom fields using unified helpers
+	data.Tags = utils.PopulateTagsFromAPI(ctx, circuit.HasTags(), circuit.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Handle custom fields
-	if circuit.HasCustomFields() {
-		var configuredCFs []utils.CustomFieldModel
-		if !data.CustomFields.IsNull() {
-			diags.Append(data.CustomFields.ElementsAs(ctx, &configuredCFs, false)...)
-			if diags.HasError() {
-				return
-			}
-		}
-		customFields := utils.MapToCustomFieldModels(circuit.GetCustomFields(), configuredCFs)
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, circuit.HasCustomFields(), circuit.GetCustomFields(), data.CustomFields, diags)
 }

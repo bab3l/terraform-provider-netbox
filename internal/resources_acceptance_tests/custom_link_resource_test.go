@@ -10,52 +10,114 @@ import (
 )
 
 func TestAccCustomLinkResource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("cl")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomLinkCleanupByName(name)
+
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
-		CheckDestroy: testutil.CheckCustomLinkDestroy,
-
+		CheckDestroy:             testutil.CheckCustomLinkDestroy,
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccCustomLinkResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
-
 					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_text", "View in External System"),
-
 					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_url", "https://example.com/device/{{ object.name }}"),
-
 					resource.TestCheckResourceAttr("netbox_custom_link.test", "object_types.#", "1"),
 				),
 			},
-
 			{
-
-				ResourceName: "netbox_custom_link.test",
-
-				ImportState: true,
-
+				// Verify no changes after create
+				Config:   testAccCustomLinkResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+			{
+				ResourceName:      "netbox_custom_link.test",
+				ImportState:       true,
 				ImportStateVerify: true,
 			},
 		},
 	})
+}
 
+func TestAccCustomLinkResource_full(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("cl")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomLinkCleanupByName(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCustomLinkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomLinkResourceConfig_full(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "enabled", "true"),
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "weight", "50"),
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "group_name", "External Links"),
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "button_class", "blue"),
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "new_window", "true"),
+				),
+			},
+			{
+				// Verify no changes after create
+				Config:   testAccCustomLinkResourceConfig_full(name),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func TestAccCustomLinkResource_update(t *testing.T) {
+	t.Parallel()
+	name := testutil.RandomName("cl")
+	updatedName := name + "-updated"
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomLinkCleanupByName(name)
+	cleanup.RegisterCustomLinkCleanupByName(updatedName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCustomLinkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomLinkResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
+				),
+			},
+			{
+				// Verify no changes after create
+				Config:   testAccCustomLinkResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+			{
+				Config: testAccCustomLinkResourceConfig_basic(updatedName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", updatedName),
+				),
+			},
+			{
+				// Verify no changes after update
+				Config:   testAccCustomLinkResourceConfig_basic(updatedName),
+				PlanOnly: true,
+			},
+		},
+	})
 }
 
 func TestAccCustomLinkResource_IDPreservation(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("cl-id")
@@ -64,126 +126,27 @@ func TestAccCustomLinkResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterCustomLinkCleanupByName(name)
 
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
-		CheckDestroy: testutil.CheckCustomLinkDestroy,
-
+		CheckDestroy:             testutil.CheckCustomLinkDestroy,
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccCustomLinkResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_custom_link.test", "id"),
-
-					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_text", "View in External System"),
-
-					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_url", "https://example.com/device/{{ object.name }}"),
-
-					resource.TestCheckResourceAttr("netbox_custom_link.test", "object_types.#", "1"),
-				),
-			},
-		},
-	})
-
-}
-
-func TestAccCustomLinkResource_full(t *testing.T) {
-
-	t.Parallel()
-
-	name := testutil.RandomName("cl")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterCustomLinkCleanupByName(name)
-
-	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
-		CheckDestroy: testutil.CheckCustomLinkDestroy,
-
-		Steps: []resource.TestStep{
-
-			{
-
-				Config: testAccCustomLinkResourceConfig_full(name),
-
-				Check: resource.ComposeTestCheckFunc(
-
-					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
-
-					resource.TestCheckResourceAttr("netbox_custom_link.test", "enabled", "true"),
-
-					resource.TestCheckResourceAttr("netbox_custom_link.test", "weight", "50"),
-
-					resource.TestCheckResourceAttr("netbox_custom_link.test", "group_name", "External Links"),
-
-					resource.TestCheckResourceAttr("netbox_custom_link.test", "button_class", "blue"),
-
-					resource.TestCheckResourceAttr("netbox_custom_link.test", "new_window", "true"),
-				),
-			},
-		},
-	})
-
-}
-
-func TestAccCustomLinkResource_update(t *testing.T) {
-
-	t.Parallel()
-
-	name := testutil.RandomName("cl")
-
-	updatedName := name + "-updated"
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterCustomLinkCleanupByName(name)
-	cleanup.RegisterCustomLinkCleanupByName(updatedName)
-
-	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
-		CheckDestroy: testutil.CheckCustomLinkDestroy,
-
-		Steps: []resource.TestStep{
-
-			{
-
-				Config: testAccCustomLinkResourceConfig_basic(name),
-
-				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
 				),
 			},
-
 			{
-
-				Config: testAccCustomLinkResourceConfig_basic(updatedName),
-
-				Check: resource.ComposeTestCheckFunc(
-
-					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", updatedName),
-				),
+				// Verify no changes after create
+				Config:   testAccCustomLinkResourceConfig_basic(name),
+				PlanOnly: true,
 			},
 		},
 	})
-
 }
 
 func TestAccConsistency_CustomLink_LiteralNames(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("cl-lit")
@@ -192,113 +155,54 @@ func TestAccConsistency_CustomLink_LiteralNames(t *testing.T) {
 	cleanup.RegisterCustomLinkCleanupByName(name)
 
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
-		CheckDestroy: testutil.CheckCustomLinkDestroy,
-
+		CheckDestroy:             testutil.CheckCustomLinkDestroy,
 		Steps: []resource.TestStep{
-
 			{
-
-				Config: testAccCustomLinkConsistencyLiteralNamesConfig(name),
-
+				Config: testAccCustomLinkResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
-
 					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_text", "View in External System"),
-
 					resource.TestCheckResourceAttr("netbox_custom_link.test", "link_url", "https://example.com/device/{{ object.name }}"),
 				),
 			},
-
 			{
-
-				Config: testAccCustomLinkConsistencyLiteralNamesConfig(name),
-
+				Config:   testAccCustomLinkResourceConfig_basic(name),
 				PlanOnly: true,
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_custom_link.test", "id"),
 				),
 			},
 		},
 	})
-
-}
-
-func testAccCustomLinkConsistencyLiteralNamesConfig(name string) string {
-
-	return fmt.Sprintf(`
-
-resource "netbox_custom_link" "test" {
-
-  name       = %q
-
-  link_text  = "View in External System"
-
-  link_url   = "https://example.com/device/{{ object.name }}"
-
-  object_types = ["dcim.device"]
-
-}
-
-`, name)
-
 }
 
 func testAccCustomLinkResourceConfig_basic(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_custom_link" "test" {
-
   name         = "%s"
-
   object_types = ["dcim.device"]
-
   link_text    = "View in External System"
-
   link_url     = "https://example.com/device/{{ object.name }}"
-
 }
-
 `, name)
-
 }
 
 func testAccCustomLinkResourceConfig_full(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_custom_link" "test" {
-
   name         = "%s"
-
   object_types = ["dcim.device", "dcim.site"]
-
   enabled      = true
-
   link_text    = "View Details"
-
   link_url     = "https://example.com/{{ object.name }}"
-
   weight       = 50
-
   group_name   = "External Links"
-
   button_class = "blue"
-
   new_window   = true
-
 }
-
 `, name)
-
 }
 
 func TestAccCustomLinkResource_externalDeletion(t *testing.T) {
@@ -306,6 +210,9 @@ func TestAccCustomLinkResource_externalDeletion(t *testing.T) {
 	testutil.TestAccPreCheck(t)
 
 	name := testutil.RandomName("tf-test-cl-extdel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomLinkCleanupByName(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

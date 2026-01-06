@@ -12,9 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccTenantResource_basic(t *testing.T) {
+// NOTE: Custom field tests for tenant resource are in resources_acceptance_tests_customfields package
 
+func TestAccTenantResource_basic(t *testing.T) {
 	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 	name := testutil.RandomName("tf-test-tenant")
 	slug := testutil.RandomSlug("tf-test-tenant")
@@ -43,8 +45,8 @@ func TestAccTenantResource_basic(t *testing.T) {
 }
 
 func TestAccTenantResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tenant-full")
 	slug := testutil.RandomSlug("tf-test-tenant-full")
@@ -70,13 +72,17 @@ func TestAccTenantResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_tenant.test", "description", description),
 				),
 			},
+			{
+				Config:   testAccTenantResourceConfig_full(name, slug, description),
+				PlanOnly: true,
+			},
 		},
 	})
 }
 
 func TestAccTenantResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tenant-update")
 	slug := testutil.RandomSlug("tf-test-tenant-upd")
@@ -101,11 +107,19 @@ func TestAccTenantResource_update(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccTenantResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccTenantResourceConfig_basic(updatedName, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_tenant.test", "id"),
 					resource.TestCheckResourceAttr("netbox_tenant.test", "name", updatedName),
 				),
+			},
+			{
+				Config:   testAccTenantResourceConfig_basic(updatedName, slug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -133,8 +147,8 @@ resource "netbox_tenant" "test" {
 }
 
 func TestAccTenantResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	// Generate unique names to avoid conflicts between test runs
 	name := testutil.RandomName("tf-test-tenant-import")
 	slug := testutil.RandomSlug("tf-test-tenant-imp")
@@ -162,6 +176,10 @@ func TestAccTenantResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccTenantResourceConfig_import(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -176,8 +194,8 @@ resource "netbox_tenant" "test" {
 }
 
 func TestAccConsistency_Tenant(t *testing.T) {
-
 	t.Parallel()
+
 	tenantName := testutil.RandomName("tenant")
 	tenantSlug := testutil.RandomSlug("tenant")
 	groupName := testutil.RandomName("group")
@@ -223,6 +241,7 @@ resource "netbox_tenant" "test" {
 
 func TestAccConsistency_Tenant_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-tenant-lit")
 	slug := testutil.RandomSlug("tf-test-tenant-lit")
 	description := testutil.RandomName("description")
@@ -280,6 +299,10 @@ func TestAccTenantResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_tenant.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_tenant.test", "slug", slug),
 				),
+			},
+			{
+				Config:   testAccTenantResourceConfig_basic(name, slug),
+				PlanOnly: true,
 			},
 		},
 	})

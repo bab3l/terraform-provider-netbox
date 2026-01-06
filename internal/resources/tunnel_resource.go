@@ -480,55 +480,14 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags
-
-	if tunnel.HasTags() {
-		tags := utils.NestedTagsToTagModels(tunnel.GetTags())
-
-		tagsValue, diags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Handle tags using consolidated helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, tunnel.HasTags(), tunnel.GetTags(), data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	// Handle custom fields
-
-	if tunnel.HasCustomFields() {
-		// Get existing custom field models to preserve type information
-
-		var existingCustomFields []utils.CustomFieldModel
-
-		if !data.CustomFields.IsNull() {
-			diags := data.CustomFields.ElementsAs(ctx, &existingCustomFields, false)
-
-			resp.Diagnostics.Append(diags...)
-
-			if resp.Diagnostics.HasError() {
-				return
-			}
-		}
-
-		customFields := utils.MapToCustomFieldModels(tunnel.GetCustomFields(), existingCustomFields)
-
-		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		resp.Diagnostics.Append(diags...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Handle custom fields using consolidated helper
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, tunnel.HasCustomFields(), tunnel.GetCustomFields(), data.CustomFields, &resp.Diagnostics)
 
 	// Save updated data into Terraform state
 

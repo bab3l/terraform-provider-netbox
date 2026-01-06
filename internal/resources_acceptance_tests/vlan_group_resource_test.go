@@ -13,10 +13,11 @@ import (
 )
 
 func TestAccVLANGroupResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-vlangrp")
 	slug := testutil.GenerateSlug("tf-test-vlangrp")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVLANGroupCleanup(slug)
 
@@ -44,11 +45,12 @@ func TestAccVLANGroupResource_basic(t *testing.T) {
 }
 
 func TestAccVLANGroupResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-vlangrp-full")
 	slug := testutil.GenerateSlug("tf-test-vlangrp-full")
 	description := "Test VLAN Group with all fields"
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVLANGroupCleanup(slug)
 
@@ -77,27 +79,24 @@ func TestAccVLANGroupResource_full(t *testing.T) {
 }
 
 func TestAccVLANGroupResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-vlangrp-upd")
 	slug := testutil.GenerateSlug("tf-test-vlangrp-upd")
 	updatedName := testutil.RandomName("tf-test-vlangrp-updated")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVLANGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.CheckVLANGroupDestroy,
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVLANGroupResourceConfig_basic(name, slug),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vlan_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vlan_group.test", "name", name),
@@ -106,7 +105,6 @@ func TestAccVLANGroupResource_update(t *testing.T) {
 			},
 			{
 				Config: testAccVLANGroupResourceConfig_full(updatedName, slug, "Updated description"),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vlan_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vlan_group.test", "name", updatedName),
@@ -168,26 +166,23 @@ func TestAccVLANGroupResource_externalDeletion(t *testing.T) {
 }
 
 func TestAccVLANGroupResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-vlangrp")
 	slug := testutil.GenerateSlug("tf-test-vlangrp")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVLANGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		CheckDestroy: testutil.CheckVLANGroupDestroy,
-
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVLANGroupResourceConfig_basic(name, slug),
-
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vlan_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vlan_group.test", "name", name),
@@ -199,12 +194,17 @@ func TestAccVLANGroupResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccVLANGroupResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
 
 func TestAccConsistency_VLANGroup_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("vg")
 	slug := testutil.RandomSlug("vg")
 

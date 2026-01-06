@@ -332,8 +332,7 @@ func (r *RIRResource) mapRIRToState(ctx context.Context, rir *netbox.RIR, data *
 	}
 
 	// Tags
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, len(rir.Tags) > 0, rir.Tags, diags)
-
+	data.Tags = utils.PopulateTagsFromAPI(ctx, len(rir.Tags) > 0, rir.Tags, data.Tags, diags)
 	// Custom Fields
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, len(rir.CustomFields) > 0, rir.CustomFields, data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, len(rir.CustomFields) > 0, rir.CustomFields, data.CustomFields, diags)
 }

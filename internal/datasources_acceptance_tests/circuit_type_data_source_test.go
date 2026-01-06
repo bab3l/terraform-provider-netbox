@@ -11,11 +11,10 @@ import (
 func TestAccCircuitTypeDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
-	cleanup := testutil.NewCleanupResource(t)
-
 	name := testutil.RandomName("ct-ds-id-type")
 	slug := testutil.RandomSlug("ct-ds-id-type")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterCircuitTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
@@ -38,14 +37,12 @@ func TestAccCircuitTypeDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccCircuitTypeDataSource_byID(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	name := testutil.RandomName("circuit-type")
 	slug := testutil.RandomSlug("circuit-type")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterCircuitTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
@@ -68,14 +65,12 @@ func TestAccCircuitTypeDataSource_byID(t *testing.T) {
 }
 
 func TestAccCircuitTypeDataSource_byName(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	name := testutil.RandomName("circuit-type")
 	slug := testutil.RandomSlug("circuit-type")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterCircuitTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
@@ -98,14 +93,12 @@ func TestAccCircuitTypeDataSource_byName(t *testing.T) {
 }
 
 func TestAccCircuitTypeDataSource_bySlug(t *testing.T) {
-
 	t.Parallel()
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	name := testutil.RandomName("circuit-type")
 	slug := testutil.RandomSlug("circuit-type")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterCircuitTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{

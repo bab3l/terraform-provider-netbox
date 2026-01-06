@@ -236,13 +236,13 @@ func (r *SiteResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	site, httpResp, err := r.client.DcimAPI.DcimSitesRetrieve(ctx, siteIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 
-	if err != nil {
-		resp.Diagnostics.AddError("Error reading site", utils.FormatAPIError(fmt.Sprintf("read site ID %s", siteID), err, httpResp))
+	if httpResp != nil && httpResp.StatusCode == 404 {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
-	if httpResp.StatusCode == 404 {
-		resp.State.RemoveResource(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading site", utils.FormatAPIError(fmt.Sprintf("read site ID %s", siteID), err, httpResp))
 		return
 	}
 
@@ -430,8 +430,8 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 	data.Comments = utils.StringFromAPI(site.HasComments(), site.GetComments, data.Comments)
 
 	// Handle tags
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, site.HasTags(), site.GetTags(), diags)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, site.HasTags(), site.GetTags(), data.Tags, diags)
 
 	// Handle custom fields - preserve state structure
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, site.HasCustomFields(), site.GetCustomFields(), data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, site.HasCustomFields(), site.GetCustomFields(), data.CustomFields, diags)
 }

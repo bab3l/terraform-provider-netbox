@@ -11,15 +11,12 @@ import (
 )
 
 func TestAccExportTemplateDataSource_byID(t *testing.T) {
-
 	t.Parallel()
-
 	testutil.TestAccPreCheck(t)
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	name := testutil.RandomName("test-export-tmpl-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterExportTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{
@@ -56,15 +53,12 @@ data "netbox_export_template" "test" {
 `
 }
 func TestAccExportTemplateDataSource_byName(t *testing.T) {
-
 	t.Parallel()
-
 	testutil.TestAccPreCheck(t)
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	name := testutil.RandomName("test-export-tmpl-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterExportTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{
@@ -90,8 +84,10 @@ func TestAccExportTemplateDataSource_byName(t *testing.T) {
 func TestAccExportTemplateDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
 	testutil.TestAccPreCheck(t)
-	cleanup := testutil.NewCleanupResource(t)
+
 	name := testutil.RandomName("test-export-tmpl-ds-id")
+
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterExportTemplateCleanup(name)
 
 	resource.Test(t, resource.TestCase{

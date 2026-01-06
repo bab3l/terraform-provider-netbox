@@ -43,13 +43,8 @@ func StringFromAPI(hasValue bool, getValue func() string, current types.String) 
 		}
 	}
 
-	// If API has no value or empty string, keep null if already null, otherwise set null
-
-	if !current.IsNull() {
-		return types.StringNull()
-	}
-
-	return current
+	// If API has no value or empty string, return null
+	return types.StringNull()
 }
 
 // StringFromAPIPreserveEmpty maps an API string value, but keeps empty strings as values.
@@ -60,11 +55,8 @@ func StringFromAPIPreserveEmpty(hasValue bool, getValue func() string, current t
 		return types.StringValue(getValue())
 	}
 
-	if !current.IsNull() {
-		return types.StringNull()
-	}
-
-	return current
+	// If API has no value, return null
+	return types.StringNull()
 }
 
 // NullableStringFromAPI maps a nullable API string pointer to a Terraform types.String.
@@ -91,11 +83,8 @@ func NullableStringFromAPI(hasValue bool, getValue func() string, current types.
 		}
 	}
 
-	if !current.IsNull() {
-		return types.StringNull()
-	}
-
-	return current
+	// If API has no value or empty string, return null
+	return types.StringNull()
 }
 
 // Int64FromAPI maps an API int value to a Terraform types.Int64.
@@ -106,11 +95,8 @@ func Int64FromAPI(hasValue bool, getValue func() int64, current types.Int64) typ
 		return types.Int64Value(getValue())
 	}
 
-	if !current.IsNull() {
-		return types.Int64Null()
-	}
-
-	return current
+	// If API has no value, return null
+	return types.Int64Null()
 }
 
 // Int64FromInt32API maps an API int32 value to a Terraform types.Int64.
@@ -121,11 +107,8 @@ func Int64FromInt32API(hasValue bool, getValue func() int32, current types.Int64
 		return types.Int64Value(int64(getValue()))
 	}
 
-	if !current.IsNull() {
-		return types.Int64Null()
-	}
-
-	return current
+	// If API has no value, return null
+	return types.Int64Null()
 }
 
 // UpdateReferenceAttribute updates a reference attribute in the state.
@@ -136,16 +119,17 @@ func Int64FromInt32API(hasValue bool, getValue func() int32, current types.Int64
 func UpdateReferenceAttribute(current types.String, apiName string, apiSlug string, apiID int32) types.String {
 	apiIDStr := fmt.Sprintf("%d", apiID)
 
-	// If current state is null, keep it null (user didn't configure this attribute)
-	// This prevents drift when the API returns values for optional attributes not in config
+	// If current state is unknown, return the preferred format (name > slug > ID)
+	// This handles both initial resource creation and import scenarios
 
-	if current.IsNull() {
-		return current
-	}
-
-	// If current state is unknown, return the ID (during initial resource creation)
-
-	if current.IsUnknown() {
+	if current.IsUnknown() || current.IsNull() {
+		// Prefer name, then slug, then ID
+		if apiName != "" {
+			return types.StringValue(apiName)
+		}
+		if apiSlug != "" {
+			return types.StringValue(apiSlug)
+		}
 		return types.StringValue(apiIDStr)
 	}
 
@@ -208,11 +192,8 @@ func NullableInt64FromAPI(hasValue bool, getValue func() *int32, current types.I
 		}
 	}
 
-	if !current.IsNull() {
-		return types.Int64Null()
-	}
-
-	return current
+	// If API has no value, return null
+	return types.Int64Null()
 }
 
 // Float64FromAPI maps an API float value to a Terraform types.Float64.
@@ -223,11 +204,8 @@ func Float64FromAPI(hasValue bool, getValue func() float64, current types.Float6
 		return types.Float64Value(getValue())
 	}
 
-	if !current.IsNull() {
-		return types.Float64Null()
-	}
-
-	return current
+	// If API has no value, return null
+	return types.Float64Null()
 }
 
 // NullableFloat64FromAPI maps a nullable API float pointer to a Terraform types.Float64.
@@ -242,11 +220,8 @@ func NullableFloat64FromAPI(hasValue bool, getValue func() *float64, current typ
 		}
 	}
 
-	if !current.IsNull() {
-		return types.Float64Null()
-	}
-
-	return current
+	// If API has no value, return null
+	return types.Float64Null()
 }
 
 // BoolFromAPI maps an API bool value to a Terraform types.Bool.
@@ -528,7 +503,8 @@ func CustomFieldsFromAPI(ctx context.Context, hasCustomFields bool, getCustomFie
 }
 
 // PopulateTagsFromNestedTags converts Netbox NestedTag slice to a Terraform Set value.
-// This is the preferred helper for resources using []netbox.NestedTag.
+// This function is kept for backwards compatibility during migration to PopulateTagsFromAPI.
+// TODO: Mark as deprecated after all resources migrate to PopulateTagsFromAPI (Batches 2-29).
 //
 // Example:
 //
@@ -549,8 +525,45 @@ func PopulateTagsFromNestedTags(ctx context.Context, hasTags bool, tags []netbox
 	return tagsValue
 }
 
+// PopulateTagsFromAPI converts Netbox NestedTag slice to a Terraform Set value.
+// This is the comprehensive helper that handles all tags scenarios:
+//   - Normal Create/Read/Update: Converts API tags to TagModels
+//   - Import: Same behavior (tags don't need type inference like custom fields)
+//   - Empty preservation: Maintains explicit empty sets (tags = []) vs null
+//
+// This function should be used by all resources that support tags to ensure
+// consistent handling across the provider.
+//
+// Example:
+//
+//	data.Tags = utils.PopulateTagsFromAPI(ctx, device.HasTags(), device.GetTags(), data.Tags, diags)
+func PopulateTagsFromAPI(ctx context.Context, hasTags bool, tags []netbox.NestedTag, stateTags types.Set, diags *diag.Diagnostics) types.Set {
+	// Determine if we should preserve empty set (config explicitly set it) or use null (config didn't specify)
+	// If state was previously an empty set, we should preserve it as empty set (not null)
+	// to maintain consistency when config has "tags = []"
+	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
+
+	if hasTags && len(tags) > 0 {
+		tagModels := NestedTagsToTagModels(tags)
+		tagsValue, tagDiags := types.SetValueFrom(ctx, GetTagsAttributeType().ElemType, tagModels)
+		diags.Append(tagDiags...)
+		if diags.HasError() {
+			return stateTags
+		}
+		return tagsValue
+	}
+
+	// No tags from API
+	if wasExplicitlyEmpty {
+		// Preserve empty set to maintain consistency with config
+		return types.SetValueMust(GetTagsAttributeType().ElemType, []attr.Value{})
+	}
+	return types.SetNull(GetTagsAttributeType().ElemType)
+}
+
 // PopulateCustomFieldsFromMap converts Netbox custom fields map to a Terraform Set value.
-// It preserves type information from the existing state custom fields.
+// This function is kept for backwards compatibility during migration to PopulateCustomFieldsFromAPI.
+// TODO: Mark as deprecated after all resources migrate to PopulateCustomFieldsFromAPI (Batches 2-29).
 //
 // Example:
 //
@@ -579,6 +592,70 @@ func PopulateCustomFieldsFromMap(ctx context.Context, hasCustomFields bool, cust
 	}
 
 	return customFieldsValue
+}
+
+// PopulateCustomFieldsFromAPI converts Netbox custom fields to a Terraform Set value.
+// This is the comprehensive helper that handles all custom fields scenarios:
+//   - Normal Create/Read/Update: Uses state type information to preserve field types
+//   - Import: Infers types from API values when state is null/unknown
+//   - Empty preservation: Maintains explicit empty sets (custom_fields = []) vs null
+//
+// This function should be used by all resources that support custom fields to ensure
+// consistent handling across the provider.
+//
+// Example:
+//
+//	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, device.HasCustomFields(), device.GetCustomFields(), data.CustomFields, diags)
+func PopulateCustomFieldsFromAPI(ctx context.Context, hasCustomFields bool, customFieldsMap map[string]interface{}, stateCustomFields types.Set, diags *diag.Diagnostics) types.Set {
+	// Determine if we should preserve empty set (config explicitly set it) or use null (config didn't specify)
+	// If state was previously an empty set, we should preserve it as empty set (not null)
+	// to maintain consistency when config has "custom_fields = []"
+	wasExplicitlyEmpty := !stateCustomFields.IsNull() && !stateCustomFields.IsUnknown() && len(stateCustomFields.Elements()) == 0
+
+	if hasCustomFields && len(customFieldsMap) > 0 {
+		// API has custom fields
+		var customFields []CustomFieldModel
+
+		if !stateCustomFields.IsNull() && !stateCustomFields.IsUnknown() {
+			// Extract existing state to get type information (Create/Read/Update scenario)
+			var stateCF []CustomFieldModel
+			cfDiags := stateCustomFields.ElementsAs(ctx, &stateCF, false)
+			if !cfDiags.HasError() && len(stateCF) > 0 {
+				// Use state type information
+				customFields = MapToCustomFieldModels(customFieldsMap, stateCF)
+			} else {
+				// State extraction failed or empty - infer from API
+				diags.Append(cfDiags...)
+				customFields = BuildCustomFieldModelsFromAPI(customFieldsMap)
+			}
+		} else {
+			// Import scenario - state is null/unknown, infer types from API values
+			customFields = BuildCustomFieldModelsFromAPI(customFieldsMap)
+		}
+
+		if len(customFields) > 0 {
+			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, GetCustomFieldsAttributeType().ElemType, customFields)
+			diags.Append(cfValueDiags...)
+			if diags.HasError() {
+				return stateCustomFields
+			}
+			return customFieldsValue
+		}
+
+		// No CF values resulted from mapping
+		if wasExplicitlyEmpty {
+			// Preserve empty set to maintain consistency with config
+			return types.SetValueMust(GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+		}
+		return types.SetNull(GetCustomFieldsAttributeType().ElemType)
+	}
+
+	// No custom fields from API
+	if wasExplicitlyEmpty {
+		// Preserve empty set to maintain consistency with config
+		return types.SetValueMust(GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+	}
+	return types.SetNull(GetCustomFieldsAttributeType().ElemType)
 }
 
 // =====================================================

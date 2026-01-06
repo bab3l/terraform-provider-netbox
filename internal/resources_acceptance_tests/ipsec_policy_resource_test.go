@@ -10,154 +10,118 @@ import (
 )
 
 func TestAccIPSECPolicyResource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-policy")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccIPSECPolicyResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "name", name),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccIPSECPolicyResource_full(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-policy-full")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccIPSECPolicyResourceConfig_full(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "name", name),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "pfs_group", "14"),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "description", "Test IPsec policy"),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccIPSECPolicyResource_update(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-policy-update")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccIPSECPolicyResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "name", name),
 				),
 			},
-
 			{
-
 				Config: testAccIPSECPolicyResourceConfig_full(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "pfs_group", "14"),
-
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "description", "Test IPsec policy"),
 				),
 			},
 		},
 	})
-
 }
 
 func TestAccIPSECPolicyResource_import(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-policy")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
+
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccIPSECPolicyResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
 				),
 			},
-
 			{
-
-				ResourceName: "netbox_ipsec_policy.test",
-
-				ImportState: true,
-
+				ResourceName:      "netbox_ipsec_policy.test",
+				ImportState:       true,
 				ImportStateVerify: true,
 			},
 		},
 	})
-
 }
 
 func TestAccIPSECPolicyResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-ipsec-policy-extdel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -187,17 +151,19 @@ func TestAccIPSECPolicyResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted IPSec policy with ID: %d", itemID)
 				},
-				Config: testAccIPSECPolicyResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 func TestAccIPSecPolicyResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-ipsec-policy-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -214,54 +180,44 @@ func TestAccIPSecPolicyResource_IDPreservation(t *testing.T) {
 	})
 }
 func testAccIPSECPolicyResourceConfig_basic(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_ipsec_policy" "test" {
-
   name = %q
-
 }
-
 `, name)
-
 }
 
 func testAccIPSECPolicyResourceConfig_full(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_ipsec_policy" "test" {
-
   name        = %q
-
   pfs_group   = 14
-
   description = "Test IPsec policy"
-
 }
-
 `, name)
-
 }
 
 func TestAccConsistency_IPSECPolicy_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-ipsec-policy-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIPSECPolicyConsistencyLiteralNamesConfig(name),
+				Config: testAccIPSECPolicyResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "name", name),
 				),
 			},
 			{
-				Config:   testAccIPSECPolicyConsistencyLiteralNamesConfig(name),
+				Config:   testAccIPSECPolicyResourceConfig_basic(name),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
@@ -269,12 +225,4 @@ func TestAccConsistency_IPSECPolicy_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccIPSECPolicyConsistencyLiteralNamesConfig(name string) string {
-	return fmt.Sprintf(`
-resource "netbox_ipsec_policy" "test" {
-  name = %q
-}
-`, name)
 }

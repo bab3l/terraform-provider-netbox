@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccRouteTargetResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("65000:100")
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRouteTargetCleanup(name)
@@ -38,8 +38,8 @@ func TestAccRouteTargetResource_basic(t *testing.T) {
 }
 
 func TestAccRouteTargetResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("65000:200")
 	tenantName := testutil.RandomName("tf-test-tenant")
 	tenantSlug := testutil.RandomSlug("tf-test-tenant")
@@ -68,14 +68,19 @@ func TestAccRouteTargetResource_full(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_route_target.test", "tenant"),
 				),
 			},
+			{
+				Config:   testAccRouteTargetResourceConfig_full(name, tenantName, tenantSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
 
 func TestAccRouteTargetResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("65000:300")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRouteTargetCleanup(name)
 
@@ -92,6 +97,10 @@ func TestAccRouteTargetResource_update(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
 					resource.TestCheckResourceAttr("netbox_route_target.test", "name", name),
 				),
+			},
+			{
+				Config:   testAccRouteTargetResourceConfig_basic(name),
+				PlanOnly: true,
 			},
 			{
 				Config: testAccRouteTargetResourceConfig_updated(name),
@@ -101,14 +110,19 @@ func TestAccRouteTargetResource_update(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_route_target.test", "description", "Updated description"),
 				),
 			},
+			{
+				Config:   testAccRouteTargetResourceConfig_updated(name),
+				PlanOnly: true,
+			},
 		},
 	})
 }
 
 func TestAccRouteTargetResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("65000:100")
+
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRouteTargetCleanup(name)
 
@@ -127,9 +141,17 @@ func TestAccRouteTargetResource_import(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccRouteTargetResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+			{
 				ResourceName:      "netbox_route_target.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config:   testAccRouteTargetResourceConfig_basic(name),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -139,6 +161,9 @@ func TestAccRouteTargetResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("65000:999")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRouteTargetCleanup(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -168,18 +193,16 @@ func TestAccRouteTargetResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted route target with ID: %d", itemID)
 				},
-				Config: testAccRouteTargetResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 
 func TestAccConsistency_RouteTarget_LiteralNames(t *testing.T) {
-
 	t.Parallel()
+
 	rtName := testutil.RandomName("65000:100")
 	tenantName := testutil.RandomName("tenant")
 	tenantSlug := testutil.RandomSlug("tenant")
@@ -224,6 +247,10 @@ func TestAccRouteTargetResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
 					resource.TestCheckResourceAttr("netbox_route_target.test", "name", name),
 				),
+			},
+			{
+				Config:   testAccRouteTargetResourceConfig_basic(name),
+				PlanOnly: true,
 			},
 		},
 	})

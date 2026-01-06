@@ -466,11 +466,6 @@ func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *
 	}
 
 	// Tags
-	if len(ipAddress.Tags) > 0 {
-		tags := utils.NestedTagsToTagModels(ipAddress.Tags)
-		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	var diags diag.Diagnostics
+	data.Tags = utils.PopulateTagsFromAPI(ctx, len(ipAddress.Tags) > 0, ipAddress.Tags, data.Tags, &diags)
 }

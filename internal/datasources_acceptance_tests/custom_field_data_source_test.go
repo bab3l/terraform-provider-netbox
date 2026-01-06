@@ -31,7 +31,6 @@ func TestAccCustomFieldDataSource_IDPreservation(t *testing.T) {
 }
 
 func TestAccCustomFieldDataSource_basic(t *testing.T) {
-
 	t.Parallel()
 
 	// Custom field names only allow alphanumeric and underscores
@@ -53,7 +52,6 @@ func TestAccCustomFieldDataSource_basic(t *testing.T) {
 }
 
 func TestAccCustomFieldDataSource_byName(t *testing.T) {
-
 	t.Parallel()
 
 	// Custom field names only allow alphanumeric and underscores

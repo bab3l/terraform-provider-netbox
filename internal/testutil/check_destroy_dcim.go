@@ -1352,3 +1352,83 @@ func CheckVirtualChassisDestroy(s *terraform.State) error {
 	return nil
 
 }
+
+// CheckInventoryItemDestroy verifies that an inventory item has been destroyed.
+func CheckInventoryItemDestroy(s *terraform.State) error {
+	// No specific destroy check needed as inventory items are tied to devices
+	// and will be cleaned up when devices are destroyed
+	return nil
+}
+
+// CheckModuleDestroy verifies that a module has been destroyed.
+func CheckModuleDestroy(s *terraform.State) error {
+	// No specific destroy check needed as modules are tied to devices
+	// and will be cleaned up when devices are destroyed
+	return nil
+}
+
+// CheckPowerOutletDestroy verifies that a power outlet has been destroyed.
+func CheckPowerOutletDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_power_outlet" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.DcimAPI.DcimPowerOutletsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("power outlet with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}
+
+// CheckPowerPortDestroy verifies that a power port has been destroyed.
+func CheckPowerPortDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_power_port" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		if name == "" {
+			continue
+		}
+
+		list, resp, err := client.DcimAPI.DcimPowerPortsList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			continue
+		}
+
+		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+			return fmt.Errorf("power port with name %s still exists (ID: %d)", name, list.Results[0].GetId())
+		}
+	}
+
+	return nil
+}

@@ -359,34 +359,7 @@ func (r *ModuleBayResource) mapResponseToModel(ctx context.Context, moduleBay *n
 		data.Description = types.StringNull()
 	}
 
-	// Handle tags
-	if moduleBay.HasTags() && len(moduleBay.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(moduleBay.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
-
-	// Handle custom fields
-	if moduleBay.HasCustomFields() {
-		apiCustomFields := moduleBay.GetCustomFields()
-		var stateCustomFieldModels []utils.CustomFieldModel
-		if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-			data.CustomFields.ElementsAs(ctx, &stateCustomFieldModels, false)
-		}
-		customFields := utils.MapToCustomFieldModels(apiCustomFields, stateCustomFieldModels)
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Populate tags and custom fields using unified helpers
+	data.Tags = utils.PopulateTagsFromAPI(ctx, moduleBay.HasTags(), moduleBay.GetTags(), data.Tags, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, moduleBay.HasCustomFields(), moduleBay.GetCustomFields(), data.CustomFields, diags)
 }

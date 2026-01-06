@@ -533,48 +533,14 @@ func (r *RackRoleResource) mapRackRoleToState(ctx context.Context, rackRole *net
 	}
 
 	// Handle tags
-
-	if rackRole.HasTags() {
-		tags := utils.NestedTagsToTagModels(rackRole.GetTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, rackRole.HasTags(), rackRole.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
 	// Handle custom fields
-
-	if rackRole.HasCustomFields() && !data.CustomFields.IsNull() {
-		var stateCustomFields []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		customFields := utils.MapToCustomFieldModels(rackRole.GetCustomFields(), stateCustomFields)
-
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-		diags.Append(cfValueDiags...)
-
-		if diags.HasError() {
-			return
-		}
-
-		data.CustomFields = customFieldsValue
-	} else if data.CustomFields.IsNull() {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, rackRole.HasCustomFields(), rackRole.GetCustomFields(), data.CustomFields, diags)
+	if diags.HasError() {
+		return
 	}
 }

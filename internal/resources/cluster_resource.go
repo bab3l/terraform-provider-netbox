@@ -175,14 +175,9 @@ func (r *ClusterResource) mapClusterToState(ctx context.Context, cluster *netbox
 		data.Comments,
 	)
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, cluster.HasTags(), cluster.GetTags(), diags)
-	if diags.HasError() {
-		return
-	}
-
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, cluster.HasCustomFields(), cluster.GetCustomFields(), data.CustomFields, diags)
+	// Populate tags and custom fields using unified helpers
+	data.Tags = utils.PopulateTagsFromAPI(ctx, cluster.HasTags(), cluster.GetTags(), data.Tags, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, cluster.HasCustomFields(), cluster.GetCustomFields(), data.CustomFields, diags)
 }
 
 // buildClusterRequest builds a WritableClusterRequest from the resource model.

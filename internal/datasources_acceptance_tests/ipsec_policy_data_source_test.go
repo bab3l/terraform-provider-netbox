@@ -12,34 +12,23 @@ import (
 )
 
 func TestAccIPSecPolicyDataSource_byID(t *testing.T) {
-
 	t.Parallel()
-
 	testutil.TestAccPreCheck(t)
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	randomName := testutil.RandomName("tf-test-ipsec-policy-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterIPSecPolicyCleanup(randomName)
 
 	resource.Test(t, resource.TestCase{
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccIPSecPolicyDataSourceByID(randomName),
-
 				Check: resource.ComposeAggregateTestCheckFunc(
-
 					resource.TestCheckResourceAttr("data.netbox_ipsec_policy.test", "name", randomName),
-
 					resource.TestCheckResourceAttrSet("data.netbox_ipsec_policy.test", "id"),
 				),
 			},
@@ -48,38 +37,26 @@ func TestAccIPSecPolicyDataSource_byID(t *testing.T) {
 			testutil.CheckIPSecPolicyDestroy,
 		),
 	})
-
 }
 
 func TestAccIPSecPolicyDataSource_byName(t *testing.T) {
-
 	t.Parallel()
-
 	testutil.TestAccPreCheck(t)
-
-	cleanup := testutil.NewCleanupResource(t)
 
 	randomName := testutil.RandomName("tf-test-ipsec-policy-ds")
 
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterIPSecPolicyCleanup(randomName)
 
 	resource.Test(t, resource.TestCase{
-
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccIPSecPolicyDataSourceByName(randomName),
-
 				Check: resource.ComposeAggregateTestCheckFunc(
-
 					resource.TestCheckResourceAttr("data.netbox_ipsec_policy.test", "name", randomName),
-
 					resource.TestCheckResourceAttrSet("data.netbox_ipsec_policy.test", "id"),
 				),
 			},
@@ -88,34 +65,27 @@ func TestAccIPSecPolicyDataSource_byName(t *testing.T) {
 			testutil.CheckIPSecPolicyDestroy,
 		),
 	})
-
 }
 
 func testAccIPSecPolicyDataSourceByID(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_ipsec_policy" "test" {
-
   name = %[1]q
-
 }
 
 data "netbox_ipsec_policy" "test" {
-
   id = netbox_ipsec_policy.test.id
-
 }
-
 `, name)
-
 }
 
 func TestAccIPSecPolicyDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
 	testutil.TestAccPreCheck(t)
-	cleanup := testutil.NewCleanupResource(t)
+
 	randomName := testutil.RandomName("tf-test-ipsec-policy-ds-id")
+
+	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterIPSecPolicyCleanup(randomName)
 
 	resource.Test(t, resource.TestCase{
@@ -138,21 +108,13 @@ func TestAccIPSecPolicyDataSource_IDPreservation(t *testing.T) {
 }
 
 func testAccIPSecPolicyDataSourceByName(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_ipsec_policy" "test" {
-
   name = %[1]q
-
 }
 
 data "netbox_ipsec_policy" "test" {
-
   name = netbox_ipsec_policy.test.name
-
 }
-
 `, name)
-
 }

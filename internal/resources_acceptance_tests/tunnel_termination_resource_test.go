@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccTunnelTerminationResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	tunnelName := testutil.RandomName("tf-test-tunnel-for-term")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -41,9 +41,53 @@ func TestAccTunnelTerminationResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccTunnelTerminationResource_IDPreservation(t *testing.T) {
-
+func TestAccTunnelTerminationResource_full(t *testing.T) {
 	t.Parallel()
+
+	tunnelName := testutil.RandomName("tf-test-tunnel-full")
+	tagName1 := testutil.RandomName("tag1")
+	tagSlug1 := testutil.RandomSlug("tag1")
+	tagName2 := testutil.RandomName("tag2")
+	tagSlug2 := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelCleanup(tunnelName)
+	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+		},
+		CheckDestroy: testutil.CheckTunnelTerminationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTunnelTerminationResourceConfig_full(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tunnel_termination.test", "id"),
+					resource.TestCheckResourceAttrSet("netbox_tunnel_termination.test", "tunnel"),
+					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "termination_type", "dcim.device"),
+					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "role", "hub"),
+					resource.TestCheckResourceAttrSet("netbox_tunnel_termination.test", "outside_ip"),
+					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "tags.#", "2"),
+					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "custom_fields.#", "1"),
+					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "custom_fields.0.value", "test_value"),
+				),
+			},
+			{
+				Config: testAccTunnelTerminationResourceConfig_fullUpdate(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "role", "peer"),
+					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "custom_fields.0.value", "updated_value"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccTunnelTerminationResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
 	tunnelName := testutil.RandomName("tnl-term-id")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -71,8 +115,8 @@ func TestAccTunnelTerminationResource_IDPreservation(t *testing.T) {
 }
 
 func TestAccTunnelTerminationResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	tunnelName := testutil.RandomName("tf-test-tunnel-for-term-upd")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -103,8 +147,8 @@ func TestAccTunnelTerminationResource_update(t *testing.T) {
 }
 
 func TestAccTunnelTerminationResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	tunnelName := testutil.RandomName("tf-test-tunnel-for-term-imp")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -173,8 +217,123 @@ func TestAccTunnelTerminationResource_externalDeletion(t *testing.T) {
 	})
 }
 
+func testAccTunnelTerminationResourceConfig_full(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
+	cfName := testutil.RandomCustomFieldName("test_field")
+	return fmt.Sprintf(`
+resource "netbox_tunnel" "test" {
+  name          = %[1]q
+  encapsulation = "ipsec-tunnel"
+}
+
+resource "netbox_tag" "tag1" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_custom_field" "test_field" {
+  name         = %[6]q
+  object_types = ["vpn.tunneltermination"]
+  type         = "text"
+}
+
+resource "netbox_ip_address" "outside" {
+  address = "192.0.2.1/32"
+  status  = "active"
+}
+
+resource "netbox_tunnel_termination" "test" {
+  tunnel           = netbox_tunnel.test.id
+  termination_type = "dcim.device"
+  role             = "hub"
+  outside_ip       = netbox_ip_address.outside.id
+
+  tags = [
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    },
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    }
+  ]
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.test_field.name
+      type  = "text"
+      value = "test_value"
+    }
+  ]
+}
+`, tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+}
+
+func testAccTunnelTerminationResourceConfig_fullUpdate(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
+	cfName := testutil.RandomCustomFieldName("test_field")
+	return fmt.Sprintf(`
+resource "netbox_tunnel" "test" {
+  name          = %[1]q
+  encapsulation = "ipsec-tunnel"
+}
+
+resource "netbox_tag" "tag1" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_custom_field" "test_field" {
+  name         = %[6]q
+  object_types = ["vpn.tunneltermination"]
+  type         = "text"
+}
+
+resource "netbox_ip_address" "outside" {
+  address = "192.0.2.1/32"
+  status  = "active"
+}
+
+resource "netbox_tunnel_termination" "test" {
+  tunnel           = netbox_tunnel.test.id
+  termination_type = "dcim.device"
+  role             = "peer"
+  outside_ip       = netbox_ip_address.outside.id
+
+  tags = [
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    },
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    }
+  ]
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.test_field.name
+      type  = "text"
+      value = "updated_value"
+    }
+  ]
+}
+`, tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+}
+
 func TestAccConsistency_TunnelTermination_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	tunnelName := testutil.RandomName("tunnel")
 
 	cleanup := testutil.NewCleanupResource(t)

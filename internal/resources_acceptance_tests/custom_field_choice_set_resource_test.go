@@ -12,50 +12,7 @@ import (
 // NOTE: CustomFieldChoiceSet resources are safe to create with t.Parallel()
 // because they do not have a "required" flag and do not persist state
 // that interferes with other tests.
-
 func TestAccCustomFieldChoiceSetResource_basic(t *testing.T) {
-
-	t.Parallel()
-
-	name := testutil.RandomName("cfcs")
-
-	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
-		CheckDestroy: testutil.CheckCustomFieldChoiceSetDestroy,
-
-		Steps: []resource.TestStep{
-
-			{
-
-				Config: testAccCustomFieldChoiceSetResourceConfig_basic(name),
-
-				Check: resource.ComposeTestCheckFunc(
-
-					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "name", name),
-
-					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "extra_choices.#", "3"),
-				),
-			},
-
-			{
-
-				ResourceName: "netbox_custom_field_choice_set.test",
-
-				ImportState: true,
-
-				ImportStateVerify: true,
-			},
-		},
-	})
-
-}
-
-func TestAccCustomFieldChoiceSetResource_full(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("cfcs")
@@ -64,41 +21,66 @@ func TestAccCustomFieldChoiceSetResource_full(t *testing.T) {
 	cleanup.RegisterCustomFieldChoiceSetCleanupByName(name)
 
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
-		CheckDestroy: testutil.CheckCustomFieldChoiceSetDestroy,
-
+		CheckDestroy:             testutil.CheckCustomFieldChoiceSetDestroy,
 		Steps: []resource.TestStep{
-
 			{
-
-				Config: testAccCustomFieldChoiceSetResourceConfig_full(name),
-
+				Config: testAccCustomFieldChoiceSetResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "name", name),
-
-					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "description", "Test choice set"),
-
-					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "order_alphabetically", "true"),
-
 					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "extra_choices.#", "3"),
 				),
 			},
+			{
+				// Verify no changes after create
+				Config:   testAccCustomFieldChoiceSetResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+			{
+				ResourceName:      "netbox_custom_field_choice_set.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
-
 }
 
-func TestAccCustomFieldChoiceSetResource_update(t *testing.T) {
-
+func TestAccCustomFieldChoiceSetResource_full(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("cfcs")
 
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldChoiceSetCleanupByName(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCustomFieldChoiceSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomFieldChoiceSetResourceConfig_full(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "description", "Test choice set"),
+					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "order_alphabetically", "true"),
+					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "extra_choices.#", "3"),
+				),
+			},
+			{
+				// Verify no changes after create
+				Config:   testAccCustomFieldChoiceSetResourceConfig_full(name),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func TestAccCustomFieldChoiceSetResource_update(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("cfcs")
 	updatedName := name + "-updated"
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -106,41 +88,37 @@ func TestAccCustomFieldChoiceSetResource_update(t *testing.T) {
 	cleanup.RegisterCustomFieldChoiceSetCleanupByName(updatedName)
 
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
-		CheckDestroy: testutil.CheckCustomFieldChoiceSetDestroy,
-
+		CheckDestroy:             testutil.CheckCustomFieldChoiceSetDestroy,
 		Steps: []resource.TestStep{
-
 			{
-
 				Config: testAccCustomFieldChoiceSetResourceConfig_basic(name),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "name", name),
 				),
 			},
-
 			{
-
+				// Verify no changes after create
+				Config:   testAccCustomFieldChoiceSetResourceConfig_basic(name),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccCustomFieldChoiceSetResourceConfig_basic(updatedName),
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "name", updatedName),
 				),
 			},
+			{
+				// Verify no changes after update
+				Config:   testAccCustomFieldChoiceSetResourceConfig_basic(updatedName),
+				PlanOnly: true,
+			},
 		},
 	})
-
 }
 
 func TestAccConsistency_CustomFieldChoiceSet_LiteralNames(t *testing.T) {
-
 	t.Parallel()
 
 	name := testutil.RandomName("cfcs-lit")
@@ -149,72 +127,35 @@ func TestAccConsistency_CustomFieldChoiceSet_LiteralNames(t *testing.T) {
 	cleanup.RegisterCustomFieldChoiceSetCleanupByName(name)
 
 	resource.Test(t, resource.TestCase{
-
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-
-		CheckDestroy: testutil.CheckCustomFieldChoiceSetDestroy,
-
+		CheckDestroy:             testutil.CheckCustomFieldChoiceSetDestroy,
 		Steps: []resource.TestStep{
-
 			{
-
-				Config: testAccCustomFieldChoiceSetConsistencyLiteralNamesConfig(name),
-
+				Config: testAccCustomFieldChoiceSetResourceConfig_full(name),
 				Check: resource.ComposeTestCheckFunc(
-
+					resource.TestCheckResourceAttrSet("netbox_custom_field_choice_set.test", "id"),
 					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "name", name),
-
-					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "extra_choices.#", "3"),
 				),
 			},
-
 			{
-
-				Config: testAccCustomFieldChoiceSetConsistencyLiteralNamesConfig(name),
-
+				Config:   testAccCustomFieldChoiceSetResourceConfig_full(name),
 				PlanOnly: true,
-
 				Check: resource.ComposeTestCheckFunc(
-
 					resource.TestCheckResourceAttrSet("netbox_custom_field_choice_set.test", "id"),
 				),
 			},
 		},
 	})
-
-}
-
-func testAccCustomFieldChoiceSetConsistencyLiteralNamesConfig(name string) string {
-
-	return fmt.Sprintf(`
-
-resource "netbox_custom_field_choice_set" "test" {
-
-  name                  = %q
-
-  order_alphabetically = true
-
-  extra_choices = [
-
-    { value = "critical", label = "Critical" },
-
-    { value = "high",     label = "High" },
-
-    { value = "low",      label = "Low" },
-
-  ]
-
-}
-
-`, name)
-
 }
 
 func TestAccCustomFieldChoiceSetResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("custom-field-choice-set-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldChoiceSetCleanupByName(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -227,60 +168,41 @@ func TestAccCustomFieldChoiceSetResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_custom_field_choice_set.test", "name", name),
 				),
 			},
+			{
+				// Verify no changes after create
+				Config:   testAccCustomFieldChoiceSetResourceConfig_basic(name),
+				PlanOnly: true,
+			},
 		},
 	})
 }
 
 func testAccCustomFieldChoiceSetResourceConfig_basic(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_custom_field_choice_set" "test" {
-
   name = "%s"
-
   extra_choices = [
-
     { value = "opt1", label = "Option 1" },
-
     { value = "opt2", label = "Option 2" },
-
     { value = "opt3", label = "Option 3" },
-
   ]
-
 }
-
 `, name)
-
 }
 
 func testAccCustomFieldChoiceSetResourceConfig_full(name string) string {
-
 	return fmt.Sprintf(`
-
 resource "netbox_custom_field_choice_set" "test" {
-
   name                 = "%s"
-
   description          = "Test choice set"
-
   order_alphabetically = true
-
   extra_choices = [
-
     { value = "critical", label = "Critical" },
-
     { value = "high",     label = "High" },
-
     { value = "low",      label = "Low" },
-
   ]
-
 }
-
 `, name)
-
 }
 
 func TestAccCustomFieldChoiceSetResource_externalDeletion(t *testing.T) {
@@ -288,6 +210,9 @@ func TestAccCustomFieldChoiceSetResource_externalDeletion(t *testing.T) {
 	testutil.TestAccPreCheck(t)
 
 	name := testutil.RandomName("tf-test-cfcs-extdel")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldChoiceSetCleanupByName(name)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

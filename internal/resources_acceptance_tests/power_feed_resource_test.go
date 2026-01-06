@@ -12,9 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccPowerFeedResource_basic(t *testing.T) {
+// NOTE: Custom field tests for power_feed resource are in resources_acceptance_tests_customfields package
 
+func TestAccPowerFeedResource_basic(t *testing.T) {
 	t.Parallel()
+
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	panelName := testutil.RandomName("power-panel")
@@ -48,8 +50,8 @@ func TestAccPowerFeedResource_basic(t *testing.T) {
 }
 
 func TestAccPowerFeedResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	panelName := testutil.RandomName("power-panel")
@@ -90,31 +92,87 @@ func TestAccPowerFeedResource_full(t *testing.T) {
 	})
 }
 
-func TestAccPowerFeedResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-	siteName := testutil.RandomName("site-id")
-	siteSlug := testutil.RandomSlug("site-id")
-	panelName := testutil.RandomName("power-panel-id")
-	feedName := testutil.RandomName("power-feed-id")
+// TestAccPowerFeedResource_VoltageAmperage tests comprehensive scenarios for power feed voltage field.
+// This validates that Optional+Computed numeric fields work correctly across all scenarios.
+func TestAccPowerFeedResource_VoltageAmperage(t *testing.T) {
+	siteName := testutil.RandomName("tf-test-site-power-feed")
+	siteSlug := testutil.RandomSlug("tf-test-site-power-feed")
+	powerPanelName := testutil.RandomName("tf-test-panel-power-feed")
+	powerFeedName := testutil.RandomName("tf-test-power-feed-voltage")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
+	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
+		ResourceName:   "netbox_power_feed",
+		OptionalField:  "voltage",
+		DefaultValue:   "120",
+		FieldTestValue: "240",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckPowerFeedDestroy,
+			testutil.CheckPowerPanelDestroy,
+			testutil.CheckSiteDestroy,
+		),
+		BaseConfig: func() string {
+			return testAccPowerFeedResourceWithOptionalField(siteName, siteSlug, powerPanelName, powerFeedName, "voltage", "")
 		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccPowerFeedResourceConfig_basic(siteName, siteSlug, panelName, feedName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_power_feed.test", "id"),
-					resource.TestCheckResourceAttr("netbox_power_feed.test", "name", feedName),
-				),
-			},
+		WithFieldConfig: func(value string) string {
+			return testAccPowerFeedResourceWithOptionalField(siteName, siteSlug, powerPanelName, powerFeedName, "voltage", value)
 		},
 	})
+}
+
+// TestAccPowerFeedResource_Amperage tests the amperage field separately.
+func TestAccPowerFeedResource_Amperage(t *testing.T) {
+	siteName := testutil.RandomName("tf-test-site-power-feed-amp")
+	siteSlug := testutil.RandomSlug("tf-test-site-power-feed-amp")
+	powerPanelName := testutil.RandomName("tf-test-panel-power-feed-amp")
+	powerFeedName := testutil.RandomName("tf-test-power-feed-amperage")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
+		ResourceName:   "netbox_power_feed",
+		OptionalField:  "amperage",
+		DefaultValue:   "20",
+		FieldTestValue: "30",
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckPowerFeedDestroy,
+			testutil.CheckPowerPanelDestroy,
+			testutil.CheckSiteDestroy,
+		),
+		BaseConfig: func() string {
+			return testAccPowerFeedResourceWithOptionalField(siteName, siteSlug, powerPanelName, powerFeedName, "amperage", "")
+		},
+		WithFieldConfig: func(value string) string {
+			return testAccPowerFeedResourceWithOptionalField(siteName, siteSlug, powerPanelName, powerFeedName, "amperage", value)
+		},
+	})
+}
+
+func testAccPowerFeedResourceWithOptionalField(siteName, siteSlug, powerPanelName, powerFeedName, optionalFieldName, optionalFieldValue string) string {
+	optionalField := ""
+	if optionalFieldValue != "" {
+		optionalField = fmt.Sprintf("\n  %s = %s", optionalFieldName, optionalFieldValue)
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_power_panel" "test" {
+  name = %q
+  site = netbox_site.test.id
+}
+
+resource "netbox_power_feed" "test" {
+  name        = %q
+  power_panel = netbox_power_panel.test.id%s
+}
+`, siteName, siteSlug, powerPanelName, powerFeedName, optionalField)
 }
 
 func testAccPowerFeedResourceConfig_basic(siteName, siteSlug, panelName, feedName string) string {
@@ -165,8 +223,8 @@ resource "netbox_power_feed" "test" {
 }
 
 func TestAccConsistency_PowerFeed(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	rackName := testutil.RandomName("rack")
@@ -230,8 +288,8 @@ resource "netbox_power_feed" "test" {
 }
 
 func TestAccConsistency_PowerFeed_LiteralNames(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	rackName := testutil.RandomName("rack")

@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccWebhookResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	testutil.TestAccPreCheck(t)
 	randomName := testutil.RandomName("test-webhook")
 
@@ -27,7 +27,6 @@ func TestAccWebhookResource_basic(t *testing.T) {
 			// Create and Read testing
 			{
 				Config: testAccWebhookResource(randomName, "https://example.com/webhook1"),
-
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_webhook.test", "name", randomName),
 					resource.TestCheckResourceAttr("netbox_webhook.test", "payload_url", "https://example.com/webhook1"),
@@ -36,6 +35,11 @@ func TestAccWebhookResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_webhook.test", "id"),
 				),
 			},
+			// PlanOnly after Create
+			{
+				Config:   testAccWebhookResource(randomName, "https://example.com/webhook1"),
+				PlanOnly: true,
+			},
 			// ImportState testing
 			{
 				ResourceName:            "netbox_webhook.test",
@@ -43,14 +47,23 @@ func TestAccWebhookResource_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"secret"},
 			},
+			// PlanOnly after Import
+			{
+				Config:   testAccWebhookResource(randomName, "https://example.com/webhook1"),
+				PlanOnly: true,
+			},
 			// Update and Read testing
 			{
 				Config: testAccWebhookResource(randomName, "https://example.com/webhook2"),
-
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_webhook.test", "name", randomName),
 					resource.TestCheckResourceAttr("netbox_webhook.test", "payload_url", "https://example.com/webhook2"),
 				),
+			},
+			// PlanOnly after Update
+			{
+				Config:   testAccWebhookResource(randomName, "https://example.com/webhook2"),
+				PlanOnly: true,
 			},
 			// Delete testing automatically occurs in TestCase
 		},
@@ -58,21 +71,19 @@ func TestAccWebhookResource_basic(t *testing.T) {
 }
 
 func TestAccWebhookResource_full(t *testing.T) {
-
 	t.Parallel()
 	testutil.TestAccPreCheck(t)
+
 	randomName := testutil.RandomName("test-webhook-full")
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
 		},
-
 		Steps: []resource.TestStep{
 			// Create with all fields
 			{
 				Config: testAccWebhookResourceFull(randomName),
-
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_webhook.test", "name", randomName),
 					resource.TestCheckResourceAttr("netbox_webhook.test", "payload_url", "https://example.com/webhook"),
@@ -84,6 +95,11 @@ func TestAccWebhookResource_full(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_webhook.test", "id"),
 				),
 			},
+			// PlanOnly after Create
+			{
+				Config:   testAccWebhookResourceFull(randomName),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -91,6 +107,7 @@ func TestAccWebhookResource_full(t *testing.T) {
 func TestAccWebhookResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 	testutil.TestAccPreCheck(t)
+
 	randomName := testutil.RandomName("test-webhook-id")
 
 	resource.Test(t, resource.TestCase{
@@ -104,6 +121,11 @@ func TestAccWebhookResource_IDPreservation(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_webhook.test", "id"),
 					resource.TestCheckResourceAttr("netbox_webhook.test", "name", randomName),
 				),
+			},
+			// PlanOnly after Create
+			{
+				Config:   testAccWebhookResource(randomName, "https://example.com/webhook"),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -134,6 +156,7 @@ resource "netbox_webhook" "test" {
 
 func TestAccConsistency_Webhook_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("webhook")
 
 	resource.Test(t, resource.TestCase{
@@ -184,11 +207,21 @@ func TestAccWebhookResource_update(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_webhook.test", "description", testutil.Description1),
 				),
 			},
+			// PlanOnly after Create
+			{
+				Config:   testAccWebhookResourceConfig_withDescription(name, testutil.Description1),
+				PlanOnly: true,
+			},
 			{
 				Config: testAccWebhookResourceConfig_withDescription(name, testutil.Description2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_webhook.test", "description", testutil.Description2),
 				),
+			},
+			// PlanOnly after Update
+			{
+				Config:   testAccWebhookResourceConfig_withDescription(name, testutil.Description2),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -219,6 +252,11 @@ func TestAccWebhookResource_externalDeletion(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_webhook.test", "id"),
 				),
+			},
+			// PlanOnly after Create
+			{
+				Config:   testAccWebhookResource(name, "http://example.com/webhook"),
+				PlanOnly: true,
 			},
 			{
 				PreConfig: func() {

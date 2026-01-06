@@ -10,8 +10,8 @@ import (
 )
 
 func TestAccFrontPortResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.RandomSlug("tf-test-site")
 	mfgName := testutil.RandomName("tf-test-mfg")
@@ -23,6 +23,13 @@ func TestAccFrontPortResource_basic(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-device")
 	rearPortName := testutil.RandomName("tf-test-rp")
 	frontPortName := testutil.RandomName("tf-test-fp")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -47,8 +54,8 @@ func TestAccFrontPortResource_basic(t *testing.T) {
 }
 
 func TestAccFrontPortResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.RandomSlug("tf-test-site")
 	mfgName := testutil.RandomName("tf-test-mfg")
@@ -60,6 +67,13 @@ func TestAccFrontPortResource_full(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-device")
 	rearPortName := testutil.RandomName("tf-test-rp")
 	frontPortName := testutil.RandomName("tf-test-fp")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -89,8 +103,8 @@ func TestAccFrontPortResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_FrontPort(t *testing.T) {
-
 	t.Parallel()
+
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	manufacturerName := testutil.RandomName("manufacturer")
@@ -129,8 +143,8 @@ func TestAccConsistency_FrontPort(t *testing.T) {
 }
 
 func TestAccConsistency_FrontPort_LiteralNames(t *testing.T) {
-
 	t.Parallel()
+
 	manufacturerName := testutil.RandomName("manufacturer")
 	manufacturerSlug := testutil.RandomSlug("manufacturer")
 	deviceTypeName := testutil.RandomName("device-type")
@@ -170,6 +184,7 @@ func TestAccConsistency_FrontPort_LiteralNames(t *testing.T) {
 
 func TestAccFrontPortResource_update(t *testing.T) {
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site-update")
 	siteSlug := testutil.RandomSlug("tf-test-site-update")
 	mfgName := testutil.RandomName("tf-test-mfg-update")
@@ -181,6 +196,13 @@ func TestAccFrontPortResource_update(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-device-update")
 	rearPortName := testutil.RandomName("tf-test-rp-update")
 	frontPortName := testutil.RandomName("tf-test-fp-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -207,6 +229,7 @@ func TestAccFrontPortResource_update(t *testing.T) {
 
 func TestAccFrontPortResource_externalDeletion(t *testing.T) {
 	t.Parallel()
+
 	siteName := testutil.RandomName("tf-test-site-ext-del")
 	siteSlug := testutil.RandomSlug("tf-test-site-ext-del")
 	mfgName := testutil.RandomName("tf-test-mfg-ext-del")
@@ -218,6 +241,13 @@ func TestAccFrontPortResource_externalDeletion(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-device-ext-del")
 	rearPortName := testutil.RandomName("tf-test-rp-ext-del")
 	frontPortName := testutil.RandomName("tf-test-fp-ext-del")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -247,10 +277,8 @@ func TestAccFrontPortResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted front_port with ID: %d", itemID)
 				},
-				Config: testAccFrontPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, frontPortName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_front_port.test", "id"),
-				),
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -270,6 +298,13 @@ func TestAccFrontPortResource_IDPreservation(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-device-id")
 	rearPortName := testutil.RandomName("tf-test-rp-id")
 	frontPortName := testutil.RandomName("tf-test-fp-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -533,3 +568,5 @@ resource "netbox_front_port" "test" {
 }
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, deviceName, deviceName, resourceName)
 }
+
+// NOTE: Custom field tests for front_port resource are in resources_acceptance_tests_customfields package

@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccSiteGroupResource_basic(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site-group")
 	slug := testutil.RandomSlug("tf-test-sg")
 
@@ -41,8 +41,8 @@ func TestAccSiteGroupResource_basic(t *testing.T) {
 }
 
 func TestAccSiteGroupResource_full(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site-group-full")
 	slug := testutil.RandomSlug("tf-test-sg-full")
 	description := testutil.RandomName("description")
@@ -71,8 +71,8 @@ func TestAccSiteGroupResource_full(t *testing.T) {
 }
 
 func TestAccSiteGroupResource_update(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site-group-update")
 	slug := testutil.RandomSlug("tf-test-sg-upd")
 	updatedName := testutil.RandomName("tf-test-site-group-updated")
@@ -106,8 +106,8 @@ func TestAccSiteGroupResource_update(t *testing.T) {
 }
 
 func TestAccSiteGroupResource_import(t *testing.T) {
-
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site-group")
 	slug := testutil.RandomSlug("tf-test-sg")
 
@@ -134,12 +134,17 @@ func TestAccSiteGroupResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccSiteGroupResourceConfig_import(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
 
 func TestAccSiteGroupResource_IDPreservation(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site-group-id")
 	slug := testutil.RandomSlug("tf-test-sg-id")
 
@@ -176,6 +181,7 @@ resource "netbox_site_group" "test" {
 
 func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 	t.Parallel()
+
 	name := testutil.RandomName("tf-test-site-group-lit")
 	slug := testutil.RandomSlug("tf-test-site-group-lit")
 	description := testutil.RandomName("description")
@@ -191,7 +197,7 @@ func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 		CheckDestroy: testutil.CheckSiteGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSiteGroupConsistencyLiteralNamesConfig(name, slug, description),
+				Config: testAccSiteGroupResourceConfig_full(name, slug, description),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_site_group.test", "name", name),
@@ -200,7 +206,7 @@ func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccSiteGroupConsistencyLiteralNamesConfig(name, slug, description),
+				Config:   testAccSiteGroupResourceConfig_full(name, slug, description),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
@@ -208,16 +214,6 @@ func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccSiteGroupConsistencyLiteralNamesConfig(name, slug, description string) string {
-	return fmt.Sprintf(`
-resource "netbox_site_group" "test" {
-  name        = %q
-  slug        = %q
-  description = %q
-}
-`, name, slug, description)
 }
 
 func testAccSiteGroupResourceConfig_full(name, slug, description string) string {

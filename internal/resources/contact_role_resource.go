@@ -257,41 +257,8 @@ func (r *ContactRoleResource) mapContactRoleToState(ctx context.Context, contact
 	data.Description = utils.StringFromAPI(contactRole.HasDescription(), contactRole.GetDescription, data.Description)
 
 	// Handle tags
-	if contactRole.HasTags() {
-		tags := utils.NestedTagsToTagModels(contactRole.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if !diags.HasError() {
-			data.Tags = tagsValue
-		}
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	data.Tags = utils.PopulateTagsFromAPI(ctx, contactRole.HasTags(), contactRole.GetTags(), data.Tags, diags)
 
 	// Handle custom fields
-	switch {
-	case contactRole.HasCustomFields() && !data.CustomFields.IsNull():
-		var stateCustomFields []utils.CustomFieldModel
-		cfDiags := data.CustomFields.ElementsAs(ctx, &stateCustomFields, false)
-		diags.Append(cfDiags...)
-		if !diags.HasError() {
-			customFields := utils.MapToCustomFieldModels(contactRole.GetCustomFields(), stateCustomFields)
-			customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-			diags.Append(cfValueDiags...)
-			if !diags.HasError() {
-				data.CustomFields = customFieldsValue
-			}
-		}
-
-	case contactRole.HasCustomFields():
-		customFields := utils.MapToCustomFieldModels(contactRole.GetCustomFields(), []utils.CustomFieldModel{})
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfValueDiags...)
-		if !diags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-
-	default:
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, contactRole.HasCustomFields(), contactRole.GetCustomFields(), data.CustomFields, diags)
 }

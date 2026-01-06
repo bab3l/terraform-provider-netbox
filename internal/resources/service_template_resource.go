@@ -513,43 +513,12 @@ func (r *ServiceTemplateResource) mapResponseToState(ctx context.Context, servic
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags
-
-	if serviceTemplate.HasTags() && len(serviceTemplate.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(serviceTemplate.GetTags())
-
-		tagsValue, d := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-
-		diags.Append(d...)
-
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Handle tags using consolidated helper
+	data.Tags = utils.PopulateTagsFromAPI(ctx, serviceTemplate.HasTags(), serviceTemplate.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
 	}
 
-	// Handle custom fields
-
-	if serviceTemplate.HasCustomFields() {
-		var existingModels []utils.CustomFieldModel
-
-		if !data.CustomFields.IsNull() {
-			d := data.CustomFields.ElementsAs(ctx, &existingModels, false)
-
-			diags.Append(d...)
-		}
-
-		customFields := utils.MapToCustomFieldModels(serviceTemplate.GetCustomFields(), existingModels)
-
-		if len(customFields) > 0 {
-			customFieldsValue, d := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-
-			diags.Append(d...)
-
-			data.CustomFields = customFieldsValue
-		} else {
-			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	// Handle custom fields using consolidated helper
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, serviceTemplate.HasCustomFields(), serviceTemplate.GetCustomFields(), data.CustomFields, diags)
 }
