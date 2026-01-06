@@ -114,35 +114,15 @@ func (r *VirtualMachineResource) Schema(ctx context.Context, req resource.Schema
 				Default: stringdefault.StaticString("active"),
 			},
 
-			"site": schema.StringAttribute{
-				MarkdownDescription: "The name or ID of the site where this virtual machine is located.",
+			"site": nbschema.ReferenceAttributeWithDiffSuppress("site", "ID or slug of the site where this virtual machine is located."),
 
-				Optional: true,
-			},
+			"cluster": nbschema.ReferenceAttributeWithDiffSuppress("cluster", "ID or name of the cluster this virtual machine belongs to."),
 
-			"cluster": schema.StringAttribute{
-				MarkdownDescription: "The name or ID of the cluster this virtual machine belongs to.",
+			"role": nbschema.ReferenceAttributeWithDiffSuppress("device role", "ID or slug of the device role for this virtual machine."),
 
-				Optional: true,
-			},
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant this virtual machine is assigned to."),
 
-			"role": schema.StringAttribute{
-				MarkdownDescription: "The name or ID of the device role for this virtual machine.",
-
-				Optional: true,
-			},
-
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "The name or ID of the tenant this virtual machine is assigned to.",
-
-				Optional: true,
-			},
-
-			"platform": schema.StringAttribute{
-				MarkdownDescription: "The name or ID of the platform (operating system) running on this virtual machine.",
-
-				Optional: true,
-			},
+			"platform": nbschema.ReferenceAttributeWithDiffSuppress("platform", "ID or slug of the platform (operating system) running on this virtual machine."),
 
 			"vcpus": schema.Float64Attribute{
 				MarkdownDescription: "The number of virtual CPUs allocated to this virtual machine.",

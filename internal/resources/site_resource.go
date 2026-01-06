@@ -71,17 +71,17 @@ func (r *SiteResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				[]string{"planned", "staging", "active", "decommissioning", "retired"},
 				"Operational status of the site.",
 			),
-			"region": nbschema.ReferenceAttribute("region", "ID or slug of the region where this site is located."),
+			"region": nbschema.ReferenceAttributeWithDiffSuppress("region", "ID or slug of the region where this site is located."),
 			"region_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The numeric ID of the region.",
 			},
-			"group": nbschema.ReferenceAttribute("site group", "ID or slug of the site group."),
+			"group": nbschema.ReferenceAttributeWithDiffSuppress("site group", "ID or slug of the site group."),
 			"group_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The numeric ID of the site group.",
 			},
-			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this site."),
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant that owns this site."),
 			"tenant_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The numeric ID of the tenant.",
