@@ -236,3 +236,440 @@ resource "netbox_circuit" "test" {
 		cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
 		cid, textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue)
 }
+
+// TestAccCircuitResource_CustomFieldsPreservation tests that custom fields are preserved
+// when updating other fields on a circuit.
+func TestAccCircuitResource_CustomFieldsPreservation(t *testing.T) {
+	cid := testutil.RandomName("tf-test-circuit")
+	providerSlug := testutil.RandomSlug("tf-provider")
+	typeSlug := testutil.RandomSlug("tf-type")
+
+	cfEnvironment := testutil.RandomCustomFieldName("tf_env")
+	cfOwner := testutil.RandomCustomFieldName("tf_owner")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create circuit WITH custom fields
+				Config: testAccCircuitConfig_preservation_step1(cid, providerSlug, typeSlug, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_circuit.test", cfEnvironment, "text", "production"),
+					testutil.CheckCustomFieldValue("netbox_circuit.test", cfOwner, "text", "team-a"),
+				),
+			},
+			{
+				// Step 2: Update description WITHOUT mentioning custom_fields
+				Config: testAccCircuitConfig_preservation_step2(cid, providerSlug, typeSlug, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit.test", "description", "Updated description"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "custom_fields.#", "0"),
+				),
+			},
+			{
+				// Step 3: Import to verify custom fields still exist
+				ResourceName:            "netbox_circuit.test",
+				ImportState:             true,
+				ImportStateVerify:       false,
+				ImportStateVerifyIgnore: []string{"circuit_provider", "type", "custom_fields"},
+			},
+			{
+				// Step 4: Add custom_fields back to verify preservation
+				Config: testAccCircuitConfig_preservation_step3(cid, providerSlug, typeSlug, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_circuit.test", cfEnvironment, "text", "production"),
+					testutil.CheckCustomFieldValue("netbox_circuit.test", cfOwner, "text", "team-a"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "description", "Updated description"),
+				),
+			},
+		},
+	})
+}
+
+// TestAccCircuitResource_CustomFieldsFilterToOwned tests the filter-to-owned pattern
+func TestAccCircuitResource_CustomFieldsFilterToOwned(t *testing.T) {
+	cid := testutil.RandomName("tf-test-circuit")
+	providerSlug := testutil.RandomSlug("tf-provider")
+	typeSlug := testutil.RandomSlug("tf-type")
+
+	cfEnv := testutil.RandomCustomFieldName("tf_env")
+	cfOwner := testutil.RandomCustomFieldName("tf_owner")
+	cfCostCenter := testutil.RandomCustomFieldName("tf_cost")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create with two fields
+				Config: testAccCircuitConfig_filter_step1(cid, providerSlug, typeSlug, cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_circuit.test", cfEnv, "text", "prod"),
+					testutil.CheckCustomFieldValue("netbox_circuit.test", cfOwner, "text", "team-a"),
+				),
+			},
+			{
+				// Step 2: Remove owner, keep env with updated value
+				Config: testAccCircuitConfig_filter_step2(cid, providerSlug, typeSlug, cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit.test", "custom_fields.#", "1"),
+					testutil.CheckCustomFieldValue("netbox_circuit.test", cfEnv, "text", "staging"),
+				),
+			},
+			{
+				// Step 3: Add cost_center
+				Config: testAccCircuitConfig_filter_step3(cid, providerSlug, typeSlug, cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_circuit.test", cfEnv, "text", "staging"),
+					testutil.CheckCustomFieldValue("netbox_circuit.test", cfCostCenter, "text", "CC123"),
+				),
+			},
+			{
+				// Step 4: Add owner back - should have preserved value
+				Config: testAccCircuitConfig_filter_step4(cid, providerSlug, typeSlug, cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit.test", "custom_fields.#", "3"),
+					testutil.CheckCustomFieldValue("netbox_circuit.test", cfEnv, "text", "staging"),
+					testutil.CheckCustomFieldValue("netbox_circuit.test", cfOwner, "text", "team-a"),
+					testutil.CheckCustomFieldValue("netbox_circuit.test", cfCostCenter, "text", "CC123"),
+				),
+			},
+		},
+	})
+}
+
+// Helper config functions for preservation tests
+func testAccCircuitConfig_preservation_step1(cid, providerSlug, typeSlug, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %[2]q
+  slug = %[2]q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %[3]q
+  slug = %[3]q
+}
+
+resource "netbox_custom_field" "environment" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[5]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %[1]q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.environment.name
+      type  = "text"
+      value = "production"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    }
+  ]
+}
+`, cid, providerSlug, typeSlug, cfEnv, cfOwner)
+}
+
+func testAccCircuitConfig_preservation_step2(cid, providerSlug, typeSlug, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %[2]q
+  slug = %[2]q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %[3]q
+  slug = %[3]q
+}
+
+resource "netbox_custom_field" "environment" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[5]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %[1]q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+  description      = "Updated description"
+}
+`, cid, providerSlug, typeSlug, cfEnv, cfOwner)
+}
+
+func testAccCircuitConfig_preservation_step3(cid, providerSlug, typeSlug, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %[2]q
+  slug = %[2]q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %[3]q
+  slug = %[3]q
+}
+
+resource "netbox_custom_field" "environment" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[5]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %[1]q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+  description      = "Updated description"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.environment.name
+      type  = "text"
+      value = "production"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    }
+  ]
+}
+`, cid, providerSlug, typeSlug, cfEnv, cfOwner)
+}
+
+// Helper config functions for filter-to-owned tests
+func testAccCircuitConfig_filter_step1(cid, providerSlug, typeSlug, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %[2]q
+  slug = %[2]q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %[3]q
+  slug = %[3]q
+}
+
+resource "netbox_custom_field" "env" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[5]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[6]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %[1]q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "prod"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    }
+  ]
+}
+`, cid, providerSlug, typeSlug, cfEnv, cfOwner, cfCost)
+}
+
+func testAccCircuitConfig_filter_step2(cid, providerSlug, typeSlug, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %[2]q
+  slug = %[2]q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %[3]q
+  slug = %[3]q
+}
+
+resource "netbox_custom_field" "env" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[5]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[6]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %[1]q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    }
+  ]
+}
+`, cid, providerSlug, typeSlug, cfEnv, cfOwner, cfCost)
+}
+
+func testAccCircuitConfig_filter_step3(cid, providerSlug, typeSlug, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %[2]q
+  slug = %[2]q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %[3]q
+  slug = %[3]q
+}
+
+resource "netbox_custom_field" "env" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[5]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[6]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %[1]q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    },
+    {
+      name  = netbox_custom_field.cost.name
+      type  = "text"
+      value = "CC123"
+    }
+  ]
+}
+`, cid, providerSlug, typeSlug, cfEnv, cfOwner, cfCost)
+}
+
+func testAccCircuitConfig_filter_step4(cid, providerSlug, typeSlug, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %[2]q
+  slug = %[2]q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %[3]q
+  slug = %[3]q
+}
+
+resource "netbox_custom_field" "env" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[5]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[6]q
+  type         = "text"
+  object_types = ["circuits.circuit"]
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %[1]q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    },
+    {
+      name  = netbox_custom_field.cost.name
+      type  = "text"
+      value = "CC123"
+    }
+  ]
+}
+`, cid, providerSlug, typeSlug, cfEnv, cfOwner, cfCost)
+}

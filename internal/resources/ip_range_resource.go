@@ -150,8 +150,8 @@ func (r *IPRangeResource) Create(ctx context.Context, req resource.CreateRequest
 	// Create the IP range request
 	ipRangeRequest := netbox.NewWritableIPRangeRequest(data.StartAddress.ValueString(), data.EndAddress.ValueString())
 
-	// Set optional fields
-	r.setOptionalFields(ctx, ipRangeRequest, &data, &resp.Diagnostics)
+	// Set optional fields (pass nil state since this is a new resource)
+	r.setOptionalFields(ctx, ipRangeRequest, &data, nil, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -234,10 +234,21 @@ func (r *IPRangeResource) Read(ctx context.Context, req resource.ReadRequest, re
 	startAddressBeforeMapping := data.StartAddress
 	endAddressBeforeMapping := data.EndAddress
 
+	// Preserve the custom_fields plan/state if it's null or empty
+	var planSet types.Set
+	if data.CustomFields.IsNull() || len(data.CustomFields.Elements()) == 0 {
+		planSet = data.CustomFields
+	}
+
 	// Map response to model
 	r.mapIPRangeToState(ctx, ipRange, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	// Restore null/empty custom_fields if it was null/empty before
+	if !planSet.IsNull() || (planSet.IsNull() && data.CustomFields.IsNull()) {
+		data.CustomFields = planSet
 	}
 
 	// Only preserve the original addresses if they were set in the state (i.e., not during import)
@@ -267,6 +278,13 @@ func (r *IPRangeResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
+	// Read current state for merge-aware custom fields
+	var state IPRangeResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Parse the ID
 	id, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
@@ -280,8 +298,8 @@ func (r *IPRangeResource) Update(ctx context.Context, req resource.UpdateRequest
 	// Create the IP range request
 	ipRangeRequest := netbox.NewWritableIPRangeRequest(data.StartAddress.ValueString(), data.EndAddress.ValueString())
 
-	// Set optional fields
-	r.setOptionalFields(ctx, ipRangeRequest, &data, &resp.Diagnostics)
+	// Set optional fields with state for merge-aware custom fields
+	r.setOptionalFields(ctx, ipRangeRequest, &data, &state, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -370,7 +388,8 @@ func (r *IPRangeResource) ImportState(ctx context.Context, req resource.ImportSt
 }
 
 // setOptionalFields sets optional fields on the IP range request from the resource model.
-func (r *IPRangeResource) setOptionalFields(ctx context.Context, ipRangeRequest *netbox.WritableIPRangeRequest, data *IPRangeResourceModel, diags *diag.Diagnostics) {
+// state is optional and only provided during updates for merge-aware custom fields.
+func (r *IPRangeResource) setOptionalFields(ctx context.Context, ipRangeRequest *netbox.WritableIPRangeRequest, data *IPRangeResourceModel, state *IPRangeResourceModel, diags *diag.Diagnostics) {
 	// VRF
 	if utils.IsSet(data.VRF) {
 		vrf, vrfDiags := netboxlookup.LookupVRF(ctx, r.client, data.VRF.ValueString())
@@ -413,8 +432,30 @@ func (r *IPRangeResource) setOptionalFields(ctx context.Context, ipRangeRequest 
 		ipRangeRequest.MarkUtilized = &markUtilized
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, ipRangeRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	// Apply description and comments
+	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+		desc := data.Description.ValueString()
+		ipRangeRequest.SetDescription(desc)
+	}
+	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
+		comments := data.Comments.ValueString()
+		ipRangeRequest.SetComments(comments)
+	}
+
+	// Apply tags
+	utils.ApplyTags(ctx, ipRangeRequest, data.Tags, diags)
+	if diags.HasError() {
+		return
+	}
+
+	// Apply custom fields with merge awareness
+	if state != nil {
+		// Update: use merge-aware helper
+		utils.ApplyCustomFieldsWithMerge(ctx, ipRangeRequest, data.CustomFields, state.CustomFields, diags)
+	} else {
+		// Create: apply custom fields directly
+		utils.ApplyCustomFields(ctx, ipRangeRequest, data.CustomFields, diags)
+	}
 	if diags.HasError() {
 		return
 	}
@@ -486,6 +527,6 @@ func (r *IPRangeResource) mapIPRangeToState(ctx context.Context, ipRange *netbox
 		return
 	}
 
-	// Custom Fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, len(ipRange.CustomFields) > 0, ipRange.CustomFields, data.CustomFields, diags)
+	// Custom Fields - filter to owned fields only
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, ipRange.CustomFields, diags)
 }

@@ -197,3 +197,366 @@ resource "netbox_vlan" "test" {
 }
 `, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug, vlanName, vid)
 }
+
+// TestAccVLANResource_CustomFieldsPreservation tests that custom fields are preserved
+// when updating other fields on a VLAN.
+//
+// Filter-to-owned pattern:
+// - Custom fields declared in config are managed by Terraform
+// - Custom fields NOT in config are preserved in NetBox but invisible to Terraform
+func TestAccVLANResource_CustomFieldsPreservation(t *testing.T) {
+	vlanName := testutil.RandomName("vlan")
+	vid := testutil.RandomVID()
+
+	cfEnvironment := testutil.RandomCustomFieldName("tf_env")
+	cfOwner := testutil.RandomCustomFieldName("tf_owner")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create VLAN WITH custom fields
+				Config: testAccVLANConfig_preservation_step1(vlanName, int(vid), cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vlan.test", "name", vlanName),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "vid", fmt.Sprintf("%d", int(vid))),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_vlan.test", cfEnvironment, "text", "production"),
+					testutil.CheckCustomFieldValue("netbox_vlan.test", cfOwner, "text", "team-a"),
+				),
+			},
+			{
+				// Step 2: Update description WITHOUT mentioning custom_fields
+				Config: testAccVLANConfig_preservation_step2(vlanName, int(vid), cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vlan.test", "description", "Updated description"),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "custom_fields.#", "0"),
+				),
+			},
+			{
+				// Step 3: Import to verify custom fields still exist in NetBox
+				ResourceName:            "netbox_vlan.test",
+				ImportState:             true,
+				ImportStateVerify:       false,
+				ImportStateVerifyIgnore: []string{"custom_fields"},
+			},
+			{
+				// Step 4: Add custom_fields back to verify they were preserved
+				Config: testAccVLANConfig_preservation_step3(vlanName, int(vid), cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vlan.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_vlan.test", cfEnvironment, "text", "production"),
+					testutil.CheckCustomFieldValue("netbox_vlan.test", cfOwner, "text", "team-a"),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "description", "Updated description"),
+				),
+			},
+		},
+	})
+}
+
+// TestAccVLANResource_CustomFieldsFilterToOwned tests the filter-to-owned pattern
+func TestAccVLANResource_CustomFieldsFilterToOwned(t *testing.T) {
+	vlanName := testutil.RandomName("vlan")
+	vid := testutil.RandomVID()
+
+	cfEnv := testutil.RandomCustomFieldName("tf_env")
+	cfOwner := testutil.RandomCustomFieldName("tf_owner")
+	cfCostCenter := testutil.RandomCustomFieldName("tf_cost")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create with two fields
+				Config: testAccVLANConfig_filter_step1(vlanName, int(vid), cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vlan.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_vlan.test", cfEnv, "text", "prod"),
+					testutil.CheckCustomFieldValue("netbox_vlan.test", cfOwner, "text", "team-a"),
+				),
+			},
+			{
+				// Step 2: Remove owner, keep env with updated value
+				Config: testAccVLANConfig_filter_step2(vlanName, int(vid), cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vlan.test", "custom_fields.#", "1"),
+					testutil.CheckCustomFieldValue("netbox_vlan.test", cfEnv, "text", "staging"),
+				),
+			},
+			{
+				// Step 3: Add cost_center
+				Config: testAccVLANConfig_filter_step3(vlanName, int(vid), cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vlan.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_vlan.test", cfEnv, "text", "staging"),
+					testutil.CheckCustomFieldValue("netbox_vlan.test", cfCostCenter, "text", "CC123"),
+				),
+			},
+			{
+				// Step 4: Add owner back - should have preserved value
+				Config: testAccVLANConfig_filter_step4(vlanName, int(vid), cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vlan.test", "custom_fields.#", "3"),
+					testutil.CheckCustomFieldValue("netbox_vlan.test", cfEnv, "text", "staging"),
+					testutil.CheckCustomFieldValue("netbox_vlan.test", cfOwner, "text", "team-a"),
+					testutil.CheckCustomFieldValue("netbox_vlan.test", cfCostCenter, "text", "CC123"),
+				),
+			},
+		},
+	})
+}
+
+// Helper config functions for preservation tests
+func testAccVLANConfig_preservation_step1(name string, vid int, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "environment" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_vlan" "test" {
+  name = %[3]q
+  vid  = %[4]d
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.environment.name
+      type  = "text"
+      value = "production"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    }
+  ]
+}
+`, cfEnv, cfOwner, name, vid)
+}
+
+func testAccVLANConfig_preservation_step2(name string, vid int, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "environment" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_vlan" "test" {
+  name        = %[3]q
+  vid         = %[4]d
+  description = "Updated description"
+}
+`, cfEnv, cfOwner, name, vid)
+}
+
+func testAccVLANConfig_preservation_step3(name string, vid int, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "environment" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_vlan" "test" {
+  name        = %[3]q
+  vid         = %[4]d
+  description = "Updated description"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.environment.name
+      type  = "text"
+      value = "production"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    }
+  ]
+}
+`, cfEnv, cfOwner, name, vid)
+}
+
+// Helper config functions for filter-to-owned tests
+func testAccVLANConfig_filter_step1(name string, vid int, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "env" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_vlan" "test" {
+  name = %[4]q
+  vid  = %[5]d
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "prod"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    }
+  ]
+}
+`, cfEnv, cfOwner, cfCost, name, vid)
+}
+
+func testAccVLANConfig_filter_step2(name string, vid int, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "env" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_vlan" "test" {
+  name = %[4]q
+  vid  = %[5]d
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    }
+  ]
+}
+`, cfEnv, cfOwner, cfCost, name, vid)
+}
+
+func testAccVLANConfig_filter_step3(name string, vid int, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "env" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_vlan" "test" {
+  name = %[4]q
+  vid  = %[5]d
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    },
+    {
+      name  = netbox_custom_field.cost.name
+      type  = "text"
+      value = "CC123"
+    }
+  ]
+}
+`, cfEnv, cfOwner, cfCost, name, vid)
+}
+
+func testAccVLANConfig_filter_step4(name string, vid int, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "env" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.vlan"]
+}
+
+resource "netbox_vlan" "test" {
+  name = %[4]q
+  vid  = %[5]d
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    },
+    {
+      name  = netbox_custom_field.cost.name
+      type  = "text"
+      value = "CC123"
+    }
+  ]
+}
+`, cfEnv, cfOwner, cfCost, name, vid)
+}

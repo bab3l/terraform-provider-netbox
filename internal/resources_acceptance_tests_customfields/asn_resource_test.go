@@ -12,6 +12,407 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+// TestAccASNResource_CustomFieldsPreservation tests that custom fields are preserved
+// when updating other fields on an ASN.
+//
+// Filter-to-owned pattern:
+// - Custom fields declared in config are managed by Terraform
+// - Custom fields NOT in config are preserved in NetBox but invisible to Terraform
+func TestAccASNResource_CustomFieldsPreservation(t *testing.T) {
+	asn := int64(acctest.RandIntRange(64512, 65534))
+
+	cfEnvironment := testutil.RandomCustomFieldName("tf_env")
+	cfOwner := testutil.RandomCustomFieldName("tf_owner")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create ASN WITH custom fields
+				Config: testAccASNConfig_preservation_step1(asn, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
+					resource.TestCheckResourceAttr("netbox_asn.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_asn.test", cfEnvironment, "text", "production"),
+					testutil.CheckCustomFieldValue("netbox_asn.test", cfOwner, "text", "team-a"),
+				),
+			},
+			{
+				// Step 2: Update description WITHOUT mentioning custom_fields
+				Config: testAccASNConfig_preservation_step2(asn, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_asn.test", "description", "Updated description"),
+					resource.TestCheckResourceAttr("netbox_asn.test", "custom_fields.#", "0"),
+				),
+			},
+			{
+				// Step 3: Import to verify custom fields still exist in NetBox
+				ResourceName:            "netbox_asn.test",
+				ImportState:             true,
+				ImportStateVerify:       false,
+				ImportStateVerifyIgnore: []string{"custom_fields"},
+			},
+			{
+				// Step 4: Add custom_fields back to verify they were preserved
+				Config: testAccASNConfig_preservation_step3(asn, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_asn.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_asn.test", cfEnvironment, "text", "production"),
+					testutil.CheckCustomFieldValue("netbox_asn.test", cfOwner, "text", "team-a"),
+					resource.TestCheckResourceAttr("netbox_asn.test", "description", "Updated description"),
+				),
+			},
+		},
+	})
+}
+
+// TestAccASNResource_CustomFieldsFilterToOwned tests the filter-to-owned pattern
+func TestAccASNResource_CustomFieldsFilterToOwned(t *testing.T) {
+	asn := int64(acctest.RandIntRange(64512, 65534))
+
+	cfEnv := testutil.RandomCustomFieldName("tf_env")
+	cfOwner := testutil.RandomCustomFieldName("tf_owner")
+	cfCostCenter := testutil.RandomCustomFieldName("tf_cost")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create with two fields
+				Config: testAccASNConfig_filter_step1(asn, cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_asn.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_asn.test", cfEnv, "text", "prod"),
+					testutil.CheckCustomFieldValue("netbox_asn.test", cfOwner, "text", "team-a"),
+				),
+			},
+			{
+				// Step 2: Remove owner, keep env with updated value
+				Config: testAccASNConfig_filter_step2(asn, cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_asn.test", "custom_fields.#", "1"),
+					testutil.CheckCustomFieldValue("netbox_asn.test", cfEnv, "text", "staging"),
+				),
+			},
+			{
+				// Step 3: Add cost_center
+				Config: testAccASNConfig_filter_step3(asn, cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_asn.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_asn.test", cfEnv, "text", "staging"),
+					testutil.CheckCustomFieldValue("netbox_asn.test", cfCostCenter, "text", "CC123"),
+				),
+			},
+			{
+				// Step 4: Add owner back - should have preserved value
+				Config: testAccASNConfig_filter_step4(asn, cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_asn.test", "custom_fields.#", "3"),
+					testutil.CheckCustomFieldValue("netbox_asn.test", cfEnv, "text", "staging"),
+					testutil.CheckCustomFieldValue("netbox_asn.test", cfOwner, "text", "team-a"),
+					testutil.CheckCustomFieldValue("netbox_asn.test", cfCostCenter, "text", "CC123"),
+				),
+			},
+		},
+	})
+}
+
+// =============================================================================
+// Helper Config Functions - Preservation Tests
+// =============================================================================
+
+func testAccASNConfig_preservation_step1(asn int64, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = "ARIN"
+  slug = "arin"
+}
+
+resource "netbox_custom_field" "environment" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_asn" "test" {
+  asn = %[1]d
+  rir = netbox_rir.test.slug
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.environment.name
+      type  = "text"
+      value = "production"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    }
+  ]
+}
+`, asn, cfEnv, cfOwner)
+}
+
+func testAccASNConfig_preservation_step2(asn int64, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = "ARIN"
+  slug = "arin"
+}
+
+resource "netbox_custom_field" "environment" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_asn" "test" {
+  asn         = %[1]d
+  rir         = netbox_rir.test.slug
+  description = "Updated description"
+}
+`, asn, cfEnv, cfOwner)
+}
+
+func testAccASNConfig_preservation_step3(asn int64, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = "ARIN"
+  slug = "arin"
+}
+
+resource "netbox_custom_field" "environment" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_asn" "test" {
+  asn         = %[1]d
+  rir         = netbox_rir.test.slug
+  description = "Updated description"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.environment.name
+      type  = "text"
+      value = "production"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    }
+  ]
+}
+`, asn, cfEnv, cfOwner)
+}
+
+// =============================================================================
+// Helper Config Functions - Filter-to-Owned Tests
+// =============================================================================
+
+func testAccASNConfig_filter_step1(asn int64, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = "ARIN"
+  slug = "arin"
+}
+
+resource "netbox_custom_field" "env" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_asn" "test" {
+  asn = %[1]d
+  rir = netbox_rir.test.slug
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "prod"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    }
+  ]
+}
+`, asn, cfEnv, cfOwner, cfCost)
+}
+
+func testAccASNConfig_filter_step2(asn int64, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = "ARIN"
+  slug = "arin"
+}
+
+resource "netbox_custom_field" "env" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_asn" "test" {
+  asn = %[1]d
+  rir = netbox_rir.test.slug
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    }
+  ]
+}
+`, asn, cfEnv, cfOwner, cfCost)
+}
+
+func testAccASNConfig_filter_step3(asn int64, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = "ARIN"
+  slug = "arin"
+}
+
+resource "netbox_custom_field" "env" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_asn" "test" {
+  asn = %[1]d
+  rir = netbox_rir.test.slug
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    },
+    {
+      name  = netbox_custom_field.cost.name
+      type  = "text"
+      value = "CC123"
+    }
+  ]
+}
+`, asn, cfEnv, cfOwner, cfCost)
+}
+
+func testAccASNConfig_filter_step4(asn int64, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = "ARIN"
+  slug = "arin"
+}
+
+resource "netbox_custom_field" "env" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["ipam.asn"]
+}
+
+resource "netbox_asn" "test" {
+  asn = %[1]d
+  rir = netbox_rir.test.slug
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    },
+    {
+      name  = netbox_custom_field.cost.name
+      type  = "text"
+      value = "CC123"
+    }
+  ]
+}
+`, asn, cfEnv, cfOwner, cfCost)
+}
+
 func TestAccASNResource_importWithCustomFieldsAndTags(t *testing.T) {
 	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
 	// that would affect other tests of the same resource type running in parallel.

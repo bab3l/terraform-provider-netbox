@@ -480,5 +480,6 @@ func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *
 	}
 
 	// Custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, vrf.HasCustomFields(), vrf.GetCustomFields(), data.CustomFields, diags)
+	// Custom Fields - filter to owned fields only
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vrf.GetCustomFields(), diags)
 }

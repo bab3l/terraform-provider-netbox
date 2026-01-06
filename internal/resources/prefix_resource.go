@@ -73,6 +73,8 @@ type PrefixResourceModel struct {
 	Comments types.String `tfsdk:"comments"`
 
 	Tags types.Set `tfsdk:"tags"`
+
+	CustomFields types.Set `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the resource type name.
@@ -147,15 +149,14 @@ func (r *PrefixResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 				Default: booldefault.StaticBool(false),
 			},
-
-			"tags": nbschema.TagsAttribute(),
 		},
 	}
 
 	// Add common descriptive attributes (description, comments)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("prefix"))
 
-	// Note: This resource does not have custom_fields
+	// Add common metadata attributes (tags, custom_fields)
+	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 // Configure adds the provider configured client to the resource.
@@ -198,9 +199,9 @@ func (r *PrefixResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	prefixRequest := netbox.NewWritablePrefixRequest(data.Prefix.ValueString())
 
-	// Set optional fields
+	// Set optional fields (pass nil state since this is Create)
 
-	r.setOptionalFields(ctx, prefixRequest, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, prefixRequest, &data, nil, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -229,7 +230,11 @@ func (r *PrefixResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Map response to model
 
-	r.mapPrefixToState(ctx, prefix, &data)
+	r.mapPrefixToState(ctx, prefix, &data, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, "Created prefix", map[string]interface{}{
 		"id": data.ID.ValueString(),
@@ -297,9 +302,18 @@ func (r *PrefixResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
+	// Preserve original custom_fields value from state if null or empty
+	// This prevents drift when config doesn't declare custom_fields
+	originalCustomFields := data.CustomFields
+
 	// Map response to model
 
-	r.mapPrefixToState(ctx, prefix, &data)
+	r.mapPrefixToState(ctx, prefix, &data, &resp.Diagnostics)
+
+	// Restore null/empty custom_fields to prevent unwanted updates
+	if originalCustomFields.IsNull() || (!originalCustomFields.IsUnknown() && len(originalCustomFields.Elements()) == 0) {
+		data.CustomFields = originalCustomFields
+	}
 
 	tflog.Debug(ctx, "Read prefix", map[string]interface{}{
 		"id": data.ID.ValueString(),
@@ -315,17 +329,21 @@ func (r *PrefixResource) Read(ctx context.Context, req resource.ReadRequest, res
 // Update updates the resource and sets the updated Terraform state on success.
 
 func (r *PrefixResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data PrefixResourceModel
+	var plan PrefixResourceModel
+	var state PrefixResourceModel
 
 	// Read Terraform plan data into the model
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Parse the ID
+
+	data := plan
 
 	id, err := utils.ParseID(data.ID.ValueString())
 
@@ -344,9 +362,9 @@ func (r *PrefixResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	prefixRequest := netbox.NewWritablePrefixRequest(data.Prefix.ValueString())
 
-	// Set optional fields
+	// Set optional fields (pass state for merge-aware custom fields)
 
-	r.setOptionalFields(ctx, prefixRequest, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, prefixRequest, &data, &state, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -377,7 +395,11 @@ func (r *PrefixResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	// Map response to model
 
-	r.mapPrefixToState(ctx, prefix, &data)
+	r.mapPrefixToState(ctx, prefix, &data, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, "Updated prefix", map[string]interface{}{
 		"id": data.ID.ValueString(),
@@ -454,8 +476,9 @@ func (r *PrefixResource) ImportState(ctx context.Context, req resource.ImportSta
 }
 
 // setOptionalFields sets optional fields on the prefix request from the resource model.
+// state parameter: pass nil during Create, pass state during Update for merge-aware custom_fields
 
-func (r *PrefixResource) setOptionalFields(ctx context.Context, prefixRequest *netbox.WritablePrefixRequest, data *PrefixResourceModel, diags *diag.Diagnostics) {
+func (r *PrefixResource) setOptionalFields(ctx context.Context, prefixRequest *netbox.WritablePrefixRequest, data *PrefixResourceModel, state *PrefixResourceModel, diags *diag.Diagnostics) {
 	// Site
 
 	if utils.IsSet(data.Site) {
@@ -565,11 +588,24 @@ func (r *PrefixResource) setOptionalFields(ctx context.Context, prefixRequest *n
 	if diags.HasError() {
 		return
 	}
+
+	// Handle custom fields with merge-aware logic
+	if state != nil {
+		// Update: merge plan custom fields with existing state custom fields
+		utils.ApplyCustomFieldsWithMerge(ctx, prefixRequest, data.CustomFields, state.CustomFields, diags)
+	} else {
+		// Create: apply plan custom fields directly
+		utils.ApplyCustomFields(ctx, prefixRequest, data.CustomFields, diags)
+	}
+
+	if diags.HasError() {
+		return
+	}
 }
 
 // mapPrefixToState maps a Netbox Prefix to the Terraform state model.
 
-func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Prefix, data *PrefixResourceModel) {
+func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Prefix, data *PrefixResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", prefix.Id))
 
 	data.Prefix = types.StringValue(prefix.Prefix)
@@ -671,6 +707,8 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 	}
 
 	// Tags
-	var diags diag.Diagnostics
-	data.Tags = utils.PopulateTagsFromAPI(ctx, len(prefix.Tags) > 0, prefix.Tags, data.Tags, &diags)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, len(prefix.Tags) > 0, prefix.Tags, data.Tags, diags)
+
+	// Custom fields - use filter-to-owned pattern
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, prefix.GetCustomFields(), diags)
 }

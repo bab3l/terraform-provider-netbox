@@ -54,6 +54,7 @@ type IPAddressResourceModel struct {
 	Description        types.String `tfsdk:"description"`
 	Comments           types.String `tfsdk:"comments"`
 	Tags               types.Set    `tfsdk:"tags"`
+	CustomFields       types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the resource type name.
@@ -107,8 +108,9 @@ func (r *IPAddressResource) Schema(ctx context.Context, req resource.SchemaReque
 	// Add common descriptive attributes (description, comments)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("IP address"))
 
-	// Add tags attribute (no custom_fields for IP address)
+	// Add tags and custom_fields attributes
 	resp.Schema.Attributes["tags"] = nbschema.TagsAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -140,8 +142,8 @@ func (r *IPAddressResource) Create(ctx context.Context, req resource.CreateReque
 	// Create the IP address request
 	ipRequest := netbox.NewWritableIPAddressRequest(data.Address.ValueString())
 
-	// Set optional fields
-	r.setOptionalFields(ctx, ipRequest, &data, &resp.Diagnostics)
+	// Set optional fields (pass nil for state since this is Create)
+	r.setOptionalFields(ctx, ipRequest, &data, nil, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -160,8 +162,8 @@ func (r *IPAddressResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	// Map response to model
-	r.mapIPAddressToState(ctx, ipAddress, &data)
+	// Map response to model (use filter-to-owned for custom fields)
+	r.mapIPAddressToState(ctx, ipAddress, &data, &resp.Diagnostics)
 	tflog.Debug(ctx, "Created IP address", map[string]interface{}{
 		"id":      data.ID.ValueString(),
 		"address": data.Address.ValueString(),
@@ -209,8 +211,18 @@ func (r *IPAddressResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	// Map response to model
-	r.mapIPAddressToState(ctx, ipAddress, &data)
+	// Save original custom_fields state before mapping
+	originalCustomFields := data.CustomFields
+
+	// Map response to model (use filter-to-owned for custom fields)
+	r.mapIPAddressToState(ctx, ipAddress, &data, &resp.Diagnostics)
+
+	// Preserve original custom_fields state if it was null or empty
+	// This prevents unmanaged/cleared fields from reappearing in state
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		data.CustomFields = originalCustomFields
+	}
+
 	tflog.Debug(ctx, "Read IP address", map[string]interface{}{
 		"id":      data.ID.ValueString(),
 		"address": data.Address.ValueString(),
@@ -222,35 +234,36 @@ func (r *IPAddressResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *IPAddressResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data IPAddressResourceModel
+	var state, plan IPAddressResourceModel
 
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read Terraform state and plan data into the models
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Parse the ID
-	id, err := utils.ParseID(data.ID.ValueString())
+	id, err := utils.ParseID(plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid ID",
-			fmt.Sprintf("Unable to parse ID %q: %s", data.ID.ValueString(), err.Error()),
+			fmt.Sprintf("Unable to parse ID %q: %s", plan.ID.ValueString(), err.Error()),
 		)
 		return
 	}
 
 	// Create the IP address request
-	ipRequest := netbox.NewWritableIPAddressRequest(data.Address.ValueString())
+	ipRequest := netbox.NewWritableIPAddressRequest(plan.Address.ValueString())
 
-	// Set optional fields
-	r.setOptionalFields(ctx, ipRequest, &data, &resp.Diagnostics)
+	// Set optional fields (including merge-aware custom fields)
+	r.setOptionalFields(ctx, ipRequest, &plan, &state, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	tflog.Debug(ctx, "Updating IP address", map[string]interface{}{
 		"id":      id,
-		"address": data.Address.ValueString(),
+		"address": plan.Address.ValueString(),
 	})
 
 	// Update the IP address
@@ -264,15 +277,15 @@ func (r *IPAddressResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	// Map response to model
-	r.mapIPAddressToState(ctx, ipAddress, &data)
+	// Map response to model (use filter-to-owned for custom fields)
+	r.mapIPAddressToState(ctx, ipAddress, &plan, &resp.Diagnostics)
 	tflog.Debug(ctx, "Updated IP address", map[string]interface{}{
-		"id":      data.ID.ValueString(),
-		"address": data.Address.ValueString(),
+		"id":      plan.ID.ValueString(),
+		"address": plan.Address.ValueString(),
 	})
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -325,10 +338,10 @@ func (r *IPAddressResource) ImportState(ctx context.Context, req resource.Import
 }
 
 // setOptionalFields sets optional fields on the IP address request from the resource model.
-func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *netbox.WritableIPAddressRequest, data *IPAddressResourceModel, diags *diag.Diagnostics) {
+func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *netbox.WritableIPAddressRequest, plan *IPAddressResourceModel, state *IPAddressResourceModel, diags *diag.Diagnostics) {
 	// VRF
-	if utils.IsSet(data.VRF) {
-		vrf, vrfDiags := netboxlookup.LookupVRF(ctx, r.client, data.VRF.ValueString())
+	if utils.IsSet(plan.VRF) {
+		vrf, vrfDiags := netboxlookup.LookupVRF(ctx, r.client, plan.VRF.ValueString())
 		diags.Append(vrfDiags...)
 		if diags.HasError() {
 			return
@@ -337,8 +350,8 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 	}
 
 	// Tenant
-	if utils.IsSet(data.Tenant) {
-		tenant, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
+	if utils.IsSet(plan.Tenant) {
+		tenant, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, plan.Tenant.ValueString())
 		diags.Append(tenantDiags...)
 		if diags.HasError() {
 			return
@@ -347,50 +360,56 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 	}
 
 	// Status
-	if utils.IsSet(data.Status) {
-		status := netbox.PatchedWritableIPAddressRequestStatus(data.Status.ValueString())
+	if utils.IsSet(plan.Status) {
+		status := netbox.PatchedWritableIPAddressRequestStatus(plan.Status.ValueString())
 		ipRequest.Status = &status
 	}
 
 	// Role
-	if utils.IsSet(data.Role) {
-		role := netbox.PatchedWritableIPAddressRequestRole(data.Role.ValueString())
+	if utils.IsSet(plan.Role) {
+		role := netbox.PatchedWritableIPAddressRequestRole(plan.Role.ValueString())
 		ipRequest.Role = &role
 	}
 
 	// Assigned Object Type
-	if utils.IsSet(data.AssignedObjectType) {
-		objType := data.AssignedObjectType.ValueString()
+	if utils.IsSet(plan.AssignedObjectType) {
+		objType := plan.AssignedObjectType.ValueString()
 		ipRequest.AssignedObjectType = *netbox.NewNullableString(&objType)
 	}
 
 	// Assigned Object ID
-	if utils.IsSet(data.AssignedObjectID) {
-		objID := data.AssignedObjectID.ValueInt64()
+	if utils.IsSet(plan.AssignedObjectID) {
+		objID := plan.AssignedObjectID.ValueInt64()
 		ipRequest.AssignedObjectId = *netbox.NewNullableInt64(&objID)
 	}
 
 	// DNS Name
-	if utils.IsSet(data.DNSName) {
-		dnsName := data.DNSName.ValueString()
+	if utils.IsSet(plan.DNSName) {
+		dnsName := plan.DNSName.ValueString()
 		ipRequest.DnsName = &dnsName
 	}
 
 	// Description
-	ipRequest.Description = utils.StringPtr(data.Description)
+	ipRequest.Description = utils.StringPtr(plan.Description)
 
 	// Comments
-	ipRequest.Comments = utils.StringPtr(data.Comments)
+	ipRequest.Comments = utils.StringPtr(plan.Comments)
 
 	// Handle tags
-	utils.ApplyTags(ctx, ipRequest, data.Tags, diags)
+	utils.ApplyTags(ctx, ipRequest, plan.Tags, diags)
 	if diags.HasError() {
 		return
+	}
+	// Handle custom fields - use merge-aware helper if state exists (Update), otherwise regular (Create)
+	if state != nil {
+		utils.ApplyCustomFieldsWithMerge(ctx, ipRequest, plan.CustomFields, state.CustomFields, diags)
+	} else {
+		utils.ApplyCustomFields(ctx, ipRequest, plan.CustomFields, diags)
 	}
 }
 
 // mapIPAddressToState maps a Netbox IPAddress to the Terraform state model.
-func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *netbox.IPAddress, data *IPAddressResourceModel) {
+func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *netbox.IPAddress, data *IPAddressResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipAddress.Id))
 	data.Address = types.StringValue(ipAddress.Address)
 
@@ -460,6 +479,8 @@ func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *
 	}
 
 	// Tags
-	var diags diag.Diagnostics
-	data.Tags = utils.PopulateTagsFromAPI(ctx, len(ipAddress.Tags) > 0, ipAddress.Tags, data.Tags, &diags)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, len(ipAddress.Tags) > 0, ipAddress.Tags, data.Tags, diags)
+
+	// Custom Fields - use filter-to-owned pattern
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, ipAddress.CustomFields, diags)
 }

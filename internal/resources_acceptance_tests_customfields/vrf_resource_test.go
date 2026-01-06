@@ -9,8 +9,368 @@ import (
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
+
+// TestAccVRFResource_CustomFieldsPreservation tests that custom fields are preserved
+// when updating other fields on a VRF.
+//
+// Filter-to-owned pattern:
+// - Custom fields declared in config are managed by Terraform
+// - Custom fields NOT in config are preserved in NetBox but invisible to Terraform
+func TestAccVRFResource_CustomFieldsPreservation(t *testing.T) {
+	vrfName := "vrf-" + acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
+
+	cfEnvironment := testutil.RandomCustomFieldName("tf_env")
+	cfOwner := testutil.RandomCustomFieldName("tf_owner")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create VRF WITH custom fields
+				Config: testAccVRFConfig_preservation_step1(vrfName, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vrf.test", "name", vrfName),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_vrf.test", cfEnvironment, "text", "production"),
+					testutil.CheckCustomFieldValue("netbox_vrf.test", cfOwner, "text", "network-team"),
+				),
+			},
+			{
+				// Step 2: Update description WITHOUT mentioning custom_fields
+				Config: testAccVRFConfig_preservation_step2(vrfName, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vrf.test", "description", "Updated VRF"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "custom_fields.#", "0"),
+				),
+			},
+			{
+				// Step 3: Import to verify custom fields still exist in NetBox
+				ResourceName:            "netbox_vrf.test",
+				ImportState:             true,
+				ImportStateVerify:       false,
+				ImportStateVerifyIgnore: []string{"custom_fields"},
+			},
+			{
+				// Step 4: Add custom_fields back to verify they were preserved
+				Config: testAccVRFConfig_preservation_step3(vrfName, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vrf.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_vrf.test", cfEnvironment, "text", "production"),
+					testutil.CheckCustomFieldValue("netbox_vrf.test", cfOwner, "text", "network-team"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "description", "Updated VRF"),
+				),
+			},
+		},
+	})
+}
+
+// TestAccVRFResource_CustomFieldsFilterToOwned tests the filter-to-owned pattern
+func TestAccVRFResource_CustomFieldsFilterToOwned(t *testing.T) {
+	vrfName := "vrf-" + acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
+
+	cfEnv := testutil.RandomCustomFieldName("tf_env")
+	cfOwner := testutil.RandomCustomFieldName("tf_owner")
+	cfCostCenter := testutil.RandomCustomFieldName("tf_cost")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create with two fields
+				Config: testAccVRFConfig_filter_step1(vrfName, cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vrf.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_vrf.test", cfEnv, "text", "prod"),
+					testutil.CheckCustomFieldValue("netbox_vrf.test", cfOwner, "text", "network-team"),
+				),
+			},
+			{
+				// Step 2: Remove owner, keep env with updated value
+				Config: testAccVRFConfig_filter_step2(vrfName, cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vrf.test", "custom_fields.#", "1"),
+					testutil.CheckCustomFieldValue("netbox_vrf.test", cfEnv, "text", "staging"),
+				),
+			},
+			{
+				// Step 3: Add cost_center
+				Config: testAccVRFConfig_filter_step3(vrfName, cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vrf.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_vrf.test", cfEnv, "text", "staging"),
+					testutil.CheckCustomFieldValue("netbox_vrf.test", cfCostCenter, "text", "COST123"),
+				),
+			},
+			{
+				// Step 4: Add owner back - should have preserved value
+				Config: testAccVRFConfig_filter_step4(vrfName, cfEnv, cfOwner, cfCostCenter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vrf.test", "custom_fields.#", "3"),
+					testutil.CheckCustomFieldValue("netbox_vrf.test", cfEnv, "text", "staging"),
+					testutil.CheckCustomFieldValue("netbox_vrf.test", cfOwner, "text", "network-team"),
+					testutil.CheckCustomFieldValue("netbox_vrf.test", cfCostCenter, "text", "COST123"),
+				),
+			},
+		},
+	})
+}
+
+// =============================================================================
+// Helper Config Functions - Preservation Tests
+// =============================================================================
+
+func testAccVRFConfig_preservation_step1(vrfName, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "environment" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_vrf" "test" {
+  name = %[1]q
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.environment.name
+      type  = "text"
+      value = "production"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "network-team"
+    }
+  ]
+}
+`, vrfName, cfEnv, cfOwner)
+}
+
+func testAccVRFConfig_preservation_step2(vrfName, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "environment" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_vrf" "test" {
+  name        = %[1]q
+  description = "Updated VRF"
+}
+`, vrfName, cfEnv, cfOwner)
+}
+
+func testAccVRFConfig_preservation_step3(vrfName, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "environment" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_vrf" "test" {
+  name        = %[1]q
+  description = "Updated VRF"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.environment.name
+      type  = "text"
+      value = "production"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "network-team"
+    }
+  ]
+}
+`, vrfName, cfEnv, cfOwner)
+}
+
+// =============================================================================
+// Helper Config Functions - Filter-to-Owned Tests
+// =============================================================================
+
+func testAccVRFConfig_filter_step1(vrfName, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "env" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_vrf" "test" {
+  name = %[1]q
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "prod"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "network-team"
+    }
+  ]
+}
+`, vrfName, cfEnv, cfOwner, cfCost)
+}
+
+func testAccVRFConfig_filter_step2(vrfName, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "env" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_vrf" "test" {
+  name = %[1]q
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    }
+  ]
+}
+`, vrfName, cfEnv, cfOwner, cfCost)
+}
+
+func testAccVRFConfig_filter_step3(vrfName, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "env" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_vrf" "test" {
+  name = %[1]q
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    },
+    {
+      name  = netbox_custom_field.cost.name
+      type  = "text"
+      value = "COST123"
+    }
+  ]
+}
+`, vrfName, cfEnv, cfOwner, cfCost)
+}
+
+func testAccVRFConfig_filter_step4(vrfName, cfEnv, cfOwner, cfCost string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "env" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_custom_field" "cost" {
+  name         = %[4]q
+  type         = "text"
+  object_types = ["ipam.vrf"]
+}
+
+resource "netbox_vrf" "test" {
+  name = %[1]q
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "network-team"
+    },
+    {
+      name  = netbox_custom_field.cost.name
+      type  = "text"
+      value = "COST123"
+    }
+  ]
+}
+`, vrfName, cfEnv, cfOwner, cfCost)
+}
 
 func TestAccVRFResource_importWithCustomFieldsAndTags(t *testing.T) {
 	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields

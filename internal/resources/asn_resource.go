@@ -125,8 +125,8 @@ func (r *ASNResource) Create(ctx context.Context, req resource.CreateRequest, re
 		"asn": data.ASN.ValueInt64(),
 	})
 
-	// Build the ASN request
-	asnRequest, diags := r.buildASNRequest(ctx, &data)
+	// Build the ASN request (pass nil state since this is a new resource)
+	asnRequest, diags := r.buildASNRequest(ctx, &data, nil)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -210,6 +210,13 @@ func (r *ASNResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
+	// Read current state for merge-aware custom fields
+	var state ASNResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Parse the ID
 	asnID, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
@@ -224,8 +231,8 @@ func (r *ASNResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		"asn": data.ASN.ValueInt64(),
 	})
 
-	// Build the ASN request
-	asnRequest, diags := r.buildASNRequest(ctx, &data)
+	// Build the ASN request with state for merge-aware custom fields
+	asnRequest, diags := r.buildASNRequest(ctx, &data, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -301,7 +308,8 @@ func (r *ASNResource) ImportState(ctx context.Context, req resource.ImportStateR
 }
 
 // buildASNRequest builds an ASNRequest from the Terraform model.
-func (r *ASNResource) buildASNRequest(ctx context.Context, data *ASNResourceModel) (*netbox.ASNRequest, diag.Diagnostics) {
+// state is optional and only provided during updates for merge-aware custom fields.
+func (r *ASNResource) buildASNRequest(ctx context.Context, data *ASNResourceModel, state *ASNResourceModel) (*netbox.ASNRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Create the request with required fields
@@ -327,11 +335,34 @@ func (r *ASNResource) buildASNRequest(ctx context.Context, data *ASNResourceMode
 		asnRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
 	}
 
-	// Apply common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, asnRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
+	// Apply description and comments
+	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+		desc := data.Description.ValueString()
+		asnRequest.SetDescription(desc)
+	}
+	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
+		comments := data.Comments.ValueString()
+		asnRequest.SetComments(comments)
+	}
+
+	// Apply tags
+	utils.ApplyTags(ctx, asnRequest, data.Tags, &diags)
 	if diags.HasError() {
 		return nil, diags
 	}
+
+	// Apply custom fields with merge awareness
+	if state != nil {
+		// Update: use merge-aware helper
+		utils.ApplyCustomFieldsWithMerge(ctx, asnRequest, data.CustomFields, state.CustomFields, &diags)
+	} else {
+		// Create: apply custom fields directly
+		utils.ApplyCustomFields(ctx, asnRequest, data.CustomFields, &diags)
+	}
+	if diags.HasError() {
+		return nil, diags
+	}
+
 	return asnRequest, diags
 }
 
@@ -376,6 +407,6 @@ func (r *ASNResource) mapResponseToModel(ctx context.Context, asn *netbox.ASN, d
 		return
 	}
 
-	// Custom Fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, asn.HasCustomFields(), asn.GetCustomFields(), data.CustomFields, diags)
+	// Custom Fields - filter to owned fields only
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, asn.GetCustomFields(), diags)
 }

@@ -688,5 +688,6 @@ func (r *ServiceResource) mapResponseToModel(ctx context.Context, svc *netbox.Se
 	}
 
 	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, svc.HasCustomFields(), svc.GetCustomFields(), data.CustomFields, diags)
+	// Custom Fields - filter to owned fields only
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, svc.GetCustomFields(), diags)
 }

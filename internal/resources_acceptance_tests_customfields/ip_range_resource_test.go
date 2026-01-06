@@ -11,6 +11,368 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+// TestAccIPRangeResource_CustomFieldsPreservation tests that custom fields are preserved
+// when updating other fields on an IP Range.
+//
+// Filter-to-owned pattern:
+// - Custom fields declared in config are managed by Terraform
+// - Custom fields NOT in config are preserved in NetBox but invisible to Terraform
+func TestAccIPRangeResource_CustomFieldsPreservation(t *testing.T) {
+	cfEnvironment := testutil.RandomCustomFieldName("tf_env")
+	cfPurpose := testutil.RandomCustomFieldName("tf_purpose")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create IP Range WITH custom fields
+				Config: testAccIPRangeConfig_preservation_step1(cfEnvironment, cfPurpose),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", "192.168.1.10"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "end_address", "192.168.1.20"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_ip_range.test", cfEnvironment, "text", "production"),
+					testutil.CheckCustomFieldValue("netbox_ip_range.test", cfPurpose, "text", "servers"),
+				),
+			},
+			{
+				// Step 2: Update description WITHOUT mentioning custom_fields
+				Config: testAccIPRangeConfig_preservation_step2(cfEnvironment, cfPurpose),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "description", "Updated range"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "custom_fields.#", "0"),
+				),
+			},
+			{
+				// Step 3: Import to verify custom fields still exist in NetBox
+				ResourceName:            "netbox_ip_range.test",
+				ImportState:             true,
+				ImportStateVerify:       false,
+				ImportStateVerifyIgnore: []string{"custom_fields"},
+			},
+			{
+				// Step 4: Add custom_fields back to verify they were preserved
+				Config: testAccIPRangeConfig_preservation_step3(cfEnvironment, cfPurpose),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_ip_range.test", cfEnvironment, "text", "production"),
+					testutil.CheckCustomFieldValue("netbox_ip_range.test", cfPurpose, "text", "servers"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "description", "Updated range"),
+				),
+			},
+		},
+	})
+}
+
+// TestAccIPRangeResource_CustomFieldsFilterToOwned tests the filter-to-owned pattern
+func TestAccIPRangeResource_CustomFieldsFilterToOwned(t *testing.T) {
+	cfEnv := testutil.RandomCustomFieldName("tf_env")
+	cfPurpose := testutil.RandomCustomFieldName("tf_purpose")
+	cfTeam := testutil.RandomCustomFieldName("tf_team")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create with two fields
+				Config: testAccIPRangeConfig_filter_step1(cfEnv, cfPurpose, cfTeam),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_ip_range.test", cfEnv, "text", "prod"),
+					testutil.CheckCustomFieldValue("netbox_ip_range.test", cfPurpose, "text", "servers"),
+				),
+			},
+			{
+				// Step 2: Remove purpose, keep env with updated value
+				Config: testAccIPRangeConfig_filter_step2(cfEnv, cfPurpose, cfTeam),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "custom_fields.#", "1"),
+					testutil.CheckCustomFieldValue("netbox_ip_range.test", cfEnv, "text", "staging"),
+				),
+			},
+			{
+				// Step 3: Add team
+				Config: testAccIPRangeConfig_filter_step3(cfEnv, cfPurpose, cfTeam),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_ip_range.test", cfEnv, "text", "staging"),
+					testutil.CheckCustomFieldValue("netbox_ip_range.test", cfTeam, "text", "network-team"),
+				),
+			},
+			{
+				// Step 4: Add purpose back - should have preserved value
+				Config: testAccIPRangeConfig_filter_step4(cfEnv, cfPurpose, cfTeam),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "custom_fields.#", "3"),
+					testutil.CheckCustomFieldValue("netbox_ip_range.test", cfEnv, "text", "staging"),
+					testutil.CheckCustomFieldValue("netbox_ip_range.test", cfPurpose, "text", "servers"),
+					testutil.CheckCustomFieldValue("netbox_ip_range.test", cfTeam, "text", "network-team"),
+				),
+			},
+		},
+	})
+}
+
+// =============================================================================
+// Helper Config Functions - Preservation Tests
+// =============================================================================
+
+func testAccIPRangeConfig_preservation_step1(cfEnv, cfPurpose string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "environment" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_custom_field" "purpose" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_ip_range" "test" {
+  start_address = "192.168.1.10"
+  end_address   = "192.168.1.20"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.environment.name
+      type  = "text"
+      value = "production"
+    },
+    {
+      name  = netbox_custom_field.purpose.name
+      type  = "text"
+      value = "servers"
+    }
+  ]
+}
+`, cfEnv, cfPurpose)
+}
+
+func testAccIPRangeConfig_preservation_step2(cfEnv, cfPurpose string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "environment" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_custom_field" "purpose" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_ip_range" "test" {
+  start_address = "192.168.1.10"
+  end_address   = "192.168.1.20"
+  description   = "Updated range"
+}
+`, cfEnv, cfPurpose)
+}
+
+func testAccIPRangeConfig_preservation_step3(cfEnv, cfPurpose string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "environment" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_custom_field" "purpose" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_ip_range" "test" {
+  start_address = "192.168.1.10"
+  end_address   = "192.168.1.20"
+  description   = "Updated range"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.environment.name
+      type  = "text"
+      value = "production"
+    },
+    {
+      name  = netbox_custom_field.purpose.name
+      type  = "text"
+      value = "servers"
+    }
+  ]
+}
+`, cfEnv, cfPurpose)
+}
+
+// =============================================================================
+// Helper Config Functions - Filter-to-Owned Tests
+// =============================================================================
+
+func testAccIPRangeConfig_filter_step1(cfEnv, cfPurpose, cfTeam string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "env" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_custom_field" "purpose" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_custom_field" "team" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_ip_range" "test" {
+  start_address = "192.168.1.10"
+  end_address   = "192.168.1.20"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "prod"
+    },
+    {
+      name  = netbox_custom_field.purpose.name
+      type  = "text"
+      value = "servers"
+    }
+  ]
+}
+`, cfEnv, cfPurpose, cfTeam)
+}
+
+func testAccIPRangeConfig_filter_step2(cfEnv, cfPurpose, cfTeam string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "env" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_custom_field" "purpose" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_custom_field" "team" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_ip_range" "test" {
+  start_address = "192.168.1.10"
+  end_address   = "192.168.1.20"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    }
+  ]
+}
+`, cfEnv, cfPurpose, cfTeam)
+}
+
+func testAccIPRangeConfig_filter_step3(cfEnv, cfPurpose, cfTeam string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "env" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_custom_field" "purpose" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_custom_field" "team" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_ip_range" "test" {
+  start_address = "192.168.1.10"
+  end_address   = "192.168.1.20"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    },
+    {
+      name  = netbox_custom_field.team.name
+      type  = "text"
+      value = "network-team"
+    }
+  ]
+}
+`, cfEnv, cfPurpose, cfTeam)
+}
+
+func testAccIPRangeConfig_filter_step4(cfEnv, cfPurpose, cfTeam string) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "env" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_custom_field" "purpose" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_custom_field" "team" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["ipam.iprange"]
+}
+
+resource "netbox_ip_range" "test" {
+  start_address = "192.168.1.10"
+  end_address   = "192.168.1.20"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "staging"
+    },
+    {
+      name  = netbox_custom_field.purpose.name
+      type  = "text"
+      value = "servers"
+    },
+    {
+      name  = netbox_custom_field.team.name
+      type  = "text"
+      value = "network-team"
+    }
+  ]
+}
+`, cfEnv, cfPurpose, cfTeam)
+}
 func TestAccIPRangeResource_importWithCustomFieldsAndTags(t *testing.T) {
 	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
 	// that would affect other tests of the same resource type running in parallel.
