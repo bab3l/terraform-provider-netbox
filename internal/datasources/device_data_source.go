@@ -21,7 +21,6 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-
 var _ datasource.DataSource = &DeviceDataSource{}
 
 func NewDeviceDataSource() datasource.DataSource {
@@ -29,61 +28,36 @@ func NewDeviceDataSource() datasource.DataSource {
 }
 
 // DeviceDataSource defines the data source implementation.
-
 type DeviceDataSource struct {
 	client *netbox.APIClient
 }
 
 // DeviceDataSourceModel describes the data source data model.
-
 type DeviceDataSourceModel struct {
-	ID types.String `tfsdk:"id"`
-
-	Name types.String `tfsdk:"name"`
-
-	DeviceType types.String `tfsdk:"device_type"`
-
-	Role types.String `tfsdk:"role"`
-
-	Tenant types.String `tfsdk:"tenant"`
-
-	Platform types.String `tfsdk:"platform"`
-
-	Serial types.String `tfsdk:"serial"`
-
-	AssetTag types.String `tfsdk:"asset_tag"`
-
-	Site types.String `tfsdk:"site"`
-
-	Location types.String `tfsdk:"location"`
-
-	Rack types.String `tfsdk:"rack"`
-
-	Position types.Float64 `tfsdk:"position"`
-
-	Face types.String `tfsdk:"face"`
-
-	Latitude types.Float64 `tfsdk:"latitude"`
-
-	Longitude types.Float64 `tfsdk:"longitude"`
-
-	Status types.String `tfsdk:"status"`
-
-	Airflow types.String `tfsdk:"airflow"`
-
-	VcPosition types.Int64 `tfsdk:"vc_position"`
-
-	VcPriority types.Int64 `tfsdk:"vc_priority"`
-
-	Description types.String `tfsdk:"description"`
-
-	Comments types.String `tfsdk:"comments"`
-
-	Tags types.Set `tfsdk:"tags"`
-
-	CustomFields types.Set `tfsdk:"custom_fields"`
-
-	DisplayName types.String `tfsdk:"display_name"`
+	ID           types.String  `tfsdk:"id"`
+	Name         types.String  `tfsdk:"name"`
+	DeviceType   types.String  `tfsdk:"device_type"`
+	Role         types.String  `tfsdk:"role"`
+	Tenant       types.String  `tfsdk:"tenant"`
+	Platform     types.String  `tfsdk:"platform"`
+	Serial       types.String  `tfsdk:"serial"`
+	AssetTag     types.String  `tfsdk:"asset_tag"`
+	Site         types.String  `tfsdk:"site"`
+	Location     types.String  `tfsdk:"location"`
+	Rack         types.String  `tfsdk:"rack"`
+	Position     types.Float64 `tfsdk:"position"`
+	Face         types.String  `tfsdk:"face"`
+	Latitude     types.Float64 `tfsdk:"latitude"`
+	Longitude    types.Float64 `tfsdk:"longitude"`
+	Status       types.String  `tfsdk:"status"`
+	Airflow      types.String  `tfsdk:"airflow"`
+	VcPosition   types.Int64   `tfsdk:"vc_position"`
+	VcPriority   types.Int64   `tfsdk:"vc_priority"`
+	Description  types.String  `tfsdk:"description"`
+	Comments     types.String  `tfsdk:"comments"`
+	Tags         types.Set     `tfsdk:"tags"`
+	CustomFields types.Set     `tfsdk:"custom_fields"`
+	DisplayName  types.String  `tfsdk:"display_name"`
 }
 
 func (d *DeviceDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -93,7 +67,6 @@ func (d *DeviceDataSource) Metadata(ctx context.Context, req datasource.Metadata
 func (d *DeviceDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Use this data source to get information about a device in Netbox. Devices represent physical or virtual hardware. You can identify the device using `id` (unique), `name` (may be non-unique), or `serial` (unique, recommended for uniqueness).",
-
 		Attributes: map[string]schema.Attribute{
 			"id":          nbschema.DSIDAttribute("device"),
 			"name":        nbschema.DSNameAttribute("device"),
@@ -129,24 +102,17 @@ func (d *DeviceDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 
 func (d *DeviceDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
-
 	if req.ProviderData == nil {
 		return
 	}
-
 	client, ok := req.ProviderData.(*netbox.APIClient)
-
 	if !ok {
 		resp.Diagnostics.AddError(
-
 			"Unexpected Data Source Configure Type",
-
 			fmt.Sprintf("Expected *netbox.APIClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
-
 		return
 	}
-
 	d.client = client
 }
 
@@ -154,7 +120,6 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	var data DeviceDataSourceModel
 
 	// Read Terraform configuration data into the model
-
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
