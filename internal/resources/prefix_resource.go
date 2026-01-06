@@ -104,29 +104,13 @@ func (r *PrefixResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Required: true,
 			},
 
-			"site": schema.StringAttribute{
-				MarkdownDescription: "The name or ID of the site this prefix is assigned to.",
+			"site": nbschema.ReferenceAttributeWithDiffSuppress("site", "ID or slug of the site this prefix is assigned to."),
 
-				Optional: true,
-			},
+			"vrf": nbschema.ReferenceAttributeWithDiffSuppress("VRF", "ID or name of the VRF this prefix is assigned to."),
 
-			"vrf": schema.StringAttribute{
-				MarkdownDescription: "The name or ID of the VRF this prefix is assigned to.",
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant this prefix is assigned to."),
 
-				Optional: true,
-			},
-
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "The name or ID of the tenant this prefix is assigned to.",
-
-				Optional: true,
-			},
-
-			"vlan": schema.StringAttribute{
-				MarkdownDescription: "The name or ID of the VLAN this prefix is assigned to.",
-
-				Optional: true,
-			},
+			"vlan": nbschema.ReferenceAttributeWithDiffSuppress("VLAN", "ID or VID of the VLAN this prefix is assigned to."),
 
 			"status": schema.StringAttribute{
 				MarkdownDescription: "The status of the prefix. Valid values are: `container`, `active`, `reserved`, `deprecated`. Defaults to `active`.",

@@ -77,14 +77,8 @@ func (r *IPAddressResource) Schema(ctx context.Context, req resource.SchemaReque
 				MarkdownDescription: "The IP address with prefix length (e.g., 192.168.1.1/24).",
 				Required:            true,
 			},
-			"vrf": schema.StringAttribute{
-				MarkdownDescription: "The name or ID of the VRF this IP address is assigned to.",
-				Optional:            true,
-			},
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "The name or ID of the tenant this IP address is assigned to.",
-				Optional:            true,
-			},
+			"vrf":    nbschema.ReferenceAttributeWithDiffSuppress("VRF", "ID or name of the VRF this IP address is assigned to."),
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant this IP address is assigned to."),
 			"status": schema.StringAttribute{
 				MarkdownDescription: "The status of the IP address. Valid values are: `active`, `reserved`, `deprecated`, `dhcp`, `slaac`. Defaults to `active`.",
 				Optional:            true,
