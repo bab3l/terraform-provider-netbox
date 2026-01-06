@@ -91,7 +91,7 @@ func (d *ManufacturerDataSource) Read(ctx context.Context, req datasource.ReadRe
 		var m *netbox.Manufacturer
 		m, httpResp, err = d.client.DcimAPI.DcimManufacturersRetrieve(ctx, manufacturerIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-		if err == nil && httpResp.StatusCode == 200 {
+		if err == nil && httpResp.StatusCode == http.StatusOK {
 			manufacturer = m
 		}
 	case !data.Slug.IsNull():
@@ -99,7 +99,7 @@ func (d *ManufacturerDataSource) Read(ctx context.Context, req datasource.ReadRe
 		var manufacturers *netbox.PaginatedManufacturerList
 		manufacturers, httpResp, err = d.client.DcimAPI.DcimManufacturersList(ctx).Slug([]string{slug}).Execute()
 		defer utils.CloseResponseBody(httpResp)
-		if err == nil && httpResp.StatusCode == 200 && len(manufacturers.GetResults()) > 0 {
+		if err == nil && httpResp.StatusCode == http.StatusOK && len(manufacturers.GetResults()) > 0 {
 			manufacturer = &manufacturers.GetResults()[0]
 		}
 	case !data.Name.IsNull():
@@ -107,7 +107,7 @@ func (d *ManufacturerDataSource) Read(ctx context.Context, req datasource.ReadRe
 		var manufacturers *netbox.PaginatedManufacturerList
 		manufacturers, httpResp, err = d.client.DcimAPI.DcimManufacturersList(ctx).Name([]string{name}).Execute()
 		defer utils.CloseResponseBody(httpResp)
-		if err == nil && httpResp.StatusCode == 200 && len(manufacturers.GetResults()) > 0 {
+		if err == nil && httpResp.StatusCode == http.StatusOK && len(manufacturers.GetResults()) > 0 {
 			manufacturer = &manufacturers.GetResults()[0]
 		}
 	default:
@@ -120,7 +120,7 @@ func (d *ManufacturerDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	if httpResp == nil || httpResp.StatusCode != 200 || manufacturer == nil {
+	if httpResp == nil || httpResp.StatusCode != http.StatusOK || manufacturer == nil {
 		resp.Diagnostics.AddError("Manufacturer Not Found", "No manufacturer found with the specified identifier.")
 		return
 	}

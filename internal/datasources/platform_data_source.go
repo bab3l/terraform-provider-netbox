@@ -120,7 +120,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 		defer utils.CloseResponseBody(httpResp)
 
-		if err == nil && httpResp.StatusCode == 200 {
+		if err == nil && httpResp.StatusCode == http.StatusOK {
 			platform = p
 		}
 
@@ -134,7 +134,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 		defer utils.CloseResponseBody(httpResp)
 
-		if err == nil && httpResp.StatusCode == 200 && len(platforms.GetResults()) > 0 {
+		if err == nil && httpResp.StatusCode == http.StatusOK && len(platforms.GetResults()) > 0 {
 			platform = &platforms.GetResults()[0]
 		}
 
@@ -148,7 +148,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 		defer utils.CloseResponseBody(httpResp)
 
-		if err == nil && httpResp.StatusCode == 200 && len(platforms.GetResults()) > 0 {
+		if err == nil && httpResp.StatusCode == http.StatusOK && len(platforms.GetResults()) > 0 {
 			platform = &platforms.GetResults()[0]
 		}
 
@@ -165,7 +165,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	if httpResp == nil || httpResp.StatusCode != 200 || platform == nil {
+	if httpResp == nil || httpResp.StatusCode != http.StatusOK || platform == nil {
 		resp.Diagnostics.AddError("Platform Not Found", "No platform found with the specified identifier.")
 
 		return

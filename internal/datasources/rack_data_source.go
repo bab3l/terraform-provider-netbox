@@ -332,7 +332,7 @@ func (d *RackDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	if httpResp.StatusCode != 200 {
+	if httpResp.StatusCode != http.StatusOK {
 		resp.Diagnostics.AddError(
 
 			"Error reading rack",

@@ -187,7 +187,7 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	if httpResp != nil && httpResp.StatusCode == 404 {
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 		resp.Diagnostics.AddError(
 			"Cluster Type Not Found",
 			fmt.Sprintf("No cluster type found with ID: %s", data.ID.ValueString()),

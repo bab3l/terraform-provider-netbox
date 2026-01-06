@@ -227,7 +227,7 @@ func (d *ConfigContextDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.Diagnostics.AddError(
 				"Config context not found",
 				utils.FormatAPIError("find config context", err, httpResp),
