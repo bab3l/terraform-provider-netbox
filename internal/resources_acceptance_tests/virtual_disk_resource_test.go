@@ -380,7 +380,7 @@ resource "netbox_cluster" "test" {
   type = netbox_cluster_type.test.id
 }
 
-resource "netbox_virtual_machine" "test" {s
+resource "netbox_virtual_machine" "test" {
   name = "%[4]s"
   cluster = netbox_cluster.test.id
   lifecycle {
