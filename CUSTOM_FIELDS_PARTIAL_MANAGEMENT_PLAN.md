@@ -522,6 +522,13 @@ utils.ApplyCustomFieldsWithMerge(ctx, &deviceRequest, plan.CustomFields, state.C
 
 #### Test Scenarios:
 
+**Best Practice: Single Test File Per Resource**
+- Each resource type should have ONE custom fields acceptance test file
+- Use terraform generator functions for code reuse (e.g., `testAccDeviceResourceConfig_base()`)
+- Minimize test count while maximizing coverage through comprehensive test steps
+- Example: `device_custom_fields_test.go` contains all 4 test scenarios for device resource
+- This approach reduces duplication and improves maintainability
+
 **Test 1: Custom Fields Preservation** (already created):
 - Step 1: Create with custom_fields = [field_a, field_b]
 - Step 2: Update description WITHOUT custom_fields in config
