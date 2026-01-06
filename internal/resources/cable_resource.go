@@ -113,10 +113,7 @@ func (r *CableResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 					stringvalidator.OneOf("connected", "planned", "decommissioning"),
 				},
 			},
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "ID of the tenant that owns this cable.",
-				Optional:            true,
-			},
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID of the tenant that owns this cable."),
 			"label": schema.StringAttribute{
 				MarkdownDescription: "Physical label attached to the cable.",
 				Optional:            true,

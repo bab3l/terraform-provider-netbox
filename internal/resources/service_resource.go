@@ -91,17 +91,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				},
 			},
 
-			"device": schema.StringAttribute{
-				MarkdownDescription: "The device this service runs on (ID or name). Mutually exclusive with virtual_machine.",
+			"device": nbschema.ReferenceAttributeWithDiffSuppress("device", "The device this service runs on (ID or name). Mutually exclusive with virtual_machine."),
 
-				Optional: true,
-			},
-
-			"virtual_machine": schema.StringAttribute{
-				MarkdownDescription: "The virtual machine this service runs on (ID or name). Mutually exclusive with device.",
-
-				Optional: true,
-			},
+			"virtual_machine": nbschema.ReferenceAttributeWithDiffSuppress("virtual_machine", "The virtual machine this service runs on (ID or name). Mutually exclusive with device."),
 
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the service (e.g., 'ssh', 'http', 'https').",

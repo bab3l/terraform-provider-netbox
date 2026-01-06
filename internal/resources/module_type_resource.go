@@ -70,10 +70,7 @@ func (r *ModuleTypeResource) Schema(ctx context.Context, req resource.SchemaRequ
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"manufacturer": schema.StringAttribute{
-				MarkdownDescription: "The manufacturer of the module type (ID or slug).",
-				Required:            true,
-			},
+			"manufacturer": nbschema.RequiredReferenceAttributeWithDiffSuppress("manufacturer", "The manufacturer of the module type (ID or slug)."),
 			"model": schema.StringAttribute{
 				MarkdownDescription: "The model name/number of the module type.",
 				Required:            true,

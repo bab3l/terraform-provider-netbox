@@ -74,10 +74,7 @@ func (r *InventoryItemResource) Schema(ctx context.Context, req resource.SchemaR
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"device": schema.StringAttribute{
-				MarkdownDescription: "The device this inventory item belongs to (ID or name).",
-				Required:            true,
-			},
+			"device": nbschema.RequiredReferenceAttributeWithDiffSuppress("device", "The device this inventory item belongs to (ID or name)."),
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the inventory item.",
 				Required:            true,
@@ -86,18 +83,9 @@ func (r *InventoryItemResource) Schema(ctx context.Context, req resource.SchemaR
 				MarkdownDescription: "Physical label on the inventory item.",
 				Optional:            true,
 			},
-			"parent": schema.StringAttribute{
-				MarkdownDescription: "Parent inventory item (ID) for nested items.",
-				Optional:            true,
-			},
-			"role": schema.StringAttribute{
-				MarkdownDescription: "The functional role of the inventory item (ID or slug).",
-				Optional:            true,
-			},
-			"manufacturer": schema.StringAttribute{
-				MarkdownDescription: "The manufacturer of the inventory item (ID or slug).",
-				Optional:            true,
-			},
+			"parent":       nbschema.ReferenceAttributeWithDiffSuppress("inventory_item", "Parent inventory item (ID) for nested items."),
+			"role":         nbschema.ReferenceAttributeWithDiffSuppress("inventory_item_role", "The functional role of the inventory item (ID or slug)."),
+			"manufacturer": nbschema.ReferenceAttributeWithDiffSuppress("manufacturer", "The manufacturer of the inventory item (ID or slug)."),
 			"part_id": schema.StringAttribute{
 				MarkdownDescription: "Manufacturer-assigned part identifier.",
 				Optional:            true,

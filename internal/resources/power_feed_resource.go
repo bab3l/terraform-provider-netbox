@@ -78,14 +78,8 @@ func (r *PowerFeedResource) Schema(ctx context.Context, req resource.SchemaReque
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"power_panel": schema.StringAttribute{
-				MarkdownDescription: "The power panel this feed originates from (ID or name).",
-				Required:            true,
-			},
-			"rack": schema.StringAttribute{
-				MarkdownDescription: "The rack this feed connects to (ID or name).",
-				Optional:            true,
-			},
+			"power_panel": nbschema.RequiredReferenceAttributeWithDiffSuppress("power_panel", "The power panel this feed originates from (ID or name)."),
+			"rack":        nbschema.ReferenceAttributeWithDiffSuppress("rack", "The rack this feed connects to (ID or name)."),
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the power feed.",
 				Required:            true,
@@ -137,10 +131,7 @@ func (r *PowerFeedResource) Schema(ctx context.Context, req resource.SchemaReque
 				Optional:            true,
 				Computed:            true,
 			},
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "The tenant this power feed belongs to (ID or slug).",
-				Optional:            true,
-			},
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "The tenant this power feed belongs to (ID or slug)."),
 		},
 	}
 
