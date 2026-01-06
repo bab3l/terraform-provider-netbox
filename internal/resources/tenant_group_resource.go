@@ -66,7 +66,7 @@ func (r *TenantGroupResource) Schema(ctx context.Context, req resource.SchemaReq
 
 			"slug": nbschema.SlugAttribute("tenant group"),
 
-			"parent": nbschema.ReferenceAttribute("tenant group", "ID or slug of the parent tenant group. Leave empty for top-level groups."),
+			"parent": nbschema.ReferenceAttributeWithDiffSuppress("parent tenant group", "ID or slug of the parent tenant group. Leave empty for top-level groups."),
 		},
 	}
 

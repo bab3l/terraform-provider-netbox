@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -36,11 +33,9 @@ func TestAccVirtualDeviceContextResource_basic(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckVirtualDeviceContextDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVirtualDeviceContextDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVirtualDeviceContextResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName),
@@ -83,6 +78,7 @@ func TestAccVirtualDeviceContextResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
+	ipAddress := testutil.RandomIPv4Address()
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -93,14 +89,12 @@ func TestAccVirtualDeviceContextResource_full(t *testing.T) {
 	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckVirtualDeviceContextDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVirtualDeviceContextDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVirtualDeviceContextResourceConfig_fullWithAllFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config: testAccVirtualDeviceContextResourceConfig_fullWithAllFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_virtual_device_context.test", "id"),
 					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "name", vdcName),
@@ -115,7 +109,7 @@ func TestAccVirtualDeviceContextResource_full(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccVirtualDeviceContextResourceConfig_fullWithAllFieldsUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, updatedDescription, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config: testAccVirtualDeviceContextResourceConfig_fullWithAllFieldsUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, updatedDescription, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "identifier", "200"),
 					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "description", updatedDescription),
@@ -152,11 +146,9 @@ func TestAccVirtualDeviceContextResource_update(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckVirtualDeviceContextDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVirtualDeviceContextDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVirtualDeviceContextResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, description1),
@@ -267,11 +259,9 @@ func TestAccVirtualDeviceContextResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckVirtualDeviceContextDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVirtualDeviceContextDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVirtualDeviceContextResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName),
@@ -323,7 +313,7 @@ resource "netbox_virtual_device_context" "test" {
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName)
 }
 
-func testAccVirtualDeviceContextResourceConfig_fullWithAllFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
+func testAccVirtualDeviceContextResourceConfig_fullWithAllFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress string) string {
 	cfName := testutil.RandomCustomFieldName("test_field")
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
@@ -382,7 +372,7 @@ resource "netbox_interface" "test" {
 }
 
 resource "netbox_ip_address" "test" {
-  address = "192.0.2.1/32"
+  address = %[20]q
   status  = "active"
   assigned_object_type = "dcim.interface"
   assigned_object_id   = netbox_interface.test.id
@@ -417,10 +407,10 @@ resource "netbox_virtual_device_context" "test" {
     }
   ]
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName, ipAddress)
 }
 
-func testAccVirtualDeviceContextResourceConfig_fullWithAllFieldsUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
+func testAccVirtualDeviceContextResourceConfig_fullWithAllFieldsUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress string) string {
 	cfName := testutil.RandomCustomFieldName("test_field")
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
@@ -479,7 +469,7 @@ resource "netbox_interface" "test" {
 }
 
 resource "netbox_ip_address" "test" {
-  address = "192.0.2.1/32"
+  address = %[20]q
   status  = "active"
   assigned_object_type = "dcim.interface"
   assigned_object_id   = netbox_interface.test.id
@@ -514,7 +504,7 @@ resource "netbox_virtual_device_context" "test" {
     }
   ]
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName, ipAddress)
 }
 
 func testAccVirtualDeviceContextResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, description string) string {

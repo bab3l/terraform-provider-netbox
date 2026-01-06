@@ -147,7 +147,7 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 		defer utils.CloseResponseBody(httpResp)
 
-		if err == nil && httpResp.StatusCode == 200 {
+		if err == nil && httpResp.StatusCode == http.StatusOK {
 			tenant = t
 		}
 
@@ -161,7 +161,7 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 		defer utils.CloseResponseBody(httpResp)
 
-		if err == nil && httpResp.StatusCode == 200 && len(tenants.GetResults()) > 0 {
+		if err == nil && httpResp.StatusCode == http.StatusOK && len(tenants.GetResults()) > 0 {
 			tenant = &tenants.GetResults()[0]
 		}
 
@@ -175,7 +175,7 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 		defer utils.CloseResponseBody(httpResp)
 
-		if err == nil && httpResp.StatusCode == 200 && len(tenants.GetResults()) > 0 {
+		if err == nil && httpResp.StatusCode == http.StatusOK && len(tenants.GetResults()) > 0 {
 			tenant = &tenants.GetResults()[0]
 		}
 
@@ -192,7 +192,7 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	if httpResp == nil || httpResp.StatusCode != 200 || tenant == nil {
+	if httpResp == nil || httpResp.StatusCode != http.StatusOK || tenant == nil {
 		resp.Diagnostics.AddError("Tenant Not Found", "No tenant found with the specified identifier.")
 
 		return

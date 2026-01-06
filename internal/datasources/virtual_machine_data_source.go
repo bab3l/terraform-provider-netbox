@@ -260,7 +260,7 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
-	if httpResp != nil && httpResp.StatusCode == 404 {
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 		resp.Diagnostics.AddError(
 
 			"Virtual Machine Not Found",

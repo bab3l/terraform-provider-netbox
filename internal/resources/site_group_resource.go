@@ -72,7 +72,7 @@ func (r *SiteGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 
 			"slug": nbschema.SlugAttribute("site group"),
 
-			"parent": nbschema.ReferenceAttribute("parent site group", "ID or slug of the parent site group. Leave empty for top-level site groups."),
+			"parent": nbschema.ReferenceAttributeWithDiffSuppress("parent site group", "ID or slug of the parent site group. Leave empty for top-level site groups."),
 		},
 	}
 

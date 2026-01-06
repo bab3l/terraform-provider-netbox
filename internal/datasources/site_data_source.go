@@ -250,14 +250,14 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	if httpResp.StatusCode == 404 {
+	if httpResp.StatusCode == http.StatusNotFound {
 		resp.Diagnostics.AddError("Site Not Found", "The specified site was not found in Netbox.")
 
 		return
 	}
 
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError("Error reading site", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if httpResp.StatusCode != http.StatusOK {
+		resp.Diagnostics.AddError("Error reading site", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
 
 		return
 	}

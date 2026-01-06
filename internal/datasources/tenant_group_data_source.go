@@ -122,7 +122,7 @@ func (d *TenantGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		resp.Diagnostics.AddError("Error reading tenant group", utils.FormatAPIError("read tenant group", err, httpResp))
 		return
 	}
-	if httpResp == nil || httpResp.StatusCode != 200 || tenantGroup == nil {
+	if httpResp == nil || httpResp.StatusCode != http.StatusOK || tenantGroup == nil {
 		resp.Diagnostics.AddError("Tenant Group Not Found", "No tenant group found with the specified identifier.")
 		return
 	}

@@ -83,15 +83,11 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 			"name": nbschema.NameAttribute("VLAN", 64),
 
-			"site": nbschema.ReferenceAttribute("site", "ID or slug of the site this VLAN belongs to."),
+			"site": nbschema.ReferenceAttributeWithDiffSuppress("site", "ID or slug of the site this VLAN belongs to."),
 
-			"group": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the VLAN group this VLAN belongs to.",
+			"group": nbschema.ReferenceAttributeWithDiffSuppress("VLAN group", "ID or slug of the VLAN group this VLAN belongs to."),
 
-				Optional: true,
-			},
-
-			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant this VLAN belongs to."),
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant this VLAN belongs to."),
 
 			"status": schema.StringAttribute{
 				MarkdownDescription: "Operational status of the VLAN. Valid values: `active`, `reserved`, `deprecated`. Defaults to `active`.",

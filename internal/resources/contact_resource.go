@@ -57,7 +57,7 @@ func (r *ContactResource) Schema(ctx context.Context, req resource.SchemaRequest
 		Attributes: map[string]schema.Attribute{
 			"id":    nbschema.IDAttribute("contact"),
 			"name":  nbschema.NameAttribute("contact", 100),
-			"group": nbschema.ReferenceAttribute("contact group", "ID or slug of the contact group this contact belongs to."),
+			"group": nbschema.ReferenceAttributeWithDiffSuppress("contact group", "ID or slug of the contact group this contact belongs to."),
 
 			"tags": nbschema.TagsAttribute(),
 			"title": schema.StringAttribute{

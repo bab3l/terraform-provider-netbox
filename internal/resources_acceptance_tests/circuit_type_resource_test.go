@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -22,11 +19,9 @@ func TestAccCircuitTypeResource_basic(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCircuitTypeDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitTypeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitTypeResourceConfig_basic(name, slug),
@@ -51,11 +46,9 @@ func TestAccCircuitTypeResource_full(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCircuitTypeDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitTypeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitTypeResourceConfig_full(name, slug, description, testutil.Color),
@@ -82,11 +75,9 @@ func TestAccCircuitTypeResource_update(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCircuitTypeDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitTypeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitTypeResourceConfig_basic(name, slug),
@@ -114,11 +105,9 @@ func TestAccCircuitTypeResource_import(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCircuitTypeDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitTypeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitTypeResourceConfig_basic(name, slug),
@@ -149,11 +138,9 @@ func TestAccConsistency_CircuitType_LiteralNames(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCircuitTypeDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitTypeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitTypeConsistencyLiteralNamesConfig(name, slug, description, color),
@@ -188,11 +175,9 @@ func TestAccCircuitTypeResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCircuitTypeDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitTypeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitTypeResourceConfig_basic(name, slug),
@@ -247,10 +232,8 @@ func TestAccCircuitTypeResource_externalDeletion(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCircuitTypeResourceConfig_basic(name, slug),

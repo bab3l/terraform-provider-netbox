@@ -299,7 +299,7 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	if httpResp.StatusCode != 200 {
+	if httpResp.StatusCode != http.StatusOK {
 		resp.Diagnostics.AddError(
 
 			"Error reading location",

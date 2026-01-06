@@ -69,11 +69,8 @@ func (r *InterfaceResource) Schema(ctx context.Context, req resource.SchemaReque
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages an interface on a device in Netbox. Interfaces represent physical or virtual network interfaces on devices, including Ethernet ports, LAG interfaces, virtual interfaces, and more.",
 		Attributes: map[string]schema.Attribute{
-			"id": nbschema.IDAttribute("interface"),
-			"device": schema.StringAttribute{
-				MarkdownDescription: "ID or name of the device this interface belongs to. Required.",
-				Required:            true,
-			},
+			"id":     nbschema.IDAttribute("interface"),
+			"device": nbschema.RequiredReferenceAttributeWithDiffSuppress("device", "ID or name of the device this interface belongs to. Required."),
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Name of the interface (e.g., 'eth0', 'GigabitEthernet0/0'). Required.",
 				Required:            true,
@@ -98,18 +95,9 @@ func (r *InterfaceResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
 			},
-			"parent": schema.StringAttribute{
-				MarkdownDescription: "ID of the parent interface (for sub-interfaces).",
-				Optional:            true,
-			},
-			"bridge": schema.StringAttribute{
-				MarkdownDescription: "ID of the bridge interface this interface belongs to.",
-				Optional:            true,
-			},
-			"lag": schema.StringAttribute{
-				MarkdownDescription: "ID of the LAG (Link Aggregation Group) this interface is a member of.",
-				Optional:            true,
-			},
+			"parent": nbschema.ReferenceAttributeWithDiffSuppress("parent interface", "ID of the parent interface (for sub-interfaces)."),
+			"bridge": nbschema.ReferenceAttributeWithDiffSuppress("bridge interface", "ID of the bridge interface this interface belongs to."),
+			"lag":    nbschema.ReferenceAttributeWithDiffSuppress("LAG interface", "ID of the LAG (Link Aggregation Group) this interface is a member of."),
 			"mtu": schema.Int64Attribute{
 				MarkdownDescription: "Maximum transmission unit (MTU) size. Common values: 1500 (Ethernet), 9000 (Jumbo frames).",
 				Optional:            true,

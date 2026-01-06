@@ -281,7 +281,7 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	if httpResp.StatusCode == 404 {
+	if httpResp.StatusCode == http.StatusNotFound {
 		resp.Diagnostics.AddError(
 
 			"Tunnel Group Not Found",
@@ -292,12 +292,12 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	if httpResp.StatusCode != 200 {
+	if httpResp.StatusCode != http.StatusOK {
 		resp.Diagnostics.AddError(
 
 			"Error reading tunnel group",
 
-			fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode),
+			fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode),
 		)
 
 		return

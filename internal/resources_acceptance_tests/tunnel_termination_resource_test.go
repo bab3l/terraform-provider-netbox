@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -22,11 +19,9 @@ func TestAccTunnelTerminationResource_basic(t *testing.T) {
 	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelTerminationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelTerminationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelTerminationResourceConfig_basic(tunnelName),
@@ -49,20 +44,19 @@ func TestAccTunnelTerminationResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
+	ipAddress := testutil.RandomIPv4Address()
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterTunnelCleanup(tunnelName)
 	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelTerminationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelTerminationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTunnelTerminationResourceConfig_full(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config: testAccTunnelTerminationResourceConfig_full(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_tunnel_termination.test", "id"),
 					resource.TestCheckResourceAttrSet("netbox_tunnel_termination.test", "tunnel"),
@@ -75,7 +69,7 @@ func TestAccTunnelTerminationResource_full(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccTunnelTerminationResourceConfig_fullUpdate(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config: testAccTunnelTerminationResourceConfig_fullUpdate(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "role", "peer"),
 					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "custom_fields.0.value", "updated_value"),
@@ -95,11 +89,9 @@ func TestAccTunnelTerminationResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelTerminationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelTerminationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelTerminationResourceConfig_basic(tunnelName),
@@ -124,11 +116,9 @@ func TestAccTunnelTerminationResource_update(t *testing.T) {
 	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelTerminationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelTerminationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelTerminationResourceConfig_withRole(tunnelName, "peer"),
@@ -156,11 +146,9 @@ func TestAccTunnelTerminationResource_import(t *testing.T) {
 	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTunnelTerminationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelTerminationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelTerminationResourceConfig_basic(tunnelName),
@@ -217,7 +205,7 @@ func TestAccTunnelTerminationResource_externalDeletion(t *testing.T) {
 	})
 }
 
-func testAccTunnelTerminationResourceConfig_full(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
+func testAccTunnelTerminationResourceConfig_full(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress string) string {
 	cfName := testutil.RandomCustomFieldName("test_field")
 	return fmt.Sprintf(`
 resource "netbox_tunnel" "test" {
@@ -242,7 +230,7 @@ resource "netbox_custom_field" "test_field" {
 }
 
 resource "netbox_ip_address" "outside" {
-  address = "192.0.2.1/32"
+  address = %[7]q
   status  = "active"
 }
 
@@ -271,10 +259,10 @@ resource "netbox_tunnel_termination" "test" {
     }
   ]
 }
-`, tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, cfName, ipAddress)
 }
 
-func testAccTunnelTerminationResourceConfig_fullUpdate(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
+func testAccTunnelTerminationResourceConfig_fullUpdate(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress string) string {
 	cfName := testutil.RandomCustomFieldName("test_field")
 	return fmt.Sprintf(`
 resource "netbox_tunnel" "test" {
@@ -299,7 +287,7 @@ resource "netbox_custom_field" "test_field" {
 }
 
 resource "netbox_ip_address" "outside" {
-  address = "192.0.2.1/32"
+  address = %[7]q
   status  = "active"
 }
 
@@ -328,7 +316,7 @@ resource "netbox_tunnel_termination" "test" {
     }
   ]
 }
-`, tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, cfName, ipAddress)
 }
 
 func TestAccConsistency_TunnelTermination_LiteralNames(t *testing.T) {
@@ -341,10 +329,8 @@ func TestAccConsistency_TunnelTermination_LiteralNames(t *testing.T) {
 	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTunnelTerminationConsistencyLiteralNamesConfig(tunnelName),

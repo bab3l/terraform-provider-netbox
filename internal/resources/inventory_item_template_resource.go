@@ -71,10 +71,10 @@ func (r *InventoryItemTemplateResource) Schema(ctx context.Context, req resource
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"device_type": schema.StringAttribute{
-				MarkdownDescription: "The device type this inventory item template belongs to (ID or model name).",
-				Required:            true,
-			},
+			"device_type": nbschema.RequiredReferenceAttributeWithDiffSuppress(
+				"device_type",
+				"The device type this inventory item template belongs to (ID or model name).",
+			),
 			"parent": schema.StringAttribute{
 				MarkdownDescription: "Parent inventory item template (ID).",
 				Optional:            true,

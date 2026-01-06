@@ -216,7 +216,7 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	if httpResp.StatusCode != 200 {
+	if httpResp.StatusCode != http.StatusOK {
 		resp.Diagnostics.AddError("Error reading region", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 
 		return

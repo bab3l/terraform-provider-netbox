@@ -71,10 +71,7 @@ func (r *ConsolePortResource) Schema(ctx context.Context, req resource.SchemaReq
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"device": schema.StringAttribute{
-				MarkdownDescription: "The device this console port belongs to (ID or name).",
-				Required:            true,
-			},
+			"device": nbschema.RequiredReferenceAttributeWithDiffSuppress("device", "ID or name of the device this console port belongs to. Required."),
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the console port.",
 				Required:            true,

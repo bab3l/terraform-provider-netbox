@@ -109,21 +109,21 @@ func (r *RackResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 			"name": nbschema.NameAttribute("rack", 100),
 
-			"site": nbschema.RequiredReferenceAttribute("site", "ID or slug of the site where this rack is located. Required."),
+			"site": nbschema.RequiredReferenceAttributeWithDiffSuppress("site", "ID or slug of the site where this rack is located. Required."),
 
-			"location": nbschema.ReferenceAttribute("location", "ID or slug of the location within the site (e.g., building, floor, room)."),
+			"location": nbschema.ReferenceAttributeWithDiffSuppress("location", "ID or slug of the location within the site (e.g., building, floor, room)."),
 
-			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this rack."),
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant that owns this rack."),
 
 			"status": nbschema.StatusAttribute([]string{"reserved", "available", "planned", "active", "deprecated"}, "Operational status of the rack. Defaults to `active`."),
 
-			"role": nbschema.ReferenceAttribute("rack role", "ID or slug of the functional role of the rack."),
+			"role": nbschema.ReferenceAttributeWithDiffSuppress("rack role", "ID or slug of the functional role of the rack."),
 
 			"serial": nbschema.SerialAttribute(),
 
 			"asset_tag": nbschema.AssetTagAttribute(),
 
-			"rack_type": nbschema.ReferenceAttribute("rack type", "ID or model of the rack type (model/form factor definition)."),
+			"rack_type": nbschema.ReferenceAttributeWithDiffSuppress("rack type", "ID or model of the rack type (model/form factor definition)."),
 
 			"form_factor": schema.StringAttribute{
 				MarkdownDescription: "Physical form factor of the rack. Valid values: `2-post-frame`, `4-post-frame`, `4-post-cabinet`, `wall-frame`, `wall-frame-vertical`, `wall-cabinet`, `wall-cabinet-vertical`.",

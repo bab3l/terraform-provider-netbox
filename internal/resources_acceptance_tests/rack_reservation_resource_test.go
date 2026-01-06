@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -25,11 +22,9 @@ func TestAccRackReservationResource_basic(t *testing.T) {
 	cleanup.RegisterRackCleanup(rackName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckRackReservationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackReservationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, description),
@@ -72,11 +67,9 @@ func TestAccRackReservationResource_full(t *testing.T) {
 	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckRackReservationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackReservationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackReservationResourceConfig_full(siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2),
@@ -117,11 +110,9 @@ func TestAccRackReservationResource_update(t *testing.T) {
 	cleanup.RegisterRackCleanup(rackName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckRackReservationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackReservationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, testutil.Description1),
@@ -328,10 +319,8 @@ func TestAccConsistency_RackReservation_LiteralNames(t *testing.T) {
 	cleanup.RegisterRackCleanup(rackName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackReservationConsistencyLiteralNamesConfig(siteName, siteSlug, rackName, description),
@@ -360,11 +349,9 @@ func TestAccRackReservationResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterRackCleanup(rackName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckRackReservationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackReservationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, description),
@@ -422,11 +409,9 @@ func TestAccRackReservationResource_externalDeletion(t *testing.T) {
 	cleanup.RegisterRackCleanup(rackName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckRackReservationDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackReservationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, description),

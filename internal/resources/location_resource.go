@@ -59,10 +59,10 @@ func (r *LocationResource) Schema(ctx context.Context, req resource.SchemaReques
 			"id":       nbschema.IDAttribute("location"),
 			"name":     nbschema.NameAttribute("location", 100),
 			"slug":     nbschema.SlugAttribute("location"),
-			"site":     nbschema.RequiredReferenceAttribute("site", "ID or slug of the site this location belongs to. Required."),
-			"parent":   nbschema.ReferenceAttribute("parent location", "ID or slug of the parent location. Leave empty for top-level locations within the site."),
+			"site":     nbschema.RequiredReferenceAttributeWithDiffSuppress("site", "ID or slug of the site this location belongs to. Required."),
+			"parent":   nbschema.ReferenceAttributeWithDiffSuppress("parent location", "ID or slug of the parent location. Leave empty for top-level locations within the site."),
 			"status":   nbschema.StatusAttribute([]string{"planned", "staging", "active", "decommissioning", "retired"}, "Operational status of the location. Defaults to `active`."),
-			"tenant":   nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this location."),
+			"tenant":   nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant that owns this location."),
 			"facility": nbschema.FacilityAttribute(),
 		},
 	}

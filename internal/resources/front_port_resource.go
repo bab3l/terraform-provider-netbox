@@ -74,10 +74,10 @@ func (r *FrontPortResource) Schema(ctx context.Context, req resource.SchemaReque
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"device": schema.StringAttribute{
-				MarkdownDescription: "The device this front port belongs to (ID or name).",
-				Required:            true,
-			},
+			"device": nbschema.RequiredReferenceAttributeWithDiffSuppress(
+				"device",
+				"The device this front port belongs to (ID or name).",
+			),
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the front port.",
 				Required:            true,
@@ -94,10 +94,10 @@ func (r *FrontPortResource) Schema(ctx context.Context, req resource.SchemaReque
 				MarkdownDescription: "Color of the front port in hex format (e.g., `aa1409`).",
 				Optional:            true,
 			},
-			"rear_port": schema.StringAttribute{
-				MarkdownDescription: "The rear port that this front port maps to (ID).",
-				Required:            true,
-			},
+			"rear_port": nbschema.RequiredReferenceAttributeWithDiffSuppress(
+				"rear_port",
+				"The rear port that this front port maps to (ID).",
+			),
 			"rear_port_position": schema.Int32Attribute{
 				MarkdownDescription: "Position on the rear port (1-1024). Default is 1.",
 				Optional:            true,

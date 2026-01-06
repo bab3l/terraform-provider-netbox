@@ -5,6 +5,7 @@ package testutil
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -51,7 +52,7 @@ func CheckTenantGroupDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("tenant group with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -103,7 +104,7 @@ func CheckTenantDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("tenant with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -155,7 +156,7 @@ func CheckContactGroupDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("contact group with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -207,7 +208,7 @@ func CheckContactDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("contact with email %s still exists (ID: %d)", email, list.Results[0].GetId())
 
@@ -259,7 +260,7 @@ func CheckContactRoleDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("contact role with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -311,7 +312,7 @@ func CheckVRFDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("VRF with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -363,7 +364,7 @@ func CheckVLANGroupDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("VLAN group with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -409,7 +410,7 @@ func CheckVLANDestroy(s *terraform.State) error {
 
 				_, resp, err := client.IpamAPI.IpamVlansRetrieve(ctx, idInt).Execute()
 
-				if err == nil && resp.StatusCode == 200 {
+				if err == nil && resp.StatusCode == http.StatusOK {
 
 					return fmt.Errorf("VLAN with ID %s still exists", id)
 
@@ -459,7 +460,7 @@ func CheckPrefixDestroy(s *terraform.State) error {
 
 				_, resp, err := client.IpamAPI.IpamPrefixesRetrieve(ctx, idInt).Execute()
 
-				if err == nil && resp.StatusCode == 200 {
+				if err == nil && resp.StatusCode == http.StatusOK {
 
 					return fmt.Errorf("prefix with ID %s still exists", id)
 
@@ -509,7 +510,7 @@ func CheckIPAddressDestroy(s *terraform.State) error {
 
 				_, resp, err := client.IpamAPI.IpamIpAddressesRetrieve(ctx, idInt).Execute()
 
-				if err == nil && resp.StatusCode == 200 {
+				if err == nil && resp.StatusCode == http.StatusOK {
 
 					return fmt.Errorf("IP address with ID %s still exists", id)
 
@@ -565,7 +566,7 @@ func CheckASNRangeDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("ASN range with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -617,7 +618,7 @@ func CheckRIRDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("RIR with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -669,7 +670,7 @@ func CheckRouteTargetDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("route target with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -723,7 +724,7 @@ func CheckFHRPGroupDestroy(s *terraform.State) error {
 
 		_, resp, err := client.IpamAPI.IpamFhrpGroupsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("FHRP group with ID %d still exists", id)
 
@@ -775,7 +776,7 @@ func CheckRoleDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("role with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -827,7 +828,7 @@ func CheckServiceDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("service with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -879,7 +880,7 @@ func CheckServiceTemplateDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("service template with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -931,7 +932,7 @@ func CheckProviderDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("provider with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -983,7 +984,7 @@ func CheckCircuitTypeDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("circuit type with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -1035,7 +1036,7 @@ func CheckCircuitDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("circuit with CID %s still exists (ID: %d)", cid, list.Results[0].GetId())
 
@@ -1087,7 +1088,7 @@ func CheckCircuitGroupDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("circuit group with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1141,7 +1142,7 @@ func CheckCircuitGroupAssignmentDestroy(s *terraform.State) error {
 
 		_, resp, err := client.CircuitsAPI.CircuitsCircuitGroupAssignmentsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("circuit group assignment with ID %d still exists", id)
 
@@ -1193,7 +1194,7 @@ func CheckIKEProposalDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("IKE proposal with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1245,7 +1246,7 @@ func CheckIKEPolicyDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("IKE policy with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1297,7 +1298,7 @@ func CheckIPSecProposalDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("IPSec proposal with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1349,7 +1350,7 @@ func CheckIPSecPolicyDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("IPSec policy with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1401,7 +1402,7 @@ func CheckIPSecProfileDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("IPSec profile with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1453,7 +1454,7 @@ func CheckTunnelGroupDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("tunnel group with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1505,7 +1506,7 @@ func CheckTunnelDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("tunnel with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1559,7 +1560,7 @@ func CheckTunnelTerminationDestroy(s *terraform.State) error {
 
 		_, resp, err := client.VpnAPI.VpnTunnelTerminationsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("tunnel termination with ID %d still exists", id)
 
@@ -1611,7 +1612,7 @@ func CheckL2VPNDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("L2VPN with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1663,7 +1664,7 @@ func CheckClusterTypeDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("cluster type with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -1715,7 +1716,7 @@ func CheckClusterDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("cluster with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1767,7 +1768,7 @@ func CheckVirtualMachineDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("virtual machine with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1813,7 +1814,7 @@ func CheckVMInterfaceDestroy(s *terraform.State) error {
 
 				_, resp, err := client.VirtualizationAPI.VirtualizationInterfacesRetrieve(ctx, idInt).Execute()
 
-				if err == nil && resp.StatusCode == 200 {
+				if err == nil && resp.StatusCode == http.StatusOK {
 
 					return fmt.Errorf("VM interface with ID %s still exists", id)
 
@@ -1869,7 +1870,7 @@ func CheckVirtualDiskDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list.Count > 0 {
+		if resp.StatusCode == http.StatusOK && list.Count > 0 {
 
 			return fmt.Errorf("virtual disk with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -1921,7 +1922,7 @@ func CheckClusterGroupDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("cluster group with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -1975,7 +1976,7 @@ func CheckWirelessLinkDestroy(s *terraform.State) error {
 
 		_, resp, err := client.WirelessAPI.WirelessWirelessLinksRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("wireless link with ID %d still exists", id)
 
@@ -2027,7 +2028,7 @@ func CheckWirelessLANDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("wireless LAN with SSID %s still exists (ID: %d)", ssid, list.Results[0].GetId())
 
@@ -2079,7 +2080,7 @@ func CheckWirelessLANGroupDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("wireless LAN group with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -2133,7 +2134,7 @@ func CheckJournalEntryDestroy(s *terraform.State) error {
 
 		_, resp, err := client.ExtrasAPI.ExtrasJournalEntriesRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("journal entry with ID %d still exists", id)
 
@@ -2187,7 +2188,7 @@ func CheckCustomFieldChoiceSetDestroy(s *terraform.State) error {
 
 		_, resp, err := client.ExtrasAPI.ExtrasCustomFieldChoiceSetsRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("custom field choice set with ID %d still exists", id)
 
@@ -2241,7 +2242,7 @@ func CheckCustomLinkDestroy(s *terraform.State) error {
 
 		_, resp, err := client.ExtrasAPI.ExtrasCustomLinksRetrieve(ctx, int32(id)).Execute() // #nosec G109,G115 -- test utility, ID from Terraform state is within int32 range
 
-		if err == nil && resp.StatusCode == 200 {
+		if err == nil && resp.StatusCode == http.StatusOK {
 
 			return fmt.Errorf("custom link with ID %d still exists", id)
 
@@ -2293,7 +2294,7 @@ func CheckTagDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("tag with slug %s still exists (ID: %d)", slug, list.Results[0].GetId())
 
@@ -2345,7 +2346,7 @@ func CheckWebhookDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("webhook with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -2397,7 +2398,7 @@ func CheckExportTemplateDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("export template with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -2449,7 +2450,7 @@ func CheckConfigTemplateDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("config template with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 
@@ -2501,7 +2502,7 @@ func CheckConfigContextDestroy(s *terraform.State) error {
 
 		}
 
-		if resp.StatusCode == 200 && list != nil && len(list.Results) > 0 {
+		if resp.StatusCode == http.StatusOK && list != nil && len(list.Results) > 0 {
 
 			return fmt.Errorf("config context with name %s still exists (ID: %d)", name, list.Results[0].GetId())
 

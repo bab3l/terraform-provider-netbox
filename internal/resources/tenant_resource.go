@@ -74,7 +74,7 @@ func (r *TenantResource) Schema(ctx context.Context, req resource.SchemaRequest,
 
 			"slug": nbschema.SlugAttribute("tenant"),
 
-			"group": nbschema.ReferenceAttribute("tenant group", "Name, Slug, or ID of the tenant group that this tenant belongs to."),
+			"group": nbschema.ReferenceAttributeWithDiffSuppress("tenant group", "ID or slug of the tenant group that this tenant belongs to."),
 		},
 	}
 

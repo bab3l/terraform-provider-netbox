@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -24,9 +21,7 @@ func TestAccVLANGroupResource_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 
 		CheckDestroy: testutil.CheckVLANGroupDestroy,
 
@@ -57,9 +52,7 @@ func TestAccVLANGroupResource_full(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 
 		CheckDestroy: testutil.CheckVLANGroupDestroy,
 
@@ -89,11 +82,9 @@ func TestAccVLANGroupResource_update(t *testing.T) {
 	cleanup.RegisterVLANGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckVLANGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVLANGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVLANGroupResourceConfig_basic(name, slug),
@@ -175,11 +166,9 @@ func TestAccVLANGroupResource_import(t *testing.T) {
 	cleanup.RegisterVLANGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckVLANGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVLANGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVLANGroupResourceConfig_basic(name, slug),
@@ -212,10 +201,8 @@ func TestAccConsistency_VLANGroup_LiteralNames(t *testing.T) {
 	cleanup.RegisterVLANGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVLANGroupConsistencyLiteralNamesConfig(name, slug),
@@ -241,11 +228,9 @@ func TestAccVLANGroupResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterVLANGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckVLANGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVLANGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVLANGroupResourceConfig_basic(name, slug),
