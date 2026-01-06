@@ -17,93 +17,60 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-
 var _ datasource.DataSource = &CircuitDataSource{}
 
 // NewCircuitDataSource returns a new Circuit data source.
-
 func NewCircuitDataSource() datasource.DataSource {
 	return &CircuitDataSource{}
 }
 
 // CircuitDataSource defines the data source implementation for circuits.
-
 type CircuitDataSource struct {
 	client *netbox.APIClient
 }
 
 // CircuitDataSourceModel describes the data source data model.
-
 type CircuitDataSourceModel struct {
-	ID types.String `tfsdk:"id"`
-
-	Cid types.String `tfsdk:"cid"`
-
+	ID              types.String `tfsdk:"id"`
+	Cid             types.String `tfsdk:"cid"`
 	CircuitProvider types.String `tfsdk:"circuit_provider"`
-
-	Type types.String `tfsdk:"type"`
-
-	Status types.String `tfsdk:"status"`
-
-	Tenant types.String `tfsdk:"tenant"`
-
-	InstallDate types.String `tfsdk:"install_date"`
-
+	Type            types.String `tfsdk:"type"`
+	Status          types.String `tfsdk:"status"`
+	Tenant          types.String `tfsdk:"tenant"`
+	InstallDate     types.String `tfsdk:"install_date"`
 	TerminationDate types.String `tfsdk:"termination_date"`
-
-	CommitRate types.Int64 `tfsdk:"commit_rate"`
-
-	Description types.String `tfsdk:"description"`
-
-	Comments types.String `tfsdk:"comments"`
-
-	DisplayName types.String `tfsdk:"display_name"`
-
-	Tags types.Set `tfsdk:"tags"`
-
-	CustomFields types.Set `tfsdk:"custom_fields"`
+	CommitRate      types.Int64  `tfsdk:"commit_rate"`
+	Description     types.String `tfsdk:"description"`
+	Comments        types.String `tfsdk:"comments"`
+	DisplayName     types.String `tfsdk:"display_name"`
+	Tags            types.Set    `tfsdk:"tags"`
+	CustomFields    types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
-
 func (d *CircuitDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_circuit"
 }
 
 // Schema defines the schema for the data source.
-
 func (d *CircuitDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves information about a circuit in Netbox. Circuits represent physical or logical network connections provided by external carriers or service providers. You can identify the circuit using `id` or `cid`.",
-
 		Attributes: map[string]schema.Attribute{
-			"id": nbschema.DSIDAttribute("circuit"),
-
-			"cid": nbschema.DSNameAttribute("circuit"), // Using DSNameAttribute since cid is similar to name
-
+			"id":               nbschema.DSIDAttribute("circuit"),
+			"cid":              nbschema.DSNameAttribute("circuit"), // Using DSNameAttribute since cid is similar to name
 			"circuit_provider": nbschema.DSComputedStringAttribute("The circuit provider (carrier or ISP) name."),
-
-			"type": nbschema.DSComputedStringAttribute("The type of circuit."),
-
-			"status": nbschema.DSComputedStringAttribute("The operational status of the circuit."),
-
-			"tenant": nbschema.DSComputedStringAttribute("The tenant that owns this circuit."),
-
-			"install_date": nbschema.DSComputedStringAttribute("The date when the circuit was installed."),
-
+			"type":             nbschema.DSComputedStringAttribute("The type of circuit."),
+			"status":           nbschema.DSComputedStringAttribute("The operational status of the circuit."),
+			"tenant":           nbschema.DSComputedStringAttribute("The tenant that owns this circuit."),
+			"install_date":     nbschema.DSComputedStringAttribute("The date when the circuit was installed."),
 			"termination_date": nbschema.DSComputedStringAttribute("The date when the circuit will be or was terminated."),
-
-			"commit_rate": nbschema.DSComputedInt64Attribute("The committed information rate (CIR) in Kbps for this circuit."),
-
-			"description": nbschema.DSComputedStringAttribute("Description of the circuit."),
-
-			"comments": nbschema.DSComputedStringAttribute("Additional comments or notes about the circuit."),
-
-			"tags": nbschema.DSTagsAttribute(),
-
-			"display_name": nbschema.DSComputedStringAttribute("The display name of the circuit."),
-
-			"custom_fields": nbschema.DSCustomFieldsAttribute(),
+			"commit_rate":      nbschema.DSComputedInt64Attribute("The committed information rate (CIR) in Kbps for this circuit."),
+			"description":      nbschema.DSComputedStringAttribute("Description of the circuit."),
+			"comments":         nbschema.DSComputedStringAttribute("Additional comments or notes about the circuit."),
+			"tags":             nbschema.DSTagsAttribute(),
+			"display_name":     nbschema.DSComputedStringAttribute("The display name of the circuit."),
+			"custom_fields":    nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }

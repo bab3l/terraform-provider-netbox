@@ -143,30 +143,23 @@ func (d *CableTerminationDataSource) Read(ctx context.Context, req datasource.Re
 }
 
 // mapToState maps the API response to the Terraform state.
-
 func (d *CableTerminationDataSource) mapToState(ctx context.Context, result *netbox.CableTermination, data *CableTerminationDataSourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
 	// Map cable (required field)
-
 	data.Cable = types.StringValue(fmt.Sprintf("%d", result.GetCable()))
 
 	// Map cable end (required field)
-
 	data.CableEnd = types.StringValue(string(result.GetCableEnd()))
 
 	// Map termination type (required field)
-
 	data.TerminationType = types.StringValue(result.GetTerminationType())
 
 	// Map termination ID (required field)
-
 	data.TerminationID = types.StringValue(fmt.Sprintf("%d", result.GetTerminationId()))
 
 	// Map termination display (required interface{} field)
-
 	termination := result.GetTermination()
-
 	if termMap, ok := termination.(map[string]interface{}); ok {
 		if display, hasDisplay := termMap["display"]; hasDisplay {
 			if displayStr, isString := display.(string); isString {
