@@ -103,7 +103,7 @@ resource "netbox_ipsec_proposal" "test" {
   authentication_algorithm = "hmac-sha256"
 }
 
-data "netbox_ipsec_proposal" "test"
+data "netbox_ipsec_proposal" "test" {
   id = netbox_ipsec_proposal.test.id
 }
 `, name)
