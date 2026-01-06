@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -26,10 +23,7 @@ func TestAccTunnelDataSource_IDPreservation(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 
 		CheckDestroy: testutil.CheckTunnelDestroy,
 
@@ -64,10 +58,7 @@ func TestAccTunnelDataSource_byID(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 
 		CheckDestroy: testutil.CheckTunnelDestroy,
 
@@ -106,10 +97,7 @@ func TestAccTunnelDataSource_byName(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 
 		CheckDestroy: testutil.CheckTunnelDestroy,
 

@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -17,11 +14,9 @@ func TestAccCustomFieldChoiceSetDataSource_IDPreservation(t *testing.T) {
 	name := testutil.RandomName("cfcs-ds-id")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCustomFieldChoiceSetDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCustomFieldChoiceSetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCustomFieldChoiceSetDataSourceConfig_byID(name),
@@ -40,11 +35,9 @@ func TestAccCustomFieldChoiceSetDataSource_byID(t *testing.T) {
 	name := testutil.RandomName("cfcs")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCustomFieldChoiceSetDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCustomFieldChoiceSetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCustomFieldChoiceSetDataSourceConfig_byID(name),
@@ -63,11 +56,9 @@ func TestAccCustomFieldChoiceSetDataSource_byName(t *testing.T) {
 	name := testutil.RandomName("cfcs")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckCustomFieldChoiceSetDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCustomFieldChoiceSetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCustomFieldChoiceSetDataSourceConfig_byName(name),

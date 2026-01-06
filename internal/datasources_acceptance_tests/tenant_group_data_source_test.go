@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -31,10 +28,7 @@ func TestAccTenantGroupDataSource_basic(t *testing.T) {
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 
 		CheckDestroy: testutil.CheckTenantGroupDestroy,
 
@@ -72,10 +66,7 @@ func TestAccTenantGroupDataSource_byID(t *testing.T) {
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 
 		CheckDestroy: testutil.CheckTenantGroupDestroy,
 
@@ -113,10 +104,7 @@ func TestAccTenantGroupDataSource_byName(t *testing.T) {
 
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
 
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 
 		CheckDestroy: testutil.CheckTenantGroupDestroy,
 
@@ -150,11 +138,9 @@ func TestAccTenantGroupDataSource_IDPreservation(t *testing.T) {
 	cleanup.RegisterTenantGroupCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckTenantGroupDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTenantGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTenantGroupDataSourceConfig(name, slug),

@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bab3l/terraform-provider-netbox/internal/provider"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -21,11 +18,9 @@ func TestAccDeviceRoleDataSource_IDPreservation(t *testing.T) {
 	cleanup.RegisterDeviceRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckDeviceRoleDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckDeviceRoleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDeviceRoleDataSourceConfig(name, slug),
@@ -50,11 +45,9 @@ func TestAccDeviceRoleDataSource_basic(t *testing.T) {
 	cleanup.RegisterDeviceRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckDeviceRoleDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckDeviceRoleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDeviceRoleDataSourceConfig(name, slug),
@@ -105,11 +98,9 @@ func TestAccDeviceRoleDataSource_byName(t *testing.T) {
 	cleanup.RegisterDeviceRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckDeviceRoleDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckDeviceRoleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDeviceRoleDataSourceConfigByName(name, slug),
@@ -159,11 +150,9 @@ func TestAccDeviceRoleDataSource_byID(t *testing.T) {
 	cleanup.RegisterDeviceRoleCleanup(slug)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"netbox": providerserver.NewProtocol6WithError(provider.New("test")()),
-		},
-		CheckDestroy: testutil.CheckDeviceRoleDestroy,
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckDeviceRoleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDeviceRoleDataSourceConfigByID(name, slug),
