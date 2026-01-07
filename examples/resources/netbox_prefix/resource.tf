@@ -12,8 +12,36 @@ resource "netbox_vlan" "test" {
 }
 
 resource "netbox_prefix" "test" {
-  prefix = "10.0.0.0/24"
-  site   = netbox_site.test.slug
-  vlan   = netbox_vlan.test.name
-  status = "active"
+  prefix      = "10.0.0.0/24"
+  site        = netbox_site.test.slug
+  vlan        = netbox_vlan.test.name
+  status      = "active"
+  description = "Primary datacenter subnet"
+  comments    = "Main server network segment"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "subnet_purpose"
+      value = "servers"
+    },
+    {
+      name  = "vlan_id"
+      value = "100"
+    },
+    {
+      name  = "dhcp_enabled"
+      value = "false"
+    },
+    {
+      name  = "gateway_ip"
+      value = "10.0.0.1"
+    }
+  ]
+
+  tags = [
+    "production",
+    "datacenter"
+  ]
 }
