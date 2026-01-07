@@ -1027,9 +1027,9 @@ Same pattern as Batch 3 (see above for details):
 2. ✅ cluster_resource.go - Updated to merge-aware pattern (commit c677df6)
 3. ✅ cluster_type_resource.go - Updated to merge-aware pattern, replaced ApplyMetadataFields (commit c677df6)
 4. ✅ tenant_resource.go - Updated to merge-aware pattern, replaced ApplyMetadataFields (commit c677df6)
-5. ✅ cluster_group_resource.go - Updated to merge-aware pattern, replaced ApplyMetadataFields (TBD)
-6. ✅ tenant_group_resource.go - Updated to merge-aware pattern, replaced inline custom fields handling (TBD)
-7. ✅ contact_group_resource.go - Updated to merge-aware pattern, replaced ApplyMetadataFields (TBD)
+5. ✅ cluster_group_resource.go - Updated to merge-aware pattern, replaced ApplyMetadataFields (commit 916188d) + preservation test (commit 72b2946)
+6. ✅ tenant_group_resource.go - Updated to merge-aware pattern, replaced inline custom fields handling (commit 916188d) + preservation test (commit 72b2946)
+7. ✅ contact_group_resource.go - Updated to merge-aware pattern, replaced ApplyMetadataFields (commit 916188d) + preservation test (commit 72b2946)
 
 **Remaining Resources:**
 - contact_resource.go (tags only - no custom fields, but needs merge-aware tags pattern)
