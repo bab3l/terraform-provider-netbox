@@ -99,8 +99,13 @@ func (r *ContactRoleResource) Create(ctx context.Context, req resource.CreateReq
 	// Apply description
 	utils.ApplyDescription(&contactRoleRequest, data.Description)
 
+	// Store plan values for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
 	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, &contactRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTags(ctx, &contactRoleRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, &contactRoleRequest, data.CustomFields, &resp.Diagnostics)
 
 	// Create via API
 	contactRole, httpResp, err := r.client.TenancyAPI.TenancyContactRolesCreate(ctx).ContactRoleRequest(contactRoleRequest).Execute()
@@ -132,6 +137,11 @@ func (r *ContactRoleResource) Create(ctx context.Context, req resource.CreateReq
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern
+	data.Tags = utils.PopulateTagsFromAPI(ctx, contactRole.HasTags(), contactRole.GetTags(), planTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, contactRole.GetCustomFields(), &resp.Diagnostics)
+
 	tflog.Trace(ctx, "created a contact role resource")
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -162,20 +172,27 @@ func (r *ContactRoleResource) Read(ctx context.Context, req resource.ReadRequest
 		resp.Diagnostics.AddError("Error reading contact role", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
+	// Store state values before mapping
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
 	r.mapContactRoleToState(ctx, contactRole, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	// Apply filter-to-owned pattern
+	data.Tags = utils.PopulateTagsFromAPI(ctx, contactRole.HasTags(), contactRole.GetTags(), stateTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, contactRole.GetCustomFields(), &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ContactRoleResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	var state, plan ContactRoleResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	contactRoleID := data.ID.ValueString()
+	contactRoleID := plan.ID.ValueString()
 	contactRoleIDInt := utils.ParseInt32FromString(contactRoleID)
 	if contactRoleIDInt == 0 {
 		resp.Diagnostics.AddError("Invalid Contact Role ID", fmt.Sprintf("Contact Role ID must be a number, got: %s", contactRoleID))
@@ -183,20 +200,21 @@ func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 	tflog.Debug(ctx, "Updating contact role", map[string]interface{}{
 		"id":   contactRoleID,
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Build the request
 	contactRoleRequest := netbox.ContactRoleRequest{
-		Name: data.Name.ValueString(),
-		Slug: data.Slug.ValueString(),
+		Name: plan.Name.ValueString(),
+		Slug: plan.Slug.ValueString(),
 	}
 
 	// Apply description
-	utils.ApplyDescription(&contactRoleRequest, data.Description)
+	utils.ApplyDescription(&contactRoleRequest, plan.Description)
 
-	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, &contactRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle tags and custom_fields with merge-aware helpers
+	utils.ApplyTags(ctx, &contactRoleRequest, plan.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, &contactRoleRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	// Update via API
 	contactRole, httpResp, err := r.client.TenancyAPI.TenancyContactRolesUpdate(ctx, contactRoleIDInt).ContactRoleRequest(contactRoleRequest).Execute()
@@ -209,11 +227,14 @@ func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateReq
 		resp.Diagnostics.AddError("Error updating contact role", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
-	r.mapContactRoleToState(ctx, contactRole, &data, &resp.Diagnostics)
+	r.mapContactRoleToState(ctx, contactRole, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Apply filter-to-owned pattern
+	plan.Tags = utils.PopulateTagsFromAPI(ctx, contactRole.HasTags(), contactRole.GetTags(), plan.Tags, &resp.Diagnostics)
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, contactRole.GetCustomFields(), &resp.Diagnostics)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *ContactRoleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -256,9 +277,5 @@ func (r *ContactRoleResource) mapContactRoleToState(ctx context.Context, contact
 	data.Slug = types.StringValue(contactRole.GetSlug())
 	data.Description = utils.StringFromAPI(contactRole.HasDescription(), contactRole.GetDescription, data.Description)
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, contactRole.HasTags(), contactRole.GetTags(), data.Tags, diags)
-
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, contactRole.HasCustomFields(), contactRole.GetCustomFields(), data.CustomFields, diags)
+	// Tags and custom fields are now handled in Create/Read/Update methods using filter-to-owned pattern
 }

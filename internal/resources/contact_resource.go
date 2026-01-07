@@ -148,6 +148,9 @@ func (r *ContactResource) Create(ctx context.Context, req resource.CreateRequest
 	utils.ApplyDescription(contactRequest, data.Description)
 	utils.ApplyComments(contactRequest, data.Comments)
 
+	// Store plan values for filter-to-owned pattern
+	planTags := data.Tags
+
 	// Handle tags
 	utils.ApplyTags(ctx, contactRequest, data.Tags, &resp.Diagnostics)
 	contact, httpResp, err := r.client.TenancyAPI.TenancyContactsCreate(ctx).ContactRequest(*contactRequest).Execute()
@@ -167,6 +170,9 @@ func (r *ContactResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// Map response to state
 	r.mapContactToState(ctx, contact, &data)
+
+	// Apply filter-to-owned pattern for tags
+	data.Tags = utils.PopulateTagsFromAPI(ctx, contact.HasTags(), contact.GetTags(), planTags, &resp.Diagnostics)
 	tflog.Debug(ctx, "Created contact", map[string]interface{}{
 		"id":   data.ID.ValueString(),
 		"name": data.Name.ValueString(),
@@ -196,27 +202,32 @@ func (r *ContactResource) Read(ctx context.Context, req resource.ReadRequest, re
 		resp.Diagnostics.AddError("Error reading contact", utils.FormatAPIError("read contact", err, httpResp))
 		return
 	}
+	// Store state tags before mapping
+	stateTags := data.Tags
 	r.mapContactToState(ctx, contact, &data)
+	// Apply filter-to-owned pattern for tags
+	data.Tags = utils.PopulateTagsFromAPI(ctx, contact.HasTags(), contact.GetTags(), stateTags, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ContactResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	var state, plan ContactResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	contactID, err := utils.ParseID(data.ID.ValueString())
+	contactID, err := utils.ParseID(plan.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Invalid Contact ID", fmt.Sprintf("Contact ID must be a number, got: %s", data.ID.ValueString()))
+		resp.Diagnostics.AddError("Invalid Contact ID", fmt.Sprintf("Contact ID must be a number, got: %s", plan.ID.ValueString()))
 		return
 	}
-	contactRequest := netbox.NewContactRequest(data.Name.ValueString())
+	contactRequest := netbox.NewContactRequest(plan.Name.ValueString())
 
 	// Set optional group reference
-	if !data.Group.IsNull() && !data.Group.IsUnknown() {
-		group, diags := netboxlookup.LookupContactGroup(ctx, r.client, data.Group.ValueString())
+	if !plan.Group.IsNull() && !plan.Group.IsUnknown() {
+		group, diags := netboxlookup.LookupContactGroup(ctx, r.client, plan.Group.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -225,18 +236,18 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Set optional fields
-	contactRequest.Title = utils.StringPtr(data.Title)
-	contactRequest.Phone = utils.StringPtr(data.Phone)
-	contactRequest.Email = utils.StringPtr(data.Email)
-	contactRequest.Address = utils.StringPtr(data.Address)
-	contactRequest.Link = utils.StringPtr(data.Link)
+	contactRequest.Title = utils.StringPtr(plan.Title)
+	contactRequest.Phone = utils.StringPtr(plan.Phone)
+	contactRequest.Email = utils.StringPtr(plan.Email)
+	contactRequest.Address = utils.StringPtr(plan.Address)
+	contactRequest.Link = utils.StringPtr(plan.Link)
 
 	// Apply description and comments
-	utils.ApplyDescription(contactRequest, data.Description)
-	utils.ApplyComments(contactRequest, data.Comments)
+	utils.ApplyDescription(contactRequest, plan.Description)
+	utils.ApplyComments(contactRequest, plan.Comments)
 
-	// Handle tags
-	utils.ApplyTags(ctx, contactRequest, data.Tags, &resp.Diagnostics)
+	// Handle tags (tags use replace-all semantics, not merge)
+	utils.ApplyTags(ctx, contactRequest, plan.Tags, &resp.Diagnostics)
 
 	contact, httpResp, err := r.client.TenancyAPI.TenancyContactsUpdate(ctx, contactID).ContactRequest(*contactRequest).Execute()
 	defer utils.CloseResponseBody(httpResp)
@@ -248,12 +259,16 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 		resp.Diagnostics.AddError("Error updating contact", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
-	r.mapContactToState(ctx, contact, &data)
+	r.mapContactToState(ctx, contact, &plan)
+
+	// Apply filter-to-owned pattern for tags
+	plan.Tags = utils.PopulateTagsFromAPI(ctx, contact.HasTags(), contact.GetTags(), plan.Tags, &resp.Diagnostics)
+
 	tflog.Debug(ctx, "Updated contact", map[string]interface{}{
-		"id":   data.ID.ValueString(),
-		"name": data.Name.ValueString(),
+		"id":   plan.ID.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *ContactResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
