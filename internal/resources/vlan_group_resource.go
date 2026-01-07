@@ -267,9 +267,10 @@ func (r *VLANGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 }
 
 func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data VLANGroupResourceModel
+	var state, plan VLANGroupResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -277,7 +278,7 @@ func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Parse the ID
 
-	vlanGroupID := data.ID.ValueString()
+	vlanGroupID := plan.ID.ValueString()
 
 	var id int32
 
@@ -292,20 +293,20 @@ func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	tflog.Debug(ctx, "Updating VLAN Group", map[string]interface{}{
 		"id": id,
 
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Prepare the VLAN Group request
 
 	vlanGroupRequest := netbox.VLANGroupRequest{
-		Name: data.Name.ValueString(),
+		Name: plan.Name.ValueString(),
 
-		Slug: data.Slug.ValueString(),
+		Slug: plan.Slug.ValueString(),
 	}
 
 	// Set optional fields
 
-	r.setOptionalFields(ctx, &vlanGroupRequest, &data, &resp.Diagnostics)
+	r.setOptionalFieldsWithMerge(ctx, &vlanGroupRequest, &plan, &state, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -336,13 +337,13 @@ func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Map response back to state
 
-	r.mapVLANGroupToState(ctx, vlanGroup, &data, &resp.Diagnostics)
+	r.mapVLANGroupToState(ctx, vlanGroup, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *VLANGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -409,6 +410,41 @@ func (r *VLANGroupResource) ImportState(ctx context.Context, req resource.Import
 }
 
 // setOptionalFields sets optional fields on the VLAN Group request from the resource model.
+
+// setOptionalFieldsWithMerge sets optional fields with custom fields merge support for Update operations.
+func (r *VLANGroupResource) setOptionalFieldsWithMerge(ctx context.Context, vlanGroupRequest *netbox.VLANGroupRequest, plan *VLANGroupResourceModel, state *VLANGroupResourceModel, diags *diag.Diagnostics) {
+	// Description
+	vlanGroupRequest.Description = utils.StringPtr(plan.Description)
+
+	// Scope type
+	if utils.IsSet(plan.ScopeType) {
+		scopeType := plan.ScopeType.ValueString()
+		vlanGroupRequest.ScopeType = *netbox.NewNullableString(&scopeType)
+	}
+
+	// Scope ID
+	if utils.IsSet(plan.ScopeID) {
+		scopeID, err := utils.ParseID(plan.ScopeID.ValueString())
+		if err != nil {
+			diags.AddError("Invalid Scope ID", fmt.Sprintf("Scope ID must be a number, got: %s", plan.ScopeID.ValueString()))
+			return
+		}
+		vlanGroupRequest.ScopeId = *netbox.NewNullableInt32(&scopeID)
+	}
+
+	// Apply tags (if specified in plan)
+	if utils.IsSet(plan.Tags) {
+		utils.ApplyTags(ctx, vlanGroupRequest, plan.Tags, diags)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTags(ctx, vlanGroupRequest, state.Tags, diags)
+	}
+	if diags.HasError() {
+		return
+	}
+
+	// Apply custom fields with merge-aware logic
+	utils.ApplyCustomFieldsWithMerge(ctx, vlanGroupRequest, plan.CustomFields, state.CustomFields, diags)
+}
 
 func (r *VLANGroupResource) setOptionalFields(ctx context.Context, vlanGroupRequest *netbox.VLANGroupRequest, data *VLANGroupResourceModel, diags *diag.Diagnostics) {
 	// Description
@@ -481,6 +517,8 @@ func (r *VLANGroupResource) mapVLANGroupToState(ctx context.Context, vlanGroup *
 		return
 	}
 
-	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, vlanGroup.HasCustomFields(), vlanGroup.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields using filtered-to-owned helper (preserves state pattern)
+	if vlanGroup.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vlanGroup.GetCustomFields(), diags)
+	}
 }

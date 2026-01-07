@@ -136,7 +136,9 @@ func (r *ProviderResource) mapProviderToState(ctx context.Context, provider *net
 
 	// Populate tags and custom fields using unified helpers
 	data.Tags = utils.PopulateTagsFromNestedTags(ctx, provider.HasTags(), provider.GetTags(), diags)
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, provider.HasCustomFields(), provider.GetCustomFields(), data.CustomFields, diags)
+	if provider.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, provider.GetCustomFields(), diags)
+	}
 }
 
 // Create creates a new provider resource.
@@ -268,15 +270,16 @@ func (r *ProviderResource) Read(ctx context.Context, req resource.ReadRequest, r
 // Update updates the provider resource.
 
 func (r *ProviderResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ProviderResourceModel
+	var state, plan ProviderResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	id, err := utils.ParseID(data.ID.ValueString())
+	id, err := utils.ParseID(plan.ID.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("Could not parse provider ID: %s", err))
@@ -287,20 +290,19 @@ func (r *ProviderResource) Update(ctx context.Context, req resource.UpdateReques
 	tflog.Debug(ctx, "Updating circuit provider", map[string]interface{}{
 		"id": id,
 
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Build the provider request
 
 	providerRequest := netbox.ProviderRequest{
-		Name: data.Name.ValueString(),
+		Name: plan.Name.ValueString(),
 
-		Slug: data.Slug.ValueString(),
+		Slug: plan.Slug.ValueString(),
 	}
 
-	// Apply common fields (description, comments, tags, custom_fields)
-
-	utils.ApplyCommonFields(ctx, &providerRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply common fields with merge-aware custom fields
+	utils.ApplyCommonFieldsWithMerge(ctx, &providerRequest, plan.Description, plan.Comments, plan.Tags, state.Tags, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -331,13 +333,13 @@ func (r *ProviderResource) Update(ctx context.Context, req resource.UpdateReques
 
 	// Map response to state
 
-	r.mapProviderToState(ctx, provider, &data, &resp.Diagnostics)
+	r.mapProviderToState(ctx, provider, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the provider resource.
