@@ -246,8 +246,13 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 	utils.ApplyDescription(contactRequest, plan.Description)
 	utils.ApplyComments(contactRequest, plan.Comments)
 
-	// Handle tags (tags use replace-all semantics, not merge)
-	utils.ApplyTags(ctx, contactRequest, plan.Tags, &resp.Diagnostics)
+	// Handle tags (tags use replace-all semantics)
+	// If tags are not specified in plan (null), explicitly clear them on API side
+	if plan.Tags.IsNull() {
+		contactRequest.SetTags([]netbox.NestedTagRequest{})
+	} else {
+		utils.ApplyTags(ctx, contactRequest, plan.Tags, &resp.Diagnostics)
+	}
 
 	contact, httpResp, err := r.client.TenancyAPI.TenancyContactsUpdate(ctx, contactID).ContactRequest(*contactRequest).Execute()
 	defer utils.CloseResponseBody(httpResp)
@@ -261,8 +266,12 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 	r.mapContactToState(ctx, contact, &plan)
 
-	// Apply filter-to-owned pattern for tags
-	plan.Tags = utils.PopulateTagsFromAPI(ctx, contact.HasTags(), contact.GetTags(), plan.Tags, &resp.Diagnostics)
+	// After update, populate tags based on what the user specified
+	// If tags were null in plan (not specified), keep them null to match config
+	// Otherwise, populate from API response (replace-all semantics)
+	if !plan.Tags.IsNull() {
+		plan.Tags = utils.PopulateTagsFromAPI(ctx, contact.HasTags(), contact.GetTags(), plan.Tags, &resp.Diagnostics)
+	}
 
 	tflog.Debug(ctx, "Updated contact", map[string]interface{}{
 		"id":   plan.ID.ValueString(),

@@ -11,6 +11,167 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+// TestAccContactAssignmentResource_CustomFieldsPreservation tests that custom fields are preserved
+// when updating other fields on a contact assignment.
+func TestAccContactAssignmentResource_CustomFieldsPreservation(t *testing.T) {
+	contactName := testutil.RandomName("contact_preserve")
+	groupName := testutil.RandomName("contact_group")
+	groupSlug := testutil.RandomSlug("contact_group")
+	roleName := testutil.RandomName("contact_role")
+	roleSlug := testutil.RandomSlug("contact_role")
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	cfText := testutil.RandomCustomFieldName("tf_text_preserve")
+	cfInteger := testutil.RandomCustomFieldName("tf_int_preserve")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create with custom fields
+				Config: testAccContactAssignmentConfig_preservation_step1(
+					contactName, groupName, groupSlug, roleName, roleSlug, siteName, siteSlug, cfText, cfInteger, "initial value", 42,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "id"),
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "priority", "primary"),
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_contact_assignment.test", cfText, "text", "initial value"),
+					testutil.CheckCustomFieldValue("netbox_contact_assignment.test", cfInteger, "integer", "42"),
+				),
+			},
+			{
+				// Step 2: Update priority WITHOUT mentioning custom_fields
+				Config: testAccContactAssignmentConfig_preservation_step2(
+					contactName, groupName, groupSlug, roleName, roleSlug, siteName, siteSlug, cfText, cfInteger, "secondary",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "priority", "secondary"),
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "custom_fields.#", "0"),
+				),
+			},
+			{
+				// Step 3: Add custom_fields back to verify they were preserved
+				Config: testAccContactAssignmentConfig_preservation_step1(
+					contactName, groupName, groupSlug, roleName, roleSlug, siteName, siteSlug, cfText, cfInteger, "initial value", 42,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_contact_assignment.test", cfText, "text", "initial value"),
+					testutil.CheckCustomFieldValue("netbox_contact_assignment.test", cfInteger, "integer", "42"),
+				),
+			},
+		},
+	})
+}
+
+func testAccContactAssignmentConfig_preservation_step1(
+	contactName, groupName, groupSlug, roleName, roleSlug, siteName, siteSlug, cfTextName, cfIntName, cfTextValue string, cfIntValue int,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "text" {
+  name         = %[8]q
+  type         = "text"
+  object_types = ["tenancy.contactassignment"]
+}
+
+resource "netbox_custom_field" "integer" {
+  name         = %[9]q
+  type         = "integer"
+  object_types = ["tenancy.contactassignment"]
+}
+
+resource "netbox_contact_group" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_contact" "test" {
+  name  = %[1]q
+  group = netbox_contact_group.test.id
+}
+
+resource "netbox_contact_role" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_site" "test" {
+  name = %[6]q
+  slug = %[7]q
+}
+
+resource "netbox_contact_assignment" "test" {
+  object_type = "dcim.site"
+  object_id   = netbox_site.test.id
+  contact_id  = netbox_contact.test.id
+  role_id     = netbox_contact_role.test.id
+  priority    = "primary"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.text.name
+      type  = "text"
+      value = %[10]q
+    },
+    {
+      name  = netbox_custom_field.integer.name
+      type  = "integer"
+      value = "%[11]d"
+    }
+  ]
+}
+`, contactName, groupName, groupSlug, roleName, roleSlug, siteName, siteSlug, cfTextName, cfIntName, cfTextValue, cfIntValue)
+}
+
+func testAccContactAssignmentConfig_preservation_step2(
+	contactName, groupName, groupSlug, roleName, roleSlug, siteName, siteSlug, cfTextName, cfIntName, priority string,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "text" {
+  name         = %[8]q
+  type         = "text"
+  object_types = ["tenancy.contactassignment"]
+}
+
+resource "netbox_custom_field" "integer" {
+  name         = %[9]q
+  type         = "integer"
+  object_types = ["tenancy.contactassignment"]
+}
+
+resource "netbox_contact_group" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_contact" "test" {
+  name  = %[1]q
+  group = netbox_contact_group.test.id
+}
+
+resource "netbox_contact_role" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_site" "test" {
+  name = %[6]q
+  slug = %[7]q
+}
+
+resource "netbox_contact_assignment" "test" {
+  object_type = "dcim.site"
+  object_id   = netbox_site.test.id
+  contact_id  = netbox_contact.test.id
+  role_id     = netbox_contact_role.test.id
+  priority    = %[10]q
+  # custom_fields intentionally omitted - should preserve existing values
+}
+`, contactName, groupName, groupSlug, roleName, roleSlug, siteName, siteSlug, cfTextName, cfIntName, priority)
+}
+
 func TestAccContactAssignmentResource_importWithCustomFieldsAndTags(t *testing.T) {
 	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
 	// that would affect other tests of the same resource type running in parallel.
