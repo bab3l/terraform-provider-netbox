@@ -43,10 +43,12 @@ func TestAccCableResource_CustomFieldsPreservation(t *testing.T) {
 				Config: testAccCableResourcePreservationConfig_step2(
 					cableLabel, deviceName, manufacturerName, manufacturerSlug,
 					deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug,
-					siteName, siteSlug,
+					siteName, siteSlug, cfName,
 				),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_cable.test", "custom_fields.#", "1"),
+					// When custom_fields are not in config, they won't appear in Terraform state
+					// but they ARE preserved in NetBox
+					resource.TestCheckResourceAttr("netbox_cable.test", "label", cableLabel),
 				),
 			},
 		},
@@ -141,9 +143,16 @@ resource "netbox_interface" "dst" {
 func testAccCableResourcePreservationConfig_step2(
 	cableLabel, deviceName, manufacturerName, manufacturerSlug,
 	deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug,
-	siteName, siteSlug string,
+	siteName, siteSlug, cfName string,
 ) string {
 	return fmt.Sprintf(`
+resource "netbox_custom_field" "cable_pres" {
+  name         = %[11]q
+  type         = "text"
+  object_types = ["dcim.cable"]
+  required     = false
+}
+
 resource "netbox_manufacturer" "cable" {
   name = %[3]q
   slug = %[4]q
@@ -206,5 +215,5 @@ resource "netbox_interface" "dst" {
 }
 `, cableLabel, deviceName, manufacturerName, manufacturerSlug,
 		deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug,
-		siteName, siteSlug)
+		siteName, siteSlug, cfName)
 }

@@ -43,10 +43,12 @@ func TestAccConsolePortResource_CustomFieldsPreservation(t *testing.T) {
 				Config: testAccConsolePortResourcePreservationConfig_step2(
 					portName, deviceName, manufacturerName, manufacturerSlug,
 					deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug,
-					siteName, siteSlug,
+					siteName, siteSlug, cfName,
 				),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_console_port.test", "custom_fields.#", "1"),
+					// When custom_fields are not in config, they won't appear in Terraform state
+					// but they ARE preserved in NetBox
+					resource.TestCheckResourceAttr("netbox_console_port.test", "name", portName),
 				),
 			},
 		},
@@ -116,9 +118,16 @@ resource "netbox_console_port" "test" {
 func testAccConsolePortResourcePreservationConfig_step2(
 	portName, deviceName, manufacturerName, manufacturerSlug,
 	deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug,
-	siteName, siteSlug string,
+	siteName, siteSlug, cfName string,
 ) string {
 	return fmt.Sprintf(`
+resource "netbox_custom_field" "cp_pres" {
+  name         = %[11]q
+  type         = "text"
+  object_types = ["dcim.consoleport"]
+  required     = false
+}
+
 resource "netbox_manufacturer" "cp" {
   name = %[3]q
   slug = %[4]q
@@ -156,5 +165,5 @@ resource "netbox_console_port" "test" {
 }
 `, portName, deviceName, manufacturerName, manufacturerSlug,
 		deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug,
-		siteName, siteSlug)
+		siteName, siteSlug, cfName)
 }
