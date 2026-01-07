@@ -331,8 +331,9 @@ func (r *TunnelTerminationResource) Read(ctx context.Context, req resource.ReadR
 }
 
 func (r *TunnelTerminationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data TunnelTerminationResourceModel
+	var state, data TunnelTerminationResourceModel
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -429,9 +430,15 @@ func (r *TunnelTerminationResource) Update(ctx context.Context, req resource.Upd
 		tunnelTerminationRequest.AdditionalProperties["outside_ip"] = nil
 	}
 
-	// Handle tags and custom fields
+	// Handle tags and custom fields - merge-aware
 
-	utils.ApplyMetadataFields(ctx, tunnelTerminationRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, tunnelTerminationRequest, data.Tags, &resp.Diagnostics)
+	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, tunnelTerminationRequest, state.Tags, &resp.Diagnostics)
+	}
+
+	utils.ApplyCustomFieldsWithMerge(ctx, tunnelTerminationRequest, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -575,5 +582,7 @@ func (r *TunnelTerminationResource) mapTunnelTerminationToState(ctx context.Cont
 	}
 
 	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, tunnelTermination.HasCustomFields(), tunnelTermination.GetCustomFields(), data.CustomFields, diags)
+	if tunnelTermination.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, tunnelTermination.GetCustomFields(), diags)
+	}
 }

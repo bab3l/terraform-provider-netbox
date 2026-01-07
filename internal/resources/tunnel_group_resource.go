@@ -252,8 +252,9 @@ func (r *TunnelGroupResource) Read(ctx context.Context, req resource.ReadRequest
 // Update updates the tunnel group resource.
 
 func (r *TunnelGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data TunnelGroupResourceModel
+	var state, data TunnelGroupResourceModel
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -309,9 +310,14 @@ func (r *TunnelGroupResource) Update(ctx context.Context, req resource.UpdateReq
 		tunnelGroupRequest.Tags = utils.TagsToNestedTagRequests(tags)
 	}
 
-	// Apply metadata fields (tags, custom_fields)
+	// Apply metadata fields (tags, custom_fields) - merge-aware
+	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, &tunnelGroupRequest, data.Tags, &resp.Diagnostics)
+	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, &tunnelGroupRequest, state.Tags, &resp.Diagnostics)
+	}
 
-	utils.ApplyMetadataFields(ctx, &tunnelGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, &tunnelGroupRequest, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -427,5 +433,7 @@ func (r *TunnelGroupResource) mapTunnelGroupToState(ctx context.Context, tunnelG
 	}
 
 	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, tunnelGroup.CustomFields != nil, tunnelGroup.CustomFields, data.CustomFields, diags)
+	if tunnelGroup.CustomFields != nil {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, tunnelGroup.CustomFields, diags)
+	}
 }

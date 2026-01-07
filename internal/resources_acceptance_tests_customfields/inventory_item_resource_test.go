@@ -365,13 +365,13 @@ resource "netbox_device_type" "test" {
 resource "netbox_custom_field" "text" {
   name         = %q
   type         = "text"
-  object_types = ["dcim.inventory_item"]
+  object_types = ["dcim.inventoryitem"]
 }
 
 resource "netbox_custom_field" "integer" {
   name         = %q
   type         = "integer"
-  object_types = ["dcim.inventory_item"]
+  object_types = ["dcim.inventoryitem"]
 }
 
 resource "netbox_device" "test" {
@@ -449,13 +449,13 @@ resource "netbox_device_type" "test" {
 resource "netbox_custom_field" "text" {
   name         = %q
   type         = "text"
-  object_types = ["dcim.inventory_item"]
+  object_types = ["dcim.inventoryitem"]
 }
 
 resource "netbox_custom_field" "integer" {
   name         = %q
   type         = "integer"
-  object_types = ["dcim.inventory_item"]
+  object_types = ["dcim.inventoryitem"]
 }
 
 resource "netbox_device" "test" {

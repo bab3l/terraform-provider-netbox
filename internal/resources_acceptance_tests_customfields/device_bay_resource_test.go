@@ -261,6 +261,8 @@ resource "netbox_device_bay" "test" {
 // 2. Update device bay WITHOUT custom_fields in config (omit the field entirely)
 // 3. Custom fields should be preserved in NetBox, not deleted.
 func TestAccDeviceBayResource_CustomFieldsPreservation(t *testing.T) {
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+
 	// Generate unique names
 	bayName := testutil.RandomName("tf-test-bay-cf-preserve")
 	deviceName := testutil.RandomName("tf-test-device-preserve")
@@ -376,18 +378,19 @@ resource "netbox_device_type" "test" {
   model        = %q
   slug         = %q
   manufacturer = netbox_manufacturer.test.slug
+  subdevice_role = "parent"
 }
 
 resource "netbox_custom_field" "text" {
   name         = %q
   type         = "text"
-  object_types = ["dcim.device_bay"]
+  object_types = ["dcim.devicebay"]
 }
 
 resource "netbox_custom_field" "integer" {
   name         = %q
   type         = "integer"
-  object_types = ["dcim.device_bay"]
+  object_types = ["dcim.devicebay"]
 }
 
 resource "netbox_device" "test" {
@@ -460,18 +463,19 @@ resource "netbox_device_type" "test" {
   model        = %q
   slug         = %q
   manufacturer = netbox_manufacturer.test.slug
+  subdevice_role = "parent"
 }
 
 resource "netbox_custom_field" "text" {
   name         = %q
   type         = "text"
-  object_types = ["dcim.device_bay"]
+  object_types = ["dcim.devicebay"]
 }
 
 resource "netbox_custom_field" "integer" {
   name         = %q
   type         = "integer"
-  object_types = ["dcim.device_bay"]
+  object_types = ["dcim.devicebay"]
 }
 
 resource "netbox_device" "test" {

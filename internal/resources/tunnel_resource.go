@@ -487,7 +487,9 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, tunnel.HasCustomFields(), tunnel.GetCustomFields(), data.CustomFields, &resp.Diagnostics)
+	if tunnel.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, tunnel.GetCustomFields(), &resp.Diagnostics)
+	}
 
 	// Save updated data into Terraform state
 
@@ -495,10 +497,11 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 }
 
 func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data TunnelResourceModel
+	var state, data TunnelResourceModel
 
-	// Read Terraform plan data into the model
+	// Read Terraform state and plan data into the models
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -611,8 +614,8 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 	// Handle description
 	tunnelRequest.Description = utils.StringPtr(data.Description)
 
-	// Handle tags
-	if !data.Tags.IsNull() {
+	// Handle tags - merge-aware
+	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
 		var tagModels []utils.TagModel
 		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
 		resp.Diagnostics.Append(diags...)
@@ -620,17 +623,40 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 			return
 		}
 		tunnelRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-	}
-
-	// Handle custom fields
-	if !data.CustomFields.IsNull() {
-		var customFieldModels []utils.CustomFieldModel
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
+	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
+		var tagModels []utils.TagModel
+		diags := state.Tags.ElementsAs(ctx, &tagModels, false)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		tunnelRequest.CustomFields = utils.CustomFieldsToMap(customFieldModels)
+		tunnelRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
+	}
+
+	// Handle custom fields - merge-aware
+	var planCFModels []utils.CustomFieldModel
+	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
+		diags := data.CustomFields.ElementsAs(ctx, &planCFModels, false)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	var stateCFModels []utils.CustomFieldModel
+	if !state.CustomFields.IsNull() && !state.CustomFields.IsUnknown() {
+		diags := state.CustomFields.ElementsAs(ctx, &stateCFModels, false)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	// Merge custom fields - if plan has values, use plan; else preserve state
+	if len(planCFModels) > 0 {
+		tunnelRequest.CustomFields = utils.CustomFieldsToMap(planCFModels)
+	} else if len(stateCFModels) > 0 {
+		tunnelRequest.CustomFields = utils.CustomFieldsToMap(stateCFModels)
 	}
 
 	tflog.Debug(ctx, "Updating tunnel", map[string]interface{}{

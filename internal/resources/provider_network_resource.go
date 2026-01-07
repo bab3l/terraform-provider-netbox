@@ -173,7 +173,7 @@ func (r *ProviderNetworkResource) Create(ctx context.Context, req resource.Creat
 
 	// Build the provider network request
 
-	pnRequest, diags := r.buildProviderNetworkRequest(ctx, &data)
+	pnRequest, diags := r.buildProviderNetworkRequest(ctx, &data, nil)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -286,8 +286,9 @@ func (r *ProviderNetworkResource) Read(ctx context.Context, req resource.ReadReq
 // Update updates the resource and sets the updated Terraform state.
 
 func (r *ProviderNetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ProviderNetworkResourceModel
+	var state, data ProviderNetworkResourceModel
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -315,9 +316,9 @@ func (r *ProviderNetworkResource) Update(ctx context.Context, req resource.Updat
 		"name": data.Name.ValueString(),
 	})
 
-	// Build the provider network request
+	// Build the provider network request (pass state for merge-aware custom fields)
 
-	pnRequest, diags := r.buildProviderNetworkRequest(ctx, &data)
+	pnRequest, diags := r.buildProviderNetworkRequest(ctx, &data, &state)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -427,7 +428,7 @@ func (r *ProviderNetworkResource) ImportState(ctx context.Context, req resource.
 
 // buildProviderNetworkRequest builds a ProviderNetworkRequest from the Terraform model.
 
-func (r *ProviderNetworkResource) buildProviderNetworkRequest(ctx context.Context, data *ProviderNetworkResourceModel) (*netbox.ProviderNetworkRequest, diag.Diagnostics) {
+func (r *ProviderNetworkResource) buildProviderNetworkRequest(ctx context.Context, data *ProviderNetworkResourceModel, state *ProviderNetworkResourceModel) (*netbox.ProviderNetworkRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Lookup provider (required)
@@ -452,9 +453,9 @@ func (r *ProviderNetworkResource) buildProviderNetworkRequest(ctx context.Contex
 		pnRequest.ServiceId = &serviceID
 	}
 
-	// Apply common fields (description, comments, tags, custom_fields)
+	// Apply common fields (description, comments, tags, custom_fields) - merge-aware
 
-	utils.ApplyCommonFields(ctx, pnRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
+	utils.ApplyCommonFieldsWithMerge(ctx, pnRequest, data.Description, data.Comments, data.Tags, state.Tags, data.CustomFields, state.CustomFields, &diags)
 
 	if diags.HasError() {
 		return nil, diags
@@ -488,5 +489,7 @@ func (r *ProviderNetworkResource) mapResponseToModel(ctx context.Context, pn *ne
 
 	// Populate tags and custom fields using unified helpers
 	data.Tags = utils.PopulateTagsFromNestedTags(ctx, pn.HasTags(), pn.GetTags(), diags)
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, pn.HasCustomFields(), pn.GetCustomFields(), data.CustomFields, diags)
+	if pn.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, pn.GetCustomFields(), diags)
+	}
 }
