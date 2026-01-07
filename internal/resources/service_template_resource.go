@@ -261,6 +261,10 @@ func (r *ServiceTemplateResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
+	// Store state values before mapping for filter-to-owned pattern
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	// Parse ID
 
 	id, err := utils.ParseID(data.ID.ValueString())
@@ -307,30 +311,47 @@ func (r *ServiceTemplateResource) Read(ctx context.Context, req resource.ReadReq
 
 	r.mapResponseToState(ctx, serviceTemplate, &data, &resp.Diagnostics)
 
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Override with filter-to-owned pattern: only show fields that were in original state
+	if utils.IsSet(stateTags) {
+		data.Tags = utils.PopulateTagsFromAPI(ctx, serviceTemplate.HasTags(), serviceTemplate.GetTags(), stateTags, &resp.Diagnostics)
+	} else {
+		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, serviceTemplate.GetCustomFields(), &resp.Diagnostics)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates the service template.
 
 func (r *ServiceTemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ServiceTemplateResourceModel
+	var state, plan ServiceTemplateResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Store plan values before mapping for filter-to-owned pattern
+	planTags := plan.Tags
+	planCustomFields := plan.CustomFields
+
 	// Parse ID
 
-	id, err := utils.ParseID(data.ID.ValueString())
+	id, err := utils.ParseID(plan.ID.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
 
 			"Invalid ID format",
 
-			fmt.Sprintf("Could not parse service template ID '%s': %s", data.ID.ValueString(), err),
+			fmt.Sprintf("Could not parse service template ID '%s': %s", plan.ID.ValueString(), err),
 		)
 
 		return
@@ -340,10 +361,10 @@ func (r *ServiceTemplateResource) Update(ctx context.Context, req resource.Updat
 
 	var ports []int32
 
-	if !data.Ports.IsNull() && !data.Ports.IsUnknown() {
+	if !plan.Ports.IsNull() && !plan.Ports.IsUnknown() {
 		var portValues []int64
 
-		diags := data.Ports.ElementsAs(ctx, &portValues, false)
+		diags := plan.Ports.ElementsAs(ctx, &portValues, false)
 
 		resp.Diagnostics.Append(diags...)
 
@@ -368,14 +389,14 @@ func (r *ServiceTemplateResource) Update(ctx context.Context, req resource.Updat
 
 	protocol := netbox.PATCHEDWRITABLESERVICEREQUESTPROTOCOL_TCP // Default to TCP
 
-	if !data.Protocol.IsNull() && !data.Protocol.IsUnknown() {
-		protocol = netbox.PatchedWritableServiceRequestProtocol(data.Protocol.ValueString())
+	if !plan.Protocol.IsNull() && !plan.Protocol.IsUnknown() {
+		protocol = netbox.PatchedWritableServiceRequestProtocol(plan.Protocol.ValueString())
 	}
 
-	serviceTemplateRequest := netbox.NewWritableServiceTemplateRequest(data.Name.ValueString(), protocol, ports)
+	serviceTemplateRequest := netbox.NewWritableServiceTemplateRequest(plan.Name.ValueString(), protocol, ports)
 
-	// Apply common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, serviceTemplateRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply common fields with merge-aware helpers
+	utils.ApplyCommonFieldsWithMerge(ctx, serviceTemplateRequest, plan.Description, plan.Comments, plan.Tags, state.Tags, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -383,7 +404,7 @@ func (r *ServiceTemplateResource) Update(ctx context.Context, req resource.Updat
 	tflog.Debug(ctx, "Updating service template", map[string]interface{}{
 		"id": id,
 
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Call the API
@@ -405,13 +426,25 @@ func (r *ServiceTemplateResource) Update(ctx context.Context, req resource.Updat
 
 	// Map response to state
 
-	r.mapResponseToState(ctx, serviceTemplate, &data, &resp.Diagnostics)
+	r.mapResponseToState(ctx, serviceTemplate, &plan, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Override with filter-to-owned pattern
+	if utils.IsSet(planTags) {
+		plan.Tags = utils.PopulateTagsFromAPI(ctx, serviceTemplate.HasTags(), serviceTemplate.GetTags(), planTags, &resp.Diagnostics)
+	} else {
+		plan.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	}
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, serviceTemplate.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Updated service template", map[string]interface{}{
 		"id": serviceTemplate.GetId(),
 	})
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the service template.

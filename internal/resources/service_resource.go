@@ -315,6 +315,10 @@ func (r *ServiceResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
+	// Store state values before mapping for filter-to-owned pattern
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	svcID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
@@ -360,6 +364,14 @@ func (r *ServiceResource) Read(ctx context.Context, req resource.ReadRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Override with filter-to-owned pattern: only show fields that were in original state
+	if utils.IsSet(stateTags) {
+		data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), stateTags, &resp.Diagnostics)
+	} else {
+		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -706,5 +718,12 @@ func (r *ServiceResource) mapResponseToModel(ctx context.Context, svc *netbox.Se
 		data.Comments = types.StringNull()
 	}
 
-	// Note: Tags and custom_fields are populated using filter-to-owned pattern in Create(), Read(), and Update()
+	// Map tags - full population for import scenarios
+	data.Tags = utils.PopulateTagsFromAPI(ctx, svc.HasTags(), svc.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
+	}
+
+	// Map custom_fields - full population for import scenarios
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, svc.HasCustomFields(), svc.GetCustomFields(), data.CustomFields, diags)
 }
