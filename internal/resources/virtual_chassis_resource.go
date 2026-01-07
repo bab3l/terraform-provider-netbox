@@ -142,7 +142,7 @@ func (r *VirtualChassisResource) Create(ctx context.Context, req resource.Create
 
 	// Build the request
 
-	vcRequest, diags := r.buildRequest(ctx, &data)
+	vcRequest, diags := r.buildRequest(ctx, &data, nil)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -249,15 +249,16 @@ func (r *VirtualChassisResource) Read(ctx context.Context, req resource.ReadRequ
 // Update updates the virtual chassis resource.
 
 func (r *VirtualChassisResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data VirtualChassisResourceModel
+	var state, plan VirtualChassisResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	vcID, err := utils.ParseID(data.ID.ValueString())
+	vcID, err := utils.ParseID(plan.ID.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -272,7 +273,7 @@ func (r *VirtualChassisResource) Update(ctx context.Context, req resource.Update
 
 	// Build the request
 
-	vcRequest, diags := r.buildRequest(ctx, &data)
+	vcRequest, diags := r.buildRequest(ctx, &plan, &state)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -301,13 +302,13 @@ func (r *VirtualChassisResource) Update(ctx context.Context, req resource.Update
 
 	// Map response to state
 
-	r.mapResponseToModel(ctx, vc, &data, &resp.Diagnostics)
+	r.mapResponseToModel(ctx, vc, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the virtual chassis resource.
@@ -366,19 +367,19 @@ func (r *VirtualChassisResource) ImportState(ctx context.Context, req resource.I
 
 // buildRequest builds the API request from the Terraform model.
 
-func (r *VirtualChassisResource) buildRequest(ctx context.Context, data *VirtualChassisResourceModel) (*netbox.WritableVirtualChassisRequest, diag.Diagnostics) {
+func (r *VirtualChassisResource) buildRequest(ctx context.Context, plan *VirtualChassisResourceModel, state *VirtualChassisResourceModel) (*netbox.WritableVirtualChassisRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	vcRequest := netbox.NewWritableVirtualChassisRequest(data.Name.ValueString())
+	vcRequest := netbox.NewWritableVirtualChassisRequest(plan.Name.ValueString())
 
 	// Set optional fields
 
-	if !data.Domain.IsNull() && !data.Domain.IsUnknown() {
-		vcRequest.SetDomain(data.Domain.ValueString())
+	if !plan.Domain.IsNull() && !plan.Domain.IsUnknown() {
+		vcRequest.SetDomain(plan.Domain.ValueString())
 	}
 
-	if !data.Master.IsNull() && !data.Master.IsUnknown() {
-		masterID, err := utils.ParseID(data.Master.ValueString())
+	if !plan.Master.IsNull() && !plan.Master.IsUnknown() {
+		masterID, err := utils.ParseID(plan.Master.ValueString())
 
 		if err != nil {
 			diags.AddError(
@@ -394,8 +395,16 @@ func (r *VirtualChassisResource) buildRequest(ctx context.Context, data *Virtual
 		vcRequest.SetMaster(masterID)
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, vcRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
+	// Set common fields with merge-aware helpers
+	utils.ApplyDescription(vcRequest, plan.Description)
+	utils.ApplyComments(vcRequest, plan.Comments)
+	utils.ApplyTags(ctx, vcRequest, plan.Tags, &diags)
+	// For custom fields, use state if available (Update), otherwise nil (Create)
+	var stateCustomFields types.Set
+	if state != nil {
+		stateCustomFields = state.CustomFields
+	}
+	utils.ApplyCustomFieldsWithMerge(ctx, vcRequest, plan.CustomFields, stateCustomFields, &diags)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -461,5 +470,5 @@ func (r *VirtualChassisResource) mapResponseToModel(ctx context.Context, vc *net
 	}
 
 	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, vc.HasCustomFields(), vc.GetCustomFields(), data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vc.GetCustomFields(), diags)
 }

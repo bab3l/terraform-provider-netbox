@@ -285,22 +285,23 @@ func (r *PowerPanelResource) Read(ctx context.Context, req resource.ReadRequest,
 // Update updates the resource.
 
 func (r *PowerPanelResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data PowerPanelResourceModel
+	var state, plan PowerPanelResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ppID, err := utils.ParseID(data.ID.ValueString())
+	ppID, err := utils.ParseID(plan.ID.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
 
 			"Invalid Power Panel ID",
 
-			fmt.Sprintf("Power panel ID must be a number, got: %s", data.ID.ValueString()),
+			fmt.Sprintf("Power panel ID must be a number, got: %s", plan.ID.ValueString()),
 		)
 
 		return
@@ -308,7 +309,7 @@ func (r *PowerPanelResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	// Lookup site
 
-	site, diags := lookup.LookupSite(ctx, r.client, data.Site.ValueString())
+	site, diags := lookup.LookupSite(ctx, r.client, plan.Site.ValueString())
 
 	resp.Diagnostics.Append(diags...)
 
@@ -318,12 +319,12 @@ func (r *PowerPanelResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	// Build request
 
-	apiReq := netbox.NewPowerPanelRequest(*site, data.Name.ValueString())
+	apiReq := netbox.NewPowerPanelRequest(*site, plan.Name.ValueString())
 
 	// Set optional fields
 
-	if !data.Location.IsNull() && !data.Location.IsUnknown() {
-		location, diags := lookup.LookupLocation(ctx, r.client, data.Location.ValueString())
+	if !plan.Location.IsNull() && !plan.Location.IsUnknown() {
+		location, diags := lookup.LookupLocation(ctx, r.client, plan.Location.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
@@ -334,8 +335,11 @@ func (r *PowerPanelResource) Update(ctx context.Context, req resource.UpdateRequ
 		apiReq.SetLocation(*location)
 	}
 
-	// Apply common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, apiReq, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply common fields with merge-aware helpers
+	utils.ApplyDescription(apiReq, plan.Description)
+	utils.ApplyComments(apiReq, plan.Comments)
+	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -361,13 +365,13 @@ func (r *PowerPanelResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	// Map response to model
 
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource.
@@ -507,8 +511,8 @@ func (r *PowerPanelResource) mapResponseToModel(ctx context.Context, pp *netbox.
 		return
 	}
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, pp.HasCustomFields(), pp.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields (filter to owned)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, pp.GetCustomFields(), diags)
 	if diags.HasError() {
 		return
 	}
