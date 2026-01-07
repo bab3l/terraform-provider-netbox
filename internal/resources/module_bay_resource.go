@@ -157,8 +157,19 @@ func (r *ModuleBayResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
+	// Save plan state for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -201,8 +212,19 @@ func (r *ModuleBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
+	// Save state for filter-to-owned pattern
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Preserve null/empty state values for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), stateTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -211,41 +233,47 @@ func (r *ModuleBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 // Update updates the resource.
 func (r *ModuleBayResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ModuleBayResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read both state and plan for merge-aware custom fields
+	var state, plan ModuleBayResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	bayID, err := utils.ParseID(data.ID.ValueString())
+	bayID, err := utils.ParseID(plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Module Bay ID",
-			fmt.Sprintf("Module Bay ID must be a number, got: %s", data.ID.ValueString()),
+			fmt.Sprintf("Module Bay ID must be a number, got: %s", plan.ID.ValueString()),
 		)
 		return
 	}
 
 	// Lookup device
-	device, diags := lookup.LookupDevice(ctx, r.client, data.Device.ValueString())
+	device, diags := lookup.LookupDevice(ctx, r.client, plan.Device.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Build request
-	apiReq := netbox.NewModuleBayRequest(*device, data.Name.ValueString())
+	apiReq := netbox.NewModuleBayRequest(*device, plan.Name.ValueString())
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
+	if !plan.Label.IsNull() && !plan.Label.IsUnknown() {
+		apiReq.SetLabel(plan.Label.ValueString())
 	}
-	if !data.Position.IsNull() && !data.Position.IsUnknown() {
-		apiReq.SetPosition(data.Position.ValueString())
+	if !plan.Position.IsNull() && !plan.Position.IsUnknown() {
+		apiReq.SetPosition(plan.Position.ValueString())
 	}
 
-	// Handle description and metadata fields
-	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle description and metadata fields (merge-aware)
+	utils.ApplyDescription(apiReq, plan.Description)
+	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -262,12 +290,21 @@ func (r *ModuleBayResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
+	// Save plan state for filter-to-owned pattern
+	planTags := plan.Tags
+	planCustomFields := plan.CustomFields
+
 	// Map response to model
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	plan.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource.
