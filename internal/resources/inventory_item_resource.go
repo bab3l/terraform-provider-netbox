@@ -272,7 +272,8 @@ func (r *InventoryItemResource) Read(ctx context.Context, req resource.ReadReque
 
 // Update updates the resource.
 func (r *InventoryItemResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data InventoryItemResourceModel
+	var state, data InventoryItemResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -346,9 +347,21 @@ func (r *InventoryItemResource) Update(ctx context.Context, req resource.UpdateR
 		apiReq.SetDiscovered(data.Discovered.ValueBool())
 	}
 
-	// Handle description, tags, and custom fields
+	// Handle description, tags, and custom fields with merge-aware behavior
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+
+	// Handle tags - merge-aware: use plan if provided, else use state
+	if utils.IsSet(data.Tags) {
+		utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTags(ctx, apiReq, state.Tags, &resp.Diagnostics)
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply custom fields with merge logic (preserves unmanaged fields from state)
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -513,6 +526,8 @@ func (r *InventoryItemResource) mapResponseToModel(ctx context.Context, item *ne
 	// Handle tags
 	data.Tags = utils.PopulateTagsFromAPI(ctx, item.HasTags(), item.GetTags(), data.Tags, diags)
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, item.HasCustomFields(), item.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields - use filtered-to-owned for partial management
+	if item.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, item.GetCustomFields(), diags)
+	}
 }

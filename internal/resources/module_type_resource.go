@@ -232,7 +232,8 @@ func (r *ModuleTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 
 // Update updates the resource.
 func (r *ModuleTypeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ModuleTypeResourceModel
+	var state, data ModuleTypeResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -275,7 +276,8 @@ func (r *ModuleTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 		apiReq.SetWeightUnit(weightUnit)
 	}
 
-	utils.ApplyCommonFields(ctx, apiReq, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Set common fields with merge-aware custom fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFieldsWithMerge(ctx, apiReq, data.Description, data.Comments, data.Tags, state.Tags, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -413,5 +415,8 @@ func (r *ModuleTypeResource) mapResponseToModel(ctx context.Context, moduleType 
 
 	// Populate tags and custom fields using unified helpers
 	data.Tags = utils.PopulateTagsFromAPI(ctx, moduleType.HasTags(), moduleType.GetTags(), data.Tags, diags)
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, moduleType.HasCustomFields(), moduleType.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields - use filtered-to-owned for partial management
+	if moduleType.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, moduleType.GetCustomFields(), diags)
+	}
 }

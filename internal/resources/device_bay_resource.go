@@ -106,7 +106,7 @@ func (r *DeviceBayResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Build the request
-	dbRequest, diags := r.buildRequest(ctx, &data)
+	dbRequest, diags := r.buildRequest(ctx, &data, nil)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -181,7 +181,8 @@ func (r *DeviceBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 // Update updates the device bay resource.
 func (r *DeviceBayResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data DeviceBayResourceModel
+	var state, data DeviceBayResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -196,7 +197,7 @@ func (r *DeviceBayResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Build the request
-	dbRequest, diags := r.buildRequest(ctx, &data)
+	dbRequest, diags := r.buildRequest(ctx, &data, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -260,8 +261,9 @@ func (r *DeviceBayResource) ImportState(ctx context.Context, req resource.Import
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// buildRequest builds the API request from the Terraform model.
-func (r *DeviceBayResource) buildRequest(ctx context.Context, data *DeviceBayResourceModel) (*netbox.DeviceBayRequest, diag.Diagnostics) {
+// buildRequest builds the API request from the Terraform model with merge-aware custom fields.
+// state may be nil for Create operations, in which case only plan fields are used.
+func (r *DeviceBayResource) buildRequest(ctx context.Context, data, state *DeviceBayResourceModel) (*netbox.DeviceBayRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Look up device
@@ -286,9 +288,28 @@ func (r *DeviceBayResource) buildRequest(ctx context.Context, data *DeviceBayRes
 		dbRequest.InstalledDevice = *netbox.NewNullableBriefDeviceRequest(installedDeviceRef)
 	}
 
-	// Handle description, tags, and custom fields
+	// Handle description, tags, and custom fields with merge-aware behavior
 	utils.ApplyDescription(dbRequest, data.Description)
-	utils.ApplyMetadataFields(ctx, dbRequest, data.Tags, data.CustomFields, &diags)
+
+	// Handle tags - merge-aware: use plan if provided, else use state (if available)
+	if utils.IsSet(data.Tags) {
+		utils.ApplyTags(ctx, dbRequest, data.Tags, &diags)
+	} else if state != nil && utils.IsSet(state.Tags) {
+		utils.ApplyTags(ctx, dbRequest, state.Tags, &diags)
+	}
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	// Apply custom fields with merge logic (preserves unmanaged fields from state)
+	var stateCustomFields types.Set
+	if state != nil {
+		stateCustomFields = state.CustomFields
+	} else {
+		// For Create, there's no state to merge with
+		stateCustomFields = types.SetNull(types.StringType)
+	}
+	utils.ApplyCustomFieldsWithMerge(ctx, dbRequest, data.CustomFields, stateCustomFields, &diags)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -329,6 +350,8 @@ func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.D
 	// Handle tags
 	data.Tags = utils.PopulateTagsFromAPI(ctx, db.HasTags(), db.GetTags(), data.Tags, diags)
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, db.HasCustomFields(), db.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields - use filtered-to-owned for partial management
+	if db.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, db.GetCustomFields(), diags)
+	}
 }
