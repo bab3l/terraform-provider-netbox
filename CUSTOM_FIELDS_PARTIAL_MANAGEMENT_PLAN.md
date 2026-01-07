@@ -1154,25 +1154,100 @@ Same pattern as Batch 3 (see above for details):
 - [x] Build succeeds with no errors
 - [x] 2 resources appropriately skipped (no custom_fields support)
 
-### Batch 8: Update Examples
+### Batch 8: Update Examples & Documentation
 **Priority**: HIGH
-**Files**: 20-30 example files
-**Estimated Time**: 3-4 hours
+**Files**: 60+ example files + documentation
+**Estimated Time**: 4-6 hours
+**Status**: 🔜 PENDING
 
 #### Goals:
-Update example configurations to demonstrate partial custom field management and document best practices.
+1. Update example configurations to demonstrate partial custom field management
+2. Document best practices for filter-to-owned pattern
+3. Create comprehensive custom fields management guide
+4. Regenerate all resource documentation
 
-#### Files to Update:
+#### Resources to Document (57 resources with custom_fields/tags support):
 
-**examples/resources/** - One example per resource type:
-- `netbox_device/resource.tf` - Show partial CF management
-- `netbox_ip_address/resource.tf` - Show CF preservation
-- `netbox_prefix/resource.tf` - Show explicit removal
-- `netbox_vlan/resource.tf`
-- `netbox_vm/resource.tf`
-- And 15+ other resource examples
+**Batch 2 - Device Resource (1):**
+1. `examples/resources/netbox_device/` - Pilot resource with comprehensive examples
 
-#### Example Patterns to Add:
+**Batch 3 - Circuits & VPN (13):**
+2. `examples/resources/netbox_circuit/`
+3. `examples/resources/netbox_circuit_type/`
+4. `examples/resources/netbox_circuit_termination/`
+5. `examples/resources/netbox_circuit_group/`
+6. `examples/resources/netbox_provider/`
+7. `examples/resources/netbox_provider_account/`
+8. `examples/resources/netbox_provider_network/`
+9. `examples/resources/netbox_l2vpn/`
+10. `examples/resources/netbox_l2vpn_termination/`
+11. `examples/resources/netbox_tunnel/`
+12. `examples/resources/netbox_tunnel_group/`
+13. `examples/resources/netbox_tunnel_termination/`
+14. `examples/resources/netbox_circuit_group_assignment/` (tags only)
+
+**Batch 4 - IPAM Core (14):**
+15. `examples/resources/netbox_ip_address/`
+16. `examples/resources/netbox_prefix/`
+17. `examples/resources/netbox_vlan/`
+18. `examples/resources/netbox_aggregate/`
+19. `examples/resources/netbox_asn/`
+20. `examples/resources/netbox_ip_range/`
+21. `examples/resources/netbox_vlan_group/`
+22. `examples/resources/netbox_rir/`
+23. `examples/resources/netbox_route_target/`
+24. `examples/resources/netbox_l2vpn_termination_group/`
+25. `examples/resources/netbox_vrf/`
+26. `examples/resources/netbox_asn_range/`
+
+**Batch 5 - DCIM (25):**
+27. `examples/resources/netbox_site/`
+28. `examples/resources/netbox_rack/`
+29. `examples/resources/netbox_location/`
+30. `examples/resources/netbox_device_role/`
+31. `examples/resources/netbox_device_type/`
+32. `examples/resources/netbox_region/`
+33. `examples/resources/netbox_manufacturer/`
+34. `examples/resources/netbox_device_bay/`
+35. `examples/resources/netbox_cable/`
+36. `examples/resources/netbox_interface/`
+37. `examples/resources/netbox_inventory_item/`
+38. `examples/resources/netbox_console_port/`
+39. `examples/resources/netbox_power_port/`
+40. `examples/resources/netbox_rear_port/`
+41. `examples/resources/netbox_front_port/`
+42. `examples/resources/netbox_console_server_port/`
+43. `examples/resources/netbox_power_outlet/`
+44. `examples/resources/netbox_power_panel/`
+45. `examples/resources/netbox_rack_role/`
+46. `examples/resources/netbox_rack_reservation/`
+47. `examples/resources/netbox_virtual_chassis/`
+48. `examples/resources/netbox_site_group/`
+49. `examples/resources/netbox_module_bay/`
+50. `examples/resources/netbox_power_feed/`
+51. *(platform skipped - no custom_fields)*
+
+**Batch 6 - Virtualization & Tenancy (10):**
+52. `examples/resources/netbox_virtual_machine/`
+53. `examples/resources/netbox_cluster/`
+54. `examples/resources/netbox_cluster_type/`
+55. `examples/resources/netbox_tenant/`
+56. `examples/resources/netbox_cluster_group/`
+57. `examples/resources/netbox_tenant_group/`
+58. `examples/resources/netbox_contact_group/`
+59. `examples/resources/netbox_contact/` (tags only)
+60. `examples/resources/netbox_contact_role/`
+61. `examples/resources/netbox_contact_assignment/`
+
+**Batch 7 - Wireless, Extras & Other (6):**
+62. `examples/resources/netbox_wireless_lan/`
+63. `examples/resources/netbox_wireless_lan_group/`
+64. `examples/resources/netbox_wireless_link/`
+65. `examples/resources/netbox_config_context/` (tags only)
+66. `examples/resources/netbox_service/`
+67. `examples/resources/netbox_service_template/`
+
+#### Example Patterns to Add to Each Resource:
 
 **Pattern 1: Partial Management (Recommended)**:
 ```hcl
@@ -1250,34 +1325,44 @@ resource "netbox_device" "example" {
 }
 ```
 
-#### New Example Files to Create:
+#### New Files to Create:
 
-**examples/guides/custom_fields_management.md**:
-```markdown
-# Custom Fields Management Guide
+**1. examples/guides/custom_fields_management.md**:
+Comprehensive guide explaining:
+- Filter-to-owned pattern behavior
+- Partial management use cases
+- External custom field management
+- Best practices and patterns
+- Migration guide from older versions
 
-## Overview
-Terraform provider for NetBox supports partial custom field management,
-allowing you to manage some fields while preserving others set externally.
+**2. Update existing example files (67 files)**:
+Each resource example should demonstrate:
+- Basic usage with custom_fields
+- Partial management pattern
+- Comments explaining preservation behavior
 
-## Behavior
-- Fields in config: Managed by Terraform
-- Fields NOT in config: Preserved (not touched)
-- Empty value: Explicitly removes that field
-- Empty list: Removes ALL fields
+#### Documentation Files to Regenerate:
 
-## Use Cases
-[detailed examples...]
-```
+**docs/resources/** (67 resource docs):
+Run `make docs` to regenerate all resource documentation with:
+- Updated custom_fields schema documentation
+- Filter-to-owned behavior explanation
+- Links to custom fields management guide
 
-**Success Criteria**:
-- [ ] All resource examples updated with custom_fields patterns
-- [ ] New guide document created
-- [ ] Examples demonstrate all 4 patterns
-- [ ] Code comments explain partial management behavior
+**docs/index.md**:
+Add custom fields management section to provider overview
+
+#### Success Criteria:
+- [ ] All 67 resource example files updated with custom_fields patterns
+- [ ] Custom fields management guide created (examples/guides/custom_fields_management.md)
+- [ ] Examples demonstrate filter-to-owned pattern
+- [ ] Code comments explain preservation behavior
 - [ ] Examples use realistic field names and values
+- [ ] Documentation regenerated with `make docs`
+- [ ] Provider index.md updated with custom fields overview
+- [ ] CHANGELOG.md updated with comprehensive migration guide
 
-### Batch 9: Regenerate Documentation
+### Batch 9: Comprehensive Testing & Validation
 **Priority**: HIGH
 **Files**: Generated docs
 **Estimated Time**: 1-2 hours
@@ -1373,17 +1458,135 @@ See migration guide for details.
 - [ ] Provider index.md mentions custom fields feature
 - [ ] No broken links in documentation
 
-### Batch 10: Comprehensive Testing
+### Batch 9: Comprehensive Testing & Validation
 **Priority**: CRITICAL
-**Files**: Test files
+**Files**: All test files
 **Estimated Time**: 4-6 hours
+**Status**: 🔜 PENDING
 
-1. Run full acceptance test suite
-2. Test import scenarios with custom fields
-3. Test state migration edge cases
-4. Performance testing with many custom fields
-5. Test all 4 custom field patterns from examples
-6. Verify documentation examples work
+#### Testing Strategy:
+
+**Phase 1: Full Test Suite Run**
+```bash
+# Run all custom fields acceptance tests
+go test -tags=customfields ./internal/resources_acceptance_tests_customfields/... -v -timeout 2h
+
+# Expected: 70+ tests passing
+# Resources tested: All 57 resources from Batches 2-7
+```
+
+**Phase 2: Import Scenario Testing**
+Test import functionality for key resources:
+- Device (pilot resource)
+- IP Address, Prefix, VLAN (high usage IPAM)
+- Virtual Machine (virtualization)
+- Circuit, Tunnel (connectivity)
+- Service (IPAM services)
+
+Verify:
+- Import with existing custom_fields works
+- Import with null custom_fields works
+- Filter-to-owned pattern applies correctly
+
+**Phase 3: State Migration Testing**
+Test scenarios:
+1. Existing configs with custom_fields → No changes needed
+2. Existing configs without custom_fields → Fields preserved after update
+3. Empty custom_fields = [] → All fields cleared
+4. Partial custom_fields → Filter-to-owned applies
+
+**Phase 4: Performance Testing**
+Test with resources containing:
+- 1-5 custom fields (typical)
+- 10-20 custom fields (heavy usage)
+- 50+ custom fields (edge case)
+
+Measure:
+- Create/Update/Read operation times
+- Memory usage
+- API call count
+
+**Phase 5: Pattern Validation**
+Test all 4 custom field patterns from examples:
+1. ✅ Partial Management (most common)
+2. ✅ External Management (omit custom_fields)
+3. ✅ Explicit Removal (empty value)
+4. ✅ Complete Removal (empty list)
+
+**Phase 6: Regression Testing**
+Run standard acceptance tests to ensure no regressions:
+```bash
+# Run non-custom-fields tests
+go test ./internal/resources_acceptance_tests/... -v -timeout 2h
+```
+
+#### Success Criteria:
+- [ ] All 70+ custom fields acceptance tests passing
+- [ ] All import tests passing
+- [ ] No regressions in standard acceptance tests
+- [ ] Performance metrics acceptable (< 5% slower)
+- [ ] All 4 custom field patterns work correctly
+- [ ] State migration scenarios validated
+- [ ] No data loss incidents detected
+
+### Batch 10: Release Preparation
+**Priority**: HIGH
+**Files**: Release artifacts
+**Estimated Time**: 2-3 hours
+**Status**: 🔜 PENDING
+
+#### Release Checklist:
+
+**1. Version Bump**
+- Update version in relevant files
+- Tag release in git: `v0.x.x`
+
+**2. CHANGELOG.md Finalization**
+Complete entry with:
+- Feature summary (custom fields partial management)
+- Breaking changes section (if any)
+- Migration guide
+- Bug fixes list
+- All commit references
+- Contributors acknowledgment
+
+**3. Documentation Review**
+- Verify all docs regenerated correctly
+- Check custom fields guide is complete
+- Validate all example configurations work
+- Ensure no broken links
+- Review provider index.md custom fields section
+
+**4. Release Notes**
+Create comprehensive release notes including:
+- Problem statement (data loss bug)
+- Solution overview (filter-to-owned pattern)
+- Migration guide
+- Benefits for users
+- Links to documentation
+
+**5. GitHub Release**
+- Create GitHub release with tag
+- Attach release notes
+- Link to documentation
+- Highlight critical bug fix nature
+
+**6. Communication**
+- Notify users about critical bug fix
+- Share migration guide
+- Provide support channels
+- Document known issues (if any)
+
+#### Success Criteria:
+- [ ] Version tagged and released
+- [ ] CHANGELOG.md complete and accurate
+- [ ] All documentation verified
+- [ ] Release notes published
+- [ ] GitHub release created
+- [ ] Users notified of critical bug fix
+- [ ] Zero data loss incidents post-release
+
+---
 
 ## Migration Guide for Users
 
