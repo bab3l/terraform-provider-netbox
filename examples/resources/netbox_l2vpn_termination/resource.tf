@@ -21,4 +21,22 @@ resource "netbox_l2vpn_termination" "test" {
   l2vpn                = netbox_l2vpn.test.id
   assigned_object_type = "ipam.vlan"
   assigned_object_id   = netbox_vlan.test.id
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others preserved
+  custom_fields = [
+    {
+      name  = "termination_side"
+      value = "A"
+    },
+    {
+      name  = "bandwidth_mbps"
+      value = "1000"
+    }
+  ]
+
+  tags = [
+    "l2vpn-endpoint",
+    "site-a"
+  ]
 }
