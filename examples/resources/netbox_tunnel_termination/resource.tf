@@ -48,4 +48,22 @@ resource "netbox_tunnel_termination" "test" {
   termination_type   = "dcim.interface"
   termination_id     = netbox_interface.test.id
   outside_ip_address = "1.2.3.4"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "termination_site"
+      value = "datacenter-a"
+    },
+    {
+      name  = "keepalive_interval"
+      value = "30"
+    }
+  ]
+
+  tags = [
+    "tunnel-endpoint",
+    "site-a"
+  ]
 }
