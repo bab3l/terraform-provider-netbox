@@ -199,7 +199,8 @@ func (r *InventoryItemResource) Create(ctx context.Context, req resource.CreateR
 
 	// Handle description, tags, and custom fields
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -262,11 +263,20 @@ func (r *InventoryItemResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
+	// Preserve original custom_fields state
+	originalCustomFields := data.CustomFields
+
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Restore original custom_fields if it was null/empty and API returned none
+	if !utils.IsSet(originalCustomFields) && !utils.IsSet(data.CustomFields) {
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

@@ -197,8 +197,9 @@ func (r *InterfaceResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	// Apply metadata fields (tags, custom_fields)
-	utils.ApplyMetadataFields(ctx, interfaceReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply tags and custom fields separately (filter-to-owned pattern)
+	utils.ApplyTags(ctx, interfaceReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, interfaceReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -261,11 +262,20 @@ func (r *InterfaceResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
+	// Preserve original custom_fields state (null vs empty set distinction)
+	originalCustomFields := data.CustomFields
+
 	// Map response to state
 	r.mapInterfaceToState(ctx, iface, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Restore original custom_fields if it was null/empty and API returned none
+	if !utils.IsSet(originalCustomFields) && !utils.IsSet(data.CustomFields) {
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

@@ -316,12 +316,20 @@ func (r *PowerPortResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
+	// Preserve original custom_fields state
+	originalCustomFields := data.CustomFields
+
 	// Map response to model
 
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	// Restore original custom_fields if it was null/empty and API returned none
+	if !utils.IsSet(originalCustomFields) && !utils.IsSet(data.CustomFields) {
+		data.CustomFields = originalCustomFields
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -390,11 +398,19 @@ func (r *PowerPortResource) Update(ctx context.Context, req resource.UpdateReque
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
 	}
 
-	// Handle description, tags, and custom fields
+	// Handle description, tags, and custom fields with merge-aware behavior
 
 	utils.ApplyDescription(apiReq, data.Description)
 
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply tags - merge-aware: use plan if provided, else use state
+	if utils.IsSet(data.Tags) {
+		utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTags(ctx, apiReq, state.Tags, &resp.Diagnostics)
+	}
+
+	// Apply custom fields with merge logic (preserves unmanaged fields)
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
