@@ -1020,19 +1020,19 @@ Same pattern as Batch 3 (see above for details):
 - Cluster Group
 - Contact resources
 
-#### Batch 6 Progress (4 of ~10): 40%
+#### Batch 6 Progress (7 of ~10): 70%
 
 **Completed Resources:**
-1. ✅ virtual_machine_resource.go - Updated to merge-aware pattern (TBD)
-2. ✅ cluster_resource.go - Updated to merge-aware pattern (TBD)
-3. ✅ cluster_type_resource.go - Updated to merge-aware pattern, replaced ApplyMetadataFields (TBD)
-4. ✅ tenant_resource.go - Updated to merge-aware pattern, replaced ApplyMetadataFields (TBD)
+1. ✅ virtual_machine_resource.go - Updated to merge-aware pattern (commit c677df6)
+2. ✅ cluster_resource.go - Updated to merge-aware pattern (commit c677df6)
+3. ✅ cluster_type_resource.go - Updated to merge-aware pattern, replaced ApplyMetadataFields (commit c677df6)
+4. ✅ tenant_resource.go - Updated to merge-aware pattern, replaced ApplyMetadataFields (commit c677df6)
+5. ✅ cluster_group_resource.go - Updated to merge-aware pattern, replaced ApplyMetadataFields (TBD)
+6. ✅ tenant_group_resource.go - Updated to merge-aware pattern, replaced inline custom fields handling (TBD)
+7. ✅ contact_group_resource.go - Updated to merge-aware pattern, replaced ApplyMetadataFields (TBD)
 
 **Remaining Resources:**
-- cluster_group_resource.go
-- tenant_group_resource.go
-- contact_resource.go
-- contact_group_resource.go
+- contact_resource.go (tags only - no custom fields, but needs merge-aware tags pattern)
 - contact_role_resource.go
 - contact_assignment_resource.go
 

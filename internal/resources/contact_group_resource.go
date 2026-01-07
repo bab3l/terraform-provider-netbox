@@ -117,8 +117,16 @@ func (r *ContactGroupResource) Create(ctx context.Context, req resource.CreateRe
 		contactGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
 	}
 
-	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, &contactGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply tags and custom_fields
+	utils.ApplyTags(ctx, &contactGroupRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFields(ctx, &contactGroupRequest, data.CustomFields, &resp.Diagnostics)
+
+	// Store plan values for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
 
 	// Create via API
 	contactGroup, httpResp, err := r.client.TenancyAPI.TenancyContactGroupsCreate(ctx).WritableContactGroupRequest(contactGroupRequest).Execute()
@@ -152,6 +160,11 @@ func (r *ContactGroupResource) Create(ctx context.Context, req resource.CreateRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, contactGroup.HasTags(), contactGroup.GetTags(), planTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, contactGroup.GetCustomFields(), &resp.Diagnostics)
+
 	tflog.Trace(ctx, "created a contact group resource")
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -185,21 +198,31 @@ func (r *ContactGroupResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
+	// Store state values for filter-to-owned pattern
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	r.mapContactGroupToState(ctx, contactGroup, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, contactGroup.HasTags(), contactGroup.GetTags(), stateTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, contactGroup.GetCustomFields(), &resp.Diagnostics)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ContactGroupResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	var state, plan ContactGroupResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	contactGroupID := data.ID.ValueString()
+	contactGroupID := plan.ID.ValueString()
 	contactGroupIDInt := utils.ParseInt32FromString(contactGroupID)
 	if contactGroupIDInt == 0 {
 		resp.Diagnostics.AddError("Invalid Contact Group ID", fmt.Sprintf("Contact Group ID must be a number, got: %s", contactGroupID))
@@ -207,21 +230,21 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 	tflog.Debug(ctx, "Updating contact group", map[string]interface{}{
 		"id":   contactGroupID,
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Build the request
 	contactGroupRequest := netbox.WritableContactGroupRequest{
-		Name: data.Name.ValueString(),
-		Slug: data.Slug.ValueString(),
+		Name: plan.Name.ValueString(),
+		Slug: plan.Slug.ValueString(),
 	}
 
 	// Apply description
-	utils.ApplyDescription(&contactGroupRequest, data.Description)
+	utils.ApplyDescription(&contactGroupRequest, plan.Description)
 
 	// Set parent if provided
-	if utils.IsSet(data.Parent) {
-		parentID, parentDiags := netboxlookup.LookupContactGroupID(ctx, r.client, data.Parent.ValueString())
+	if utils.IsSet(plan.Parent) {
+		parentID, parentDiags := netboxlookup.LookupContactGroupID(ctx, r.client, plan.Parent.ValueString())
 		resp.Diagnostics.Append(parentDiags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -229,8 +252,12 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 		contactGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
 	}
 
-	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, &contactGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply tags and custom_fields with merge-aware helpers
+	utils.ApplyTags(ctx, &contactGroupRequest, plan.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFieldsWithMerge(ctx, &contactGroupRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	// Update via API
 	contactGroup, httpResp, err := r.client.TenancyAPI.TenancyContactGroupsUpdate(ctx, contactGroupIDInt).WritableContactGroupRequest(contactGroupRequest).Execute()
@@ -245,11 +272,16 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// Map response to model
-	r.mapContactGroupToState(ctx, contactGroup, &data, &resp.Diagnostics)
+	r.mapContactGroupToState(ctx, contactGroup, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	plan.Tags = utils.PopulateTagsFromAPI(ctx, contactGroup.HasTags(), contactGroup.GetTags(), plan.Tags, &resp.Diagnostics)
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, contactGroup.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *ContactGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -313,9 +345,5 @@ func (r *ContactGroupResource) mapContactGroupToState(ctx context.Context, conta
 		data.ParentID = types.StringNull()
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, contactGroup.HasTags(), contactGroup.GetTags(), data.Tags, diags)
-
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, contactGroup.HasCustomFields(), contactGroup.GetCustomFields(), data.CustomFields, diags)
+	// Tags and custom fields are now handled in Create/Read/Update methods using filter-to-owned pattern
 }

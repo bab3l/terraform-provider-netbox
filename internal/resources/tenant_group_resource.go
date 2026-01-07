@@ -138,33 +138,16 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 		tenantGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
 	}
 
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		tenantGroupRequest.Tags = utils.TagsToNestedTagRequests(tags)
+	// Apply tags and custom_fields
+	utils.ApplyTags(ctx, &tenantGroupRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+	utils.ApplyCustomFields(ctx, &tenantGroupRequest, data.CustomFields, &resp.Diagnostics)
 
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		tenantGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-	}
+	// Store plan values for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
 
 	// Create via API
 
@@ -212,6 +195,10 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
+	// Apply filter-to-owned pattern for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), planTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, tenantGroup.GetCustomFields(), &resp.Diagnostics)
+
 	tflog.Trace(ctx, "created a tenant group resource")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -257,25 +244,35 @@ func (r *TenantGroupResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
+	// Store state values for filter-to-owned pattern
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	r.mapTenantGroupToState(ctx, tenantGroup, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Apply filter-to-owned pattern for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), stateTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, tenantGroup.GetCustomFields(), &resp.Diagnostics)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data TenantGroupResourceModel
+	var state, plan TenantGroupResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tenantGroupID := data.ID.ValueString()
+	tenantGroupID := plan.ID.ValueString()
 
 	tenantGroupIDInt := utils.ParseInt32FromString(tenantGroupID)
 
@@ -288,24 +285,24 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	tflog.Debug(ctx, "Updating tenant group", map[string]interface{}{
 		"id": tenantGroupID,
 
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Build the request
 
 	tenantGroupRequest := netbox.WritableTenantGroupRequest{
-		Name: data.Name.ValueString(),
+		Name: plan.Name.ValueString(),
 
-		Slug: data.Slug.ValueString(),
+		Slug: plan.Slug.ValueString(),
 	}
 
 	// Apply description
-	utils.ApplyDescription(&tenantGroupRequest, data.Description)
+	utils.ApplyDescription(&tenantGroupRequest, plan.Description)
 
 	// Set parent if provided
 
-	if utils.IsSet(data.Parent) {
-		parentID, parentDiags := netboxlookup.LookupTenantGroupID(ctx, r.client, data.Parent.ValueString())
+	if utils.IsSet(plan.Parent) {
+		parentID, parentDiags := netboxlookup.LookupTenantGroupID(ctx, r.client, plan.Parent.ValueString())
 
 		resp.Diagnostics.Append(parentDiags...)
 
@@ -316,33 +313,12 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 		tenantGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
 	}
 
-	// Handle tags
-
-	if utils.IsSet(data.Tags) {
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		tenantGroupRequest.Tags = utils.TagsToNestedTagRequests(tags)
+	// Apply tags and custom_fields with merge-aware helpers
+	utils.ApplyTags(ctx, &tenantGroupRequest, plan.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-
-	// Handle custom fields
-
-	if utils.IsSet(data.CustomFields) {
-		var customFields []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &customFields, false)...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		tenantGroupRequest.CustomFields = utils.CustomFieldsToMap(customFields)
-	}
+	utils.ApplyCustomFieldsWithMerge(ctx, &tenantGroupRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	// Update via API
 
@@ -362,13 +338,17 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	r.mapTenantGroupToState(ctx, tenantGroup, &data, &resp.Diagnostics)
+	r.mapTenantGroupToState(ctx, tenantGroup, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Apply filter-to-owned pattern for tags and custom_fields
+	plan.Tags = utils.PopulateTagsFromAPI(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), plan.Tags, &resp.Diagnostics)
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, tenantGroup.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *TenantGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -441,9 +421,5 @@ func (r *TenantGroupResource) mapTenantGroupToState(ctx context.Context, tenantG
 	}
 	data.Parent = parentResult.Reference
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), data.Tags, diags)
-
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, tenantGroup.HasCustomFields(), tenantGroup.GetCustomFields(), data.CustomFields, diags)
+	// Tags and custom fields are now handled in Create/Read/Update methods using filter-to-owned pattern
 }

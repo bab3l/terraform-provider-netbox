@@ -98,8 +98,16 @@ func (r *ClusterGroupResource) Create(ctx context.Context, req resource.CreateRe
 	// Apply description
 	utils.ApplyDescription(&clusterGroupRequest, data.Description)
 
-	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, &clusterGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply tags and custom_fields
+	utils.ApplyTags(ctx, &clusterGroupRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFields(ctx, &clusterGroupRequest, data.CustomFields, &resp.Diagnostics)
+
+	// Store plan values for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
 
 	// Create via API
 	clusterGroup, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterGroupsCreate(ctx).ClusterGroupRequest(clusterGroupRequest).Execute()
@@ -133,6 +141,11 @@ func (r *ClusterGroupResource) Create(ctx context.Context, req resource.CreateRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), planTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, clusterGroup.GetCustomFields(), &resp.Diagnostics)
+
 	tflog.Trace(ctx, "created a cluster group resource")
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -161,20 +174,30 @@ func (r *ClusterGroupResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
+	// Store state values for filter-to-owned pattern
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	r.mapClusterGroupToState(ctx, clusterGroup, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), stateTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, clusterGroup.GetCustomFields(), &resp.Diagnostics)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *ClusterGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ClusterGroupResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	var state, plan ClusterGroupResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	clusterGroupID := data.ID.ValueString()
+	clusterGroupID := plan.ID.ValueString()
 	clusterGroupIDInt := utils.ParseInt32FromString(clusterGroupID)
 	if clusterGroupIDInt == 0 {
 		resp.Diagnostics.AddError("Invalid Cluster Group ID", fmt.Sprintf("Cluster Group ID must be a number, got: %s", clusterGroupID))
@@ -182,20 +205,24 @@ func (r *ClusterGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 	tflog.Debug(ctx, "Updating cluster group", map[string]interface{}{
 		"id":   clusterGroupID,
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Build the request
 	clusterGroupRequest := netbox.ClusterGroupRequest{
-		Name: data.Name.ValueString(),
-		Slug: data.Slug.ValueString(),
+		Name: plan.Name.ValueString(),
+		Slug: plan.Slug.ValueString(),
 	}
 
 	// Apply description
-	utils.ApplyDescription(&clusterGroupRequest, data.Description)
+	utils.ApplyDescription(&clusterGroupRequest, plan.Description)
 
-	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, &clusterGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply tags and custom_fields with merge-aware helpers
+	utils.ApplyTags(ctx, &clusterGroupRequest, plan.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFieldsWithMerge(ctx, &clusterGroupRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	// Update via API
 	clusterGroup, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterGroupsUpdate(ctx, clusterGroupIDInt).ClusterGroupRequest(clusterGroupRequest).Execute()
@@ -208,11 +235,16 @@ func (r *ClusterGroupResource) Update(ctx context.Context, req resource.UpdateRe
 		resp.Diagnostics.AddError("Error updating cluster group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
-	r.mapClusterGroupToState(ctx, clusterGroup, &data, &resp.Diagnostics)
+	r.mapClusterGroupToState(ctx, clusterGroup, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	plan.Tags = utils.PopulateTagsFromAPI(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), plan.Tags, &resp.Diagnostics)
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, clusterGroup.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *ClusterGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -255,7 +287,5 @@ func (r *ClusterGroupResource) mapClusterGroupToState(ctx context.Context, clust
 	data.Slug = types.StringValue(clusterGroup.GetSlug())
 	data.Description = utils.StringFromAPI(clusterGroup.HasDescription(), clusterGroup.GetDescription, data.Description)
 
-	// Populate tags and custom fields using unified helpers
-	data.Tags = utils.PopulateTagsFromAPI(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), data.Tags, diags)
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, clusterGroup.HasCustomFields(), clusterGroup.GetCustomFields(), data.CustomFields, diags)
+	// Tags and custom fields are now handled in Create/Read/Update methods using filter-to-owned pattern
 }
