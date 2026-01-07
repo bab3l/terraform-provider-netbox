@@ -962,7 +962,7 @@ Same pattern as Batch 3 (see above for details):
 #### Gating Checks for Batch 4:
 - [ ] All 25 resource files updated with merge-aware helpers
 - [ ] All 25 resources use `PopulateCustomFi
-#### Batch 5 Progress (16 of ~25):
+#### Batch 5 Progress (18 of ~25):
 
 **Completed Resources:**
 1. ✅ site_resource.go - Already complete (from earlier work)
@@ -979,33 +979,33 @@ Same pattern as Batch 3 (see above for details):
 12. ✅ inventory_item_resource.go - Updated (commit 3f102da)
 13. ✅ console_port_resource.go - Updated (commit 3f102da)
 14. ✅ power_port_resource.go - Updated (commit 3f102da)
-15. ✅ rear_port_resource.go - Tests passing (needs code verification)
-16. ✅ front_port_resource.go - Tests passing (needs code verification)
+15. ✅ rear_port_resource.go - Updated to merge-aware + preservation test (commit df2bd8e)
+16. ✅ front_port_resource.go - Updated to merge-aware + preservation test (commit df2bd8e)
+17. ✅ console_server_port_resource.go - Updated (commit df2bd8e)
+18. ✅ power_outlet_resource.go - Updated (commit df2bd8e)
 
 **Test Results:**
 - First 8 resources: 9 of 10 tests passing (34.2 seconds) - 1 transient DB deadlock
 - Next 4 resources (interface, inventory_item, console_port, power_port): All 5 tests passing (38.15 seconds)
-- Rear/front port: Tests passing (2026-01-07)
+- Rear/front port (2026-01-07): All 4 tests passing (df2bd8e)
 
-**Remaining DCIM Resources (~9 resources):**
-- console_server_port_resource.go - Still uses ApplyMetadataFields, needs update
-- power_outlet_resource.go - Already reads state+plan, needs verification
+**Remaining DCIM Resources (~7 resources):**
+- module_bay_resource.go - May have been updated (needs verification)
 - power_panel_resource.go - Still uses ApplyCommonFields, needs update
 - rack_reservation_resource.go
 - virtual_chassis_resource.go
 - power_feed_resource.go
 - site_group_resource.go
 - rack_role_resource.go
-- rack_type_resource.go (may not have custom fields)
 
 #### Gating Checks for Batch 5: 🔄 IN PROGRESS
-- [x] 16 resource files updated/verified with merge-aware helpers
-- [x] All 16 resources use `PopulateCustomFieldsFilteredToOwned()` in Create/Update
-- [x] All 16 resources preserve null/empty state in Read()
-- [x] All acceptance tests passing (16 tests total)
+- [x] 18 resource files updated/verified with merge-aware helpers
+- [x] All 18 resources use `PopulateCustomFieldsFilteredToOwned()` in Create/Update
+- [x] All 18 resources preserve null/empty state in Read()
+- [x] All acceptance tests passing (18+ tests total)
 - [x] Import tests working correctly
 - [x] Build succeeds with no errors or warnings
-- [ ] ~9 more DCIM resources remaining
+- [ ] ~7 more DCIM resources remaining
 
 ### Batch 6: Virtualization & Tenancy
 **Priority**: MEDIUM
