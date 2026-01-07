@@ -375,6 +375,10 @@ func (r *WirelessLinkResource) Create(ctx context.Context, req resource.CreateRe
 		request.DistanceUnit = &distanceUnit
 	}
 
+	// Store plan values for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
 	// Apply common fields (description, comments, tags, custom_fields)
 	utils.ApplyCommonFields(ctx, request, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
@@ -397,6 +401,14 @@ func (r *WirelessLinkResource) Create(ctx context.Context, req resource.CreateRe
 	// Map the response to state
 
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Populate tags and custom fields filtered to owned fields only
+	data.Tags = utils.PopulateTagsFromAPI(ctx, result.HasTags(), result.GetTags(), planTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, result.GetCustomFields(), &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -448,11 +460,24 @@ func (r *WirelessLinkResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
+	// Store state values for filter-to-owned pattern (preserve null vs empty set)
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Populate tags and custom fields filtered to owned fields only
+	// Only populate tags if they were in the state (owned by config)
+	if utils.IsSet(stateTags) {
+		data.Tags = utils.PopulateTagsFromAPI(ctx, result.HasTags(), result.GetTags(), stateTags, &resp.Diagnostics)
+	} else {
+		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, result.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -460,18 +485,19 @@ func (r *WirelessLinkResource) Read(ctx context.Context, req resource.ReadReques
 // Update updates the resource.
 
 func (r *WirelessLinkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data WirelessLinkResourceModel
+	var state, plan WirelessLinkResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	id, err := utils.ParseID(data.ID.ValueString())
+	id, err := utils.ParseID(plan.ID.ValueString())
 
 	if err != nil {
-		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID must be a number, got: %s", data.ID.ValueString()))
+		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID must be a number, got: %s", plan.ID.ValueString()))
 
 		return
 	}
@@ -479,14 +505,14 @@ func (r *WirelessLinkResource) Update(ctx context.Context, req resource.UpdateRe
 	tflog.Debug(ctx, "Updating wireless link", map[string]interface{}{
 		"id": id,
 
-		"interface_a": data.InterfaceA.ValueString(),
+		"interface_a": plan.InterfaceA.ValueString(),
 
-		"interface_b": data.InterfaceB.ValueString(),
+		"interface_b": plan.InterfaceB.ValueString(),
 	})
 
 	// Look up interface A
 
-	interfaceA, diags := r.lookupInterfaceBrief(ctx, data.InterfaceA.ValueString())
+	interfaceA, diags := r.lookupInterfaceBrief(ctx, plan.InterfaceA.ValueString())
 
 	resp.Diagnostics.Append(diags...)
 
@@ -496,7 +522,7 @@ func (r *WirelessLinkResource) Update(ctx context.Context, req resource.UpdateRe
 
 	// Look up interface B
 
-	interfaceB, diags := r.lookupInterfaceBrief(ctx, data.InterfaceB.ValueString())
+	interfaceB, diags := r.lookupInterfaceBrief(ctx, plan.InterfaceB.ValueString())
 
 	resp.Diagnostics.Append(diags...)
 
@@ -510,23 +536,23 @@ func (r *WirelessLinkResource) Update(ctx context.Context, req resource.UpdateRe
 
 	// Set optional fields (same as Create)
 
-	if !data.SSID.IsNull() && !data.SSID.IsUnknown() {
-		ssid := data.SSID.ValueString()
+	if !plan.SSID.IsNull() && !plan.SSID.IsUnknown() {
+		ssid := plan.SSID.ValueString()
 
 		request.Ssid = &ssid
 	}
 
-	if !data.Status.IsNull() && !data.Status.IsUnknown() {
-		status := netbox.CableStatusValue(data.Status.ValueString())
+	if !plan.Status.IsNull() && !plan.Status.IsUnknown() {
+		status := netbox.CableStatusValue(plan.Status.ValueString())
 
 		request.Status = &status
 	}
 
-	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenantID, err := utils.ParseID(data.Tenant.ValueString())
+	if !plan.Tenant.IsNull() && !plan.Tenant.IsUnknown() {
+		tenantID, err := utils.ParseID(plan.Tenant.ValueString())
 
 		if err != nil {
-			resp.Diagnostics.AddError("Invalid Tenant ID", fmt.Sprintf("Tenant ID must be a number, got: %s", data.Tenant.ValueString()))
+			resp.Diagnostics.AddError("Invalid Tenant ID", fmt.Sprintf("Tenant ID must be a number, got: %s", plan.Tenant.ValueString()))
 
 			return
 		}
@@ -552,38 +578,42 @@ func (r *WirelessLinkResource) Update(ctx context.Context, req resource.UpdateRe
 		request.Tenant = *netbox.NewNullableBriefTenantRequest(&tenantRequest)
 	}
 
-	if !data.AuthType.IsNull() && !data.AuthType.IsUnknown() {
-		authType := netbox.AuthenticationType1(data.AuthType.ValueString())
+	if !plan.AuthType.IsNull() && !plan.AuthType.IsUnknown() {
+		authType := netbox.AuthenticationType1(plan.AuthType.ValueString())
 
 		request.AuthType = &authType
 	}
 
-	if !data.AuthCipher.IsNull() && !data.AuthCipher.IsUnknown() {
-		authCipher := netbox.AuthenticationCipher(data.AuthCipher.ValueString())
+	if !plan.AuthCipher.IsNull() && !plan.AuthCipher.IsUnknown() {
+		authCipher := netbox.AuthenticationCipher(plan.AuthCipher.ValueString())
 
 		request.AuthCipher = &authCipher
 	}
 
-	if !data.AuthPSK.IsNull() && !data.AuthPSK.IsUnknown() {
-		psk := data.AuthPSK.ValueString()
+	if !plan.AuthPSK.IsNull() && !plan.AuthPSK.IsUnknown() {
+		psk := plan.AuthPSK.ValueString()
 
 		request.AuthPsk = &psk
 	}
 
-	if !data.Distance.IsNull() && !data.Distance.IsUnknown() {
-		distance := data.Distance.ValueFloat64()
+	if !plan.Distance.IsNull() && !plan.Distance.IsUnknown() {
+		distance := plan.Distance.ValueFloat64()
 
 		request.Distance = *netbox.NewNullableFloat64(&distance)
 	}
 
-	if !data.DistanceUnit.IsNull() && !data.DistanceUnit.IsUnknown() {
-		distanceUnit := netbox.PatchedWritableWirelessLinkRequestDistanceUnit(data.DistanceUnit.ValueString())
+	if !plan.DistanceUnit.IsNull() && !plan.DistanceUnit.IsUnknown() {
+		distanceUnit := netbox.PatchedWritableWirelessLinkRequestDistanceUnit(plan.DistanceUnit.ValueString())
 
 		request.DistanceUnit = &distanceUnit
 	}
 
-	// Apply common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, request, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Store plan values before mapping for filter-to-owned pattern
+	planTags := plan.Tags
+	planCustomFields := plan.CustomFields
+
+	// Apply common fields with merge-aware helpers
+	utils.ApplyCommonFieldsWithMerge(ctx, request, plan.Description, plan.Comments, plan.Tags, state.Tags, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -601,15 +631,24 @@ func (r *WirelessLinkResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	// Map the response to state
+	// Map the response to plan model
 
-	r.mapToState(ctx, result, &data, &resp.Diagnostics)
+	r.mapToState(ctx, result, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Populate tags and custom fields filtered to owned fields only
+	// Only populate tags if they were in the plan (owned by config)
+	if utils.IsSet(planTags) {
+		plan.Tags = utils.PopulateTagsFromAPI(ctx, result.HasTags(), result.GetTags(), planTags, &resp.Diagnostics)
+	} else {
+		plan.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	}
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, result.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource.
@@ -765,12 +804,5 @@ func (r *WirelessLinkResource) mapToState(ctx context.Context, result *netbox.Wi
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, result.HasTags(), result.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
-	}
-
-	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, result.HasCustomFields(), result.GetCustomFields(), data.CustomFields, diags)
+	// Note: Tags and custom_fields are populated using filter-to-owned pattern in Create(), Read(), and Update()
 }
