@@ -115,8 +115,8 @@ func (r *DeviceRoleResource) mapDeviceRoleToState(ctx context.Context, deviceRol
 	// Handle tags
 	data.Tags = utils.PopulateTagsFromAPI(ctx, deviceRole.HasTags(), deviceRole.GetTags(), data.Tags, diags)
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, deviceRole.HasCustomFields(), deviceRole.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields - filter to owned fields only
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, deviceRole.GetCustomFields(), diags)
 }
 
 func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -149,8 +149,17 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 	// Apply description
 	utils.ApplyDescription(&deviceRoleRequest, data.Description)
 
-	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, &deviceRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle tags
+	utils.ApplyTags(ctx, &deviceRoleRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Handle custom fields (no merge needed for Create)
+	utils.ApplyCustomFields(ctx, &deviceRoleRequest, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Call the API
 	deviceRole, httpResp, err := r.client.DcimAPI.DcimDeviceRolesCreate(ctx).DeviceRoleRequest(deviceRoleRequest).Execute()
@@ -215,20 +224,37 @@ func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
+	// Save original custom_fields state before mapping
+	originalCustomFields := data.CustomFields
+
 	// Map response to state
 	r.mapDeviceRoleToState(ctx, deviceRole, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Preserve original custom_fields state if it was null or empty
+	// This prevents unmanaged/cleared fields from reappearing in state
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data DeviceRoleResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	var plan DeviceRoleResourceModel
+	var state DeviceRoleResourceModel
+
+	// Read both plan and state for merge-aware custom fields handling
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Use plan as the data source
+	data := plan
 
 	// Parse the ID
 	deviceRoleID := data.ID.ValueString()
@@ -266,8 +292,17 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 	// Apply description
 	utils.ApplyDescription(&deviceRoleRequest, data.Description)
 
-	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, &deviceRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle tags
+	utils.ApplyTags(ctx, &deviceRoleRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Handle custom fields with merge-aware logic
+	utils.ApplyCustomFieldsWithMerge(ctx, &deviceRoleRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Call the API
 	deviceRole, httpResp, err := r.client.DcimAPI.DcimDeviceRolesUpdate(ctx, deviceRoleIDInt).DeviceRoleRequest(deviceRoleRequest).Execute()
