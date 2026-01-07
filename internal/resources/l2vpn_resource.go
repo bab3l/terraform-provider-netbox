@@ -272,7 +272,8 @@ func (r *L2VPNResource) Read(ctx context.Context, req resource.ReadRequest, resp
 }
 
 func (r *L2VPNResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data L2VPNResourceModel
+	var state, data L2VPNResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -302,8 +303,15 @@ func (r *L2VPNResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		l2vpnRequest.SetIdentifierNil()
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, l2vpnRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Set common fields with merge-aware custom fields
+	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, l2vpnRequest, data.Tags, &resp.Diagnostics)
+	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, l2vpnRequest, state.Tags, &resp.Diagnostics)
+	}
+	l2vpnRequest.Description = utils.StringPtr(data.Description)
+	l2vpnRequest.Comments = utils.StringPtr(data.Comments)
+	utils.ApplyCustomFieldsWithMerge(ctx, l2vpnRequest, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -498,6 +506,8 @@ func (r *L2VPNResource) mapResponseToState(ctx context.Context, l2vpn *netbox.L2
 		return
 	}
 
-	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, l2vpn.HasCustomFields(), l2vpn.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields using consolidated helper with filtered-to-owned
+	if l2vpn.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, l2vpn.GetCustomFields(), diags)
+	}
 }
