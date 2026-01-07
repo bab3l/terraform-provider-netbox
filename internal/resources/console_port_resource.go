@@ -231,7 +231,8 @@ func (r *ConsolePortResource) Read(ctx context.Context, req resource.ReadRequest
 
 // Update updates the resource.
 func (r *ConsolePortResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ConsolePortResourceModel
+	var state, data ConsolePortResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -413,5 +414,9 @@ func (r *ConsolePortResource) mapResponseToModel(ctx context.Context, consolePor
 	data.Tags = utils.PopulateTagsFromAPI(ctx, consolePort.HasTags(), consolePort.GetTags(), data.Tags, diags)
 
 	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, consolePort.HasCustomFields(), consolePort.GetCustomFields(), data.CustomFields, diags)
+	if consolePort.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, consolePort.GetCustomFields(), diags)
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	}
 }

@@ -330,8 +330,9 @@ func (r *PowerPortResource) Read(ctx context.Context, req resource.ReadRequest, 
 // Update updates the resource.
 
 func (r *PowerPortResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data PowerPortResourceModel
+	var state, data PowerPortResourceModel
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -584,5 +585,9 @@ func (r *PowerPortResource) mapResponseToModel(ctx context.Context, powerPort *n
 	data.Tags = utils.PopulateTagsFromAPI(ctx, powerPort.HasTags(), powerPort.GetTags(), data.Tags, diags)
 
 	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, powerPort.HasCustomFields(), powerPort.GetCustomFields(), data.CustomFields, diags)
+	if powerPort.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, powerPort.GetCustomFields(), diags)
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	}
 }

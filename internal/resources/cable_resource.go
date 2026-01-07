@@ -291,7 +291,8 @@ func (r *CableResource) Read(ctx context.Context, req resource.ReadRequest, resp
 }
 
 func (r *CableResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data CableResourceModel
+	var state, data CableResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -369,8 +370,8 @@ func (r *CableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		cableRequest.LengthUnit = nil
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, cableRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Set common fields (description, comments, tags, custom_fields) with merge-aware custom fields
+	utils.ApplyCommonFieldsWithMerge(ctx, cableRequest, data.Description, data.Comments, data.Tags, data.CustomFields, state.Tags, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
