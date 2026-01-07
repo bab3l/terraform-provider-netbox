@@ -99,9 +99,7 @@ func (r *ClusterTypeResource) mapClusterTypeToState(ctx context.Context, cluster
 		data.Description,
 	)
 
-	// Populate tags and custom fields using unified helpers
-	data.Tags = utils.PopulateTagsFromAPI(ctx, clusterType.HasTags(), clusterType.GetTags(), data.Tags, diags)
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, clusterType.HasCustomFields(), clusterType.GetCustomFields(), data.CustomFields, diags)
+	// Tags and custom fields are now handled in Create/Read/Update with filter-to-owned pattern
 }
 
 // Create creates a new cluster type resource.
@@ -126,7 +124,14 @@ func (r *ClusterTypeResource) Create(ctx context.Context, req resource.CreateReq
 	utils.ApplyDescription(&clusterTypeRequest, data.Description)
 
 	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, &clusterTypeRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTags(ctx, &clusterTypeRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFields(ctx, &clusterTypeRequest, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Call the API
 	clusterType, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterTypesCreate(ctx).ClusterTypeRequest(clusterTypeRequest).Execute()
@@ -143,11 +148,20 @@ func (r *ClusterTypeResource) Create(ctx context.Context, req resource.CreateReq
 		"name": clusterType.GetName(),
 	})
 
+	// Save plan state for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
 	// Map response to state
 	r.mapClusterTypeToState(ctx, clusterType, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, clusterType.HasTags(), clusterType.GetTags(), planTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, clusterType.GetCustomFields(), &resp.Diagnostics)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -192,24 +206,35 @@ func (r *ClusterTypeResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
+	// Save state for filter-to-owned pattern
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	// Map response to state
 	r.mapClusterTypeToState(ctx, clusterType, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Preserve null/empty state values for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, clusterType.HasTags(), clusterType.GetTags(), stateTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, clusterType.GetCustomFields(), &resp.Diagnostics)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates the resource and sets the updated Terraform state.
 func (r *ClusterTypeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ClusterTypeResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read both state and plan for merge-aware custom fields
+	var state, plan ClusterTypeResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Parse the ID
-	clusterTypeID := data.ID.ValueString()
+	clusterTypeID := plan.ID.ValueString()
 	var clusterTypeIDInt int32
 	clusterTypeIDInt, err := utils.ParseID(clusterTypeID)
 	if err != nil {
@@ -221,21 +246,25 @@ func (r *ClusterTypeResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 	tflog.Debug(ctx, "Updating cluster type", map[string]interface{}{
 		"id":   clusterTypeID,
-		"name": data.Name.ValueString(),
-		"slug": data.Slug.ValueString(),
+		"name": plan.Name.ValueString(),
+		"slug": plan.Slug.ValueString(),
 	})
 
 	// Build the cluster type request
 	clusterTypeRequest := netbox.ClusterTypeRequest{
-		Name: data.Name.ValueString(),
-		Slug: data.Slug.ValueString(),
+		Name: plan.Name.ValueString(),
+		Slug: plan.Slug.ValueString(),
 	}
 
 	// Set optional fields if provided
-	utils.ApplyDescription(&clusterTypeRequest, data.Description)
+	utils.ApplyDescription(&clusterTypeRequest, plan.Description)
 
-	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, &clusterTypeRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle tags and custom_fields with merge-aware helpers
+	utils.ApplyTags(ctx, &clusterTypeRequest, plan.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFieldsWithMerge(ctx, &clusterTypeRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	// Call the API
 	clusterType, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterTypesUpdate(ctx, clusterTypeIDInt).ClusterTypeRequest(clusterTypeRequest).Execute()
@@ -252,12 +281,21 @@ func (r *ClusterTypeResource) Update(ctx context.Context, req resource.UpdateReq
 		"name": clusterType.GetName(),
 	})
 
+	// Save plan state for filter-to-owned pattern
+	planTags := plan.Tags
+	planCustomFields := plan.CustomFields
+
 	// Map response to state
-	r.mapClusterTypeToState(ctx, clusterType, &data, &resp.Diagnostics)
+	r.mapClusterTypeToState(ctx, clusterType, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	plan.Tags = utils.PopulateTagsFromAPI(ctx, clusterType.HasTags(), clusterType.GetTags(), planTags, &resp.Diagnostics)
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, clusterType.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state.

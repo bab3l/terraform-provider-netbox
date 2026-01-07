@@ -141,7 +141,11 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Apply common metadata fields (tags, custom_fields)
-	utils.ApplyMetadataFields(ctx, &tenantRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTags(ctx, &tenantRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFields(ctx, &tenantRequest, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -195,10 +199,17 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Map response to state using helper
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
 	r.mapTenantToState(ctx, tenant, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, tenant.HasTags(), tenant.GetTags(), planTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, tenant.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Created tenant", map[string]interface{}{
 		"id": data.ID.ValueString(),
@@ -252,24 +263,33 @@ func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Map response to state using helper
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	r.mapTenantToState(ctx, tenant, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Preserve null/empty state values for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, tenant.HasTags(), tenant.GetTags(), stateTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, tenant.GetCustomFields(), &resp.Diagnostics)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data TenantResourceModel
+	// Read both state and plan for merge-aware custom fields
+	var state, plan TenantResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tenantID := data.ID.ValueString()
+	tenantID := plan.ID.ValueString()
 
 	var tenantIDInt int32
 
@@ -284,22 +304,26 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 	// Prepare the tenant update request
 
 	tenantRequest := netbox.TenantRequest{
-		Name: data.Name.ValueString(),
+		Name: plan.Name.ValueString(),
 
-		Slug: data.Slug.ValueString(),
+		Slug: plan.Slug.ValueString(),
 	}
 
 	// Apply common descriptive fields (description, comments)
-	utils.ApplyDescriptiveFields(&tenantRequest, data.Description, data.Comments)
+	utils.ApplyDescriptiveFields(&tenantRequest, plan.Description, plan.Comments)
 
 	// Handle group relationship
 
-	if groupRef := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupTenantGroup, &resp.Diagnostics); groupRef != nil {
+	if groupRef := utils.ResolveOptionalReference(ctx, r.client, plan.Group, netboxlookup.LookupTenantGroup, &resp.Diagnostics); groupRef != nil {
 		tenantRequest.Group = *netbox.NewNullableBriefTenantGroupRequest(groupRef)
 	}
 
-	// Apply common metadata fields (tags, custom_fields)
-	utils.ApplyMetadataFields(ctx, &tenantRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply common metadata fields (tags, custom_fields) with merge-aware helpers
+	utils.ApplyTags(ctx, &tenantRequest, plan.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFieldsWithMerge(ctx, &tenantRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -320,13 +344,21 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
+	// Save plan state for filter-to-owned pattern
+	planTags := plan.Tags
+	planCustomFields := plan.CustomFields
+
 	// Map response to state using helper
-	r.mapTenantToState(ctx, tenant, &data, &resp.Diagnostics)
+	r.mapTenantToState(ctx, tenant, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Apply filter-to-owned pattern for tags and custom_fields
+	plan.Tags = utils.PopulateTagsFromAPI(ctx, tenant.HasTags(), tenant.GetTags(), planTags, &resp.Diagnostics)
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, tenant.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *TenantResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -398,12 +430,5 @@ func (r *TenantResource) mapTenantToState(ctx context.Context, tenant *netbox.Te
 	data.Description = utils.StringFromAPI(tenant.HasDescription(), tenant.GetDescription, data.Description)
 	data.Comments = utils.StringFromAPI(tenant.HasComments(), tenant.GetComments, data.Comments)
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, tenant.HasTags(), tenant.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
-	}
-
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, tenant.HasCustomFields(), tenant.GetCustomFields(), data.CustomFields, diags)
+	// Tags and custom fields are now handled in Create/Read/Update with filter-to-owned pattern
 }

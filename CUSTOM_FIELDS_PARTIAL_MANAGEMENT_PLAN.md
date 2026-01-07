@@ -1012,10 +1012,37 @@ Same pattern as Batch 3 (see above for details):
 **Priority**: MEDIUM
 **Files**: 10-15 files
 **Estimated Time**: 3-4 hours
+**Status**: 🚧 IN PROGRESS
 
-- Virtual Machine, Cluster
+#### Resources to Update:
+- Virtual Machine, Cluster, Cluster Type
 - Tenant, Tenant Group
+- Cluster Group
 - Contact resources
+
+#### Batch 6 Progress (4 of ~10): 40%
+
+**Completed Resources:**
+1. ✅ virtual_machine_resource.go - Updated to merge-aware pattern (TBD)
+2. ✅ cluster_resource.go - Updated to merge-aware pattern (TBD)
+3. ✅ cluster_type_resource.go - Updated to merge-aware pattern, replaced ApplyMetadataFields (TBD)
+4. ✅ tenant_resource.go - Updated to merge-aware pattern, replaced ApplyMetadataFields (TBD)
+
+**Remaining Resources:**
+- cluster_group_resource.go
+- tenant_group_resource.go
+- contact_resource.go
+- contact_group_resource.go
+- contact_role_resource.go
+- contact_assignment_resource.go
+
+#### Gating Checks for Batch 6:
+- [x] First 4 resource files updated with merge-aware helpers
+- [ ] All 4 resources use `PopulateCustomFieldsFilteredToOwned()` in Create/Update
+- [ ] All 4 resources preserve null/empty state in Read()
+- [ ] Acceptance tests created for first 4 resources
+- [ ] Remaining ~6 resources updated
+- [ ] Build succeeds
 
 ### Batch 7: Templates & Extras
 **Priority**: LOW
