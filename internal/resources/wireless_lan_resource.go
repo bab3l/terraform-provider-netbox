@@ -271,6 +271,10 @@ func (r *WirelessLANResource) Create(ctx context.Context, req resource.CreateReq
 	utils.ApplyDescription(apiReq, data.Description)
 	utils.ApplyComments(apiReq, data.Comments)
 
+	// Store plan values for filter-to-owned population later
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
 	// Set tags and custom fields
 	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
 	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
@@ -304,6 +308,10 @@ func (r *WirelessLANResource) Create(ctx context.Context, req resource.CreateReq
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Populate tags and custom fields filtered to owned fields only
+	data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Trace(ctx, "Created wireless LAN", map[string]interface{}{
 		"id": data.ID.ValueString(),
@@ -367,6 +375,10 @@ func (r *WirelessLANResource) Read(ctx context.Context, req resource.ReadRequest
 
 	existingPSK := data.AuthPSK
 
+	// Store state values for filter-to-owned (preserve null vs empty set distinction)
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	// Map response to model
 
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -379,28 +391,33 @@ func (r *WirelessLANResource) Read(ctx context.Context, req resource.ReadRequest
 
 	data.AuthPSK = existingPSK
 
+	// Populate tags and custom fields filtered to owned fields only (preserves null/empty state)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), stateTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, response.GetCustomFields(), &resp.Diagnostics)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates the resource.
 
 func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data WirelessLANResourceModel
+	var state, plan WirelessLANResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	wlanID, err := utils.ParseID(data.ID.ValueString())
+	wlanID, err := utils.ParseID(plan.ID.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
 
 			"Invalid Wireless LAN ID",
 
-			fmt.Sprintf("Wireless LAN ID must be a number, got: %s", data.ID.ValueString()),
+			fmt.Sprintf("Wireless LAN ID must be a number, got: %s", plan.ID.ValueString()),
 		)
 
 		return
@@ -408,16 +425,16 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Build request
 
-	apiReq := netbox.NewWritableWirelessLANRequest(data.SSID.ValueString())
+	apiReq := netbox.NewWritableWirelessLANRequest(plan.SSID.ValueString())
 
 	// Set optional fields
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		apiReq.SetDescription(data.Description.ValueString())
+	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
+		apiReq.SetDescription(plan.Description.ValueString())
 	}
 
-	if !data.Group.IsNull() && !data.Group.IsUnknown() {
-		group, diags := lookup.LookupWirelessLANGroup(ctx, r.client, data.Group.ValueString())
+	if !plan.Group.IsNull() && !plan.Group.IsUnknown() {
+		group, diags := lookup.LookupWirelessLANGroup(ctx, r.client, plan.Group.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
@@ -428,14 +445,14 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 		apiReq.SetGroup(*group)
 	}
 
-	if !data.Status.IsNull() && !data.Status.IsUnknown() {
-		status := netbox.PatchedWritableWirelessLANRequestStatus(data.Status.ValueString())
+	if !plan.Status.IsNull() && !plan.Status.IsUnknown() {
+		status := netbox.PatchedWritableWirelessLANRequestStatus(plan.Status.ValueString())
 
 		apiReq.SetStatus(status)
 	}
 
-	if !data.VLAN.IsNull() && !data.VLAN.IsUnknown() {
-		vlan, diags := lookup.LookupVLAN(ctx, r.client, data.VLAN.ValueString())
+	if !plan.VLAN.IsNull() && !plan.VLAN.IsUnknown() {
+		vlan, diags := lookup.LookupVLAN(ctx, r.client, plan.VLAN.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
@@ -446,8 +463,8 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 		apiReq.SetVlan(*vlan)
 	}
 
-	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenant, diags := lookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
+	if !plan.Tenant.IsNull() && !plan.Tenant.IsUnknown() {
+		tenant, diags := lookup.LookupTenant(ctx, r.client, plan.Tenant.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
@@ -458,52 +475,31 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 		apiReq.SetTenant(*tenant)
 	}
 
-	if !data.AuthType.IsNull() && !data.AuthType.IsUnknown() {
-		authType := netbox.AuthenticationType1(data.AuthType.ValueString())
+	if !plan.AuthType.IsNull() && !plan.AuthType.IsUnknown() {
+		authType := netbox.AuthenticationType1(plan.AuthType.ValueString())
 
 		apiReq.SetAuthType(authType)
 	}
 
-	if !data.AuthCipher.IsNull() && !data.AuthCipher.IsUnknown() {
-		authCipher := netbox.AuthenticationCipher(data.AuthCipher.ValueString())
+	if !plan.AuthCipher.IsNull() && !plan.AuthCipher.IsUnknown() {
+		authCipher := netbox.AuthenticationCipher(plan.AuthCipher.ValueString())
 
 		apiReq.SetAuthCipher(authCipher)
 	}
 
-	if !data.AuthPSK.IsNull() && !data.AuthPSK.IsUnknown() {
-		apiReq.SetAuthPsk(data.AuthPSK.ValueString())
+	if !plan.AuthPSK.IsNull() && !plan.AuthPSK.IsUnknown() {
+		apiReq.SetAuthPsk(plan.AuthPSK.ValueString())
 	}
 
 	// Handle description and comments
-	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyComments(apiReq, data.Comments)
+	utils.ApplyDescription(apiReq, plan.Description)
+	utils.ApplyComments(apiReq, plan.Comments)
 
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		resp.Diagnostics.Append(tagDiags...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		apiReq.SetTags(tags)
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var cfModels []utils.CustomFieldModel
-
-		resp.Diagnostics.Append(data.CustomFields.ElementsAs(ctx, &cfModels, false)...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		apiReq.SetCustomFields(utils.CustomFieldModelsToMap(cfModels))
+	// Handle tags and custom fields with merge-aware helpers
+	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	tflog.Debug(ctx, "Updating wireless LAN", map[string]interface{}{
@@ -525,13 +521,15 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	// Preserve sensitive field
+	// Preserve sensitive field from plan AND store plan custom fields/tags before mapping
 
-	existingPSK := data.AuthPSK
+	planTags := plan.Tags
+	planCustomFields := plan.CustomFields
+	existingPSK := plan.AuthPSK
 
-	// Map response to model
+	// Map response to plan model
 
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -539,9 +537,13 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Restore sensitive field
 
-	data.AuthPSK = existingPSK
+	plan.AuthPSK = existingPSK
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Populate tags and custom fields filtered to owned fields only
+	plan.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource.
