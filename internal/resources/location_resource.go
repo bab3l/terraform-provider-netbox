@@ -229,12 +229,13 @@ func (r *LocationResource) Read(ctx context.Context, req resource.ReadRequest, r
 }
 
 func (r *LocationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data LocationResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	var state, plan LocationResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	locationID := data.ID.ValueString()
+	locationID := plan.ID.ValueString()
 	tflog.Debug(ctx, "Updating location", map[string]interface{}{
 		"id": locationID,
 	})
@@ -249,18 +250,18 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 
 	// Lookup site
-	siteRef, diags := netboxlookup.LookupSite(ctx, r.client, data.Site.ValueString())
+	siteRef, diags := netboxlookup.LookupSite(ctx, r.client, plan.Site.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Build the API request
-	locationRequest := netbox.NewWritableLocationRequest(data.Name.ValueString(), data.Slug.ValueString(), *siteRef)
+	locationRequest := netbox.NewWritableLocationRequest(plan.Name.ValueString(), plan.Slug.ValueString(), *siteRef)
 
 	// Set optional parent
-	if !data.Parent.IsNull() && !data.Parent.IsUnknown() {
-		parentID, parentDiags := netboxlookup.LookupLocationID(ctx, r.client, data.Parent.ValueString())
+	if !plan.Parent.IsNull() && !plan.Parent.IsUnknown() {
+		parentID, parentDiags := netboxlookup.LookupLocationID(ctx, r.client, plan.Parent.ValueString())
 		resp.Diagnostics.Append(parentDiags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -269,14 +270,14 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 
 	// Set optional status
-	if !data.Status.IsNull() && !data.Status.IsUnknown() {
-		status := netbox.LocationStatusValue(data.Status.ValueString())
+	if !plan.Status.IsNull() && !plan.Status.IsUnknown() {
+		status := netbox.LocationStatusValue(plan.Status.ValueString())
 		locationRequest.Status = &status
 	}
 
 	// Set optional tenant
-	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenantRef, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
+	if !plan.Tenant.IsNull() && !plan.Tenant.IsUnknown() {
+		tenantRef, diags := netboxlookup.LookupTenant(ctx, r.client, plan.Tenant.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -285,29 +286,29 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 
 	// Set optional facility
-	if !data.Facility.IsNull() && !data.Facility.IsUnknown() {
-		facility := data.Facility.ValueString()
+	if !plan.Facility.IsNull() && !plan.Facility.IsUnknown() {
+		facility := plan.Facility.ValueString()
 		locationRequest.Facility = &facility
 	}
 
 	// Set optional description
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		desc := data.Description.ValueString()
+	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
+		desc := plan.Description.ValueString()
 		locationRequest.Description = &desc
 	}
 
-	// Handle tags
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, diags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		locationRequest.Tags = tags
+	// Handle tags (prefer plan, fallback to state)
+	if utils.IsSet(plan.Tags) {
+		utils.ApplyTags(ctx, locationRequest, plan.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTags(ctx, locationRequest, state.Tags, &resp.Diagnostics)
+	}
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	// Apply metadata fields (tags, custom_fields)
-	utils.ApplyMetadataFields(ctx, locationRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle custom fields with merge-aware logic
+	utils.ApplyCustomFieldsWithMerge(ctx, locationRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -331,12 +332,12 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 
 	// Map response to state
-	r.mapLocationToState(ctx, location, &data, &resp.Diagnostics)
+	r.mapLocationToState(ctx, location, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	tflog.Trace(ctx, "updated a location resource")
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *LocationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -452,9 +453,8 @@ func (r *LocationResource) mapLocationToState(ctx context.Context, location *net
 		return
 	}
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, location.HasCustomFields(), location.GetCustomFields(), data.CustomFields, diags)
-	if diags.HasError() {
-		return
+	// Handle custom fields - only populate fields that are in plan (owned by this resource)
+	if location.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, location.GetCustomFields(), diags)
 	}
 }

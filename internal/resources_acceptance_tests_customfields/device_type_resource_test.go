@@ -225,3 +225,167 @@ resource "netbox_device_type" "test" {
 `, model, slug, manufacturerName, manufacturerSlug, tag1Name, tag1Slug, tag1Color, tag2Name, tag2Slug, tag2Color,
 		cfText, cfTextValue, cfLongtext, cfLongtextValue, cfIntegerName, cfIntegerValue, cfBoolean, cfBooleanValue, cfDate, cfDateValue, cfURL, cfURLValue, cfJSON, cfJSONValue)
 }
+
+// TestAccDeviceTypeResource_CustomFieldsPreservation tests that custom fields are preserved
+// when updating other fields on a device type. This addresses a critical bug where custom fields
+// were being deleted when users updated unrelated fields.
+//
+// Bug scenario:
+// 1. Create device type with custom fields
+// 2. Update device type WITHOUT custom_fields in config (omit the field entirely)
+// 3. Custom fields should be preserved in NetBox, not deleted.
+func TestAccDeviceTypeResource_CustomFieldsPreservation(t *testing.T) {
+	// Generate unique names
+	model := testutil.RandomName("tf-test-dt-preserve")
+	slug := testutil.RandomSlug("tf-test-dt-preserve")
+	manufacturerName := testutil.RandomName("tf-test-mfr-preserve")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-preserve")
+
+	// Custom field names
+	cfText := testutil.RandomCustomFieldName("tf_text_preserve")
+	cfInteger := testutil.RandomCustomFieldName("tf_int_preserve")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create device type WITH custom fields explicitly in config
+				Config: testAccDeviceTypeConfig_preservation_step1(
+					model, slug, manufacturerName, manufacturerSlug,
+					cfText, cfInteger, "initial value", 42,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_device_type.test", "model", model),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "description", "Initial description"),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_device_type.test", cfText, "text", "initial value"),
+					testutil.CheckCustomFieldValue("netbox_device_type.test", cfInteger, "integer", "42"),
+				),
+			},
+			{
+				// Step 2: Update description WITHOUT mentioning custom_fields in config
+				// Custom fields should be preserved in NetBox (verified by import)
+				// State shows null/empty for custom_fields since not in config
+				Config: testAccDeviceTypeConfig_preservation_step2(
+					model, slug, manufacturerName, manufacturerSlug,
+					cfText, cfInteger, "Updated description",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_device_type.test", "model", model),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "description", "Updated description"),
+					// State shows 0 custom_fields (not in config = not owned)
+					resource.TestCheckResourceAttr("netbox_device_type.test", "custom_fields.#", "0"),
+				),
+			},
+			{
+				// Step 3: Import to verify custom fields still exist in NetBox
+				ResourceName:            "netbox_device_type.test",
+				ImportState:             true,
+				ImportStateVerify:       false,                     // Can't verify - config has no custom_fields
+				ImportStateVerifyIgnore: []string{"custom_fields"}, // Different because filter-to-owned
+			},
+			{
+				// Step 4: Add custom_fields back to config to verify they were preserved
+				Config: testAccDeviceTypeConfig_preservation_step1(
+					model, slug, manufacturerName, manufacturerSlug,
+					cfText, cfInteger, "initial value", 42,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					// Custom fields should have their original values (preserved in NetBox)
+					resource.TestCheckResourceAttr("netbox_device_type.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_device_type.test", cfText, "text", "initial value"),
+					testutil.CheckCustomFieldValue("netbox_device_type.test", cfInteger, "integer", "42"),
+				),
+			},
+		},
+	})
+}
+
+func testAccDeviceTypeConfig_preservation_step1(
+	model, slug, manufacturerName, manufacturerSlug,
+	cfTextName, cfIntName, cfTextValue string, cfIntValue int,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_custom_field" "text" {
+  name         = %[5]q
+  type         = "text"
+  object_types = ["dcim.devicetype"]
+}
+
+resource "netbox_custom_field" "integer" {
+  name         = %[6]q
+  type         = "integer"
+  object_types = ["dcim.devicetype"]
+}
+
+resource "netbox_device_type" "test" {
+  model           = %[1]q
+  slug            = %[2]q
+  manufacturer    = netbox_manufacturer.test.id
+  description     = %[7]q
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.text.name
+      type  = "text"
+      value = %[8]q
+    },
+    {
+      name  = netbox_custom_field.integer.name
+      type  = "integer"
+      value = "%[9]d"
+    }
+  ]
+
+  depends_on = [
+    netbox_custom_field.text,
+    netbox_custom_field.integer,
+  ]
+}
+`,
+		model, slug, manufacturerName, manufacturerSlug,
+		cfTextName, cfIntName, "Initial description", cfTextValue, cfIntValue,
+	)
+}
+
+func testAccDeviceTypeConfig_preservation_step2(
+	model, slug, manufacturerName, manufacturerSlug,
+	cfTextName, cfIntName, description string,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_custom_field" "text" {
+  name         = %[5]q
+  type         = "text"
+  object_types = ["dcim.devicetype"]
+}
+
+resource "netbox_custom_field" "integer" {
+  name         = %[6]q
+  type         = "integer"
+  object_types = ["dcim.devicetype"]
+}
+
+resource "netbox_device_type" "test" {
+  model           = %[1]q
+  slug            = %[2]q
+  manufacturer    = netbox_manufacturer.test.id
+  description     = %[7]q
+
+  # NOTE: custom_fields is intentionally omitted to test preservation behavior
+}
+`,
+		model, slug, manufacturerName, manufacturerSlug,
+		cfTextName, cfIntName, description,
+	)
+}

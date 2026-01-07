@@ -261,14 +261,15 @@ func (r *SiteResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 }
 
 func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data SiteResourceModel
+	var state, plan SiteResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	siteID := data.ID.ValueString()
+	siteID := plan.ID.ValueString()
 	var siteIDInt int32
 	siteIDInt, err := utils.ParseID(siteID)
 
@@ -279,36 +280,36 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// Prepare the site update request
 	siteRequest := netbox.WritableSiteRequest{
-		Name: data.Name.ValueString(),
-		Slug: data.Slug.ValueString(),
+		Name: plan.Name.ValueString(),
+		Slug: plan.Slug.ValueString(),
 	}
 
 	// Use helper for optional string fields
-	siteRequest.Facility = utils.StringPtr(data.Facility)
+	siteRequest.Facility = utils.StringPtr(plan.Facility)
 
 	// Set status if provided
-	if utils.IsSet(data.Status) {
-		statusValue := netbox.LocationStatusValue(data.Status.ValueString())
+	if utils.IsSet(plan.Status) {
+		statusValue := netbox.LocationStatusValue(plan.Status.ValueString())
 		siteRequest.Status = &statusValue
 	}
 
 	// Handle tenant relationship
-	if tenantRef := utils.ResolveOptionalReference(ctx, r.client, data.Tenant, netboxlookup.LookupTenant, &resp.Diagnostics); tenantRef != nil {
+	if tenantRef := utils.ResolveOptionalReference(ctx, r.client, plan.Tenant, netboxlookup.LookupTenant, &resp.Diagnostics); tenantRef != nil {
 		siteRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
 	}
 
 	// Handle region relationship
-	if regionRef := utils.ResolveOptionalReference(ctx, r.client, data.Region, netboxlookup.LookupRegion, &resp.Diagnostics); regionRef != nil {
+	if regionRef := utils.ResolveOptionalReference(ctx, r.client, plan.Region, netboxlookup.LookupRegion, &resp.Diagnostics); regionRef != nil {
 		siteRequest.Region = *netbox.NewNullableBriefRegionRequest(regionRef)
 	}
 
 	// Handle group relationship
-	if groupRef := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupSiteGroup, &resp.Diagnostics); groupRef != nil {
+	if groupRef := utils.ResolveOptionalReference(ctx, r.client, plan.Group, netboxlookup.LookupSiteGroup, &resp.Diagnostics); groupRef != nil {
 		siteRequest.Group = *netbox.NewNullableBriefSiteGroupRequest(groupRef)
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, &siteRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Set common fields with merge-aware custom fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFieldsWithMerge(ctx, &siteRequest, plan.Description, plan.Comments, plan.Tags, state.Tags, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -327,12 +328,12 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	// Map response to state using helper
-	r.mapSiteToState(ctx, site, &data, &resp.Diagnostics)
+	r.mapSiteToState(ctx, site, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *SiteResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -432,6 +433,8 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 	// Handle tags
 	data.Tags = utils.PopulateTagsFromAPI(ctx, site.HasTags(), site.GetTags(), data.Tags, diags)
 
-	// Handle custom fields - preserve state structure
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, site.HasCustomFields(), site.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields - use filtered-to-owned for partial management
+	if site.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, site.GetCustomFields(), diags)
+	}
 }

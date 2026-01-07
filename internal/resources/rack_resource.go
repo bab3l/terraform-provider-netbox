@@ -693,10 +693,9 @@ func (r *RackResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	mapRackToState(ctx, rack, &data)
 
-	// Map custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, rack.HasCustomFields(), rack.GetCustomFields(), data.CustomFields, &resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
+	// Map custom fields - only populate fields that are in plan (owned by this resource)
+	if rack.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, rack.GetCustomFields(), &resp.Diagnostics)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -931,13 +930,8 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 		rackRequest.AssetTag = *netbox.NewNullableString(&assetTag)
 	}
 
-	// Apply common fields (description, comments, tags, custom_fields)
-
-	utils.ApplyCommonFields(ctx, &rackRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
-
-	if resp.Diagnostics.HasError() {
-		return nil
-	}
+	// Note: Common fields (description, comments, tags, custom_fields) are now applied in Update method
+	// with merge-aware behavior
 
 	return &rackRequest
 }
@@ -979,6 +973,12 @@ func (r *RackResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	rackRequest := r.buildRackRequestForUpdate(ctx, &data, resp)
 
 	if rackRequest == nil {
+		return
+	}
+
+	// Apply common fields with merge-aware custom fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFieldsWithMerge(ctx, rackRequest, data.Description, data.Comments, data.Tags, state.Tags, data.CustomFields, state.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
