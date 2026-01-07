@@ -250,6 +250,10 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 		apiReq.SetIpaddresses(ipIDsInt32)
 	}
 
+	// Store plan values before mapping for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
 	// Apply common fields (description, comments, tags, custom_fields)
 	utils.ApplyCommonFields(ctx, apiReq, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
@@ -282,6 +286,14 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Populate tags and custom fields filtered to owned fields only
+	if utils.IsSet(planTags) {
+		data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	} else {
+		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Trace(ctx, "Created service", map[string]interface{}{
 		"id": data.ID.ValueString(),
@@ -355,22 +367,27 @@ func (r *ServiceResource) Read(ctx context.Context, req resource.ReadRequest, re
 // Update updates the resource.
 
 func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ServiceResourceModel
+	var state, plan ServiceResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	svcID, err := utils.ParseID(data.ID.ValueString())
+	// Store plan values before mapping for filter-to-owned pattern
+	planTags := plan.Tags
+	planCustomFields := plan.CustomFields
+
+	svcID, err := utils.ParseID(plan.ID.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
 
 			"Invalid Service ID",
 
-			fmt.Sprintf("Service ID must be a number, got: %s", data.ID.ValueString()),
+			fmt.Sprintf("Service ID must be a number, got: %s", plan.ID.ValueString()),
 		)
 
 		return
@@ -380,7 +397,7 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	var ports []int64
 
-	resp.Diagnostics.Append(data.Ports.ElementsAs(ctx, &ports, false)...)
+	resp.Diagnostics.Append(plan.Ports.ElementsAs(ctx, &ports, false)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -402,14 +419,14 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// Build request
 
-	protocol := netbox.PatchedWritableServiceRequestProtocol(data.Protocol.ValueString())
+	protocol := netbox.PatchedWritableServiceRequestProtocol(plan.Protocol.ValueString())
 
-	apiReq := netbox.NewWritableServiceRequest(data.Name.ValueString(), protocol, portsInt32)
+	apiReq := netbox.NewWritableServiceRequest(plan.Name.ValueString(), protocol, portsInt32)
 
 	// Set device or virtual_machine
 
-	if !data.Device.IsNull() && !data.Device.IsUnknown() {
-		device, diags := lookup.LookupDevice(ctx, r.client, data.Device.ValueString())
+	if !plan.Device.IsNull() && !plan.Device.IsUnknown() {
+		device, diags := lookup.LookupDevice(ctx, r.client, plan.Device.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
@@ -420,8 +437,8 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 		apiReq.SetDevice(*device)
 	}
 
-	if !data.VirtualMachine.IsNull() && !data.VirtualMachine.IsUnknown() {
-		vm, diags := lookup.LookupVirtualMachine(ctx, r.client, data.VirtualMachine.ValueString())
+	if !plan.VirtualMachine.IsNull() && !plan.VirtualMachine.IsUnknown() {
+		vm, diags := lookup.LookupVirtualMachine(ctx, r.client, plan.VirtualMachine.ValueString())
 
 		resp.Diagnostics.Append(diags...)
 
@@ -434,10 +451,10 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// Set IP addresses
 
-	if !data.IPAddresses.IsNull() && !data.IPAddresses.IsUnknown() {
+	if !plan.IPAddresses.IsNull() && !plan.IPAddresses.IsUnknown() {
 		var ipIDs []int64
 
-		resp.Diagnostics.Append(data.IPAddresses.ElementsAs(ctx, &ipIDs, false)...)
+		resp.Diagnostics.Append(plan.IPAddresses.ElementsAs(ctx, &ipIDs, false)...)
 
 		if resp.Diagnostics.HasError() {
 			return
@@ -460,8 +477,8 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 		apiReq.SetIpaddresses(ipIDsInt32)
 	}
 
-	// Apply common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, apiReq, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply common fields with merge-aware helpers
+	utils.ApplyCommonFieldsWithMerge(ctx, apiReq, plan.Description, plan.Comments, plan.Tags, state.Tags, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -485,15 +502,23 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	// Map response to model
+	// Map response to plan model
 
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Populate tags and custom fields filtered to owned fields only
+	if utils.IsSet(planTags) {
+		plan.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	} else {
+		plan.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	}
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource.
@@ -681,13 +706,5 @@ func (r *ServiceResource) mapResponseToModel(ctx context.Context, svc *netbox.Se
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, svc.HasTags(), svc.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
-	}
-
-	// Handle custom fields using consolidated helper
-	// Custom Fields - filter to owned fields only
-	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, svc.GetCustomFields(), diags)
+	// Note: Tags and custom_fields are populated using filter-to-owned pattern in Create(), Read(), and Update()
 }

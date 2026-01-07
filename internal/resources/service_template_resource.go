@@ -198,6 +198,10 @@ func (r *ServiceTemplateResource) Create(ctx context.Context, req resource.Creat
 
 	serviceTemplateRequest := netbox.NewWritableServiceTemplateRequest(data.Name.ValueString(), protocol, ports)
 
+	// Store plan values before mapping for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
 	// Apply common fields (description, comments, tags, custom_fields)
 	utils.ApplyCommonFields(ctx, serviceTemplateRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
@@ -230,6 +234,14 @@ func (r *ServiceTemplateResource) Create(ctx context.Context, req resource.Creat
 	// Map response to state
 
 	r.mapResponseToState(ctx, serviceTemplate, &data, &resp.Diagnostics)
+
+	// Populate tags and custom fields filtered to owned fields only
+	if utils.IsSet(planTags) {
+		data.Tags = utils.PopulateTagsFromAPI(ctx, serviceTemplate.HasTags(), serviceTemplate.GetTags(), planTags, &resp.Diagnostics)
+	} else {
+		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, serviceTemplate.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Created service template", map[string]interface{}{
 		"id": serviceTemplate.GetId(),
