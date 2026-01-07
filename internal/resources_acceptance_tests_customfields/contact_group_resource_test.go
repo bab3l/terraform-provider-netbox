@@ -11,6 +11,120 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+// TestAccContactGroupResource_CustomFieldsPreservation tests that custom fields are preserved
+// when updating other fields on a contact group. This addresses a critical bug where custom fields
+// were being deleted when users updated unrelated fields.
+func TestAccContactGroupResource_CustomFieldsPreservation(t *testing.T) {
+	groupName := testutil.RandomName("contact_group_preserve")
+	groupSlug := testutil.RandomSlug("contact_group_preserve")
+	cfText := testutil.RandomCustomFieldName("tf_text_preserve")
+	cfInteger := testutil.RandomCustomFieldName("tf_int_preserve")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create with custom fields
+				Config: testAccContactGroupConfig_preservation_step1(
+					groupName, groupSlug, cfText, cfInteger, "initial value", 42,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "name", groupName),
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "description", "Initial description"),
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_contact_group.test", cfText, "text", "initial value"),
+					testutil.CheckCustomFieldValue("netbox_contact_group.test", cfInteger, "integer", "42"),
+				),
+			},
+			{
+				// Step 2: Update description WITHOUT mentioning custom_fields
+				Config: testAccContactGroupConfig_preservation_step2(
+					groupName, groupSlug, cfText, cfInteger, "Updated description",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "name", groupName),
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "description", "Updated description"),
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "custom_fields.#", "0"),
+				),
+			},
+			{
+				// Step 3: Add custom_fields back to verify they were preserved
+				Config: testAccContactGroupConfig_preservation_step1(
+					groupName, groupSlug, cfText, cfInteger, "initial value", 42,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_contact_group.test", cfText, "text", "initial value"),
+					testutil.CheckCustomFieldValue("netbox_contact_group.test", cfInteger, "integer", "42"),
+				),
+			},
+		},
+	})
+}
+
+func testAccContactGroupConfig_preservation_step1(
+	groupName, groupSlug, cfTextName, cfIntName, cfTextValue string, cfIntValue int,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "text" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["tenancy.contactgroup"]
+}
+
+resource "netbox_custom_field" "integer" {
+  name         = %[4]q
+  type         = "integer"
+  object_types = ["tenancy.contactgroup"]
+}
+
+resource "netbox_contact_group" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  description = "Initial description"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.text.name
+      type  = "text"
+      value = %[5]q
+    },
+    {
+      name  = netbox_custom_field.integer.name
+      type  = "integer"
+      value = "%[6]d"
+    }
+  ]
+}
+`, groupName, groupSlug, cfTextName, cfIntName, cfTextValue, cfIntValue)
+}
+
+func testAccContactGroupConfig_preservation_step2(
+	groupName, groupSlug, cfTextName, cfIntName, description string,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "text" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["tenancy.contactgroup"]
+}
+
+resource "netbox_custom_field" "integer" {
+  name         = %[4]q
+  type         = "integer"
+  object_types = ["tenancy.contactgroup"]
+}
+
+resource "netbox_contact_group" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  description = %[5]q
+  # custom_fields intentionally omitted - should preserve existing values
+}
+`, groupName, groupSlug, cfTextName, cfIntName, description)
+}
+
 func TestAccContactGroupResource_importWithCustomFieldsAndTags(t *testing.T) {
 	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
 	// that would affect other tests of the same resource type running in parallel.
