@@ -164,7 +164,8 @@ func (r *ConsoleServerPortResource) Create(ctx context.Context, req resource.Cre
 
 	// Handle description, tags, and custom fields using helpers
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}

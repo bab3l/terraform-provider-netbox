@@ -183,7 +183,8 @@ func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateReque
 
 	// Handle description, tags, and custom fields
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -260,61 +261,64 @@ func (r *FrontPortResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 // Update updates the resource.
 func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data FrontPortResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read both state and plan for merge-aware custom fields handling
+	var state, plan FrontPortResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	portID, err := utils.ParseID(data.ID.ValueString())
+	portID, err := utils.ParseID(plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid ID",
-			fmt.Sprintf("Could not parse ID %q: %s", data.ID.ValueString(), err),
+			fmt.Sprintf("Could not parse ID %q: %s", plan.ID.ValueString(), err),
 		)
 		return
 	}
 
 	// Lookup device
-	device, diags := lookup.LookupDevice(ctx, r.client, data.Device.ValueString())
+	device, diags := lookup.LookupDevice(ctx, r.client, plan.Device.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Parse rear port ID
-	rearPortID, err := utils.ParseID(data.RearPort.ValueString())
+	rearPortID, err := utils.ParseID(plan.RearPort.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Rear Port ID",
-			fmt.Sprintf("Could not parse rear port ID %q: %s", data.RearPort.ValueString(), err),
+			fmt.Sprintf("Could not parse rear port ID %q: %s", plan.RearPort.ValueString(), err),
 		)
 		return
 	}
 
 	// Build request
-	apiReq := netbox.NewWritableFrontPortRequest(*device, data.Name.ValueString(), netbox.FrontPortTypeValue(data.Type.ValueString()), rearPortID)
+	apiReq := netbox.NewWritableFrontPortRequest(*device, plan.Name.ValueString(), netbox.FrontPortTypeValue(plan.Type.ValueString()), rearPortID)
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
+	if !plan.Label.IsNull() && !plan.Label.IsUnknown() {
+		apiReq.SetLabel(plan.Label.ValueString())
 	}
 
-	if !data.Color.IsNull() && !data.Color.IsUnknown() {
-		apiReq.SetColor(data.Color.ValueString())
+	if !plan.Color.IsNull() && !plan.Color.IsUnknown() {
+		apiReq.SetColor(plan.Color.ValueString())
 	}
 
-	if !data.RearPortPosition.IsNull() && !data.RearPortPosition.IsUnknown() {
-		apiReq.SetRearPortPosition(data.RearPortPosition.ValueInt32())
+	if !plan.RearPortPosition.IsNull() && !plan.RearPortPosition.IsUnknown() {
+		apiReq.SetRearPortPosition(plan.RearPortPosition.ValueInt32())
 	}
 
-	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
-		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
+	if !plan.MarkConnected.IsNull() && !plan.MarkConnected.IsUnknown() {
+		apiReq.SetMarkConnected(plan.MarkConnected.ValueBool())
 	}
 
-	// Handle description, tags, and custom fields
-	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle description, tags, and custom fields with merge-aware helpers
+	utils.ApplyDescription(apiReq, plan.Description)
+	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -332,11 +336,11 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Map response to model
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete removes the resource.
@@ -458,6 +462,6 @@ func (r *FrontPortResource) mapResponseToModel(ctx context.Context, port *netbox
 	// Handle tags
 	data.Tags = utils.PopulateTagsFromAPI(ctx, port.HasTags(), port.GetTags(), data.Tags, diags)
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, port.HasCustomFields(), port.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields with filter-to-owned pattern
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, port.GetCustomFields(), diags)
 }

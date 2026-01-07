@@ -138,7 +138,8 @@ func (r *ModuleBayResource) Create(ctx context.Context, req resource.CreateReque
 
 	// Handle description and metadata fields
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
