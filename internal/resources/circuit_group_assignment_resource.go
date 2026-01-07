@@ -208,7 +208,8 @@ func (r *CircuitGroupAssignmentResource) Read(ctx context.Context, req resource.
 }
 
 func (r *CircuitGroupAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data CircuitGroupAssignmentResourceModel
+	var state, data CircuitGroupAssignmentResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -257,8 +258,12 @@ func (r *CircuitGroupAssignmentResource) Update(ctx context.Context, req resourc
 		assignmentRequest.Priority = &priority
 	}
 
-	// Handle tags
-	utils.ApplyTags(ctx, assignmentRequest, data.Tags, &resp.Diagnostics)
+	// Handle tags - merge-aware
+	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, assignmentRequest, data.Tags, &resp.Diagnostics)
+	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, assignmentRequest, state.Tags, &resp.Diagnostics)
+	}
 	if resp.Diagnostics.HasError() {
 		return
 	}

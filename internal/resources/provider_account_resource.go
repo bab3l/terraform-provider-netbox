@@ -151,7 +151,7 @@ func (r *ProviderAccountResource) Create(ctx context.Context, req resource.Creat
 
 	// Build the create request
 
-	createReq, diags := r.buildCreateRequest(ctx, &data)
+	createReq, diags := r.buildCreateRequest(ctx, &data, nil)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -270,10 +270,11 @@ func (r *ProviderAccountResource) Read(ctx context.Context, req resource.ReadReq
 // Update updates the provider account resource.
 
 func (r *ProviderAccountResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ProviderAccountResourceModel
+	var state, data ProviderAccountResourceModel
 
-	// Read Terraform plan data into the model
+	// Read Terraform plan and state data into the models
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -293,9 +294,9 @@ func (r *ProviderAccountResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	// Build the update request
+	// Build the update request (pass state for merge-aware custom fields)
 
-	updateReq, diags := r.buildCreateRequest(ctx, &data)
+	updateReq, diags := r.buildCreateRequest(ctx, &data, &state)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -409,7 +410,7 @@ func (r *ProviderAccountResource) ImportState(ctx context.Context, req resource.
 
 // buildCreateRequest builds a ProviderAccountRequest from the model.
 
-func (r *ProviderAccountResource) buildCreateRequest(ctx context.Context, data *ProviderAccountResourceModel) (*netbox.ProviderAccountRequest, diag.Diagnostics) {
+func (r *ProviderAccountResource) buildCreateRequest(ctx context.Context, data *ProviderAccountResourceModel, state *ProviderAccountResourceModel) (*netbox.ProviderAccountRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Look up Provider (required)
@@ -430,8 +431,9 @@ func (r *ProviderAccountResource) buildCreateRequest(ctx context.Context, data *
 		createReq.SetName(data.Name.ValueString())
 	}
 
-	// Handle description and comments, tags and custom fields
-	utils.ApplyCommonFields(ctx, createReq, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
+	// Handle description and comments, tags and custom fields - merge-aware
+
+	utils.ApplyCommonFieldsWithMerge(ctx, createReq, data.Description, data.Comments, data.Tags, state.Tags, data.CustomFields, state.CustomFields, &diags)
 
 	if diags.HasError() {
 		return nil, diags
@@ -467,5 +469,7 @@ func (r *ProviderAccountResource) mapResponseToModel(ctx context.Context, provid
 
 	// Populate tags and custom fields using unified helpers
 	data.Tags = utils.PopulateTagsFromNestedTags(ctx, providerAccount.HasTags(), providerAccount.GetTags(), diags)
-	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, providerAccount.HasCustomFields(), providerAccount.GetCustomFields(), data.CustomFields, diags)
+	if providerAccount.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, providerAccount.GetCustomFields(), diags)
+	}
 }

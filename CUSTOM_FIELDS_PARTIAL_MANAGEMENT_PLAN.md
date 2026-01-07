@@ -896,12 +896,33 @@ Same pattern as Batch 3 (see above for details):
 
 ### Batch 5: Circuits & VPN Resources
 **Priority**: MEDIUM
-**Files**: 15-20 files
+**Files**: 18 files (9 resources + 9 tests)
 **Estimated Time**: 4-6 hours
+**Status**: 🔄 IN PROGRESS - 4 of 13 resources complete ✅
 
-- Circuit, Provider, Termination
-- Tunnel, VPN resources
-- L2VPN
+#### Completed (4 of 13):
+1. ✅ `circuit_resource.go` - Already had merge-aware pattern (commit 6a2dc77)
+2. ✅ `circuit_type_resource.go` - Updated to merge-aware + preservation test (commit 6a2dc77)
+3. ✅ `provider_resource.go` - Already had merge-aware pattern (commit 6a2dc77)
+4. ✅ `l2vpn_resource.go` - Updated to merge-aware + preservation test (commit 6a2dc77)
+
+#### Remaining (9 of 13):
+5. circuit_termination_resource.go - Uses ApplyMetadataFields
+6. circuit_group_resource.go
+7. circuit_group_assignment_resource.go
+8. provider_account_resource.go
+9. provider_network_resource.go
+10. l2vpn_termination_resource.go
+11. tunnel_resource.go
+12. tunnel_group_resource.go
+13. tunnel_termination_resource.go
+
+#### Next Group (Batch 5b - 5 resources):
+- circuit_termination_resource.go
+- circuit_group_resource.go
+- circuit_group_assignment_resource.go
+- provider_account_resource.go
+- l2vpn_termination_resource.go
 
 ### Batch 6: Virtualization & Tenancy
 **Priority**: MEDIUM

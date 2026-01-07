@@ -208,7 +208,9 @@ func (r *L2VPNTerminationResource) Read(ctx context.Context, req resource.ReadRe
 }
 
 func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data L2VPNTerminationResourceModel
+	var state, data L2VPNTerminationResourceModel
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -251,8 +253,14 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 		data.AssignedObjectID.ValueInt64(),
 	)
 
-	// Handle tags and custom fields
-	utils.ApplyMetadataFields(ctx, terminationRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle tags and custom fields - merge-aware
+	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, terminationRequest, data.Tags, &resp.Diagnostics)
+	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, terminationRequest, state.Tags, &resp.Diagnostics)
+	}
+
+	utils.ApplyCustomFieldsWithMerge(ctx, terminationRequest, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -339,5 +347,7 @@ func (r *L2VPNTerminationResource) mapResponseToState(ctx context.Context, termi
 	}
 
 	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, termination.HasCustomFields(), termination.GetCustomFields(), data.CustomFields, diags)
+	if termination.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, termination.GetCustomFields(), diags)
+	}
 }
