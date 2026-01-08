@@ -45,6 +45,7 @@ func TestAccTunnelTerminationResource_full(t *testing.T) {
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
 	ipAddress := testutil.RandomIPv4Address()
+	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterTunnelCleanup(tunnelName)
@@ -56,7 +57,7 @@ func TestAccTunnelTerminationResource_full(t *testing.T) {
 		CheckDestroy:             testutil.CheckTunnelTerminationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTunnelTerminationResourceConfig_full(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress),
+				Config: testAccTunnelTerminationResourceConfig_full(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress, cfName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_tunnel_termination.test", "id"),
 					resource.TestCheckResourceAttrSet("netbox_tunnel_termination.test", "tunnel"),
@@ -69,7 +70,7 @@ func TestAccTunnelTerminationResource_full(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccTunnelTerminationResourceConfig_fullUpdate(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress),
+				Config: testAccTunnelTerminationResourceConfig_fullUpdate(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress, cfName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "role", "peer"),
 					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "custom_fields.0.value", "updated_value"),
@@ -205,8 +206,7 @@ func TestAccTunnelTerminationResource_externalDeletion(t *testing.T) {
 	})
 }
 
-func testAccTunnelTerminationResourceConfig_full(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress string) string {
-	cfName := testutil.RandomCustomFieldName("test_field")
+func testAccTunnelTerminationResourceConfig_full(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress, cfName string) string {
 	return fmt.Sprintf(`
 resource "netbox_tunnel" "test" {
   name          = %[1]q
@@ -262,8 +262,7 @@ resource "netbox_tunnel_termination" "test" {
 `, tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, cfName, ipAddress)
 }
 
-func testAccTunnelTerminationResourceConfig_fullUpdate(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress string) string {
-	cfName := testutil.RandomCustomFieldName("test_field")
+func testAccTunnelTerminationResourceConfig_fullUpdate(tunnelName, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress, cfName string) string {
 	return fmt.Sprintf(`
 resource "netbox_tunnel" "test" {
   name          = %[1]q

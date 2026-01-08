@@ -46,13 +46,14 @@ func TestAccVirtualChassisResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
+	cfName := testutil.RandomCustomFieldName("test_field")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVirtualChassisResourceConfig_full(name, description, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config: testAccVirtualChassisResourceConfig_full(name, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_virtual_chassis.test", "id"),
 					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "name", name),
@@ -65,7 +66,7 @@ func TestAccVirtualChassisResource_full(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccVirtualChassisResourceConfig_fullUpdate(name, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config: testAccVirtualChassisResourceConfig_fullUpdate(name, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "description", updatedDescription),
 					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "custom_fields.0.value", "updated_value"),
@@ -104,8 +105,7 @@ resource "netbox_virtual_chassis" "test" {
 `, name)
 }
 
-func testAccVirtualChassisResourceConfig_full(name, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
-	cfName := testutil.RandomCustomFieldName("test_field")
+func testAccVirtualChassisResourceConfig_full(name, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
   name = %[3]q
@@ -151,8 +151,7 @@ resource "netbox_virtual_chassis" "test" {
 `, name, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
 }
 
-func testAccVirtualChassisResourceConfig_fullUpdate(name, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
-	cfName := testutil.RandomCustomFieldName("test_field")
+func testAccVirtualChassisResourceConfig_fullUpdate(name, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
   name = %[3]q

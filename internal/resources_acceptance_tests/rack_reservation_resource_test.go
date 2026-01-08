@@ -60,6 +60,7 @@ func TestAccRackReservationResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
+	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -72,7 +73,7 @@ func TestAccRackReservationResource_full(t *testing.T) {
 		CheckDestroy:             testutil.CheckRackReservationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRackReservationResourceConfig_full(siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config: testAccRackReservationResourceConfig_full(siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_rack_reservation.test", "id"),
 					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "description", description),
@@ -85,7 +86,7 @@ func TestAccRackReservationResource_full(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccRackReservationResourceConfig_fullUpdate(siteName, siteSlug, rackName, tenantName, tenantSlug, updatedDescription, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config: testAccRackReservationResourceConfig_fullUpdate(siteName, siteSlug, rackName, tenantName, tenantSlug, updatedDescription, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "description", updatedDescription),
 					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "comments", updatedComments),
@@ -161,8 +162,7 @@ resource "netbox_rack_reservation" "test" {
 `, siteName, siteSlug, rackName, description)
 }
 
-func testAccRackReservationResourceConfig_full(siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
-	cfName := testutil.RandomCustomFieldName("test_field")
+func testAccRackReservationResourceConfig_full(siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
 	return fmt.Sprintf(`
 provider "netbox" {}
 
@@ -234,8 +234,7 @@ resource "netbox_rack_reservation" "test" {
 `, siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
 }
 
-func testAccRackReservationResourceConfig_fullUpdate(siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
-	cfName := testutil.RandomCustomFieldName("test_field")
+func testAccRackReservationResourceConfig_fullUpdate(siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
 	return fmt.Sprintf(`
 provider "netbox" {}
 
