@@ -184,9 +184,10 @@ func (r *VirtualDiskResource) Create(ctx context.Context, req resource.CreateReq
 
 	vdRequest := netbox.NewVirtualDiskRequest(*vmRef, data.Name.ValueString(), size)
 
-	// Set optional fields
+	// Set optional fields - pass empty state since this is Create()
 
-	r.setOptionalFields(ctx, vdRequest, &data, &resp.Diagnostics)
+	var emptyState VirtualDiskResourceModel
+	r.setOptionalFields(ctx, vdRequest, &data, &emptyState, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -240,6 +241,9 @@ func (r *VirtualDiskResource) Read(ctx context.Context, req resource.ReadRequest
 	// Read Terraform prior state data into the model
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+	// Preserve original custom_fields from state for potential restoration
+	originalCustomFields := data.CustomFields
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -297,6 +301,11 @@ func (r *VirtualDiskResource) Read(ctx context.Context, req resource.ReadRequest
 		"name": data.Name.ValueString(),
 	})
 
+	// Preserve custom_fields if API returned null/empty but state had values
+	if (data.CustomFields.IsNull() || len(data.CustomFields.Elements()) == 0) && !originalCustomFields.IsNull() && len(originalCustomFields.Elements()) > 0 {
+		data.CustomFields = originalCustomFields
+	}
+
 	// Save updated data into Terraform state
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -305,11 +314,12 @@ func (r *VirtualDiskResource) Read(ctx context.Context, req resource.ReadRequest
 // Update updates the resource and sets the updated Terraform state on success.
 
 func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data VirtualDiskResourceModel
+	var state, plan VirtualDiskResourceModel
 
 	// Read Terraform plan data into the model
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -317,14 +327,14 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Parse the ID
 
-	id, err := utils.ParseID(data.ID.ValueString())
+	id, err := utils.ParseID(plan.ID.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
 
 			"Invalid ID",
 
-			fmt.Sprintf("Unable to parse ID %q: %s", data.ID.ValueString(), err.Error()),
+			fmt.Sprintf("Unable to parse ID %q: %s", plan.ID.ValueString(), err.Error()),
 		)
 
 		return
@@ -332,7 +342,7 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Lookup virtual machine
 
-	vmRef, vmDiags := netboxlookup.LookupVirtualMachine(ctx, r.client, data.VirtualMachine.ValueString())
+	vmRef, vmDiags := netboxlookup.LookupVirtualMachine(ctx, r.client, plan.VirtualMachine.ValueString())
 
 	resp.Diagnostics.Append(vmDiags...)
 
@@ -344,12 +354,12 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 
 	var size int32
 
-	if _, err := fmt.Sscanf(data.Size.ValueString(), "%d", &size); err != nil {
+	if _, err := fmt.Sscanf(plan.Size.ValueString(), "%d", &size); err != nil {
 		resp.Diagnostics.AddError(
 
 			"Invalid Size",
 
-			fmt.Sprintf("Unable to parse size %q: %s", data.Size.ValueString(), err.Error()),
+			fmt.Sprintf("Unable to parse size %q: %s", plan.Size.ValueString(), err.Error()),
 		)
 
 		return
@@ -357,11 +367,11 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Create the VirtualDisk request
 
-	vdRequest := netbox.NewVirtualDiskRequest(*vmRef, data.Name.ValueString(), size)
+	vdRequest := netbox.NewVirtualDiskRequest(*vmRef, plan.Name.ValueString(), size)
 
 	// Set optional fields
 
-	r.setOptionalFields(ctx, vdRequest, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, vdRequest, &plan, &state, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -370,7 +380,7 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 	tflog.Debug(ctx, "Updating VirtualDisk", map[string]interface{}{
 		"id": id,
 
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Update the VirtualDisk
@@ -390,19 +400,29 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
+	// Store plan's custom_fields to filter the response
+	planCustomFields := plan.CustomFields
+
 	// Map response to model
 
-	r.mapVirtualDiskToState(ctx, vd, &data, &resp.Diagnostics)
+	r.mapVirtualDiskToState(ctx, vd, &plan, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Filter custom_fields to only those owned by this resource
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, vd.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Updated VirtualDisk", map[string]interface{}{
-		"id": data.ID.ValueString(),
+		"id": plan.ID.ValueString(),
 
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Save updated data into Terraform state
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -469,12 +489,13 @@ func (r *VirtualDiskResource) ImportState(ctx context.Context, req resource.Impo
 
 // setOptionalFields sets optional fields on the VirtualDisk request from the resource model.
 
-func (r *VirtualDiskResource) setOptionalFields(ctx context.Context, vdRequest *netbox.VirtualDiskRequest, data *VirtualDiskResourceModel, diags *diag.Diagnostics) {
+func (r *VirtualDiskResource) setOptionalFields(ctx context.Context, vdRequest *netbox.VirtualDiskRequest, plan *VirtualDiskResourceModel, state *VirtualDiskResourceModel, diags *diag.Diagnostics) {
 	// Apply description and metadata fields
 
-	utils.ApplyDescription(vdRequest, data.Description)
+	utils.ApplyDescription(vdRequest, plan.Description)
 
-	utils.ApplyMetadataFields(ctx, vdRequest, data.Tags, data.CustomFields, diags)
+	utils.ApplyTags(ctx, vdRequest, plan.Tags, diags)
+	utils.ApplyCustomFieldsWithMerge(ctx, vdRequest, plan.CustomFields, state.CustomFields, diags)
 }
 
 // mapVirtualDiskToState maps a Netbox VirtualDisk to the Terraform state model.
