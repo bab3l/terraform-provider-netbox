@@ -22,7 +22,7 @@ func TestAccFHRPGroupResource_CustomFieldsPreservation(t *testing.T) {
 	cfInteger := testutil.RandomCustomFieldName("tf_int_preserve")
 
 	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterFHRPGroupCleanup(groupName)
+	cleanup.RegisterFHRPGroupCleanup("vrrp2", 1)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -83,19 +83,19 @@ func testAccFHRPGroupConfig_preservation_step1(
 	return fmt.Sprintf(`
 resource "netbox_custom_field" "text" {
   name         = %[2]q
-  content_types = ["ipam.fhrpgroup"]
+  object_types = ["ipam.fhrpgroup"]
   type         = "text"
 }
 
 resource "netbox_custom_field" "integer" {
   name         = %[3]q
-  content_types = ["ipam.fhrpgroup"]
+  object_types = ["ipam.fhrpgroup"]
   type         = "integer"
 }
 
 resource "netbox_fhrp_group" "test" {
   group_id       = 1
-  protocol       = "vrrp4"
+  protocol       = "vrrp2"
   description    = "Initial description"
 
   custom_fields = [
@@ -121,19 +121,19 @@ func testAccFHRPGroupConfig_preservation_step2(
 	return fmt.Sprintf(`
 resource "netbox_custom_field" "text" {
   name         = %[2]q
-  content_types = ["ipam.fhrpgroup"]
+  object_types = ["ipam.fhrpgroup"]
   type         = "text"
 }
 
 resource "netbox_custom_field" "integer" {
   name         = %[3]q
-  content_types = ["ipam.fhrpgroup"]
+  object_types = ["ipam.fhrpgroup"]
   type         = "integer"
 }
 
 resource "netbox_fhrp_group" "test" {
   group_id       = 1
-  protocol       = "vrrp4"
+  protocol       = "vrrp2"
   description    = "Updated description"
 
   # custom_fields intentionally omitted

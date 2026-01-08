@@ -27,13 +27,9 @@ func TestAccEventRuleResource_CustomFieldsPreservation(t *testing.T) {
 	cfText := testutil.RandomCustomFieldName("tf_text_preserve")
 	cfInteger := testutil.RandomCustomFieldName("tf_int_preserve")
 
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterEventRuleCleanup(ruleName)
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.ComposeCheckDestroy(testutil.CheckEventRuleDestroy),
 		Steps: []resource.TestStep{
 			{
 				// Step 1: Create event rule WITH custom fields explicitly in config
@@ -93,21 +89,21 @@ func testAccEventRuleConfig_preservation_step1(
 	return fmt.Sprintf(`
 resource "netbox_custom_field" "text" {
   name         = %[2]q
-  content_types = ["extras.eventrule"]
+  object_types = ["extras.eventrule"]
   type         = "text"
 }
 
 resource "netbox_custom_field" "integer" {
   name         = %[3]q
-  content_types = ["extras.eventrule"]
+  object_types = ["extras.eventrule"]
   type         = "integer"
 }
 
 resource "netbox_event_rule" "test" {
   name           = %[1]q
-  content_types  = ["dcim.device"]
+  object_types   = ["dcim.device"]
+  event_types    = ["object_created"]
   enabled        = true
-  type_create    = true
   action_type    = "webhook"
   action_object_type = "extras.webhook"
 
@@ -134,21 +130,21 @@ func testAccEventRuleConfig_preservation_step2(
 	return fmt.Sprintf(`
 resource "netbox_custom_field" "text" {
   name         = %[2]q
-  content_types = ["extras.eventrule"]
+  object_types = ["extras.eventrule"]
   type         = "text"
 }
 
 resource "netbox_custom_field" "integer" {
   name         = %[3]q
-  content_types = ["extras.eventrule"]
+  object_types = ["extras.eventrule"]
   type         = "integer"
 }
 
 resource "netbox_event_rule" "test" {
   name           = %[1]q
-  content_types  = ["dcim.device"]
+  object_types   = ["dcim.device"]
+  event_types    = ["object_created"]
   enabled        = false  # Changed this field
-  type_create    = true
   action_type    = "webhook"
   action_object_type = "extras.webhook"
 

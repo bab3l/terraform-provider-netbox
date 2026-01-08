@@ -265,13 +265,13 @@ func testAccInventoryItemRoleConfig_preservation_step1(
 	return fmt.Sprintf(`
 resource "netbox_custom_field" "text" {
   name         = %[3]q
-  content_types = ["dcim.inventoryitemrole"]
+  object_types = ["dcim.inventoryitemrole"]
   type         = "text"
 }
 
 resource "netbox_custom_field" "integer" {
   name         = %[4]q
-  content_types = ["dcim.inventoryitemrole"]
+  object_types = ["dcim.inventoryitemrole"]
   type         = "integer"
 }
 
@@ -303,13 +303,13 @@ func testAccInventoryItemRoleConfig_preservation_step2(
 	return fmt.Sprintf(`
 resource "netbox_custom_field" "text" {
   name         = %[3]q
-  content_types = ["dcim.inventoryitemrole"]
+  object_types = ["dcim.inventoryitemrole"]
   type         = "text"
 }
 
 resource "netbox_custom_field" "integer" {
   name         = %[4]q
-  content_types = ["dcim.inventoryitemrole"]
+  object_types = ["dcim.inventoryitemrole"]
   type         = "integer"
 }
 

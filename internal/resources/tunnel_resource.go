@@ -615,48 +615,15 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 	tunnelRequest.Description = utils.StringPtr(data.Description)
 
 	// Handle tags - merge-aware
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		var tagModels []utils.TagModel
-		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		tunnelRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
-	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
-		var tagModels []utils.TagModel
-		diags := state.Tags.ElementsAs(ctx, &tagModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		tunnelRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
+	utils.ApplyTags(ctx, tunnelRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Handle custom fields - merge-aware
-	var planCFModels []utils.CustomFieldModel
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		diags := data.CustomFields.ElementsAs(ctx, &planCFModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-	}
-
-	var stateCFModels []utils.CustomFieldModel
-	if !state.CustomFields.IsNull() && !state.CustomFields.IsUnknown() {
-		diags := state.CustomFields.ElementsAs(ctx, &stateCFModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-	}
-
-	// Merge custom fields - if plan has values, use plan; else preserve state
-	if len(planCFModels) > 0 {
-		tunnelRequest.CustomFields = utils.CustomFieldsToMap(planCFModels)
-	} else if len(stateCFModels) > 0 {
-		tunnelRequest.CustomFields = utils.CustomFieldsToMap(stateCFModels)
+	utils.ApplyCustomFieldsWithMerge(ctx, tunnelRequest, data.CustomFields, state.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	tflog.Debug(ctx, "Updating tunnel", map[string]interface{}{

@@ -469,9 +469,18 @@ func (r *RoleResource) buildRoleRequest(ctx context.Context, data *RoleResourceM
 		roleRequest.Description = &desc
 	}
 
-	// Apply metadata fields (tags, custom_fields)
+	// Apply tags
+	utils.ApplyTags(ctx, roleRequest, data.Tags, &diags)
+	if diags.HasError() {
+		return nil, diags
+	}
 
-	utils.ApplyMetadataFields(ctx, roleRequest, data.Tags, data.CustomFields, &diags)
+	// Apply custom fields with merge-aware logic
+	stateCustomFields := types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	if state != nil {
+		stateCustomFields = state.CustomFields
+	}
+	utils.ApplyCustomFieldsWithMerge(ctx, roleRequest, data.CustomFields, stateCustomFields, &diags)
 
 	if diags.HasError() {
 		return nil, diags

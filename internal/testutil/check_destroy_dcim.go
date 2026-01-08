@@ -1355,6 +1355,35 @@ func CheckVirtualChassisDestroy(s *terraform.State) error {
 }
 
 // CheckInventoryItemDestroy verifies that an inventory item has been destroyed.
+func CheckInventoryItemRoleDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_inventory_item_role" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+
+		list, resp, err := client.DcimAPI.DcimInventoryItemRolesList(ctx).Name([]string{name}).Execute()
+		if err != nil || resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("failed to list inventory item roles: %w", err)
+		}
+
+		if list.Count > 0 {
+			return fmt.Errorf("inventory item role %s still exists", name)
+		}
+	}
+
+	return nil
+}
+
 func CheckInventoryItemDestroy(s *terraform.State) error {
 	// No specific destroy check needed as inventory items are tied to devices
 	// and will be cleaned up when devices are destroyed

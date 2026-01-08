@@ -88,13 +88,13 @@ func testAccRoleConfig_preservation_step1(
 	return fmt.Sprintf(`
 resource "netbox_custom_field" "text" {
   name         = %[3]q
-  content_types = ["ipam.role"]
+  object_types = ["ipam.role"]
   type         = "text"
 }
 
 resource "netbox_custom_field" "integer" {
   name         = %[4]q
-  content_types = ["ipam.role"]
+  object_types = ["ipam.role"]
   type         = "integer"
 }
 
@@ -127,13 +127,13 @@ func testAccRoleConfig_preservation_step2(
 	return fmt.Sprintf(`
 resource "netbox_custom_field" "text" {
   name         = %[3]q
-  content_types = ["ipam.role"]
+  object_types = ["ipam.role"]
   type         = "text"
 }
 
 resource "netbox_custom_field" "integer" {
   name         = %[4]q
-  content_types = ["ipam.role"]
+  object_types = ["ipam.role"]
   type         = "integer"
 }
 

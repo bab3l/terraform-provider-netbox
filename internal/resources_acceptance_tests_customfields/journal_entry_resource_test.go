@@ -84,13 +84,13 @@ func testAccJournalEntryConfig_preservation_step1(
 	return fmt.Sprintf(`
 resource "netbox_custom_field" "text" {
   name         = %[3]q
-  content_types = ["extras.journalentry"]
+  object_types = ["extras.journalentry"]
   type         = "text"
 }
 
 resource "netbox_custom_field" "integer" {
   name         = %[4]q
-  content_types = ["extras.journalentry"]
+  object_types = ["extras.journalentry"]
   type         = "integer"
 }
 
@@ -127,13 +127,13 @@ func testAccJournalEntryConfig_preservation_step2(
 	return fmt.Sprintf(`
 resource "netbox_custom_field" "text" {
   name         = %[3]q
-  content_types = ["extras.journalentry"]
+  object_types = ["extras.journalentry"]
   type         = "text"
 }
 
 resource "netbox_custom_field" "integer" {
   name         = %[4]q
-  content_types = ["extras.journalentry"]
+  object_types = ["extras.journalentry"]
   type         = "integer"
 }
 
