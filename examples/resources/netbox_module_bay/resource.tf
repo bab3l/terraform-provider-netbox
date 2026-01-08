@@ -31,6 +31,25 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_module_bay" "test" {
-  name   = "Module Bay 1"
-  device = netbox_device.test.name
+  name        = "Module Bay 1"
+  device      = netbox_device.test.name
+  description = "Expansion module slot"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "bay_type"
+      value = "network-interface"
+    },
+    {
+      name  = "supported_modules"
+      value = "SFP+, QSFP"
+    }
+  ]
+
+  tags = [
+    "module-bay",
+    "expansion-slot"
+  ]
 }
