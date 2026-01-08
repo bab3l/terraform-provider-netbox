@@ -249,3 +249,274 @@ resource "netbox_module" "test" {
 		tag2, tag2Slug,
 	)
 }
+
+// TestAccModuleResource_CustomFieldsPreservation tests that custom fields are preserved
+// when updating other fields on a module.
+//
+// Filter-to-owned pattern:
+// - Custom fields declared in config are managed by Terraform
+// - Custom fields NOT in config are preserved in NetBox but invisible to Terraform
+func TestAccModuleResource_CustomFieldsPreservation(t *testing.T) {
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	mfgName := testutil.RandomName("manufacturer")
+	mfgSlug := testutil.RandomSlug("manufacturer")
+	dtModel := testutil.RandomName("device_type")
+	dtSlug := testutil.RandomSlug("device_type")
+	roleName := testutil.RandomName("role")
+	roleSlug := testutil.RandomSlug("role")
+	deviceName := testutil.RandomName("device")
+	bayName := testutil.RandomName("module_bay")
+	mtModel := testutil.RandomName("module_type")
+
+	cfEnvironment := testutil.RandomCustomFieldName("tf_env")
+	cfOwner := testutil.RandomCustomFieldName("tf_owner")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckModuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create module WITH custom fields
+				Config: testAccModuleConfig_preservation_step1(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_module.test", "id"),
+					resource.TestCheckResourceAttr("netbox_module.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_module.test", cfEnvironment, "text", "production"),
+					testutil.CheckCustomFieldValue("netbox_module.test", cfOwner, "text", "team-a"),
+				),
+			},
+			{
+				// Step 2: Update comments WITHOUT mentioning custom_fields
+				Config: testAccModuleConfig_preservation_step2(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module.test", "comments", "Updated comments"),
+					resource.TestCheckResourceAttr("netbox_module.test", "custom_fields.#", "0"),
+				),
+			},
+			{
+				// Step 3: Add custom_fields back to verify they were preserved
+				Config: testAccModuleConfig_preservation_step3(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_module.test", cfEnvironment, "text", "production"),
+					testutil.CheckCustomFieldValue("netbox_module.test", cfOwner, "text", "team-a"),
+					resource.TestCheckResourceAttr("netbox_module.test", "comments", "Updated comments"),
+				),
+			},
+		},
+	})
+}
+
+func testAccModuleConfig_preservation_step1(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[7]q
+  slug  = %[8]q
+  color = "ff0000"
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[5]q
+  slug         = %[6]q
+  manufacturer = netbox_manufacturer.test.slug
+}
+
+resource "netbox_device" "test" {
+  name        = %[9]q
+  device_type = netbox_device_type.test.slug
+  role        = netbox_device_role.test.slug
+  site        = netbox_site.test.slug
+}
+
+resource "netbox_module_bay" "test" {
+  device = netbox_device.test.id
+  name   = %[10]q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[11]q
+}
+
+resource "netbox_custom_field" "env" {
+  name         = %[12]q
+  type         = "text"
+  object_types = ["dcim.module"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[13]q
+  type         = "text"
+  object_types = ["dcim.module"]
+}
+
+resource "netbox_module" "test" {
+  device      = netbox_device.test.id
+  module_bay  = netbox_module_bay.test.id
+  module_type = netbox_module_type.test.id
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "production"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    }
+  ]
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, cfEnv, cfOwner)
+}
+
+func testAccModuleConfig_preservation_step2(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[7]q
+  slug  = %[8]q
+  color = "ff0000"
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[5]q
+  slug         = %[6]q
+  manufacturer = netbox_manufacturer.test.slug
+}
+
+resource "netbox_device" "test" {
+  name        = %[9]q
+  device_type = netbox_device_type.test.slug
+  role        = netbox_device_role.test.slug
+  site        = netbox_site.test.slug
+}
+
+resource "netbox_module_bay" "test" {
+  device = netbox_device.test.id
+  name   = %[10]q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[11]q
+}
+
+resource "netbox_custom_field" "env" {
+  name         = %[12]q
+  type         = "text"
+  object_types = ["dcim.module"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[13]q
+  type         = "text"
+  object_types = ["dcim.module"]
+}
+
+resource "netbox_module" "test" {
+  device      = netbox_device.test.id
+  module_bay  = netbox_module_bay.test.id
+  module_type = netbox_module_type.test.id
+  comments    = "Updated comments"
+  # custom_fields intentionally omitted - testing preservation
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, cfEnv, cfOwner)
+}
+
+func testAccModuleConfig_preservation_step3(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[7]q
+  slug  = %[8]q
+  color = "ff0000"
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[5]q
+  slug         = %[6]q
+  manufacturer = netbox_manufacturer.test.slug
+}
+
+resource "netbox_device" "test" {
+  name        = %[9]q
+  device_type = netbox_device_type.test.slug
+  role        = netbox_device_role.test.slug
+  site        = netbox_site.test.slug
+}
+
+resource "netbox_module_bay" "test" {
+  device = netbox_device.test.id
+  name   = %[10]q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[11]q
+}
+
+resource "netbox_custom_field" "env" {
+  name         = %[12]q
+  type         = "text"
+  object_types = ["dcim.module"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[13]q
+  type         = "text"
+  object_types = ["dcim.module"]
+}
+
+resource "netbox_module" "test" {
+  device      = netbox_device.test.id
+  module_bay  = netbox_module_bay.test.id
+  module_type = netbox_module_type.test.id
+  comments    = "Updated comments"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "production"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    }
+  ]
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, cfEnv, cfOwner)
+}

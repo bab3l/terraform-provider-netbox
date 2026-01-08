@@ -250,3 +250,246 @@ resource "netbox_console_server_port" "test" {
 		portName,
 	)
 }
+
+// TestAccConsoleServerPortResource_CustomFieldsPreservation tests that custom fields are preserved
+// when updating other fields on a console server port.
+//
+// Filter-to-owned pattern:
+// - Custom fields declared in config are managed by Terraform
+// - Custom fields NOT in config are preserved in NetBox but invisible to Terraform
+func TestAccConsoleServerPortResource_CustomFieldsPreservation(t *testing.T) {
+	portName := testutil.RandomName("console_server_port")
+	deviceName := testutil.RandomName("device")
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	mfgName := testutil.RandomName("manufacturer")
+	mfgSlug := testutil.RandomSlug("manufacturer")
+	dtModel := testutil.RandomName("device_type")
+	dtSlug := testutil.RandomSlug("device_type")
+	roleName := testutil.RandomName("role")
+	roleSlug := testutil.RandomSlug("role")
+
+	cfEnvironment := testutil.RandomCustomFieldName("tf_env")
+	cfOwner := testutil.RandomCustomFieldName("tf_owner")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create console server port WITH custom fields
+				Config: testAccConsoleServerPortConfig_preservation_step1(portName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_console_server_port.test", "name", portName),
+					resource.TestCheckResourceAttr("netbox_console_server_port.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_console_server_port.test", cfEnvironment, "text", "production"),
+					testutil.CheckCustomFieldValue("netbox_console_server_port.test", cfOwner, "text", "team-a"),
+				),
+			},
+			{
+				// Step 2: Update description WITHOUT mentioning custom_fields
+				Config: testAccConsoleServerPortConfig_preservation_step2(portName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_console_server_port.test", "description", "Updated description"),
+					resource.TestCheckResourceAttr("netbox_console_server_port.test", "custom_fields.#", "0"),
+				),
+			},
+			{
+				// Step 3: Add custom_fields back to verify they were preserved
+				Config: testAccConsoleServerPortConfig_preservation_step3(portName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, cfEnvironment, cfOwner),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_console_server_port.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_console_server_port.test", cfEnvironment, "text", "production"),
+					testutil.CheckCustomFieldValue("netbox_console_server_port.test", cfOwner, "text", "team-a"),
+					resource.TestCheckResourceAttr("netbox_console_server_port.test", "description", "Updated description"),
+				),
+			},
+		},
+	})
+}
+
+func testAccConsoleServerPortConfig_preservation_step1(portName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[9]q
+  slug  = %[10]q
+  color = "ff0000"
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[7]q
+  slug         = %[8]q
+  manufacturer = netbox_manufacturer.test.slug
+}
+
+resource "netbox_device" "test" {
+  name        = %[2]q
+  device_type = netbox_device_type.test.slug
+  role        = netbox_device_role.test.slug
+  site        = netbox_site.test.slug
+}
+
+resource "netbox_custom_field" "env" {
+  name         = %[11]q
+  type         = "text"
+  object_types = ["dcim.consoleserverport"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[12]q
+  type         = "text"
+  object_types = ["dcim.consoleserverport"]
+}
+
+resource "netbox_console_server_port" "test" {
+  name   = %[1]q
+  device = netbox_device.test.name
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "production"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    }
+  ]
+}
+`, portName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, cfEnv, cfOwner)
+}
+
+func testAccConsoleServerPortConfig_preservation_step2(portName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[9]q
+  slug  = %[10]q
+  color = "ff0000"
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[7]q
+  slug         = %[8]q
+  manufacturer = netbox_manufacturer.test.slug
+}
+
+resource "netbox_device" "test" {
+  name        = %[2]q
+  device_type = netbox_device_type.test.slug
+  role        = netbox_device_role.test.slug
+  site        = netbox_site.test.slug
+}
+
+resource "netbox_custom_field" "env" {
+  name         = %[11]q
+  type         = "text"
+  object_types = ["dcim.consoleserverport"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[12]q
+  type         = "text"
+  object_types = ["dcim.consoleserverport"]
+}
+
+resource "netbox_console_server_port" "test" {
+  name        = %[1]q
+  device      = netbox_device.test.name
+  description = "Updated description"
+  # custom_fields intentionally omitted - testing preservation
+}
+`, portName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, cfEnv, cfOwner)
+}
+
+func testAccConsoleServerPortConfig_preservation_step3(portName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, cfEnv, cfOwner string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[9]q
+  slug  = %[10]q
+  color = "ff0000"
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[7]q
+  slug         = %[8]q
+  manufacturer = netbox_manufacturer.test.slug
+}
+
+resource "netbox_device" "test" {
+  name        = %[2]q
+  device_type = netbox_device_type.test.slug
+  role        = netbox_device_role.test.slug
+  site        = netbox_site.test.slug
+}
+
+resource "netbox_custom_field" "env" {
+  name         = %[11]q
+  type         = "text"
+  object_types = ["dcim.consoleserverport"]
+}
+
+resource "netbox_custom_field" "owner" {
+  name         = %[12]q
+  type         = "text"
+  object_types = ["dcim.consoleserverport"]
+}
+
+resource "netbox_console_server_port" "test" {
+  name        = %[1]q
+  device      = netbox_device.test.name
+  description = "Updated description"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.env.name
+      type  = "text"
+      value = "production"
+    },
+    {
+      name  = netbox_custom_field.owner.name
+      type  = "text"
+      value = "team-a"
+    }
+  ]
+}
+`, portName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, cfEnv, cfOwner)
+}
