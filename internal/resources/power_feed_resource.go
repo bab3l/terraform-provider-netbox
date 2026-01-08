@@ -12,6 +12,7 @@ import (
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -537,6 +538,21 @@ func (r *PowerFeedResource) ImportState(ctx context.Context, req resource.Import
 		return
 	}
 	var data PowerFeedResourceModel
+	// Initialize tags and custom_fields as empty sets for import
+	// This ensures they get populated from API response during mapping
+	data.Tags, _ = types.SetValue(types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"name": types.StringType,
+			"slug": types.StringType,
+		},
+	}, []attr.Value{})
+	data.CustomFields, _ = types.SetValue(types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"name":  types.StringType,
+			"type":  types.StringType,
+			"value": types.StringType,
+		},
+	}, []attr.Value{})
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
