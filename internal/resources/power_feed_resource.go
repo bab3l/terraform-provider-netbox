@@ -538,22 +538,7 @@ func (r *PowerFeedResource) ImportState(ctx context.Context, req resource.Import
 		return
 	}
 	var data PowerFeedResourceModel
-	// Initialize tags and custom_fields as empty sets for import
-	// This ensures they get populated from API response during mapping
-	data.Tags, _ = types.SetValue(types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"name": types.StringType,
-			"slug": types.StringType,
-		},
-	}, []attr.Value{})
-	data.CustomFields, _ = types.SetValue(types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"name":  types.StringType,
-			"type":  types.StringType,
-			"value": types.StringType,
-		},
-	}, []attr.Value{})
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	r.mapResponseToModelForImport(ctx, response, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -661,4 +646,19 @@ func (r *PowerFeedResource) mapResponseToModel(ctx context.Context, pf *netbox.P
 	if !data.CustomFields.IsNull() {
 		data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, pf.HasCustomFields(), pf.GetCustomFields(), data.CustomFields, diags)
 	}
+}
+
+// mapResponseToModelForImport maps the API response to the Terraform model during import.
+// Unlike mapResponseToModel, this always populates tags and custom_fields regardless of null state.
+func (r *PowerFeedResource) mapResponseToModelForImport(ctx context.Context, pf *netbox.PowerFeed, data *PowerFeedResourceModel, diags *diag.Diagnostics) {
+	// Call the main mapping function first
+	r.mapResponseToModel(ctx, pf, data, diags)
+	if diags.HasError() {
+		return
+	}
+
+	// For import, always populate tags and custom_fields even if they were null
+	// Initialize as empty sets to ensure proper type information
+	data.Tags = utils.PopulateTagsFromAPI(ctx, pf.HasTags(), pf.GetTags(), types.SetValueMust(utils.GetTagsAttributeType().ElemType, []attr.Value{}), diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, pf.HasCustomFields(), pf.GetCustomFields(), types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{}), diags)
 }
