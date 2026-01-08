@@ -304,6 +304,9 @@ func (r *VirtualDeviceContextResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 
+	// Preserve original custom_fields to detect null/empty cases
+	originalCustomFields := data.CustomFields
+
 	// Parse ID
 
 	var id int32
@@ -352,15 +355,21 @@ func (r *VirtualDeviceContextResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 
+	// If custom_fields was explicitly null/empty in config, preserve that
+	if originalCustomFields.IsNull() || len(originalCustomFields.Elements()) == 0 {
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates the resource.
 
 func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data VirtualDeviceContextResourceModel
+	var state, plan VirtualDeviceContextResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -370,14 +379,14 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 
 	var id int32
 
-	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
+	_, err := fmt.Sscanf(plan.ID.ValueString(), "%d", &id)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
 
 			"Error parsing virtual device context ID",
 
-			fmt.Sprintf("Could not parse ID '%s': %s", data.ID.ValueString(), err.Error()),
+			fmt.Sprintf("Could not parse ID '%s': %s", plan.ID.ValueString(), err.Error()),
 		)
 
 		return
@@ -385,7 +394,7 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 
 	// Lookup device
 
-	device, diags := lookup.LookupDevice(ctx, r.client, data.Device.ValueString())
+	device, diags := lookup.LookupDevice(ctx, r.client, plan.Device.ValueString())
 
 	resp.Diagnostics.Append(diags...)
 
@@ -395,14 +404,14 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 
 	// Build request
 
-	status := netbox.PatchedWritableVirtualDeviceContextRequestStatus(data.Status.ValueString())
+	status := netbox.PatchedWritableVirtualDeviceContextRequestStatus(plan.Status.ValueString())
 
-	apiReq := netbox.NewWritableVirtualDeviceContextRequest(data.Name.ValueString(), *device, status)
+	apiReq := netbox.NewWritableVirtualDeviceContextRequest(plan.Name.ValueString(), *device, status)
 
 	// Set optional fields
 
-	if !data.Identifier.IsNull() && !data.Identifier.IsUnknown() {
-		identifier, err := utils.SafeInt32FromValue(data.Identifier)
+	if !plan.Identifier.IsNull() && !plan.Identifier.IsUnknown() {
+		identifier, err := utils.SafeInt32FromValue(plan.Identifier)
 
 		if err != nil {
 			resp.Diagnostics.AddError("Invalid identifier", fmt.Sprintf("Identifier overflow: %s", err))
@@ -413,8 +422,8 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 		apiReq.SetIdentifier(identifier)
 	}
 
-	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenant, tenantDiags := lookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
+	if !plan.Tenant.IsNull() && !plan.Tenant.IsUnknown() {
+		tenant, tenantDiags := lookup.LookupTenant(ctx, r.client, plan.Tenant.ValueString())
 
 		resp.Diagnostics.Append(tenantDiags...)
 
@@ -425,8 +434,8 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 		apiReq.SetTenant(*tenant)
 	}
 
-	if !data.PrimaryIP4.IsNull() && !data.PrimaryIP4.IsUnknown() {
-		ipAddr, ipDiags := lookup.LookupIPAddress(ctx, r.client, data.PrimaryIP4.ValueString())
+	if !plan.PrimaryIP4.IsNull() && !plan.PrimaryIP4.IsUnknown() {
+		ipAddr, ipDiags := lookup.LookupIPAddress(ctx, r.client, plan.PrimaryIP4.ValueString())
 
 		resp.Diagnostics.Append(ipDiags...)
 
@@ -437,8 +446,8 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 		apiReq.SetPrimaryIp4(*ipAddr)
 	}
 
-	if !data.PrimaryIP6.IsNull() && !data.PrimaryIP6.IsUnknown() {
-		ipAddr, ipDiags := lookup.LookupIPAddress(ctx, r.client, data.PrimaryIP6.ValueString())
+	if !plan.PrimaryIP6.IsNull() && !plan.PrimaryIP6.IsUnknown() {
+		ipAddr, ipDiags := lookup.LookupIPAddress(ctx, r.client, plan.PrimaryIP6.ValueString())
 
 		resp.Diagnostics.Append(ipDiags...)
 
@@ -449,8 +458,11 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 		apiReq.SetPrimaryIp6(*ipAddr)
 	}
 
-	// Apply common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, apiReq, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply common fields individually with merge-aware helpers
+	utils.ApplyDescription(apiReq, plan.Description)
+	utils.ApplyComments(apiReq, plan.Comments)
+	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -458,11 +470,11 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 	tflog.Debug(ctx, "Updating virtual device context", map[string]interface{}{
 		"id": id,
 
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 
-		"device": data.Device.ValueString(),
+		"device": plan.Device.ValueString(),
 
-		"status": data.Status.ValueString(),
+		"status": plan.Status.ValueString(),
 	})
 
 	// Update the resource
@@ -482,15 +494,21 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 		return
 	}
 
+	// Store plan's custom_fields to filter the response
+	planCustomFields := plan.CustomFields
+
 	// Map response to state
 
-	r.mapToState(ctx, result, &data, &resp.Diagnostics)
+	r.mapToState(ctx, result, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Filter custom_fields to only those owned by this resource
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, result.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource.
