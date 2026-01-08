@@ -18,6 +18,23 @@ resource "netbox_interface" "example" {
   name        = "eth0"
   type        = "1000base-t"
   description = "Main network interface"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others preserved
+  custom_fields = [
+    {
+      name  = "circuit_id"
+      value = "CKT-001"
+    },
+    {
+      name  = "vlan_purpose"
+      value = "management"
+    }
+  ]
+
+  tags = [
+    "management-interface"
+  ]
 }
 
 # Interface with full configuration
@@ -34,6 +51,27 @@ resource "netbox_interface" "complete" {
   description    = "High-speed data interface"
   mode           = "tagged"
   mark_connected = true
+
+  # Partial custom fields management
+  custom_fields = [
+    {
+      name  = "transceiver_type"
+      value = "SFP-10G-SR"
+    },
+    {
+      name  = "uplink_provider"
+      value = "internal"
+    },
+    {
+      name  = "monitoring_enabled"
+      value = "true"
+    }
+  ]
+
+  tags = [
+    "uplink",
+    "high-speed"
+  ]
 }
 
 # Virtual interface

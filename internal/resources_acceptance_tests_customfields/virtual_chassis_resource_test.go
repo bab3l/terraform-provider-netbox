@@ -192,3 +192,154 @@ resource "netbox_virtual_chassis" "test" {
 }
 `, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug, virtualChassisName)
 }
+
+// TestAccVirtualChassisResource_CustomFieldsPreservation tests that custom fields are preserved
+// when updating other fields on a virtual chassis. This addresses a critical bug where custom fields
+// were being deleted when users updated unrelated fields.
+//
+// Bug scenario:
+// 1. Create virtual chassis with custom fields
+// 2. Update virtual chassis WITHOUT custom_fields in config (omit the field entirely)
+// 3. Custom fields should be preserved in NetBox, not deleted.
+func TestAccVirtualChassisResource_CustomFieldsPreservation(t *testing.T) {
+	// Generate unique names
+	virtualChassisName := testutil.RandomName("tf-test-vc-preserve")
+
+	// Custom field names
+	cfText := testutil.RandomCustomFieldName("tf_text_preserve")
+	cfInteger := testutil.RandomCustomFieldName("tf_int_preserve")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualChassisCleanup(virtualChassisName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.ComposeCheckDestroy(testutil.CheckVirtualChassisDestroy),
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create virtual chassis WITH custom fields explicitly in config
+				Config: testAccVirtualChassisConfig_preservation_step1(
+					virtualChassisName,
+					cfText, cfInteger, "initial value", 42,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "name", virtualChassisName),
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "domain", "initial-domain"),
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_virtual_chassis.test", cfText, "text", "initial value"),
+					testutil.CheckCustomFieldValue("netbox_virtual_chassis.test", cfInteger, "integer", "42"),
+				),
+			},
+			{
+				// Step 2: Update domain WITHOUT mentioning custom_fields in config
+				// Custom fields should be preserved in NetBox (verified by import)
+				// State shows null/empty for custom_fields since not in config
+				Config: testAccVirtualChassisConfig_preservation_step2(
+					virtualChassisName,
+					cfText, cfInteger, "updated-domain",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "name", virtualChassisName),
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "domain", "updated-domain"),
+					// State shows 0 custom_fields (not in config = not owned)
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "custom_fields.#", "0"),
+				),
+			},
+			{
+				// Step 3: Import to verify custom fields still exist in NetBox
+				ResourceName:            "netbox_virtual_chassis.test",
+				ImportState:             true,
+				ImportStateVerify:       false,                     // Can't verify - config has no custom_fields
+				ImportStateVerifyIgnore: []string{"custom_fields"}, // Different because filter-to-owned
+			},
+			{
+				// Step 4: Add custom_fields back to config to verify they were preserved
+				Config: testAccVirtualChassisConfig_preservation_step1(
+					virtualChassisName,
+					cfText, cfInteger, "initial value", 42,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					// Custom fields should have their original values (preserved in NetBox)
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_virtual_chassis.test", cfText, "text", "initial value"),
+					testutil.CheckCustomFieldValue("netbox_virtual_chassis.test", cfInteger, "integer", "42"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVirtualChassisConfig_preservation_step1(
+	virtualChassisName,
+	cfTextName, cfIntName, cfTextValue string, cfIntValue int,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "text" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["dcim.virtualchassis"]
+}
+
+resource "netbox_custom_field" "integer" {
+  name         = %[3]q
+  type         = "integer"
+  object_types = ["dcim.virtualchassis"]
+}
+
+resource "netbox_virtual_chassis" "test" {
+  name   = %[1]q
+  domain = "initial-domain"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.text.name
+      type  = "text"
+      value = %[4]q
+    },
+    {
+      name  = netbox_custom_field.integer.name
+      type  = "integer"
+      value = "%[5]d"
+    }
+  ]
+
+  depends_on = [
+    netbox_custom_field.text,
+    netbox_custom_field.integer,
+  ]
+}
+`,
+		virtualChassisName,
+		cfTextName, cfIntName, cfTextValue, cfIntValue,
+	)
+}
+
+func testAccVirtualChassisConfig_preservation_step2(
+	virtualChassisName,
+	cfTextName, cfIntName, domain string,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "text" {
+  name         = %[2]q
+  type         = "text"
+  object_types = ["dcim.virtualchassis"]
+}
+
+resource "netbox_custom_field" "integer" {
+  name         = %[3]q
+  type         = "integer"
+  object_types = ["dcim.virtualchassis"]
+}
+
+resource "netbox_virtual_chassis" "test" {
+  name   = %[1]q
+  domain = %[4]q
+
+  # NOTE: custom_fields is intentionally omitted to test preservation behavior
+}
+`,
+		virtualChassisName,
+		cfTextName, cfIntName, domain,
+	)
+}

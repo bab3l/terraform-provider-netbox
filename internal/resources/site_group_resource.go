@@ -257,15 +257,16 @@ func (r *SiteGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 }
 
 func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data SiteGroupResourceModel
+	var state, plan SiteGroupResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	siteGroupID := data.ID.ValueString()
+	siteGroupID := plan.ID.ValueString()
 
 	var siteGroupIDInt int32
 
@@ -280,22 +281,23 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	// Prepare the site group update request
 
 	siteGroupRequest := netbox.WritableSiteGroupRequest{
-		Name: data.Name.ValueString(),
+		Name: plan.Name.ValueString(),
 
-		Slug: data.Slug.ValueString(),
+		Slug: plan.Slug.ValueString(),
 	}
 
-	// Apply description, tags, and custom fields
-	utils.ApplyDescription(&siteGroupRequest, data.Description)
-	utils.ApplyMetadataFields(ctx, &siteGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply description, tags, and custom fields with merge-aware helpers
+	utils.ApplyDescription(&siteGroupRequest, plan.Description)
+	utils.ApplyTags(ctx, &siteGroupRequest, plan.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, &siteGroupRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Handle parent reference
 
-	if utils.IsSet(data.Parent) {
-		parentID, parentDiags := netboxlookup.LookupSiteGroupID(ctx, r.client, data.Parent.ValueString())
+	if utils.IsSet(plan.Parent) {
+		parentID, parentDiags := netboxlookup.LookupSiteGroupID(ctx, r.client, plan.Parent.ValueString())
 
 		resp.Diagnostics.Append(parentDiags...)
 
@@ -324,9 +326,9 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Map response to state using helper
 
-	r.mapSiteGroupToState(ctx, siteGroup, &data)
+	r.mapSiteGroupToState(ctx, siteGroup, &plan)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *SiteGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -414,5 +416,5 @@ func (r *SiteGroupResource) mapSiteGroupToState(ctx context.Context, siteGroup *
 	data.Tags = utils.PopulateTagsFromAPI(ctx, siteGroup.HasTags(), siteGroup.GetTags(), data.Tags, &diags)
 
 	// Handle custom fields - preserve state structure
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, siteGroup.HasCustomFields(), siteGroup.GetCustomFields(), data.CustomFields, &diags)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, siteGroup.GetCustomFields(), &diags)
 }

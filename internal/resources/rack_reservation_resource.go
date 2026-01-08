@@ -343,9 +343,10 @@ func (r *RackReservationResource) Read(ctx context.Context, req resource.ReadReq
 // Update updates the resource.
 
 func (r *RackReservationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data RackReservationResourceModel
+	var state, plan RackReservationResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -355,14 +356,14 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 
 	var id int32
 
-	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
+	_, err := fmt.Sscanf(plan.ID.ValueString(), "%d", &id)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
 
 			"Error parsing rack reservation ID",
 
-			fmt.Sprintf("Could not parse ID '%s': %s", data.ID.ValueString(), err.Error()),
+			fmt.Sprintf("Could not parse ID '%s': %s", plan.ID.ValueString(), err.Error()),
 		)
 
 		return
@@ -370,7 +371,7 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 
 	// Lookup rack
 
-	rack, diags := lookup.LookupRack(ctx, r.client, data.Rack.ValueString())
+	rack, diags := lookup.LookupRack(ctx, r.client, plan.Rack.ValueString())
 
 	resp.Diagnostics.Append(diags...)
 
@@ -380,7 +381,7 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 
 	// Lookup user
 
-	user, diags := lookup.LookupUser(ctx, r.client, data.User.ValueString())
+	user, diags := lookup.LookupUser(ctx, r.client, plan.User.ValueString())
 
 	resp.Diagnostics.Append(diags...)
 
@@ -392,7 +393,7 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 
 	var unitsInt64 []int64
 
-	diags = data.Units.ElementsAs(ctx, &unitsInt64, false)
+	diags = plan.Units.ElementsAs(ctx, &unitsInt64, false)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -416,12 +417,12 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 
 	// Build request
 
-	apiReq := netbox.NewRackReservationRequest(*rack, units, *user, data.Description.ValueString())
+	apiReq := netbox.NewRackReservationRequest(*rack, units, *user, plan.Description.ValueString())
 
 	// Set optional fields
 
-	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenant, tenantDiags := lookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
+	if !plan.Tenant.IsNull() && !plan.Tenant.IsUnknown() {
+		tenant, tenantDiags := lookup.LookupTenant(ctx, r.client, plan.Tenant.ValueString())
 
 		resp.Diagnostics.Append(tenantDiags...)
 
@@ -432,17 +433,13 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 		apiReq.SetTenant(*tenant)
 	}
 
-	// Apply optional fields (comments, tags, custom_fields)
+	// Apply optional fields with merge-aware helpers
 
-	utils.ApplyComments(apiReq, data.Comments)
+	utils.ApplyComments(apiReq, plan.Comments)
 
-	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
 
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -451,13 +448,13 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 	tflog.Debug(ctx, "Updating rack reservation", map[string]interface{}{
 		"id": id,
 
-		"rack": data.Rack.ValueString(),
+		"rack": plan.Rack.ValueString(),
 
 		"units": units,
 
-		"user": data.User.ValueString(),
+		"user": plan.User.ValueString(),
 
-		"description": data.Description.ValueString(),
+		"description": plan.Description.ValueString(),
 	})
 
 	// Update the resource
@@ -479,13 +476,13 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 
 	// Map response to state
 
-	r.mapToState(ctx, result, &data, &resp.Diagnostics)
+	r.mapToState(ctx, result, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource.
@@ -610,7 +607,7 @@ func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox
 	data.Tags = utils.PopulateTagsFromAPI(ctx, result.HasTags(), result.GetTags(), data.Tags, diags)
 
 	// Map custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, result.HasCustomFields(), result.GetCustomFields(), data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, result.GetCustomFields(), diags)
 
 	// Map display_name
 }

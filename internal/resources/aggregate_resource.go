@@ -117,8 +117,8 @@ func (r *AggregateResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	// Build the create request
-	createReq, diags := r.buildCreateRequest(ctx, &data)
+	// Build the create request (pass nil state since this is a new resource)
+	createReq, diags := r.buildCreateRequest(ctx, &data, nil)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -189,8 +189,19 @@ func (r *AggregateResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
+	// Preserve the custom_fields plan/state if it's null or empty
+	var planSet types.Set
+	if data.CustomFields.IsNull() || len(data.CustomFields.Elements()) == 0 {
+		planSet = data.CustomFields
+	}
+
 	// Map response to model
 	r.mapResponseToModel(ctx, aggregate, &data)
+
+	// Restore null/empty custom_fields if it was null/empty before
+	if !planSet.IsNull() || (planSet.IsNull() && data.CustomFields.IsNull()) {
+		data.CustomFields = planSet
+	}
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -205,6 +216,14 @@ func (r *AggregateResource) Update(ctx context.Context, req resource.UpdateReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Read current state for merge-aware custom fields
+	var state AggregateResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	id, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -214,8 +233,8 @@ func (r *AggregateResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	// Build the update request
-	updateReq, diags := r.buildCreateRequest(ctx, &data)
+	// Build the update request with state for merge-aware custom fields
+	updateReq, diags := r.buildCreateRequest(ctx, &data, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -293,7 +312,8 @@ func (r *AggregateResource) ImportState(ctx context.Context, req resource.Import
 }
 
 // buildCreateRequest builds a WritableAggregateRequest from the model.
-func (r *AggregateResource) buildCreateRequest(ctx context.Context, data *AggregateResourceModel) (*netbox.WritableAggregateRequest, diag.Diagnostics) {
+// state is optional and only provided during updates for merge-aware custom fields.
+func (r *AggregateResource) buildCreateRequest(ctx context.Context, data *AggregateResourceModel, state *AggregateResourceModel) (*netbox.WritableAggregateRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Look up RIR (required)
@@ -319,8 +339,30 @@ func (r *AggregateResource) buildCreateRequest(ctx context.Context, data *Aggreg
 		createReq.SetDateAdded(data.DateAdded.ValueString())
 	}
 
-	// Apply common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, createReq, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
+	// Apply description and comments
+	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+		desc := data.Description.ValueString()
+		createReq.SetDescription(desc)
+	}
+	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
+		comments := data.Comments.ValueString()
+		createReq.SetComments(comments)
+	}
+
+	// Apply tags
+	utils.ApplyTags(ctx, createReq, data.Tags, &diags)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	// Apply custom fields with merge awareness
+	if state != nil {
+		// Update: use merge-aware helper
+		utils.ApplyCustomFieldsWithMerge(ctx, createReq, data.CustomFields, state.CustomFields, &diags)
+	} else {
+		// Create: apply custom fields directly
+		utils.ApplyCustomFields(ctx, createReq, data.CustomFields, &diags)
+	}
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -374,6 +416,6 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 		return
 	}
 
-	// Custom Fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, len(aggregate.CustomFields) > 0, aggregate.CustomFields, data.CustomFields, &diags)
+	// Custom Fields - filter to owned fields only
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, aggregate.CustomFields, &diags)
 }

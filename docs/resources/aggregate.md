@@ -18,8 +18,32 @@ resource "netbox_rir" "test" {
 }
 
 resource "netbox_aggregate" "test" {
-  prefix = "10.0.0.0/8"
-  rir    = netbox_rir.test.name
+  prefix      = "10.0.0.0/8"
+  rir         = netbox_rir.test.name
+  description = "Private IP space allocation"
+  comments    = "RFC1918 private address space"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "allocation_type"
+      value = "internal-use"
+    },
+    {
+      name  = "allocation_date"
+      value = "2024-01-15"
+    },
+    {
+      name  = "utilization_threshold"
+      value = "80"
+    }
+  ]
+
+  tags = [
+    "private-space",
+    "rfc1918"
+  ]
 }
 ```
 
@@ -29,7 +53,7 @@ resource "netbox_aggregate" "test" {
 ### Required
 
 - `prefix` (String) The IP prefix in CIDR notation (e.g., 10.0.0.0/8, 2001:db8::/32).
-- `rir` (String) The name, slug, or ID of the Regional Internet Registry (RIR) this aggregate belongs to.
+- `rir` (String) ID, name, or slug of the Regional Internet Registry (RIR) this aggregate belongs to. Required.
 
 ### Optional
 
@@ -38,7 +62,7 @@ resource "netbox_aggregate" "test" {
 - `date_added` (String) The date this aggregate was added (YYYY-MM-DD format).
 - `description` (String) Description of the aggregate.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
-- `tenant` (String) The name or ID of the tenant this aggregate is assigned to.
+- `tenant` (String) ID or slug of the tenant this aggregate is assigned to.
 
 ### Read-Only
 

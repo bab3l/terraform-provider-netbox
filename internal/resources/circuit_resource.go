@@ -162,8 +162,8 @@ func (r *CircuitResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	// Build the create request
-	createReq, diags := r.buildCircuitRequest(ctx, &data)
+	// Build the create request (pass nil state since this is Create)
+	createReq, diags := r.buildCircuitRequest(ctx, &data, nil)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -229,8 +229,17 @@ func (r *CircuitResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
+	// Preserve original custom_fields value from state if null or empty
+	originalCustomFields := data.CustomFields
+
 	// Map the response to state
 	r.mapCircuitToState(ctx, circuit, &data, &resp.Diagnostics)
+
+	// Restore null/empty custom_fields to prevent unwanted updates
+	if originalCustomFields.IsNull() || (!originalCustomFields.IsUnknown() && len(originalCustomFields.Elements()) == 0) {
+		data.CustomFields = originalCustomFields
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -239,19 +248,24 @@ func (r *CircuitResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 // Update updates the circuit resource.
 func (r *CircuitResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data CircuitResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	var plan CircuitResourceModel
+	var state CircuitResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	data := plan
 	id, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("Could not parse circuit ID: %s", err))
 		return
 	}
 
-	// Build the update request
-	updateReq, diags := r.buildCircuitRequest(ctx, &data)
+	// Build the update request (pass state for merge-aware custom fields)
+	updateReq, diags := r.buildCircuitRequest(ctx, &data, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -326,7 +340,8 @@ func (r *CircuitResource) ImportState(ctx context.Context, req resource.ImportSt
 }
 
 // buildCircuitRequest builds a WritableCircuitRequest from the resource model.
-func (r *CircuitResource) buildCircuitRequest(ctx context.Context, data *CircuitResourceModel) (*netbox.WritableCircuitRequest, diag.Diagnostics) {
+// state parameter: pass nil during Create, pass state during Update for merge-aware custom_fields.
+func (r *CircuitResource) buildCircuitRequest(ctx context.Context, data *CircuitResourceModel, state *CircuitResourceModel) (*netbox.WritableCircuitRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Lookup provider (required)
@@ -384,8 +399,23 @@ func (r *CircuitResource) buildCircuitRequest(ctx context.Context, data *Circuit
 		circuitReq.CommitRate = *netbox.NewNullableInt32(netbox.PtrInt32(commitRate))
 	}
 
-	// Apply common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, circuitReq, data.Description, data.Comments, data.Tags, data.CustomFields, &diags)
+	// Apply common fields (description, comments, tags)
+	circuitReq.Description = utils.StringPtr(data.Description)
+	circuitReq.Comments = utils.StringPtr(data.Comments)
+	utils.ApplyTags(ctx, circuitReq, data.Tags, &diags)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	// Handle custom fields with merge-aware logic
+	if state != nil {
+		// Update: merge plan custom fields with existing state custom fields
+		utils.ApplyCustomFieldsWithMerge(ctx, circuitReq, data.CustomFields, state.CustomFields, &diags)
+	} else {
+		// Create: apply plan custom fields directly
+		utils.ApplyCustomFields(ctx, circuitReq, data.CustomFields, &diags)
+	}
+
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -500,11 +530,11 @@ func (r *CircuitResource) mapCircuitToState(ctx context.Context, circuit *netbox
 		data.Comments = types.StringNull()
 	}
 
-	// Populate tags and custom fields using unified helpers
+	// Populate tags and custom fields using filter-to-owned pattern
 	data.Tags = utils.PopulateTagsFromAPI(ctx, circuit.HasTags(), circuit.GetTags(), data.Tags, diags)
 	if diags.HasError() {
 		return
 	}
 
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, circuit.HasCustomFields(), circuit.GetCustomFields(), data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, circuit.GetCustomFields(), diags)
 }

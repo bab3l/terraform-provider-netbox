@@ -26,6 +26,27 @@ resource "netbox_tenant" "example_tenant" {
   description = "An example tenant"
   comments    = "This tenant is used for demonstration purposes"
 
+  # Partial custom fields management
+  # Only specified custom fields are managed, others preserved
+  custom_fields = [
+    {
+      name  = "account_id"
+      value = "ACCT-12345"
+    },
+    {
+      name  = "billing_contact"
+      value = "billing@example.com"
+    },
+    {
+      name  = "contract_end_date"
+      value = "2026-12-31"
+    },
+    {
+      name  = "support_tier"
+      value = "premium"
+    }
+  ]
+
   tags = [
     {
       name = "production"
@@ -34,19 +55,6 @@ resource "netbox_tenant" "example_tenant" {
     {
       name = "critical"
       slug = "critical"
-    }
-  ]
-
-  custom_fields = [
-    {
-      name  = "cost_center"
-      type  = "text"
-      value = "CC-1234"
-    },
-    {
-      name  = "contact_email"
-      type  = "text"
-      value = "admin@example.com"
     }
   ]
 }

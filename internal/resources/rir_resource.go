@@ -115,7 +115,7 @@ func (r *RIRResource) Create(ctx context.Context, req resource.CreateRequest, re
 	rirRequest := netbox.NewRIRRequest(data.Name.ValueString(), data.Slug.ValueString())
 
 	// Set optional fields
-	r.setOptionalFields(ctx, rirRequest, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, rirRequest, &data, nil, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -185,8 +185,20 @@ func (r *RIRResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
+	// Preserve the custom_fields plan/state if it's null or empty
+	var planSet types.Set
+	if data.CustomFields.IsNull() || len(data.CustomFields.Elements()) == 0 {
+		planSet = data.CustomFields
+	}
+
 	// Map response to model
 	r.mapRIRToState(ctx, rir, &data, &resp.Diagnostics)
+
+	// Restore null/empty custom_fields if it was null/empty before
+	if !planSet.IsNull() || (planSet.IsNull() && data.CustomFields.IsNull()) {
+		data.CustomFields = planSet
+	}
+
 	tflog.Debug(ctx, "Read RIR", map[string]interface{}{
 		"id":   data.ID.ValueString(),
 		"name": data.Name.ValueString(),
@@ -206,6 +218,13 @@ func (r *RIRResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
+	// Read current state for merge-aware custom fields
+	var state RIRResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Parse the ID
 	id, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
@@ -219,8 +238,8 @@ func (r *RIRResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	// Create the RIR request
 	rirRequest := netbox.NewRIRRequest(data.Name.ValueString(), data.Slug.ValueString())
 
-	// Set optional fields
-	r.setOptionalFields(ctx, rirRequest, &data, &resp.Diagnostics)
+	// Set optional fields with state for merge-aware custom fields
+	r.setOptionalFields(ctx, rirRequest, &data, &state, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -299,16 +318,34 @@ func (r *RIRResource) ImportState(ctx context.Context, req resource.ImportStateR
 }
 
 // setOptionalFields sets optional fields on the RIR request from the resource model.
-func (r *RIRResource) setOptionalFields(ctx context.Context, rirRequest *netbox.RIRRequest, data *RIRResourceModel, diags *diag.Diagnostics) {
+// state is optional and only provided during updates for merge-aware custom fields.
+func (r *RIRResource) setOptionalFields(ctx context.Context, rirRequest *netbox.RIRRequest, data *RIRResourceModel, state *RIRResourceModel, diags *diag.Diagnostics) {
 	// Is Private
 	if utils.IsSet(data.IsPrivate) {
 		isPrivate := data.IsPrivate.ValueBool()
 		rirRequest.IsPrivate = &isPrivate
 	}
 
-	// Apply description and metadata fields
+	// Apply description
 	utils.ApplyDescription(rirRequest, data.Description)
-	utils.ApplyMetadataFields(ctx, rirRequest, data.Tags, data.CustomFields, diags)
+
+	// Apply tags
+	utils.ApplyTags(ctx, rirRequest, data.Tags, diags)
+	if diags.HasError() {
+		return
+	}
+
+	// Apply custom fields with merge awareness
+	if state != nil {
+		// Update: use merge-aware helper
+		utils.ApplyCustomFieldsWithMerge(ctx, rirRequest, data.CustomFields, state.CustomFields, diags)
+	} else {
+		// Create: apply custom fields directly
+		utils.ApplyCustomFields(ctx, rirRequest, data.CustomFields, diags)
+	}
+	if diags.HasError() {
+		return
+	}
 }
 
 // mapRIRToState maps a Netbox RIR to the Terraform state model.
@@ -333,6 +370,6 @@ func (r *RIRResource) mapRIRToState(ctx context.Context, rir *netbox.RIR, data *
 
 	// Tags
 	data.Tags = utils.PopulateTagsFromAPI(ctx, len(rir.Tags) > 0, rir.Tags, data.Tags, diags)
-	// Custom Fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, len(rir.CustomFields) > 0, rir.CustomFields, data.CustomFields, diags)
+	// Custom Fields - filter to owned fields only
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, rir.CustomFields, diags)
 }

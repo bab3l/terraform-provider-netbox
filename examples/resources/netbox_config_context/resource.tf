@@ -1,4 +1,5 @@
 # Example: Basic config context
+# Note: netbox_config_context resource only supports tags, not custom_fields
 resource "netbox_config_context" "basic" {
   name = "basic-config"
   data = jsonencode({

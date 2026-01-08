@@ -168,9 +168,9 @@ func (r *VLANResource) Create(ctx context.Context, req resource.CreateRequest, r
 		Name: data.Name.ValueString(),
 	}
 
-	// Set optional fields
+	// Set optional fields (pass nil state since this is Create)
 
-	r.setOptionalFields(ctx, &vlanRequest, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, &vlanRequest, &data, nil, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -279,9 +279,17 @@ func (r *VLANResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		"name": vlan.GetName(),
 	})
 
+	// Preserve original custom_fields value from state if null or empty
+	originalCustomFields := data.CustomFields
+
 	// Map response back to state
 
 	r.mapVLANToState(ctx, vlan, &data, &resp.Diagnostics)
+
+	// Restore null/empty custom_fields to prevent unwanted updates
+	if originalCustomFields.IsNull() || (!originalCustomFields.IsUnknown() && len(originalCustomFields.Elements()) == 0) {
+		data.CustomFields = originalCustomFields
+	}
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -291,9 +299,11 @@ func (r *VLANResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 }
 
 func (r *VLANResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data VLANResourceModel
+	var plan VLANResourceModel
+	var state VLANResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -301,6 +311,7 @@ func (r *VLANResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// Parse the ID
 
+	data := plan
 	vlanID := data.ID.ValueString()
 
 	var id int32
@@ -339,9 +350,9 @@ func (r *VLANResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		Name: data.Name.ValueString(),
 	}
 
-	// Set optional fields
+	// Set optional fields (pass state for merge-aware custom fields)
 
-	r.setOptionalFields(ctx, &vlanRequest, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, &vlanRequest, &data, &state, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -449,8 +460,9 @@ func (r *VLANResource) ImportState(ctx context.Context, req resource.ImportState
 }
 
 // setOptionalFields sets optional fields on the VLAN request from the resource model.
+// state parameter: pass nil during Create, pass state during Update for merge-aware custom_fields
 
-func (r *VLANResource) setOptionalFields(ctx context.Context, vlanRequest *netbox.WritableVLANRequest, data *VLANResourceModel, diags *diag.Diagnostics) {
+func (r *VLANResource) setOptionalFields(ctx context.Context, vlanRequest *netbox.WritableVLANRequest, data *VLANResourceModel, state *VLANResourceModel, diags *diag.Diagnostics) {
 	// Site
 
 	if utils.IsSet(data.Site) {
@@ -515,8 +527,23 @@ func (r *VLANResource) setOptionalFields(ctx context.Context, vlanRequest *netbo
 		vlanRequest.Role = *netbox.NewNullableBriefRoleRequest(role)
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, vlanRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	// Set common fields (description, comments, tags)
+	vlanRequest.Description = utils.StringPtr(data.Description)
+	vlanRequest.Comments = utils.StringPtr(data.Comments)
+	utils.ApplyTags(ctx, vlanRequest, data.Tags, diags)
+	if diags.HasError() {
+		return
+	}
+
+	// Handle custom fields with merge-aware logic
+	if state != nil {
+		// Update: merge plan custom fields with existing state custom fields
+		utils.ApplyCustomFieldsWithMerge(ctx, vlanRequest, data.CustomFields, state.CustomFields, diags)
+	} else {
+		// Create: apply plan custom fields directly
+		utils.ApplyCustomFields(ctx, vlanRequest, data.CustomFields, diags)
+	}
+
 	if diags.HasError() {
 		return
 	}
@@ -599,6 +626,6 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 		return
 	}
 
-	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, vlan.HasCustomFields(), vlan.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields using filter-to-owned pattern
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vlan.GetCustomFields(), diags)
 }

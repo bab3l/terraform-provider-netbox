@@ -234,3 +234,157 @@ resource "netbox_virtual_disk" "test" {
 		diskName,
 	)
 }
+
+// TestAccVirtualDiskResource_CustomFieldsPreservation tests that custom fields are preserved
+// when they are not specified in the configuration after creation.
+func TestAccVirtualDiskResource_CustomFieldsPreservation(t *testing.T) {
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+
+	diskName := testutil.RandomName("virtual_disk")
+	vmName := testutil.RandomName("vm")
+	clusterName := testutil.RandomName("cluster")
+	clusterTypeName := testutil.RandomName("cluster_type")
+	clusterTypeSlug := testutil.RandomSlug("cluster_type")
+	cfText := testutil.RandomCustomFieldName("cf_text")
+	cfInteger := testutil.RandomCustomFieldName("cf_integer")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualDiskCleanup(diskName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterCustomFieldCleanup(cfText)
+	cleanup.RegisterCustomFieldCleanup(cfInteger)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVirtualDiskDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with custom fields
+			{
+				Config: testAccVirtualDiskResourceConfig_withCustomFields(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug, cfText, cfInteger),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_disk.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_disk.test", "name", diskName),
+					resource.TestCheckResourceAttr("netbox_virtual_disk.test", "custom_fields.#", "2"),
+				),
+			},
+			// Step 2: Update without custom_fields in config - should preserve in NetBox
+			{
+				Config: testAccVirtualDiskResourceConfig_withoutCustomFields(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug, cfText, cfInteger),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_disk.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_disk.test", "name", diskName),
+					// Custom fields should be null/empty in state (filter-to-owned)
+					resource.TestCheckResourceAttr("netbox_virtual_disk.test", "custom_fields.#", "0"),
+				),
+			},
+			// Step 3: Add custom fields back - should see them again
+			{
+				Config: testAccVirtualDiskResourceConfig_withCustomFields(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug, cfText, cfInteger),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_disk.test", "name", diskName),
+					resource.TestCheckResourceAttr("netbox_virtual_disk.test", "custom_fields.#", "2"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVirtualDiskResourceConfig_withCustomFields(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug, cfText, cfInteger string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.slug
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = %q
+  cluster = netbox_cluster.test.name
+
+  lifecycle {
+    ignore_changes = [disk]
+  }
+}
+
+resource "netbox_custom_field" "cf_text" {
+  name        = %q
+  type        = "text"
+  object_types = ["virtualization.virtualdisk"]
+}
+
+resource "netbox_custom_field" "cf_integer" {
+  name        = %q
+  type        = "integer"
+  object_types = ["virtualization.virtualdisk"]
+}
+
+resource "netbox_virtual_disk" "test" {
+  name         = %q
+  virtual_machine = netbox_virtual_machine.test.name
+  size         = 100
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.cf_text.name
+      type  = "text"
+      value = "test-value"
+    },
+    {
+      name  = netbox_custom_field.cf_integer.name
+      type  = "integer"
+      value = "42"
+    }
+  ]
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName, cfText, cfInteger, diskName)
+}
+
+func testAccVirtualDiskResourceConfig_withoutCustomFields(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug, cfText, cfInteger string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.slug
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = %q
+  cluster = netbox_cluster.test.name
+
+  lifecycle {
+    ignore_changes = [disk]
+  }
+}
+
+resource "netbox_custom_field" "cf_text" {
+  name        = %q
+  type        = "text"
+  object_types = ["virtualization.virtualdisk"]
+}
+
+resource "netbox_custom_field" "cf_integer" {
+  name        = %q
+  type        = "integer"
+  object_types = ["virtualization.virtualdisk"]
+}
+
+resource "netbox_virtual_disk" "test" {
+  name         = %q
+  virtual_machine = netbox_virtual_machine.test.name
+  size         = 100
+
+  # custom_fields intentionally omitted - should preserve in NetBox
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName, cfText, cfInteger, diskName)
+}

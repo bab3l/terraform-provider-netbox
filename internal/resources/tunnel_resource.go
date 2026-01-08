@@ -487,7 +487,9 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, tunnel.HasCustomFields(), tunnel.GetCustomFields(), data.CustomFields, &resp.Diagnostics)
+	if tunnel.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, tunnel.GetCustomFields(), &resp.Diagnostics)
+	}
 
 	// Save updated data into Terraform state
 
@@ -495,10 +497,11 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 }
 
 func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data TunnelResourceModel
+	var state, data TunnelResourceModel
 
-	// Read Terraform plan data into the model
+	// Read Terraform state and plan data into the models
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -611,26 +614,16 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 	// Handle description
 	tunnelRequest.Description = utils.StringPtr(data.Description)
 
-	// Handle tags
-	if !data.Tags.IsNull() {
-		var tagModels []utils.TagModel
-		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		tunnelRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
+	// Handle tags - merge-aware
+	utils.ApplyTags(ctx, tunnelRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	// Handle custom fields
-	if !data.CustomFields.IsNull() {
-		var customFieldModels []utils.CustomFieldModel
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		tunnelRequest.CustomFields = utils.CustomFieldsToMap(customFieldModels)
+	// Handle custom fields - merge-aware
+	utils.ApplyCustomFieldsWithMerge(ctx, tunnelRequest, data.CustomFields, state.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	tflog.Debug(ctx, "Updating tunnel", map[string]interface{}{

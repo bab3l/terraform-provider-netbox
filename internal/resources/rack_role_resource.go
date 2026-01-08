@@ -304,26 +304,27 @@ func (r *RackRoleResource) Read(ctx context.Context, req resource.ReadRequest, r
 }
 
 func (r *RackRoleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data RackRoleResourceModel
+	var state, plan RackRoleResourceModel
 
-	// Read Terraform plan data into the model
+	// Read both state and plan
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get the rack role ID from state
+	// Get the rack role ID from plan
 
-	rackRoleID := data.ID.ValueString()
+	rackRoleID := plan.ID.ValueString()
 
 	tflog.Debug(ctx, "Updating rack role", map[string]interface{}{
 		"id": rackRoleID,
 
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 
-		"slug": data.Slug.ValueString(),
+		"slug": plan.Slug.ValueString(),
 	})
 
 	// Parse the rack role ID to int32 for the API call
@@ -346,43 +347,29 @@ func (r *RackRoleResource) Update(ctx context.Context, req resource.UpdateReques
 	// Prepare the rack role update request
 
 	rackRoleRequest := netbox.RackRoleRequest{
-		Name: data.Name.ValueString(),
+		Name: plan.Name.ValueString(),
 
-		Slug: data.Slug.ValueString(),
+		Slug: plan.Slug.ValueString(),
 	}
 
 	// Set optional fields if provided
 
-	if !data.Color.IsNull() && !data.Color.IsUnknown() {
-		color := data.Color.ValueString()
+	if !plan.Color.IsNull() && !plan.Color.IsUnknown() {
+		color := plan.Color.ValueString()
 
 		rackRoleRequest.Color = &color
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		description := data.Description.ValueString()
+	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
+		description := plan.Description.ValueString()
 
 		rackRoleRequest.Description = &description
 	}
 
-	// Handle tags
+	// Apply merge-aware metadata fields
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		rackRoleRequest.Tags = utils.TagsToNestedTagRequests(tags)
-	}
-
-	// Apply metadata fields (tags, custom_fields)
-
-	utils.ApplyMetadataFields(ctx, &rackRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
-
+	utils.ApplyTags(ctx, &rackRoleRequest, plan.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, &rackRoleRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -417,7 +404,7 @@ func (r *RackRoleResource) Update(ctx context.Context, req resource.UpdateReques
 
 	// Map response to state
 
-	r.mapRackRoleToState(ctx, rackRole, &data, &resp.Diagnostics)
+	r.mapRackRoleToState(ctx, rackRole, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -425,7 +412,7 @@ func (r *RackRoleResource) Update(ctx context.Context, req resource.UpdateReques
 
 	// Save updated data into Terraform state
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *RackRoleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -538,8 +525,8 @@ func (r *RackRoleResource) mapRackRoleToState(ctx context.Context, rackRole *net
 		return
 	}
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, rackRole.HasCustomFields(), rackRole.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields (filter to owned)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, rackRole.GetCustomFields(), diags)
 	if diags.HasError() {
 		return
 	}

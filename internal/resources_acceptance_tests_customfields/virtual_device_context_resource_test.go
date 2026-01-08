@@ -236,3 +236,181 @@ resource "netbox_virtual_device_context" "test" {
 }
 `, tenantName, tenantSlug, siteName, siteSlug, mfgName, mfgSlug, roleName, roleSlug, dtModel, dtSlug, deviceName, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug, vdcName)
 }
+
+// TestAccVirtualDeviceContextResource_CustomFieldsPreservation tests that custom fields are preserved
+// when they are not specified in the configuration after creation.
+func TestAccVirtualDeviceContextResource_CustomFieldsPreservation(t *testing.T) {
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+
+	vdcName := testutil.RandomName("vdc")
+	deviceName := testutil.RandomName("device")
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	mfgName := testutil.RandomName("manufacturer")
+	mfgSlug := testutil.RandomSlug("manufacturer")
+	dtModel := testutil.RandomName("device_type")
+	dtSlug := testutil.RandomSlug("device_type")
+	roleName := testutil.RandomName("role")
+	roleSlug := testutil.RandomSlug("role")
+	cfText := testutil.RandomCustomFieldName("cf_text")
+	cfInteger := testutil.RandomCustomFieldName("cf_integer")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterCustomFieldCleanup(cfText)
+	cleanup.RegisterCustomFieldCleanup(cfInteger)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVirtualDeviceContextDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with custom fields
+			{
+				Config: testAccVirtualDeviceContextResourceConfig_withCustomFields(vdcName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, cfText, cfInteger),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_device_context.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "name", vdcName),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "custom_fields.#", "2"),
+				),
+			},
+			// Step 2: Update without custom_fields in config - should preserve in NetBox
+			{
+				Config: testAccVirtualDeviceContextResourceConfig_withoutCustomFields(vdcName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, cfText, cfInteger),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_device_context.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "name", vdcName),
+					// Custom fields should be null/empty in state (filter-to-owned)
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "custom_fields.#", "0"),
+				),
+			},
+			// Step 3: Add custom fields back - should see them again
+			{
+				Config: testAccVirtualDeviceContextResourceConfig_withCustomFields(vdcName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, cfText, cfInteger),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "name", vdcName),
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "custom_fields.#", "2"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVirtualDeviceContextResourceConfig_withCustomFields(vdcName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, cfText, cfInteger string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %q
+  slug         = %q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_custom_field" "cf_text" {
+  name        = %q
+  type        = "text"
+  object_types = ["dcim.virtualdevicecontext"]
+}
+
+resource "netbox_custom_field" "cf_integer" {
+  name        = %q
+  type        = "integer"
+  object_types = ["dcim.virtualdevicecontext"]
+}
+
+resource "netbox_virtual_device_context" "test" {
+  name   = %q
+  device = netbox_device.test.id
+  status = "active"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.cf_text.name
+      type  = "text"
+      value = "test-value"
+    },
+    {
+      name  = netbox_custom_field.cf_integer.name
+      type  = "integer"
+      value = "42"
+    }
+  ]
+}
+`, siteName, siteSlug, mfgName, mfgSlug, roleName, roleSlug, dtModel, dtSlug, deviceName, cfText, cfInteger, vdcName)
+}
+
+func testAccVirtualDeviceContextResourceConfig_withoutCustomFields(vdcName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, cfText, cfInteger string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %q
+  slug         = %q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_custom_field" "cf_text" {
+  name        = %q
+  type        = "text"
+  object_types = ["dcim.virtualdevicecontext"]
+}
+
+resource "netbox_custom_field" "cf_integer" {
+  name        = %q
+  type        = "integer"
+  object_types = ["dcim.virtualdevicecontext"]
+}
+
+resource "netbox_virtual_device_context" "test" {
+  name   = %q
+  device = netbox_device.test.id
+  status = "active"
+
+  # custom_fields intentionally omitted - should preserve in NetBox
+}
+`, siteName, siteSlug, mfgName, mfgSlug, roleName, roleSlug, dtModel, dtSlug, deviceName, cfText, cfInteger, vdcName)
+}

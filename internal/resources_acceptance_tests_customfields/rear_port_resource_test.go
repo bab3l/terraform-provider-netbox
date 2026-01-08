@@ -11,6 +11,53 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+// TestAccRearPortResource_CustomFieldsPreservation verifies that custom fields
+// set outside of Terraform are preserved when updating other resource fields.
+func TestAccRearPortResource_CustomFieldsPreservation(t *testing.T) {
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	mfgName := testutil.RandomName("mfg")
+	mfgSlug := testutil.RandomSlug("mfg")
+	dtModel := testutil.RandomName("dt")
+	dtSlug := testutil.RandomSlug("dt")
+	roleName := testutil.RandomName("role")
+	roleSlug := testutil.RandomSlug("role")
+	deviceName := testutil.RandomName("device")
+	rearPortName := testutil.RandomName("rearport")
+	cfText := testutil.RandomCustomFieldName("cf_text")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterCustomFieldCleanup(cfText)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRearPortResourceConfig_withCustomField(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, cfText, "initial_value"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rear_port.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "custom_fields.#", "1"),
+				),
+			},
+			{
+				Config: testAccRearPortResourceConfig_withoutCustomFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, cfText, "updated description"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rear_port.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "description", "updated description"),
+					// Custom fields omitted from config - should be preserved as empty in state
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "custom_fields.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccRearPortResource_importWithCustomFieldsAndTags(t *testing.T) {
 	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
 	// that would affect other tests of the same resource type running in parallel.
@@ -233,4 +280,105 @@ resource "netbox_rear_port" "test" {
 		tag2, tag2Slug,
 		rearPortName,
 	)
+}
+
+// Helper functions for custom field tests
+func testAccRearPortResourceConfig_withCustomField(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, cfText, cfValue string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_device_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+}
+
+resource "netbox_custom_field" "cf_text" {
+  name         = %q
+  type         = "text"
+  object_types = ["dcim.rearport"]
+}
+
+resource "netbox_rear_port" "test" {
+  device    = netbox_device.test.id
+  name      = %q
+  type      = "lc"
+  positions = 4
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.cf_text.name
+      type  = "text"
+      value = %q
+    }
+  ]
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, cfText, rearPortName, cfValue)
+}
+
+func testAccRearPortResourceConfig_withoutCustomFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, cfText, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_device_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+}
+
+resource "netbox_custom_field" "cf_text" {
+  name         = %q
+  type         = "text"
+  object_types = ["dcim.rearport"]
+}
+
+resource "netbox_rear_port" "test" {
+  device      = netbox_device.test.id
+  name        = %q
+  type        = "lc"
+  positions   = 4
+  description = %q
+  # custom_fields intentionally omitted - should preserve existing values in NetBox
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, cfText, rearPortName, description)
 }

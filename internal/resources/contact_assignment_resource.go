@@ -180,8 +180,13 @@ func (r *ContactAssignmentResource) Create(ctx context.Context, req resource.Cre
 		assignmentRequest.Priority = &priority
 	}
 
+	// Store plan values for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
 	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, assignmentRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTags(ctx, assignmentRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, assignmentRequest, data.CustomFields, &resp.Diagnostics)
 
 	// Call the API to create the contact assignment
 	assignment, httpResp, err := r.client.TenancyAPI.TenancyContactAssignmentsCreate(ctx).
@@ -197,6 +202,11 @@ func (r *ContactAssignmentResource) Create(ctx context.Context, req resource.Cre
 
 	// Map response to state
 	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
+
+	// Apply filter-to-owned pattern
+	data.Tags = utils.PopulateTagsFromAPI(ctx, assignment.HasTags(), assignment.GetTags(), planTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, assignment.GetCustomFields(), &resp.Diagnostics)
+
 	tflog.Debug(ctx, "Created contact assignment", map[string]interface{}{
 		"id": assignment.GetId(),
 	})
@@ -245,24 +255,25 @@ func (r *ContactAssignmentResource) Read(ctx context.Context, req resource.ReadR
 }
 
 func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ContactAssignmentResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	var state, plan ContactAssignmentResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Parse the ID
-	id, err := utils.ParseID(data.ID.ValueString())
+	id, err := utils.ParseID(plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid ID format",
-			fmt.Sprintf("Could not parse contact assignment ID '%s': %s", data.ID.ValueString(), err),
+			fmt.Sprintf("Could not parse contact assignment ID '%s': %s", plan.ID.ValueString(), err),
 		)
 		return
 	}
 
 	// Parse object ID
-	objectID, err := utils.ParseID64(data.ObjectID.ValueString())
+	objectID, err := utils.ParseID64(plan.ObjectID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Object ID",
@@ -272,7 +283,7 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Parse contact ID
-	contactID, err := utils.ParseID(data.Contact.ValueString())
+	contactID, err := utils.ParseID(plan.Contact.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Contact ID",
@@ -282,7 +293,7 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 	}
 	tflog.Debug(ctx, "Updating contact assignment", map[string]interface{}{
 		"id":          id,
-		"object_type": data.ObjectType.ValueString(),
+		"object_type": plan.ObjectType.ValueString(),
 		"object_id":   objectID,
 		"contact_id":  contactID,
 	})
@@ -290,7 +301,7 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 	// Build the API request
 	briefContact := *netbox.NewBriefContactRequest("placeholder")
 	assignmentRequest := netbox.NewWritableContactAssignmentRequest(
-		data.ObjectType.ValueString(),
+		plan.ObjectType.ValueString(),
 		objectID,
 		briefContact,
 	)
@@ -300,8 +311,8 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 	assignmentRequest.AdditionalProperties["contact"] = int(contactID)
 
 	// Set role if provided, otherwise unset it entirely
-	if !data.Role.IsNull() && !data.Role.IsUnknown() && data.Role.ValueString() != "" {
-		roleID, err := utils.ParseID(data.Role.ValueString())
+	if !plan.Role.IsNull() && !plan.Role.IsUnknown() && plan.Role.ValueString() != "" {
+		roleID, err := utils.ParseID(plan.Role.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Invalid Role ID",
@@ -316,13 +327,14 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Set priority if provided
-	if !data.Priority.IsNull() && !data.Priority.IsUnknown() && data.Priority.ValueString() != "" {
-		priority := netbox.BriefCircuitGroupAssignmentSerializerPriorityValue(data.Priority.ValueString())
+	if !plan.Priority.IsNull() && !plan.Priority.IsUnknown() && plan.Priority.ValueString() != "" {
+		priority := netbox.BriefCircuitGroupAssignmentSerializerPriorityValue(plan.Priority.ValueString())
 		assignmentRequest.Priority = &priority
 	}
 
-	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, assignmentRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle tags and custom_fields with merge-aware helpers
+	utils.ApplyTags(ctx, assignmentRequest, plan.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, assignmentRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	// Call the API to update the contact assignment
 	assignment, httpResp, err := r.client.TenancyAPI.TenancyContactAssignmentsUpdate(ctx, id).
@@ -337,11 +349,16 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Map response to state
-	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
+	r.mapResponseToState(ctx, assignment, &plan, &resp.Diagnostics)
+
+	// Apply filter-to-owned pattern
+	plan.Tags = utils.PopulateTagsFromAPI(ctx, assignment.HasTags(), assignment.GetTags(), plan.Tags, &resp.Diagnostics)
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, assignment.GetCustomFields(), &resp.Diagnostics)
+
 	tflog.Debug(ctx, "Updated contact assignment", map[string]interface{}{
 		"id": assignment.GetId(),
 	})
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *ContactAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -417,9 +434,5 @@ func (r *ContactAssignmentResource) mapResponseToState(ctx context.Context, assi
 		data.Priority = types.StringNull()
 	}
 
-	// Tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, assignment.HasTags() && len(assignment.GetTags()) > 0, assignment.GetTags(), data.Tags, diags)
-
-	// Custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, assignment.HasCustomFields() && len(assignment.GetCustomFields()) > 0, assignment.GetCustomFields(), data.CustomFields, diags)
+	// Tags and custom fields are now handled in Create/Read/Update methods using filter-to-owned pattern
 }

@@ -166,8 +166,8 @@ func (r *ASNRangeResource) Create(ctx context.Context, req resource.CreateReques
 		end,
 	)
 
-	// Set optional fields
-	r.setOptionalFields(ctx, asnRangeRequest, &data, &resp.Diagnostics)
+	// Set optional fields (pass nil for state since this is Create)
+	r.setOptionalFields(ctx, asnRangeRequest, &data, nil, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -238,6 +238,9 @@ func (r *ASNRangeResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
+	// Save original custom_fields state before mapping
+	originalCustomFields := data.CustomFields
+
 	// Map response to model
 	r.mapASNRangeToState(ctx, asnRange, &data, &resp.Diagnostics)
 	tflog.Debug(ctx, "Read ASNRange", map[string]interface{}{
@@ -245,19 +248,30 @@ func (r *ASNRangeResource) Read(ctx context.Context, req resource.ReadRequest, r
 		"name": data.Name.ValueString(),
 	})
 
+	// Preserve original custom_fields state if it was null or empty
+	// This prevents unmanaged/cleared fields from reappearing in state
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		data.CustomFields = originalCustomFields
+	}
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *ASNRangeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ASNRangeResourceModel
+	var plan ASNRangeResourceModel
+	var state ASNRangeResourceModel
 
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read both plan and state for merge-aware custom fields handling
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Use plan as the data source
+	data := plan
 
 	// Parse the ID
 	id, err := utils.ParseID(data.ID.ValueString())
@@ -302,8 +316,8 @@ func (r *ASNRangeResource) Update(ctx context.Context, req resource.UpdateReques
 		end,
 	)
 
-	// Set optional fields
-	r.setOptionalFields(ctx, asnRangeRequest, &data, &resp.Diagnostics)
+	// Set optional fields (pass state for merge-aware custom fields handling)
+	r.setOptionalFields(ctx, asnRangeRequest, &data, &state, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -381,7 +395,7 @@ func (r *ASNRangeResource) ImportState(ctx context.Context, req resource.ImportS
 }
 
 // setOptionalFields sets optional fields on the ASNRange request from the resource model.
-func (r *ASNRangeResource) setOptionalFields(ctx context.Context, asnRangeRequest *netbox.ASNRangeRequest, data *ASNRangeResourceModel, diags *diag.Diagnostics) {
+func (r *ASNRangeResource) setOptionalFields(ctx context.Context, asnRangeRequest *netbox.ASNRangeRequest, data *ASNRangeResourceModel, state *ASNRangeResourceModel, diags *diag.Diagnostics) {
 	// Tenant
 	if utils.IsSet(data.Tenant) {
 		tenantRef, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
@@ -395,8 +409,23 @@ func (r *ASNRangeResource) setOptionalFields(ctx context.Context, asnRangeReques
 	// Description
 	utils.ApplyDescription(asnRangeRequest, data.Description)
 
-	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, asnRangeRequest, data.Tags, data.CustomFields, diags)
+	// Tags
+	utils.ApplyTags(ctx, asnRangeRequest, data.Tags, diags)
+	if diags.HasError() {
+		return
+	}
+
+	// Custom fields with merge-aware handling
+	if state != nil {
+		// Update operation - merge custom fields to preserve unmanaged fields
+		utils.ApplyCustomFieldsWithMerge(ctx, asnRangeRequest, data.CustomFields, state.CustomFields, diags)
+	} else {
+		// Create operation - apply custom fields directly
+		utils.ApplyCustomFields(ctx, asnRangeRequest, data.CustomFields, diags)
+	}
+	if diags.HasError() {
+		return
+	}
 }
 
 // mapASNRangeToState maps a Netbox ASNRange to the Terraform state model.
@@ -432,6 +461,6 @@ func (r *ASNRangeResource) mapASNRangeToState(ctx context.Context, asnRange *net
 		return
 	}
 
-	// Custom Fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, len(asnRange.CustomFields) > 0, asnRange.CustomFields, data.CustomFields, diags)
+	// Custom Fields - filter to owned fields only
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, asnRange.CustomFields, diags)
 }

@@ -197,8 +197,9 @@ func (r *InterfaceResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	// Apply metadata fields (tags, custom_fields)
-	utils.ApplyMetadataFields(ctx, interfaceReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply tags and custom fields separately (filter-to-owned pattern)
+	utils.ApplyTags(ctx, interfaceReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, interfaceReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -261,17 +262,27 @@ func (r *InterfaceResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
+	// Preserve original custom_fields state (null vs empty set distinction)
+	originalCustomFields := data.CustomFields
+
 	// Map response to state
 	r.mapInterfaceToState(ctx, iface, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Restore original custom_fields if it was null/empty and API returned none
+	if !utils.IsSet(originalCustomFields) && !utils.IsSet(data.CustomFields) {
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates an existing interface in Netbox.
 func (r *InterfaceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data InterfaceResourceModel
+	var state, data InterfaceResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -299,8 +310,13 @@ func (r *InterfaceResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	// Apply metadata fields (tags, custom_fields)
-	utils.ApplyMetadataFields(ctx, interfaceReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply tags and custom fields using merge-aware logic
+	if utils.IsSet(data.Tags) {
+		utils.ApplyTags(ctx, interfaceReq, data.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTags(ctx, interfaceReq, state.Tags, &resp.Diagnostics)
+	}
+	utils.ApplyCustomFieldsWithMerge(ctx, interfaceReq, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -634,5 +650,9 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 	data.Tags = utils.PopulateTagsFromAPI(ctx, iface.HasTags(), iface.GetTags(), data.Tags, diags)
 
 	// Custom Fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, iface.HasCustomFields(), iface.GetCustomFields(), data.CustomFields, diags)
+	if iface.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, iface.GetCustomFields(), diags)
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	}
 }

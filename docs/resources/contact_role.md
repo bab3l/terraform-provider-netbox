@@ -14,8 +14,31 @@ Manages a contact role in Netbox. Contact roles define the function or responsib
 ```terraform
 # Example: Basic contact role
 resource "netbox_contact_role" "technical" {
-  name = "Technical"
-  slug = "technical"
+  name        = "Technical"
+  slug        = "technical"
+  description = "Technical point of contact for system operations"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "response_time_sla"
+      value = "4 hours"
+    },
+    {
+      name  = "role_priority"
+      value = "high"
+    },
+    {
+      name  = "escalation_required"
+      value = "true"
+    }
+  ]
+
+  tags = [
+    "contact-role",
+    "technical"
+  ]
 }
 
 # Example: Contact role with description

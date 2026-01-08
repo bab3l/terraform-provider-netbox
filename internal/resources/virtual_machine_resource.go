@@ -295,9 +295,7 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 		data.Comments = types.StringNull()
 	}
 
-	// Populate tags and custom fields using unified helpers
-	data.Tags = utils.PopulateTagsFromAPI(ctx, vm.HasTags(), vm.GetTags(), data.Tags, diags)
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, vm.HasCustomFields(), vm.GetCustomFields(), data.CustomFields, diags)
+	// Tags and custom fields are now handled in Create/Read/Update with filter-to-owned pattern
 }
 
 // buildVirtualMachineRequest builds a WritableVirtualMachineWithConfigContextRequest from the resource model.
@@ -430,6 +428,112 @@ func (r *VirtualMachineResource) buildVirtualMachineRequest(ctx context.Context,
 	return vmRequest
 }
 
+// buildVirtualMachineRequestWithState builds a WritableVirtualMachineWithConfigContextRequest with merge-aware custom fields.
+func (r *VirtualMachineResource) buildVirtualMachineRequestWithState(ctx context.Context, plan *VirtualMachineResourceModel, state *VirtualMachineResourceModel, diags *diag.Diagnostics) *netbox.WritableVirtualMachineWithConfigContextRequest {
+	vmRequest := &netbox.WritableVirtualMachineWithConfigContextRequest{
+		Name: plan.Name.ValueString(),
+	}
+
+	// Status
+	if utils.IsSet(plan.Status) {
+		status := netbox.ModuleStatusValue(plan.Status.ValueString())
+		vmRequest.Status = &status
+	}
+
+	// Site
+	if utils.IsSet(plan.Site) {
+		site, siteDiags := netboxlookup.LookupSite(ctx, r.client, plan.Site.ValueString())
+		diags.Append(siteDiags...)
+		if diags.HasError() {
+			return nil
+		}
+		vmRequest.Site = *netbox.NewNullableBriefSiteRequest(site)
+	}
+
+	// Cluster
+	if utils.IsSet(plan.Cluster) {
+		cluster, clusterDiags := netboxlookup.LookupCluster(ctx, r.client, plan.Cluster.ValueString())
+		diags.Append(clusterDiags...)
+		if diags.HasError() {
+			return nil
+		}
+		vmRequest.Cluster = *netbox.NewNullableBriefClusterRequest(cluster)
+	}
+
+	// Role
+	if utils.IsSet(plan.Role) {
+		role, roleDiags := netboxlookup.LookupDeviceRole(ctx, r.client, plan.Role.ValueString())
+		diags.Append(roleDiags...)
+		if diags.HasError() {
+			return nil
+		}
+		vmRequest.Role = *netbox.NewNullableBriefDeviceRoleRequest(role)
+	}
+
+	// Tenant
+	if utils.IsSet(plan.Tenant) {
+		tenant, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, plan.Tenant.ValueString())
+		diags.Append(tenantDiags...)
+		if diags.HasError() {
+			return nil
+		}
+		vmRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
+	}
+
+	// Platform
+	if utils.IsSet(plan.Platform) {
+		platform, platformDiags := netboxlookup.LookupPlatform(ctx, r.client, plan.Platform.ValueString())
+		diags.Append(platformDiags...)
+		if diags.HasError() {
+			return nil
+		}
+		vmRequest.Platform = *netbox.NewNullableBriefPlatformRequest(platform)
+	}
+
+	// Vcpus
+	if utils.IsSet(plan.Vcpus) {
+		vcpus := plan.Vcpus.ValueFloat64()
+		vmRequest.Vcpus = *netbox.NewNullableFloat64(&vcpus)
+	}
+
+	// Memory
+	if utils.IsSet(plan.Memory) {
+		memory, err := utils.SafeInt32FromValue(plan.Memory)
+		if err != nil {
+			diags.AddError("Invalid memory value", fmt.Sprintf("Memory value overflow: %s", err))
+			return nil
+		}
+		vmRequest.Memory = *netbox.NewNullableInt32(&memory)
+	}
+
+	// Disk
+	if utils.IsSet(plan.Disk) {
+		disk, err := utils.SafeInt32FromValue(plan.Disk)
+		if err != nil {
+			diags.AddError("Invalid disk value", fmt.Sprintf("Disk value overflow: %s", err))
+			return nil
+		}
+		vmRequest.Disk = *netbox.NewNullableInt32(&disk)
+	}
+
+	// Apply description and comments
+	utils.ApplyDescriptiveFields(vmRequest, plan.Description, plan.Comments)
+
+	// Apply tags
+	utils.ApplyTags(ctx, vmRequest, plan.Tags, diags)
+	if diags.HasError() {
+		return nil
+	}
+
+	// Apply custom fields with merge (merge-aware)
+	utils.ApplyCustomFieldsWithMerge(ctx, vmRequest, plan.CustomFields, state.CustomFields, diags)
+	if diags.HasError() {
+		return nil
+	}
+
+	return vmRequest
+}
+
 // Create creates a new virtual machine resource.
 
 func (r *VirtualMachineResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -476,6 +580,10 @@ func (r *VirtualMachineResource) Create(ctx context.Context, req resource.Create
 		"name": vm.GetName(),
 	})
 
+	// Save plan state for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
 	// Map response to state
 
 	r.mapVirtualMachineToState(ctx, vm, &data, &resp.Diagnostics)
@@ -483,6 +591,10 @@ func (r *VirtualMachineResource) Create(ctx context.Context, req resource.Create
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, vm.HasTags(), vm.GetTags(), planTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, vm.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -548,6 +660,10 @@ func (r *VirtualMachineResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
+	// Save state for filter-to-owned pattern
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	// Map response to state
 
 	r.mapVirtualMachineToState(ctx, vm, &data, &resp.Diagnostics)
@@ -556,15 +672,21 @@ func (r *VirtualMachineResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
+	// Preserve null/empty state values for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, vm.HasTags(), vm.GetTags(), stateTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, vm.GetCustomFields(), &resp.Diagnostics)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates the resource and sets the updated Terraform state.
 
 func (r *VirtualMachineResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data VirtualMachineResourceModel
+	// Read both state and plan for merge-aware custom fields
+	var state, plan VirtualMachineResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -572,7 +694,7 @@ func (r *VirtualMachineResource) Update(ctx context.Context, req resource.Update
 
 	// Parse the ID
 
-	vmID := data.ID.ValueString()
+	vmID := plan.ID.ValueString()
 
 	var vmIDInt int32
 
@@ -592,12 +714,12 @@ func (r *VirtualMachineResource) Update(ctx context.Context, req resource.Update
 	tflog.Debug(ctx, "Updating virtual machine", map[string]interface{}{
 		"id": vmID,
 
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
-	// Build the VM request
+	// Build the VM request with state for merge-aware custom fields
 
-	vmRequest := r.buildVirtualMachineRequest(ctx, &data, &resp.Diagnostics)
+	vmRequest := r.buildVirtualMachineRequestWithState(ctx, &plan, &state, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -626,15 +748,23 @@ func (r *VirtualMachineResource) Update(ctx context.Context, req resource.Update
 		"name": vm.GetName(),
 	})
 
+	// Save plan state for filter-to-owned pattern
+	planTags := plan.Tags
+	planCustomFields := plan.CustomFields
+
 	// Map response to state
 
-	r.mapVirtualMachineToState(ctx, vm, &data, &resp.Diagnostics)
+	r.mapVirtualMachineToState(ctx, vm, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Apply filter-to-owned pattern for tags and custom_fields
+	plan.Tags = utils.PopulateTagsFromAPI(ctx, vm.HasTags(), vm.GetTags(), planTags, &resp.Diagnostics)
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, vm.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state.

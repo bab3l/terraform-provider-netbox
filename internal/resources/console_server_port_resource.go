@@ -164,7 +164,8 @@ func (r *ConsoleServerPortResource) Create(ctx context.Context, req resource.Cre
 
 	// Handle description, tags, and custom fields using helpers
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -228,63 +229,78 @@ func (r *ConsoleServerPortResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
+	// Preserve original custom_fields value from state
+	originalCustomFields := data.CustomFields
+
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// If custom_fields was null or empty before, restore that state
+	// This prevents drift when config doesn't declare custom_fields
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates the resource.
 func (r *ConsoleServerPortResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ConsoleServerPortResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	var state, plan ConsoleServerPortResourceModel
+
+	// Read both state and plan for merge-aware custom fields handling
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	portID, err := utils.ParseID(data.ID.ValueString())
+	portID, err := utils.ParseID(plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Console Server Port ID",
-			fmt.Sprintf("Console Server Port ID must be a number, got: %s", data.ID.ValueString()),
+			fmt.Sprintf("Console Server Port ID must be a number, got: %s", plan.ID.ValueString()),
 		)
 		return
 	}
 
 	// Lookup device
-	device, diags := lookup.LookupDevice(ctx, r.client, data.Device.ValueString())
+	device, diags := lookup.LookupDevice(ctx, r.client, plan.Device.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Build request
-	apiReq := netbox.NewWritableConsoleServerPortRequest(*device, data.Name.ValueString())
+	apiReq := netbox.NewWritableConsoleServerPortRequest(*device, plan.Name.ValueString())
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
+	if !plan.Label.IsNull() && !plan.Label.IsUnknown() {
+		apiReq.SetLabel(plan.Label.ValueString())
 	}
 
-	if !data.Type.IsNull() && !data.Type.IsUnknown() {
-		portType := netbox.PatchedWritableConsolePortRequestType(data.Type.ValueString())
+	if !plan.Type.IsNull() && !plan.Type.IsUnknown() {
+		portType := netbox.PatchedWritableConsolePortRequestType(plan.Type.ValueString())
 		apiReq.SetType(portType)
 	}
 
-	if !data.Speed.IsNull() && !data.Speed.IsUnknown() {
-		speed := netbox.PatchedWritableConsolePortRequestSpeed(data.Speed.ValueInt32())
+	if !plan.Speed.IsNull() && !plan.Speed.IsUnknown() {
+		speed := netbox.PatchedWritableConsolePortRequestSpeed(plan.Speed.ValueInt32())
 		apiReq.SetSpeed(speed)
 	}
 
-	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
-		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
+	if !plan.MarkConnected.IsNull() && !plan.MarkConnected.IsUnknown() {
+		apiReq.SetMarkConnected(plan.MarkConnected.ValueBool())
 	}
 
-	// Handle description, tags, and custom fields using helpers
-	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle description, tags, and custom fields using merge-aware helpers
+	utils.ApplyDescription(apiReq, plan.Description)
+	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	// Apply custom fields with merge logic to preserve unmanaged fields
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -302,12 +318,19 @@ func (r *ConsoleServerPortResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
+	// Save the plan's custom fields before mapping (for filter-to-owned pattern)
+	planCustomFields := plan.CustomFields
+
 	// Map response to model
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	// Apply filter-to-owned pattern for custom fields
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource.
@@ -421,6 +444,6 @@ func (r *ConsoleServerPortResource) mapResponseToModel(ctx context.Context, cons
 	// Handle tags
 	data.Tags = utils.PopulateTagsFromAPI(ctx, consoleServerPort.HasTags(), consoleServerPort.GetTags(), data.Tags, diags)
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, consoleServerPort.HasCustomFields(), consoleServerPort.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields - filter to only owned fields
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, consoleServerPort.GetCustomFields(), diags)
 }

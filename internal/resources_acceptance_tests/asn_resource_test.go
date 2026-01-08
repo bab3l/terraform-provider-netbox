@@ -15,10 +15,11 @@ func TestAccASNResource_basic(t *testing.T) {
 
 	rirName := testutil.RandomName("tf-test-rir")
 	rirSlug := testutil.RandomSlug("tf-test-rir")
-	// Generate a random ASN in the private range (64512-65534)
-	asn := int64(acctest.RandIntRange(64512, 65534))
+	// Generate a random ASN in the private range (64512-64711) - non-overlapping with other tests
+	asn := int64(acctest.RandIntRange(64512, 64711))
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterASNCleanup(asn)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -49,14 +50,15 @@ func TestAccASNResource_full(t *testing.T) {
 	tenantName := testutil.RandomName("tf-test-tenant")
 	tenantSlug := testutil.RandomSlug("tf-test-tenant")
 
-	// Generate a random ASN in the private range (64512-65534)
-	asn := int64(acctest.RandIntRange(64512, 65534))
+	// Generate a random ASN in the private range (64712-64911) - non-overlapping with other tests
+	asn := int64(acctest.RandIntRange(64712, 64911))
 	description := testutil.RandomName("description")
 	updatedDescription := "Updated ASN description"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
 	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterASNCleanup(asn)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -88,10 +90,12 @@ func TestAccASNResource_IDPreservation(t *testing.T) {
 
 	rirName := testutil.RandomName("tf-test-rir-id")
 	rirSlug := testutil.RandomSlug("tf-test-rir-id")
-	asn := int64(acctest.RandIntRange(64512, 65000))
+	// Generate a random ASN in the private range (64912-65111) - non-overlapping with other tests
+	asn := int64(acctest.RandIntRange(64912, 65111))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterASNCleanup(asn)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -114,10 +118,12 @@ func TestAccASNResource_update(t *testing.T) {
 
 	rirName := testutil.RandomName("tf-test-rir-update")
 	rirSlug := testutil.RandomSlug("tf-test-rir-update")
-	asn := int64(acctest.RandIntRange(64512, 65534))
+	// Generate a random ASN in the private range (65112-65311) - non-overlapping with other tests
+	asn := int64(acctest.RandIntRange(65112, 65311))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterASNCleanup(asn)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -146,7 +152,8 @@ func TestAccASNResource_external_deletion(t *testing.T) {
 
 	rirName := testutil.RandomName("tf-test-rir-ext-del")
 	rirSlug := testutil.RandomSlug("tf-test-rir-ext-del")
-	asn := int64(acctest.RandIntRange(64512, 65534))
+	// Generate a random ASN in the private range (65312-65534) - non-overlapping with other tests
+	asn := int64(acctest.RandIntRange(65312, 65534))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
@@ -256,6 +263,7 @@ func TestAccConsistency_ASN_LiteralNames(t *testing.T) {
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
 	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterASNCleanup(asn)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },

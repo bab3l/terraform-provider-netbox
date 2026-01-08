@@ -294,7 +294,9 @@ func (r *DeviceTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 
 func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data DeviceTypeResourceModel
+	var state DeviceTypeResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -380,8 +382,8 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 		deviceTypeRequest.WeightUnit = &weightUnit
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, &deviceTypeRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Set common fields with merge-aware custom fields (description, comments, tags, custom_fields)
+	utils.ApplyCommonFieldsWithMerge(ctx, &deviceTypeRequest, data.Description, data.Comments, data.Tags, state.Tags, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -548,6 +550,8 @@ func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceTyp
 	// Handle tags
 	data.Tags = utils.PopulateTagsFromAPI(ctx, deviceType.HasTags(), deviceType.GetTags(), data.Tags, diags)
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, deviceType.HasCustomFields(), deviceType.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields - only populate fields that are in plan (owned by this resource)
+	if deviceType.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, deviceType.GetCustomFields(), diags)
+	}
 }

@@ -11,6 +11,120 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+// TestAccClusterGroupResource_CustomFieldsPreservation tests that custom fields are preserved
+// when updating other fields on a cluster group. This addresses a critical bug where custom fields
+// were being deleted when users updated unrelated fields.
+func TestAccClusterGroupResource_CustomFieldsPreservation(t *testing.T) {
+	clusterGroupName := testutil.RandomName("cluster_group_preserve")
+	clusterGroupSlug := testutil.RandomSlug("cluster_group_preserve")
+	cfText := testutil.RandomCustomFieldName("tf_text_preserve")
+	cfInteger := testutil.RandomCustomFieldName("tf_int_preserve")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create with custom fields
+				Config: testAccClusterGroupConfig_preservation_step1(
+					clusterGroupName, clusterGroupSlug, cfText, cfInteger, "initial value", 42,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "name", clusterGroupName),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "description", "Initial description"),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_cluster_group.test", cfText, "text", "initial value"),
+					testutil.CheckCustomFieldValue("netbox_cluster_group.test", cfInteger, "integer", "42"),
+				),
+			},
+			{
+				// Step 2: Update description WITHOUT mentioning custom_fields
+				Config: testAccClusterGroupConfig_preservation_step2(
+					clusterGroupName, clusterGroupSlug, cfText, cfInteger, "Updated description",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "name", clusterGroupName),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "description", "Updated description"),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "custom_fields.#", "0"),
+				),
+			},
+			{
+				// Step 3: Add custom_fields back to verify they were preserved
+				Config: testAccClusterGroupConfig_preservation_step1(
+					clusterGroupName, clusterGroupSlug, cfText, cfInteger, "initial value", 42,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_cluster_group.test", cfText, "text", "initial value"),
+					testutil.CheckCustomFieldValue("netbox_cluster_group.test", cfInteger, "integer", "42"),
+				),
+			},
+		},
+	})
+}
+
+func testAccClusterGroupConfig_preservation_step1(
+	clusterGroupName, clusterGroupSlug, cfTextName, cfIntName, cfTextValue string, cfIntValue int,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "text" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["virtualization.clustergroup"]
+}
+
+resource "netbox_custom_field" "integer" {
+  name         = %[4]q
+  type         = "integer"
+  object_types = ["virtualization.clustergroup"]
+}
+
+resource "netbox_cluster_group" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  description = "Initial description"
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.text.name
+      type  = "text"
+      value = %[5]q
+    },
+    {
+      name  = netbox_custom_field.integer.name
+      type  = "integer"
+      value = "%[6]d"
+    }
+  ]
+}
+`, clusterGroupName, clusterGroupSlug, cfTextName, cfIntName, cfTextValue, cfIntValue)
+}
+
+func testAccClusterGroupConfig_preservation_step2(
+	clusterGroupName, clusterGroupSlug, cfTextName, cfIntName, description string,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "text" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["virtualization.clustergroup"]
+}
+
+resource "netbox_custom_field" "integer" {
+  name         = %[4]q
+  type         = "integer"
+  object_types = ["virtualization.clustergroup"]
+}
+
+resource "netbox_cluster_group" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  description = %[5]q
+  # custom_fields intentionally omitted - should preserve existing values
+}
+`, clusterGroupName, clusterGroupSlug, cfTextName, cfIntName, description)
+}
+
 func TestAccClusterGroupResource_importWithCustomFieldsAndTags(t *testing.T) {
 	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
 	// that would affect other tests of the same resource type running in parallel.

@@ -207,3 +207,150 @@ resource "netbox_site" "test" {
 `, siteName, siteSlug, tag1Name, tag1Slug, tag1Color, tag2Name, tag2Slug, tag2Color,
 		cfText, cfTextValue, cfLongtext, cfLongtextValue, cfIntegerName, cfIntegerValue, cfBoolean, cfBooleanValue, cfDate, cfDateValue, cfURL, cfURLValue, cfJSON, cfJSONValue)
 }
+
+// TestAccSiteResource_CustomFieldsPreservation tests that custom fields are preserved
+// when updating other fields on a site. This addresses a critical bug where custom fields
+// were being deleted when users updated unrelated fields.
+//
+// Bug scenario:
+// 1. Create site with custom fields
+// 2. Update site WITHOUT custom_fields in config (omit the field entirely)
+// 3. Custom fields should be preserved in NetBox, not deleted.
+func TestAccSiteResource_CustomFieldsPreservation(t *testing.T) {
+	// Generate unique names
+	siteName := testutil.RandomName("tf-test-site-cf-preserve")
+	siteSlug := testutil.RandomSlug("tf-test-site-cf-preserve")
+
+	// Custom field names
+	cfText := testutil.RandomCustomFieldName("tf_text_preserve")
+	cfInteger := testutil.RandomCustomFieldName("tf_int_preserve")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create site WITH custom fields explicitly in config
+				Config: testAccSiteConfig_preservation_step1(
+					siteName, siteSlug,
+					cfText, cfInteger, "initial value", 42,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_site.test", "name", siteName),
+					resource.TestCheckResourceAttr("netbox_site.test", "description", "Initial description"),
+					resource.TestCheckResourceAttr("netbox_site.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_site.test", cfText, "text", "initial value"),
+					testutil.CheckCustomFieldValue("netbox_site.test", cfInteger, "integer", "42"),
+				),
+			},
+			{
+				// Step 2: Update description WITHOUT mentioning custom_fields in config
+				// Custom fields should be preserved in NetBox (verified by import)
+				// State shows null/empty for custom_fields since not in config
+				Config: testAccSiteConfig_preservation_step2(
+					siteName, siteSlug,
+					cfText, cfInteger, "Updated description",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_site.test", "name", siteName),
+					resource.TestCheckResourceAttr("netbox_site.test", "description", "Updated description"),
+					// State shows 0 custom_fields (not in config = not owned)
+					resource.TestCheckResourceAttr("netbox_site.test", "custom_fields.#", "0"),
+				),
+			},
+			{
+				// Step 3: Import to verify custom fields still exist in NetBox
+				ResourceName:            "netbox_site.test",
+				ImportState:             true,
+				ImportStateVerify:       false,                     // Can't verify - config has no custom_fields
+				ImportStateVerifyIgnore: []string{"custom_fields"}, // Different because filter-to-owned
+			},
+			{
+				// Step 4: Add custom_fields back to config to verify they were preserved
+				Config: testAccSiteConfig_preservation_step1(
+					siteName, siteSlug,
+					cfText, cfInteger, "initial value", 42,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					// Custom fields should have their original values (preserved in NetBox)
+					resource.TestCheckResourceAttr("netbox_site.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_site.test", cfText, "text", "initial value"),
+					testutil.CheckCustomFieldValue("netbox_site.test", cfInteger, "integer", "42"),
+				),
+			},
+		},
+	})
+}
+
+func testAccSiteConfig_preservation_step1(
+	siteName, siteSlug,
+	cfTextName, cfIntName, cfTextValue string, cfIntValue int,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "text" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["dcim.site"]
+}
+
+resource "netbox_custom_field" "integer" {
+  name         = %[4]q
+  type         = "integer"
+  object_types = ["dcim.site"]
+}
+
+resource "netbox_site" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  status      = "active"
+  description = %[5]q
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.text.name
+      type  = "text"
+      value = %[6]q
+    },
+    {
+      name  = netbox_custom_field.integer.name
+      type  = "integer"
+      value = "%[7]d"
+    }
+  ]
+}
+`,
+		siteName, siteSlug,
+		cfTextName, cfIntName, "Initial description", cfTextValue, cfIntValue,
+	)
+}
+
+func testAccSiteConfig_preservation_step2(
+	siteName, siteSlug,
+	cfTextName, cfIntName, description string,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "text" {
+  name         = %[3]q
+  type         = "text"
+  object_types = ["dcim.site"]
+}
+
+resource "netbox_custom_field" "integer" {
+  name         = %[4]q
+  type         = "integer"
+  object_types = ["dcim.site"]
+}
+
+resource "netbox_site" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  status      = "active"
+  description = %[5]q
+
+  # NOTE: custom_fields is intentionally omitted to test preservation behavior
+}
+`,
+		siteName, siteSlug,
+		cfTextName, cfIntName, description,
+	)
+}

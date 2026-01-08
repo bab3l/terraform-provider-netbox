@@ -234,8 +234,9 @@ func (r *RegionResource) Read(ctx context.Context, req resource.ReadRequest, res
 }
 
 func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data RegionResourceModel
+	var state, data RegionResourceModel
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -264,11 +265,23 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Apply description and metadata fields
+	// Apply description
 
 	utils.ApplyDescription(&regionRequest, data.Description)
 
-	utils.ApplyMetadataFields(ctx, &regionRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle tags and custom fields - merge-aware for partial management
+	// If tags are in plan, use plan. If not, preserve state tags.
+	if utils.IsSet(data.Tags) {
+		utils.ApplyTags(ctx, &regionRequest, data.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTags(ctx, &regionRequest, state.Tags, &resp.Diagnostics)
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply custom fields with merge logic (preserves unmanaged fields from state)
+	utils.ApplyCustomFieldsWithMerge(ctx, &regionRequest, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -394,6 +407,8 @@ func (r *RegionResource) mapRegionToState(ctx context.Context, region *netbox.Re
 	// Handle tags
 	data.Tags = utils.PopulateTagsFromAPI(ctx, region.HasTags(), region.GetTags(), data.Tags, diags)
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, region.HasCustomFields(), region.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields - use filtered-to-owned for partial management
+	if region.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, region.GetCustomFields(), diags)
+	}
 }

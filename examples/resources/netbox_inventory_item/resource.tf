@@ -31,6 +31,33 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_inventory_item" "test" {
-  name   = "Inventory Item 1"
-  device = netbox_device.test.name
+  name        = "Inventory Item 1"
+  device      = netbox_device.test.name
+  description = "Power supply module"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "serial_number"
+      value = "PSU-SN-12345"
+    },
+    {
+      name  = "purchase_date"
+      value = "2024-01-15"
+    },
+    {
+      name  = "warranty_expiry"
+      value = "2027-01-15"
+    },
+    {
+      name  = "asset_tag"
+      value = "INV-PSU-001"
+    }
+  ]
+
+  tags = [
+    "power-supply",
+    "warranty-tracked"
+  ]
 }

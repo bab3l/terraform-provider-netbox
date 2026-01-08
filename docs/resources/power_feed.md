@@ -40,6 +40,30 @@ resource "netbox_power_feed" "test" {
   phase       = "single-phase"
   voltage     = 230
   amperage    = 32
+  description = "Primary power feed to rack"
+  comments    = "Main electrical feed from panel"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "circuit_id"
+      value = "FEED-001-A"
+    },
+    {
+      name  = "upstream_breaker"
+      value = "32A-BREAKER-12"
+    },
+    {
+      name  = "redundant_feed"
+      value = "FEED-001-B"
+    }
+  ]
+
+  tags = [
+    "power-feed",
+    "primary"
+  ]
 }
 ```
 

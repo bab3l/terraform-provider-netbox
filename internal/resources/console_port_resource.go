@@ -231,7 +231,8 @@ func (r *ConsolePortResource) Read(ctx context.Context, req resource.ReadRequest
 
 // Update updates the resource.
 func (r *ConsolePortResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ConsolePortResourceModel
+	var state, data ConsolePortResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -274,9 +275,18 @@ func (r *ConsolePortResource) Update(ctx context.Context, req resource.UpdateReq
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
 	}
 
-	// Handle description, tags, and custom fields using helpers
+	// Handle description, tags, and custom fields with merge-aware behavior
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+
+	// Apply tags - merge-aware: use plan if provided, else use state
+	if utils.IsSet(data.Tags) {
+		utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTags(ctx, apiReq, state.Tags, &resp.Diagnostics)
+	}
+
+	// Apply custom fields with merge logic (preserves unmanaged fields)
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -413,5 +423,9 @@ func (r *ConsolePortResource) mapResponseToModel(ctx context.Context, consolePor
 	data.Tags = utils.PopulateTagsFromAPI(ctx, consolePort.HasTags(), consolePort.GetTags(), data.Tags, diags)
 
 	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, consolePort.HasCustomFields(), consolePort.GetCustomFields(), data.CustomFields, diags)
+	if consolePort.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, consolePort.GetCustomFields(), diags)
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	}
 }

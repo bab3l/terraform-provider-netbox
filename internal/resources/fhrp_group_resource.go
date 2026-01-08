@@ -129,7 +129,7 @@ func (r *FHRPGroupResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Set optional fields
-	r.setOptionalFields(ctx, &fhrpGroupRequest, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, &fhrpGroupRequest, &data, nil, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -166,6 +166,9 @@ func (r *FHRPGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
+	// Preserve original custom_fields from state for potential restoration
+	originalCustomFields := data.CustomFields
+
 	// Get the FHRP Group via API
 	id := data.ID.ValueInt32()
 	fhrpGroup, httpResp, err := r.client.IpamAPI.IpamFhrpGroupsRetrieve(ctx, id).Execute()
@@ -190,36 +193,53 @@ func (r *FHRPGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// If custom_fields was null or empty before (not managed or explicitly cleared),
+	// restore that state after mapping.
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		tflog.Debug(ctx, "Custom fields unmanaged/cleared, preserving original state during Read", map[string]interface{}{
+			"was_null":  originalCustomFields.IsNull(),
+			"was_empty": !originalCustomFields.IsNull() && len(originalCustomFields.Elements()) == 0,
+		})
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *FHRPGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data FHRPGroupResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read BOTH state and plan for merge-aware custom fields
+	var state, plan FHRPGroupResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	id := data.ID.ValueInt32()
+	id := plan.ID.ValueInt32()
 	tflog.Debug(ctx, "Updating FHRP Group", map[string]interface{}{
 		"id": id,
 	})
 
 	// Prepare the FHRP Group request
-	protocol, err := netbox.NewBriefFHRPGroupProtocolFromValue(data.Protocol.ValueString())
+	protocol, err := netbox.NewBriefFHRPGroupProtocolFromValue(plan.Protocol.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Invalid Protocol", fmt.Sprintf("Invalid FHRP protocol value: %s", data.Protocol.ValueString()))
+		resp.Diagnostics.AddError("Invalid Protocol", fmt.Sprintf("Invalid FHRP protocol value: %s", plan.Protocol.ValueString()))
 		return
 	}
 	fhrpGroupRequest := netbox.FHRPGroupRequest{
 		Protocol: *protocol,
-		GroupId:  data.GroupID.ValueInt32(),
+		GroupId:  plan.GroupID.ValueInt32(),
 	}
 
-	// Set optional fields
-	r.setOptionalFields(ctx, &fhrpGroupRequest, &data, &resp.Diagnostics)
+	// Set optional fields with state for merge
+	r.setOptionalFields(ctx, &fhrpGroupRequest, &plan, &state, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Store plan tags/customfields for filter-to-owned population
+	planTags := plan.Tags
+	planCustomFields := plan.CustomFields
 
 	// Update the FHRP Group via API
 	fhrpGroup, httpResp, err := r.client.IpamAPI.IpamFhrpGroupsUpdate(ctx, id).FHRPGroupRequest(fhrpGroupRequest).Execute()
@@ -236,11 +256,13 @@ func (r *FHRPGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	})
 
 	// Map response to state
-	r.mapFHRPGroupToState(ctx, fhrpGroup, &data, &resp.Diagnostics)
+	plan.Tags = planTags
+	plan.CustomFields = planCustomFields
+	r.mapFHRPGroupToState(ctx, fhrpGroup, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *FHRPGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -287,31 +309,38 @@ func (r *FHRPGroupResource) ImportState(ctx context.Context, req resource.Import
 }
 
 // setOptionalFields sets optional fields on the FHRP Group request.
-func (r *FHRPGroupResource) setOptionalFields(ctx context.Context, fhrpGroupRequest *netbox.FHRPGroupRequest, data *FHRPGroupResourceModel, diags *diag.Diagnostics) {
+func (r *FHRPGroupResource) setOptionalFields(ctx context.Context, fhrpGroupRequest *netbox.FHRPGroupRequest, plan *FHRPGroupResourceModel, state *FHRPGroupResourceModel, diags *diag.Diagnostics) {
 	// Name
-	if !data.Name.IsNull() && !data.Name.IsUnknown() {
-		name := data.Name.ValueString()
+	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
+		name := plan.Name.ValueString()
 		fhrpGroupRequest.Name = &name
 	}
 
 	// Auth Type
-	if !data.AuthType.IsNull() && !data.AuthType.IsUnknown() {
-		authType, err := netbox.NewAuthenticationTypeFromValue(data.AuthType.ValueString())
+	if !plan.AuthType.IsNull() && !plan.AuthType.IsUnknown() {
+		authType, err := netbox.NewAuthenticationTypeFromValue(plan.AuthType.ValueString())
 		if err != nil {
-			diags.AddError("Invalid Auth Type", fmt.Sprintf("Invalid authentication type value: %s", data.AuthType.ValueString()))
+			diags.AddError("Invalid Auth Type", fmt.Sprintf("Invalid authentication type value: %s", plan.AuthType.ValueString()))
 			return
 		}
 		fhrpGroupRequest.AuthType = authType
 	}
 
 	// Auth Key
-	if !data.AuthKey.IsNull() && !data.AuthKey.IsUnknown() {
-		authKey := data.AuthKey.ValueString()
+	if !plan.AuthKey.IsNull() && !plan.AuthKey.IsUnknown() {
+		authKey := plan.AuthKey.ValueString()
 		fhrpGroupRequest.AuthKey = &authKey
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, fhrpGroupRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	// Set common fields with merge-aware custom fields
+	utils.ApplyDescription(fhrpGroupRequest, plan.Description)
+	utils.ApplyComments(fhrpGroupRequest, plan.Comments)
+	utils.ApplyTags(ctx, fhrpGroupRequest, plan.Tags, diags)
+	if state != nil {
+		utils.ApplyCustomFieldsWithMerge(ctx, fhrpGroupRequest, plan.CustomFields, state.CustomFields, diags)
+	} else {
+		utils.ApplyCustomFields(ctx, fhrpGroupRequest, plan.CustomFields, diags)
+	}
 	if diags.HasError() {
 		return
 	}
@@ -362,12 +391,12 @@ func (r *FHRPGroupResource) mapFHRPGroupToState(ctx context.Context, fhrpGroup *
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags using consolidated helper
+	// Handle tags using FromAPI helper (tags don't use filter-to-owned)
 	data.Tags = utils.PopulateTagsFromAPI(ctx, fhrpGroup.HasTags(), fhrpGroup.GetTags(), data.Tags, diags)
 	if diags.HasError() {
 		return
 	}
 
-	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, fhrpGroup.HasCustomFields(), fhrpGroup.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields using filter-to-owned helper
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, fhrpGroup.GetCustomFields(), diags)
 }

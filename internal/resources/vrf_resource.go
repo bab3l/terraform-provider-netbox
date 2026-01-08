@@ -136,9 +136,9 @@ func (r *VRFResource) Create(ctx context.Context, req resource.CreateRequest, re
 		Name: data.Name.ValueString(),
 	}
 
-	// Set optional fields
+	// Set optional fields (pass nil for state since this is Create)
 
-	r.setOptionalFields(ctx, &vrfRequest, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, &vrfRequest, &data, nil, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -243,6 +243,9 @@ func (r *VRFResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		"name": vrf.GetName(),
 	})
 
+	// Save original custom_fields state before mapping
+	originalCustomFields := data.CustomFields
+
 	// Map response back to state
 
 	r.mapVRFToState(ctx, vrf, &data, &resp.Diagnostics)
@@ -251,17 +254,29 @@ func (r *VRFResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
+	// Preserve original custom_fields state if it was null or empty
+	// This prevents unmanaged/cleared fields from reappearing in state
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *VRFResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data VRFResourceModel
+	var plan VRFResourceModel
+	var state VRFResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read both plan and state for merge-aware custom fields handling
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Use plan as the data source
+	data := plan
 
 	// Parse the ID
 
@@ -289,9 +304,9 @@ func (r *VRFResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		Name: data.Name.ValueString(),
 	}
 
-	// Set optional fields
+	// Set optional fields (pass state for merge-aware custom fields handling)
 
-	r.setOptionalFields(ctx, &vrfRequest, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, &vrfRequest, &data, &state, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -396,7 +411,7 @@ func (r *VRFResource) ImportState(ctx context.Context, req resource.ImportStateR
 
 // setOptionalFields sets optional fields on the VRF request from the resource model.
 
-func (r *VRFResource) setOptionalFields(ctx context.Context, vrfRequest *netbox.VRFRequest, data *VRFResourceModel, diags *diag.Diagnostics) {
+func (r *VRFResource) setOptionalFields(ctx context.Context, vrfRequest *netbox.VRFRequest, data *VRFResourceModel, state *VRFResourceModel, diags *diag.Diagnostics) {
 	// Route distinguisher
 
 	if utils.IsSet(data.RD) {
@@ -425,8 +440,26 @@ func (r *VRFResource) setOptionalFields(ctx context.Context, vrfRequest *netbox.
 		vrfRequest.EnforceUnique = utils.BoolPtr(data.EnforceUnique)
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, vrfRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	// Description
+	utils.ApplyDescription(vrfRequest, data.Description)
+
+	// Comments
+	utils.ApplyComments(vrfRequest, data.Comments)
+
+	// Tags
+	utils.ApplyTags(ctx, vrfRequest, data.Tags, diags)
+	if diags.HasError() {
+		return
+	}
+
+	// Custom fields with merge-aware handling
+	if state != nil {
+		// Update operation - merge custom fields to preserve unmanaged fields
+		utils.ApplyCustomFieldsWithMerge(ctx, vrfRequest, data.CustomFields, state.CustomFields, diags)
+	} else {
+		// Create operation - apply custom fields directly
+		utils.ApplyCustomFields(ctx, vrfRequest, data.CustomFields, diags)
+	}
 	if diags.HasError() {
 		return
 	}
@@ -480,5 +513,6 @@ func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *
 	}
 
 	// Custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, vrf.HasCustomFields(), vrf.GetCustomFields(), data.CustomFields, diags)
+	// Custom Fields - filter to owned fields only
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vrf.GetCustomFields(), diags)
 }

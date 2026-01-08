@@ -172,7 +172,14 @@ func (r *WirelessLANGroupResource) Create(ctx context.Context, req resource.Crea
 
 	// Handle description and metadata fields
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+
+	// Store plan values for filter-to-owned population later
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
+	// Apply tags and custom fields
+	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -206,6 +213,10 @@ func (r *WirelessLANGroupResource) Create(ctx context.Context, req resource.Crea
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Populate tags and custom fields filtered to owned fields only
+	data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Trace(ctx, "Created wireless LAN group", map[string]interface{}{
 		"id": data.ID.ValueString(),
@@ -265,6 +276,10 @@ func (r *WirelessLANGroupResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
+	// Store state values for filter-to-owned (preserve null vs empty set distinction)
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	// Map response to model
 
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -273,28 +288,33 @@ func (r *WirelessLANGroupResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
+	// Populate tags and custom fields filtered to owned fields only (preserves null/empty state)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), stateTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, response.GetCustomFields(), &resp.Diagnostics)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates the resource.
 
 func (r *WirelessLANGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data WirelessLANGroupResourceModel
+	var state, plan WirelessLANGroupResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	groupID, err := utils.ParseID(data.ID.ValueString())
+	groupID, err := utils.ParseID(plan.ID.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
 
 			"Invalid Wireless LAN Group ID",
 
-			fmt.Sprintf("Wireless LAN Group ID must be a number, got: %s", data.ID.ValueString()),
+			fmt.Sprintf("Wireless LAN Group ID must be a number, got: %s", plan.ID.ValueString()),
 		)
 
 		return
@@ -302,23 +322,23 @@ func (r *WirelessLANGroupResource) Update(ctx context.Context, req resource.Upda
 
 	// Build request - use WritableWirelessLANGroupRequest
 
-	apiReq := netbox.NewWritableWirelessLANGroupRequest(data.Name.ValueString(), data.Slug.ValueString())
+	apiReq := netbox.NewWritableWirelessLANGroupRequest(plan.Name.ValueString(), plan.Slug.ValueString())
 
 	// Set optional fields
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		apiReq.SetDescription(data.Description.ValueString())
+	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
+		apiReq.SetDescription(plan.Description.ValueString())
 	}
 
-	if !data.Parent.IsNull() && !data.Parent.IsUnknown() {
-		parentID, err := utils.ParseID(data.Parent.ValueString())
+	if !plan.Parent.IsNull() && !plan.Parent.IsUnknown() {
+		parentID, err := utils.ParseID(plan.Parent.ValueString())
 
 		if err != nil {
 			resp.Diagnostics.AddError(
 
 				"Invalid Parent ID",
 
-				fmt.Sprintf("Parent must be a numeric ID, got: %s", data.Parent.ValueString()),
+				fmt.Sprintf("Parent must be a numeric ID, got: %s", plan.Parent.ValueString()),
 			)
 
 			return
@@ -328,8 +348,11 @@ func (r *WirelessLANGroupResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// Handle description and metadata fields
-	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyDescription(apiReq, plan.Description)
+
+	// Apply tags and custom fields with merge-aware helpers
+	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -354,15 +377,23 @@ func (r *WirelessLANGroupResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	// Map response to model
+	// Map response to plan model
 
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	// Save the plan's custom fields/tags before mapping (for filter-to-owned pattern)
+	planTags := plan.Tags
+	planCustomFields := plan.CustomFields
+
+	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Populate tags and custom fields filtered to owned fields only
+	plan.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource.

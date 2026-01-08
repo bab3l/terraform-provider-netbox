@@ -45,10 +45,29 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_rear_port" "test" {
-  name      = "Rear Port 1"
-  device    = netbox_device.test.name
-  type      = "8p8c"
-  positions = 1
+  name        = "Rear Port 1"
+  device      = netbox_device.test.name
+  type        = "8p8c"
+  positions   = 1
+  description = "Patch panel rear connection"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others preserved
+  custom_fields = [
+    {
+      name  = "cable_id"
+      value = "CAB-001"
+    },
+    {
+      name  = "termination_type"
+      value = "110-block"
+    }
+  ]
+
+  tags = [
+    "patch-panel",
+    "rear-connection"
+  ]
 }
 ```
 

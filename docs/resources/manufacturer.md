@@ -13,8 +13,31 @@ Manages a manufacturer in Netbox. Manufacturers are used to group devices and pl
 
 ```terraform
 resource "netbox_manufacturer" "test" {
-  name = "Test Manufacturer"
-  slug = "test-manufacturer"
+  name        = "Test Manufacturer"
+  slug        = "test-manufacturer"
+  description = "Network equipment manufacturer"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others preserved
+  custom_fields = [
+    {
+      name  = "support_level"
+      value = "premium"
+    },
+    {
+      name  = "support_phone"
+      value = "+1-800-555-0100"
+    },
+    {
+      name  = "warranty_default_years"
+      value = "3"
+    }
+  ]
+
+  tags = [
+    "vendor",
+    "network-equipment"
+  ]
 }
 ```
 
@@ -28,11 +51,31 @@ resource "netbox_manufacturer" "test" {
 
 ### Optional
 
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the manufacturer.
+- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 
 ### Read-Only
 
 - `id` (String) Unique identifier for the manufacturer (assigned by Netbox).
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Required:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
+- `value` (String) Value of the custom field.
+
+
+<a id="nestedatt--tags"></a>
+### Nested Schema for `tags`
+
+Required:
+
+- `name` (String) Name of the existing tag.
+- `slug` (String) Slug of the existing tag.
 
 ## Import
 

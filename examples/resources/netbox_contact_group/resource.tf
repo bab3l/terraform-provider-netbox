@@ -1,7 +1,30 @@
 # Example: Basic contact group
 resource "netbox_contact_group" "basic" {
-  name = "IT Department"
-  slug = "it-department"
+  name        = "IT Department"
+  slug        = "it-department"
+  description = "Information Technology department contacts"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "department_code"
+      value = "IT-100"
+    },
+    {
+      name  = "team_size"
+      value = "15"
+    },
+    {
+      name  = "escalation_email"
+      value = "it-escalation@example.com"
+    }
+  ]
+
+  tags = [
+    "contact-group",
+    "it-department"
+  ]
 }
 
 # Example: Contact group with description

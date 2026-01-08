@@ -173,7 +173,8 @@ func (r *PowerOutletResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Handle description, tags, and custom fields
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -235,17 +236,27 @@ func (r *PowerOutletResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
+	// Preserve original custom_fields state
+	originalCustomFields := data.CustomFields
+
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Restore original custom_fields if it was null/empty and API returned none
+	if !utils.IsSet(originalCustomFields) && !utils.IsSet(data.CustomFields) {
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates the resource.
 func (r *PowerOutletResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data PowerOutletResourceModel
+	var state, data PowerOutletResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -295,9 +306,18 @@ func (r *PowerOutletResource) Update(ctx context.Context, req resource.UpdateReq
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
 	}
 
-	// Handle description, tags, and custom fields
+	// Handle description, tags, and custom fields with merge-aware behavior
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+
+	// Apply tags - merge-aware: use plan if provided, else use state
+	if utils.IsSet(data.Tags) {
+		utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTags(ctx, apiReq, state.Tags, &resp.Diagnostics)
+	}
+
+	// Apply custom fields with merge logic (preserves unmanaged fields)
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -436,6 +456,10 @@ func (r *PowerOutletResource) mapResponseToModel(ctx context.Context, powerOutle
 	// Handle tags
 	data.Tags = utils.PopulateTagsFromAPI(ctx, powerOutlet.HasTags(), powerOutlet.GetTags(), data.Tags, diags)
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, powerOutlet.HasCustomFields(), powerOutlet.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields - use filtered-to-owned for partial management
+	if powerOutlet.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, powerOutlet.GetCustomFields(), diags)
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	}
 }

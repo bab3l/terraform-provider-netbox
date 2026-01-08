@@ -10,6 +10,7 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -304,6 +305,9 @@ func (r *ConfigContextResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
+	// Store state tags for filter-to-owned pattern
+	stateTags := data.Tags
+
 	id, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("Could not parse ID %s: %s", data.ID.ValueString(), err))
@@ -332,39 +336,58 @@ func (r *ConfigContextResource) Read(ctx context.Context, req resource.ReadReque
 
 	// Map response to state
 	mapConfigContextResponseToModel(ctx, result, &data)
+
+	// Populate tags filtered to owned fields only (preserves null/empty distinction)
+	// ConfigContext uses []string tags, so we handle manually instead of using PopulateTagsFromAPI
+	if utils.IsSet(stateTags) {
+		// Tags are in state (owned) - populate from API
+		if len(result.Tags) > 0 {
+			data.Tags = tagsSlugToSet(ctx, result.Tags)
+		} else {
+			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+		}
+	} else {
+		// Tags not in state (not owned) - preserve null
+		data.Tags = types.SetNull(types.StringType)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *ConfigContextResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ConfigContextResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	var state, plan ConfigContextResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	id, err := utils.ParseID(data.ID.ValueString())
+	// Store plan tags for filter-to-owned pattern
+	planTags := plan.Tags
+
+	id, err := utils.ParseID(plan.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("Could not parse ID %s: %s", data.ID.ValueString(), err))
+		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("Could not parse ID %s: %s", plan.ID.ValueString(), err))
 		return
 	}
 
 	// Parse the JSON data
 	var jsonData interface{}
-	if err := json.Unmarshal([]byte(data.Data.ValueString()), &jsonData); err != nil {
+	if err := json.Unmarshal([]byte(plan.Data.ValueString()), &jsonData); err != nil {
 		resp.Diagnostics.AddError("Invalid JSON Data", fmt.Sprintf("Could not parse JSON data: %s", err))
 		return
 	}
 
 	// Create the API request
-	request := netbox.NewConfigContextRequest(data.Name.ValueString(), jsonData)
+	request := netbox.NewConfigContextRequest(plan.Name.ValueString(), jsonData)
 
 	// Set optional fields
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		request.SetDescription(data.Description.ValueString())
+	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
+		request.SetDescription(plan.Description.ValueString())
 	}
 
-	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
-		weight, err := utils.SafeInt32FromValue(data.Weight)
+	if !plan.Weight.IsNull() && !plan.Weight.IsUnknown() {
+		weight, err := utils.SafeInt32FromValue(plan.Weight)
 		if err != nil {
 			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Weight value overflow: %s", err))
 			return
@@ -372,29 +395,35 @@ func (r *ConfigContextResource) Update(ctx context.Context, req resource.UpdateR
 		request.SetWeight(weight)
 	}
 
-	if !data.IsActive.IsNull() && !data.IsActive.IsUnknown() {
-		isActive := data.IsActive.ValueBool()
+	if !plan.IsActive.IsNull() && !plan.IsActive.IsUnknown() {
+		isActive := plan.IsActive.ValueBool()
 		request.SetIsActive(isActive)
 	}
 
 	// Set assignment criteria - for update, always set them (even if empty)
-	request.Regions = setToInt32Slice(ctx, data.Regions)
-	request.SiteGroups = setToInt32Slice(ctx, data.SiteGroups)
-	request.Sites = setToInt32Slice(ctx, data.Sites)
-	request.Locations = setToInt32Slice(ctx, data.Locations)
-	request.DeviceTypes = setToInt32Slice(ctx, data.DeviceTypes)
-	request.Roles = setToInt32Slice(ctx, data.Roles)
-	request.Platforms = setToInt32Slice(ctx, data.Platforms)
-	request.ClusterTypes = setToInt32Slice(ctx, data.ClusterTypes)
-	request.ClusterGroups = setToInt32Slice(ctx, data.ClusterGroups)
-	request.Clusters = setToInt32Slice(ctx, data.Clusters)
-	request.TenantGroups = setToInt32Slice(ctx, data.TenantGroups)
-	request.Tenants = setToInt32Slice(ctx, data.Tenants)
-	request.Tags = setToStringSlice(ctx, data.Tags)
+	request.Regions = setToInt32Slice(ctx, plan.Regions)
+	request.SiteGroups = setToInt32Slice(ctx, plan.SiteGroups)
+	request.Sites = setToInt32Slice(ctx, plan.Sites)
+	request.Locations = setToInt32Slice(ctx, plan.Locations)
+	request.DeviceTypes = setToInt32Slice(ctx, plan.DeviceTypes)
+	request.Roles = setToInt32Slice(ctx, plan.Roles)
+	request.Platforms = setToInt32Slice(ctx, plan.Platforms)
+	request.ClusterTypes = setToInt32Slice(ctx, plan.ClusterTypes)
+	request.ClusterGroups = setToInt32Slice(ctx, plan.ClusterGroups)
+	request.Clusters = setToInt32Slice(ctx, plan.Clusters)
+	request.TenantGroups = setToInt32Slice(ctx, plan.TenantGroups)
+	request.Tenants = setToInt32Slice(ctx, plan.Tenants)
+
+	// Apply tags with merge-aware handling (manual since ConfigContext uses []string not []NestedTag)
+	if utils.IsSet(plan.Tags) {
+		request.Tags = setToStringSlice(ctx, plan.Tags)
+	} else if utils.IsSet(state.Tags) {
+		request.Tags = setToStringSlice(ctx, state.Tags)
+	}
 
 	tflog.Debug(ctx, "Updating config context", map[string]interface{}{
 		"id":   id,
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasConfigContextsUpdate(ctx, id).
@@ -408,13 +437,28 @@ func (r *ConfigContextResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	// Map response to state
-	mapConfigContextResponseToModel(ctx, result, &data)
+	// Map response to plan model
+	mapConfigContextResponseToModel(ctx, result, &plan)
+
+	// Populate tags filtered to owned fields only
+	// ConfigContext uses []string tags, so we handle manually instead of using PopulateTagsFromAPI
+	if utils.IsSet(planTags) {
+		// Tags are in plan (owned) - populate from API
+		if len(result.Tags) > 0 {
+			plan.Tags = tagsSlugToSet(ctx, result.Tags)
+		} else {
+			plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+		}
+	} else {
+		// Tags not in plan (not owned) - preserve null
+		plan.Tags = types.SetNull(types.StringType)
+	}
+
 	tflog.Trace(ctx, "Updated config context", map[string]interface{}{
-		"id":   data.ID.ValueString(),
-		"name": data.Name.ValueString(),
+		"id":   plan.ID.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *ConfigContextResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -544,12 +588,7 @@ func mapConfigContextResponseToModel(ctx context.Context, result *netbox.ConfigC
 	data.TenantGroups = tenantGroupsToSet(ctx, result.TenantGroups)
 	data.Tenants = tenantsToSet(ctx, result.Tenants)
 
-	// Handle tags using unified helper (ConfigContext uses string tags, not NestedTag)
-	if len(result.Tags) > 0 {
-		data.Tags = tagsSlugToSet(ctx, result.Tags)
-	} else {
-		data.Tags = types.SetNull(types.StringType)
-	}
+	// Note: Tags are populated using filter-to-owned pattern in Read() and Update()
 }
 
 // Helper functions to convert API response arrays to types.Set.

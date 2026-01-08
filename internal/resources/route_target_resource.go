@@ -143,7 +143,7 @@ func (r *RouteTargetResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Set optional fields
 
-	r.setOptionalFields(ctx, rtRequest, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, rtRequest, &data, nil, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -240,9 +240,19 @@ func (r *RouteTargetResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	// Map response to model
+	// Preserve the custom_fields plan/state if it's null or empty
+	var planSet types.Set
+	if data.CustomFields.IsNull() || len(data.CustomFields.Elements()) == 0 {
+		planSet = data.CustomFields
+	}
 
+	// Map response to model
 	r.mapRouteTargetToState(ctx, rt, &data, &resp.Diagnostics)
+
+	// Restore null/empty custom_fields if it was null/empty before
+	if !planSet.IsNull() || (planSet.IsNull() && data.CustomFields.IsNull()) {
+		data.CustomFields = planSet
+	}
 
 	tflog.Debug(ctx, "Read RouteTarget", map[string]interface{}{
 		"id": data.ID.ValueString(),
@@ -268,6 +278,13 @@ func (r *RouteTargetResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
+	// Read current state for merge-aware custom fields
+	var state RouteTargetResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Parse the ID
 
 	id, err := utils.ParseID(data.ID.ValueString())
@@ -287,9 +304,9 @@ func (r *RouteTargetResource) Update(ctx context.Context, req resource.UpdateReq
 
 	rtRequest := netbox.NewRouteTargetRequest(data.Name.ValueString())
 
-	// Set optional fields
+	// Set optional fields with state for merge-aware custom fields
 
-	r.setOptionalFields(ctx, rtRequest, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, rtRequest, &data, &state, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -392,8 +409,8 @@ func (r *RouteTargetResource) ImportState(ctx context.Context, req resource.Impo
 }
 
 // setOptionalFields sets optional fields on the RouteTarget request from the resource model.
-
-func (r *RouteTargetResource) setOptionalFields(ctx context.Context, rtRequest *netbox.RouteTargetRequest, data *RouteTargetResourceModel, diags *diag.Diagnostics) {
+// state is optional and only provided during updates for merge-aware custom fields.
+func (r *RouteTargetResource) setOptionalFields(ctx context.Context, rtRequest *netbox.RouteTargetRequest, data *RouteTargetResourceModel, state *RouteTargetResourceModel, diags *diag.Diagnostics) {
 	// Tenant
 
 	if utils.IsSet(data.Tenant) {
@@ -408,8 +425,30 @@ func (r *RouteTargetResource) setOptionalFields(ctx context.Context, rtRequest *
 		rtRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, rtRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	// Apply description and comments
+	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+		desc := data.Description.ValueString()
+		rtRequest.SetDescription(desc)
+	}
+	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
+		comments := data.Comments.ValueString()
+		rtRequest.SetComments(comments)
+	}
+
+	// Apply tags
+	utils.ApplyTags(ctx, rtRequest, data.Tags, diags)
+	if diags.HasError() {
+		return
+	}
+
+	// Apply custom fields with merge awareness
+	if state != nil {
+		// Update: use merge-aware helper
+		utils.ApplyCustomFieldsWithMerge(ctx, rtRequest, data.CustomFields, state.CustomFields, diags)
+	} else {
+		// Create: apply custom fields directly
+		utils.ApplyCustomFields(ctx, rtRequest, data.CustomFields, diags)
+	}
 	if diags.HasError() {
 		return
 	}
@@ -447,5 +486,5 @@ func (r *RouteTargetResource) mapRouteTargetToState(ctx context.Context, rt *net
 	}
 
 	data.Tags = utils.PopulateTagsFromAPI(ctx, len(rt.Tags) > 0, rt.Tags, data.Tags, diags)
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, len(rt.CustomFields) > 0, rt.CustomFields, data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, rt.CustomFields, diags)
 }

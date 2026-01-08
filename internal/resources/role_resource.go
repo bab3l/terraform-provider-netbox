@@ -170,7 +170,7 @@ func (r *RoleResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// Build the role request
 
-	roleRequest, diags := r.buildRoleRequest(ctx, &data)
+	roleRequest, diags := r.buildRoleRequest(ctx, &data, nil)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -283,24 +283,32 @@ func (r *RoleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 // Update updates the resource and sets the updated Terraform state.
 
 func (r *RoleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data RoleResourceModel
+	var state, plan RoleResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read current state
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
+	// Read Terraform plan data into the model
+	diags = req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Parse the ID
 
-	roleID, err := utils.ParseID(data.ID.ValueString())
+	roleID, err := utils.ParseID(plan.ID.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
 
 			"Invalid Role ID",
 
-			fmt.Sprintf("Role ID must be a number, got: %s", data.ID.ValueString()),
+			fmt.Sprintf("Role ID must be a number, got: %s", plan.ID.ValueString()),
 		)
 
 		return
@@ -309,18 +317,22 @@ func (r *RoleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	tflog.Debug(ctx, "Updating role", map[string]interface{}{
 		"id": roleID,
 
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
-	// Build the role request
+	// Build the role request with merge-aware handling
 
-	roleRequest, diags := r.buildRoleRequest(ctx, &data)
+	roleRequest, buildDiags := r.buildRoleRequest(ctx, &plan, &state)
 
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(buildDiags...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Store planned values before API call
+	plannedTags := plan.Tags
+	plannedCustomFields := plan.CustomFields
 
 	// Call the API
 
@@ -345,15 +357,19 @@ func (r *RoleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		"name": role.GetName(),
 	})
 
+	// Restore planned values before mapping response
+	plan.Tags = plannedTags
+	plan.CustomFields = plannedCustomFields
+
 	// Map response to state
 
-	r.mapResponseToModel(ctx, role, &data, &resp.Diagnostics)
+	r.mapResponseToModel(ctx, role, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state.
@@ -424,7 +440,7 @@ func (r *RoleResource) ImportState(ctx context.Context, req resource.ImportState
 
 // buildRoleRequest builds a RoleRequest from the Terraform model.
 
-func (r *RoleResource) buildRoleRequest(ctx context.Context, data *RoleResourceModel) (*netbox.RoleRequest, diag.Diagnostics) {
+func (r *RoleResource) buildRoleRequest(ctx context.Context, data *RoleResourceModel, state *RoleResourceModel) (*netbox.RoleRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Create the request with required fields
@@ -453,9 +469,18 @@ func (r *RoleResource) buildRoleRequest(ctx context.Context, data *RoleResourceM
 		roleRequest.Description = &desc
 	}
 
-	// Apply metadata fields (tags, custom_fields)
+	// Apply tags
+	utils.ApplyTags(ctx, roleRequest, data.Tags, &diags)
+	if diags.HasError() {
+		return nil, diags
+	}
 
-	utils.ApplyMetadataFields(ctx, roleRequest, data.Tags, data.CustomFields, &diags)
+	// Apply custom fields with merge-aware logic
+	stateCustomFields := types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	if state != nil {
+		stateCustomFields = state.CustomFields
+	}
+	utils.ApplyCustomFieldsWithMerge(ctx, roleRequest, data.CustomFields, stateCustomFields, &diags)
 
 	if diags.HasError() {
 		return nil, diags
@@ -492,5 +517,5 @@ func (r *RoleResource) mapResponseToModel(ctx context.Context, role *netbox.Role
 	data.Tags = utils.PopulateTagsFromAPI(ctx, role.HasTags(), role.GetTags(), data.Tags, diags)
 
 	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, role.HasCustomFields(), role.GetCustomFields(), data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, role.GetCustomFields(), diags)
 }

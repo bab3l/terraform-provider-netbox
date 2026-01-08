@@ -233,7 +233,9 @@ func (r *RackTypeResource) Create(ctx context.Context, req resource.CreateReques
 
 	// Build the request
 
-	rackTypeRequest, diags := r.buildRequest(ctx, &data)
+	// For Create, there is no prior state so pass empty state
+	var emptyState RackTypeResourceModel
+	rackTypeRequest, diags := r.buildRequest(ctx, &data, &emptyState)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -288,6 +290,9 @@ func (r *RackTypeResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
+	// Preserve original custom_fields to detect null/empty cases
+	originalCustomFields := data.CustomFields
+
 	rackTypeID, err := utils.ParseID(data.ID.ValueString())
 
 	if err != nil {
@@ -334,21 +339,27 @@ func (r *RackTypeResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
+	// If custom_fields was explicitly null/empty in config, preserve that
+	if originalCustomFields.IsNull() || len(originalCustomFields.Elements()) == 0 {
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates the rack type resource.
 
 func (r *RackTypeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data RackTypeResourceModel
+	var state, plan RackTypeResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	rackTypeID, err := utils.ParseID(data.ID.ValueString())
+	rackTypeID, err := utils.ParseID(plan.ID.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -363,7 +374,7 @@ func (r *RackTypeResource) Update(ctx context.Context, req resource.UpdateReques
 
 	// Build the request
 
-	rackTypeRequest, diags := r.buildRequest(ctx, &data)
+	rackTypeRequest, diags := r.buildRequest(ctx, &plan, &state)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -390,15 +401,21 @@ func (r *RackTypeResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
+	// Store plan's custom_fields to filter the response
+	planCustomFields := plan.CustomFields
+
 	// Map response to state
 
-	r.mapResponseToModel(ctx, rackType, &data, &resp.Diagnostics)
+	r.mapResponseToModel(ctx, rackType, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Filter custom_fields to only those owned by this resource
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, rackType.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the rack type resource.
@@ -457,12 +474,12 @@ func (r *RackTypeResource) ImportState(ctx context.Context, req resource.ImportS
 
 // buildRequest builds the API request from the Terraform model.
 
-func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResourceModel) (*netbox.WritableRackTypeRequest, diag.Diagnostics) {
+func (r *RackTypeResource) buildRequest(ctx context.Context, plan, state *RackTypeResourceModel) (*netbox.WritableRackTypeRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Look up manufacturer
 
-	manufacturerRequest, lookupDiags := netboxlookup.LookupManufacturer(ctx, r.client, data.Manufacturer.ValueString())
+	manufacturerRequest, lookupDiags := netboxlookup.LookupManufacturer(ctx, r.client, plan.Manufacturer.ValueString())
 
 	diags.Append(lookupDiags...)
 
@@ -474,28 +491,28 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResou
 
 	formFactor := netbox.PatchedWritableRackTypeRequestFormFactor("")
 
-	if !data.FormFactor.IsNull() && !data.FormFactor.IsUnknown() {
-		formFactor = netbox.PatchedWritableRackTypeRequestFormFactor(data.FormFactor.ValueString())
+	if !plan.FormFactor.IsNull() && !plan.FormFactor.IsUnknown() {
+		formFactor = netbox.PatchedWritableRackTypeRequestFormFactor(plan.FormFactor.ValueString())
 	}
 
 	rackTypeRequest := netbox.NewWritableRackTypeRequest(
 
 		*manufacturerRequest,
 
-		data.Model.ValueString(),
+		plan.Model.ValueString(),
 
-		data.Slug.ValueString(),
+		plan.Slug.ValueString(),
 
 		formFactor,
 	)
 
-	utils.ApplyDescription(rackTypeRequest, data.Description)
+	utils.ApplyDescription(rackTypeRequest, plan.Description)
 
 	// FormFactor is already set in the constructor, but update if explicitly provided
 	// (no need to set again since we pass it in the constructor)
 
-	if !data.Width.IsNull() && !data.Width.IsUnknown() {
-		widthVal, err := utils.SafeInt32FromValue(data.Width)
+	if !plan.Width.IsNull() && !plan.Width.IsUnknown() {
+		widthVal, err := utils.SafeInt32FromValue(plan.Width)
 
 		if err != nil {
 			diags.AddError("Invalid value", fmt.Sprintf("Width value overflow: %s", err))
@@ -508,8 +525,8 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResou
 		rackTypeRequest.SetWidth(width)
 	}
 
-	if !data.UHeight.IsNull() && !data.UHeight.IsUnknown() {
-		uHeight, err := utils.SafeInt32FromValue(data.UHeight)
+	if !plan.UHeight.IsNull() && !plan.UHeight.IsUnknown() {
+		uHeight, err := utils.SafeInt32FromValue(plan.UHeight)
 
 		if err != nil {
 			diags.AddError("Invalid value", fmt.Sprintf("UHeight value overflow: %s", err))
@@ -520,8 +537,8 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResou
 		rackTypeRequest.SetUHeight(uHeight)
 	}
 
-	if !data.StartingUnit.IsNull() && !data.StartingUnit.IsUnknown() {
-		startingUnit, err := utils.SafeInt32FromValue(data.StartingUnit)
+	if !plan.StartingUnit.IsNull() && !plan.StartingUnit.IsUnknown() {
+		startingUnit, err := utils.SafeInt32FromValue(plan.StartingUnit)
 
 		if err != nil {
 			diags.AddError("Invalid value", fmt.Sprintf("StartingUnit value overflow: %s", err))
@@ -532,12 +549,12 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResou
 		rackTypeRequest.SetStartingUnit(startingUnit)
 	}
 
-	if !data.DescUnits.IsNull() && !data.DescUnits.IsUnknown() {
-		rackTypeRequest.SetDescUnits(data.DescUnits.ValueBool())
+	if !plan.DescUnits.IsNull() && !plan.DescUnits.IsUnknown() {
+		rackTypeRequest.SetDescUnits(plan.DescUnits.ValueBool())
 	}
 
-	if !data.OuterWidth.IsNull() && !data.OuterWidth.IsUnknown() {
-		outerWidth, err := utils.SafeInt32FromValue(data.OuterWidth)
+	if !plan.OuterWidth.IsNull() && !plan.OuterWidth.IsUnknown() {
+		outerWidth, err := utils.SafeInt32FromValue(plan.OuterWidth)
 
 		if err != nil {
 			diags.AddError("Invalid value", fmt.Sprintf("OuterWidth value overflow: %s", err))
@@ -548,8 +565,8 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResou
 		rackTypeRequest.SetOuterWidth(outerWidth)
 	}
 
-	if !data.OuterDepth.IsNull() && !data.OuterDepth.IsUnknown() {
-		outerDepth, err := utils.SafeInt32FromValue(data.OuterDepth)
+	if !plan.OuterDepth.IsNull() && !plan.OuterDepth.IsUnknown() {
+		outerDepth, err := utils.SafeInt32FromValue(plan.OuterDepth)
 
 		if err != nil {
 			diags.AddError("Invalid value", fmt.Sprintf("OuterDepth value overflow: %s", err))
@@ -560,18 +577,18 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResou
 		rackTypeRequest.SetOuterDepth(outerDepth)
 	}
 
-	if !data.OuterUnit.IsNull() && !data.OuterUnit.IsUnknown() {
-		outerUnit := netbox.PatchedWritableRackRequestOuterUnit(data.OuterUnit.ValueString())
+	if !plan.OuterUnit.IsNull() && !plan.OuterUnit.IsUnknown() {
+		outerUnit := netbox.PatchedWritableRackRequestOuterUnit(plan.OuterUnit.ValueString())
 
 		rackTypeRequest.SetOuterUnit(outerUnit)
 	}
 
-	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
-		rackTypeRequest.SetWeight(data.Weight.ValueFloat64())
+	if !plan.Weight.IsNull() && !plan.Weight.IsUnknown() {
+		rackTypeRequest.SetWeight(plan.Weight.ValueFloat64())
 	}
 
-	if !data.MaxWeight.IsNull() && !data.MaxWeight.IsUnknown() {
-		maxWeight, err := utils.SafeInt32FromValue(data.MaxWeight)
+	if !plan.MaxWeight.IsNull() && !plan.MaxWeight.IsUnknown() {
+		maxWeight, err := utils.SafeInt32FromValue(plan.MaxWeight)
 
 		if err != nil {
 			diags.AddError("Invalid value", fmt.Sprintf("MaxWeight value overflow: %s", err))
@@ -582,14 +599,14 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResou
 		rackTypeRequest.SetMaxWeight(maxWeight)
 	}
 
-	if !data.WeightUnit.IsNull() && !data.WeightUnit.IsUnknown() {
-		weightUnit := netbox.DeviceTypeWeightUnitValue(data.WeightUnit.ValueString())
+	if !plan.WeightUnit.IsNull() && !plan.WeightUnit.IsUnknown() {
+		weightUnit := netbox.DeviceTypeWeightUnitValue(plan.WeightUnit.ValueString())
 
 		rackTypeRequest.SetWeightUnit(weightUnit)
 	}
 
-	if !data.MountingDepth.IsNull() && !data.MountingDepth.IsUnknown() {
-		mountingDepth, err := utils.SafeInt32FromValue(data.MountingDepth)
+	if !plan.MountingDepth.IsNull() && !plan.MountingDepth.IsUnknown() {
+		mountingDepth, err := utils.SafeInt32FromValue(plan.MountingDepth)
 
 		if err != nil {
 			diags.AddError("Invalid value", fmt.Sprintf("MountingDepth value overflow: %s", err))
@@ -600,39 +617,11 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, data *RackTypeResou
 		rackTypeRequest.SetMountingDepth(mountingDepth)
 	}
 
-	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
-		rackTypeRequest.SetComments(data.Comments.ValueString())
-	}
+	utils.ApplyComments(rackTypeRequest, plan.Comments)
 
-	// Handle tags
+	utils.ApplyTags(ctx, rackTypeRequest, plan.Tags, &diags)
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		tags, tagDiags := utils.TagModelsToNestedTagRequests(ctx, data.Tags)
-
-		diags.Append(tagDiags...)
-
-		if diags.HasError() {
-			return nil, diags
-		}
-
-		rackTypeRequest.Tags = tags
-	}
-
-	// Handle custom fields
-
-	if !data.CustomFields.IsNull() && !data.CustomFields.IsUnknown() {
-		var customFieldModels []utils.CustomFieldModel
-
-		cfDiags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-
-		diags.Append(cfDiags...)
-
-		if diags.HasError() {
-			return nil, diags
-		}
-
-		rackTypeRequest.CustomFields = utils.CustomFieldModelsToMap(customFieldModels)
-	}
+	utils.ApplyCustomFieldsWithMerge(ctx, rackTypeRequest, plan.CustomFields, state.CustomFields, &diags)
 
 	return rackTypeRequest, diags
 }

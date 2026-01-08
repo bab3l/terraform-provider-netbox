@@ -658,6 +658,59 @@ func PopulateCustomFieldsFromAPI(ctx context.Context, hasCustomFields bool, cust
 	return types.SetNull(GetCustomFieldsAttributeType().ElemType)
 }
 
+// PopulateCustomFieldsFilteredToOwned returns only the custom fields that the user "owns" (declares in their config).
+// This is the key to the "filter to owned" pattern that works around Terraform framework limitations.
+//
+// The problem: Terraform's framework validates that plan and state have the same structure.
+// If the API returns custom fields that aren't in the plan, we can't add them to state.
+//
+// The solution: Only return the custom fields that are declared in the plan/config.
+// Unowned fields remain in the API (preserved during Update via merge) but are invisible to Terraform.
+//
+// Parameters:
+//   - planCustomFields: The custom fields declared in the user's config (the "owned" fields)
+//   - customFieldsMap: The custom fields returned by the API
+//
+// This function always returns exactly the same structure as planCustomFields, just with
+// updated values from the API.
+func PopulateCustomFieldsFilteredToOwned(ctx context.Context, planCustomFields types.Set, customFieldsMap map[string]interface{}, diags *diag.Diagnostics) types.Set {
+	// If plan doesn't specify custom fields, return null (don't populate from API)
+	if planCustomFields.IsNull() || planCustomFields.IsUnknown() {
+		return types.SetNull(GetCustomFieldsAttributeType().ElemType)
+	}
+
+	// If plan explicitly has empty custom_fields = [], return empty set
+	if len(planCustomFields.Elements()) == 0 {
+		return types.SetValueMust(GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+	}
+
+	// Extract plan custom fields as the filter
+	var planCF []CustomFieldModel
+	cfDiags := planCustomFields.ElementsAs(ctx, &planCF, false)
+	if cfDiags.HasError() {
+		diags.Append(cfDiags...)
+		return planCustomFields // Return plan unchanged on error
+	}
+
+	// MapToCustomFieldModels already does the filtering - it only returns fields that are in planCF
+	// and uses their type information
+	customFields := MapToCustomFieldModels(customFieldsMap, planCF)
+
+	if len(customFields) == 0 {
+		// All owned fields have nil values in API - return empty set
+		return types.SetValueMust(GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+	}
+
+	// Convert to types.Set
+	customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, GetCustomFieldsAttributeType().ElemType, customFields)
+	diags.Append(cfValueDiags...)
+	if diags.HasError() {
+		return planCustomFields // Return plan unchanged on error
+	}
+
+	return customFieldsValue
+}
+
 // =====================================================
 // REQUEST BUILDING HELPERS
 

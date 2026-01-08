@@ -215,7 +215,8 @@ func (r *CircuitTypeResource) Read(ctx context.Context, req resource.ReadRequest
 
 // Update updates the circuit type resource.
 func (r *CircuitTypeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data CircuitTypeResourceModel
+	var state, data CircuitTypeResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -240,8 +241,15 @@ func (r *CircuitTypeResource) Update(ctx context.Context, req resource.UpdateReq
 		updateReq.SetColor("")
 	}
 
-	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, &updateReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle tags with conditional logic (use plan if set, otherwise state)
+	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, &updateReq, data.Tags, &resp.Diagnostics)
+	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, &updateReq, state.Tags, &resp.Diagnostics)
+	}
+
+	// Handle custom fields with merge-aware logic
+	utils.ApplyCustomFieldsWithMerge(ctx, &updateReq, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 	tflog.Debug(ctx, "Updating circuit type", map[string]interface{}{
 		"id":   id,
 		"name": data.Name.ValueString(),
@@ -336,5 +344,7 @@ func (r *CircuitTypeResource) mapCircuitTypeToState(ctx context.Context, circuit
 		return
 	}
 
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, circuitType.HasCustomFields(), circuitType.GetCustomFields(), data.CustomFields, diags)
+	if circuitType.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, circuitType.GetCustomFields(), diags)
+	}
 }

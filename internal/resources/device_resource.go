@@ -323,11 +323,23 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 		"name": device.GetName(),
 	})
 
+	// Save the plan's custom fields before mapping (for filter-to-owned pattern)
+	planCustomFields := data.CustomFields
+
 	// Map response to state
 	r.mapDeviceToState(ctx, device, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for custom fields:
+	// Only return custom fields that the user declared in their config.
+	// This prevents the framework from seeing extra fields from the API.
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, device.GetCustomFields(), &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -372,22 +384,39 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Map response to state
+	// Preserve the custom_fields value from before mapping (for unmanaged/cleared fields)
+	originalCustomFields := data.CustomFields
+
 	r.mapDeviceToState(ctx, device, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// If custom_fields was null or empty before (not managed or explicitly cleared),
+	// restore that state after mapping.
+	// This prevents Terraform from trying to manage fields that aren't in the configuration.
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		tflog.Debug(ctx, "Custom fields unmanaged/cleared, preserving original state during Read", map[string]interface{}{
+			"was_null":  originalCustomFields.IsNull(),
+			"was_empty": !originalCustomFields.IsNull() && len(originalCustomFields.Elements()) == 0,
+		})
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data DeviceResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read both state and plan for merge-aware custom fields handling
+	var state, plan DeviceResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Parse the ID
-	deviceID := data.ID.ValueString()
+	deviceID := plan.ID.ValueString()
 	var deviceIDInt int32
 	deviceIDInt, err := utils.ParseID(deviceID)
 	if err != nil {
@@ -399,21 +428,21 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 	tflog.Debug(ctx, "Updating device", map[string]interface{}{
 		"id":   deviceID,
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Look up required references
-	deviceType, diags := netboxlookup.LookupDeviceType(ctx, r.client, data.DeviceType.ValueString())
+	deviceType, diags := netboxlookup.LookupDeviceType(ctx, r.client, plan.DeviceType.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	role, diags := netboxlookup.LookupDeviceRole(ctx, r.client, data.Role.ValueString())
+	role, diags := netboxlookup.LookupDeviceRole(ctx, r.client, plan.Role.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	site, diags := netboxlookup.LookupSite(ctx, r.client, data.Site.ValueString())
+	site, diags := netboxlookup.LookupSite(ctx, r.client, plan.Site.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -427,12 +456,12 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	// Set optional fields (same as Create)
-	if !data.Name.IsNull() && !data.Name.IsUnknown() {
-		deviceRequest.SetName(data.Name.ValueString())
+	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
+		deviceRequest.SetName(plan.Name.ValueString())
 	}
 
-	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenant, diags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
+	if !plan.Tenant.IsNull() && !plan.Tenant.IsUnknown() {
+		tenant, diags := netboxlookup.LookupTenant(ctx, r.client, plan.Tenant.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -440,8 +469,8 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		deviceRequest.SetTenant(*tenant)
 	}
 
-	if !data.Platform.IsNull() && !data.Platform.IsUnknown() {
-		platform, diags := netboxlookup.LookupPlatform(ctx, r.client, data.Platform.ValueString())
+	if !plan.Platform.IsNull() && !plan.Platform.IsUnknown() {
+		platform, diags := netboxlookup.LookupPlatform(ctx, r.client, plan.Platform.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -449,17 +478,17 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		deviceRequest.SetPlatform(*platform)
 	}
 
-	if !data.Serial.IsNull() && !data.Serial.IsUnknown() {
-		serial := data.Serial.ValueString()
+	if !plan.Serial.IsNull() && !plan.Serial.IsUnknown() {
+		serial := plan.Serial.ValueString()
 		deviceRequest.Serial = &serial
 	}
 
-	if !data.AssetTag.IsNull() && !data.AssetTag.IsUnknown() {
-		deviceRequest.SetAssetTag(data.AssetTag.ValueString())
+	if !plan.AssetTag.IsNull() && !plan.AssetTag.IsUnknown() {
+		deviceRequest.SetAssetTag(plan.AssetTag.ValueString())
 	}
 
-	if !data.Location.IsNull() && !data.Location.IsUnknown() {
-		location, diags := netboxlookup.LookupLocation(ctx, r.client, data.Location.ValueString())
+	if !plan.Location.IsNull() && !plan.Location.IsUnknown() {
+		location, diags := netboxlookup.LookupLocation(ctx, r.client, plan.Location.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -467,8 +496,8 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		deviceRequest.SetLocation(*location)
 	}
 
-	if !data.Rack.IsNull() && !data.Rack.IsUnknown() {
-		rack, diags := netboxlookup.LookupRack(ctx, r.client, data.Rack.ValueString())
+	if !plan.Rack.IsNull() && !plan.Rack.IsUnknown() {
+		rack, diags := netboxlookup.LookupRack(ctx, r.client, plan.Rack.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -476,38 +505,38 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		deviceRequest.SetRack(*rack)
 	}
 
-	if !data.Position.IsNull() && !data.Position.IsUnknown() {
-		position := data.Position.ValueFloat64()
+	if !plan.Position.IsNull() && !plan.Position.IsUnknown() {
+		position := plan.Position.ValueFloat64()
 		deviceRequest.SetPosition(position)
 	}
 
-	if !data.Face.IsNull() && !data.Face.IsUnknown() && data.Face.ValueString() != "" {
-		face := netbox.RackFace1(data.Face.ValueString())
+	if !plan.Face.IsNull() && !plan.Face.IsUnknown() && plan.Face.ValueString() != "" {
+		face := netbox.RackFace1(plan.Face.ValueString())
 		deviceRequest.Face = &face
 	}
 
-	if !data.Latitude.IsNull() && !data.Latitude.IsUnknown() {
-		latitude := data.Latitude.ValueFloat64()
+	if !plan.Latitude.IsNull() && !plan.Latitude.IsUnknown() {
+		latitude := plan.Latitude.ValueFloat64()
 		deviceRequest.SetLatitude(latitude)
 	}
 
-	if !data.Longitude.IsNull() && !data.Longitude.IsUnknown() {
-		longitude := data.Longitude.ValueFloat64()
+	if !plan.Longitude.IsNull() && !plan.Longitude.IsUnknown() {
+		longitude := plan.Longitude.ValueFloat64()
 		deviceRequest.SetLongitude(longitude)
 	}
 
-	if !data.Status.IsNull() && !data.Status.IsUnknown() {
-		status := netbox.DeviceStatusValue(data.Status.ValueString())
+	if !plan.Status.IsNull() && !plan.Status.IsUnknown() {
+		status := netbox.DeviceStatusValue(plan.Status.ValueString())
 		deviceRequest.Status = &status
 	}
 
-	if !data.Airflow.IsNull() && !data.Airflow.IsUnknown() && data.Airflow.ValueString() != "" {
-		airflow := netbox.DeviceAirflowValue(data.Airflow.ValueString())
+	if !plan.Airflow.IsNull() && !plan.Airflow.IsUnknown() && plan.Airflow.ValueString() != "" {
+		airflow := netbox.DeviceAirflowValue(plan.Airflow.ValueString())
 		deviceRequest.Airflow = &airflow
 	}
 
-	if !data.VcPosition.IsNull() && !data.VcPosition.IsUnknown() {
-		vcPosition, err := utils.SafeInt32FromValue(data.VcPosition)
+	if !plan.VcPosition.IsNull() && !plan.VcPosition.IsUnknown() {
+		vcPosition, err := utils.SafeInt32FromValue(plan.VcPosition)
 		if err != nil {
 			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("VcPosition value overflow: %s", err))
 			return
@@ -515,8 +544,8 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		deviceRequest.SetVcPosition(vcPosition)
 	}
 
-	if !data.VcPriority.IsNull() && !data.VcPriority.IsUnknown() {
-		vcPriority, err := utils.SafeInt32FromValue(data.VcPriority)
+	if !plan.VcPriority.IsNull() && !plan.VcPriority.IsUnknown() {
+		vcPriority, err := utils.SafeInt32FromValue(plan.VcPriority)
 		if err != nil {
 			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("VcPriority value overflow: %s", err))
 			return
@@ -524,8 +553,13 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		deviceRequest.SetVcPriority(vcPriority)
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, &deviceRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Set common fields with merge-aware custom fields handling
+	// This preserves unmanaged custom fields during updates
+	utils.ApplyCommonFieldsWithMerge(ctx, &deviceRequest,
+		plan.Description, plan.Comments,
+		plan.Tags, state.Tags,
+		plan.CustomFields, state.CustomFields,
+		&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -545,12 +579,26 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		"name": device.GetName(),
 	})
 
+	// Save the plan's custom fields before mapping (for filter-to-owned pattern)
+	planCustomFields := plan.CustomFields
+
 	// Map response to state
-	r.mapDeviceToState(ctx, device, &data, &resp.Diagnostics)
+	r.mapDeviceToState(ctx, device, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	// Apply filter-to-owned pattern for custom fields:
+	// Only return custom fields that the user declared in their config.
+	// This prevents the framework from seeing extra fields from the API.
+	// The ApplyCommonFieldsWithMerge already preserved unmanaged fields in the API,
+	// we just don't expose them in state.
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, device.GetCustomFields(), &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *DeviceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

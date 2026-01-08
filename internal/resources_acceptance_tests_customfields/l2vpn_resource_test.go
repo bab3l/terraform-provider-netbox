@@ -219,3 +219,91 @@ resource "netbox_l2vpn" "test" {
 		cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
 		name, slug, textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue)
 }
+
+func TestAccL2VPNResource_CustomFieldsPreservation(t *testing.T) {
+	l2vpnName := testutil.RandomName("tf-test-l2vpn")
+	cfName := testutil.RandomCustomFieldName("tf_l2vpn_pres")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create L2VPN with custom field defined and populated
+			{
+				Config: testAccL2VPNResourcePreservationConfig_step1(l2vpnName, cfName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", l2vpnName),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "custom_fields.#", "1"),
+					testutil.CheckCustomFieldValue("netbox_l2vpn.test", cfName, "text", "preserved-value"),
+				),
+			},
+			// Step 2: Update same L2VPN without custom_fields in config (definition kept, preservation verified)
+			{
+				Config: testAccL2VPNResourcePreservationConfig_step2(l2vpnName, cfName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", l2vpnName),
+					// Custom fields omitted from config, so not in state (filtered-to-owned)
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "custom_fields.#", "0"),
+				),
+			},
+			// Step 3: Re-add custom_fields to verify preservation in NetBox
+			{
+				Config: testAccL2VPNResourcePreservationConfig_step1(l2vpnName, cfName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", l2vpnName),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "custom_fields.#", "1"),
+					testutil.CheckCustomFieldValue("netbox_l2vpn.test", cfName, "text", "preserved-value"),
+				),
+			},
+		},
+	})
+}
+
+func testAccL2VPNResourcePreservationConfig_step1(
+	l2vpnName, cfName string,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "l2vpn_pres" {
+  name = %[1]q
+  object_types = ["vpn.l2vpn"]
+  type = "text"
+}
+
+resource "netbox_l2vpn" "test" {
+  name = %[2]q
+  slug = "tf-l2vpn-pres-%[2]s"
+  type = "vpls"
+  custom_fields = [
+    {
+      name = netbox_custom_field.l2vpn_pres.name
+      type = "text"
+      value = "preserved-value"
+    }
+  ]
+
+  depends_on = [netbox_custom_field.l2vpn_pres]
+}
+`, cfName, l2vpnName)
+}
+
+func testAccL2VPNResourcePreservationConfig_step2(
+	l2vpnName, cfName string,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_custom_field" "l2vpn_pres" {
+  name = %[1]q
+  object_types = ["vpn.l2vpn"]
+  type = "text"
+}
+
+resource "netbox_l2vpn" "test" {
+  name = %[2]q
+  slug = "tf-l2vpn-pres-%[2]s"
+  type = "vpls"
+  # custom_fields intentionally omitted - values not managed by Terraform
+  # but definition kept so field still exists in NetBox
+
+  depends_on = [netbox_custom_field.l2vpn_pres]
+}
+`, cfName, l2vpnName)
+}

@@ -10,7 +10,6 @@ import (
 )
 
 // dataSourceInfo contains metadata about a data source for testing.
-
 type dataSourceInfo struct {
 	name           string
 	factory        func() datasource.DataSource
@@ -49,10 +48,8 @@ func allDataSources() []dataSourceInfo {
 }
 
 // TestAllDataSourcesHaveSearchFields verifies all data sources have id, name, slug for searching.
-
 func TestAllDataSourcesHaveSearchFields(t *testing.T) {
 	t.Parallel()
-
 	for _, dsi := range allDataSources() {
 		t.Run(dsi.name, func(t *testing.T) {
 			t.Parallel()
@@ -68,7 +65,6 @@ func TestAllDataSourcesHaveSearchFields(t *testing.T) {
 					t.Errorf("Expected search field %s to exist", fieldName)
 					continue
 				}
-
 				// Search fields should be Optional (can search by any one)
 				stringAttr, ok := attr.(schema.StringAttribute)
 				if !ok {

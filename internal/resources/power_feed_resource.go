@@ -12,6 +12,7 @@ import (
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -272,8 +273,19 @@ func (r *PowerFeedResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
+	// Save plan state for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -316,8 +328,19 @@ func (r *PowerFeedResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
+	// Save state for filter-to-owned pattern
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Preserve null/empty state values for tags and custom_fields
+	data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), stateTags, &resp.Diagnostics)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -326,33 +349,35 @@ func (r *PowerFeedResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 // Update updates the resource.
 func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data PowerFeedResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read both state and plan for merge-aware custom fields
+	var state, plan PowerFeedResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	pfID, err := utils.ParseID(data.ID.ValueString())
+	pfID, err := utils.ParseID(plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Power Feed ID",
-			fmt.Sprintf("Power feed ID must be a number, got: %s", data.ID.ValueString()),
+			fmt.Sprintf("Power feed ID must be a number, got: %s", plan.ID.ValueString()),
 		)
 		return
 	}
 
 	// Lookup power panel
-	powerPanel, diags := lookup.LookupPowerPanel(ctx, r.client, data.PowerPanel.ValueString())
+	powerPanel, diags := lookup.LookupPowerPanel(ctx, r.client, plan.PowerPanel.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Build request
-	apiReq := netbox.NewWritablePowerFeedRequest(*powerPanel, data.Name.ValueString())
+	apiReq := netbox.NewWritablePowerFeedRequest(*powerPanel, plan.Name.ValueString())
 
 	// Set optional fields
-	if !data.Rack.IsNull() && !data.Rack.IsUnknown() {
-		rack, diags := lookup.LookupRack(ctx, r.client, data.Rack.ValueString())
+	if !plan.Rack.IsNull() && !plan.Rack.IsUnknown() {
+		rack, diags := lookup.LookupRack(ctx, r.client, plan.Rack.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -360,28 +385,28 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 		apiReq.SetRack(*rack)
 	}
 
-	if !data.Status.IsNull() && !data.Status.IsUnknown() {
-		status := netbox.PatchedWritablePowerFeedRequestStatus(data.Status.ValueString())
+	if !plan.Status.IsNull() && !plan.Status.IsUnknown() {
+		status := netbox.PatchedWritablePowerFeedRequestStatus(plan.Status.ValueString())
 		apiReq.SetStatus(status)
 	}
 
-	if !data.Type.IsNull() && !data.Type.IsUnknown() {
-		feedType := netbox.PatchedWritablePowerFeedRequestType(data.Type.ValueString())
+	if !plan.Type.IsNull() && !plan.Type.IsUnknown() {
+		feedType := netbox.PatchedWritablePowerFeedRequestType(plan.Type.ValueString())
 		apiReq.SetType(feedType)
 	}
 
-	if !data.Supply.IsNull() && !data.Supply.IsUnknown() {
-		supply := netbox.PatchedWritablePowerFeedRequestSupply(data.Supply.ValueString())
+	if !plan.Supply.IsNull() && !plan.Supply.IsUnknown() {
+		supply := netbox.PatchedWritablePowerFeedRequestSupply(plan.Supply.ValueString())
 		apiReq.SetSupply(supply)
 	}
 
-	if !data.Phase.IsNull() && !data.Phase.IsUnknown() {
-		phase := netbox.PatchedWritablePowerFeedRequestPhase(data.Phase.ValueString())
+	if !plan.Phase.IsNull() && !plan.Phase.IsUnknown() {
+		phase := netbox.PatchedWritablePowerFeedRequestPhase(plan.Phase.ValueString())
 		apiReq.SetPhase(phase)
 	}
 
-	if !data.Voltage.IsNull() && !data.Voltage.IsUnknown() {
-		voltage, err := utils.SafeInt32FromValue(data.Voltage)
+	if !plan.Voltage.IsNull() && !plan.Voltage.IsUnknown() {
+		voltage, err := utils.SafeInt32FromValue(plan.Voltage)
 		if err != nil {
 			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Voltage value overflow: %s", err))
 			return
@@ -389,8 +414,8 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 		apiReq.SetVoltage(voltage)
 	}
 
-	if !data.Amperage.IsNull() && !data.Amperage.IsUnknown() {
-		amperage, err := utils.SafeInt32FromValue(data.Amperage)
+	if !plan.Amperage.IsNull() && !plan.Amperage.IsUnknown() {
+		amperage, err := utils.SafeInt32FromValue(plan.Amperage)
 		if err != nil {
 			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("Amperage value overflow: %s", err))
 			return
@@ -398,8 +423,8 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 		apiReq.SetAmperage(amperage)
 	}
 
-	if !data.MaxUtilization.IsNull() && !data.MaxUtilization.IsUnknown() {
-		maxUtilization, err := utils.SafeInt32FromValue(data.MaxUtilization)
+	if !plan.MaxUtilization.IsNull() && !plan.MaxUtilization.IsUnknown() {
+		maxUtilization, err := utils.SafeInt32FromValue(plan.MaxUtilization)
 		if err != nil {
 			resp.Diagnostics.AddError("Invalid value", fmt.Sprintf("MaxUtilization value overflow: %s", err))
 			return
@@ -407,13 +432,13 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 		apiReq.SetMaxUtilization(maxUtilization)
 	}
 
-	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
-		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
+	if !plan.MarkConnected.IsNull() && !plan.MarkConnected.IsUnknown() {
+		apiReq.SetMarkConnected(plan.MarkConnected.ValueBool())
 	}
 
-	utils.ApplyDescription(apiReq, data.Description)
-	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenant, diags := lookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
+	utils.ApplyDescription(apiReq, plan.Description)
+	if !plan.Tenant.IsNull() && !plan.Tenant.IsUnknown() {
+		tenant, diags := lookup.LookupTenant(ctx, r.client, plan.Tenant.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -421,13 +446,13 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 		apiReq.SetTenant(*tenant)
 	}
 
-	// Apply common fields (comments, tags, custom_fields)
-	utils.ApplyComments(apiReq, data.Comments)
-	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	// Apply common fields (comments, tags, custom_fields) - merge-aware
+	utils.ApplyComments(apiReq, plan.Comments)
+	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -444,12 +469,21 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
+	// Save plan state for filter-to-owned pattern
+	planTags := plan.Tags
+	planCustomFields := plan.CustomFields
+
 	// Map response to model
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	plan.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource.
@@ -504,7 +538,7 @@ func (r *PowerFeedResource) ImportState(ctx context.Context, req resource.Import
 		return
 	}
 	var data PowerFeedResourceModel
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	r.mapResponseToModelForImport(ctx, response, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -605,7 +639,26 @@ func (r *PowerFeedResource) mapResponseToModel(ctx context.Context, pf *netbox.P
 		data.Comments = types.StringNull()
 	}
 
-	// Populate tags and custom fields using unified helpers
-	data.Tags = utils.PopulateTagsFromAPI(ctx, pf.HasTags(), pf.GetTags(), data.Tags, diags)
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, pf.HasCustomFields(), pf.GetCustomFields(), data.CustomFields, diags)
+	// Preserve null/empty state for tags and custom_fields (critical for drift prevention)
+	if !data.Tags.IsNull() {
+		data.Tags = utils.PopulateTagsFromAPI(ctx, pf.HasTags(), pf.GetTags(), data.Tags, diags)
+	}
+	if !data.CustomFields.IsNull() {
+		data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, pf.HasCustomFields(), pf.GetCustomFields(), data.CustomFields, diags)
+	}
+}
+
+// mapResponseToModelForImport maps the API response to the Terraform model during import.
+// Unlike mapResponseToModel, this always populates tags and custom_fields regardless of null state.
+func (r *PowerFeedResource) mapResponseToModelForImport(ctx context.Context, pf *netbox.PowerFeed, data *PowerFeedResourceModel, diags *diag.Diagnostics) {
+	// Call the main mapping function first
+	r.mapResponseToModel(ctx, pf, data, diags)
+	if diags.HasError() {
+		return
+	}
+
+	// For import, always populate tags and custom_fields even if they were null
+	// Initialize as empty sets to ensure proper type information
+	data.Tags = utils.PopulateTagsFromAPI(ctx, pf.HasTags(), pf.GetTags(), types.SetValueMust(utils.GetTagsAttributeType().ElemType, []attr.Value{}), diags)
+	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, pf.HasCustomFields(), pf.GetCustomFields(), types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{}), diags)
 }

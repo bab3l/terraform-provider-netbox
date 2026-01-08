@@ -154,6 +154,10 @@ func (r *InventoryItemRoleResource) Read(ctx context.Context, req resource.ReadR
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Preserve original custom_fields from state for potential restoration
+	originalCustomFields := data.CustomFields
+
 	roleID, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -185,40 +189,59 @@ func (r *InventoryItemRoleResource) Read(ctx context.Context, req resource.ReadR
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// If custom_fields was null or empty before (not managed or explicitly cleared),
+	// restore that state after mapping.
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		tflog.Debug(ctx, "Custom fields unmanaged/cleared, preserving original state during Read", map[string]interface{}{
+			"was_null":  originalCustomFields.IsNull(),
+			"was_empty": !originalCustomFields.IsNull() && len(originalCustomFields.Elements()) == 0,
+		})
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates the resource.
 func (r *InventoryItemRoleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data InventoryItemRoleResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read BOTH state and plan for merge-aware custom fields
+	var state, plan InventoryItemRoleResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	roleID, err := utils.ParseID(data.ID.ValueString())
+	roleID, err := utils.ParseID(plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Inventory Item Role ID",
-			fmt.Sprintf("Inventory Item Role ID must be a number, got: %s", data.ID.ValueString()),
+			fmt.Sprintf("Inventory Item Role ID must be a number, got: %s", plan.ID.ValueString()),
 		)
 		return
 	}
 
 	// Build request
-	apiReq := netbox.NewInventoryItemRoleRequest(data.Name.ValueString(), data.Slug.ValueString())
+	apiReq := netbox.NewInventoryItemRoleRequest(plan.Name.ValueString(), plan.Slug.ValueString())
 
 	// Set optional fields
-	if !data.Color.IsNull() && !data.Color.IsUnknown() {
-		apiReq.SetColor(data.Color.ValueString())
+	if !plan.Color.IsNull() && !plan.Color.IsUnknown() {
+		apiReq.SetColor(plan.Color.ValueString())
 	}
 
-	// Handle description and metadata fields
-	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle description and metadata fields with merge
+	utils.ApplyDescription(apiReq, plan.Description)
+	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Store plan tags/customfields for filter-to-owned population
+	planTags := plan.Tags
+	planCustomFields := plan.CustomFields
+
 	tflog.Debug(ctx, "Updating inventory item role", map[string]interface{}{
 		"id": roleID,
 	})
@@ -233,11 +256,13 @@ func (r *InventoryItemRoleResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Map response to model
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	plan.Tags = planTags
+	plan.CustomFields = planCustomFields
+	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource.
@@ -324,6 +349,6 @@ func (r *InventoryItemRoleResource) mapResponseToModel(ctx context.Context, role
 	// Handle tags
 	data.Tags = utils.PopulateTagsFromAPI(ctx, role.HasTags(), role.GetTags(), data.Tags, diags)
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, role.HasCustomFields(), role.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields using filter-to-owned helper
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, role.GetCustomFields(), diags)
 }

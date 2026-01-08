@@ -596,6 +596,59 @@ func (c *CleanupResource) RegisterASNRangeCleanup(name string) {
 
 }
 
+// RegisterASNCleanup registers a cleanup function that will delete
+// the ASN with the specified ASN number after the test completes.
+func (c *CleanupResource) RegisterASNCleanup(asn int64) {
+
+	c.t.Cleanup(func() {
+
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+		defer cancel()
+
+		// Safe conversion with bounds check
+		if asn < 0 || asn > 4294967295 { // Max ASN value (32-bit)
+			c.t.Logf("Cleanup: ASN value %d out of valid range", asn)
+			return
+		}
+
+		//nolint:gosec // Safe conversion - bounds checked above
+		list, resp, err := c.client.IpamAPI.IpamAsnsList(ctx).Asn([]int32{int32(asn)}).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to list ASN %d: %v", asn, err)
+
+			return
+
+		}
+
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
+
+			c.t.Logf("Cleanup: ASN %d not found (already deleted)", asn)
+
+			return
+
+		}
+
+		id := list.Results[0].GetId()
+
+		_, err = c.client.IpamAPI.IpamAsnsDestroy(ctx, id).Execute()
+
+		if err != nil {
+
+			c.t.Logf("Cleanup: failed to delete ASN %d (ID: %d): %v", asn, id, err)
+
+		} else {
+
+			c.t.Logf("Cleanup: successfully deleted ASN %d (ID: %d)", asn, id)
+
+		}
+
+	})
+
+}
+
 // RegisterRIRCleanup registers a cleanup function that will delete
 
 // an RIR by slug after the test completes.

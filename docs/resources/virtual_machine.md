@@ -23,12 +23,41 @@ resource "netbox_cluster" "test" {
 }
 
 resource "netbox_virtual_machine" "test" {
-  name    = "test-vm-1"
-  cluster = netbox_cluster.test.name
-  vcpus   = 2
-  memory  = 4096
-  disk    = 50
-  status  = "active"
+  name        = "test-vm-1"
+  cluster     = netbox_cluster.test.name
+  vcpus       = 2
+  memory      = 4096
+  disk        = 50
+  status      = "active"
+  description = "Test virtual machine"
+  comments    = "Production web server VM"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "operating_system"
+      value = "Ubuntu 22.04 LTS"
+    },
+    {
+      name  = "environment"
+      value = "production"
+    },
+    {
+      name  = "backup_policy"
+      value = "daily"
+    },
+    {
+      name  = "vm_owner"
+      value = "web-team"
+    }
+  ]
+
+  tags = [
+    "virtual-machine",
+    "production",
+    "web-server"
+  ]
 }
 ```
 
@@ -41,18 +70,18 @@ resource "netbox_virtual_machine" "test" {
 
 ### Optional
 
-- `cluster` (String) The name or ID of the cluster this virtual machine belongs to.
+- `cluster` (String) ID or name of the cluster this virtual machine belongs to.
 - `comments` (String) Additional comments or notes about the virtual machine. Supports Markdown formatting.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the virtual machine.
 - `disk` (Number) The total disk space (in GB) allocated to this virtual machine.
 - `memory` (Number) The amount of memory (in MB) allocated to this virtual machine.
-- `platform` (String) The name or ID of the platform (operating system) running on this virtual machine.
-- `role` (String) The name or ID of the device role for this virtual machine.
-- `site` (String) The name or ID of the site where this virtual machine is located.
+- `platform` (String) ID or slug of the platform (operating system) running on this virtual machine.
+- `role` (String) ID or slug of the device role for this virtual machine.
+- `site` (String) ID or slug of the site where this virtual machine is located.
 - `status` (String) The status of the virtual machine. Valid values are: `offline`, `active`, `planned`, `staged`, `failed`, `decommissioning`. Defaults to `active`.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
-- `tenant` (String) The name or ID of the tenant this virtual machine is assigned to.
+- `tenant` (String) ID or slug of the tenant this virtual machine is assigned to.
 - `vcpus` (Number) The number of virtual CPUs allocated to this virtual machine.
 
 ### Read-Only

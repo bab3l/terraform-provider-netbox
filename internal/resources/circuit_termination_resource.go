@@ -156,7 +156,7 @@ func (r *CircuitTerminationResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Build the create request
-	createReq, diags := r.buildCreateRequest(ctx, &data)
+	createReq, diags := r.buildCreateRequest(ctx, &data, nil)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -235,9 +235,10 @@ func (r *CircuitTerminationResource) Read(ctx context.Context, req resource.Read
 
 // Update updates the circuit termination resource.
 func (r *CircuitTerminationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data CircuitTerminationResourceModel
+	var state, data CircuitTerminationResourceModel
 
-	// Read Terraform plan data into the model
+	// Read Terraform plan and state data into the models
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -251,8 +252,8 @@ func (r *CircuitTerminationResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	// Build the update request
-	updateReq, diags := r.buildCreateRequest(ctx, &data)
+	// Build the update request (pass state for merge-aware custom fields)
+	updateReq, diags := r.buildCreateRequest(ctx, &data, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -330,7 +331,7 @@ func (r *CircuitTerminationResource) ImportState(ctx context.Context, req resour
 }
 
 // buildCreateRequest builds a CircuitTerminationRequest from the model.
-func (r *CircuitTerminationResource) buildCreateRequest(ctx context.Context, data *CircuitTerminationResourceModel) (*netbox.CircuitTerminationRequest, diag.Diagnostics) {
+func (r *CircuitTerminationResource) buildCreateRequest(ctx context.Context, data *CircuitTerminationResourceModel, state *CircuitTerminationResourceModel) (*netbox.CircuitTerminationRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Look up Circuit (required)
@@ -403,8 +404,19 @@ func (r *CircuitTerminationResource) buildCreateRequest(ctx context.Context, dat
 		createReq.SetMarkConnected(data.MarkConnected.ValueBool())
 	}
 
-	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, createReq, data.Tags, data.CustomFields, &diags)
+	// Handle tags with conditional logic (use plan if set, otherwise state)
+	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, createReq, data.Tags, &diags)
+	} else if state != nil && !state.Tags.IsNull() && !state.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, createReq, state.Tags, &diags)
+	}
+
+	// Handle custom fields with merge-aware logic
+	if state != nil {
+		utils.ApplyCustomFieldsWithMerge(ctx, createReq, data.CustomFields, state.CustomFields, &diags)
+	} else {
+		utils.ApplyCustomFields(ctx, createReq, data.CustomFields, &diags)
+	}
 	return createReq, diags
 }
 
@@ -476,5 +488,7 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 
 	// Populate tags and custom fields using unified helpers
 	data.Tags = utils.PopulateTagsFromAPI(ctx, len(termination.Tags) > 0, termination.Tags, data.Tags, diags)
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, len(termination.CustomFields) > 0, termination.CustomFields, data.CustomFields, diags)
+	if termination.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, termination.CustomFields, diags)
+	}
 }

@@ -126,7 +126,7 @@ func (r *IPSecPolicyResource) Create(ctx context.Context, req resource.CreateReq
 	ipsecRequest := netbox.NewWritableIPSecPolicyRequest(data.Name.ValueString())
 
 	// Set optional fields
-	r.setOptionalFields(ctx, ipsecRequest, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, ipsecRequest, &data, nil, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -195,8 +195,28 @@ func (r *IPSecPolicyResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
+	// Preserve original custom_fields value from state
+
+	originalCustomFields := data.CustomFields
+
 	// Map response to model
 	r.mapIPSecPolicyToState(ctx, ipsec, &data, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+
+		return
+
+	}
+
+	// If custom_fields was null or empty before, restore that state
+
+	// This prevents drift when config doesn't declare custom_fields
+
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+
+		data.CustomFields = originalCustomFields
+
+	}
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -204,33 +224,34 @@ func (r *IPSecPolicyResource) Read(ctx context.Context, req resource.ReadRequest
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *IPSecPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data IPSecPolicyResourceModel
+	var state, plan IPSecPolicyResourceModel
 
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read both state and plan for merge-aware custom fields handling
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	id, err := utils.ParseID(data.ID.ValueString())
+	id, err := utils.ParseID(plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error parsing ID",
-			fmt.Sprintf("Could not parse IPSec policy ID %s: %s", data.ID.ValueString(), err),
+			fmt.Sprintf("Could not parse IPSec policy ID %s: %s", plan.ID.ValueString(), err),
 		)
 		return
 	}
 
 	// Create the IPSecPolicy request
-	ipsecRequest := netbox.NewWritableIPSecPolicyRequest(data.Name.ValueString())
+	ipsecRequest := netbox.NewWritableIPSecPolicyRequest(plan.Name.ValueString())
 
-	// Set optional fields
-	r.setOptionalFields(ctx, ipsecRequest, &data, &resp.Diagnostics)
+	// Set optional fields with state for merge-aware custom fields
+	r.setOptionalFields(ctx, ipsecRequest, &plan, &state, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	tflog.Debug(ctx, "Updating IPSecPolicy", map[string]interface{}{
 		"id":   id,
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Update the IPSecPolicy
@@ -244,15 +265,25 @@ func (r *IPSecPolicyResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
+	// Save the plan's custom fields before mapping (for filter-to-owned pattern)
+	planCustomFields := plan.CustomFields
+
 	// Map response to model
-	r.mapIPSecPolicyToState(ctx, ipsec, &data, &resp.Diagnostics)
+	r.mapIPSecPolicyToState(ctx, ipsec, &plan, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply filter-to-owned pattern for custom fields
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, ipsec.GetCustomFields(), &resp.Diagnostics)
+
 	tflog.Debug(ctx, "Updated IPSecPolicy", map[string]interface{}{
-		"id":   data.ID.ValueString(),
-		"name": data.Name.ValueString(),
+		"id":   plan.ID.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -302,11 +333,11 @@ func (r *IPSecPolicyResource) ImportState(ctx context.Context, req resource.Impo
 }
 
 // setOptionalFields sets optional fields on the WritableIPSecPolicyRequest.
-func (r *IPSecPolicyResource) setOptionalFields(ctx context.Context, ipsecRequest *netbox.WritableIPSecPolicyRequest, data *IPSecPolicyResourceModel, diags *diag.Diagnostics) {
+func (r *IPSecPolicyResource) setOptionalFields(ctx context.Context, ipsecRequest *netbox.WritableIPSecPolicyRequest, plan *IPSecPolicyResourceModel, state *IPSecPolicyResourceModel, diags *diag.Diagnostics) {
 	// Proposals
-	if utils.IsSet(data.Proposals) {
+	if utils.IsSet(plan.Proposals) {
 		var proposalIDs []int64
-		diags.Append(data.Proposals.ElementsAs(ctx, &proposalIDs, false)...)
+		diags.Append(plan.Proposals.ElementsAs(ctx, &proposalIDs, false)...)
 		if diags.HasError() {
 			return
 		}
@@ -323,8 +354,8 @@ func (r *IPSecPolicyResource) setOptionalFields(ctx context.Context, ipsecReques
 	}
 
 	// PFS Group
-	if utils.IsSet(data.PFSGroup) {
-		pfsGroupVal, err := utils.SafeInt32FromValue(data.PFSGroup)
+	if utils.IsSet(plan.PFSGroup) {
+		pfsGroupVal, err := utils.SafeInt32FromValue(plan.PFSGroup)
 		if err != nil {
 			diags.AddError("Invalid value", fmt.Sprintf("PFSGroup value overflow: %s", err))
 			return
@@ -333,10 +364,18 @@ func (r *IPSecPolicyResource) setOptionalFields(ctx context.Context, ipsecReques
 		ipsecRequest.PfsGroup = *netbox.NewNullablePatchedWritableIPSecPolicyRequestPfsGroup(&pfsGroup)
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, ipsecRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
-	if diags.HasError() {
-		return
+	// Set description
+	utils.ApplyDescription(ipsecRequest, plan.Description)
+
+	// Set comments, tags, and custom fields with merge-aware helpers
+	utils.ApplyComments(ipsecRequest, plan.Comments)
+	utils.ApplyTags(ctx, ipsecRequest, plan.Tags, diags)
+	// Apply custom fields with merge logic to preserve unmanaged fields
+	if state != nil {
+		utils.ApplyCustomFieldsWithMerge(ctx, ipsecRequest, plan.CustomFields, state.CustomFields, diags)
+	} else {
+		// During Create, no state exists yet
+		utils.ApplyCustomFields(ctx, ipsecRequest, plan.CustomFields, diags)
 	}
 }
 

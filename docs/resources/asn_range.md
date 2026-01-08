@@ -29,6 +29,18 @@ resource "netbox_asn_range" "basic" {
   rir   = netbox_rir.private.name
   start = 64512 # Start of private ASN range
   end   = 65534 # End of private ASN range
+
+  # Partial custom fields management
+  custom_fields = [
+    {
+      name  = "allocation_purpose"
+      value = "internal-routing"
+    }
+  ]
+
+  tags = [
+    "private-asn"
+  ]
 }
 
 # Full ASN range with all optional fields
@@ -41,10 +53,27 @@ resource "netbox_asn_range" "full" {
   tenant      = netbox_tenant.example.slug
   description = "ASN range for production network devices"
 
-  tags = {
-    environment = "production"
-    managed_by  = "terraform"
-  }
+  # Partial custom fields management
+  # Only specified custom fields are managed, others preserved
+  custom_fields = [
+    {
+      name  = "allocation_purpose"
+      value = "datacenter-bgp"
+    },
+    {
+      name  = "utilization_threshold"
+      value = "80"
+    },
+    {
+      name  = "contact_team"
+      value = "network-engineering"
+    }
+  ]
+
+  tags = [
+    "environment-production",
+    "managed-by-terraform"
+  ]
 }
 
 # Reference an existing tenant

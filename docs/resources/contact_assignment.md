@@ -58,6 +58,29 @@ resource "netbox_contact_assignment" "test" {
   contact      = netbox_contact.test.name
   role         = netbox_contact_role.test.slug
   priority     = "primary"
+  description  = "Primary contact for device support"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "notification_method"
+      value = "email"
+    },
+    {
+      name  = "availability_hours"
+      value = "24x7"
+    },
+    {
+      name  = "escalation_level"
+      value = "1"
+    }
+  ]
+
+  tags = [
+    "contact-assignment",
+    "primary"
+  ]
 }
 ```
 

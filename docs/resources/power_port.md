@@ -45,9 +45,32 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_power_port" "test" {
-  name   = "PSU1"
-  device = netbox_device.test.name
-  type   = "iec-60320-c14"
+  name        = "PSU1"
+  device      = netbox_device.test.name
+  type        = "iec-60320-c14"
+  description = "Primary power supply inlet"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "pdu_connection"
+      value = "PDU-A-001-PORT-12"
+    },
+    {
+      name  = "rated_voltage"
+      value = "120"
+    },
+    {
+      name  = "max_amperage"
+      value = "15"
+    }
+  ]
+
+  tags = [
+    "power-input",
+    "primary"
+  ]
 }
 ```
 
@@ -56,7 +79,7 @@ resource "netbox_power_port" "test" {
 
 ### Required
 
-- `device` (String) The device this power port belongs to (ID or name).
+- `device` (String) ID or name of the device this power port belongs to. Required.
 - `name` (String) The name of the power port.
 
 ### Optional

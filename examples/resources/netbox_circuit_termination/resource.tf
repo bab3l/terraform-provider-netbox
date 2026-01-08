@@ -22,8 +22,27 @@ resource "netbox_circuit" "test" {
 }
 
 resource "netbox_circuit_termination" "test_a" {
-  circuit    = netbox_circuit.test.id
-  term_side  = "A"
-  site       = netbox_site.test.name
-  port_speed = 1000000 # 1 Gbps
+  circuit     = netbox_circuit.test.id
+  term_side   = "A"
+  site        = netbox_site.test.name
+  port_speed  = 1000000 # 1 Gbps
+  description = "Datacenter A termination"
+
+  # Partial custom fields management
+  # Manage specific custom fields while preserving others in NetBox
+  custom_fields = [
+    {
+      name  = "demarcation_point"
+      value = "DC-A-MMR-RACK-42"
+    },
+    {
+      name  = "cross_connect_id"
+      value = "XC-2024-001"
+    }
+  ]
+
+  tags = [
+    "datacenter-a",
+    "primary"
+  ]
 }

@@ -88,8 +88,14 @@ func (r *ManufacturerResource) Create(ctx context.Context, req resource.CreateRe
 	// Apply description
 	utils.ApplyDescription(&manufacturerRequest, data.Description)
 
-	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, &manufacturerRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle tags
+	utils.ApplyTags(ctx, &manufacturerRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Handle custom fields (no merge needed for Create)
+	utils.ApplyCustomFields(ctx, &manufacturerRequest, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -150,20 +156,38 @@ func (r *ManufacturerResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
+	// Save original custom_fields state before mapping
+	originalCustomFields := data.CustomFields
+
 	// Map response to state using helpers
 	r.mapManufacturerToState(ctx, manufacturer, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Preserve original custom_fields state if it was null or empty
+	// This prevents unmanaged/cleared fields from reappearing in state
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *ManufacturerResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ManufacturerResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	var plan ManufacturerResourceModel
+	var state ManufacturerResourceModel
+
+	// Read both plan and state for merge-aware custom fields handling
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Use plan as the data source
+	data := plan
+
 	manufacturerID := data.ID.ValueString()
 	var manufacturerIDInt int32
 	manufacturerIDInt, err := utils.ParseID(manufacturerID)
@@ -179,8 +203,14 @@ func (r *ManufacturerResource) Update(ctx context.Context, req resource.UpdateRe
 	// Apply description
 	utils.ApplyDescription(&manufacturerRequest, data.Description)
 
-	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, &manufacturerRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle tags
+	utils.ApplyTags(ctx, &manufacturerRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Handle custom fields with merge-aware logic
+	utils.ApplyCustomFieldsWithMerge(ctx, &manufacturerRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -246,6 +276,6 @@ func (r *ManufacturerResource) mapManufacturerToState(ctx context.Context, manuf
 	// Handle tags
 	data.Tags = utils.PopulateTagsFromAPI(ctx, manufacturer.HasTags(), manufacturer.GetTags(), data.Tags, diags)
 
-	// Handle custom fields
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, manufacturer.HasCustomFields(), manufacturer.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields - filter to owned fields only
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, manufacturer.GetCustomFields(), diags)
 }

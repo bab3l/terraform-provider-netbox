@@ -230,3 +230,172 @@ resource "netbox_location" "test" {
 		cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
 		name, slug, textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue)
 }
+
+// TestAccLocationResource_CustomFieldsPreservation tests that custom fields are preserved
+// when updating other fields on a location. This addresses a critical bug where custom fields
+// were being deleted when users updated unrelated fields.
+//
+// Bug scenario:
+// 1. Create location with custom fields
+// 2. Update location WITHOUT custom_fields in config (omit the field entirely)
+// 3. Custom fields should be preserved in NetBox, not deleted.
+func TestAccLocationResource_CustomFieldsPreservation(t *testing.T) {
+	// Generate unique names
+	siteName := testutil.RandomName("tf-test-loc-site-preserve")
+	siteSlug := testutil.RandomSlug("tf-test-loc-site-preserve")
+	locationName := testutil.RandomName("tf-test-loc-preserve")
+	locationSlug := testutil.RandomSlug("tf-test-loc-preserve")
+
+	// Custom field names
+	cfText := testutil.RandomCustomFieldName("tf_text_preserve")
+	cfInteger := testutil.RandomCustomFieldName("tf_int_preserve")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterLocationCleanup(locationSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.ComposeCheckDestroy(testutil.CheckLocationDestroy, testutil.CheckSiteDestroy),
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create location WITH custom fields explicitly in config
+				Config: testAccLocationConfig_preservation_step1(
+					siteName, siteSlug, locationName, locationSlug,
+					cfText, cfInteger, "initial value", 42,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_location.test", "name", locationName),
+					resource.TestCheckResourceAttr("netbox_location.test", "description", "Initial description"),
+					resource.TestCheckResourceAttr("netbox_location.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_location.test", cfText, "text", "initial value"),
+					testutil.CheckCustomFieldValue("netbox_location.test", cfInteger, "integer", "42"),
+				),
+			},
+			{
+				// Step 2: Update description WITHOUT mentioning custom_fields in config
+				// Custom fields should be preserved in NetBox (verified by import)
+				// State shows null/empty for custom_fields since not in config
+				Config: testAccLocationConfig_preservation_step2(
+					siteName, siteSlug, locationName, locationSlug,
+					cfText, cfInteger, "Updated description",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_location.test", "name", locationName),
+					resource.TestCheckResourceAttr("netbox_location.test", "description", "Updated description"),
+					// State shows 0 custom_fields (not in config = not owned)
+					resource.TestCheckResourceAttr("netbox_location.test", "custom_fields.#", "0"),
+				),
+			},
+			{
+				// Step 3: Import to verify custom fields still exist in NetBox
+				ResourceName:            "netbox_location.test",
+				ImportState:             true,
+				ImportStateVerify:       false,                     // Can't verify - config has no custom_fields
+				ImportStateVerifyIgnore: []string{"custom_fields"}, // Different because filter-to-owned
+			},
+			{
+				// Step 4: Add custom_fields back to config to verify they were preserved
+				Config: testAccLocationConfig_preservation_step1(
+					siteName, siteSlug, locationName, locationSlug,
+					cfText, cfInteger, "initial value", 42,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					// Custom fields should have their original values (preserved in NetBox)
+					resource.TestCheckResourceAttr("netbox_location.test", "custom_fields.#", "2"),
+					testutil.CheckCustomFieldValue("netbox_location.test", cfText, "text", "initial value"),
+					testutil.CheckCustomFieldValue("netbox_location.test", cfInteger, "integer", "42"),
+				),
+			},
+		},
+	})
+}
+
+func testAccLocationConfig_preservation_step1(
+	siteName, siteSlug, locationName, locationSlug,
+	cfTextName, cfIntName, cfTextValue string, cfIntValue int,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_custom_field" "text" {
+  name         = %[5]q
+  type         = "text"
+  object_types = ["dcim.location"]
+}
+
+resource "netbox_custom_field" "integer" {
+  name         = %[6]q
+  type         = "integer"
+  object_types = ["dcim.location"]
+}
+
+resource "netbox_location" "test" {
+  name        = %[3]q
+  slug        = %[4]q
+  site        = netbox_site.test.id
+  description = %[7]q
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.text.name
+      type  = "text"
+      value = %[8]q
+    },
+    {
+      name  = netbox_custom_field.integer.name
+      type  = "integer"
+      value = "%[9]d"
+    }
+  ]
+
+  depends_on = [
+    netbox_custom_field.text,
+    netbox_custom_field.integer,
+  ]
+}
+`,
+		siteName, siteSlug, locationName, locationSlug,
+		cfTextName, cfIntName, "Initial description", cfTextValue, cfIntValue,
+	)
+}
+
+func testAccLocationConfig_preservation_step2(
+	siteName, siteSlug, locationName, locationSlug,
+	cfTextName, cfIntName, description string,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_custom_field" "text" {
+  name         = %[5]q
+  type         = "text"
+  object_types = ["dcim.location"]
+}
+
+resource "netbox_custom_field" "integer" {
+  name         = %[6]q
+  type         = "integer"
+  object_types = ["dcim.location"]
+}
+
+resource "netbox_location" "test" {
+  name        = %[3]q
+  slug        = %[4]q
+  site        = netbox_site.test.id
+  description = %[7]q
+
+  # NOTE: custom_fields is intentionally omitted to test preservation behavior
+}
+`,
+		siteName, siteSlug, locationName, locationSlug,
+		cfTextName, cfIntName, description,
+	)
+}

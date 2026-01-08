@@ -31,7 +31,30 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_console_server_port" "test" {
-  name   = "Port 1"
-  device = netbox_device.test.name
-  type   = "rj-45"
+  name        = "Port 1"
+  device      = netbox_device.test.name
+  type        = "rj-45"
+  description = "Console server port for device management"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "connected_device_hostname"
+      value = "switch-01.example.com"
+    },
+    {
+      name  = "access_method"
+      value = "ssh"
+    },
+    {
+      name  = "baud_rate"
+      value = "9600"
+    }
+  ]
+
+  tags = [
+    "console-server",
+    "management-access"
+  ]
 }

@@ -45,9 +45,32 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_console_port" "test" {
-  name   = "Console Port 1"
-  device = netbox_device.test.name
-  type   = "rj-45"
+  name        = "Console Port 1"
+  device      = netbox_device.test.name
+  type        = "rj-45"
+  description = "Management console port"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others preserved
+  custom_fields = [
+    {
+      name  = "console_server"
+      value = "console-srv-01"
+    },
+    {
+      name  = "port_number"
+      value = "16"
+    },
+    {
+      name  = "baud_rate"
+      value = "9600"
+    }
+  ]
+
+  tags = [
+    "console-access",
+    "management"
+  ]
 }
 ```
 
@@ -56,7 +79,7 @@ resource "netbox_console_port" "test" {
 
 ### Required
 
-- `device` (String) The device this console port belongs to (ID or name).
+- `device` (String) ID or name of the device this console port belongs to. Required.
 - `name` (String) The name of the console port.
 
 ### Optional

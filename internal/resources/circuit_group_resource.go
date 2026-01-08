@@ -191,7 +191,8 @@ func (r *CircuitGroupResource) Read(ctx context.Context, req resource.ReadReques
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *CircuitGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data CircuitGroupResourceModel
+	var state, data CircuitGroupResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -232,9 +233,15 @@ func (r *CircuitGroupResource) Update(ctx context.Context, req resource.UpdateRe
 		groupRequest.Tenant = *netbox.NewNullableBriefTenantRequest(nil)
 	}
 
-	// Apply metadata fields (tags, custom_fields)
+	// Apply tags with conditional logic (use plan if set, otherwise state)
+	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, groupRequest, data.Tags, &resp.Diagnostics)
+	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
+		utils.ApplyTags(ctx, groupRequest, state.Tags, &resp.Diagnostics)
+	}
 
-	utils.ApplyMetadataFields(ctx, groupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle custom fields with merge-aware logic
+	utils.ApplyCustomFieldsWithMerge(ctx, groupRequest, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -336,5 +343,7 @@ func (r *CircuitGroupResource) mapResponseToState(ctx context.Context, group *ne
 		return
 	}
 
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, group.HasCustomFields(), group.GetCustomFields(), data.CustomFields, diags)
+	if group.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, group.GetCustomFields(), diags)
+	}
 }

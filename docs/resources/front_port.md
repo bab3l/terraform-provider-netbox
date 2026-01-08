@@ -57,6 +57,25 @@ resource "netbox_front_port" "test" {
   type               = "8p8c"
   rear_port          = netbox_rear_port.test.name
   rear_port_position = 1
+  description        = "Front-facing patch port"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "patch_label"
+      value = "PP-001-P1"
+    },
+    {
+      name  = "port_assignment"
+      value = "server-vlan-100"
+    }
+  ]
+
+  tags = [
+    "patch-panel",
+    "front-port"
+  ]
 }
 ```
 
