@@ -48,7 +48,7 @@ type SiteDataSourceModel struct {
 	Description  types.String `tfsdk:"description"`
 	Comments     types.String `tfsdk:"comments"`
 	Tags         types.Set    `tfsdk:"tags"`
-	CustomFields types.Set    `tfsdk:"custom_felds"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 	DisplayName  types.String `tfsdk:"display_name"`
 }
 
