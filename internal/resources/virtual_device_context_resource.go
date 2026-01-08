@@ -355,8 +355,14 @@ func (r *VirtualDeviceContextResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 
-	// If custom_fields was explicitly null/empty in config, preserve that
-	if originalCustomFields.IsNull() || len(originalCustomFields.Elements()) == 0 {
+	// If custom_fields was null or empty before (not managed or explicitly cleared),
+	// restore that state after mapping.
+	// This prevents Terraform from trying to manage fields that aren't in the configuration.
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		tflog.Debug(ctx, "Custom fields unmanaged/cleared, preserving original state during Read", map[string]interface{}{
+			"was_null":  originalCustomFields.IsNull(),
+			"was_empty": !originalCustomFields.IsNull() && len(originalCustomFields.Elements()) == 0,
+		})
 		data.CustomFields = originalCustomFields
 	}
 

@@ -510,8 +510,14 @@ func (r *VMInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	// Preserve custom_fields if API returned null/empty but state had values
-	if (data.CustomFields.IsNull() || len(data.CustomFields.Elements()) == 0) && !originalCustomFields.IsNull() && len(originalCustomFields.Elements()) > 0 {
+	// If custom_fields was null or empty before (not managed or explicitly cleared),
+	// restore that state after mapping.
+	// This prevents Terraform from trying to manage fields that aren't in the configuration.
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		tflog.Debug(ctx, "Custom fields unmanaged/cleared, preserving original state during Read", map[string]interface{}{
+			"was_null":  originalCustomFields.IsNull(),
+			"was_empty": !originalCustomFields.IsNull() && len(originalCustomFields.Elements()) == 0,
+		})
 		data.CustomFields = originalCustomFields
 	}
 
