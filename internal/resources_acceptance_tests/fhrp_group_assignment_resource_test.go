@@ -15,7 +15,8 @@ func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 
 	name := testutil.RandomName("test-fhrp-assign")
 	interfaceName := testutil.RandomName("eth")
-	groupID := int32(acctest.RandIntRange(100, 254)) // nolint:gosec
+	// Use non-overlapping range to prevent parallel test collisions
+	groupID := int32(acctest.RandIntRange(100, 124)) // nolint:gosec
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(name + "-site")
@@ -197,7 +198,8 @@ func TestAccConsistency_FHRPGroupAssignment_LiteralNames(t *testing.T) {
 	t.Parallel()
 	name := testutil.RandomName("test-fhrp-assign-lit")
 	interfaceName := testutil.RandomName("eth")
-	groupID := int32(acctest.RandIntRange(100, 254)) // nolint:gosec
+	// Use non-overlapping range to prevent parallel test collisions
+	groupID := int32(acctest.RandIntRange(150, 174)) // nolint:gosec
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(name + "-site")
@@ -286,7 +288,8 @@ func TestAccFHRPGroupAssignmentResource_full(t *testing.T) {
 	t.Parallel()
 	name := testutil.RandomName("test-fhrp-assign-full")
 	interfaceName := testutil.RandomName("eth")
-	groupID := int32(acctest.RandIntRange(100, 254)) // nolint:gosec
+	// Use non-overlapping range to prevent parallel test collisions
+	groupID := int32(acctest.RandIntRange(175, 199)) // nolint:gosec
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(name + "-site")
@@ -328,7 +331,8 @@ func TestAccFHRPGroupAssignmentResource_update(t *testing.T) {
 	t.Parallel()
 	name := testutil.RandomName("test-fhrp-assign-upd")
 	interfaceName := testutil.RandomName("eth")
-	groupID := int32(acctest.RandIntRange(100, 254)) // nolint:gosec
+	// Use non-overlapping range to prevent parallel test collisions
+	groupID := int32(acctest.RandIntRange(200, 224)) // nolint:gosec
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(name + "-site")
@@ -363,7 +367,8 @@ func TestAccFHRPGroupAssignmentResource_external_deletion(t *testing.T) {
 
 	name := testutil.RandomName("test-fhrp-assign-extdel")
 	interfaceName := testutil.RandomName("eth")
-	groupID := int32(acctest.RandIntRange(100, 254)) // nolint:gosec
+	// Use non-overlapping range to prevent parallel test collisions
+	groupID := int32(acctest.RandIntRange(225, 254)) // nolint:gosec
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(name + "-site")
