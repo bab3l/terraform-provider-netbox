@@ -1602,20 +1602,39 @@ All 5 VPN/IPSec resources have been updated with merge-aware partial management 
 **Priority**: CRITICAL - Data Loss Bug
 **Files**: 8 files (4 resources + 4 tests)
 **Estimated Time**: 2-3 hours
-**Status**: 🔜 PENDING
+**Status**: ⏳ IN PROGRESS (2026-01-08)
 
 #### Resources to Fix (4 total):
-1. `console_server_port_resource.go` - Uses ApplyMetadataFields (no merge)
-2. `module_resource.go` - Uses ApplyCommonFields (no merge)
-3. `module_bay_template_resource.go` - No custom_fields handling in Update ⚠️
-4. `rack_type_resource.go` - Manual handling (no merge)
+1. ✅ `console_server_port_resource.go` - Updated with merge-aware pattern
+2. ⏳ `module_resource.go` - Uses ApplyCommonFields (no merge) - PENDING
+3. ⏳ `module_bay_template_resource.go` - No custom_fields handling in Update ⚠️ - PENDING
+4. ⏳ `rack_type_resource.go` - Manual handling (no merge) - PENDING
+
+#### Implementation Progress:
+**console_server_port_resource.go** (COMPLETE):
+- ✅ Read() method: Added preservation pattern for null/empty custom_fields
+- ✅ Update() signature: Changed to use state + plan
+- ✅ Update() body: All references use plan instead of data
+- ✅ ApplyMetadataFields replaced with ApplyTags + ApplyCustomFieldsWithMerge
+- ✅ Filter-to-owned pattern added to Update response handling
+- ✅ mapResponseToModel: Uses PopulateCustomFieldsFilteredToOwned
+- ✅ Build verification: Provider compiles successfully
+
+#### Remaining Work:
+- ⏳ Fix module_resource.go (uses ApplyCommonFields)
+- ⏳ Fix module_bay_template_resource.go (no custom_fields in Update)
+- ⏳ Fix rack_type_resource.go (manual handling)
+- ⏳ Create 4 preservation tests (all resources)
+- ⏳ Run tests and verify all passing
 
 #### Gating Checks for Batch 10:
-- [ ] All 4 resource files updated with merge-aware helpers
-- [ ] All 4 resources use merge-aware pattern in Update
-- [ ] All 4 resources use filter-to-owned in Read
-- [ ] 4 preservation tests created and passing
-- [ ] Build succeeds with no errors
+- [x] console_server_port updated with merge-aware helpers
+- [ ] module updated with merge-aware pattern
+- [ ] module_bay_template updated with custom_fields handling
+- [ ] rack_type updated with merge-aware pattern
+- [ ] 4 preservation tests created
+- [ ] All preservation tests passing
+- [x] Build succeeds with no errors
 
 ### Batch 11: Virtualization & Assignment Resources (Missing Partial Management)
 **Priority**: CRITICAL - Data Loss Bug
