@@ -100,6 +100,7 @@ resource "netbox_rack_type" "test" {
   model        = %q
   slug         = %q
   manufacturer = netbox_manufacturer.test.slug
+  form_factor  = "4-post-frame"
 
   custom_fields = [
     {
@@ -213,6 +214,7 @@ resource "netbox_rack_type" "test" {
   model        = %[1]q
   slug         = %[2]q
   manufacturer = netbox_manufacturer.test.slug
+  form_factor  = "4-post-frame"
 
   custom_fields = [
     {
@@ -253,6 +255,7 @@ resource "netbox_rack_type" "test" {
   model        = %[1]q
   slug         = %[2]q
   manufacturer = netbox_manufacturer.test.slug
+  form_factor  = "4-post-frame"
   description  = "Updated description"
   # custom_fields intentionally omitted - testing preservation
 }
@@ -282,6 +285,7 @@ resource "netbox_rack_type" "test" {
   model        = %[1]q
   slug         = %[2]q
   manufacturer = netbox_manufacturer.test.slug
+  form_factor  = "4-post-frame"
   description  = "Updated description"
 
   custom_fields = [
