@@ -53,6 +53,27 @@ resource "netbox_wireless_link" "complete" {
   description   = "Long-range point-to-point wireless link"
   comments      = "This link spans across two buildings."
 
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "frequency_band"
+      value = "5GHz"
+    },
+    {
+      name  = "link_capacity"
+      value = "1Gbps"
+    },
+    {
+      name  = "signal_strength"
+      value = "-65dBm"
+    },
+    {
+      name  = "redundancy_enabled"
+      value = "false"
+    }
+  ]
+
   tags = [
     {
       name = "production"

@@ -34,6 +34,28 @@ resource "netbox_rack_reservation" "test" {
   units       = [1, 2, 3]
   user        = data.netbox_user.admin.username
   description = "Reserved for testing"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "project_name"
+      value = "Database Migration"
+    },
+    {
+      name  = "reservation_duration_days"
+      value = "30"
+    },
+    {
+      name  = "requestor_email"
+      value = "dbteam@example.com"
+    }
+  ]
+
+  tags = [
+    "reservation",
+    "temporary"
+  ]
 }
 ```
 

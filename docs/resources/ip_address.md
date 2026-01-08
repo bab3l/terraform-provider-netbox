@@ -13,14 +13,51 @@ Manages an IP address in Netbox.
 
 ```terraform
 resource "netbox_ip_address" "test_v4" {
-  address  = "10.0.0.1/24"
-  status   = "active"
-  dns_name = "test.example.com"
+  address     = "10.0.0.1/24"
+  status      = "active"
+  dns_name    = "test.example.com"
+  description = "Primary web server IP"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others preserved
+  custom_fields = [
+    {
+      name  = "owner_team"
+      value = "web-ops"
+    },
+    {
+      name  = "purpose"
+      value = "load-balancer-vip"
+    },
+    {
+      name  = "monitoring_enabled"
+      value = "true"
+    }
+  ]
+
+  tags = [
+    "production",
+    "web-tier"
+  ]
 }
 
 resource "netbox_ip_address" "test_v6" {
-  address = "2001:db8::1/64"
-  status  = "active"
+  address     = "2001:db8::1/64"
+  status      = "active"
+  description = "IPv6 primary address"
+
+  # Partial custom fields management
+  custom_fields = [
+    {
+      name  = "ipv6_deployment_phase"
+      value = "production"
+    }
+  ]
+
+  tags = [
+    "ipv6",
+    "production"
+  ]
 }
 
 resource "netbox_vrf" "test" {
@@ -29,9 +66,27 @@ resource "netbox_vrf" "test" {
 }
 
 resource "netbox_ip_address" "test_vrf" {
-  address = "192.168.1.1/24"
-  vrf     = netbox_vrf.test.name
-  status  = "active"
+  address     = "192.168.1.1/24"
+  vrf         = netbox_vrf.test.name
+  status      = "active"
+  description = "VRF gateway address"
+
+  # Partial custom fields management
+  custom_fields = [
+    {
+      name  = "gateway_role"
+      value = "default"
+    },
+    {
+      name  = "vrf_priority"
+      value = "high"
+    }
+  ]
+
+  tags = [
+    "gateway",
+    "vrf-test"
+  ]
 }
 ```
 
@@ -47,17 +102,28 @@ resource "netbox_ip_address" "test_vrf" {
 - `assigned_object_id` (Number) The ID of the assigned object (interface or VM interface).
 - `assigned_object_type` (String) The content type of the assigned object (e.g., `dcim.interface`, `virtualization.vminterface`).
 - `comments` (String) Additional comments or notes about the IP address. Supports Markdown formatting.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the IP address.
 - `dns_name` (String) Hostname or FQDN (not case-sensitive).
 - `role` (String) The role of the IP address. Valid values are: `loopback`, `secondary`, `anycast`, `vip`, `vrrp`, `hsrp`, `glbp`, `carp`.
 - `status` (String) The status of the IP address. Valid values are: `active`, `reserved`, `deprecated`, `dhcp`, `slaac`. Defaults to `active`.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
-- `tenant` (String) The name or ID of the tenant this IP address is assigned to.
-- `vrf` (String) The name or ID of the VRF this IP address is assigned to.
+- `tenant` (String) ID or slug of the tenant this IP address is assigned to.
+- `vrf` (String) ID or name of the VRF this IP address is assigned to.
 
 ### Read-Only
 
 - `id` (String) The unique numeric ID of the IP address.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Required:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
+- `value` (String) Value of the custom field.
+
 
 <a id="nestedatt--tags"></a>
 ### Nested Schema for `tags`

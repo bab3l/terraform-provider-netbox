@@ -9,7 +9,6 @@ description: |-
 # netbox_inventory_item (Resource)
 
 Manages an inventory item in NetBox. Inventory items represent hardware components installed within a device, such as power supplies, CPUs, or line cards.
-
 ~> **Deprecation Warning:** Beginning in NetBox v4.3, inventory items are deprecated and planned for removal in a future release. Users are strongly encouraged to use [modules](https://netboxlabs.com/docs/netbox/models/dcim/module/) and [module types](https://netboxlabs.com/docs/netbox/models/dcim/moduletype/) instead.
 
 ## Example Usage
@@ -48,8 +47,35 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_inventory_item" "test" {
-  name   = "Inventory Item 1"
-  device = netbox_device.test.name
+  name        = "Inventory Item 1"
+  device      = netbox_device.test.name
+  description = "Power supply module"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "serial_number"
+      value = "PSU-SN-12345"
+    },
+    {
+      name  = "purchase_date"
+      value = "2024-01-15"
+    },
+    {
+      name  = "warranty_expiry"
+      value = "2027-01-15"
+    },
+    {
+      name  = "asset_tag"
+      value = "INV-PSU-001"
+    }
+  ]
+
+  tags = [
+    "power-supply",
+    "warranty-tracked"
+  ]
 }
 ```
 

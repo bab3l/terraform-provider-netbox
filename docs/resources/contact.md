@@ -31,6 +31,7 @@ resource "netbox_contact" "full" {
 }
 
 # Example: Contact with tags
+# Note: netbox_contact resource only supports tags, not custom_fields
 resource "netbox_contact" "with_tags" {
   name  = "Bob Wilson"
   email = "bob.wilson@example.com"

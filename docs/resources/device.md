@@ -45,6 +45,25 @@ resource "netbox_device" "test" {
 
   serial    = "1234567890"
   asset_tag = "asset-123"
+
+  # Partial custom fields management (recommended pattern)
+  # Only the custom fields specified here are managed by Terraform
+  # Other custom fields set in NetBox (via UI, API, or automation) are preserved
+  custom_fields = [
+    {
+      name  = "environment"
+      value = "production"
+    },
+    {
+      name  = "owner_team"
+      value = "network-ops"
+    }
+  ]
+
+  tags = [
+    "managed-by-terraform",
+    "production"
+  ]
 }
 ```
 

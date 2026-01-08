@@ -44,10 +44,38 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_service" "test" {
-  name     = "SSH"
-  protocol = "tcp"
-  ports    = [22]
-  device   = netbox_device.test.name
+  name        = "SSH"
+  protocol    = "tcp"
+  ports       = [22]
+  device      = netbox_device.test.name
+  description = "SSH service for remote administration"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "service_owner"
+      value = "infrastructure-team"
+    },
+    {
+      name  = "monitoring_enabled"
+      value = "true"
+    },
+    {
+      name  = "access_level"
+      value = "restricted"
+    },
+    {
+      name  = "backup_service"
+      value = "false"
+    }
+  ]
+
+  tags = [
+    "service",
+    "ssh",
+    "management"
+  ]
 }
 ```
 

@@ -26,10 +26,38 @@ resource "netbox_vlan" "test" {
 }
 
 resource "netbox_prefix" "test" {
-  prefix = "10.0.0.0/24"
-  site   = netbox_site.test.slug
-  vlan   = netbox_vlan.test.name
-  status = "active"
+  prefix      = "10.0.0.0/24"
+  site        = netbox_site.test.slug
+  vlan        = netbox_vlan.test.name
+  status      = "active"
+  description = "Primary datacenter subnet"
+  comments    = "Main server network segment"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "subnet_purpose"
+      value = "servers"
+    },
+    {
+      name  = "vlan_id"
+      value = "100"
+    },
+    {
+      name  = "dhcp_enabled"
+      value = "false"
+    },
+    {
+      name  = "gateway_ip"
+      value = "10.0.0.1"
+    }
+  ]
+
+  tags = [
+    "production",
+    "datacenter"
+  ]
 }
 ```
 
@@ -43,20 +71,31 @@ resource "netbox_prefix" "test" {
 ### Optional
 
 - `comments` (String) Additional comments or notes about the prefix. Supports Markdown formatting.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the prefix.
 - `is_pool` (Boolean) If true, all IP addresses within this prefix are considered usable. Defaults to false.
 - `mark_utilized` (Boolean) If true, treat the prefix as fully utilized. Defaults to false.
 - `role` (String) The name or ID of the role for this prefix.
-- `site` (String) The name or ID of the site this prefix is assigned to.
+- `site` (String) ID or slug of the site this prefix is assigned to.
 - `status` (String) The status of the prefix. Valid values are: `container`, `active`, `reserved`, `deprecated`. Defaults to `active`.
 - `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
-- `tenant` (String) The name or ID of the tenant this prefix is assigned to.
-- `vlan` (String) The name or ID of the VLAN this prefix is assigned to.
-- `vrf` (String) The name or ID of the VRF this prefix is assigned to.
+- `tenant` (String) ID or slug of the tenant this prefix is assigned to.
+- `vlan` (String) ID or VID of the VLAN this prefix is assigned to.
+- `vrf` (String) ID or name of the VRF this prefix is assigned to.
 
 ### Read-Only
 
 - `id` (String) The unique numeric ID of the prefix.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Required:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
+- `value` (String) Value of the custom field.
+
 
 <a id="nestedatt--tags"></a>
 ### Nested Schema for `tags`

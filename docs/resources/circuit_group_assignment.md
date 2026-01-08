@@ -37,6 +37,14 @@ resource "netbox_circuit_group" "test" {
 resource "netbox_circuit_group_assignment" "test" {
   circuit_id = netbox_circuit.test.id
   group      = netbox_circuit_group.test.name
+  priority   = "primary"
+
+  # Note: circuit_group_assignment is tags-only (no custom_fields support)
+  # Tags use replace-all semantics (not merge like custom fields)
+  tags = [
+    "circuit-assignment",
+    "primary-link"
+  ]
 }
 ```
 

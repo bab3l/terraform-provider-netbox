@@ -50,6 +50,28 @@ resource "netbox_cable" "example" {
   # Documentation
   description = "Patch cable from switch to server"
   comments    = "Installed during data center buildout"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "cable_vendor"
+      value = "Panduit"
+    },
+    {
+      name  = "installation_date"
+      value = "2024-01-15"
+    },
+    {
+      name  = "certification_status"
+      value = "passed"
+    }
+  ]
+
+  tags = [
+    "patch-cable",
+    "certified"
+  ]
 }
 
 # Example: Fiber cable between interfaces
@@ -70,6 +92,27 @@ resource "netbox_cable" "fiber" {
   length      = 100
   length_unit = "m"
   description = "Single-mode fiber uplink"
+
+  # Partial custom fields management
+  custom_fields = [
+    {
+      name  = "cable_vendor"
+      value = "Corning"
+    },
+    {
+      name  = "fiber_strand_count"
+      value = "12"
+    },
+    {
+      name  = "attenuation_db"
+      value = "0.35"
+    }
+  ]
+
+  tags = [
+    "fiber-optic",
+    "uplink"
+  ]
 }
 
 # Example: Planned cable (not yet installed)

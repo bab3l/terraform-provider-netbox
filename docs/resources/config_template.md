@@ -32,11 +32,20 @@ resource "netbox_config_template" "test" {
 ### Optional
 
 - `description` (String) Description of the config template.
+- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 
 ### Read-Only
 
 - `data_path` (String) Path to remote file (relative to data source root). Read-only.
 - `id` (Number) The unique numeric ID of the config template.
+
+<a id="nestedatt--tags"></a>
+### Nested Schema for `tags`
+
+Required:
+
+- `name` (String) Name of the existing tag.
+- `slug` (String) Slug of the existing tag.
 
 ## Import
 

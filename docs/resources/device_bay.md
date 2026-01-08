@@ -45,8 +45,27 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_device_bay" "test" {
-  name   = "Device Bay 1"
-  device = netbox_device.test.name
+  name        = "Device Bay 1"
+  device      = netbox_device.test.name
+  description = "Expansion slot for modular device"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "bay_type"
+      value = "network-module"
+    },
+    {
+      name  = "max_power_watts"
+      value = "50"
+    }
+  ]
+
+  tags = [
+    "device-bay",
+    "expansion-slot"
+  ]
 }
 ```
 

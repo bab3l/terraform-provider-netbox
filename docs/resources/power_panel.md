@@ -21,6 +21,32 @@ resource "netbox_site" "test" {
 resource "netbox_power_panel" "test" {
   name = "Test Power Panel"
   site = netbox_site.test.slug
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "panel_voltage"
+      value = "208"
+    },
+    {
+      name  = "panel_amperage"
+      value = "200"
+    },
+    {
+      name  = "panel_type"
+      value = "3-phase"
+    },
+    {
+      name  = "breaker_count"
+      value = "42"
+    }
+  ]
+
+  tags = [
+    "electrical-panel",
+    "datacenter-power"
+  ]
 }
 ```
 
