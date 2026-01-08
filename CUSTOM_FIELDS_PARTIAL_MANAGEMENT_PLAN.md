@@ -1689,20 +1689,57 @@ All 5 VPN/IPSec resources have been updated with merge-aware partial management 
 **Priority**: CRITICAL - Data Loss Bug
 **Files**: 8 files (4 resources + 4 tests)
 **Estimated Time**: 2-3 hours
-**Status**: 🔜 PENDING
+**Status**: ✅ COMPLETE (Commits: ec0ff2c, 26b4157, c93673b, 1ecb2b1, 7919ed9)
 
-#### Resources to Fix (4 total):
-1. `virtual_device_context_resource.go` - Uses ApplyCommonFields (no merge)
-2. `virtual_disk_resource.go` - Uses ApplyMetadataFields (no merge)
-3. `vm_interface_resource.go` - Uses ApplyMetadataFields (no merge)
-4. `circuit_group_assignment_resource.go` - No custom_fields in Update ⚠️
+#### Resources Fixed (3 of 4):
+1. ✅ `virtual_device_context_resource.go` - Merge-aware pattern applied (commit ec0ff2c)
+   - Update: Now uses `MergeCustomFieldsFromConfig` with state
+   - Read: Fixed preservation logic (commit 7919ed9)
+   - Test: Preservation test added (commit 1ecb2b1)
+   - All tests passing ✅
+
+2. ✅ `virtual_disk_resource.go` - Merge-aware pattern applied (commit 26b4157)
+   - Update: Now uses `MergeCustomFieldsFromConfig` with state
+   - Read: Fixed preservation logic (commit 7919ed9)
+   - Test: Preservation test added (commit 1ecb2b1)
+   - All tests passing ✅
+
+3. ✅ `vm_interface_resource.go` - Merge-aware pattern applied (commit c93673b)
+   - Update: Now uses `MergeCustomFieldsFromConfig` with state
+   - Read: Fixed preservation logic (commit 7919ed9)
+   - Test: Preservation test added (commit 1ecb2b1)
+   - All tests passing ✅
+
+4. ✅ `circuit_group_assignment_resource.go` - Already correct (tags-only, no custom_fields)
+   - Resource only supports tags, not custom_fields
+   - No changes needed ✅
+
+#### Test Results:
+- ✅ TestAccVirtualDeviceContextResource_importWithCustomFieldsAndTags (10.23s)
+- ✅ TestAccVirtualDeviceContextResource_CustomFieldsPreservation (12.51s)
+- ✅ TestAccVirtualDiskResource_importWithCustomFieldsAndTags (6.77s)
+- ✅ TestAccVirtualDiskResource_CustomFieldsPreservation (14.39s)
+- ✅ TestAccVMInterfaceResource_importWithCustomFieldsAndTags (6.15s)
+- ✅ TestAccVMInterfaceResource_CustomFieldsPreservation (11.81s)
+- **Total: 62.029s - All passing ✅**
+
+#### Key Findings:
+- **Read() Logic Bug**: All 3 resources had **inverse** preservation logic
+  - Incorrect: Restored custom_fields when API returned empty but state had values
+  - Correct: Preserve null/empty when original state was null/empty
+  - Fixed to match device_resource pattern for filter-to-owned behavior
+- **Test Discovery**: Preservation test revealed the Read() logic bug
+- **VM Lifecycle**: virtual_disk test needed `lifecycle { ignore_changes = [disk] }` on VM
 
 #### Gating Checks for Batch 11:
-- [ ] All 4 resource files updated with merge-aware helpers
-- [ ] All 4 resources use merge-aware pattern in Update
-- [ ] All 4 resources use filter-to-owned in Read
-- [ ] 4 preservation tests created and passing
-- [ ] Build succeeds with no errors
+- [x] All 3 resource files updated with merge-aware helpers
+- [x] All 3 resources use merge-aware pattern in Update
+- [x] All 3 resources use filter-to-owned in Read (after fix)
+- [x] 3 preservation tests created and passing
+- [x] Build succeeds with no errors
+- [x] Read() preservation logic corrected
+
+**Progress**: 74 of 80 resources fixed (92.5%)
 
 ### Batch 12: Extras & Roles Resources (Missing Partial Management)
 **Priority**: CRITICAL - Data Loss Bug
