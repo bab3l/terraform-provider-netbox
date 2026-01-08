@@ -454,8 +454,13 @@ func (r *ProviderNetworkResource) buildProviderNetworkRequest(ctx context.Contex
 	}
 
 	// Apply common fields (description, comments, tags, custom_fields) - merge-aware
+	var stateTags, stateCustomFields types.Set
+	if state != nil {
+		stateTags = state.Tags
+		stateCustomFields = state.CustomFields
+	}
 
-	utils.ApplyCommonFieldsWithMerge(ctx, pnRequest, data.Description, data.Comments, data.Tags, state.Tags, data.CustomFields, state.CustomFields, &diags)
+	utils.ApplyCommonFieldsWithMerge(ctx, pnRequest, data.Description, data.Comments, data.Tags, stateTags, data.CustomFields, stateCustomFields, &diags)
 
 	if diags.HasError() {
 		return nil, diags
