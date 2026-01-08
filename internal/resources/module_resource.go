@@ -232,53 +232,60 @@ func (r *ModuleResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 // Update updates the resource.
 func (r *ModuleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ModuleResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	var state, plan ModuleResourceModel
+
+	// Read both state and plan for merge-aware custom fields handling
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	moduleID, err := utils.ParseID(data.ID.ValueString())
+	moduleID, err := utils.ParseID(plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Module ID",
-			fmt.Sprintf("Module ID must be a number, got: %s", data.ID.ValueString()),
+			fmt.Sprintf("Module ID must be a number, got: %s", plan.ID.ValueString()),
 		)
 		return
 	}
 
 	// Lookup device
-	device, diags := lookup.LookupDevice(ctx, r.client, data.Device.ValueString())
+	device, diags := lookup.LookupDevice(ctx, r.client, plan.Device.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Lookup module type
-	moduleType, diags := lookup.LookupModuleType(ctx, r.client, data.ModuleType.ValueString())
+	moduleType, diags := lookup.LookupModuleType(ctx, r.client, plan.ModuleType.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Build request
-	apiReq := netbox.NewWritableModuleRequest(*device, data.ModuleBay.ValueInt32(), *moduleType)
+	apiReq := netbox.NewWritableModuleRequest(*device, plan.ModuleBay.ValueInt32(), *moduleType)
 
 	// Set optional fields
-	if !data.Status.IsNull() && !data.Status.IsUnknown() {
-		status := netbox.ModuleStatusValue(data.Status.ValueString())
+	if !plan.Status.IsNull() && !plan.Status.IsUnknown() {
+		status := netbox.ModuleStatusValue(plan.Status.ValueString())
 		apiReq.SetStatus(status)
 	}
 
-	if !data.Serial.IsNull() && !data.Serial.IsUnknown() {
-		apiReq.SetSerial(data.Serial.ValueString())
+	if !plan.Serial.IsNull() && !plan.Serial.IsUnknown() {
+		apiReq.SetSerial(plan.Serial.ValueString())
 	}
 
-	if !data.AssetTag.IsNull() && !data.AssetTag.IsUnknown() {
-		apiReq.SetAssetTag(data.AssetTag.ValueString())
+	if !plan.AssetTag.IsNull() && !plan.AssetTag.IsUnknown() {
+		apiReq.SetAssetTag(plan.AssetTag.ValueString())
 	}
 
 	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, apiReq, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyDescription(apiReq, plan.Description)
+	utils.ApplyComments(apiReq, plan.Comments)
+	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	// Apply custom fields with merge logic to preserve unmanaged fields
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -295,12 +302,19 @@ func (r *ModuleResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
+	// Save the plan's custom fields before mapping (for filter-to-owned pattern)
+	planCustomFields := plan.CustomFields
+
 	// Map response to model
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	// Apply filter-to-owned pattern for custom fields
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource.
@@ -417,5 +431,6 @@ func (r *ModuleResource) mapResponseToModel(ctx context.Context, module *netbox.
 
 	// Populate tags and custom fields using unified helpers
 	data.Tags = utils.PopulateTagsFromAPI(ctx, module.HasTags(), module.GetTags(), data.Tags, diags)
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, module.HasCustomFields(), module.GetCustomFields(), data.CustomFields, diags)
+	// Filter custom fields to only those managed in config
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, module.GetCustomFields(), diags)
 }
