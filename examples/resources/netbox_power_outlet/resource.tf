@@ -31,7 +31,30 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_power_outlet" "test" {
-  name   = "Outlet 1"
-  device = netbox_device.test.name
-  type   = "iec-60320-c13"
+  name        = "Outlet 1"
+  device      = netbox_device.test.name
+  type        = "iec-60320-c13"
+  description = "PDU power outlet"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others preserved
+  custom_fields = [
+    {
+      name  = "max_load_watts"
+      value = "1200"
+    },
+    {
+      name  = "breaker_size_amps"
+      value = "15"
+    },
+    {
+      name  = "metered"
+      value = "true"
+    }
+  ]
+
+  tags = [
+    "pdu-outlet",
+    "monitored"
+  ]
 }
