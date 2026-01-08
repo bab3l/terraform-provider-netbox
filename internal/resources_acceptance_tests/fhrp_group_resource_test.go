@@ -16,7 +16,8 @@ func TestAccFHRPGroupResource_basic(t *testing.T) {
 	t.Parallel()
 
 	protocol := "vrrp2"
-	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
+	// Use non-overlapping range to prevent parallel test collisions
+	groupID := int32(acctest.RandIntRange(106, 140)) // nolint:gosec
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
@@ -45,7 +46,8 @@ func TestAccFHRPGroupResource_full(t *testing.T) {
 	t.Parallel()
 
 	protocol := "hsrp"
-	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
+	// Use non-overlapping range to prevent parallel test collisions
+	groupID := int32(acctest.RandIntRange(36, 70)) // nolint:gosec
 	name := testutil.RandomName("tf-test-fhrp")
 	description := testutil.RandomName("description")
 	authType := "plaintext"
@@ -82,7 +84,8 @@ func TestAccFHRPGroupResource_update(t *testing.T) {
 	t.Parallel()
 
 	protocol := fhrpGroupProtocol
-	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
+	// Use non-overlapping range to prevent parallel test collisions
+	groupID := int32(acctest.RandIntRange(71, 105)) // nolint:gosec
 	updatedName := testutil.RandomName("tf-test-fhrp-updated")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -126,7 +129,8 @@ func TestAccFHRPGroupResource_external_deletion(t *testing.T) {
 	t.Parallel()
 
 	protocol := fhrpGroupProtocol
-	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
+	// Use non-overlapping range to prevent parallel test collisions
+	groupID := int32(acctest.RandIntRange(106, 140)) // nolint:gosec
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
@@ -266,7 +270,8 @@ func TestAccFHRPGroupResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
 	protocol := fhrpGroupProtocol
-	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
+	// Use non-overlapping range to prevent parallel test collisions
+	groupID := int32(acctest.RandIntRange(211, 254)) // nolint:gosec
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)

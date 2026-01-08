@@ -61,7 +61,8 @@ func TestAccFHRPGroupAssignmentResource_IDPreservation(t *testing.T) {
 
 	name := testutil.RandomName("fga-id")
 	interfaceName := "eth0"
-	groupID := int32(acctest.RandIntRange(100, 254)) // nolint:gosec
+	// Use non-overlapping range to prevent parallel test collisions
+	groupID := int32(acctest.RandIntRange(125, 149)) // nolint:gosec
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterFHRPGroupAssignmentCleanup(name)
