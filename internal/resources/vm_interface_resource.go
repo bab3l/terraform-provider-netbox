@@ -275,10 +275,10 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 
 // buildVMInterfaceRequest builds a WritableVMInterfaceRequest from the resource model.
 
-func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, data *VMInterfaceResourceModel, diags *diag.Diagnostics) *netbox.WritableVMInterfaceRequest {
+func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, plan *VMInterfaceResourceModel, state *VMInterfaceResourceModel, diags *diag.Diagnostics) *netbox.WritableVMInterfaceRequest {
 	// Lookup virtual machine (required)
 
-	vm, vmDiags := netboxlookup.LookupVirtualMachine(ctx, r.client, data.VirtualMachine.ValueString())
+	vm, vmDiags := netboxlookup.LookupVirtualMachine(ctx, r.client, plan.VirtualMachine.ValueString())
 
 	diags.Append(vmDiags...)
 
@@ -289,21 +289,21 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, data 
 	ifaceRequest := &netbox.WritableVMInterfaceRequest{
 		VirtualMachine: *vm,
 
-		Name: data.Name.ValueString(),
+		Name: plan.Name.ValueString(),
 	}
 
 	// Enabled
 
-	if utils.IsSet(data.Enabled) {
-		enabled := data.Enabled.ValueBool()
+	if utils.IsSet(plan.Enabled) {
+		enabled := plan.Enabled.ValueBool()
 
 		ifaceRequest.Enabled = &enabled
 	}
 
 	// MTU
 
-	if utils.IsSet(data.MTU) {
-		mtu, err := utils.SafeInt32FromValue(data.MTU)
+	if utils.IsSet(plan.MTU) {
+		mtu, err := utils.SafeInt32FromValue(plan.MTU)
 
 		if err != nil {
 			diags.AddError("Invalid MTU value", fmt.Sprintf("MTU value overflow: %s", err))
@@ -316,32 +316,32 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, data 
 
 	// MAC Address
 
-	if utils.IsSet(data.MACAddress) {
-		macAddress := data.MACAddress.ValueString()
+	if utils.IsSet(plan.MACAddress) {
+		macAddress := plan.MACAddress.ValueString()
 
 		ifaceRequest.MacAddress = *netbox.NewNullableString(&macAddress)
 	}
 
 	// Description
 
-	if utils.IsSet(data.Description) {
-		description := data.Description.ValueString()
+	if utils.IsSet(plan.Description) {
+		description := plan.Description.ValueString()
 
 		ifaceRequest.Description = &description
 	}
 
 	// Mode
 
-	if utils.IsSet(data.Mode) {
-		mode := netbox.PatchedWritableInterfaceRequestMode(data.Mode.ValueString())
+	if utils.IsSet(plan.Mode) {
+		mode := netbox.PatchedWritableInterfaceRequestMode(plan.Mode.ValueString())
 
 		ifaceRequest.Mode = &mode
 	}
 
 	// Untagged VLAN
 
-	if utils.IsSet(data.UntaggedVLAN) {
-		vlan, vlanDiags := netboxlookup.LookupVLAN(ctx, r.client, data.UntaggedVLAN.ValueString())
+	if utils.IsSet(plan.UntaggedVLAN) {
+		vlan, vlanDiags := netboxlookup.LookupVLAN(ctx, r.client, plan.UntaggedVLAN.ValueString())
 
 		diags.Append(vlanDiags...)
 
@@ -354,8 +354,8 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, data 
 
 	// VRF
 
-	if utils.IsSet(data.VRF) {
-		vrf, vrfDiags := netboxlookup.LookupVRF(ctx, r.client, data.VRF.ValueString())
+	if utils.IsSet(plan.VRF) {
+		vrf, vrfDiags := netboxlookup.LookupVRF(ctx, r.client, plan.VRF.ValueString())
 
 		diags.Append(vrfDiags...)
 
@@ -366,9 +366,10 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, data 
 		ifaceRequest.Vrf = *netbox.NewNullableBriefVRFRequest(vrf)
 	}
 
-	// Apply metadata fields (tags, custom_fields)
+	// Apply metadata fields individually with merge-aware helpers
 
-	utils.ApplyMetadataFields(ctx, ifaceRequest, data.Tags, data.CustomFields, diags)
+	utils.ApplyTags(ctx, ifaceRequest, plan.Tags, diags)
+	utils.ApplyCustomFieldsWithMerge(ctx, ifaceRequest, plan.CustomFields, state.CustomFields, diags)
 
 	if diags.HasError() {
 		return nil
@@ -396,7 +397,8 @@ func (r *VMInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Build the interface request
 
-	ifaceRequest := r.buildVMInterfaceRequest(ctx, &data, &resp.Diagnostics)
+	var emptyState VMInterfaceResourceModel
+	ifaceRequest := r.buildVMInterfaceRequest(ctx, &data, &emptyState, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -442,6 +444,9 @@ func (r *VMInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 	var data VMInterfaceResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+	// Preserve original custom_fields from state for potential restoration
+	originalCustomFields := data.CustomFields
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -505,15 +510,21 @@ func (r *VMInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
+	// Preserve custom_fields if API returned null/empty but state had values
+	if (data.CustomFields.IsNull() || len(data.CustomFields.Elements()) == 0) && !originalCustomFields.IsNull() && len(originalCustomFields.Elements()) > 0 {
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates the resource and sets the updated Terraform state.
 
 func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data VMInterfaceResourceModel
+	var state, plan VMInterfaceResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -521,7 +532,7 @@ func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Parse the ID
 
-	ifaceID := data.ID.ValueString()
+	ifaceID := plan.ID.ValueString()
 
 	var ifaceIDInt int32
 
@@ -541,12 +552,12 @@ func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	tflog.Debug(ctx, "Updating VM interface", map[string]interface{}{
 		"id": ifaceID,
 
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Build the interface request
 
-	ifaceRequest := r.buildVMInterfaceRequest(ctx, &data, &resp.Diagnostics)
+	ifaceRequest := r.buildVMInterfaceRequest(ctx, &plan, &state, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -575,15 +586,21 @@ func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 		"name": iface.GetName(),
 	})
 
+	// Store plan's custom_fields to filter the response
+	planCustomFields := plan.CustomFields
+
 	// Map response to state
 
-	r.mapVMInterfaceToState(ctx, iface, &data, &resp.Diagnostics)
+	r.mapVMInterfaceToState(ctx, iface, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Filter custom_fields to only those owned by this resource
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, iface.GetCustomFields(), &resp.Diagnostics)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state.
