@@ -142,8 +142,8 @@ func (r *IKEPolicyResource) Create(ctx context.Context, req resource.CreateReque
 	// Create the IKEPolicy request
 	ikeRequest := netbox.NewWritableIKEPolicyRequest(data.Name.ValueString())
 
-	// Set optional fields
-	r.setOptionalFields(ctx, ikeRequest, &data, &resp.Diagnostics)
+	// Set optional fields (no state during Create)
+	r.setOptionalFields(ctx, ikeRequest, &data, nil, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -212,8 +212,20 @@ func (r *IKEPolicyResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
+	// Preserve original custom_fields value from state
+	originalCustomFields := data.CustomFields
+
 	// Map response to model
 	r.mapIKEPolicyToState(ctx, ike, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// If custom_fields was null or empty before, restore that state
+	// This prevents drift when config doesn't declare custom_fields
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		data.CustomFields = originalCustomFields
+	}
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -221,33 +233,34 @@ func (r *IKEPolicyResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *IKEPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data IKEPolicyResourceModel
+	var state, plan IKEPolicyResourceModel
 
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read both state and plan for merge-aware custom fields handling
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	id, err := utils.ParseID(data.ID.ValueString())
+	id, err := utils.ParseID(plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error parsing ID",
-			fmt.Sprintf("Could not parse IKE policy ID %s: %s", data.ID.ValueString(), err),
+			fmt.Sprintf("Could not parse IKE policy ID %s: %s", plan.ID.ValueString(), err),
 		)
 		return
 	}
 
 	// Create the IKEPolicy request
-	ikeRequest := netbox.NewWritableIKEPolicyRequest(data.Name.ValueString())
+	ikeRequest := netbox.NewWritableIKEPolicyRequest(plan.Name.ValueString())
 
-	// Set optional fields
-	r.setOptionalFields(ctx, ikeRequest, &data, &resp.Diagnostics)
+	// Set optional fields with state for merge-aware custom fields
+	r.setOptionalFields(ctx, ikeRequest, &plan, &state, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	tflog.Debug(ctx, "Updating IKEPolicy", map[string]interface{}{
 		"id":   id,
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Update the IKEPolicy
@@ -261,15 +274,25 @@ func (r *IKEPolicyResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
+	// Save the plan's custom fields before mapping (for filter-to-owned pattern)
+	planCustomFields := plan.CustomFields
+
 	// Map response to model
-	r.mapIKEPolicyToState(ctx, ike, &data, &resp.Diagnostics)
+	r.mapIKEPolicyToState(ctx, ike, &plan, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply filter-to-owned pattern for custom fields
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, ike.GetCustomFields(), &resp.Diagnostics)
+
 	tflog.Debug(ctx, "Updated IKEPolicy", map[string]interface{}{
-		"id":   data.ID.ValueString(),
-		"name": data.Name.ValueString(),
+		"id":   plan.ID.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -319,13 +342,13 @@ func (r *IKEPolicyResource) ImportState(ctx context.Context, req resource.Import
 }
 
 // setOptionalFields sets optional fields on the WritableIKEPolicyRequest.
-func (r *IKEPolicyResource) setOptionalFields(ctx context.Context, ikeRequest *netbox.WritableIKEPolicyRequest, data *IKEPolicyResourceModel, diags *diag.Diagnostics) {
+func (r *IKEPolicyResource) setOptionalFields(ctx context.Context, ikeRequest *netbox.WritableIKEPolicyRequest, plan *IKEPolicyResourceModel, state *IKEPolicyResourceModel, diags *diag.Diagnostics) {
 	// Set description
-	utils.ApplyDescription(ikeRequest, data.Description)
+	utils.ApplyDescription(ikeRequest, plan.Description)
 
 	// Version
-	if utils.IsSet(data.Version) {
-		versionVal, err := utils.SafeInt32FromValue(data.Version)
+	if utils.IsSet(plan.Version) {
+		versionVal, err := utils.SafeInt32FromValue(plan.Version)
 		if err != nil {
 			diags.AddError("Invalid value", fmt.Sprintf("Version value overflow: %s", err))
 			return
@@ -335,15 +358,15 @@ func (r *IKEPolicyResource) setOptionalFields(ctx context.Context, ikeRequest *n
 	}
 
 	// Mode
-	if utils.IsSet(data.Mode) {
-		mode := netbox.PatchedWritableIKEPolicyRequestMode(data.Mode.ValueString())
+	if utils.IsSet(plan.Mode) {
+		mode := netbox.PatchedWritableIKEPolicyRequestMode(plan.Mode.ValueString())
 		ikeRequest.Mode = &mode
 	}
 
 	// Proposals
-	if utils.IsSet(data.Proposals) {
+	if utils.IsSet(plan.Proposals) {
 		var proposalIDs []int64
-		diags.Append(data.Proposals.ElementsAs(ctx, &proposalIDs, false)...)
+		diags.Append(plan.Proposals.ElementsAs(ctx, &proposalIDs, false)...)
 		if diags.HasError() {
 			return
 		}
@@ -360,15 +383,21 @@ func (r *IKEPolicyResource) setOptionalFields(ctx context.Context, ikeRequest *n
 	}
 
 	// Preshared Key
-	if utils.IsSet(data.PresharedKey) {
-		key := data.PresharedKey.ValueString()
+	if utils.IsSet(plan.PresharedKey) {
+		key := plan.PresharedKey.ValueString()
 		ikeRequest.PresharedKey = &key
 	}
 
-	// Set comments, tags, and custom fields
-	utils.ApplyComments(ikeRequest, data.Comments)
-	utils.ApplyTags(ctx, ikeRequest, data.Tags, diags)
-	utils.ApplyCustomFields(ctx, ikeRequest, data.CustomFields, diags)
+	// Set comments, tags, and custom fields with merge-aware helpers
+	utils.ApplyComments(ikeRequest, plan.Comments)
+	utils.ApplyTags(ctx, ikeRequest, plan.Tags, diags)
+	// Apply custom fields with merge logic to preserve unmanaged fields
+	if state != nil {
+		utils.ApplyCustomFieldsWithMerge(ctx, ikeRequest, plan.CustomFields, state.CustomFields, diags)
+	} else {
+		// During Create, no state exists yet
+		utils.ApplyCustomFields(ctx, ikeRequest, plan.CustomFields, diags)
+	}
 	if diags.HasError() {
 		return
 	}
@@ -434,6 +463,7 @@ func (r *IKEPolicyResource) mapIKEPolicyToState(ctx context.Context, ike *netbox
 		return
 	}
 
-	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, ike.HasCustomFields(), ike.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields using filter-to-owned pattern
+	// Only populate fields that are declared in the config
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, ike.GetCustomFields(), diags)
 }
