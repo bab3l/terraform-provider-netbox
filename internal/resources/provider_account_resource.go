@@ -432,8 +432,13 @@ func (r *ProviderAccountResource) buildCreateRequest(ctx context.Context, data *
 	}
 
 	// Handle description and comments, tags and custom fields - merge-aware
+	var stateTags, stateCustomFields types.Set
+	if state != nil {
+		stateTags = state.Tags
+		stateCustomFields = state.CustomFields
+	}
 
-	utils.ApplyCommonFieldsWithMerge(ctx, createReq, data.Description, data.Comments, data.Tags, state.Tags, data.CustomFields, state.CustomFields, &diags)
+	utils.ApplyCommonFieldsWithMerge(ctx, createReq, data.Description, data.Comments, data.Tags, stateTags, data.CustomFields, stateCustomFields, &diags)
 
 	if diags.HasError() {
 		return nil, diags
