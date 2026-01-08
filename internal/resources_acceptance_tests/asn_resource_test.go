@@ -19,6 +19,7 @@ func TestAccASNResource_basic(t *testing.T) {
 	asn := int64(acctest.RandIntRange(64512, 65534))
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterASNCleanup(asn)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -57,6 +58,7 @@ func TestAccASNResource_full(t *testing.T) {
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
 	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterASNCleanup(asn)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -92,6 +94,7 @@ func TestAccASNResource_IDPreservation(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterASNCleanup(asn)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -118,6 +121,7 @@ func TestAccASNResource_update(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterASNCleanup(asn)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -256,6 +260,7 @@ func TestAccConsistency_ASN_LiteralNames(t *testing.T) {
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRIRCleanup(rirSlug)
 	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterASNCleanup(asn)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
