@@ -234,3 +234,145 @@ resource "netbox_vm_interface" "test" {
 		tag1Name, tag1Slug, tag1Color, tag2Name, tag2Slug, tag2Color,
 		cfText, cfTextValue, cfLongtext, cfLongtextValue, cfIntegerName, cfIntegerValue, cfBoolean, cfBooleanValue, cfDate, cfDateValue, cfURL, cfURLValue, cfJSON, cfJSONValue)
 }
+
+// TestAccVMInterfaceResource_CustomFieldsPreservation tests that custom fields are preserved
+// when they are not specified in the configuration after creation.
+func TestAccVMInterfaceResource_CustomFieldsPreservation(t *testing.T) {
+	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
+
+	clusterTypeName := testutil.RandomName("cluster_type")
+	clusterTypeSlug := testutil.RandomSlug("cluster_type")
+	clusterName := testutil.RandomName("cluster")
+	vmName := testutil.RandomName("vm")
+	ifaceName := testutil.RandomName("vmint")
+	cfText := testutil.RandomCustomFieldName("cf_text")
+	cfInteger := testutil.RandomCustomFieldName("cf_integer")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterCustomFieldCleanup(cfText)
+	cleanup.RegisterCustomFieldCleanup(cfInteger)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create with custom fields
+			{
+				Config: testAccVMInterfaceResourceConfig_withCustomFields(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, cfText, cfInteger),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "custom_fields.#", "2"),
+				),
+			},
+			// Step 2: Update without custom_fields in config - should preserve in NetBox
+			{
+				Config: testAccVMInterfaceResourceConfig_withoutCustomFields(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, cfText, cfInteger),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
+					// Custom fields should be null/empty in state (filter-to-owned)
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "custom_fields.#", "0"),
+				),
+			},
+			// Step 3: Add custom fields back - should see them again
+			{
+				Config: testAccVMInterfaceResourceConfig_withCustomFields(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, cfText, cfInteger),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "custom_fields.#", "2"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVMInterfaceResourceConfig_withCustomFields(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, cfText, cfInteger string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = %q
+  cluster = netbox_cluster.test.id
+}
+
+resource "netbox_custom_field" "cf_text" {
+  name        = %q
+  type        = "text"
+  object_types = ["virtualization.vminterface"]
+}
+
+resource "netbox_custom_field" "cf_integer" {
+  name        = %q
+  type        = "integer"
+  object_types = ["virtualization.vminterface"]
+}
+
+resource "netbox_vm_interface" "test" {
+  virtual_machine = netbox_virtual_machine.test.id
+  name            = %q
+
+  custom_fields = [
+    {
+      name  = netbox_custom_field.cf_text.name
+      type  = "text"
+      value = "test-value"
+    },
+    {
+      name  = netbox_custom_field.cf_integer.name
+      type  = "integer"
+      value = "42"
+    }
+  ]
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName, cfText, cfInteger, ifaceName)
+}
+
+func testAccVMInterfaceResourceConfig_withoutCustomFields(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, cfText, cfInteger string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = %q
+  cluster = netbox_cluster.test.id
+}
+
+resource "netbox_custom_field" "cf_text" {
+  name        = %q
+  type        = "text"
+  object_types = ["virtualization.vminterface"]
+}
+
+resource "netbox_custom_field" "cf_integer" {
+  name        = %q
+  type        = "integer"
+  object_types = ["virtualization.vminterface"]
+}
+
+resource "netbox_vm_interface" "test" {
+  virtual_machine = netbox_virtual_machine.test.id
+  name            = %q
+
+  # custom_fields intentionally omitted - should preserve in NetBox
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName, cfText, cfInteger, ifaceName)
+}
