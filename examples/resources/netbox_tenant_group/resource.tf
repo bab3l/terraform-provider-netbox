@@ -19,6 +19,23 @@ resource "netbox_tenant_group" "corporate" {
   slug        = "corporate"
   description = "Top-level group for all corporate tenants"
 
+  # Partial custom fields management
+  # Only specified custom fields are managed, others in NetBox preserved
+  custom_fields = [
+    {
+      name  = "cost_allocation_code"
+      value = "CORP-MAIN"
+    },
+    {
+      name  = "primary_contact"
+      value = "corporate@example.com"
+    },
+    {
+      name  = "business_unit"
+      value = "Global Operations"
+    }
+  ]
+
   tags = [
     {
       name = "corporate"
