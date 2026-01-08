@@ -242,6 +242,10 @@ func (r *EventRuleResource) Read(ctx context.Context, req resource.ReadRequest, 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Preserve original custom_fields from state for potential restoration
+	originalCustomFields := data.CustomFields
+
 	id, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID must be a number, got: %s", data.ID.ValueString()))
@@ -263,36 +267,50 @@ func (r *EventRuleResource) Read(ctx context.Context, req resource.ReadRequest, 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// If custom_fields was null or empty before (not managed or explicitly cleared),
+	// restore that state after mapping.
+	// This prevents Terraform from trying to manage fields that aren't in the configuration.
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		tflog.Debug(ctx, "Custom fields unmanaged/cleared, preserving original state during Read", map[string]interface{}{
+			"was_null":  originalCustomFields.IsNull(),
+			"was_empty": !originalCustomFields.IsNull() && len(originalCustomFields.Elements()) == 0,
+		})
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Update updates the resource.
 func (r *EventRuleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data EventRuleResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read BOTH state and plan for merge-aware custom fields
+	var state, plan EventRuleResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	id, err := utils.ParseID(data.ID.ValueString())
+	id, err := utils.ParseID(plan.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID must be a number, got: %s", data.ID.ValueString()))
+		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID must be a number, got: %s", plan.ID.ValueString()))
 		return
 	}
 	tflog.Debug(ctx, "Updating event rule", map[string]interface{}{
 		"id":   id,
-		"name": data.Name.ValueString(),
+		"name": plan.Name.ValueString(),
 	})
 
 	// Extract object types
 	var objectTypes []string
-	resp.Diagnostics.Append(data.ObjectTypes.ElementsAs(ctx, &objectTypes, false)...)
+	resp.Diagnostics.Append(plan.ObjectTypes.ElementsAs(ctx, &objectTypes, false)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Extract event types
 	var eventTypeStrings []string
-	resp.Diagnostics.Append(data.EventTypes.ElementsAs(ctx, &eventTypeStrings, false)...)
+	resp.Diagnostics.Append(plan.EventTypes.ElementsAs(ctx, &eventTypeStrings, false)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -306,45 +324,49 @@ func (r *EventRuleResource) Update(ctx context.Context, req resource.UpdateReque
 	// Build the request
 	request := netbox.NewWritableEventRuleRequest(
 		objectTypes,
-		data.Name.ValueString(),
+		plan.Name.ValueString(),
 		eventTypes,
-		data.ActionObjectType.ValueString(),
+		plan.ActionObjectType.ValueString(),
 	)
 
 	// Set optional fields (same as Create)
-	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
-		enabled := data.Enabled.ValueBool()
+	if !plan.Enabled.IsNull() && !plan.Enabled.IsUnknown() {
+		enabled := plan.Enabled.ValueBool()
 		request.Enabled = &enabled
 	}
 
-	if !data.Conditions.IsNull() && !data.Conditions.IsUnknown() {
-		conditionsStr := data.Conditions.ValueString()
+	if !plan.Conditions.IsNull() && !plan.Conditions.IsUnknown() {
+		conditionsStr := plan.Conditions.ValueString()
 		if conditionsStr != "" {
 			request.Conditions = conditionsStr
 		}
 	}
 
-	if !data.ActionType.IsNull() && !data.ActionType.IsUnknown() {
-		actionType := netbox.EventRuleActionTypeValue(data.ActionType.ValueString())
+	if !plan.ActionType.IsNull() && !plan.ActionType.IsUnknown() {
+		actionType := netbox.EventRuleActionTypeValue(plan.ActionType.ValueString())
 		request.ActionType = &actionType
 	}
 
-	if !data.ActionObjectID.IsNull() && !data.ActionObjectID.IsUnknown() {
-		actionObjectID, err := utils.ParseID64(data.ActionObjectID.ValueString())
+	if !plan.ActionObjectID.IsNull() && !plan.ActionObjectID.IsUnknown() {
+		actionObjectID, err := utils.ParseID64(plan.ActionObjectID.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Invalid Action Object ID", fmt.Sprintf("Action Object ID must be a number, got: %s", data.ActionObjectID.ValueString()))
+			resp.Diagnostics.AddError("Invalid Action Object ID", fmt.Sprintf("Action Object ID must be a number, got: %s", plan.ActionObjectID.ValueString()))
 			return
 		}
 		request.ActionObjectId = *netbox.NewNullableInt64(&actionObjectID)
 	}
 
-	// Apply common fields (description, tags, custom_fields)
-	utils.ApplyDescription(request, data.Description)
-	utils.ApplyTags(ctx, request, data.Tags, &resp.Diagnostics)
-	utils.ApplyCustomFields(ctx, request, data.CustomFields, &resp.Diagnostics)
+	// Apply common fields (description, tags, custom_fields with merge)
+	utils.ApplyDescription(request, plan.Description)
+	utils.ApplyTags(ctx, request, plan.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, request, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Store plan tags/customfields for filter-to-owned population
+	planTags := plan.Tags
+	planCustomFields := plan.CustomFields
 
 	// Update the event rule
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasEventRulesUpdate(ctx, id).
@@ -356,12 +378,14 @@ func (r *EventRuleResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Map the response to state
-	r.mapToState(ctx, result, &data, &resp.Diagnostics)
+	plan.Tags = planTags
+	plan.CustomFields = planCustomFields
+	r.mapToState(ctx, result, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource.
@@ -461,12 +485,12 @@ func (r *EventRuleResource) mapToState(ctx context.Context, result *netbox.Event
 		data.Description = types.StringNull()
 	}
 
-	// Handle tags using consolidated helper
+	// Handle tags using FromAPI helper (tags don't use filter-to-owned)
 	data.Tags = utils.PopulateTagsFromAPI(ctx, result.HasTags(), result.GetTags(), data.Tags, diags)
 	if diags.HasError() {
 		return
 	}
 
-	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, result.HasCustomFields(), result.GetCustomFields(), data.CustomFields, diags)
+	// Handle custom fields using filter-to-owned helper
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, result.GetCustomFields(), diags)
 }

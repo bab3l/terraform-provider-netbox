@@ -128,7 +128,7 @@ func (r *JournalEntryResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Set optional fields
-	r.setOptionalFields(ctx, &journalEntryRequest, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, &journalEntryRequest, &data, nil, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -162,6 +162,9 @@ func (r *JournalEntryResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
+	// Preserve original custom_fields from state for potential restoration
+	originalCustomFields := data.CustomFields
+
 	// Get the Journal Entry via API
 	id := data.ID.ValueInt32()
 	journalEntry, httpResp, err := r.client.ExtrasAPI.ExtrasJournalEntriesRetrieve(ctx, id).Execute()
@@ -186,32 +189,49 @@ func (r *JournalEntryResource) Read(ctx context.Context, req resource.ReadReques
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// If custom_fields was null or empty before (not managed or explicitly cleared),
+	// restore that state after mapping.
+	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
+		tflog.Debug(ctx, "Custom fields unmanaged/cleared, preserving original state during Read", map[string]interface{}{
+			"was_null":  originalCustomFields.IsNull(),
+			"was_empty": !originalCustomFields.IsNull() && len(originalCustomFields.Elements()) == 0,
+		})
+		data.CustomFields = originalCustomFields
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *JournalEntryResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data JournalEntryResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read BOTH state and plan for merge-aware custom fields
+	var state, plan JournalEntryResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	id := data.ID.ValueInt32()
+	id := plan.ID.ValueInt32()
 	tflog.Debug(ctx, "Updating Journal Entry", map[string]interface{}{
 		"id": id,
 	})
 
 	// Prepare the Journal Entry request
 	journalEntryRequest := netbox.WritableJournalEntryRequest{
-		AssignedObjectType: data.AssignedObjectType.ValueString(),
-		AssignedObjectId:   data.AssignedObjectID.ValueInt64(),
-		Comments:           data.Comments.ValueString(),
+		AssignedObjectType: plan.AssignedObjectType.ValueString(),
+		AssignedObjectId:   plan.AssignedObjectID.ValueInt64(),
+		Comments:           plan.Comments.ValueString(),
 	}
 
-	// Set optional fields
-	r.setOptionalFields(ctx, &journalEntryRequest, &data, &resp.Diagnostics)
+	// Set optional fields with state for merge
+	r.setOptionalFields(ctx, &journalEntryRequest, &plan, &state, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Store plan tags/customfields for filter-to-owned population
+	planTags := plan.Tags
+	planCustomFields := plan.CustomFields
 
 	// Update the Journal Entry via API
 	journalEntry, httpResp, err := r.client.ExtrasAPI.ExtrasJournalEntriesUpdate(ctx, id).WritableJournalEntryRequest(journalEntryRequest).Execute()
@@ -228,11 +248,13 @@ func (r *JournalEntryResource) Update(ctx context.Context, req resource.UpdateRe
 	})
 
 	// Map response back to state
-	r.mapJournalEntryToState(ctx, journalEntry, &data, &resp.Diagnostics)
+	plan.Tags = planTags
+	plan.CustomFields = planCustomFields
+	r.mapJournalEntryToState(ctx, journalEntry, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *JournalEntryResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -278,23 +300,27 @@ func (r *JournalEntryResource) ImportState(ctx context.Context, req resource.Imp
 }
 
 // setOptionalFields sets optional fields on the Journal Entry request.
-func (r *JournalEntryResource) setOptionalFields(ctx context.Context, journalEntryRequest *netbox.WritableJournalEntryRequest, data *JournalEntryResourceModel, diags *diag.Diagnostics) {
+func (r *JournalEntryResource) setOptionalFields(ctx context.Context, journalEntryRequest *netbox.WritableJournalEntryRequest, plan *JournalEntryResourceModel, state *JournalEntryResourceModel, diags *diag.Diagnostics) {
 	// Kind
-	if utils.IsSet(data.Kind) {
-		kind, err := netbox.NewJournalEntryKindValueFromValue(data.Kind.ValueString())
+	if utils.IsSet(plan.Kind) {
+		kind, err := netbox.NewJournalEntryKindValueFromValue(plan.Kind.ValueString())
 		if err != nil {
-			diags.AddError("Invalid Kind", fmt.Sprintf("Invalid journal entry kind value: %s", data.Kind.ValueString()))
+			diags.AddError("Invalid Kind", fmt.Sprintf("Invalid journal entry kind value: %s", plan.Kind.ValueString()))
 			return
 		}
 		journalEntryRequest.Kind = kind
 	}
 
-	// Apply Tags and CustomFields
-	utils.ApplyTags(ctx, journalEntryRequest, data.Tags, diags)
+	// Apply Tags and CustomFields with merge-aware pattern
+	utils.ApplyTags(ctx, journalEntryRequest, plan.Tags, diags)
 	if diags.HasError() {
 		return
 	}
-	utils.ApplyCustomFields(ctx, journalEntryRequest, data.CustomFields, diags)
+	if state != nil {
+		utils.ApplyCustomFieldsWithMerge(ctx, journalEntryRequest, plan.CustomFields, state.CustomFields, diags)
+	} else {
+		utils.ApplyCustomFields(ctx, journalEntryRequest, plan.CustomFields, diags)
+	}
 	if diags.HasError() {
 		return
 	}
@@ -320,6 +346,6 @@ func (r *JournalEntryResource) mapJournalEntryToState(ctx context.Context, journ
 		return
 	}
 
-	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, journalEntry.CustomFields != nil, journalEntry.CustomFields, data.CustomFields, diags)
+	// Handle custom fields using filter-to-owned helper
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, journalEntry.CustomFields, diags)
 }
