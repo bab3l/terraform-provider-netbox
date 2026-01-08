@@ -1655,11 +1655,21 @@ All 5 VPN/IPSec resources have been updated with merge-aware partial management 
 - ✅ Filter-to-owned pattern added to Update response handling
 - ✅ Build verification: Provider compiles successfully
 
-#### Next Steps:
-- Create 3 preservation tests (console_server_port, module, rack_type)
-- Run tests and verify all passing
-- Create final Batch 10 commit with tests
-- Move to Batch 11
+#### Tests (commit 1ce2a9a, fixed in bd1c0ac):
+- ✅ console_server_port_resource_test.go: Added preservation test (TestAccConsoleServerPortResource_CustomFieldsPreservation)
+- ✅ module_resource_test.go: Added preservation test (TestAccModuleResource_CustomFieldsPreservation)
+- ✅ rack_type_resource_test.go: Created new test file with import and preservation tests
+  * TestAccRackTypeResource_importWithCustomFieldsAndTags
+  * TestAccRackTypeResource_CustomFieldsPreservation
+- ✅ All 6 tests passing (43.486s)
+  * Import tests: 3/3 ✅
+  * Preservation tests: 3/3 ✅
+
+#### Batch 10 Summary:
+- **Resources Fixed**: 3 of 3 fixable resources (console_server_port, module, rack_type)
+- **Tests Created**: 6 tests (3 import + 3 preservation)
+- **All Tests Passing**: ✅ 43.486s
+- **Commits**: 44c13d7, 7b1a48e, cdbb01e (resources) + 11e69d3 (docs) + 1ce2a9a, bd1c0ac (tests)
 
 #### Gating Checks for Batch 10:
 - [x] All 3 fixable resource files updated with merge-aware helpers
@@ -1667,8 +1677,8 @@ All 5 VPN/IPSec resources have been updated with merge-aware partial management 
 - [x] All 3 resources use `PopulateCustomFieldsFilteredToOwned()` in Update
 - [x] All 3 resources preserve null/empty state in Read()
 - [x] All files compile without errors
-- [ ] 3 preservation tests created
-- [ ] All preservation tests passing
+- [x] 3 preservation tests created (commit 1ce2a9a)
+- [x] All preservation tests passing ✅
 
 #### Progress:
 - Batch 10: 3 of 3 applicable resources complete (100%) ✅
