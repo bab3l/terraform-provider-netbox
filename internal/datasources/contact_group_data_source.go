@@ -25,13 +25,14 @@ type ContactGroupDataSource struct {
 }
 
 type ContactGroupDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Slug        types.String `tfsdk:"slug"`
-	Parent      types.String `tfsdk:"parent"`
-	ParentID    types.String `tfsdk:"parent_id"`
-	Description types.String `tfsdk:"description"`
-	DisplayName types.String `tfsdk:"display_name"`
+	ID           types.String             `tfsdk:"id"`
+	Name         types.String             `tfsdk:"name"`
+	Slug         types.String             `tfsdk:"slug"`
+	Parent       types.String             `tfsdk:"parent"`
+	ParentID     types.String             `tfsdk:"parent_id"`
+	Description  types.String             `tfsdk:"description"`
+	DisplayName  types.String             `tfsdk:"display_name"`
+	CustomFields []utils.CustomFieldModel `tfsdk:"custom_fields"`
 }
 
 func (d *ContactGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -43,13 +44,14 @@ func (d *ContactGroupDataSource) Schema(ctx context.Context, req datasource.Sche
 		MarkdownDescription: "Use this data source to get information about a contact group in Netbox. You can identify the contact group using `id`, `slug`, or `name`.",
 
 		Attributes: map[string]schema.Attribute{
-			"id":           nbschema.DSIDAttribute("contact group"),
-			"name":         nbschema.DSNameAttribute("contact group"),
-			"slug":         nbschema.DSSlugAttribute("contact group"),
-			"parent":       nbschema.DSComputedStringAttribute("Name of the parent contact group."),
-			"parent_id":    nbschema.DSComputedStringAttribute("ID of the parent contact group."),
-			"description":  nbschema.DSComputedStringAttribute("Description of the contact group."),
-			"display_name": nbschema.DSComputedStringAttribute("The display name of the contact group."),
+			"id":            nbschema.DSIDAttribute("contact group"),
+			"name":          nbschema.DSNameAttribute("contact group"),
+			"slug":          nbschema.DSSlugAttribute("contact group"),
+			"parent":        nbschema.DSComputedStringAttribute("Name of the parent contact group."),
+			"parent_id":     nbschema.DSComputedStringAttribute("ID of the parent contact group."),
+			"description":   nbschema.DSComputedStringAttribute("Description of the contact group."),
+			"display_name":  nbschema.DSComputedStringAttribute("The display name of the contact group."),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -165,6 +167,13 @@ func (d *ContactGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		data.DisplayName = types.StringValue(contactGroup.GetDisplay())
 	} else {
 		data.DisplayName = types.StringNull()
+	}
+
+	// Handle custom fields
+	if contactGroup.HasCustomFields() && len(contactGroup.GetCustomFields()) > 0 {
+		data.CustomFields = utils.MapAllCustomFieldsToModels(contactGroup.GetCustomFields())
+	} else {
+		data.CustomFields = nil
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

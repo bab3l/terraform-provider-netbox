@@ -3,14 +3,14 @@
 ## Progress Summary
 - **Batch 1**: ✅ COMPLETE (13/13 datasources - 100%)
 - **Batch 2**: ✅ COMPLETE (12/12 datasources - 100%)
-- **Batch 3**: ⏳ Pending (10 datasources - Virtualization)
-- **Batch 4**: ⏳ Pending (12 datasources - Tenancy & Power)
+- **Batch 3**: ✅ COMPLETE (10/10 datasources - 100%)
+- **Batch 4**: ⏳ Pending (12 datasources - Circuits & VPN)
 - **Batch 5**: ⏳ Pending (10 datasources - Wireless & Contacts)
 - **Batch 6**: ⏳ Pending (11 datasources - VPN & Tunnels)
 - **Batch 7**: ⏳ Pending (12 datasources - Miscellaneous)
 - **Batch 8**: ⏳ Pending (~10 datasources - Remaining)
 
-**Overall Progress**: 25/80 datasources complete (31%)
+**Overall Progress**: 35/80 datasources complete (44%)
 
 ## Overview
 This document outlines the plan to fix datasource behavior with custom fields. Currently, datasources return NO custom fields because they pass `nil` as the second parameter to `MapToCustomFieldModels()`, which causes the function to return immediately.
@@ -224,21 +224,24 @@ Split into 8 batches of ~10-13 datasources each for manageable PRs.
 **Total Test Time**: ~25 seconds for all tests
 **Implementation Time**: ~5 hours
 
-### Batch 3: Virtualization & Tenancy (10 datasources)
+### Batch 3: Virtualization & Tenancy (10 datasources) ✅ COMPLETE
 **Priority**: MEDIUM - Virtualization and multi-tenancy
+**Status**: ✅ **COMPLETE** - All 10 datasources implemented and tested
 
-1. `virtual_machine_data_source.go`
-2. `vm_interface_data_source.go`
-3. `virtual_disk_data_source.go`
-4. `virtual_device_context_data_source.go`
-5. `cluster_group_data_source.go`
-6. `tenant_data_source.go`
-7. `tenant_group_data_source.go`
-8. `contact_data_source.go`
-9. `contact_role_data_source.go`
-10. `contact_group_data_source.go`
+1. ✅ `virtual_machine_data_source.go` - Simple fix (already had custom fields)
+2. ✅ `vm_interface_data_source.go` - Simple fix (already had custom fields)
+3. ✅ `virtual_disk_data_source.go` - **Full implementation** (was missing custom fields)
+4. ✅ `virtual_device_context_data_source.go` - Simple fix (already had custom fields)
+5. ✅ `cluster_group_data_source.go` - **Full implementation** (was missing custom fields)
+6. ✅ `tenant_data_source.go` - Simple fix (already had custom fields)
+7. ✅ `tenant_group_data_source.go` - Simple fix (already had custom fields)
+8. ✅ `contact_data_source.go` - **Full implementation** (resource doesn't support custom_fields)
+9. ✅ `contact_role_data_source.go` - **Full implementation** (was missing custom fields)
+10. ✅ `contact_group_data_source.go` - **Full implementation** (was missing custom fields)
 
-**Test Priority**: MEDIUM - Create tests for VM and tenant datasources
+**Test Priority**: MEDIUM - ✅ All 10 tests created and passing
+**Total Test Time**: ~35 seconds for all tests
+**Implementation Time**: ~6 hours
 
 ### Batch 4: Circuits & VPN (12 datasources)
 **Priority**: MEDIUM - Network connectivity
@@ -410,11 +413,17 @@ go test -tags=customfields ./internal/datasources_acceptance_tests_customfields/
 ### Phase 2: Batch 1 Implementation (Week 1-2) ✅ COMPLETE
 - ✅ Update 13 core infrastructure datasources
 - ✅ Create custom field tests for all Batch 1 datasources
-- ✅ Run tests and verify all passing (13/13 passing)
-- ✅ Commit and push Batch 1 (7 commits total)
+- ✅ Run tests and verify all passing (13/13  ✅ COMPLETE
+- ✅ Update 12 device/DCIM datasources
+- ✅ Create custom field tests for all Batch 2 datasources
+- ✅ Run tests and verify all passing (12/12 passing)
+- ✅ Commit and push Batch 2
 
-### Phase 3: Batch 2 Implementation (Week 2)
-- [ ] Update 12 device/DCIM datasources
+### Phase 3.5: Batch 3 Implementation (Week 2) ✅ COMPLETE
+- ✅ Update 10 virtualization/tenancy datasources
+- ✅ Create custom field tests for all Batch 3 datasources
+- ✅ Run tests and verify all passing (10/10 passing)
+- ✅ Commit and push Batch 3atasources
 - [ ] Create custom field tests for all Batch 2 datasources
 - [ ] Run tests and verify all passing
 - [ ] Commit and push Batch 2
@@ -437,9 +446,9 @@ go test -tags=customfields ./internal/datasources_acceptance_tests_customfields/
 ### Batch 1 Status
 1. ✅ All datasources return complete custom field data (13/13 complete)
 2. ✅ New helper function correctly handles all custom field types
-3. ✅ Test suite verifies datasource custom field behavior (13 tests passing)
-4. ✅ No regression in existing functionality
-5. ⏳ Documentation updated with examples (planned for final phase)
+3. ✅ Test suite verifies 1-3 (35/80 datasources = 44%)
+- **Remaining**: Batches 4-8 (45 datasources)
+- **On Track**: Yes, significantlypdated with examples (planned for final phase)
 6. ✅ All tests passing (13/13 tests, ~15 seconds total runtime)
 
 ### Overall Progress
