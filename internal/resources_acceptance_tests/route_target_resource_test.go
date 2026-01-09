@@ -146,6 +146,58 @@ func TestAccRouteTargetResource_import(t *testing.T) {
 	})
 }
 
+func TestAccRouteTargetResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("65000:500")
+	tenantName := testutil.RandomName("tf-test-tenant-remove")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-remove")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRouteTargetCleanup(name)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckRouteTargetDestroy,
+			testutil.CheckTenantDestroy,
+		),
+		Steps: []resource.TestStep{
+			// Step 1: Create route target with tenant
+			{
+				Config: testAccRouteTargetResourceConfig_full(name, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
+					resource.TestCheckResourceAttr("netbox_route_target.test", "name", name),
+					resource.TestCheckResourceAttrSet("netbox_route_target.test", "tenant"),
+					resource.TestCheckResourceAttr("netbox_route_target.test", "description", "Test route target with full options"),
+				),
+			},
+			// Step 2: Remove tenant and verify it's actually removed
+			{
+				Config: testAccRouteTargetResourceConfig_noTenant(name, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
+					resource.TestCheckResourceAttr("netbox_route_target.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_route_target.test", "tenant"),
+					resource.TestCheckResourceAttr("netbox_route_target.test", "description", "Description after tenant removal"),
+				),
+			},
+			// Step 3: Re-add tenant to verify it can be set again
+			{
+				Config: testAccRouteTargetResourceConfig_full(name, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
+					resource.TestCheckResourceAttr("netbox_route_target.test", "name", name),
+					resource.TestCheckResourceAttrSet("netbox_route_target.test", "tenant"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccRouteTargetResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
@@ -274,6 +326,22 @@ resource "netbox_route_target" "test" {
   description = "Updated description"
 }
 `, name)
+}
+
+func testAccRouteTargetResourceConfig_noTenant(name, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_route_target" "test" {
+  name        = %q
+  description = "Description after tenant removal"
+  comments    = "Test comments for route target"
+  # tenant intentionally omitted - should be null in state
+}
+`, tenantName, tenantSlug, name)
 }
 
 func testAccRouteTargetConsistencyLiteralNamesConfig(rtName, tenantName, tenantSlug string) string {

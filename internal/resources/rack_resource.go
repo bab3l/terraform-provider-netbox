@@ -734,6 +734,9 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 		}
 
 		rackRequest.Location = *netbox.NewNullableBriefLocationRequest(locationRef)
+	} else if data.Location.IsNull() {
+		// Explicitly set to nil when removed from config
+		rackRequest.SetLocationNil()
 	}
 
 	// Handle tenant relationship
@@ -748,6 +751,9 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 		}
 
 		rackRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
+	} else if data.Tenant.IsNull() {
+		// Explicitly set to nil when removed from config
+		rackRequest.SetTenantNil()
 	}
 
 	// Handle role relationship
@@ -762,6 +768,9 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 		}
 
 		rackRequest.Role = *netbox.NewNullableBriefRackRoleRequest(roleRef)
+	} else if data.Role.IsNull() {
+		// Explicitly set to nil when removed from config
+		rackRequest.SetRoleNil()
 	}
 
 	// Handle rack_type relationship
@@ -776,6 +785,9 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 		}
 
 		rackRequest.RackType = *netbox.NewNullableBriefRackTypeRequest(rackTypeRef)
+	} else if data.RackType.IsNull() {
+		// Explicitly set to nil when removed from config
+		rackRequest.SetRackTypeNil()
 	}
 
 	// Set status (default to "active" if not specified - required by API)

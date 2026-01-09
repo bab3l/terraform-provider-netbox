@@ -398,6 +398,8 @@ func (r *IPRangeResource) setOptionalFields(ctx context.Context, ipRangeRequest 
 			return
 		}
 		ipRangeRequest.Vrf = *netbox.NewNullableBriefVRFRequest(vrf)
+	} else if data.VRF.IsNull() {
+		ipRangeRequest.SetVrfNil()
 	}
 
 	// Tenant
@@ -408,6 +410,8 @@ func (r *IPRangeResource) setOptionalFields(ctx context.Context, ipRangeRequest 
 			return
 		}
 		ipRangeRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
+	} else if data.Tenant.IsNull() {
+		ipRangeRequest.SetTenantNil()
 	}
 
 	// Status
@@ -424,6 +428,8 @@ func (r *IPRangeResource) setOptionalFields(ctx context.Context, ipRangeRequest 
 			return
 		}
 		ipRangeRequest.Role = *netbox.NewNullableBriefRoleRequest(role)
+	} else if data.Role.IsNull() {
+		ipRangeRequest.SetRoleNil()
 	}
 
 	// Mark Utilized

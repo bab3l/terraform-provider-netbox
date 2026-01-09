@@ -377,6 +377,9 @@ func (r *CircuitResource) buildCircuitRequest(ctx context.Context, data *Circuit
 			return nil, diags
 		}
 		circuitReq.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
+	} else if data.Tenant.IsNull() {
+		// Explicitly set to null to clear the field
+		circuitReq.SetTenantNil()
 	}
 
 	// Install date

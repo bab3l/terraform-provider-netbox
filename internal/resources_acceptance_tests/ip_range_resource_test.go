@@ -274,3 +274,118 @@ func TestAccConsistency_IPRange_LiteralNames(t *testing.T) {
 		},
 	})
 }
+
+// TestAccIPRangeResource_removeOptionalFields tests that removing previously set VRF, tenant, and role fields correctly sets them to null.
+// This addresses the bug where removing a nullable reference field from the configuration would not clear it in NetBox,
+// causing "Provider produced inconsistent result after apply" errors.
+func TestAccIPRangeResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	secondOctet := acctest.RandIntRange(200, 254)
+	thirdOctet := acctest.RandIntRange(1, 254)
+	startOctet := 10 + acctest.RandIntRange(1, 200)
+	endOctet := startOctet + 10
+	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
+	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
+
+	vrfName := testutil.RandomName("test-vrf-range-remove")
+	vrfRD := fmt.Sprintf("65000:%d", acctest.RandIntRange(1000, 9999))
+	tenantName := testutil.RandomName("test-tenant-range-remove")
+	tenantSlug := testutil.GenerateSlug(tenantName)
+	roleName := testutil.RandomName("test-role-range-remove")
+	roleSlug := testutil.GenerateSlug(roleName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPRangeCleanup(startAddress)
+	cleanup.RegisterVRFCleanup(vrfRD)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterRoleCleanup(roleSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create with VRF, tenant, and role
+			{
+				Config: testAccIPRangeResourceConfig_withAllFields(startAddress, endAddress, vrfName, vrfRD, tenantName, tenantSlug, roleName, roleSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "vrf"),
+					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "role"),
+				),
+			},
+			// Step 2: Remove VRF, tenant, and role - should set to null
+			{
+				Config: testAccIPRangeResourceConfig_withoutFields(startAddress, endAddress, vrfName, vrfRD, tenantName, tenantSlug, roleName, roleSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_ip_range.test", "vrf"),
+					resource.TestCheckNoResourceAttr("netbox_ip_range.test", "tenant"),
+					resource.TestCheckNoResourceAttr("netbox_ip_range.test", "role"),
+				),
+			},
+			// Step 3: Re-add VRF, tenant, and role - should work without errors
+			{
+				Config: testAccIPRangeResourceConfig_withAllFields(startAddress, endAddress, vrfName, vrfRD, tenantName, tenantSlug, roleName, roleSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "vrf"),
+					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "role"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIPRangeResourceConfig_withAllFields(startAddress, endAddress, vrfName, vrfRD, tenantName, tenantSlug, roleName, roleSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_vrf" "test" {
+  name = %[3]q
+  rd   = %[4]q
+}
+
+resource "netbox_tenant" "test" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_role" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_ip_range" "test" {
+  start_address = %[1]q
+  end_address   = %[2]q
+  vrf           = netbox_vrf.test.id
+  tenant        = netbox_tenant.test.id
+  role          = netbox_role.test.id
+  status        = "active"
+}
+`, startAddress, endAddress, vrfName, vrfRD, tenantName, tenantSlug, roleName, roleSlug)
+}
+
+func testAccIPRangeResourceConfig_withoutFields(startAddress, endAddress, vrfName, vrfRD, tenantName, tenantSlug, roleName, roleSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_vrf" "test" {
+  name = %[3]q
+  rd   = %[4]q
+}
+
+resource "netbox_tenant" "test" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_role" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_ip_range" "test" {
+  start_address = %[1]q
+  end_address   = %[2]q
+  status        = "active"
+  # vrf, tenant, and role removed - should set to null
+}
+`, startAddress, endAddress, vrfName, vrfRD, tenantName, tenantSlug, roleName, roleSlug)
+}

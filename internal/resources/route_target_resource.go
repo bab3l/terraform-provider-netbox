@@ -423,6 +423,9 @@ func (r *RouteTargetResource) setOptionalFields(ctx context.Context, rtRequest *
 		}
 
 		rtRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
+	} else if data.Tenant.IsNull() {
+		// Explicitly set to null to clear the field
+		rtRequest.SetTenantNil()
 	}
 
 	// Apply description and comments

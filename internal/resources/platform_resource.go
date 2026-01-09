@@ -206,6 +206,9 @@ func (r *PlatformResource) Update(ctx context.Context, req resource.UpdateReques
 			return
 		}
 		platformRequest.Manufacturer = *netbox.NewNullableBriefManufacturerRequest(manufacturerRef)
+	} else if data.Manufacturer.IsNull() {
+		// Explicitly set to nil when removed from config
+		platformRequest.SetManufacturerNil()
 	}
 
 	// Apply description

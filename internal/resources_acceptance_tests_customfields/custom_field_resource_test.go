@@ -1,4 +1,9 @@
-package resources_acceptance_tests
+//go:build customfields
+// +build customfields
+
+// Package resources_acceptance_tests_customfields contains acceptance tests for custom fields
+// that require dedicated test runs to avoid conflicts with global custom field definitions.
+package resources_acceptance_tests_customfields
 
 import (
 	"context"
@@ -10,13 +15,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-// NOTE: Some tests in this file create custom fields with required=true.
-// These tests must NOT run in parallel (t.Parallel removed) because required
-// custom fields can interfere with other acceptance tests that depend on
-// predictable resource state.
+// NOTE: Custom field tests run serially to prevent race conditions where:
+// 1. One test creates a custom field that auto-applies to an object type
+// 2. Another test's resources get that custom field added
+// 3. First test deletes the custom field
+// 4. Second test fails trying to update resources with now-deleted custom field
 
 func TestAccCustomFieldResource_basic(t *testing.T) {
-	t.Parallel()
 
 	// Custom field names can only contain alphanumeric characters and underscores
 	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
@@ -51,7 +56,6 @@ func TestAccCustomFieldResource_basic(t *testing.T) {
 }
 
 func TestAccCustomFieldResource_full(t *testing.T) {
-	t.Parallel()
 
 	// Custom field names can only contain alphanumeric characters and underscores
 	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
@@ -113,7 +117,6 @@ func TestAccCustomFieldResource_full(t *testing.T) {
 }
 
 func TestAccConsistency_CustomField_LiteralNames(t *testing.T) {
-	t.Parallel()
 
 	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
 
@@ -144,7 +147,6 @@ func TestAccConsistency_CustomField_LiteralNames(t *testing.T) {
 }
 
 func TestAccCustomFieldResource_IDPreservation(t *testing.T) {
-	t.Parallel()
 
 	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
 
@@ -172,7 +174,6 @@ func TestAccCustomFieldResource_IDPreservation(t *testing.T) {
 }
 
 func TestAccCustomFieldResource_DescriptionUpdate(t *testing.T) {
-	t.Parallel()
 
 	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
 
@@ -210,7 +211,6 @@ func TestAccCustomFieldResource_DescriptionUpdate(t *testing.T) {
 }
 
 func TestAccCustomFieldResource_externalDeletion(t *testing.T) {
-	t.Parallel()
 
 	name := fmt.Sprintf("tf_test_%s", acctest.RandString(8))
 

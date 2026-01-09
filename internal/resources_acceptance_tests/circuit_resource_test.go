@@ -181,6 +181,61 @@ func TestAccCircuitResource_import(t *testing.T) {
 	})
 }
 
+func TestAccCircuitResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	cid := testutil.RandomName("tf-test-circuit-remove")
+	providerName := testutil.RandomName("tf-test-provider-remove")
+	providerSlug := testutil.RandomSlug("tf-test-provider-remove")
+	typeName := testutil.RandomName("tf-test-circuit-type-remove")
+	typeSlug := testutil.RandomSlug("tf-test-circuit-type-remove")
+	tenantName := testutil.RandomName("tf-test-tenant-remove")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-remove")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitCleanup(cid)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(typeSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create circuit with tenant
+			{
+				Config: testAccCircuitResourceConfig_withTenant(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "tenant"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "description", "Circuit with tenant"),
+				),
+			},
+			// Step 2: Remove tenant and verify it's actually removed
+			{
+				Config: testAccCircuitResourceConfig_noTenant(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+					resource.TestCheckNoResourceAttr("netbox_circuit.test", "tenant"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "description", "Circuit after tenant removal"),
+				),
+			},
+			// Step 3: Re-add tenant to verify it can be set again
+			{
+				Config: testAccCircuitResourceConfig_withTenant(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+					resource.TestCheckResourceAttrSet("netbox_circuit.test", "tenant"),
+				),
+			},
+		},
+	})
+}
+
 // NOTE: Custom field tests for circuit resource are in resources_acceptance_tests_customfields package
 
 func TestAccConsistency_Circuit(t *testing.T) {
@@ -378,6 +433,60 @@ resource "netbox_circuit" "test" {
   depends_on = [netbox_provider.test, netbox_circuit_type.test, netbox_tenant.test]
 }
 `, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
+}
+
+func testAccCircuitResourceConfig_withTenant(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %q
+  circuit_provider = netbox_provider.test.slug
+  type             = netbox_circuit_type.test.slug
+  tenant           = netbox_tenant.test.id
+  description      = "Circuit with tenant"
+}
+`, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug, cid)
+}
+
+func testAccCircuitResourceConfig_noTenant(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %q
+  circuit_provider = netbox_provider.test.slug
+  type             = netbox_circuit_type.test.slug
+  description      = "Circuit after tenant removal"
+  # tenant intentionally omitted - should be null in state
+}
+`, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug, cid)
 }
 
 func TestAccCircuitResource_externalDeletion(t *testing.T) {

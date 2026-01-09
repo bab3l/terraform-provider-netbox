@@ -351,3 +351,117 @@ func TestAccLocationResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccLocationResource_removeOptionalFields tests that removing previously set parent and tenant fields correctly sets them to null.
+// This addresses the bug where removing a nullable reference field from the configuration would not clear it in NetBox,
+// causing "Provider produced inconsistent result after apply" errors.
+func TestAccLocationResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-loc-remove")
+	siteSlug := testutil.RandomSlug("tf-test-site-loc-remove")
+	name := testutil.RandomName("tf-test-location-remove")
+	slug := testutil.RandomSlug("tf-test-location-remove")
+	parentName := testutil.RandomName("tf-test-parent-location")
+	parentSlug := testutil.RandomSlug("tf-test-parent-location")
+	tenantName := testutil.RandomName("test-tenant-location")
+	tenantSlug := testutil.GenerateSlug(tenantName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterLocationCleanup(slug)
+	cleanup.RegisterLocationCleanup(parentSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create with parent and tenant
+			{
+				Config: testAccLocationResourceConfig_withParentAndTenant(siteName, siteSlug, parentName, parentSlug, name, slug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_location.test", "parent"),
+					resource.TestCheckResourceAttrSet("netbox_location.test", "tenant"),
+				),
+			},
+			// Step 2: Remove parent and tenant - should set to null
+			{
+				Config: testAccLocationResourceConfig_withoutFields(siteName, siteSlug, parentName, parentSlug, name, slug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_location.test", "parent"),
+					resource.TestCheckNoResourceAttr("netbox_location.test", "tenant"),
+				),
+			},
+			// Step 3: Re-add parent and tenant - should work without errors
+			{
+				Config: testAccLocationResourceConfig_withParentAndTenant(siteName, siteSlug, parentName, parentSlug, name, slug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_location.test", "parent"),
+					resource.TestCheckResourceAttrSet("netbox_location.test", "tenant"),
+				),
+			},
+		},
+	})
+}
+
+func testAccLocationResourceConfig_withParentAndTenant(siteName, siteSlug, parentName, parentSlug, name, slug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_tenant" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_location" "parent" {
+  name   = %[3]q
+  slug   = %[4]q
+  site   = netbox_site.test.id
+  status = "active"
+}
+
+resource "netbox_location" "test" {
+  name   = %[5]q
+  slug   = %[6]q
+  site   = netbox_site.test.id
+  parent = netbox_location.parent.id
+  tenant = netbox_tenant.test.id
+  status = "active"
+}
+`, siteName, siteSlug, parentName, parentSlug, name, slug, tenantName, tenantSlug)
+}
+
+func testAccLocationResourceConfig_withoutFields(siteName, siteSlug, parentName, parentSlug, name, slug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_tenant" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_location" "parent" {
+  name   = %[3]q
+  slug   = %[4]q
+  site   = netbox_site.test.id
+  status = "active"
+}
+
+resource "netbox_location" "test" {
+  name   = %[5]q
+  slug   = %[6]q
+  site   = netbox_site.test.id
+  status = "active"
+  # parent and tenant removed - should set to null
+}
+`, siteName, siteSlug, parentName, parentSlug, name, slug, tenantName, tenantSlug)
+}

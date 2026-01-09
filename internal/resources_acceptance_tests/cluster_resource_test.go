@@ -338,3 +338,127 @@ func TestAccClusterResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccClusterResource_removeOptionalFields tests that removing previously set group, tenant, and site fields correctly sets them to null.
+// This addresses the bug where removing a nullable reference field from the configuration would not clear it in NetBox,
+// causing "Provider produced inconsistent result after apply" errors.
+func TestAccClusterResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-remove")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-remove")
+	clusterName := testutil.RandomName("tf-test-cluster-remove")
+	siteName := testutil.RandomName("test-site-cluster")
+	siteSlug := testutil.GenerateSlug(siteName)
+	tenantName := testutil.RandomName("test-tenant-cluster")
+	tenantSlug := testutil.GenerateSlug(tenantName)
+	groupName := testutil.RandomName("test-group-cluster")
+	groupSlug := testutil.GenerateSlug(groupName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterClusterGroupCleanup(groupSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create with group, tenant, and site
+			{
+				Config: testAccClusterResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, tenantName, tenantSlug, groupName, groupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "group"),
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "site"),
+				),
+			},
+			// Step 2: Remove group, tenant, and site - should set to null
+			{
+				Config: testAccClusterResourceConfig_withoutFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, tenantName, tenantSlug, groupName, groupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_cluster.test", "group"),
+					resource.TestCheckNoResourceAttr("netbox_cluster.test", "tenant"),
+					resource.TestCheckNoResourceAttr("netbox_cluster.test", "site"),
+				),
+			},
+			// Step 3: Re-add group, tenant, and site - should work without errors
+			{
+				Config: testAccClusterResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, tenantName, tenantSlug, groupName, groupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "group"),
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_cluster.test", "site"),
+				),
+			},
+		},
+	})
+}
+
+func testAccClusterResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, tenantName, tenantSlug, groupName, groupSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_site" "test" {
+  name   = %[4]q
+  slug   = %[5]q
+  status = "active"
+}
+
+resource "netbox_tenant" "test" {
+  name = %[6]q
+  slug = %[7]q
+}
+
+resource "netbox_cluster_group" "test" {
+  name = %[8]q
+  slug = %[9]q
+}
+
+resource "netbox_cluster" "test" {
+  name   = %[3]q
+  type   = netbox_cluster_type.test.id
+  status = "active"
+  group  = netbox_cluster_group.test.id
+  tenant = netbox_tenant.test.id
+  site   = netbox_site.test.id
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, tenantName, tenantSlug, groupName, groupSlug)
+}
+
+func testAccClusterResourceConfig_withoutFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, tenantName, tenantSlug, groupName, groupSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_site" "test" {
+  name   = %[4]q
+  slug   = %[5]q
+  status = "active"
+}
+
+resource "netbox_tenant" "test" {
+  name = %[6]q
+  slug = %[7]q
+}
+
+resource "netbox_cluster_group" "test" {
+  name = %[8]q
+  slug = %[9]q
+}
+
+resource "netbox_cluster" "test" {
+  name   = %[3]q
+  type   = netbox_cluster_type.test.id
+  status = "active"
+  # group, tenant, and site removed - should set to null
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, tenantName, tenantSlug, groupName, groupSlug)
+}

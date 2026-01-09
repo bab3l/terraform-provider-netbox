@@ -343,6 +343,8 @@ func (r *WirelessLinkResource) Create(ctx context.Context, req resource.CreateRe
 		}
 
 		request.Tenant = *netbox.NewNullableBriefTenantRequest(&tenantRequest)
+	} else if data.Tenant.IsNull() {
+		request.SetTenantNil()
 	}
 
 	if !data.AuthType.IsNull() && !data.AuthType.IsUnknown() {
@@ -576,6 +578,8 @@ func (r *WirelessLinkResource) Update(ctx context.Context, req resource.UpdateRe
 		}
 
 		request.Tenant = *netbox.NewNullableBriefTenantRequest(&tenantRequest)
+	} else if plan.Tenant.IsNull() {
+		request.SetTenantNil()
 	}
 
 	if !plan.AuthType.IsNull() && !plan.AuthType.IsUnknown() {

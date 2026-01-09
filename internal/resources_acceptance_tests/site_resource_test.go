@@ -317,3 +317,113 @@ func TestAccSiteResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccSiteResource_removeOptionalFields tests that removing previously set tenant, region, and group fields correctly sets them to null.
+// This addresses the bug where removing a nullable reference field from the configuration would not clear it in NetBox,
+// causing "Provider produced inconsistent result after apply" errors.
+func TestAccSiteResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-site-remove")
+	slug := testutil.RandomSlug("tf-test-site-remove")
+	tenantName := testutil.RandomName("test-tenant-site")
+	tenantSlug := testutil.GenerateSlug(tenantName)
+	regionName := testutil.RandomName("test-region-site")
+	regionSlug := testutil.GenerateSlug(regionName)
+	groupName := testutil.RandomName("test-group-site")
+	groupSlug := testutil.GenerateSlug(groupName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(slug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterRegionCleanup(regionSlug)
+	cleanup.RegisterSiteGroupCleanup(groupSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create with tenant, region, and group
+			{
+				Config: testAccSiteResourceConfig_withAllFields(name, slug, tenantName, tenantSlug, regionName, regionSlug, groupName, groupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_site.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_site.test", "region"),
+					resource.TestCheckResourceAttrSet("netbox_site.test", "group"),
+				),
+			},
+			// Step 2: Remove tenant, region, and group - should set to null
+			{
+				Config: testAccSiteResourceConfig_withoutFields(name, slug, tenantName, tenantSlug, regionName, regionSlug, groupName, groupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_site.test", "tenant"),
+					resource.TestCheckNoResourceAttr("netbox_site.test", "region"),
+					resource.TestCheckNoResourceAttr("netbox_site.test", "group"),
+				),
+			},
+			// Step 3: Re-add tenant, region, and group - should work without errors
+			{
+				Config: testAccSiteResourceConfig_withAllFields(name, slug, tenantName, tenantSlug, regionName, regionSlug, groupName, groupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_site.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_site.test", "region"),
+					resource.TestCheckResourceAttrSet("netbox_site.test", "group"),
+				),
+			},
+		},
+	})
+}
+
+func testAccSiteResourceConfig_withAllFields(name, slug, tenantName, tenantSlug, regionName, regionSlug, groupName, groupSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_region" "test" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_site_group" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+  tenant = netbox_tenant.test.id
+  region = netbox_region.test.id
+  group  = netbox_site_group.test.id
+}
+`, name, slug, tenantName, tenantSlug, regionName, regionSlug, groupName, groupSlug)
+}
+
+func testAccSiteResourceConfig_withoutFields(name, slug, tenantName, tenantSlug, regionName, regionSlug, groupName, groupSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_region" "test" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_site_group" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+  # tenant, region, and group removed - should set to null
+}
+`, name, slug, tenantName, tenantSlug, regionName, regionSlug, groupName, groupSlug)
+}

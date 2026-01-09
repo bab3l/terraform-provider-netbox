@@ -151,16 +151,22 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 	// Handle tenant relationship
 	if tenantRef := utils.ResolveOptionalReference(ctx, r.client, data.Tenant, netboxlookup.LookupTenant, &resp.Diagnostics); tenantRef != nil {
 		siteRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
+	} else if data.Tenant.IsNull() {
+		siteRequest.SetTenantNil()
 	}
 
 	// Handle region relationship
 	if regionRef := utils.ResolveOptionalReference(ctx, r.client, data.Region, netboxlookup.LookupRegion, &resp.Diagnostics); regionRef != nil {
 		siteRequest.Region = *netbox.NewNullableBriefRegionRequest(regionRef)
+	} else if data.Region.IsNull() {
+		siteRequest.SetRegionNil()
 	}
 
 	// Handle group relationship
 	if groupRef := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupSiteGroup, &resp.Diagnostics); groupRef != nil {
 		siteRequest.Group = *netbox.NewNullableBriefSiteGroupRequest(groupRef)
+	} else if data.Group.IsNull() {
+		siteRequest.SetGroupNil()
 	}
 
 	// Set common fields (description, comments, tags, custom_fields)
@@ -296,16 +302,22 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// Handle tenant relationship
 	if tenantRef := utils.ResolveOptionalReference(ctx, r.client, plan.Tenant, netboxlookup.LookupTenant, &resp.Diagnostics); tenantRef != nil {
 		siteRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
+	} else if plan.Tenant.IsNull() {
+		siteRequest.SetTenantNil()
 	}
 
 	// Handle region relationship
 	if regionRef := utils.ResolveOptionalReference(ctx, r.client, plan.Region, netboxlookup.LookupRegion, &resp.Diagnostics); regionRef != nil {
 		siteRequest.Region = *netbox.NewNullableBriefRegionRequest(regionRef)
+	} else if plan.Region.IsNull() {
+		siteRequest.SetRegionNil()
 	}
 
 	// Handle group relationship
 	if groupRef := utils.ResolveOptionalReference(ctx, r.client, plan.Group, netboxlookup.LookupSiteGroup, &resp.Diagnostics); groupRef != nil {
 		siteRequest.Group = *netbox.NewNullableBriefSiteGroupRequest(groupRef)
+	} else if plan.Group.IsNull() {
+		siteRequest.SetGroupNil()
 	}
 
 	// Set common fields with merge-aware custom fields (description, comments, tags, custom_fields)

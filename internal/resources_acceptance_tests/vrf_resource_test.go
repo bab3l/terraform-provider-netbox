@@ -237,6 +237,58 @@ resource "netbox_vrf" "test" {
 `, name, rd, description)
 }
 
+func TestAccVRFResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-vrf-remove")
+	tenantName := testutil.RandomName("tf-test-tenant-remove")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-remove")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVRFCleanup(name)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVRFDestroy,
+			testutil.CheckTenantDestroy,
+		),
+		Steps: []resource.TestStep{
+			// Step 1: Create VRF with tenant
+			{
+				Config: testAccVRFResourceConfig_withTenant(name, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "name", name),
+					resource.TestCheckResourceAttrSet("netbox_vrf.test", "tenant"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "description", "VRF with tenant"),
+				),
+			},
+			// Step 2: Remove tenant and verify it's actually removed
+			{
+				Config: testAccVRFResourceConfig_noTenant(name, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_vrf.test", "tenant"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "description", "VRF after tenant removal"),
+				),
+			},
+			// Step 3: Re-add tenant to verify it can be set again
+			{
+				Config: testAccVRFResourceConfig_withTenant(name, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "name", name),
+					resource.TestCheckResourceAttrSet("netbox_vrf.test", "tenant"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConsistency_VRF(t *testing.T) {
 	t.Parallel()
 
@@ -275,6 +327,36 @@ resource "netbox_vrf" "test" {
   tenant = netbox_tenant.test.name
 }
 `, vrfName, tenantName, tenantSlug)
+}
+
+func testAccVRFResourceConfig_withTenant(name, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_vrf" "test" {
+  name        = %q
+  tenant      = netbox_tenant.test.id
+  description = "VRF with tenant"
+}
+`, tenantName, tenantSlug, name)
+}
+
+func testAccVRFResourceConfig_noTenant(name, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_vrf" "test" {
+  name        = %q
+  description = "VRF after tenant removal"
+  # tenant intentionally omitted - should be null in state
+}
+`, tenantName, tenantSlug, name)
 }
 
 func TestAccConsistency_VRF_LiteralNames(t *testing.T) {

@@ -347,6 +347,8 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 			return
 		}
 		ipRequest.Vrf = *netbox.NewNullableBriefVRFRequest(vrf)
+	} else if plan.VRF.IsNull() {
+		ipRequest.SetVrfNil()
 	}
 
 	// Tenant
@@ -357,6 +359,8 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 			return
 		}
 		ipRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
+	} else if plan.Tenant.IsNull() {
+		ipRequest.SetTenantNil()
 	}
 
 	// Status
