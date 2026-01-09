@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -32,14 +33,15 @@ type RouteTargetDataSource struct {
 
 // RouteTargetDataSourceModel describes the data source data model.
 type RouteTargetDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Tenant      types.String `tfsdk:"tenant"`
-	TenantName  types.String `tfsdk:"tenant_name"`
-	Description types.String `tfsdk:"description"`
-	Comments    types.String `tfsdk:"comments"`
-	Tags        types.List   `tfsdk:"tags"`
-	DisplayName types.String `tfsdk:"display_name"`
+	ID           types.String `tfsdk:"id"`
+	Name         types.String `tfsdk:"name"`
+	Tenant       types.String `tfsdk:"tenant"`
+	TenantName   types.String `tfsdk:"tenant_name"`
+	Description  types.String `tfsdk:"description"`
+	Comments     types.String `tfsdk:"comments"`
+	Tags         types.List   `tfsdk:"tags"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
+	DisplayName  types.String `tfsdk:"display_name"`
 }
 
 // Metadata returns the data source type name.
@@ -83,6 +85,7 @@ func (d *RouteTargetDataSource) Schema(ctx context.Context, req datasource.Schem
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 			"display_name": schema.StringAttribute{
 				MarkdownDescription: "The display name of the route target.",
 				Computed:            true,
@@ -239,6 +242,17 @@ func (d *RouteTargetDataSource) mapRouteTargetToDataSourceModel(ctx context.Cont
 		data.Tags = tagsList
 	} else {
 		data.Tags = types.ListNull(types.StringType)
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if rt.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(rt.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 
 	// Map display_name
