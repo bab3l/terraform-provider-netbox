@@ -236,7 +236,7 @@ func (d *DeviceBayDataSource) mapResponseToModel(ctx context.Context, db *netbox
 	// Handle custom fields
 	if db.HasCustomFields() {
 		apiCustomFields := db.GetCustomFields()
-		customFields := utils.MapToCustomFieldModels(apiCustomFields, nil)
+		customFields := utils.MapAllCustomFieldsToModels(apiCustomFields)
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		diags.Append(cfDiags...)
 		if diags.HasError() {

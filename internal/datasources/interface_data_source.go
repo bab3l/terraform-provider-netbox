@@ -380,7 +380,7 @@ func (d *InterfaceDataSource) mapInterfaceToDataSource(ctx context.Context, ifac
 
 	// Custom Fields
 	if iface.HasCustomFields() && len(iface.GetCustomFields()) > 0 {
-		customFields := utils.MapToCustomFieldModels(iface.GetCustomFields(), nil)
+		customFields := utils.MapAllCustomFieldsToModels(iface.GetCustomFields())
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		resp.Diagnostics.Append(cfDiags...)
 		if resp.Diagnostics.HasError() {
