@@ -193,6 +193,8 @@ func (r *ClusterResource) buildClusterRequest(ctx context.Context, data *Cluster
 	// Group
 	if group := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupClusterGroup, diags); group != nil {
 		clusterRequest.Group = *netbox.NewNullableBriefClusterGroupRequest(group)
+	} else if data.Group.IsNull() {
+		clusterRequest.SetGroupNil()
 	}
 
 	// Status
@@ -204,11 +206,15 @@ func (r *ClusterResource) buildClusterRequest(ctx context.Context, data *Cluster
 	// Tenant
 	if tenant := utils.ResolveOptionalReference(ctx, r.client, data.Tenant, netboxlookup.LookupTenant, diags); tenant != nil {
 		clusterRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
+	} else if data.Tenant.IsNull() {
+		clusterRequest.SetTenantNil()
 	}
 
 	// Site
 	if site := utils.ResolveOptionalReference(ctx, r.client, data.Site, netboxlookup.LookupSite, diags); site != nil {
 		clusterRequest.Site = *netbox.NewNullableBriefSiteRequest(site)
+	} else if data.Site.IsNull() {
+		clusterRequest.SetSiteNil()
 	}
 
 	// Apply common fields (description, comments, tags, custom_fields)
@@ -231,6 +237,8 @@ func (r *ClusterResource) buildClusterRequestWithState(ctx context.Context, plan
 	// Group
 	if group := utils.ResolveOptionalReference(ctx, r.client, plan.Group, netboxlookup.LookupClusterGroup, diags); group != nil {
 		clusterRequest.Group = *netbox.NewNullableBriefClusterGroupRequest(group)
+	} else if plan.Group.IsNull() {
+		clusterRequest.SetGroupNil()
 	}
 
 	// Status
@@ -242,11 +250,15 @@ func (r *ClusterResource) buildClusterRequestWithState(ctx context.Context, plan
 	// Tenant
 	if tenant := utils.ResolveOptionalReference(ctx, r.client, plan.Tenant, netboxlookup.LookupTenant, diags); tenant != nil {
 		clusterRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
+	} else if plan.Tenant.IsNull() {
+		clusterRequest.SetTenantNil()
 	}
 
 	// Site
 	if site := utils.ResolveOptionalReference(ctx, r.client, plan.Site, netboxlookup.LookupSite, diags); site != nil {
 		clusterRequest.Site = *netbox.NewNullableBriefSiteRequest(site)
+	} else if plan.Site.IsNull() {
+		clusterRequest.SetSiteNil()
 	}
 
 	// Apply description and comments
