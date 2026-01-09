@@ -1,0 +1,473 @@
+# Datasource Custom Fields Implementation Plan
+
+## Overview
+This document outlines the plan to fix datasource behavior with custom fields. Currently, datasources return NO custom fields because they pass `nil` as the second parameter to `MapToCustomFieldModels()`, which causes the function to return immediately.
+
+**Goal**: Datasources should always return ALL custom fields present in NetBox, unlike resources which use partial management (filter-to-owned pattern).
+
+## Current Problem
+
+### Root Cause
+All datasources call:
+```go
+customFields := utils.MapToCustomFieldModels(apiCustomFields, nil)
+```
+
+The `MapToCustomFieldModels()` function checks:
+```go
+if len(stateCustomFields) == 0 {
+    return nil
+}
+```
+
+Since datasources pass `nil`, this returns immediately with no custom fields.
+
+### Impact
+- Users cannot read custom field values via datasources
+- Data sources are incomplete representations of NetBox objects
+- Forces users to use resources for read-only operations
+
+## Solution Design
+
+### 1. Create New Helper Function
+Add `MapAllCustomFieldsToModels()` in `internal/utils/common.go`:
+
+```go
+// MapAllCustomFieldsToModels converts ALL custom fields from NetBox API to Terraform models.
+// Used by datasources to return complete custom field data.
+// Unlike MapToCustomFieldModels which filters to owned fields for resources,
+// this returns ALL fields present in NetBox.
+func MapAllCustomFieldsToModels(customFields map[string]interface{}) []CustomFieldModel {
+    if len(customFields) == 0 {
+        return nil
+    }
+
+    result := make([]CustomFieldModel, 0, len(customFields))
+
+    for name, value := range customFields {
+        if value == nil {
+            continue  // Skip null values
+        }
+
+        cf := CustomFieldModel{
+            Name: types.StringValue(name),
+        }
+
+        // Infer type from value and format accordingly
+        switch v := value.(type) {
+        case map[string]interface{}:
+            // JSON/object type
+            cf.Type = types.StringValue("json")
+            if jsonBytes, err := json.Marshal(v); err == nil {
+                cf.Value = types.StringValue(string(jsonBytes))
+            } else {
+                cf.Value = types.StringValue("")
+            }
+
+        case []interface{}:
+            // Multiselect type
+            cf.Type = types.StringValue("multiselect")
+            var stringValues []string
+            for _, item := range v {
+                if s, ok := item.(string); ok {
+                    stringValues = append(stringValues, strings.TrimSpace(s))
+                } else {
+                    stringValues = append(stringValues, fmt.Sprintf("%v", item))
+                }
+            }
+            cf.Value = types.StringValue(strings.Join(stringValues, ","))
+
+        case bool:
+            // Boolean type
+            cf.Type = types.StringValue("boolean")
+            cf.Value = types.StringValue(fmt.Sprintf("%t", v))
+
+        case float64:
+            // Number type (JSON unmarshals numbers as float64)
+            cf.Type = types.StringValue("integer")
+            cf.Value = types.StringValue(fmt.Sprintf("%.0f", v))
+
+        case string:
+            // Text/URL/select type (we'll default to text)
+            cf.Type = types.StringValue("text")
+            cf.Value = types.StringValue(strings.TrimSpace(v))
+
+        default:
+            // Fallback to text
+            cf.Type = types.StringValue("text")
+            cf.Value = types.StringValue(fmt.Sprintf("%v", v))
+        }
+
+        result = append(result, cf)
+    }
+
+    // Sort by name for consistent ordering
+    sort.Slice(result, func(i, j int) bool {
+        return result[i].Name.ValueString() < result[j].Name.ValueString()
+    })
+
+    return result
+}
+```
+
+### 2. Update All Datasources
+Change from:
+```go
+customFields := utils.MapToCustomFieldModels(apiCustomFields, nil)
+```
+
+To:
+```go
+customFields := utils.MapAllCustomFieldsToModels(apiCustomFields)
+```
+
+### 3. Create Test Infrastructure
+
+#### New Test Directory Structure
+```
+internal/
+├── datasources_acceptance_tests/         (existing - parallel tests)
+│   └── *_data_source_test.go
+└── datasources_acceptance_tests_customfields/  (NEW - serial tests)
+    ├── test_main_test.go                 (test setup with build tag)
+    └── *_custom_fields_test.go           (custom field specific tests)
+```
+
+#### Test File Template
+```go
+//go:build customfields
+
+package datasources_acceptance_tests_customfields
+
+import (
+    "context"
+    "fmt"
+    "testing"
+
+    "github.com/bab3l/terraform-provider-netbox/internal/testutil"
+    "github.com/hashicorp/terraform-plugin-testing/helper/resource"
+)
+
+func TestAccXxxDataSource_customFields(t *testing.T) {
+    // Test that datasource returns ALL custom fields
+    // 1. Create resource with custom field via API
+    // 2. Read via datasource
+    // 3. Verify all custom fields present
+    // 4. Add another custom field via API
+    // 5. Read again via datasource
+    // 6. Verify both custom fields present
+}
+```
+
+## Implementation Batches
+
+### Statistics
+- **Total Datasources**: 104 datasource files
+- **Datasources with Custom Fields**: ~80 (based on grep results)
+- **Datasources without Custom Fields**: ~24 (templates, assignments, etc.)
+
+### Batch Organization
+Split into 8 batches of ~10-13 datasources each for manageable PRs.
+
+### Batch 1: Core Infrastructure (13 datasources)
+**Priority**: HIGH - Most commonly used datasources
+
+1. `asn_data_source.go`
+2. `asn_range_data_source.go`
+3. `circuit_data_source.go`
+4. `circuit_type_data_source.go`
+5. `cluster_data_source.go`
+6. `cluster_type_data_source.go`
+7. `ip_address_data_source.go`
+8. `ip_range_data_source.go`
+9. `prefix_data_source.go`
+10. `site_data_source.go`
+11. `vlan_data_source.go`
+12. `vrf_data_source.go`
+13. `route_target_data_source.go`
+
+**Test Priority**: HIGH - Create custom field tests for all
+
+### Batch 2: Device & DCIM (12 datasources)
+**Priority**: HIGH - Core hardware management
+
+1. `device_data_source.go`
+2. `device_type_data_source.go`
+3. `device_role_data_source.go`
+4. `rack_data_source.go`
+5. `rack_role_data_source.go`
+6. `location_data_source.go`
+7. `manufacturer_data_source.go`
+8. `platform_data_source.go`
+9. `interface_data_source.go`
+10. `cable_data_source.go`
+11. `device_bay_data_source.go`
+12. `module_data_source.go`
+
+**Test Priority**: HIGH - Create custom field tests for all
+
+### Batch 3: Virtualization & Tenancy (10 datasources)
+**Priority**: MEDIUM - Virtualization and multi-tenancy
+
+1. `virtual_machine_data_source.go`
+2. `vm_interface_data_source.go`
+3. `virtual_disk_data_source.go`
+4. `virtual_device_context_data_source.go`
+5. `cluster_group_data_source.go`
+6. `tenant_data_source.go`
+7. `tenant_group_data_source.go`
+8. `contact_data_source.go`
+9. `contact_role_data_source.go`
+10. `contact_group_data_source.go`
+
+**Test Priority**: MEDIUM - Create tests for VM and tenant datasources
+
+### Batch 4: Circuits & VPN (12 datasources)
+**Priority**: MEDIUM - Network connectivity
+
+1. `provider_data_source.go`
+2. `provider_account_data_source.go`
+3. `provider_network_data_source.go`
+4. `circuit_group_data_source.go`
+5. `l2vpn_data_source.go`
+6. `tunnel_data_source.go`
+7. `tunnel_group_data_source.go`
+8. `ike_policy_data_source.go`
+9. `ike_proposal_data_source.go`
+10. `ipsec_policy_data_source.go`
+11. `ipsec_profile_data_source.go`
+12. `ipsec_proposal_data_source.go`
+
+**Test Priority**: MEDIUM - Focus on circuit and L2VPN datasources
+
+### Batch 5: Ports & Interfaces (12 datasources)
+**Priority**: MEDIUM - Port management
+
+1. `console_port_data_source.go`
+2. `console_server_port_data_source.go`
+3. `power_port_data_source.go`
+4. `power_outlet_data_source.go`
+5. `front_port_data_source.go`
+6. `rear_port_data_source.go`
+7. `module_bay_data_source.go`
+8. `inventory_item_data_source.go`
+9. `inventory_item_role_data_source.go`
+10. `power_feed_data_source.go`
+11. `power_panel_data_source.go`
+12. `rack_reservation_data_source.go`
+
+**Test Priority**: LOW - Sample tests for port datasources
+
+### Batch 6: Wireless & Services (10 datasources)
+**Priority**: LOW - Specialized features
+
+1. `wireless_lan_data_source.go`
+2. `wireless_lan_group_data_source.go`
+3. `wireless_link_data_source.go`
+4. `fhrp_group_data_source.go`
+5. `service_data_source.go`
+6. `service_template_data_source.go`
+7. `aggregate_data_source.go`
+8. `rir_data_source.go`
+9. `vlan_group_data_source.go`
+10. `role_data_source.go`
+
+**Test Priority**: LOW - Sample tests
+
+### Batch 7: Extras & Admin (11 datasources)
+**Priority**: LOW - Administrative features
+
+1. `event_rule_data_source.go`
+2. `journal_entry_data_source.go`
+3. `config_context_data_source.go`
+4. `config_template_data_source.go`
+5. `custom_field_data_source.go`
+6. `custom_link_data_source.go`
+7. `export_template_data_source.go`
+8. `notification_group_data_source.go`
+9. `script_data_source.go`
+10. `webhook_data_source.go`
+11. `tag_data_source.go`
+
+**Test Priority**: LOW - Sample tests
+
+### Batch 8: Templates & Miscellaneous (10 datasources)
+**Priority**: LOW - Template resources (likely no custom fields)
+
+1. `console_port_template_data_source.go`
+2. `console_server_port_template_data_source.go`
+3. `device_bay_template_data_source.go`
+4. `front_port_template_data_source.go`
+5. `interface_template_data_source.go`
+6. `inventory_item_template_data_source.go`
+7. `module_bay_template_data_source.go`
+8. `module_type_data_source.go`
+9. `power_outlet_template_data_source.go`
+10. `power_port_template_data_source.go`
+
+Plus remaining datasources:
+11. `rack_type_data_source.go`
+12. `region_data_source.go`
+13. `site_group_data_source.go`
+14. `virtual_chassis_data_source.go`
+15. `tunnel_termination_data_source.go`
+16. Various assignment and grouping datasources
+
+**Test Priority**: VERY LOW - May not have custom fields, verify first
+
+## Testing Strategy
+
+### Test Categories
+
+#### 1. Full Custom Field Tests (High Priority Datasources)
+Pattern: Create resource with custom field, read via datasource, verify all fields present
+
+```go
+func TestAccXxxDataSource_customFields(t *testing.T) {
+    resource.Test(t, resource.TestCase{
+        Steps: []resource.TestStep{
+            {
+                // Create resource with custom field via resource
+                Config: testAccXxxDataSourceConfig_withCustomFields(),
+                Check: resource.ComposeTestCheckFunc(
+                    // Verify datasource returns custom field
+                    resource.TestCheckResourceAttr("data.netbox_xxx.test", "custom_fields.#", "1"),
+                    resource.TestCheckResourceAttr("data.netbox_xxx.test", "custom_fields.0.name", "test_field"),
+                    resource.TestCheckResourceAttr("data.netbox_xxx.test", "custom_fields.0.value", "test_value"),
+                ),
+            },
+        },
+    })
+}
+```
+
+#### 2. Multiple Field Tests
+Verify datasource returns multiple custom fields of different types
+
+#### 3. External Field Addition Tests
+1. Create resource without custom fields via Terraform
+2. Add custom field via NetBox API directly
+3. Refresh datasource
+4. Verify datasource picks up the new field
+
+### Test Infrastructure Setup
+
+#### Create test_main_test.go
+```go
+//go:build customfields
+
+package datasources_acceptance_tests_customfields
+
+import (
+    "os"
+    "testing"
+
+    "github.com/bab3l/terraform-provider-netbox/internal/testutil"
+)
+
+func TestMain(m *testing.M) {
+    testutil.TestAccPreCheck(func() {})
+    os.Exit(m.Run())
+}
+```
+
+#### Run Commands
+```bash
+# Run parallel tests (no custom fields)
+go test ./internal/datasources_acceptance_tests/... -v
+
+# Run serial custom field tests
+go test -tags=customfields ./internal/datasources_acceptance_tests_customfields/... -v -p 1
+```
+
+## Implementation Checklist
+
+### Phase 1: Foundation (Week 1)
+- [ ] Create `MapAllCustomFieldsToModels()` function in utils/common.go
+- [ ] Add unit tests for `MapAllCustomFieldsToModels()`
+- [ ] Create `internal/datasources_acceptance_tests_customfields/` directory
+- [ ] Create `test_main_test.go` with build tag
+- [ ] Update Makefile/tasks.json with custom field test commands
+
+### Phase 2: Batch 1 Implementation (Week 1-2)
+- [ ] Update 13 core infrastructure datasources
+- [ ] Create custom field tests for all Batch 1 datasources
+- [ ] Run tests and verify all passing
+- [ ] Commit and push Batch 1
+
+### Phase 3: Batch 2 Implementation (Week 2)
+- [ ] Update 12 device/DCIM datasources
+- [ ] Create custom field tests for all Batch 2 datasources
+- [ ] Run tests and verify all passing
+- [ ] Commit and push Batch 2
+
+### Phase 4: Batch 3-8 Implementation (Week 3-4)
+- [ ] Complete remaining batches (60+ datasources)
+- [ ] Create sample tests for lower priority datasources
+- [ ] Run full test suite
+- [ ] Update documentation
+
+### Phase 5: Documentation & Release (Week 4)
+- [ ] Update CHANGELOG.md
+- [ ] Update datasource documentation examples
+- [ ] Update provider README
+- [ ] Create migration guide
+- [ ] Prepare release notes
+
+## Success Criteria
+
+1. ✅ All datasources return complete custom field data
+2. ✅ New helper function correctly handles all custom field types
+3. ✅ Test suite verifies datasource custom field behavior
+4. ✅ No regression in existing functionality
+5. ✅ Documentation updated with examples
+6. ✅ All tests passing (parallel + serial suites)
+
+## Risk Assessment
+
+### Low Risk
+- Datasources are read-only operations
+- No state management complexity
+- Clear separation from resource partial management
+
+### Medium Risk
+- Large number of files to update (80+ datasources)
+- Need to verify each datasource has custom_fields attribute
+- Test infrastructure needs careful setup
+
+### Mitigation
+- Batch implementation allows incremental validation
+- Separate test suite prevents interference
+- Comprehensive testing at each batch
+
+## Notes
+
+### Differences from Resources
+- **Resources**: Use partial management (filter-to-owned pattern)
+- **Datasources**: Return ALL fields (complete read pattern)
+
+### Type Inference
+Since datasources don't have prior state, we must infer custom field types from the API response value type. This is acceptable for read-only operations.
+
+### Ordering
+Custom fields will be sorted alphabetically by name for consistent output in tests and state.
+
+## Timeline
+
+- **Week 1**: Foundation + Batch 1 (13 datasources)
+- **Week 2**: Batch 2 + Batch 3 (22 datasources)
+- **Week 3**: Batch 4-6 (34 datasources)
+- **Week 4**: Batch 7-8 + Documentation (31 datasources)
+
+**Total Estimated Time**: 4 weeks for complete implementation
+
+## Questions for Review
+
+1. Should we add a datasource-specific attribute like `include_custom_fields` to allow filtering?
+   - **Decision**: No, datasources should be complete by default
+
+2. How to handle custom field type ambiguity without schema?
+   - **Decision**: Infer from value type, default to "text" if unclear
+
+3. Should we backport this to v0.0.13 or target v0.0.14?
+   - **Decision**: Target v0.0.14 as separate feature enhancement
