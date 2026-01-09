@@ -250,10 +250,10 @@ func (d *ASNDataSource) mapResponseToModel(ctx context.Context, asn *netbox.ASN,
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 	}
 
-	// Handle custom fields
+	// Handle custom fields - datasources return ALL fields
 	if asn.HasCustomFields() {
 		apiCustomFields := asn.GetCustomFields()
-		customFields := utils.MapToCustomFieldModels(apiCustomFields, nil)
+		customFields := utils.MapAllCustomFieldsToModels(apiCustomFields)
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		diags.Append(cfDiags...)
 		if diags.HasError() {
