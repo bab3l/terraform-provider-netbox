@@ -147,6 +147,58 @@ func TestAccASNResource_update(t *testing.T) {
 	})
 }
 
+func TestAccASNResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	rirName := testutil.RandomName("tf-test-rir-remove")
+	rirSlug := testutil.RandomSlug("tf-test-rir-remove")
+	tenantName := testutil.RandomName("tf-test-tenant-remove")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-remove")
+	asn := int64(acctest.RandIntRange(65312, 65400))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterASNCleanup(asn)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create ASN with tenant and RIR
+			{
+				Config: testAccASNResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, asn, "Initial description", testutil.Comments),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
+					resource.TestCheckResourceAttrSet("netbox_asn.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_asn.test", "rir"),
+					resource.TestCheckResourceAttr("netbox_asn.test", "description", "Initial description"),
+					resource.TestCheckResourceAttr("netbox_asn.test", "comments", testutil.Comments),
+				),
+			},
+			// Step 2: Remove tenant and verify it's actually removed (not just omitted)
+			{
+				Config: testAccASNResourceConfig_noTenant(rirName, rirSlug, tenantName, tenantSlug, asn, "Description after tenant removal"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
+					resource.TestCheckNoResourceAttr("netbox_asn.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_asn.test", "rir"),
+					resource.TestCheckResourceAttr("netbox_asn.test", "description", "Description after tenant removal"),
+				),
+			},
+			// Step 3: Re-add tenant to verify it can be set again
+			{
+				Config: testAccASNResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, asn, "Final description", testutil.Comments),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
+					resource.TestCheckResourceAttrSet("netbox_asn.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_asn.test", "rir"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccASNResource_external_deletion(t *testing.T) {
 	t.Parallel()
 
@@ -247,6 +299,28 @@ resource "netbox_asn" "test" {
   description = %q
 }
 `, rirName, rirSlug, asn, description)
+}
+
+func testAccASNResourceConfig_noTenant(rirName, rirSlug, tenantName, tenantSlug string, asn int64, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_asn" "test" {
+  asn         = %d
+  rir         = netbox_rir.test.id
+  description = %q
+  comments    = %q
+  # tenant intentionally omitted - should be null in state
+}
+`, rirName, rirSlug, tenantName, tenantSlug, asn, description, testutil.Comments)
 }
 
 // TestAccConsistency_ASN_LiteralNames tests that reference attributes specified as literal string names

@@ -323,6 +323,9 @@ func (r *ASNResource) buildASNRequest(ctx context.Context, data *ASNResourceMode
 			return nil, diags
 		}
 		asnRequest.Rir = *netbox.NewNullableBriefRIRRequest(rir)
+	} else if data.RIR.IsNull() {
+		// Explicitly set to null to clear the field
+		asnRequest.SetRirNil()
 	}
 
 	// Handle Tenant (optional)
@@ -333,6 +336,9 @@ func (r *ASNResource) buildASNRequest(ctx context.Context, data *ASNResourceMode
 			return nil, diags
 		}
 		asnRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
+	} else if data.Tenant.IsNull() {
+		// Explicitly set to null to clear the field
+		asnRequest.SetTenantNil()
 	}
 
 	// Apply description and comments
