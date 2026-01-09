@@ -1,6 +1,6 @@
 # Nullable Fields Bug Fix - Batch Tracking
 
-## Current Status: Batch 2 (Infrastructure Resources) - ✅ COMPLETED
+## Current Status: Batch 3 (VLAN/Prefix Resources) - ✅ COMPLETED
 
 **Last Updated**: 2026-01-09
 
@@ -149,13 +149,13 @@
 ### Batch 3 Completion Checklist
 - [x] All 3 resources code complete
 - [x] All 3 tests passing
-- [ ] Run full acceptance suite
-- [ ] Commit batch completion
+- [x] Run full acceptance suite: All Batch 3 tests pass (16.73s total)
+- [x] Commit batch completion
 
 **Commits**:
-- 6712cc5 - prefix
-- 4f1c707 - vlan
-- (pending) - vm_interface
+- 6712cc5 - prefix (5.61s)
+- 4f1c707 - vlan (5.36s)
+- c0259da - vm_interface (13.55s standalone, 16.55s in parallel)
 
 **Notes**: vm_interface uses buildVMInterfaceRequest which is called by both Create and Update, so SetNil() only applies when state has a value (Update scenario).
 
@@ -289,34 +289,34 @@ Closes #XX (if issue exists)
 
 ### Overall Status
 - **Total Resources**: 22
-- **Completed**: 8 (asn + 7 Batch 1 resources)
-- **Remaining**: 14
-- **Total Fields**: 47 nullable fields (14 fixed so far)
+- **Completed**: 15 (asn + 7 Batch 1 + 4 Batch 2 + 3 Batch 3)
+- **Remaining**: 7
+- **Total Fields**: 47 nullable fields (31 fixed so far)
 
 ### Batch Status
 | Batch | Resources | Status | Time Estimate |
 |-------|-----------|--------|---------------|
 | 0 - Foundation | 1 | ✅ Complete | - |
 | 1 - High Priority | 7 | ✅ Complete | - |
-| 2 - Infrastructure | 4 | ⏸️ Pending | 45-60 min |
-| 3 - VLAN/Prefix | 3 | ⏸️ Pending | 45-60 min |
+| 2 - Infrastructure | 4 | ✅ Complete | - |
+| 3 - VLAN/Prefix | 3 | ✅ Complete | - |
 | 4 - Device/Rack | 4 | ⏸️ Pending | 1 hour |
 | 5 - Cleanup | 3 | ⏸️ Pending | 30-45 min |
 | Final Verification | - | ⏸️ Pending | 1 hour |
 
-**Total Remaining Time**: ~4 hours
+**Total Remaining Time**: ~2.5 hours
 
 ---
 
 ## Next Steps
 
-**Batch 1 Complete!** 🎉
+**Batch 3 Complete!** 🎉
 
-1. **Continue with Batch 2** (Infrastructure Resources - 4 resources: site, location, cluster, tenant)
-2. **Take a break** - Solid progress with 8/22 resources complete (36%)
+1. **Continue with Batch 4** (Device/Rack Resources - 4 resources: rack, device_bay, platform, virtual_machine)
+2. **Take a break** - Excellent progress with 15/22 resources complete (68%)
 3. **Run broader test suite** to verify no regressions in other tests
 
-**Progress**: 8 of 22 resources complete (36%), 14 nullable fields fixed
+**Progress**: 15 of 22 resources complete (68%), 31 nullable fields fixed
 
 ---
 
@@ -347,3 +347,19 @@ Closes #XX (if issue exists)
 - Tests run quickly in parallel (~14s for all 7 tests)
 - Keep tenant/vrf/role resources in test configs even when fields removed to avoid deletion errors
 - All 7 resources followed same pattern successfully
+
+### Batch 2 Lessons
+- Infrastructure resources (site, location, cluster, tenant) follow same pattern
+- Hierarchical resources (location with parent) work well
+- Average time per resource: 10-12 minutes
+- All 4 tests passed in 8.43s total
+
+### Batch 3 Lessons
+- VLAN/Prefix resources with multiple nullable fields successful
+- **Important**: Resources with shared build functions (used by both Create and Update) need conditional SetNil()
+  - Pattern: `else if plan.Field.IsNull() && utils.IsSet(state.Field) { request.SetFieldNil() }`
+  - Only call SetNil() when updating FROM an existing value (state has value)
+  - During Create, state is empty, so omit field entirely (no SetNil call)
+- Some Netbox resources have field dependencies (e.g., untagged_vlan requires mode)
+- VLAN groups must be scoped to same entity as VLAN to avoid constraints
+- All 3 tests passed in 16.73s total (some tests slower due to more dependencies)
