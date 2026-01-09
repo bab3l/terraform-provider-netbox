@@ -261,7 +261,7 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	// Handle custom fields
 	if iface.HasCustomFields() {
-		customFields := utils.MapToCustomFieldModels(iface.GetCustomFields(), nil)
+		customFields := utils.MapAllCustomFieldsToModels(iface.GetCustomFields())
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		resp.Diagnostics.Append(cfDiags...)
 		if resp.Diagnostics.HasError() {

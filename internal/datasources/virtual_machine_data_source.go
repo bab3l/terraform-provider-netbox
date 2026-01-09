@@ -283,7 +283,7 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 
 	// Handle custom fields
 	if vm.HasCustomFields() {
-		customFields := utils.MapToCustomFieldModels(vm.GetCustomFields(), nil)
+		customFields := utils.MapAllCustomFieldsToModels(vm.GetCustomFields())
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		resp.Diagnostics.Append(cfDiags...)
 		if resp.Diagnostics.HasError() {
