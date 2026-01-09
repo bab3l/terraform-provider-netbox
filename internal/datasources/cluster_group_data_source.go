@@ -25,11 +25,12 @@ type ClusterGroupDataSource struct {
 }
 
 type ClusterGroupDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Slug        types.String `tfsdk:"slug"`
-	Description types.String `tfsdk:"description"`
-	DisplayName types.String `tfsdk:"display_name"`
+	ID           types.String             `tfsdk:"id"`
+	Name         types.String             `tfsdk:"name"`
+	Slug         types.String             `tfsdk:"slug"`
+	Description  types.String             `tfsdk:"description"`
+	DisplayName  types.String             `tfsdk:"display_name"`
+	CustomFields []utils.CustomFieldModel `tfsdk:"custom_fields"`
 }
 
 func (d *ClusterGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -43,7 +44,9 @@ func (d *ClusterGroupDataSource) Schema(ctx context.Context, req datasource.Sche
 			"id":          nbschema.DSIDAttribute("cluster group"),
 			"name":        nbschema.DSNameAttribute("cluster group"),
 			"slug":        nbschema.DSSlugAttribute("cluster group"),
-			"description": nbschema.DSComputedStringAttribute("Description of the cluster group."), "display_name": nbschema.DSComputedStringAttribute("The display name of the cluster group.")},
+			"description": nbschema.DSComputedStringAttribute("Description of the cluster group."), "display_name": nbschema.DSComputedStringAttribute("The display name of the cluster group."),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
+		},
 	}
 }
 
@@ -143,6 +146,13 @@ func (d *ClusterGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		data.DisplayName = types.StringValue(clusterGroup.GetDisplay())
 	} else {
 		data.DisplayName = types.StringNull()
+	}
+
+	// Handle custom fields
+	if clusterGroup.HasCustomFields() && len(clusterGroup.GetCustomFields()) > 0 {
+		data.CustomFields = utils.MapAllCustomFieldsToModels(clusterGroup.GetCustomFields())
+	} else {
+		data.CustomFields = nil
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
