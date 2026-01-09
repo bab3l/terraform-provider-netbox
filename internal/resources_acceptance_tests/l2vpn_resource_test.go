@@ -270,3 +270,88 @@ func TestAccL2VPNResource_external_deletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccL2VPNResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := acctest.RandomWithPrefix("test-l2vpn-opt")
+	tenantName := testutil.RandomName("tf-test-tenant-l2vpn")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-l2vpn")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckL2VPNDestroy,
+			testutil.CheckTenantDestroy,
+		),
+		Steps: []resource.TestStep{
+			// Step 1: Create L2VPN with tenant and identifier
+			{
+				Config: testAccL2VPNResourceConfig_withTenant(name, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
+					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "identifier"),
+				),
+			},
+			// Step 2: Remove tenant and identifier (should set them to null)
+			{
+				Config: testAccL2VPNResourceConfig_withoutTenant(name, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_l2vpn.test", "tenant"),
+					resource.TestCheckNoResourceAttr("netbox_l2vpn.test", "identifier"),
+				),
+			},
+			// Step 3: Re-add tenant and identifier (verify they can be set again)
+			{
+				Config: testAccL2VPNResourceConfig_withTenant(name, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
+					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "identifier"),
+				),
+			},
+		},
+	})
+}
+
+func testAccL2VPNResourceConfig_withTenant(name, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_l2vpn" "test" {
+  name       = %[1]q
+  slug       = %[1]q
+  type       = "vxlan"
+  tenant     = netbox_tenant.test.id
+  identifier = 12345
+}
+`, name, tenantName, tenantSlug)
+}
+
+func testAccL2VPNResourceConfig_withoutTenant(name, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_l2vpn" "test" {
+  name = %[1]q
+  slug = %[1]q
+  type = "vxlan"
+}
+`, name, tenantName, tenantSlug)
+}

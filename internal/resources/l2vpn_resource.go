@@ -324,8 +324,8 @@ func (r *L2VPNResource) Update(ctx context.Context, req resource.UpdateRequest, 
 			return
 		}
 		l2vpnRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
-	} else {
-		l2vpnRequest.Tenant = *netbox.NewNullableBriefTenantRequest(nil)
+	} else if data.Tenant.IsNull() {
+		l2vpnRequest.SetTenantNil()
 	}
 
 	// Handle import targets
