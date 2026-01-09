@@ -479,3 +479,93 @@ func TestAccIPAddress_TenantByID(t *testing.T) {
 		},
 	})
 }
+
+// TestAccIPAddressResource_removeOptionalFields tests that removing previously set VRF and tenant fields correctly sets them to null.
+// This addresses the bug where removing a nullable reference field from the configuration would not clear it in NetBox,
+// causing "Provider produced inconsistent result after apply" errors.
+func TestAccIPAddressResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	vrfName := testutil.RandomName("test-vrf-remove")
+	vrfRD := testutil.RandomName("65000:999")
+	tenantName := testutil.RandomName("test-tenant-remove")
+	tenantSlug := testutil.GenerateSlug(tenantName)
+	address := fmt.Sprintf("10.250.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
+	cleanup.RegisterVRFCleanup(vrfRD)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create with VRF and tenant
+			{
+				Config: testAccIPAddressResourceConfig_withVRFAndTenant(vrfName, vrfRD, tenantName, tenantSlug, address),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "vrf"),
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "tenant"),
+				),
+			},
+			// Step 2: Remove VRF and tenant - should set to null
+			{
+				Config: testAccIPAddressResourceConfig_withoutVRFAndTenant(vrfName, vrfRD, tenantName, tenantSlug, address),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_ip_address.test", "vrf"),
+					resource.TestCheckNoResourceAttr("netbox_ip_address.test", "tenant"),
+				),
+			},
+			// Step 3: Re-add VRF and tenant - should work without errors
+			{
+				Config: testAccIPAddressResourceConfig_withVRFAndTenant(vrfName, vrfRD, tenantName, tenantSlug, address),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "vrf"),
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "tenant"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIPAddressResourceConfig_withVRFAndTenant(vrfName, vrfRD, tenantName, tenantSlug, address string) string {
+	return fmt.Sprintf(`
+resource "netbox_vrf" "test" {
+  name = %[1]q
+  rd   = %[2]q
+}
+
+resource "netbox_tenant" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_ip_address" "test" {
+  address = %[5]q
+  vrf     = netbox_vrf.test.id
+  tenant  = netbox_tenant.test.id
+  status  = "active"
+}
+`, vrfName, vrfRD, tenantName, tenantSlug, address)
+}
+
+func testAccIPAddressResourceConfig_withoutVRFAndTenant(vrfName, vrfRD, tenantName, tenantSlug, address string) string {
+	return fmt.Sprintf(`
+resource "netbox_vrf" "test" {
+  name = %[1]q
+  rd   = %[2]q
+}
+
+resource "netbox_tenant" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_ip_address" "test" {
+  address = %[5]q
+  status  = "active"
+  # vrf and tenant removed - should set to null
+}
+`, vrfName, vrfRD, tenantName, tenantSlug, address)
+}
