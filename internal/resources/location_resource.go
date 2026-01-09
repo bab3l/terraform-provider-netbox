@@ -119,6 +119,8 @@ func (r *LocationResource) Create(ctx context.Context, req resource.CreateReques
 			return
 		}
 		locationRequest.Parent = *netbox.NewNullableInt32(&parentID)
+	} else if data.Parent.IsNull() {
+		locationRequest.SetParentNil()
 	}
 
 	// Set optional status
@@ -135,6 +137,8 @@ func (r *LocationResource) Create(ctx context.Context, req resource.CreateReques
 			return
 		}
 		locationRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
+	} else if data.Tenant.IsNull() {
+		locationRequest.SetTenantNil()
 	}
 
 	// Set optional facility
@@ -267,6 +271,8 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 			return
 		}
 		locationRequest.Parent = *netbox.NewNullableInt32(&parentID)
+	} else if plan.Parent.IsNull() {
+		locationRequest.SetParentNil()
 	}
 
 	// Set optional status
@@ -283,6 +289,8 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 			return
 		}
 		locationRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
+	} else if plan.Tenant.IsNull() {
+		locationRequest.SetTenantNil()
 	}
 
 	// Set optional facility

@@ -88,7 +88,7 @@
 ## Batch 2: Infrastructure Resources ⏳ IN PROGRESS
 **Target**: Site-related and location resources
 **Estimated Time**: 45-60 minutes
-**Status**: 1/4 complete
+**Status**: 2/4 complete
 
 ### Resources (4)
 - [x] **site** - Fields: tenant, region, group (3 fields) ✅
@@ -96,10 +96,10 @@
   - [x] Test: TestAccSiteResource_removeOptionalFields
   - [x] Verify: Build + test pass
 
-- [ ] **location** - Fields: parent, tenant (2 fields)
-  - [ ] Code: Add SetParentNil(), SetTenantNil()
-  - [ ] Test: TestAccLocation_removeOptionalFields
-  - [ ] Verify: Build + test pass
+- [x] **location** - Fields: parent, tenant (2 fields) ✅
+  - [x] Code: Add SetParentNil(), SetTenantNil()
+  - [x] Test: TestAccLocationResource_removeOptionalFields
+  - [x] Verify: Build + test pass
 
 - [ ] **cluster** - Fields: group, tenant, site (3 fields)
   - [ ] Code: Add SetGroupNil(), SetTenantNil(), SetSiteNil()
