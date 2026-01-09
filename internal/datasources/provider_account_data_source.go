@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -40,6 +41,7 @@ type ProviderAccountDataSourceModel struct {
 	Description     types.String `tfsdk:"description"`
 	Comments        types.String `tfsdk:"comments"`
 	Tags            types.List   `tfsdk:"tags"`
+	CustomFields    types.Set    `tfsdk:"custom_fields"`
 	DisplayName     types.String `tfsdk:"display_name"`
 }
 
@@ -89,6 +91,7 @@ func (d *ProviderAccountDataSource) Schema(ctx context.Context, req datasource.S
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 			"display_name": schema.StringAttribute{
 				MarkdownDescription: "The display name of the provider account.",
 				Computed:            true,
@@ -241,6 +244,17 @@ func (d *ProviderAccountDataSource) mapResponseToModel(ctx context.Context, prov
 		data.Tags, _ = types.ListValueFrom(ctx, types.StringType, tagNames)
 	} else {
 		data.Tags = types.ListNull(types.StringType)
+	}
+
+	// Map custom fields - datasources return ALL fields
+	if providerAccount.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(providerAccount.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 
 	// Map display_name

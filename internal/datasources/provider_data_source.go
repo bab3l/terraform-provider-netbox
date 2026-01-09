@@ -211,7 +211,7 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 	// Handle custom fields
 	if provider.HasCustomFields() {
-		customFields := utils.MapToCustomFieldModels(provider.GetCustomFields(), nil)
+		customFields := utils.MapAllCustomFieldsToModels(provider.GetCustomFields())
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		resp.Diagnostics.Append(cfDiags...)
 		if resp.Diagnostics.HasError() {
