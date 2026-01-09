@@ -404,6 +404,9 @@ func (r *ASNRangeResource) setOptionalFields(ctx context.Context, asnRangeReques
 			return
 		}
 		asnRangeRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenantRef)
+	} else if data.Tenant.IsNull() {
+		// Explicitly set to null to clear the field
+		asnRangeRequest.SetTenantNil()
 	}
 
 	// Description

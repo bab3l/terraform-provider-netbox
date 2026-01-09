@@ -1,6 +1,6 @@
 # Nullable Fields Bug Fix - Batch Tracking
 
-## Current Status: Batch 0 (Foundation) - COMPLETED ✅
+## Current Status: Batch 1 (High Priority) - IN PROGRESS ⏳
 
 **Last Updated**: 2026-01-09
 
@@ -8,7 +8,7 @@
 
 ## Batch 0: Foundation ✅ COMPLETED
 **Status**: Complete
-**Commit**: Initial foundation with ASN fix and test pattern
+**Commit**: a516eb0 - Initial foundation with ASN fix and test pattern
 
 ### Completed
 - [x] Create bug fix branch: `bugfix/nullable-field-removal`
@@ -24,16 +24,17 @@
 
 ---
 
-## Batch 1: High Priority - Tenant Fields ⏳ READY TO START
+## Batch 1: High Priority - Tenant Fields ⏳ IN PROGRESS
 **Target**: Resources with `tenant` field (most frequently used)
 **Estimated Time**: 1-2 hours
-**Status**: Not Started
+**Status**: 1/7 complete
 
 ### Resources (7)
-- [ ] **asn_range** - Fields: tenant, rir (2 fields)
-  - [ ] Code: Add SetTenantNil() and SetRirNil()
-  - [ ] Test: TestAccASNRange_removeOptionalFields
-  - [ ] Verify: Build + test pass
+- [x] **asn_range** - Fields: tenant (1 field) ✅
+  - [x] Code: Add SetTenantNil()
+  - [x] Test: TestAccASNRangeResource_removeOptionalFields
+  - [x] Verify: Build + test pass
+  - Note: RIR is required, not nullable
 
 - [ ] **circuit** - Fields: tenant (1 field)
   - [ ] Code: Add SetTenantNil()

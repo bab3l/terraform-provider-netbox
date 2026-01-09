@@ -136,6 +136,63 @@ func TestAccASNRangeResource_update(t *testing.T) {
 	})
 }
 
+func TestAccASNRangeResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-asn-range-remove")
+	slug := testutil.RandomSlug("tf-test-asn-range-remove")
+	rirName := testutil.RandomName("tf-test-rir-remove")
+	rirSlug := testutil.RandomSlug("tf-test-rir-remove")
+	tenantName := testutil.RandomName("tf-test-tenant-remove")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-remove")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterASNRangeCleanup(name)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckASNRangeDestroy,
+			testutil.CheckRIRDestroy,
+			testutil.CheckTenantDestroy,
+		),
+		Steps: []resource.TestStep{
+			// Step 1: Create ASN range with tenant
+			{
+				Config: testAccASNRangeResourceConfig_full(name, slug, rirName, rirSlug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "id"),
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "name", name),
+					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "tenant"),
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "description", "Test ASN range with full options"),
+				),
+			},
+			// Step 2: Remove tenant and verify it's actually removed
+			{
+				Config: testAccASNRangeResourceConfig_noTenant(name, slug, rirName, rirSlug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "id"),
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_asn_range.test", "tenant"),
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "description", "Description after tenant removal"),
+				),
+			},
+			// Step 3: Re-add tenant to verify it can be set again
+			{
+				Config: testAccASNRangeResourceConfig_full(name, slug, rirName, rirSlug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "id"),
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "name", name),
+					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "tenant"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccASNRangeResource_external_deletion(t *testing.T) {
 	t.Parallel()
 
@@ -278,6 +335,30 @@ resource "netbox_asn_range" "test" {
   description = "Updated description"
 }
 `, rirName, rirSlug, name, slug)
+}
+
+func testAccASNRangeResourceConfig_noTenant(name, slug, rirName, rirSlug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_asn_range" "test" {
+  name        = %q
+  slug        = %q
+  rir         = netbox_rir.test.id
+  start       = "65000"
+  end         = "65100"
+  description = "Description after tenant removal"
+  # tenant intentionally omitted - should be null in state
+}
+`, rirName, rirSlug, tenantName, tenantSlug, name, slug)
 }
 
 func TestAccASNRangeResource_import(t *testing.T) {
