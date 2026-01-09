@@ -348,3 +348,86 @@ func TestAccTenantResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccTenantResource_removeOptionalFields tests that optional nullable fields
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccTenantResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-tenant-remove")
+	slug := testutil.RandomSlug("tf-test-tenant-remove")
+	groupName := testutil.RandomName("tf-test-tenant-group")
+	groupSlug := testutil.RandomSlug("tf-test-tenant-group")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTenantCleanup(slug)
+	cleanup.RegisterTenantGroupCleanup(groupSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTenantDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create tenant with group
+			{
+				Config: testAccTenantResourceConfig_withGroup(name, slug, groupName, groupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "slug", slug),
+					resource.TestCheckResourceAttrSet("netbox_tenant.test", "group"),
+				),
+			},
+			// Step 2: Remove group - this should set group to null
+			{
+				Config: testAccTenantResourceConfig_withoutGroup(name, slug, groupName, groupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "slug", slug),
+					resource.TestCheckNoResourceAttr("netbox_tenant.test", "group"),
+				),
+			},
+			// Step 3: Re-add group - verify field can be set again
+			{
+				Config: testAccTenantResourceConfig_withGroup(name, slug, groupName, groupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "slug", slug),
+					resource.TestCheckResourceAttrSet("netbox_tenant.test", "group"),
+				),
+			},
+		},
+	})
+}
+
+func testAccTenantResourceConfig_withGroup(name, slug, groupName, groupSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant_group" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tenant" "test" {
+  name  = %q
+  slug  = %q
+  group = netbox_tenant_group.test.id
+}
+`, groupName, groupSlug, name, slug)
+}
+
+func testAccTenantResourceConfig_withoutGroup(name, slug, groupName, groupSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant_group" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+`, groupName, groupSlug, name, slug)
+}

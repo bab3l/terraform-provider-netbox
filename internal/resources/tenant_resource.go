@@ -138,6 +138,8 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	if groupRef := utils.ResolveOptionalReference(ctx, r.client, data.Group, netboxlookup.LookupTenantGroup, &resp.Diagnostics); groupRef != nil {
 		tenantRequest.Group = *netbox.NewNullableBriefTenantGroupRequest(groupRef)
+	} else if data.Group.IsNull() {
+		tenantRequest.SetGroupNil()
 	}
 
 	// Apply common metadata fields (tags, custom_fields)
@@ -316,6 +318,8 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	if groupRef := utils.ResolveOptionalReference(ctx, r.client, plan.Group, netboxlookup.LookupTenantGroup, &resp.Diagnostics); groupRef != nil {
 		tenantRequest.Group = *netbox.NewNullableBriefTenantGroupRequest(groupRef)
+	} else if plan.Group.IsNull() {
+		tenantRequest.SetGroupNil()
 	}
 
 	// Apply common metadata fields (tags, custom_fields) with merge-aware helpers

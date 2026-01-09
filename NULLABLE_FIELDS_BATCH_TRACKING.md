@@ -85,37 +85,43 @@
 
 ---
 
-## Batch 2: Infrastructure Resources ⏳ IN PROGRESS
+## Batch 2: Infrastructure Resources ✅ COMPLETED
 **Target**: Site-related and location resources
 **Estimated Time**: 45-60 minutes
-**Status**: 3/4 complete
+**Status**: 4/4 complete
 
 ### Resources (4)
 - [x] **site** - Fields: tenant, region, group (3 fields) ✅
   - [x] Code: Add SetTenantNil(), SetRegionNil(), SetGroupNil()
   - [x] Test: TestAccSiteResource_removeOptionalFields
-  - [x] Verify: Build + test pass
+  - [x] Verify: Build + test pass (7.4s)
 
 - [x] **location** - Fields: parent, tenant (2 fields) ✅
   - [x] Code: Add SetParentNil(), SetTenantNil()
   - [x] Test: TestAccLocationResource_removeOptionalFields
-  - [x] Verify: Build + test pass
+  - [x] Verify: Build + test pass (5.5s)
 
 - [x] **cluster** - Fields: group, tenant, site (3 fields) ✅
   - [x] Code: Add SetGroupNil(), SetTenantNil(), SetSiteNil()
   - [x] Test: TestAccClusterResource_removeOptionalFields
-  - [x] Verify: Build + test pass
+  - [x] Verify: Build + test pass (7.4s)
 
-- [ ] **tenant** - Fields: group (1 field)
-  - [ ] Code: Add SetGroupNil()
-  - [ ] Test: TestAccTenant_removeOptionalFields
-  - [ ] Verify: Build + test pass
+- [x] **tenant** - Fields: group (1 field) ✅
+  - [x] Code: Add SetGroupNil()
+  - [x] Test: TestAccTenantResource_removeOptionalFields
+  - [x] Verify: Build + test pass (4.48s)
 
 ### Batch 2 Completion Checklist
-- [ ] All 4 resources code complete
-- [ ] All 4 tests passing
+- [x] All 4 resources code complete
+- [x] All 4 tests passing
 - [ ] Run full acceptance suite
-- [ ] Commit: `fix(batch2): Handle nullable field removal for infrastructure resources`
+- [ ] Commit batch completion
+
+**Commits**:
+- dd6905d - site
+- 818796f - location
+- 731f4cf - cluster
+- (pending) - tenant
 
 ---
 
