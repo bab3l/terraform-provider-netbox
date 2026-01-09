@@ -503,3 +503,138 @@ resource "netbox_vlan" "test" {
 }
 `, name, vid, status)
 }
+
+// TestAccVLANResource_removeOptionalFields tests that optional nullable fields
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccVLANResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	vlanName := testutil.RandomName("tf-test-vlan-remove")
+	vid := testutil.RandomVID()
+	siteName := testutil.RandomName("test-site-vlan")
+	siteSlug := testutil.RandomSlug("test-site-vlan")
+	groupName := testutil.RandomName("test-group-vlan")
+	groupSlug := testutil.RandomSlug("test-group-vlan")
+	tenantName := testutil.RandomName("test-tenant-vlan")
+	tenantSlug := testutil.RandomSlug("test-tenant-vlan")
+	roleName := testutil.RandomName("test-role-vlan")
+	roleSlug := testutil.RandomSlug("test-role-vlan")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVLANCleanup(vid)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterVLANGroupCleanup(groupSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterRoleCleanup(roleSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVLANDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create VLAN with all nullable fields
+			{
+				Config: testAccVLANResourceConfig_withAllFields(vlanName, vid, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "name", vlanName),
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "site"),
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "group"),
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "role"),
+				),
+			},
+			// Step 2: Remove all nullable fields - should set them to null
+			{
+				Config: testAccVLANResourceConfig_withoutFields(vlanName, vid, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "name", vlanName),
+					resource.TestCheckNoResourceAttr("netbox_vlan.test", "site"),
+					resource.TestCheckNoResourceAttr("netbox_vlan.test", "group"),
+					resource.TestCheckNoResourceAttr("netbox_vlan.test", "tenant"),
+					resource.TestCheckNoResourceAttr("netbox_vlan.test", "role"),
+				),
+			},
+			// Step 3: Re-add all fields - verify they can be set again
+			{
+				Config: testAccVLANResourceConfig_withAllFields(vlanName, vid, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vlan.test", "name", vlanName),
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "site"),
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "group"),
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_vlan.test", "role"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVLANResourceConfig_withAllFields(vlanName string, vid int32, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_vlan_group" "test" {
+  name       = %q
+  slug       = %q
+  scope_type = "dcim.site"
+  scope_id   = netbox_site.test.id
+}
+
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_vlan" "test" {
+  name   = %q
+  vid    = %d
+  site   = netbox_site.test.id
+  group  = netbox_vlan_group.test.id
+  tenant = netbox_tenant.test.id
+  role   = netbox_role.test.id
+}
+`, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug, vlanName, vid)
+}
+
+func testAccVLANResourceConfig_withoutFields(vlanName string, vid int32, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_vlan_group" "test" {
+  name       = %q
+  slug       = %q
+  scope_type = "dcim.site"
+  scope_id   = netbox_site.test.id
+}
+
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_vlan" "test" {
+  name = %q
+  vid  = %d
+}
+`, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug, vlanName, vid)
+}

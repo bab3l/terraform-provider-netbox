@@ -128,7 +128,7 @@
 ## Batch 3: VLAN/Prefix Resources ⏳ IN PROGRESS
 **Target**: Networking resources with multiple nullable fields
 **Estimated Time**: 45-60 minutes
-**Status**: 1/3 complete
+**Status**: 2/3 complete
 
 ### Resources (3)
 - [x] **prefix** - Fields: site, vrf, tenant, vlan, role (5 fields) ✅
@@ -136,10 +136,10 @@
   - [x] Test: TestAccPrefixResource_removeOptionalFields
   - [x] Verify: Build + test pass (5.61s)
 
-- [ ] **vlan** - Fields: site, group, tenant, role (4 fields)
-  - [ ] Code: Add SetSiteNil(), SetGroupNil(), SetTenantNil(), SetRoleNil()
-  - [ ] Test: TestAccVLAN_removeOptionalFields
-  - [ ] Verify: Build + test pass
+- [x] **vlan** - Fields: site, group, tenant, role (4 fields) ✅
+  - [x] Code: Add SetSiteNil(), SetGroupNil(), SetTenantNil(), SetRoleNil()
+  - [x] Test: TestAccVLANResource_removeOptionalFields
+  - [x] Verify: Build + test pass (5.36s)
 
 - [ ] **vm_interface** - Fields: untagged_vlan, vrf (2 fields)
   - [ ] Code: Add SetUntaggedVlanNil(), SetVrfNil()
@@ -153,7 +153,8 @@
 - [ ] Commit batch completion
 
 **Commits**:
-- (pending) - prefix
+- 6712cc5 - prefix
+- (pending) - vlan
 
 **Notes**: Prefix has 5 fields - most complex resource in this batch.
 

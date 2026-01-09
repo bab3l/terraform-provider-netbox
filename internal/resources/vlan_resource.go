@@ -475,6 +475,8 @@ func (r *VLANResource) setOptionalFields(ctx context.Context, vlanRequest *netbo
 		}
 
 		vlanRequest.Site = *netbox.NewNullableBriefSiteRequest(site)
+	} else if data.Site.IsNull() {
+		vlanRequest.SetSiteNil()
 	}
 
 	// Group
@@ -489,6 +491,8 @@ func (r *VLANResource) setOptionalFields(ctx context.Context, vlanRequest *netbo
 		}
 
 		vlanRequest.Group = *netbox.NewNullableBriefVLANGroupRequest(group)
+	} else if data.Group.IsNull() {
+		vlanRequest.SetGroupNil()
 	}
 
 	// Tenant
@@ -503,6 +507,8 @@ func (r *VLANResource) setOptionalFields(ctx context.Context, vlanRequest *netbo
 		}
 
 		vlanRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
+	} else if data.Tenant.IsNull() {
+		vlanRequest.SetTenantNil()
 	}
 
 	// Status - Optional+Computed field: always set value (defaults to "active")
@@ -525,6 +531,8 @@ func (r *VLANResource) setOptionalFields(ctx context.Context, vlanRequest *netbo
 		}
 
 		vlanRequest.Role = *netbox.NewNullableBriefRoleRequest(role)
+	} else if data.Role.IsNull() {
+		vlanRequest.SetRoleNil()
 	}
 
 	// Set common fields (description, comments, tags)
