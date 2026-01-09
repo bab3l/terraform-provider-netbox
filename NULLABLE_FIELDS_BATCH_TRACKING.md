@@ -161,16 +161,16 @@
 
 ---
 
-## Batch 4: Device/Rack Resources ⏸️ PENDING
+## Batch 4: Device/Rack Resources ⏳ IN PROGRESS
 **Target**: Physical infrastructure resources
 **Estimated Time**: 1 hour
-**Status**: Not Started
+**Status**: 1/4 complete
 
 ### Resources (4)
-- [ ] **rack** - Fields: location, tenant, role, rack_type (4 fields)
-  - [ ] Code: Add SetLocationNil(), SetTenantNil(), SetRoleNil(), SetRackTypeNil()
-  - [ ] Test: TestAccRack_removeOptionalFields
-  - [ ] Verify: Build + test pass
+- [x] **rack** - Fields: location, tenant, role, rack_type (4 fields) ✅
+  - [x] Code: Add SetLocationNil(), SetTenantNil(), SetRoleNil(), SetRackTypeNil()
+  - [x] Test: TestAccRackResource_removeOptionalFields
+  - [x] Verify: Build + test pass (5.68s)
 
 - [ ] **device_bay** - Fields: installed_device (1 field)
   - [ ] Code: Add SetInstalledDeviceNil()
