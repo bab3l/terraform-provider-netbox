@@ -1,8 +1,10 @@
 # Nullable Fields Bug Fix - Batch Tracking
 
-## Current Status: Batch 3 (VLAN/Prefix Resources) - ✅ COMPLETED
+## Current Status: Batch 4 (Device/Rack Resources) - ✅ COMPLETED
 
 **Last Updated**: 2026-01-09
+
+**Overall Progress**: 19/22 resources (86%), 42/47 fields fixed
 
 ---
 
@@ -161,10 +163,11 @@
 
 ---
 
-## Batch 4: Device/Rack Resources ⏳ IN PROGRESS
+## Batch 4: Device/Rack Resources ✅ COMPLETE
 **Target**: Physical infrastructure resources
 **Estimated Time**: 1 hour
-**Status**: 3/4 complete
+**Actual Time**: ~45 minutes
+**Status**: 4/4 complete
 
 ### Resources (4)
 - [x] **rack** - Fields: location, tenant, role, rack_type (4 fields) ✅
@@ -182,7 +185,15 @@
   - [x] Test: TestAccPlatformResource_removeOptionalFields
   - [x] Verify: Build + test pass (2.58s)
 
-- [ ] **virtual_machine** - Fields: site, cluster, role, tenant, platform (5 fields)
+- [x] **virtual_machine** - Fields: site, cluster, role, tenant, platform (5 fields) ✅
+  - [x] Code: Add SetSiteNil(), SetClusterNil(), SetRoleNil(), SetTenantNil(), SetPlatformNil()
+  - [x] Test: TestAccVirtualMachineResource_removeOptionalFields
+  - [x] Verify: Build + test pass (12.12s)
+
+**Batch 4 Summary:**
+- Total fields fixed: 11 (location, tenant, role, rack_type, installed_device, manufacturer, site, cluster, role, tenant, platform)
+- Total test time: 38.94s
+- All tests passed successfully
   - [ ] Code: Add SetSiteNil(), SetClusterNil(), SetRoleNil(), SetTenantNil(), SetPlatformNil()
   - [ ] Test: TestAccVirtualMachine_removeOptionalFields
   - [ ] Verify: Build + test pass
