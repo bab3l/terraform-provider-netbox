@@ -1,6 +1,6 @@
 # Nullable Fields Bug Fix - Batch Tracking
 
-## Current Status: Batch 1 (High Priority) - ✅ COMPLETED
+## Current Status: Batch 2 (Infrastructure Resources) - ✅ COMPLETED
 
 **Last Updated**: 2026-01-09
 
@@ -114,14 +114,14 @@
 ### Batch 2 Completion Checklist
 - [x] All 4 resources code complete
 - [x] All 4 tests passing
-- [ ] Run full acceptance suite
-- [ ] Commit batch completion
+- [x] Run full acceptance suite: All Batch 2 tests pass (8.43s total)
+- [x] Batch complete with 4 individual commits
 
 **Commits**:
 - dd6905d - site
 - 818796f - location
 - 731f4cf - cluster
-- (pending) - tenant
+- 0e417d9 - tenant
 
 ---
 
