@@ -286,6 +286,9 @@ func (r *DeviceBayResource) buildRequest(ctx context.Context, data, state *Devic
 			return nil, diags
 		}
 		dbRequest.InstalledDevice = *netbox.NewNullableBriefDeviceRequest(installedDeviceRef)
+	} else if data.InstalledDevice.IsNull() {
+		// Explicitly set to nil when removed from config
+		dbRequest.SetInstalledDeviceNil()
 	}
 
 	// Handle description, tags, and custom fields with merge-aware behavior

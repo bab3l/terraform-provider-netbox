@@ -516,3 +516,161 @@ resource "netbox_device_bay" "test" {
 }
 
 // NOTE: Custom field tests for device_bay resource are in resources_acceptance_tests_customfields package
+
+// TestAccDeviceBayResource_removeOptionalFields tests that optional nullable fields
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccDeviceBayResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-db")
+	siteSlug := testutil.RandomSlug("tf-test-site-db")
+	mfgName := testutil.RandomName("tf-test-mfg-db")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-db")
+	dtModel := testutil.RandomName("tf-test-dt-db")
+	dtSlug := testutil.RandomSlug("tf-test-dt-db")
+	roleName := testutil.RandomName("tf-test-role-db")
+	roleSlug := testutil.RandomSlug("tf-test-role-db")
+	parentDeviceName := testutil.RandomName("tf-test-parent-db")
+	childDeviceName := testutil.RandomName("tf-test-child-db")
+	bayName := testutil.RandomName("tf-test-bay-db")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(parentDeviceName)
+	cleanup.RegisterDeviceCleanup(childDeviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create device bay with installed_device
+			{
+				Config: testAccDeviceBayResourceConfig_withInstalledDevice(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device_bay.test", "id"),
+					resource.TestCheckResourceAttr("netbox_device_bay.test", "name", bayName),
+					resource.TestCheckResourceAttrSet("netbox_device_bay.test", "installed_device"),
+				),
+			},
+			// Step 2: Remove installed_device - should set it to null
+			{
+				Config: testAccDeviceBayResourceConfig_withoutInstalledDevice(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device_bay.test", "id"),
+					resource.TestCheckResourceAttr("netbox_device_bay.test", "name", bayName),
+					resource.TestCheckNoResourceAttr("netbox_device_bay.test", "installed_device"),
+				),
+			},
+			// Step 3: Re-add installed_device - verify it can be set again
+			{
+				Config: testAccDeviceBayResourceConfig_withInstalledDevice(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device_bay.test", "id"),
+					resource.TestCheckResourceAttr("netbox_device_bay.test", "name", bayName),
+					resource.TestCheckResourceAttrSet("netbox_device_bay.test", "installed_device"),
+				),
+			},
+		},
+	})
+}
+
+func testAccDeviceBayResourceConfig_withInstalledDevice(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %q
+  slug         = %q
+  manufacturer = netbox_manufacturer.test.id
+  subdevice_role = "parent"
+}
+
+resource "netbox_device_role" "test" {
+  name  = %q
+  slug  = %q
+  color = "ff0000"
+}
+
+resource "netbox_device" "parent" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  site        = netbox_site.test.id
+  role        = netbox_device_role.test.id
+  status      = "active"
+}
+
+resource "netbox_device" "child" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  site        = netbox_site.test.id
+  role        = netbox_device_role.test.id
+  status      = "active"
+}
+
+resource "netbox_device_bay" "test" {
+  device           = netbox_device.parent.id
+  name             = %q
+  installed_device = netbox_device.child.id
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName)
+}
+
+func testAccDeviceBayResourceConfig_withoutInstalledDevice(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %q
+  slug         = %q
+  manufacturer = netbox_manufacturer.test.id
+  subdevice_role = "parent"
+}
+
+resource "netbox_device_role" "test" {
+  name  = %q
+  slug  = %q
+  color = "ff0000"
+}
+
+resource "netbox_device" "parent" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  site        = netbox_site.test.id
+  role        = netbox_device_role.test.id
+  status      = "active"
+}
+
+resource "netbox_device" "child" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  site        = netbox_site.test.id
+  role        = netbox_device_role.test.id
+  status      = "active"
+}
+
+resource "netbox_device_bay" "test" {
+  device = netbox_device.parent.id
+  name   = %q
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName)
+}
