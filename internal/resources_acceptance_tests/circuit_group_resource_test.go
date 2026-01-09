@@ -253,3 +253,83 @@ func TestAccCircuitGroupResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccCircuitGroupResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-circuit-group-opt")
+	slug := testutil.RandomSlug("circuit-group-opt")
+	tenantName := testutil.RandomName("tf-test-tenant-cg")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-cg")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitGroupCleanup(name)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckCircuitGroupDestroy,
+			testutil.CheckTenantDestroy,
+		),
+		Steps: []resource.TestStep{
+			// Step 1: Create circuit group with tenant
+			{
+				Config: testAccCircuitGroupResourceConfig_withTenant(name, slug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit_group.test", "name", name),
+					resource.TestCheckResourceAttrSet("netbox_circuit_group.test", "tenant"),
+				),
+			},
+			// Step 2: Remove tenant (should set it to null)
+			{
+				Config: testAccCircuitGroupResourceConfig_withoutTenant(name, slug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit_group.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_circuit_group.test", "tenant"),
+				),
+			},
+			// Step 3: Re-add tenant (verify it can be set again)
+			{
+				Config: testAccCircuitGroupResourceConfig_withTenant(name, slug, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit_group.test", "name", name),
+					resource.TestCheckResourceAttrSet("netbox_circuit_group.test", "tenant"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCircuitGroupResourceConfig_withTenant(name, slug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_circuit_group" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  tenant = netbox_tenant.test.id
+}
+`, name, slug, tenantName, tenantSlug)
+}
+
+func testAccCircuitGroupResourceConfig_withoutTenant(name, slug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_circuit_group" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+`, name, slug, tenantName, tenantSlug)
+}

@@ -229,8 +229,8 @@ func (r *CircuitGroupResource) Update(ctx context.Context, req resource.UpdateRe
 			return
 		}
 		groupRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
-	} else {
-		groupRequest.Tenant = *netbox.NewNullableBriefTenantRequest(nil)
+	} else if data.Tenant.IsNull() {
+		groupRequest.SetTenantNil()
 	}
 
 	// Apply tags with conditional logic (use plan if set, otherwise state)
