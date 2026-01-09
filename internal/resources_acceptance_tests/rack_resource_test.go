@@ -475,3 +475,167 @@ func TestAccRackResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccRackResource_removeOptionalFields tests that optional nullable fields
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccRackResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-rack")
+	siteSlug := testutil.RandomSlug("tf-test-site-rack")
+	locationName := testutil.RandomName("tf-test-loc-rack")
+	locationSlug := testutil.RandomSlug("tf-test-loc-rack")
+	tenantName := testutil.RandomName("tf-test-tenant-rack")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-rack")
+	roleName := testutil.RandomName("tf-test-role-rack")
+	roleSlug := testutil.RandomSlug("tf-test-role-rack")
+	rackTypeName := testutil.RandomName("tf-test-racktype")
+	rackTypeSlug := testutil.RandomSlug("tf-test-racktype")
+	rackName := testutil.RandomName("tf-test-rack")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackCleanup(rackName)
+	cleanup.RegisterLocationCleanup(locationSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterRackRoleCleanup(roleSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckRackDestroy,
+			testutil.CheckLocationDestroy,
+			testutil.CheckTenantDestroy,
+			testutil.CheckRackRoleDestroy,
+			testutil.CheckSiteDestroy,
+		),
+		Steps: []resource.TestStep{
+			// Step 1: Create rack with location, tenant, role, and rack_type
+			{
+				Config: testAccRackResourceConfig_withAllFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "location"),
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "role"),
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "rack_type"),
+				),
+			},
+			// Step 2: Remove location, tenant, role, and rack_type - should set them to null
+			{
+				Config: testAccRackResourceConfig_withoutOptionalFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
+					resource.TestCheckNoResourceAttr("netbox_rack.test", "location"),
+					resource.TestCheckNoResourceAttr("netbox_rack.test", "tenant"),
+					resource.TestCheckNoResourceAttr("netbox_rack.test", "role"),
+					resource.TestCheckNoResourceAttr("netbox_rack.test", "rack_type"),
+				),
+			},
+			// Step 3: Re-add location, tenant, role, and rack_type - verify they can be set again
+			{
+				Config: testAccRackResourceConfig_withAllFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "location"),
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "role"),
+					resource.TestCheckResourceAttrSet("netbox_rack.test", "rack_type"),
+				),
+			},
+		},
+	})
+}
+
+func testAccRackResourceConfig_withAllFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_location" "test" {
+  name = %q
+  slug = %q
+  site = netbox_site.test.id
+}
+
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_rack_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_rack_type" "test" {
+  model         = %q
+  slug          = %q
+  manufacturer  = netbox_manufacturer.test.id
+  form_factor   = "4-post-cabinet"
+}
+
+resource "netbox_rack" "test" {
+  name      = %q
+  site      = netbox_site.test.id
+  location  = netbox_location.test.id
+  tenant    = netbox_tenant.test.id
+  role      = netbox_rack_role.test.id
+  rack_type = netbox_rack_type.test.id
+}
+`, siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName)
+}
+
+func testAccRackResourceConfig_withoutOptionalFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_location" "test" {
+  name = %q
+  slug = %q
+  site = netbox_site.test.id
+}
+
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_rack_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_rack_type" "test" {
+  model         = %q
+  slug          = %q
+  manufacturer  = netbox_manufacturer.test.id
+  form_factor   = "4-post-cabinet"
+}
+
+resource "netbox_rack" "test" {
+  name = %q
+  site = netbox_site.test.id
+}
+`, siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName)
+}
