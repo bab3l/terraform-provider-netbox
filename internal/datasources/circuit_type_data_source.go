@@ -207,9 +207,9 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 	}
 
-	// Handle custom fields
+	// Handle custom fields - datasources return ALL fields
 	if circuitType.HasCustomFields() {
-		customFields := utils.MapToCustomFieldModels(circuitType.GetCustomFields(), nil)
+		customFields := utils.MapAllCustomFieldsToModels(circuitType.GetCustomFields())
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		resp.Diagnostics.Append(cfDiags...)
 		if resp.Diagnostics.HasError() {
