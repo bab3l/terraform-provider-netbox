@@ -194,15 +194,18 @@
 - Total fields fixed: 11 (location, tenant, role, rack_type, installed_device, manufacturer, site, cluster, role, tenant, platform)
 - Total test time: 38.94s
 - All tests passed successfully
-  - [ ] Code: Add SetSiteNil(), SetClusterNil(), SetRoleNil(), SetTenantNil(), SetPlatformNil()
-  - [ ] Test: TestAccVirtualMachine_removeOptionalFields
-  - [ ] Verify: Build + test pass
 
 ### Batch 4 Completion Checklist
-- [ ] All 4 resources code complete
-- [ ] All 4 tests passing
-- [ ] Run full acceptance suite
-- [ ] Commit: `fix(batch4): Handle nullable field removal for device/rack resources`
+- [x] All 4 resources code complete
+- [x] All 4 tests passing
+- [x] Individual commits made for each resource
+- [x] Tracking document updated
+
+**Commits**:
+- 7017693 - rack (5.68s)
+- 464da4f - device_bay (18.56s)
+- 3c4eb5d - platform (2.58s)
+- 00f7178 - virtual_machine (12.12s)
 
 **Notes**: Virtual machine has 5 fields - tied with prefix for most complex.
 
@@ -300,9 +303,9 @@ Closes #XX (if issue exists)
 
 ### Overall Status
 - **Total Resources**: 22
-- **Completed**: 15 (asn + 7 Batch 1 + 4 Batch 2 + 3 Batch 3)
-- **Remaining**: 7
-- **Total Fields**: 47 nullable fields (31 fixed so far)
+- **Completed**: 19 (asn + 7 Batch 1 + 4 Batch 2 + 3 Batch 3 + 4 Batch 4)
+- **Remaining**: 3
+- **Total Fields**: 47 nullable fields (42 fixed so far)
 
 ### Batch Status
 | Batch | Resources | Status | Time Estimate |
@@ -311,23 +314,23 @@ Closes #XX (if issue exists)
 | 1 - High Priority | 7 | ✅ Complete | - |
 | 2 - Infrastructure | 4 | ✅ Complete | - |
 | 3 - VLAN/Prefix | 3 | ✅ Complete | - |
-| 4 - Device/Rack | 4 | ⏸️ Pending | 1 hour |
+| 4 - Device/Rack | 4 | ✅ Complete | - |
 | 5 - Cleanup | 3 | ⏸️ Pending | 30-45 min |
 | Final Verification | - | ⏸️ Pending | 1 hour |
 
-**Total Remaining Time**: ~2.5 hours
+**Total Remaining Time**: ~30-45 minutes
 
 ---
 
 ## Next Steps
 
-**Batch 3 Complete!** 🎉
+**Batch 4 Complete!** 🎉
 
-1. **Continue with Batch 4** (Device/Rack Resources - 4 resources: rack, device_bay, platform, virtual_machine)
-2. **Take a break** - Excellent progress with 15/22 resources complete (68%)
+1. **Continue with Batch 5** (Cleanup & Partial Fixes - 3 resources: cable, circuit_group, l2vpn)
+2. **Take a break** - Excellent progress with 19/22 resources complete (86%)
 3. **Run broader test suite** to verify no regressions in other tests
 
-**Progress**: 15 of 22 resources complete (68%), 31 nullable fields fixed
+**Progress**: 19 of 22 resources complete (86%), 42 nullable fields fixed
 
 ---
 
@@ -374,3 +377,11 @@ Closes #XX (if issue exists)
 - Some Netbox resources have field dependencies (e.g., untagged_vlan requires mode)
 - VLAN groups must be scoped to same entity as VLAN to avoid constraints
 - All 3 tests passed in 16.73s total (some tests slower due to more dependencies)
+
+### Batch 4 Lessons
+- Device/Rack resources follow same pattern as previous batches
+- Virtual machine resource has 5 nullable fields - tied with prefix for most complex
+- Test configs must keep all dependency resources defined even when not referenced (prevents deletion conflicts)
+- Use `TestCheckNoResourceAttr` to verify fields are properly cleared (null)
+- Average time per resource: 10-15 minutes
+- All 4 tests passed in 38.94s total
