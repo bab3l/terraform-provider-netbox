@@ -244,7 +244,7 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 	// Handle custom fields
 	if tunnelGroup.HasCustomFields() {
 		// For data sources, we extract all available custom fields
-		customFields := utils.MapToCustomFieldModels(tunnelGroup.GetCustomFields(), nil)
+		customFields := utils.MapAllCustomFieldsToModels(tunnelGroup.GetCustomFields())
 		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {

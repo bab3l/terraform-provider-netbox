@@ -292,12 +292,7 @@ func (d *L2VPNDataSource) mapResponseToState(ctx context.Context, l2vpn *netbox.
 
 	// Custom fields
 	if l2vpn.HasCustomFields() && len(l2vpn.GetCustomFields()) > 0 {
-		var existingModels []utils.CustomFieldModel
-		if !data.CustomFields.IsNull() {
-			diags := data.CustomFields.ElementsAs(ctx, &existingModels, false)
-			resp.Diagnostics.Append(diags...)
-		}
-		customFields := utils.MapToCustomFieldModels(l2vpn.GetCustomFields(), existingModels)
+		customFields := utils.MapAllCustomFieldsToModels(l2vpn.GetCustomFields())
 		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		resp.Diagnostics.Append(diags...)
 		data.CustomFields = customFieldsValue

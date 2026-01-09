@@ -276,7 +276,7 @@ func (d *TunnelDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	// Handle custom fields
 	if tunnel.HasCustomFields() {
 		// For data sources, we extract all available custom fields
-		customFields := utils.MapToCustomFieldModels(tunnel.GetCustomFields(), nil)
+		customFields := utils.MapAllCustomFieldsToModels(tunnel.GetCustomFields())
 		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
