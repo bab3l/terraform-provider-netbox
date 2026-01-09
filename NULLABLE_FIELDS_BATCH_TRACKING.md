@@ -27,7 +27,7 @@
 ## Batch 1: High Priority - Tenant Fields ⏳ IN PROGRESS
 **Target**: Resources with `tenant` field (most frequently used)
 **Estimated Time**: 1-2 hours
-**Status**: 2/7 complete
+**Status**: 3/7 complete
 
 ### Resources (7)
 - [x] **asn_range** - Fields: tenant (1 field) ✅
@@ -40,24 +40,11 @@
   - [x] Code: Add SetTenantNil()
   - [x] Test: TestAccCircuitResource_removeOptionalFields
   - [x] Verify: Build + test pass
-  - [ ] Code: Add SetTenantNil()
-  - [ ] Test: TestAccCircuit_removeOptionalFields
-  - [ ] Verify: Build + test pass
 
-- [ ] **ip_address** - Fields: vrf, tenant (2 fields)
-  - [ ] Code: Add SetVrfNil() and SetTenantNil()
-  - [ ] Test: TestAccIPAddress_removeOptionalFields
-  - [ ] Verify: Build + test pass
-
-- [ ] **ip_range** - Fields: vrf, tenant, role (3 fields)
-  - [ ] Code: Add SetVrfNil(), SetTenantNil(), SetRoleNil()
-  - [ ] Test: TestAccIPRange_removeOptionalFields
-  - [ ] Verify: Build + test pass
-
-- [ ] **route_target** - Fields: tenant (1 field)
-  - [ ] Code: Add SetTenantNil()
-  - [ ] Test: TestAccRouteTarget_removeOptionalFields
-  - [ ] Verify: Build + test pass
+- [x] **route_target** - Fields: tenant (1 field) ✅
+  - [x] Code: Add SetTenantNil()
+  - [x] Test: TestAccRouteTargetResource_removeOptionalFields
+  - [x] Verify: Build + test pass
 
 - [ ] **vrf** - Fields: tenant (1 field)
   - [ ] Code: Add SetTenantNil()
