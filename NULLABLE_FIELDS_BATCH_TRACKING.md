@@ -27,7 +27,7 @@
 ## Batch 1: High Priority - Tenant Fields ⏳ IN PROGRESS
 **Target**: Resources with `tenant` field (most frequently used)
 **Estimated Time**: 1-2 hours
-**Status**: 3/7 complete
+**Status**: 4/7 complete
 
 ### Resources (7)
 - [x] **asn_range** - Fields: tenant (1 field) ✅
@@ -46,10 +46,10 @@
   - [x] Test: TestAccRouteTargetResource_removeOptionalFields
   - [x] Verify: Build + test pass
 
-- [ ] **vrf** - Fields: tenant (1 field)
-  - [ ] Code: Add SetTenantNil()
-  - [ ] Test: TestAccVRF_removeOptionalFields
-  - [ ] Verify: Build + test pass
+- [x] **vrf** - Fields: tenant (1 field) ✅
+  - [x] Code: Add SetTenantNil()
+  - [x] Test: TestAccVRFResource_removeOptionalFields
+  - [x] Verify: Build + test pass
 
 - [ ] **wireless_link** - Fields: tenant (1 field)
   - [ ] Code: Add SetTenantNil()

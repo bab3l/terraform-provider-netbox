@@ -432,6 +432,9 @@ func (r *VRFResource) setOptionalFields(ctx context.Context, vrfRequest *netbox.
 		}
 
 		vrfRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
+	} else if data.Tenant.IsNull() {
+		// Explicitly set to null to clear the field
+		vrfRequest.SetTenantNil()
 	}
 
 	// Enforce unique
