@@ -448,6 +448,8 @@ func (r *VirtualMachineResource) buildVirtualMachineRequestWithState(ctx context
 			return nil
 		}
 		vmRequest.Site = *netbox.NewNullableBriefSiteRequest(site)
+	} else if plan.Site.IsNull() {
+		vmRequest.SetSiteNil()
 	}
 
 	// Cluster
@@ -458,6 +460,8 @@ func (r *VirtualMachineResource) buildVirtualMachineRequestWithState(ctx context
 			return nil
 		}
 		vmRequest.Cluster = *netbox.NewNullableBriefClusterRequest(cluster)
+	} else if plan.Cluster.IsNull() {
+		vmRequest.SetClusterNil()
 	}
 
 	// Role
@@ -468,6 +472,8 @@ func (r *VirtualMachineResource) buildVirtualMachineRequestWithState(ctx context
 			return nil
 		}
 		vmRequest.Role = *netbox.NewNullableBriefDeviceRoleRequest(role)
+	} else if plan.Role.IsNull() {
+		vmRequest.SetRoleNil()
 	}
 
 	// Tenant
@@ -478,6 +484,8 @@ func (r *VirtualMachineResource) buildVirtualMachineRequestWithState(ctx context
 			return nil
 		}
 		vmRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
+	} else if plan.Tenant.IsNull() {
+		vmRequest.SetTenantNil()
 	}
 
 	// Platform
@@ -488,6 +496,8 @@ func (r *VirtualMachineResource) buildVirtualMachineRequestWithState(ctx context
 			return nil
 		}
 		vmRequest.Platform = *netbox.NewNullableBriefPlatformRequest(platform)
+	} else if plan.Platform.IsNull() {
+		vmRequest.SetPlatformNil()
 	}
 
 	// Vcpus

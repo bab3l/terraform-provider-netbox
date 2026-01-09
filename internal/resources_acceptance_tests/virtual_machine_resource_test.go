@@ -368,3 +368,235 @@ func TestAccVirtualMachineResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccVirtualMachineResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	// Random names for all resources
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type")
+	clusterName := testutil.RandomName("tf-test-cluster")
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+	tenantName := testutil.RandomName("tf-test-tenant")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant")
+	roleName := testutil.RandomName("tf-test-role")
+	roleSlug := testutil.RandomSlug("tf-test-role")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer")
+	manufacturerSlug := testutil.RandomSlug("tf-test-manufacturer")
+	platformName := testutil.RandomName("tf-test-platform")
+	platformSlug := testutil.RandomSlug("tf-test-platform")
+	vmName := testutil.RandomName("tf-test-vm")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterPlatformCleanup(platformSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckPlatformDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckTenantDestroy,
+			testutil.CheckSiteDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+		),
+		Steps: []resource.TestStep{
+			// Step 1: Create with all optional fields
+			{
+				Config: testAccVirtualMachineResourceConfig_withAllFields(
+					clusterTypeName, clusterTypeSlug, clusterName,
+					siteName, siteSlug,
+					tenantName, tenantSlug,
+					roleName, roleSlug,
+					manufacturerName, manufacturerSlug,
+					platformName, platformSlug,
+					vmName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "site"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "cluster"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "role"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "platform"),
+				),
+			},
+			// Step 2: Remove optional fields (should set them to null)
+			{
+				Config: testAccVirtualMachineResourceConfig_withoutOptionalFields(
+					clusterTypeName, clusterTypeSlug, clusterName,
+					siteName, siteSlug,
+					tenantName, tenantSlug,
+					roleName, roleSlug,
+					manufacturerName, manufacturerSlug,
+					platformName, platformSlug,
+					vmName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
+					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "site"),
+					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "role"),
+					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "tenant"),
+					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "platform"),
+				),
+			},
+			// Step 3: Re-add optional fields (verify they can be set again)
+			{
+				Config: testAccVirtualMachineResourceConfig_withAllFields(
+					clusterTypeName, clusterTypeSlug, clusterName,
+					siteName, siteSlug,
+					tenantName, tenantSlug,
+					roleName, roleSlug,
+					manufacturerName, manufacturerSlug,
+					platformName, platformSlug,
+					vmName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "site"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "cluster"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "role"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "platform"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVirtualMachineResourceConfig_withAllFields(
+	clusterTypeName, clusterTypeSlug, clusterName,
+	siteName, siteSlug,
+	tenantName, tenantSlug,
+	roleName, roleSlug,
+	manufacturerName, manufacturerSlug,
+	platformName, platformSlug,
+	vmName string,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = "%s"
+  slug = "%s"
+}
+
+resource "netbox_cluster" "test" {
+  name = "%s"
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_site" "test" {
+  name = "%s"
+  slug = "%s"
+}
+
+resource "netbox_tenant" "test" {
+  name = "%s"
+  slug = "%s"
+}
+
+resource "netbox_device_role" "test" {
+  name   = "%s"
+  slug   = "%s"
+  vm_role = true
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "%s"
+  slug = "%s"
+}
+
+resource "netbox_platform" "test" {
+  name         = "%s"
+  slug         = "%s"
+  manufacturer = netbox_manufacturer.test.name
+}
+
+resource "netbox_virtual_machine" "test" {
+  name     = "%s"
+  cluster  = netbox_cluster.test.name
+  site     = netbox_site.test.name
+  tenant   = netbox_tenant.test.name
+  role     = netbox_device_role.test.name
+  platform = netbox_platform.test.name
+}
+`, clusterTypeName, clusterTypeSlug, clusterName,
+		siteName, siteSlug,
+		tenantName, tenantSlug,
+		roleName, roleSlug,
+		manufacturerName, manufacturerSlug,
+		platformName, platformSlug,
+		vmName)
+}
+
+func testAccVirtualMachineResourceConfig_withoutOptionalFields(
+	clusterTypeName, clusterTypeSlug, clusterName,
+	siteName, siteSlug,
+	tenantName, tenantSlug,
+	roleName, roleSlug,
+	manufacturerName, manufacturerSlug,
+	platformName, platformSlug,
+	vmName string,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = "%s"
+  slug = "%s"
+}
+
+resource "netbox_cluster" "test" {
+  name = "%s"
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_site" "test" {
+  name = "%s"
+  slug = "%s"
+}
+
+resource "netbox_tenant" "test" {
+  name = "%s"
+  slug = "%s"
+}
+
+resource "netbox_device_role" "test" {
+  name   = "%s"
+  slug   = "%s"
+  vm_role = true
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "%s"
+  slug = "%s"
+}
+
+resource "netbox_platform" "test" {
+  name         = "%s"
+  slug         = "%s"
+  manufacturer = netbox_manufacturer.test.name
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = "%s"
+  cluster = netbox_cluster.test.name
+}
+`, clusterTypeName, clusterTypeSlug, clusterName,
+		siteName, siteSlug,
+		tenantName, tenantSlug,
+		roleName, roleSlug,
+		manufacturerName, manufacturerSlug,
+		platformName, platformSlug,
+		vmName)
+}
