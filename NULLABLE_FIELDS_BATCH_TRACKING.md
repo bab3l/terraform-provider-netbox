@@ -178,13 +178,8 @@
   - [x] Verify: Build + test pass (18.56s)
 
 - [ ] **platform** - Fields: manufacturer (1 field)
-  - [ ] Code: Add SetInstalledDeviceNil()
-  - [ ] Test: TestAccDeviceBay_removeOptionalFields
-  - [ ] Verify: Build + test pass
-
-- [ ] **platform** - Fields: manufacturer (1 field)
   - [ ] Code: Add SetManufacturerNil()
-  - [ ] Test: TestAccPlatform_removeOptionalFields
+  - [ ] Test: TestAccPlatformResource_removeOptionalFields
   - [ ] Verify: Build + test pass
 
 - [ ] **virtual_machine** - Fields: site, cluster, role, tenant, platform (5 fields)

@@ -370,3 +370,86 @@ func TestAccPlatformResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccPlatformResource_removeOptionalFields tests that optional nullable fields
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccPlatformResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	platformName := testutil.RandomName("tf-test-platform-rmv")
+	platformSlug := testutil.RandomSlug("tf-test-plat-rmv")
+	manufacturerName := testutil.RandomName("tf-test-mfr-rmv")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-rmv")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPlatformCleanup(platformSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckPlatformDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		Steps: []resource.TestStep{
+			// Step 1: Create platform with manufacturer
+			{
+				Config: testAccPlatformResourceConfig_withManufacturer(platformName, platformSlug, manufacturerName, manufacturerSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_platform.test", "id"),
+					resource.TestCheckResourceAttr("netbox_platform.test", "name", platformName),
+					resource.TestCheckResourceAttrSet("netbox_platform.test", "manufacturer"),
+				),
+			},
+			// Step 2: Remove manufacturer - should set it to null
+			{
+				Config: testAccPlatformResourceConfig_withoutManufacturer(platformName, platformSlug, manufacturerName, manufacturerSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_platform.test", "id"),
+					resource.TestCheckResourceAttr("netbox_platform.test", "name", platformName),
+					resource.TestCheckNoResourceAttr("netbox_platform.test", "manufacturer"),
+				),
+			},
+			// Step 3: Re-add manufacturer - verify it can be set again
+			{
+				Config: testAccPlatformResourceConfig_withManufacturer(platformName, platformSlug, manufacturerName, manufacturerSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_platform.test", "id"),
+					resource.TestCheckResourceAttr("netbox_platform.test", "name", platformName),
+					resource.TestCheckResourceAttrSet("netbox_platform.test", "manufacturer"),
+				),
+			},
+		},
+	})
+}
+
+func testAccPlatformResourceConfig_withManufacturer(platformName, platformSlug, manufacturerName, manufacturerSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_platform" "test" {
+  name         = %q
+  slug         = %q
+  manufacturer = netbox_manufacturer.test.id
+}
+`, manufacturerName, manufacturerSlug, platformName, platformSlug)
+}
+
+func testAccPlatformResourceConfig_withoutManufacturer(platformName, platformSlug, manufacturerName, manufacturerSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_platform" "test" {
+  name = %q
+  slug = %q
+}
+`, manufacturerName, manufacturerSlug, platformName, platformSlug)
+}
