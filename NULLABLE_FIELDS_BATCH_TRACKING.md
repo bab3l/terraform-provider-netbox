@@ -164,7 +164,7 @@
 ## Batch 4: Device/Rack Resources ⏳ IN PROGRESS
 **Target**: Physical infrastructure resources
 **Estimated Time**: 1 hour
-**Status**: 1/4 complete
+**Status**: 2/4 complete
 
 ### Resources (4)
 - [x] **rack** - Fields: location, tenant, role, rack_type (4 fields) ✅
@@ -172,7 +172,12 @@
   - [x] Test: TestAccRackResource_removeOptionalFields
   - [x] Verify: Build + test pass (5.68s)
 
-- [ ] **device_bay** - Fields: installed_device (1 field)
+- [x] **device_bay** - Fields: installed_device (1 field) ✅
+  - [x] Code: Add SetInstalledDeviceNil()
+  - [x] Test: TestAccDeviceBayResource_removeOptionalFields
+  - [x] Verify: Build + test pass (18.56s)
+
+- [ ] **platform** - Fields: manufacturer (1 field)
   - [ ] Code: Add SetInstalledDeviceNil()
   - [ ] Test: TestAccDeviceBay_removeOptionalFields
   - [ ] Verify: Build + test pass
