@@ -1074,3 +1074,155 @@ resource "netbox_vm_interface" "test" {
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, siteName, siteSlug)
 }
+
+// TestAccVMInterfaceResource_removeOptionalFields tests that optional nullable fields
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccVMInterfaceResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-remove")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-remove")
+	clusterName := testutil.RandomName("tf-test-cluster-remove")
+	siteName := testutil.RandomName("tf-test-site-vm-iface")
+	siteSlug := testutil.RandomSlug("tf-test-site-vm-iface")
+	vmName := testutil.RandomName("tf-test-vm-remove")
+	ifaceName := "eth0"
+	vlanName := testutil.RandomName("tf-test-vlan-vm-iface")
+	vlanVID := testutil.RandomVID()
+	vrfName := testutil.RandomName("tf-test-vrf-vm-iface")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterVRFCleanup(vrfName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVMInterfaceDestroy,
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+		),
+		Steps: []resource.TestStep{
+			// Step 1: Create VM interface with untagged_vlan and vrf
+			{
+				Config: testAccVMInterfaceResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName, vlanVID, vrfName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "untagged_vlan"),
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "vrf"),
+				),
+			},
+			// Step 2: Remove untagged_vlan and vrf - should set them to null
+			{
+				Config: testAccVMInterfaceResourceConfig_withoutOptionalFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName, vlanVID, vrfName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
+					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "untagged_vlan"),
+					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "vrf"),
+				),
+			},
+			// Step 3: Re-add untagged_vlan and vrf - verify they can be set again
+			{
+				Config: testAccVMInterfaceResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName, vlanVID, vrfName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "untagged_vlan"),
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "vrf"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVMInterfaceResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName string, vlanVID int32, vrfName string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+  site = netbox_site.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = %q
+  cluster = netbox_cluster.test.id
+}
+
+resource "netbox_vlan" "test" {
+  name = %q
+  vid  = %d
+  site = netbox_site.test.id
+}
+
+resource "netbox_vrf" "test" {
+  name = %q
+}
+
+resource "netbox_vm_interface" "test" {
+  virtual_machine = netbox_virtual_machine.test.id
+  name            = %q
+  mode            = "access"
+  untagged_vlan   = netbox_vlan.test.id
+  vrf             = netbox_vrf.test.id
+}
+`, clusterTypeName, clusterTypeSlug, siteName, siteSlug, clusterName, vmName, vlanName, vlanVID, vrfName, ifaceName)
+}
+
+func testAccVMInterfaceResourceConfig_withoutOptionalFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName string, vlanVID int32, vrfName string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+  site = netbox_site.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = %q
+  cluster = netbox_cluster.test.id
+}
+
+resource "netbox_vlan" "test" {
+  name = %q
+  vid  = %d
+  site = netbox_site.test.id
+}
+
+resource "netbox_vrf" "test" {
+  name = %q
+}
+
+resource "netbox_vm_interface" "test" {
+  virtual_machine = netbox_virtual_machine.test.id
+  name            = %q
+}
+`, clusterTypeName, clusterTypeSlug, siteName, siteSlug, clusterName, vmName, vlanName, vlanVID, vrfName, ifaceName)
+}

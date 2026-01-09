@@ -125,10 +125,10 @@
 
 ---
 
-## Batch 3: VLAN/Prefix Resources ⏳ IN PROGRESS
+## Batch 3: VLAN/Prefix Resources ✅ COMPLETED
 **Target**: Networking resources with multiple nullable fields
 **Estimated Time**: 45-60 minutes
-**Status**: 2/3 complete
+**Status**: 3/3 complete
 
 ### Resources (3)
 - [x] **prefix** - Fields: site, vrf, tenant, vlan, role (5 fields) ✅
@@ -141,22 +141,23 @@
   - [x] Test: TestAccVLANResource_removeOptionalFields
   - [x] Verify: Build + test pass (5.36s)
 
-- [ ] **vm_interface** - Fields: untagged_vlan, vrf (2 fields)
-  - [ ] Code: Add SetUntaggedVlanNil(), SetVrfNil()
-  - [ ] Test: TestAccVMInterface_removeOptionalFields
-  - [ ] Verify: Build + test pass
+- [x] **vm_interface** - Fields: untagged_vlan, vrf (2 fields) ✅
+  - [x] Code: Add SetUntaggedVlanNil(), SetVrfNil() (only when updating from existing value)
+  - [x] Test: TestAccVMInterfaceResource_removeOptionalFields
+  - [x] Verify: Build + test pass (13.55s)
 
 ### Batch 3 Completion Checklist
-- [ ] All 3 resources code complete
-- [ ] All 3 tests passing
+- [x] All 3 resources code complete
+- [x] All 3 tests passing
 - [ ] Run full acceptance suite
 - [ ] Commit batch completion
 
 **Commits**:
 - 6712cc5 - prefix
-- (pending) - vlan
+- 4f1c707 - vlan
+- (pending) - vm_interface
 
-**Notes**: Prefix has 5 fields - most complex resource in this batch.
+**Notes**: vm_interface uses buildVMInterfaceRequest which is called by both Create and Update, so SetNil() only applies when state has a value (Update scenario).
 
 ---
 

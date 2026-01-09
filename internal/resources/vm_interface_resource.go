@@ -350,6 +350,9 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, plan 
 		}
 
 		ifaceRequest.UntaggedVlan = *netbox.NewNullableBriefVLANRequest(vlan)
+	} else if plan.UntaggedVLAN.IsNull() && utils.IsSet(state.UntaggedVLAN) {
+		// Only explicitly set to nil if we're clearing a previously set value
+		ifaceRequest.SetUntaggedVlanNil()
 	}
 
 	// VRF
@@ -364,6 +367,9 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, plan 
 		}
 
 		ifaceRequest.Vrf = *netbox.NewNullableBriefVRFRequest(vrf)
+	} else if plan.VRF.IsNull() && utils.IsSet(state.VRF) {
+		// Only explicitly set to nil if we're clearing a previously set value
+		ifaceRequest.SetVrfNil()
 	}
 
 	// Apply metadata fields individually with merge-aware helpers
