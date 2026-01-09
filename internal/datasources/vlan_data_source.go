@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -33,22 +34,23 @@ type VLANDataSource struct {
 
 // VLANDataSourceModel describes the data source data model.
 type VLANDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	VID         types.Int32  `tfsdk:"vid"`
-	Name        types.String `tfsdk:"name"`
-	Site        types.String `tfsdk:"site"`
-	SiteID      types.Int64  `tfsdk:"site_id"`
-	Group       types.String `tfsdk:"group"`
-	GroupID     types.Int64  `tfsdk:"group_id"`
-	Tenant      types.String `tfsdk:"tenant"`
-	TenantID    types.Int64  `tfsdk:"tenant_id"`
-	Status      types.String `tfsdk:"status"`
-	Role        types.String `tfsdk:"role"`
-	RoleID      types.Int64  `tfsdk:"role_id"`
-	Description types.String `tfsdk:"description"`
-	Comments    types.String `tfsdk:"comments"`
-	DisplayName types.String `tfsdk:"display_name"`
-	Tags        types.List   `tfsdk:"tags"`
+	ID           types.String `tfsdk:"id"`
+	VID          types.Int32  `tfsdk:"vid"`
+	Name         types.String `tfsdk:"name"`
+	Site         types.String `tfsdk:"site"`
+	SiteID       types.Int64  `tfsdk:"site_id"`
+	Group        types.String `tfsdk:"group"`
+	GroupID      types.Int64  `tfsdk:"group_id"`
+	Tenant       types.String `tfsdk:"tenant"`
+	TenantID     types.Int64  `tfsdk:"tenant_id"`
+	Status       types.String `tfsdk:"status"`
+	Role         types.String `tfsdk:"role"`
+	RoleID       types.Int64  `tfsdk:"role_id"`
+	Description  types.String `tfsdk:"description"`
+	Comments     types.String `tfsdk:"comments"`
+	DisplayName  types.String `tfsdk:"display_name"`
+	Tags         types.List   `tfsdk:"tags"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -129,6 +131,7 @@ func (d *VLANDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -359,5 +362,16 @@ func (d *VLANDataSource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, 
 		data.Tags = tagList
 	} else {
 		data.Tags = types.ListNull(types.StringType)
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if vlan.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(vlan.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

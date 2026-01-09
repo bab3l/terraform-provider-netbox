@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -50,6 +51,7 @@ type PrefixDataSourceModel struct {
 	Description  types.String `tfsdk:"description"`
 	Comments     types.String `tfsdk:"comments"`
 	Tags         types.List   `tfsdk:"tags"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 	DisplayName  types.String `tfsdk:"display_name"`
 }
 
@@ -138,6 +140,7 @@ func (d *PrefixDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 			"display_name": schema.StringAttribute{
 				MarkdownDescription: "The display name of the prefix.",
 				Computed:            true,
@@ -351,6 +354,17 @@ func (d *PrefixDataSource) mapPrefixToState(ctx context.Context, prefix *netbox.
 		data.Tags = tagList
 	} else {
 		data.Tags = types.ListNull(types.StringType)
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if prefix.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(prefix.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 
 	// Map display_name
