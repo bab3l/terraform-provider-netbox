@@ -24,10 +24,10 @@
 
 ---
 
-## Batch 1: High Priority - Tenant Fields ⏳ IN PROGRESS
+## Batch 1: High Priority - Tenant Fields ✅ COMPLETED
 **Target**: Resources with `tenant` field (most frequently used)
 **Estimated Time**: 1-2 hours
-**Status**: 6/7 complete
+**Status**: 7/7 complete
 
 ### Resources (7)
 - [x] **asn_range** - Fields: tenant (1 field) ✅
@@ -61,16 +61,16 @@
   - [x] Test: TestAccIPAddressResource_removeOptionalFields
   - [x] Verify: Build + test pass
 
-- [ ] **ip_range** - Fields: vrf, tenant, role (3 fields)
-  - [ ] Code: Add SetVrfNil(), SetTenantNil(), SetRoleNil()
-  - [ ] Test: TestAccIPRangeResource_removeOptionalFields
-  - [ ] Verify: Build + test pass
+- [x] **ip_range** - Fields: vrf, tenant, role (3 fields) ✅
+  - [x] Code: Add SetVrfNil(), SetTenantNil(), SetRoleNil()
+  - [x] Test: TestAccIPRangeResource_removeOptionalFields
+  - [x] Verify: Build + test pass
 
 ### Batch 1 Completion Checklist
-- [ ] All 7 resources code complete
-- [ ] All 7 tests passing
+- [x] All 7 resources code complete
+- [x] All 7 tests passing
 - [ ] Run full acceptance suite: `go test ./internal/resources_acceptance_tests/...`
-- [ ] Commit: `fix(batch1): Handle nullable field removal for tenant-related resources`
+- [ ] Commit: `fix(batch1): Complete nullable field removal for tenant-related resources`
 
 **Notes**: Start with route_target or vrf (simplest - 1 field each) to build momentum.
 
