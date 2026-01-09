@@ -222,6 +222,128 @@ Terraform state now uses a "filter-to-owned" pattern for custom fields:
 // 5. Re-add field_a (confirm both values intact)
 ```
 
+### 🐛 Bug Fix: Nullable Field Handling
+
+#### Critical Bug Fix - Incorrect Field Removal
+Fixed a bug where removing nullable field values (tenant, location, role, etc.) from Terraform configuration would fail with errors like "Field may not be set to null" instead of properly clearing the fields in NetBox.
+
+**Impact**: 🟢 **LOW IMPACT** - This is a bug fix that makes field removal work correctly. Existing configurations continue to work unchanged.
+
+#### The Problem (v0.0.12 and earlier - BROKEN ❌)
+```hcl
+# Step 1: Create resource with nullable field
+resource "netbox_site" "example" {
+  name   = "Site A"
+  tenant = netbox_tenant.example.id
+}
+
+# Step 2: Remove the nullable field from config
+resource "netbox_site" "example" {
+  name = "Site A"
+  # tenant removed
+}
+
+# ❌ BUG: Terraform fails with error
+# Error: Field may not be set to null: 'tenant'
+```
+
+#### The Solution (v0.0.13 - FIXED ✅)
+```hcl
+# Same scenario - field removal works correctly
+resource "netbox_site" "example" {
+  name = "Site A"
+  # tenant removed
+}
+
+# ✅ FIXED: Field properly cleared in NetBox
+# Update succeeds, tenant field set to null in NetBox
+```
+
+#### Resources Fixed (22 Resources - 47 Fields Total)
+
+Fixed nullable field handling in 22 resources across 47 different fields:
+
+**Infrastructure Resources** (Batch 1):
+- `netbox_asn` - tenant
+- `netbox_asn_range` - tenant
+- `netbox_circuit` - tenant
+- `netbox_route_target` - tenant
+- `netbox_vrf` - tenant
+- `netbox_wireless_link` - tenant
+- `netbox_ip_address` - vrf, tenant
+- `netbox_ip_range` - vrf, tenant, role
+
+**Core Infrastructure** (Batch 2):
+- `netbox_site` - tenant, region, group
+- `netbox_location` - parent, tenant
+- `netbox_cluster` - group, tenant, site
+- `netbox_tenant` - group
+
+**Network Resources** (Batch 3):
+- `netbox_prefix` - site, vrf, tenant, vlan, role
+- `netbox_vlan` - site, group, tenant, role
+- `netbox_vm_interface` - untagged_vlan, vrf
+
+**Device Resources** (Batch 4):
+- `netbox_rack` - location, tenant, role, rack_type
+- `netbox_device_bay` - installed_device
+- `netbox_platform` - manufacturer
+- `netbox_virtual_machine` - tenant, platform, cluster, role
+
+**Additional Resources** (Batch 5):
+- `netbox_cable` - tenant
+- `netbox_circuit_group` - tenant
+- `netbox_l2vpn` - tenant
+
+#### Technical Implementation
+
+All nullable fields now use the correct `SetXxxNil()` API pattern when fields are removed from configuration:
+
+```go
+// Before (BROKEN)
+if plan.Tenant.IsNull() {
+    updateData.SetTenant(0)  // ❌ WRONG: API rejects 0 as invalid
+}
+
+// After (FIXED)
+if plan.Tenant.IsNull() {
+    updateData.SetTenantNil()  // ✅ CORRECT: API clears the field
+}
+```
+
+#### Testing Coverage
+
+**50 new acceptance tests** added to verify nullable field behavior:
+- Tests verify fields can be set, updated, and removed correctly
+- Tests confirm field removal doesn't cause API errors
+- Comprehensive coverage across all 22 affected resources
+
+**Test Results**: ✅ All 152 acceptance tests passing
+
+### 🧪 Test Infrastructure Improvements
+
+#### Fixed Test Race Conditions
+Resolved race conditions in acceptance test suite where custom field tests interfered with parallel tests.
+
+**Changes**:
+- Moved `custom_field_resource_test.go` to separate serial test suite
+- Isolated custom field tests with build tag `//go:build customfields`
+- Renamed 3 tests to better reflect their purpose:
+  - `TestAccContactAssignmentResource_full` → `TestAccContactAssignmentResource_withTags`
+  - `TestAccContactRoleResource_full` → `TestAccContactRoleResource_withTags`
+  - `TestAccCircuitTerminationResource_full` → `TestAccCircuitTerminationResource_withTags`
+- Removed custom field creation from parallel suite tests
+
+**Test Organization**:
+- **Parallel suite** (`resources_acceptance_tests`): Tests all resources except custom fields (fast execution)
+- **Serial suite** (`resources_acceptance_tests_customfields`): Tests custom field functionality (isolated, no race conditions)
+
+**Benefits**:
+- ✅ No more race condition failures
+- ✅ Faster parallel test execution
+- ✅ Maintained complete test coverage (tags, field updates, etc.)
+- ✅ Improved test reliability and debugging
+
 #### Migration Guide
 
 **✅ No Configuration Changes Required**
