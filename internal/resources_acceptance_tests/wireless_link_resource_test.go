@@ -438,3 +438,176 @@ resource "netbox_wireless_link" "test" {
 }
 `, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceNameA, interfaceNameB, ssid)
 }
+
+// TestAccWirelessLinkResource_removeOptionalFields tests that removing a previously set tenant field correctly sets it to null.
+// This addresses the bug where removing a nullable reference field from the configuration would not clear it in NetBox,
+// causing "Provider produced inconsistent result after apply" errors.
+func TestAccWirelessLinkResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("test-site-wireless-remove")
+	siteSlug := testutil.GenerateSlug(siteName)
+	deviceName := testutil.RandomName("test-device-wireless-remove")
+	interfaceNameA := wirelessInterfaceNameA
+	interfaceNameB := wirelessInterfaceNameB
+	tenantName := testutil.RandomName("test-tenant-wireless")
+	tenantSlug := testutil.GenerateSlug(tenantName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create with tenant
+			{
+				Config: testAccWirelessLinkResourceConfig_withTenant(siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_wireless_link.test", "tenant"),
+				),
+			},
+			// Step 2: Remove tenant - should set to null
+			{
+				Config: testAccWirelessLinkResourceConfig_withoutTenant(siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_wireless_link.test", "tenant"),
+				),
+			},
+			// Step 3: Re-add tenant - should work without errors
+			{
+				Config: testAccWirelessLinkResourceConfig_withTenant(siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB, tenantName, tenantSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_wireless_link.test", "tenant"),
+				),
+			},
+		},
+	})
+}
+
+func testAccWirelessLinkResourceConfig_withTenant(siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_tenant" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer - Wireless Link"
+  slug = "test-manufacturer-wireless-link"
+}
+
+resource "netbox_device_role" "test" {
+  name  = "Test Device Role - Wireless Link"
+  slug  = "test-device-role-wireless-link"
+  color = "ff5733"
+}
+
+resource "netbox_device_type" "test" {
+  model = "Test Device Type - Wireless Link"
+  slug  = "test-device-type-wireless-link"
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device" "test_a" {
+  name           = "%[3]s-a"
+  device_type    = netbox_device_type.test.id
+  role           = netbox_device_role.test.id
+  site           = netbox_site.test.id
+}
+
+resource "netbox_device" "test_b" {
+  name           = "%[3]s-b"
+  device_type    = netbox_device_type.test.id
+  role           = netbox_device_role.test.id
+  site           = netbox_site.test.id
+}
+
+resource "netbox_interface" "test_a" {
+  name      = %[4]q
+  device    = netbox_device.test_a.id
+  type      = "ieee802.11ac"
+}
+
+resource "netbox_interface" "test_b" {
+  name      = %[5]q
+  device    = netbox_device.test_b.id
+  type      = "ieee802.11ac"
+}
+
+resource "netbox_wireless_link" "test" {
+  interface_a = netbox_interface.test_a.id
+  interface_b = netbox_interface.test_b.id
+  ssid        = "Test SSID"
+  status      = "connected"
+  tenant      = netbox_tenant.test.id
+}
+`, siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB, "Test SSID", tenantName, tenantSlug)
+}
+
+func testAccWirelessLinkResourceConfig_withoutTenant(siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_tenant" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer - Wireless Link"
+  slug = "test-manufacturer-wireless-link"
+}
+
+resource "netbox_device_role" "test" {
+  name  = "Test Device Role - Wireless Link"
+  slug  = "test-device-role-wireless-link"
+  color = "ff5733"
+}
+
+resource "netbox_device_type" "test" {
+  model = "Test Device Type - Wireless Link"
+  slug  = "test-device-type-wireless-link"
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device" "test_a" {
+  name           = "%[3]s-a"
+  device_type    = netbox_device_type.test.id
+  role           = netbox_device_role.test.id
+  site           = netbox_site.test.id
+}
+
+resource "netbox_device" "test_b" {
+  name           = "%[3]s-b"
+  device_type    = netbox_device_type.test.id
+  role           = netbox_device_role.test.id
+  site           = netbox_site.test.id
+}
+
+resource "netbox_interface" "test_a" {
+  name      = %[4]q
+  device    = netbox_device.test_a.id
+  type      = "ieee802.11ac"
+}
+
+resource "netbox_interface" "test_b" {
+  name      = %[5]q
+  device    = netbox_device.test_b.id
+  type      = "ieee802.11ac"
+}
+
+resource "netbox_wireless_link" "test" {
+  interface_a = netbox_interface.test_a.id
+  interface_b = netbox_interface.test_b.id
+  ssid        = "Test SSID"
+  status      = "connected"
+  # tenant removed - should set to null
+}
+`, siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB, "Test SSID", tenantName, tenantSlug)
+}
