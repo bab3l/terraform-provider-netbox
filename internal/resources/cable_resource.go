@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
@@ -200,13 +201,12 @@ func (r *CableResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenantID, err := utils.ParseID(data.Tenant.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError("Invalid Tenant ID", fmt.Sprintf("Could not parse tenant ID: %s", err))
+		tenant, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
+		resp.Diagnostics.Append(tenantDiags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
-		tenantRequest := netbox.BriefTenantRequest{Name: fmt.Sprintf("tenant-%d", tenantID)}
-		cableRequest.Tenant = *netbox.NewNullableBriefTenantRequest(&tenantRequest)
+		cableRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
 	}
 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
@@ -335,15 +335,14 @@ func (r *CableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	}
 
 	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() {
-		tenantID, err := utils.ParseID(data.Tenant.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError("Invalid Tenant ID", fmt.Sprintf("Could not parse tenant ID: %s", err))
+		tenant, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
+		resp.Diagnostics.Append(tenantDiags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
-		tenantRequest := netbox.BriefTenantRequest{Name: fmt.Sprintf("tenant-%d", tenantID)}
-		cableRequest.Tenant = *netbox.NewNullableBriefTenantRequest(&tenantRequest)
-	} else {
-		cableRequest.Tenant = *netbox.NewNullableBriefTenantRequest(nil)
+		cableRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
+	} else if data.Tenant.IsNull() {
+		cableRequest.SetTenantNil()
 	}
 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
