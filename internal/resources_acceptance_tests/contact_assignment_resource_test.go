@@ -76,42 +76,40 @@ func TestAccContactAssignmentResource_withRole(t *testing.T) {
 	})
 }
 
-func TestAccContactAssignmentResource_full(t *testing.T) {
+func TestAccContactAssignmentResource_withTags(t *testing.T) {
 	t.Parallel()
 
-	randomName := testutil.RandomName("test-contact-assign-full")
-	randomSlug := testutil.RandomSlug("test-ca-full")
-	contactEmail := fmt.Sprintf("%s@example.com", testutil.RandomSlug("ca-full"))
+	randomName := testutil.RandomName("test-contact-assign-tags")
+	randomSlug := testutil.RandomSlug("test-ca-tags")
+	contactEmail := fmt.Sprintf("%s@example.com", testutil.RandomSlug("ca-tags"))
 	tagName := testutil.RandomName("tf-test-tag")
 	tagSlug := testutil.RandomSlug("tf-test-tag")
-	customFieldName := testutil.RandomCustomFieldName("tf_test_cf")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(randomSlug + "-site")
 	cleanup.RegisterContactCleanup(contactEmail)
 	cleanup.RegisterContactRoleCleanup(randomSlug + "-role")
 	cleanup.RegisterTagCleanup(tagSlug)
-	cleanup.RegisterCustomFieldCleanup(customFieldName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccContactAssignmentResourceConfig_full(randomName, randomSlug, contactEmail, tagName, tagSlug, customFieldName, "primary"),
+				Config: testAccContactAssignmentResourceConfig_withTags(randomName, randomSlug, contactEmail, tagName, tagSlug, "primary"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "id"),
 					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "object_type", "dcim.site"),
 					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "priority", "primary"),
 					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "role_id"),
 					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "custom_fields.#", "1"),
 				),
 			},
 			{
-				Config: testAccContactAssignmentResourceConfig_full(randomName, randomSlug, contactEmail, tagName, tagSlug, customFieldName, "secondary"),
+				Config: testAccContactAssignmentResourceConfig_withTags(randomName, randomSlug, contactEmail, tagName, tagSlug, "secondary"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "priority", "secondary"),
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "tags.#", "1"),
 				),
 			},
 		},
@@ -237,7 +235,7 @@ resource "netbox_contact_assignment" "test" {
 `, name, slug, name, email, name, slug)
 }
 
-func testAccContactAssignmentResourceConfig_full(name, slug, email, tagName, tagSlug, customFieldName, priority string) string {
+func testAccContactAssignmentResourceConfig_withTags(name, slug, email, tagName, tagSlug, priority string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name   = "%s-site"
@@ -260,12 +258,6 @@ resource "netbox_tag" "test" {
   slug = %q
 }
 
-resource "netbox_custom_field" "test" {
-  name         = %q
-  object_types = ["tenancy.contactassignment"]
-  type         = "text"
-}
-
 resource "netbox_contact_assignment" "test" {
   object_type = "dcim.site"
   object_id   = netbox_site.test.id
@@ -278,15 +270,8 @@ resource "netbox_contact_assignment" "test" {
       slug = netbox_tag.test.slug
     }
   ]
-  custom_fields = [
-    {
-      name  = netbox_custom_field.test.name
-      type  = "text"
-      value = "test-value"
-    }
-  ]
 }
-`, name, slug, name, email, name, slug, tagName, tagSlug, customFieldName, priority)
+`, name, slug, name, email, name, slug, tagName, tagSlug, priority)
 }
 
 func testAccContactAssignmentResourceWithRoleEmail(name, slug, email string) string {
