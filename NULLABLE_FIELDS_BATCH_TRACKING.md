@@ -125,16 +125,16 @@
 
 ---
 
-## Batch 3: VLAN/Prefix Resources ⏸️ PENDING
+## Batch 3: VLAN/Prefix Resources ⏳ IN PROGRESS
 **Target**: Networking resources with multiple nullable fields
 **Estimated Time**: 45-60 minutes
-**Status**: Not Started
+**Status**: 1/3 complete
 
 ### Resources (3)
-- [ ] **prefix** - Fields: site, vrf, tenant, vlan, role (5 fields)
-  - [ ] Code: Add SetSiteNil(), SetVrfNil(), SetTenantNil(), SetVlanNil(), SetRoleNil()
-  - [ ] Test: TestAccPrefix_removeOptionalFields
-  - [ ] Verify: Build + test pass
+- [x] **prefix** - Fields: site, vrf, tenant, vlan, role (5 fields) ✅
+  - [x] Code: Add SetSiteNil(), SetVrfNil(), SetTenantNil(), SetVlanNil(), SetRoleNil()
+  - [x] Test: TestAccPrefixResource_removeOptionalFields
+  - [x] Verify: Build + test pass (5.61s)
 
 - [ ] **vlan** - Fields: site, group, tenant, role (4 fields)
   - [ ] Code: Add SetSiteNil(), SetGroupNil(), SetTenantNil(), SetRoleNil()
@@ -150,7 +150,10 @@
 - [ ] All 3 resources code complete
 - [ ] All 3 tests passing
 - [ ] Run full acceptance suite
-- [ ] Commit: `fix(batch3): Handle nullable field removal for VLAN/prefix resources`
+- [ ] Commit batch completion
+
+**Commits**:
+- (pending) - prefix
 
 **Notes**: Prefix has 5 fields - most complex resource in this batch.
 

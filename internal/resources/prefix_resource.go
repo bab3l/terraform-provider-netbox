@@ -491,6 +491,8 @@ func (r *PrefixResource) setOptionalFields(ctx context.Context, prefixRequest *n
 		}
 
 		prefixRequest.Site = *netbox.NewNullableBriefSiteRequest(site)
+	} else if data.Site.IsNull() {
+		prefixRequest.SetSiteNil()
 	}
 
 	// VRF
@@ -505,6 +507,8 @@ func (r *PrefixResource) setOptionalFields(ctx context.Context, prefixRequest *n
 		}
 
 		prefixRequest.Vrf = *netbox.NewNullableBriefVRFRequest(vrf)
+	} else if data.VRF.IsNull() {
+		prefixRequest.SetVrfNil()
 	}
 
 	// Tenant
@@ -519,6 +523,8 @@ func (r *PrefixResource) setOptionalFields(ctx context.Context, prefixRequest *n
 		}
 
 		prefixRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
+	} else if data.Tenant.IsNull() {
+		prefixRequest.SetTenantNil()
 	}
 
 	// VLAN
@@ -533,6 +539,8 @@ func (r *PrefixResource) setOptionalFields(ctx context.Context, prefixRequest *n
 		}
 
 		prefixRequest.Vlan = *netbox.NewNullableBriefVLANRequest(vlan)
+	} else if data.VLAN.IsNull() {
+		prefixRequest.SetVlanNil()
 	}
 
 	// Status
@@ -555,6 +563,8 @@ func (r *PrefixResource) setOptionalFields(ctx context.Context, prefixRequest *n
 		}
 
 		prefixRequest.Role = *netbox.NewNullableBriefRoleRequest(role)
+	} else if data.Role.IsNull() {
+		prefixRequest.SetRoleNil()
 	}
 
 	// IsPool

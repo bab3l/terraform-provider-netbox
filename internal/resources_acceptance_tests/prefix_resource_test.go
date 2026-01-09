@@ -573,3 +573,146 @@ resource "netbox_prefix" "test" {
 }
 `, tenantName, tenantSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, prefix)
 }
+
+// TestAccPrefixResource_removeOptionalFields tests that optional nullable fields
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccPrefixResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	prefix := testutil.RandomIPv4Prefix()
+	siteName := testutil.RandomName("test-site-prefix")
+	siteSlug := testutil.RandomSlug("test-site-prefix")
+	tenantName := testutil.RandomName("test-tenant-prefix")
+	tenantSlug := testutil.RandomSlug("test-tenant-prefix")
+	vrfName := testutil.RandomName("tf-test-vrf-prefix")
+	vlanName := testutil.RandomName("tf-test-vlan-prefix")
+	vlanVID := testutil.RandomVID()
+	roleName := testutil.RandomName("test-role-prefix")
+	roleSlug := testutil.RandomSlug("test-role-prefix")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterVRFCleanup(vrfName)
+	cleanup.RegisterRoleCleanup(roleSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckPrefixDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create prefix with all nullable fields
+			{
+				Config: testAccPrefixResourceConfig_withAllFields(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVID, roleName, roleSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "site"),
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "vrf"),
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "vlan"),
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "role"),
+				),
+			},
+			// Step 2: Remove all nullable fields - should set them to null
+			{
+				Config: testAccPrefixResourceConfig_withoutFields(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVID, roleName, roleSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
+					resource.TestCheckNoResourceAttr("netbox_prefix.test", "site"),
+					resource.TestCheckNoResourceAttr("netbox_prefix.test", "vrf"),
+					resource.TestCheckNoResourceAttr("netbox_prefix.test", "tenant"),
+					resource.TestCheckNoResourceAttr("netbox_prefix.test", "vlan"),
+					resource.TestCheckNoResourceAttr("netbox_prefix.test", "role"),
+				),
+			},
+			// Step 3: Re-add all fields - verify they can be set again
+			{
+				Config: testAccPrefixResourceConfig_withAllFields(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVID, roleName, roleSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "site"),
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "vrf"),
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "vlan"),
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "role"),
+				),
+			},
+		},
+	})
+}
+
+func testAccPrefixResourceConfig_withAllFields(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName string, vlanVID int32, roleName, roleSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_vrf" "test" {
+  name = %q
+}
+
+resource "netbox_vlan" "test" {
+  name = %q
+  vid  = %d
+  site = netbox_site.test.id
+}
+
+resource "netbox_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_prefix" "test" {
+  prefix = %q
+  site   = netbox_site.test.id
+  vrf    = netbox_vrf.test.id
+  tenant = netbox_tenant.test.id
+  vlan   = netbox_vlan.test.id
+  role   = netbox_role.test.id
+}
+`, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVID, roleName, roleSlug, prefix)
+}
+
+func testAccPrefixResourceConfig_withoutFields(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName string, vlanVID int32, roleName, roleSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_vrf" "test" {
+  name = %q
+}
+
+resource "netbox_vlan" "test" {
+  name = %q
+  vid  = %d
+  site = netbox_site.test.id
+}
+
+resource "netbox_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_prefix" "test" {
+  prefix = %q
+}
+`, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVID, roleName, roleSlug, prefix)
+}
