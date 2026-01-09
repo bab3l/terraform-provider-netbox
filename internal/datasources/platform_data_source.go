@@ -30,6 +30,7 @@ type PlatformDataSourceModel struct {
 	Slug         types.String `tfsdk:"slug"`
 	Manufacturer types.String `tfsdk:"manufacturer"`
 	Description  types.String `tfsdk:"description"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 func (d *PlatformDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -40,12 +41,13 @@ func (d *PlatformDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Use this data source to get information about a platform type in Netbox. Platforms represent operating systems or firmware types for devices.",
 		Attributes: map[string]schema.Attribute{
-			"id":           nbschema.DSIDAttribute("platform"),
-			"display_name": nbschema.DSComputedStringAttribute("The display name of the platform."),
-			"name":         nbschema.DSNameAttribute("platform"),
-			"slug":         nbschema.DSSlugAttribute("platform"),
-			"manufacturer": nbschema.DSComputedStringAttribute("Name or ID of the manufacturer for this platform."),
-			"description":  nbschema.DSComputedStringAttribute("Detailed description of the platform."),
+			"id":            nbschema.DSIDAttribute("platform"),
+			"display_name":  nbschema.DSComputedStringAttribute("The display name of the platform."),
+			"name":          nbschema.DSNameAttribute("platform"),
+			"slug":          nbschema.DSSlugAttribute("platform"),
+			"manufacturer":  nbschema.DSComputedStringAttribute("Name or ID of the manufacturer for this platform."),
+			"description":   nbschema.DSComputedStringAttribute("Detailed description of the platform."),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -147,6 +149,18 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 		data.Description = types.StringNull()
 	}
 
-	// Comments field may not exist; set to null
+	// Handle custom fields
+	if platform.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(platform.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

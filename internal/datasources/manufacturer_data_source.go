@@ -24,11 +24,12 @@ type ManufacturerDataSource struct {
 }
 
 type ManufacturerDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	DisplayName types.String `tfsdk:"display_name"`
-	Name        types.String `tfsdk:"name"`
-	Slug        types.String `tfsdk:"slug"`
-	Description types.String `tfsdk:"description"`
+	ID           types.String `tfsdk:"id"`
+	DisplayName  types.String `tfsdk:"display_name"`
+	Name         types.String `tfsdk:"name"`
+	Slug         types.String `tfsdk:"slug"`
+	Description  types.String `tfsdk:"description"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 func (d *ManufacturerDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -39,11 +40,12 @@ func (d *ManufacturerDataSource) Schema(ctx context.Context, req datasource.Sche
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Use this data source to get information about a manufacturer in Netbox. Manufacturers are used to group devices and platforms by vendor.",
 		Attributes: map[string]schema.Attribute{
-			"id":           nbschema.DSIDAttribute("manufacturer"),
-			"display_name": nbschema.DSComputedStringAttribute("The display name of the manufacturer."),
-			"name":         nbschema.DSNameAttribute("manufacturer"),
-			"slug":         nbschema.DSSlugAttribute("manufacturer"),
-			"description":  nbschema.DSComputedStringAttribute("Description of the manufacturer."),
+			"id":            nbschema.DSIDAttribute("manufacturer"),
+			"display_name":  nbschema.DSComputedStringAttribute("The display name of the manufacturer."),
+			"name":          nbschema.DSNameAttribute("manufacturer"),
+			"slug":          nbschema.DSSlugAttribute("manufacturer"),
+			"description":   nbschema.DSComputedStringAttribute("Description of the manufacturer."),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -145,4 +147,17 @@ func (d *ManufacturerDataSource) mapManufacturerToState(manufacturer *netbox.Man
 	data.Name = types.StringValue(manufacturer.GetName())
 	data.Slug = types.StringValue(manufacturer.GetSlug())
 	data.Description = utils.StringFromAPI(manufacturer.HasDescription(), manufacturer.GetDescription, data.Description)
+
+	// Handle custom fields
+	if manufacturer.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(manufacturer.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	}
 }
