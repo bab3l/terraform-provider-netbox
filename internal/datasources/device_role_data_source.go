@@ -262,7 +262,7 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	// Handle custom fields
 	if deviceRole.HasCustomFields() {
 		// For data sources, we extract all available custom fields
-		customFields := utils.MapToCustomFieldModels(deviceRole.GetCustomFields(), nil)
+		customFields := utils.MapAllCustomFieldsToModels(deviceRole.GetCustomFields())
 		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {

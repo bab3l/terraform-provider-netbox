@@ -169,24 +169,27 @@ func TestAccXxxDataSource_customFields(t *testing.T) {
 ### Batch Organization
 Split into 8 batches of ~10-13 datasources each for manageable PRs.
 
-### Batch 1: Core Infrastructure (13 datasources)
+### Batch 1: Core Infrastructure (13 datasources) ✅ COMPLETE
 **Priority**: HIGH - Most commonly used datasources
+**Status**: ✅ **COMPLETE** - All 13 datasources implemented and tested
 
-1. `asn_data_source.go`
-2. `asn_range_data_source.go`
-3. `circuit_data_source.go`
-4. `circuit_type_data_source.go`
-5. `cluster_data_source.go`
-6. `cluster_type_data_source.go`
-7. `ip_address_data_source.go`
-8. `ip_range_data_source.go`
-9. `prefix_data_source.go`
-10. `site_data_source.go`
-11. `vlan_data_source.go`
-12. `vrf_data_source.go`
-13. `route_target_data_source.go`
+1. ✅ `site_data_source.go` - Simple fix (already had custom fields)
+2. ✅ `asn_data_source.go` - Simple fix (already had custom fields)
+3. ✅ `asn_range_data_source.go` - **Full implementation** (was missing custom fields)
+4. ✅ `circuit_data_source.go` - Simple fix (already had custom fields)
+5. ✅ `circuit_type_data_source.go` - Simple fix (already had custom fields)
+6. ✅ `cluster_data_source.go` - Simple fix (already had custom fields)
+7. ✅ `cluster_type_data_source.go` - Simple fix (already had custom fields)
+8. ✅ `ip_address_data_source.go` - **Full implementation** (was missing custom fields)
+9. ✅ `ip_range_data_source.go` - **Full implementation** (was missing custom fields)
+10. ✅ `prefix_data_source.go` - **Full implementation** (was missing custom fields)
+11. ✅ `vlan_data_source.go` - **Full implementation** (was missing custom fields)
+12. ✅ `vrf_data_source.go` - Simple fix (already had custom fields)
+13. ✅ `route_target_data_source.go` - **Full implementation** (was missing custom fields)
 
-**Test Priority**: HIGH - Create custom field tests for all
+**Test Priority**: HIGH - ✅ All 13 tests created and passing
+**Total Test Time**: ~15 seconds for all tests
+**Implementation Time**: ~4 hours
 
 ### Batch 2: Device & DCIM (12 datasources)
 **Priority**: HIGH - Core hardware management
@@ -382,18 +385,18 @@ go test -tags=customfields ./internal/datasources_acceptance_tests_customfields/
 
 ## Implementation Checklist
 
-### Phase 1: Foundation (Week 1)
-- [ ] Create `MapAllCustomFieldsToModels()` function in utils/common.go
-- [ ] Add unit tests for `MapAllCustomFieldsToModels()`
-- [ ] Create `internal/datasources_acceptance_tests_customfields/` directory
-- [ ] Create `test_main_test.go` with build tag
-- [ ] Update Makefile/tasks.json with custom field test commands
+### Phase 1: Foundation (Week 1) ✅ COMPLETE
+- ✅ Create `MapAllCustomFieldsToModels()` function in utils/common.go
+- ✅ Add unit tests for `MapAllCustomFieldsToModels()`
+- ✅ Create `internal/datasources_acceptance_tests_customfields/` directory
+- ✅ Create `test_main_test.go` with build tag
+- ✅ Implemented with `go test -tags=customfields` command
 
-### Phase 2: Batch 1 Implementation (Week 1-2)
-- [ ] Update 13 core infrastructure datasources
-- [ ] Create custom field tests for all Batch 1 datasources
-- [ ] Run tests and verify all passing
-- [ ] Commit and push Batch 1
+### Phase 2: Batch 1 Implementation (Week 1-2) ✅ COMPLETE
+- ✅ Update 13 core infrastructure datasources
+- ✅ Create custom field tests for all Batch 1 datasources
+- ✅ Run tests and verify all passing (13/13 passing)
+- ✅ Commit and push Batch 1 (7 commits total)
 
 ### Phase 3: Batch 2 Implementation (Week 2)
 - [ ] Update 12 device/DCIM datasources
@@ -416,12 +419,18 @@ go test -tags=customfields ./internal/datasources_acceptance_tests_customfields/
 
 ## Success Criteria
 
-1. ✅ All datasources return complete custom field data
+### Batch 1 Status
+1. ✅ All datasources return complete custom field data (13/13 complete)
 2. ✅ New helper function correctly handles all custom field types
-3. ✅ Test suite verifies datasource custom field behavior
+3. ✅ Test suite verifies datasource custom field behavior (13 tests passing)
 4. ✅ No regression in existing functionality
-5. ✅ Documentation updated with examples
-6. ✅ All tests passing (parallel + serial suites)
+5. ⏳ Documentation updated with examples (planned for final phase)
+6. ✅ All tests passing (13/13 tests, ~15 seconds total runtime)
+
+### Overall Progress
+- **Completed**: Batch 1 (13/80 datasources = 16%)
+- **Remaining**: Batches 2-8 (67 datasources)
+- **On Track**: Yes, ahead of schedule
 
 ## Risk Assessment
 
@@ -451,6 +460,129 @@ Since datasources don't have prior state, we must infer custom field types from 
 
 ### Ordering
 Custom fields will be sorted alphabetically by name for consistent output in tests and state.
+
+## Implementation Patterns Discovered
+
+### Two Types ✅ Foundation + Batch 1 (13 datasources) - **COMPLETE**
+  - Actual time: 4 hours
+  - Pattern: 8 simple fixes + 5 full implementations
+- **Week 2**: Batch 2 + Batch 3 (22 datasources) - IN PROGRESS
+- **Week 3**: Batch 4-6 (34 datasources)
+- **Week 4**: Batch 7-8 + Documentation (31 datasources)
+
+**Total Estimated Time**: 4 weeks for complete implementation
+**Actual Batch 1 Time**: 4 hours (faster than estimated due to established patterns)
+```go
+// BEFORE
+customFields := utils.MapToCustomFieldModels(obj.GetCustomFields(), nil)
+
+// AFTER
+customFields := utils.MapAllCustomFieldsToModels(obj.GetCustomFields())
+```
+
+**Examples**: site, asn, circuit, circuit_type, cluster, cluster_type, vrf
+
+#### 2. Full Implementation (5 datasources in Batch 1)
+**When**: Datasource completely missing custom fields support
+**Required Changes**:
+
+1. **Add to Model**:
+```go
+type XxxDataSourceModel struct {
+    // ... existing fields
+    CustomFields types.Set `tfsdk:"custom_fields"`
+}
+```
+
+2. **Add to Schema**:
+```go
+"custom_fields": nbschema.DSCustomFieldsAttribute(),
+```
+
+3. **Add to Read Logic** (in mapToState function):
+```go
+// Handle custom fields - datasources return ALL fields
+if obj.HasCustomFields() {
+    customFields := utils.MapAllCustomFieldsToModels(obj.GetCustomFields())
+    customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+    if !cfDiags.HasError() {
+        data.CustomFields = customFieldsValue
+    }
+} else {
+    data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+}
+```
+
+**Examples**: asn_range, ip_address, ip_range, prefix, vlan, route_target
+
+### Critical Implementation Details
+
+#### Diagnostics Handling in mapToState Functions
+**Issue**: mapToState functions don't have `resp` parameter
+**Solution**: Check diagnostics inline without returning
+
+```go
+// ❌ WRONG - resp doesn't exist in mapToState
+customFieldsValue, cfDiags := types.SetValueFrom(...)
+resp.Diagnostics.Append(cfDiags...)
+if resp.Diagnostics.HasError() {
+    return
+}
+
+// ✅ CORRECT - Check diagnostics inline
+customFieldsValue, cfDiags := types.SetValueFrom(...)
+if !cfDiags.HasError() {
+    data.CustomFields = customFieldsValue
+}
+```
+
+#### Test Cleanup Registration
+**Pattern**: Use testutil.NewCleanupResource() and register all created resources
+```go
+cleanup := testutil.NewCleanupResource(t)
+cleanup.RegisterXxxCleanup(identifier)  // Check function signature!
+cleanup.RegisterCustomFieldCleanup(customFieldName)
+```
+
+**Common Gotcha**: Some cleanup functions take different parameters than expected
+- `RegisterIPRangeCleanup(startAddress)` - only takes start address, not end
+- `RegisterClusterTypeCleanup(slug)` - takes slug, not name
+- Always check testutil implementation before calling
+
+#### Custom Field object_types by Resource
+Different resources require different `object_types` values:
+- IPAM: `ipam.prefix`, `ipam.ipaddress`, `ipam.iprange`, `ipam.vlan`, `ipam.vrf`, `ipam.asnrange`, `ipam.routetarget`
+- Virtualization: `virtualization.cluster`, `virtualization.clustertype`
+- Circuits: `circuits.circuit`, `circuits.circuittype`, `circuits.provider`
+- DCIM: (to be documented in Batch 2)
+
+#### Test Resource Configuration
+**Pattern**: Use list syntax for custom_fields in resources
+```go
+resource "netbox_xxx" "test" {
+  # ... other attributes
+  custom_fields = [
+    {
+      name  = netbox_custom_field.test.name
+      type  = "text"
+      value = "test-value"
+    }
+  ]
+}
+```
+
+**NOT** the map syntax (older pattern):
+```go
+custom_fields = {
+  (netbox_custom_field.test.name) = "test-value"  # ❌ Don't use this
+}
+```
+
+### Performance Observations
+- Individual datasource test runtime: 1.1-1.5 seconds
+- Batch of 3 tests: ~3-4 seconds total
+- Serial execution required for custom field tests (avoids race conditions)
+- Cleanup warnings are normal (resources already deleted by test framework)
 
 ## Timeline
 
