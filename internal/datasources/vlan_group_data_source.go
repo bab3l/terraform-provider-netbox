@@ -254,16 +254,13 @@ func (d *VLANGroupDataSource) mapVLANGroupToState(ctx context.Context, vlanGroup
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 	}
 
-	// Custom fields
+	// Custom fields - datasources return ALL fields
 	if vlanGroup.HasCustomFields() {
-		cf := vlanGroup.GetCustomFields()
-		customFields := utils.MapToCustomFieldModels(cf, nil)
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfValueDiags...)
-		if diags.HasError() {
-			return
+		customFields := utils.MapAllCustomFieldsToModels(vlanGroup.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
 		}
-		data.CustomFields = customFieldsValue
 	} else {
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}

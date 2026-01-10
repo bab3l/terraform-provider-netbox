@@ -320,16 +320,13 @@ func (d *ServiceDataSource) mapResponseToModel(ctx context.Context, svc *netbox.
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 	}
 
-	// Handle custom fields
+	// Handle custom fields - datasources return ALL fields
 	if svc.HasCustomFields() {
-		apiCustomFields := svc.GetCustomFields()
-		customFields := utils.MapToCustomFieldModels(apiCustomFields, nil)
+		customFields := utils.MapAllCustomFieldsToModels(svc.GetCustomFields())
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
 		}
-		data.CustomFields = customFieldsValue
 	} else {
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}

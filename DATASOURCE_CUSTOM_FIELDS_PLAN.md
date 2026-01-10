@@ -6,11 +6,11 @@
 - **Batch 3**: ✅ COMPLETE (10/10 datasources - 100%)
 - **Batch 4**: ✅ COMPLETE (12/12 datasources - 100%)
 - **Batch 5**: ✅ COMPLETE (12/12 datasources - 100%)
-- **Batch 6**: 🔧 IN PROGRESS (0/10 datasources - 0%)
+- **Batch 6**: ✅ COMPLETE (10/10 datasources - 100%)
 - **Batch 7**: ⏳ Pending (11 datasources - Extras & Admin)
 - **Batch 8**: ⏳ Pending (~10 datasources - Remaining)
 
-**Overall Progress**: 59/80 datasources complete (74%)
+**Overall Progress**: 69/80 datasources complete (86%)
 
 ## Overview
 This document outlines the plan to fix datasource behavior with custom fields. Currently, datasources return NO custom fields because they pass `nil` as the second parameter to `MapToCustomFieldModels()`, which causes the function to return immediately.
@@ -314,22 +314,24 @@ This caused API errors: "Related object not found using the provided attributes:
 
 **Impact**: Power outlet resource now functional with power_port references for the first time
 
-### Batch 6: Wireless & Services (10 datasources) 🔧 IN PROGRESS
+### Batch 6: Wireless & Services (10 datasources) ✅ COMPLETE
 **Priority**: LOW - Specialized features
-**Status**: 🔧 **IN PROGRESS** - 0 of 10 datasources implemented
+**Status**: ✅ **COMPLETE** - All 10 datasources implemented and tested
 
-1. `wireless_lan_data_source.go`
-2. `wireless_lan_group_data_source.go`
-3. `wireless_link_data_source.go`
-4. `fhrp_group_data_source.go`
-5. `service_data_source.go`
-6. `service_template_data_source.go`
-7. `aggregate_data_source.go`
-8. `rir_data_source.go`
-9. `vlan_group_data_source.go`
-10. `role_data_source.go`
+1. ✅ `wireless_lan_data_source.go` - **Full implementation** (was missing custom fields)
+2. ✅ `wireless_lan_group_data_source.go` - **Full implementation** (was missing custom fields)
+3. ✅ `wireless_link_data_source.go` - Fixed pattern (had custom fields but wrong function)
+4. ✅ `fhrp_group_data_source.go` - **Full implementation** (was missing custom fields)
+5. ✅ `service_data_source.go` - Fixed pattern (had custom fields but wrong function)
+6. ✅ `service_template_data_source.go` - Fixed pattern (had custom fields but wrong function)
+7. ✅ `aggregate_data_source.go` - **Full implementation** (was missing custom fields)
+8. ✅ `rir_data_source.go` - **Full implementation** (was missing custom fields)
+9. ✅ `vlan_group_data_source.go` - Fixed pattern (had custom fields but wrong function)
+10. ✅ `role_data_source.go` - Fixed pattern (had custom fields but wrong function)
 
-**Test Priority**: LOW - Sample tests
+**Test Priority**: LOW - ✅ All 10 tests created and passing
+**Total Test Time**: ~22 seconds for all tests
+**Implementation Time**: ~2.5 hours
 
 ### Batch 7: Extras & Admin (11 datasources)
 **Priority**: LOW - Administrative features

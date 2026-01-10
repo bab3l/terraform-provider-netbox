@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -33,21 +34,22 @@ type WirelessLANDataSource struct {
 
 // WirelessLANDataSourceModel describes the data source data model.
 type WirelessLANDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	SSID        types.String `tfsdk:"ssid"`
-	Description types.String `tfsdk:"description"`
-	DisplayName types.String `tfsdk:"display_name"`
-	GroupID     types.Int64  `tfsdk:"group_id"`
-	GroupName   types.String `tfsdk:"group_name"`
-	Status      types.String `tfsdk:"status"`
-	VLANID      types.Int64  `tfsdk:"vlan_id"`
-	VLANName    types.String `tfsdk:"vlan_name"`
-	TenantID    types.Int64  `tfsdk:"tenant_id"`
-	TenantName  types.String `tfsdk:"tenant_name"`
-	AuthType    types.String `tfsdk:"auth_type"`
-	AuthCipher  types.String `tfsdk:"auth_cipher"`
-	Comments    types.String `tfsdk:"comments"`
-	Tags        types.Set    `tfsdk:"tags"`
+	ID           types.String `tfsdk:"id"`
+	SSID         types.String `tfsdk:"ssid"`
+	Description  types.String `tfsdk:"description"`
+	DisplayName  types.String `tfsdk:"display_name"`
+	GroupID      types.Int64  `tfsdk:"group_id"`
+	GroupName    types.String `tfsdk:"group_name"`
+	Status       types.String `tfsdk:"status"`
+	VLANID       types.Int64  `tfsdk:"vlan_id"`
+	VLANName     types.String `tfsdk:"vlan_name"`
+	TenantID     types.Int64  `tfsdk:"tenant_id"`
+	TenantName   types.String `tfsdk:"tenant_name"`
+	AuthType     types.String `tfsdk:"auth_type"`
+	AuthCipher   types.String `tfsdk:"auth_cipher"`
+	Comments     types.String `tfsdk:"comments"`
+	Tags         types.Set    `tfsdk:"tags"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -126,6 +128,7 @@ func (d *WirelessLANDataSource) Schema(ctx context.Context, req datasource.Schem
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -319,5 +322,17 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 	} else {
 		data.Tags = types.SetNull(types.StringType)
 	}
+
+	// Handle custom fields - datasources return ALL fields
+	if wlan.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(wlan.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

@@ -33,17 +33,18 @@ type AggregateDataSource struct {
 
 // AggregateDataSourceModel describes the data source data model.
 type AggregateDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Prefix      types.String `tfsdk:"prefix"`
-	RIR         types.String `tfsdk:"rir"`
-	RIRName     types.String `tfsdk:"rir_name"`
-	Tenant      types.String `tfsdk:"tenant"`
-	TenantName  types.String `tfsdk:"tenant_name"`
-	DateAdded   types.String `tfsdk:"date_added"`
-	Description types.String `tfsdk:"description"`
-	Comments    types.String `tfsdk:"comments"`
-	DisplayName types.String `tfsdk:"display_name"`
-	Tags        types.List   `tfsdk:"tags"`
+	ID           types.String `tfsdk:"id"`
+	Prefix       types.String `tfsdk:"prefix"`
+	RIR          types.String `tfsdk:"rir"`
+	RIRName      types.String `tfsdk:"rir_name"`
+	Tenant       types.String `tfsdk:"tenant"`
+	TenantName   types.String `tfsdk:"tenant_name"`
+	DateAdded    types.String `tfsdk:"date_added"`
+	Description  types.String `tfsdk:"description"`
+	Comments     types.String `tfsdk:"comments"`
+	DisplayName  types.String `tfsdk:"display_name"`
+	Tags         types.List   `tfsdk:"tags"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -100,6 +101,7 @@ func (d *AggregateDataSource) Schema(ctx context.Context, req datasource.SchemaR
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -264,5 +266,16 @@ func (d *AggregateDataSource) mapResponseToModel(ctx context.Context, aggregate 
 		data.DisplayName = types.StringValue(aggregate.GetDisplay())
 	} else {
 		data.DisplayName = types.StringNull()
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if aggregate.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(aggregate.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }
