@@ -192,7 +192,7 @@ func (d *RegionDataSource) mapRegionToState(ctx context.Context, region *netbox.
 
 	// Handle custom fields
 	if region.HasCustomFields() {
-		customFields := utils.MapToCustomFieldModels(region.GetCustomFields(), nil)
+		customFields := utils.MapAllCustomFieldsToModels(region.GetCustomFields())
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		if !cfDiags.HasError() {
 			data.CustomFields = customFieldsValue

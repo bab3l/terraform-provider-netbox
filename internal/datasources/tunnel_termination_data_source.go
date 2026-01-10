@@ -249,9 +249,8 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 	}
 
 	// Handle custom fields
-	if tunnelTermination.HasCustomFields() && len(tunnelTermination.GetCustomFields()) > 0 {
-		var existingCustomFields []utils.CustomFieldModel
-		customFields := utils.MapToCustomFieldModels(tunnelTermination.GetCustomFields(), existingCustomFields)
+	if tunnelTermination.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(tunnelTermination.GetCustomFields())
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		resp.Diagnostics.Append(cfDiags...)
 		if resp.Diagnostics.HasError() {
