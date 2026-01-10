@@ -1,0 +1,96 @@
+# Examples for the plural/query device data source.
+#
+# Notes:
+# - Multiple `filter` blocks are ANDed together.
+# - Multiple values inside one filter block are ORed together.
+# - `custom_field` and `custom_field_value` are applied client-side against returned `custom_fields`.
+# - The datasource returns `ids`, `names`, and `devices` (list of `{id,name}` objects).
+
+# Example: Exact match by name
+data "netbox_devices" "by_name" {
+  filter {
+    name   = "name"
+    values = ["my-device-01"]
+  }
+}
+
+output "devices_by_name_ids" {
+  value = data.netbox_devices.by_name.ids
+}
+
+output "devices_by_name_names" {
+  value = data.netbox_devices.by_name.names
+}
+
+output "devices_by_name_objects" {
+  value = data.netbox_devices.by_name.devices
+}
+
+# Example: Case-insensitive match by name
+# Useful when you don't control casing of device names.
+data "netbox_devices" "by_name_ic" {
+  filter {
+    name   = "name__ic"
+    values = ["my-device-01"]
+  }
+}
+
+# Example: Multiple values in one filter (OR)
+# Matches devices named either "edge-01" OR "edge-02".
+data "netbox_devices" "by_multiple_names" {
+  filter {
+    name   = "name"
+    values = ["edge-01", "edge-02"]
+  }
+}
+
+# Example: Multiple filters (AND)
+# Matches devices that are active AND in a specific site (by site slug).
+data "netbox_devices" "by_status_and_site" {
+  filter {
+    name   = "status"
+    values = ["active"]
+  }
+
+  filter {
+    name   = "site"
+    values = ["nyc"]
+  }
+}
+
+# Example: Filter by tag (by tag slug)
+# Matches devices with the tag "production".
+data "netbox_devices" "by_tag" {
+  filter {
+    name   = "tag"
+    values = ["production"]
+  }
+}
+
+# Example: Custom field existence (custom_field)
+# Matches devices that have a value set for the given custom field key.
+data "netbox_devices" "by_custom_field_exists" {
+  filter {
+    name   = "custom_field"
+    values = ["asset_tag"]
+  }
+}
+
+# Example: Custom field value (custom_field_value)
+# Value format is "<custom_field_key>=<value>".
+data "netbox_devices" "by_custom_field_value" {
+  filter {
+    name   = "custom_field_value"
+    values = ["asset_tag=ABC123"]
+  }
+}
+
+# Example: Free-text search (q)
+# NetBox's search behavior depends on server version/config.
+# This is commonly useful for quick discovery and may match across multiple fields.
+data "netbox_devices" "by_q" {
+  filter {
+    name   = "q"
+    values = ["datasource-test-value"]
+  }
+}
