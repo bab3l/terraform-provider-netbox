@@ -514,6 +514,8 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 
 		datasources.NewInterfaceDataSource,
 
+		datasources.NewInterfacesDataSource,
+
 		datasources.NewVRFDataSource,
 
 		datasources.NewVLANGroupDataSource,
@@ -523,6 +525,10 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewPrefixDataSource,
 
 		datasources.NewIPAddressDataSource,
+
+		datasources.NewIPAddressesDataSource,
+
+		datasources.NewPrefixesDataSource,
 
 		// Phase 3: Virtualization data sources
 

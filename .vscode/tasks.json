@@ -1,0 +1,174 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build Terraform Provider",
+			"type": "shell",
+			"command": "go",
+			"args": [
+				"build",
+				"."
+			],
+			"group": "build",
+			"problemMatcher": [
+				"$go"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "Run pre-commit",
+			"type": "shell",
+			"command": ".\\.venv\\Scripts\\pre-commit.exe",
+			"args": [
+				"run",
+				"--all-files"
+			],
+			"group": "test",
+			"problemMatcher": []
+		},
+		{
+			"label": "Run Unit Tests",
+			"type": "shell",
+			"windows": {
+				"command": "powershell",
+				"args": [
+					"-NoProfile",
+					"-ExecutionPolicy",
+					"Bypass",
+					"-File",
+					"${workspaceFolder}\\scripts\\run-unit-tests.ps1"
+				]
+			},
+			"linux": {
+				"command": "bash",
+				"args": [
+					"${workspaceFolder}/scripts/run-unit-tests.sh"
+				]
+			},
+			"osx": {
+				"command": "bash",
+				"args": [
+					"${workspaceFolder}/scripts/run-unit-tests.sh"
+				]
+			},
+			"group": "test",
+			"problemMatcher": [
+				"$go"
+			]
+		},
+		{
+			"label": "Run Acceptance Tests",
+			"type": "shell",
+			"windows": {
+				"command": "powershell",
+				"args": [
+					"-NoProfile",
+					"-ExecutionPolicy",
+					"Bypass",
+					"-File",
+					"${workspaceFolder}\\scripts\\run-acceptance-tests.ps1"
+				]
+			},
+			"linux": {
+				"command": "bash",
+				"args": [
+					"${workspaceFolder}/scripts/run-acceptance-tests.sh"
+				]
+			},
+			"osx": {
+				"command": "bash",
+				"args": [
+					"${workspaceFolder}/scripts/run-acceptance-tests.sh"
+				]
+			},
+			"options": {
+				"env": {
+					"TF_ACC": "1",
+					"NETBOX_SERVER_URL": "http://localhost:8000",
+					"NETBOX_API_TOKEN": "0123456789abcdef0123456789abcdef01234567"
+				}
+			},
+			"group": "test",
+			"problemMatcher": [
+				"$go"
+			]
+		},
+		{
+			"label": "Run Acceptance Tests (Customfields)",
+			"type": "shell",
+			"windows": {
+				"command": "powershell",
+				"args": [
+					"-NoProfile",
+					"-ExecutionPolicy",
+					"Bypass",
+					"-Command",
+					"$env:TF_ACC='1'; $env:NETBOX_SERVER_URL = if ($env:NETBOX_SERVER_URL) { $env:NETBOX_SERVER_URL } else { 'http://localhost:8000' }; $env:NETBOX_API_TOKEN = if ($env:NETBOX_API_TOKEN) { $env:NETBOX_API_TOKEN } else { '0123456789abcdef0123456789abcdef01234567' }; go test -tags customfields ./internal/resources_acceptance_tests_customfields/... ./internal/datasources_acceptance_tests_customfields/... -v -timeout 120m -p 1 -parallel 1"
+				]
+			},
+			"linux": {
+				"command": "bash",
+				"args": [
+					"-lc",
+					"TF_ACC=1 NETBOX_SERVER_URL=${NETBOX_SERVER_URL:-http://localhost:8000} NETBOX_API_TOKEN=${NETBOX_API_TOKEN:-0123456789abcdef0123456789abcdef01234567} go test -tags customfields ./internal/resources_acceptance_tests_customfields/... ./internal/datasources_acceptance_tests_customfields/... -v -timeout 120m -p 1 -parallel 1"
+				]
+			},
+			"osx": {
+				"command": "bash",
+				"args": [
+					"-lc",
+					"TF_ACC=1 NETBOX_SERVER_URL=${NETBOX_SERVER_URL:-http://localhost:8000} NETBOX_API_TOKEN=${NETBOX_API_TOKEN:-0123456789abcdef0123456789abcdef01234567} go test -tags customfields ./internal/resources_acceptance_tests_customfields/... ./internal/datasources_acceptance_tests_customfields/... -v -timeout 120m -p 1 -parallel 1"
+				]
+			},
+			"options": {
+				"env": {
+					"TF_ACC": "1",
+					"NETBOX_SERVER_URL": "http://localhost:8000",
+					"NETBOX_API_TOKEN": "0123456789abcdef0123456789abcdef01234567"
+				}
+			},
+			"group": "test",
+			"problemMatcher": [
+				"$go"
+			]
+		},
+		{
+			"label": "Start Netbox (Docker)",
+			"type": "shell",
+			"command": "docker-compose",
+			"args": [
+				"up",
+				"-d"
+			],
+			"group": "none",
+			"problemMatcher": []
+		},
+		{
+			"label": "Run Integration Tests",
+			"type": "shell",
+			"windows": {
+				"command": "powershell",
+				"args": [
+					"-ExecutionPolicy",
+					"Bypass",
+					"-File",
+					"${workspaceFolder}\\scripts\\run-terraform-tests.ps1"
+				]
+			},
+			"linux": {
+				"command": "bash",
+				"args": [
+					"${workspaceFolder}/scripts/run-terraform-tests.sh"
+				]
+			},
+			"osx": {
+				"command": "bash",
+				"args": [
+					"${workspaceFolder}/scripts/run-terraform-tests.sh"
+				]
+			},
+			"group": "test",
+			"problemMatcher": []
+		}
+	]
+}

@@ -17,7 +17,7 @@ vet:
 	go vet ./...
 
 test:
-	go test ./... -v
+	go test $$(go list ./... | grep -v acceptance_tests) -v
 
 build:
 	go build .
@@ -66,7 +66,7 @@ test-acceptance:
 		echo "Please export NETBOX_API_TOKEN"; \
 		exit 1; \
 	fi
-	TF_ACC=1 go test ./internal/resources_acceptance_tests/... -v -timeout 60m
+	TF_ACC=1 go test ./internal/resources_acceptance_tests/... ./internal/datasources_acceptance_tests/... -v -timeout 60m
 
 # Run only custom field tests (serial execution to prevent conflicts)
 # These tests must run serially (60-90 minutes)
@@ -81,7 +81,7 @@ test-acceptance-customfields:
 		echo "Please export NETBOX_API_TOKEN"; \
 		exit 1; \
 	fi
-	TF_ACC=1 go test -tags=customfields ./internal/resources_acceptance_tests_customfields/... -v -timeout 120m -p 1
+	TF_ACC=1 go test -tags=customfields ./internal/resources_acceptance_tests_customfields/... ./internal/datasources_acceptance_tests_customfields/... -v -timeout 120m -p 1 -parallel 1
 
 # Run all acceptance tests (parallel + serial, 2-3 hours total)
 test-acceptance-all: test-acceptance test-acceptance-customfields
