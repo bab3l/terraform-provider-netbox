@@ -16,15 +16,18 @@ Retrieves information about an inventory item in NetBox. Inventory items represe
 ## Example Usage
 
 ```terraform
+# Look up inventory item by ID
 data "netbox_inventory_item" "by_id" {
-  id = 1
+  id = "1"
 }
 
+# Look up inventory item by name and device
 data "netbox_inventory_item" "by_name_device" {
   name      = "Module1"
-  device_id = 5
+  device_id = "5"
 }
 
+# Use inventory item data in other resources
 output "item_id" {
   value = data.netbox_inventory_item.by_id.id
 }
@@ -35,6 +38,31 @@ output "item_name" {
 
 output "item_device" {
   value = data.netbox_inventory_item.by_name_device.device_id
+}
+
+output "item_manufacturer" {
+  value = data.netbox_inventory_item.by_id.manufacturer
+}
+
+output "item_serial" {
+  value = data.netbox_inventory_item.by_id.serial
+}
+
+# Access all custom fields
+output "item_custom_fields" {
+  value       = data.netbox_inventory_item.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this inventory item"
+}
+
+# Access specific custom fields by name
+output "item_purchase_date" {
+  value       = try([for cf in data.netbox_inventory_item.by_id.custom_fields : cf.value if cf.name == "purchase_date"][0], null)
+  description = "Example: accessing a date custom field"
+}
+
+output "item_warranty_months" {
+  value       = try([for cf in data.netbox_inventory_item.by_id.custom_fields : cf.value if cf.name == "warranty_months"][0], null)
+  description = "Example: accessing a numeric custom field"
 }
 ```
 
@@ -50,6 +78,7 @@ output "item_device" {
 ### Read-Only
 
 - `asset_tag` (String) A unique tag used to identify this inventory item.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) A description of the inventory item.
 - `device_name` (String) The name of the device.
 - `discovered` (Boolean) Whether this item was automatically discovered.
@@ -63,3 +92,12 @@ output "item_device" {
 - `role_name` (String) The name of the inventory item role.
 - `serial` (String) Serial number of the inventory item.
 - `tags` (Set of String) Tags associated with this inventory item.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

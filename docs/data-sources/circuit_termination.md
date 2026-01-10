@@ -14,11 +14,44 @@ Use this data source to retrieve information about a circuit termination in Netb
 
 ```terraform
 data "netbox_circuit_termination" "test" {
-  id = 123
+  id = "123"
 }
 
-output "example" {
+output "termination_id" {
   value = data.netbox_circuit_termination.test.id
+}
+
+output "termination_circuit" {
+  value = data.netbox_circuit_termination.test.circuit
+}
+
+output "termination_term_side" {
+  value = data.netbox_circuit_termination.test.term_side
+}
+
+output "termination_site" {
+  value = data.netbox_circuit_termination.test.site
+}
+
+output "termination_provider_network" {
+  value = data.netbox_circuit_termination.test.provider_network
+}
+
+# Access all custom fields
+output "termination_custom_fields" {
+  value       = data.netbox_circuit_termination.test.custom_fields
+  description = "All custom fields defined in NetBox for this circuit termination"
+}
+
+# Access specific custom field by name
+output "termination_port_speed" {
+  value       = try([for cf in data.netbox_circuit_termination.test.custom_fields : cf.value if cf.name == "port_speed_gbps"][0], null)
+  description = "Example: accessing a numeric custom field for port speed"
+}
+
+output "termination_is_primary" {
+  value       = try([for cf in data.netbox_circuit_termination.test.custom_fields : cf.value if cf.name == "is_primary"][0], null)
+  description = "Example: accessing a boolean custom field for primary status"
 }
 ```
 
@@ -34,6 +67,7 @@ output "example" {
 
 - `circuit` (String) The ID of the circuit this termination belongs to.
 - `circuit_cid` (String) The CID (circuit identifier) of the circuit this termination belongs to.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) A description of the circuit termination.
 - `display_name` (String) The display name of the circuit termination.
 - `mark_connected` (Boolean) Whether the termination is treated as if a cable is connected.
@@ -45,3 +79,12 @@ output "example" {
 - `tags` (List of String) Tags assigned to this circuit termination.
 - `upstream_speed` (Number) The upstream speed in Kbps, if different from port speed.
 - `xconnect_id` (String) The ID of the local cross-connect.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

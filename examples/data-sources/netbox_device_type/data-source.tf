@@ -25,3 +25,24 @@ output "device_type_model" {
 output "device_type_manufacturer" {
   value = data.netbox_device_type.by_model.manufacturer
 }
+
+output "device_type_u_height" {
+  value = data.netbox_device_type.by_id.u_height
+}
+
+# Access all custom fields
+output "device_type_custom_fields" {
+  value       = data.netbox_device_type.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this device type"
+}
+
+# Access specific custom fields by name
+output "device_type_power_draw" {
+  value       = try([for cf in data.netbox_device_type.by_id.custom_fields : cf.value if cf.name == "power_draw"][0], null)
+  description = "Example: accessing a numeric custom field"
+}
+
+output "device_type_end_of_life" {
+  value       = try([for cf in data.netbox_device_type.by_id.custom_fields : cf.value if cf.name == "end_of_life"][0], null)
+  description = "Example: accessing a date custom field"
+}

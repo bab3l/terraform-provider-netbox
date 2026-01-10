@@ -21,3 +21,15 @@ output "cable_label" {
 output "cable_length" {
   value = "${data.netbox_cable.example.length} ${data.netbox_cable.example.length_unit}"
 }
+
+# Access all custom fields
+output "cable_custom_fields" {
+  value       = data.netbox_cable.example.custom_fields
+  description = "All custom fields defined in NetBox for this cable"
+}
+
+# Access a specific custom field by name
+output "cable_vendor_id" {
+  value       = try([for cf in data.netbox_cable.example.custom_fields : cf.value if cf.name == "vendor_id"][0], null)
+  description = "Example: accessing a specific custom field value"
+}

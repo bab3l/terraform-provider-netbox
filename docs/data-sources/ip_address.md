@@ -13,24 +13,56 @@ Use this data source to get information about an IP address in Netbox.
 ## Example Usage
 
 ```terraform
+# Look up IP address by ID
 data "netbox_ip_address" "by_id" {
   id = "1"
 }
 
+# Look up IP address by address
 data "netbox_ip_address" "by_address" {
   address = "192.168.1.1/32"
 }
 
-output "address_id" {
-  value = data.netbox_ip_address.by_id.id
-}
-
+# Use IP address data in other resources
 output "address_value" {
-  value = data.netbox_ip_address.by_address.address
+  value = data.netbox_ip_address.by_id.address
 }
 
 output "address_status" {
   value = data.netbox_ip_address.by_address.status
+}
+
+output "address_vrf" {
+  value = data.netbox_ip_address.by_id.vrf
+}
+
+output "address_tenant" {
+  value = data.netbox_ip_address.by_id.tenant
+}
+
+output "address_dns_name" {
+  value = data.netbox_ip_address.by_address.dns_name
+}
+
+output "address_assigned_object_type" {
+  value = data.netbox_ip_address.by_id.assigned_object_type
+}
+
+# Access all custom fields
+output "address_custom_fields" {
+  value       = data.netbox_ip_address.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this IP address"
+}
+
+# Access specific custom fields by name
+output "address_hostname" {
+  value       = try([for cf in data.netbox_ip_address.by_id.custom_fields : cf.value if cf.name == "hostname"][0], null)
+  description = "Example: accessing a text custom field"
+}
+
+output "address_monitored" {
+  value       = try([for cf in data.netbox_ip_address.by_id.custom_fields : cf.value if cf.name == "monitored"][0], null)
+  description = "Example: accessing a boolean custom field"
 }
 ```
 
@@ -47,6 +79,7 @@ output "address_status" {
 - `assigned_object_id` (Number) The ID of the assigned object.
 - `assigned_object_type` (String) The content type of the assigned object.
 - `comments` (String) Comments for the IP address.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) The description of the IP address.
 - `display_name` (String) The display name of the IP address.
 - `dns_name` (String) Hostname or FQDN.
@@ -57,3 +90,12 @@ output "address_status" {
 - `tenant_id` (Number) The ID of the tenant this IP address is assigned to.
 - `vrf` (String) The name of the VRF this IP address is assigned to.
 - `vrf_id` (Number) The ID of the VRF this IP address is assigned to.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

@@ -33,16 +33,33 @@ output "cluster_group_name" {
   value = data.netbox_cluster_group.by_name.name
 }
 
+output "cluster_group_slug" {
+  value = data.netbox_cluster_group.by_name.slug
+}
+
+output "cluster_group_parent" {
+  value = data.netbox_cluster_group.by_name.parent
+}
+
 output "cluster_group_description" {
   value = data.netbox_cluster_group.by_name.description
 }
 
-output "cluster_group_by_id" {
-  value = data.netbox_cluster_group.by_id
+# Access all custom fields
+output "cluster_group_custom_fields" {
+  value       = data.netbox_cluster_group.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this cluster group"
 }
 
-output "cluster_group_by_slug" {
-  value = data.netbox_cluster_group.by_slug
+# Access specific custom field by name
+output "cluster_group_manager" {
+  value       = try([for cf in data.netbox_cluster_group.by_id.custom_fields : cf.value if cf.name == "manager_name"][0], null)
+  description = "Example: accessing a text custom field for manager name"
+}
+
+output "cluster_group_priority" {
+  value       = try([for cf in data.netbox_cluster_group.by_id.custom_fields : cf.value if cf.name == "priority"][0], null)
+  description = "Example: accessing a numeric custom field for priority"
 }
 ```
 
@@ -57,5 +74,15 @@ output "cluster_group_by_slug" {
 
 ### Read-Only
 
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the cluster group.
 - `display_name` (String) The display name of the cluster group.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

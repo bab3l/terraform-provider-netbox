@@ -9,15 +9,31 @@ data "netbox_route_target" "by_name" {
 }
 
 # Use route target data in other resources
-output "route_target_info" {
-  value = {
-    id          = data.netbox_route_target.by_name.id
-    name        = data.netbox_route_target.by_name.name
-    tenant      = data.netbox_route_target.by_name.tenant
-    description = data.netbox_route_target.by_name.description
-  }
+output "route_target_name" {
+  value = data.netbox_route_target.by_name.name
 }
 
-output "route_target_by_id" {
-  value = data.netbox_route_target.by_id
+output "route_target_tenant" {
+  value = data.netbox_route_target.by_id.tenant
+}
+
+output "route_target_description" {
+  value = data.netbox_route_target.by_id.description
+}
+
+# Access all custom fields
+output "route_target_custom_fields" {
+  value       = data.netbox_route_target.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this route target"
+}
+
+# Access specific custom fields by name
+output "route_target_vrf_name" {
+  value       = try([for cf in data.netbox_route_target.by_id.custom_fields : cf.value if cf.name == "vrf_name"][0], null)
+  description = "Example: accessing a text custom field"
+}
+
+output "route_target_import_enabled" {
+  value       = try([for cf in data.netbox_route_target.by_id.custom_fields : cf.value if cf.name == "import_enabled"][0], null)
+  description = "Example: accessing a boolean custom field"
 }

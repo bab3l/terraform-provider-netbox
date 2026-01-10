@@ -13,21 +13,20 @@ Use this data source to get information about an IP address range in Netbox.
 ## Example Usage
 
 ```terraform
+# Look up IP range by ID
 data "netbox_ip_range" "by_id" {
   id = "1"
 }
 
+# Look up IP range by start and end addresses
 data "netbox_ip_range" "by_addresses" {
   start_address = "10.0.0.0"
   end_address   = "10.0.0.255"
 }
 
-output "range_id" {
-  value = data.netbox_ip_range.by_id.id
-}
-
+# Use IP range data in other resources
 output "range_start" {
-  value = data.netbox_ip_range.by_addresses.start_address
+  value = data.netbox_ip_range.by_id.start_address
 }
 
 output "range_end" {
@@ -35,7 +34,40 @@ output "range_end" {
 }
 
 output "range_size" {
-  value = data.netbox_ip_range.by_addresses.size
+  value = data.netbox_ip_range.by_id.size
+}
+
+output "range_vrf" {
+  value = data.netbox_ip_range.by_id.vrf
+}
+
+output "range_tenant" {
+  value = data.netbox_ip_range.by_id.tenant
+}
+
+output "range_status" {
+  value = data.netbox_ip_range.by_id.status
+}
+
+output "range_description" {
+  value = data.netbox_ip_range.by_addresses.description
+}
+
+# Access all custom fields
+output "range_custom_fields" {
+  value       = data.netbox_ip_range.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this IP range"
+}
+
+# Access specific custom fields by name
+output "range_dhcp_enabled" {
+  value       = try([for cf in data.netbox_ip_range.by_id.custom_fields : cf.value if cf.name == "dhcp_enabled"][0], null)
+  description = "Example: accessing a boolean custom field"
+}
+
+output "range_pool_name" {
+  value       = try([for cf in data.netbox_ip_range.by_id.custom_fields : cf.value if cf.name == "pool_name"][0], null)
+  description = "Example: accessing a text custom field"
 }
 ```
 
@@ -51,6 +83,7 @@ output "range_size" {
 ### Read-Only
 
 - `comments` (String) Comments for the IP range.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) The description of the IP range.
 - `display_name` (String) The display name of the IP range.
 - `mark_utilized` (Boolean) Whether this range is treated as fully utilized.
@@ -63,3 +96,12 @@ output "range_size" {
 - `tenant_id` (Number) The ID of the tenant this IP range is assigned to.
 - `vrf` (String) The name of the VRF this IP range is assigned to.
 - `vrf_id` (Number) The ID of the VRF this IP range is assigned to.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

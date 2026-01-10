@@ -26,6 +26,27 @@ output "location_site" {
   value = data.netbox_location.by_slug.site
 }
 
-output "location_facility" {
-  value = data.netbox_location.by_slug.facility
+output "location_parent" {
+  value = data.netbox_location.by_id.parent
+}
+
+output "location_status" {
+  value = data.netbox_location.by_id.status
+}
+
+# Access all custom fields
+output "location_custom_fields" {
+  value       = data.netbox_location.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this location"
+}
+
+# Access specific custom fields by name
+output "location_access_code" {
+  value       = try([for cf in data.netbox_location.by_id.custom_fields : cf.value if cf.name == "access_code"][0], null)
+  description = "Example: accessing a specific custom field value"
+}
+
+output "location_climate_controlled" {
+  value       = try([for cf in data.netbox_location.by_id.custom_fields : cf.value if cf.name == "climate_controlled"][0], null)
+  description = "Example: accessing a boolean custom field"
 }

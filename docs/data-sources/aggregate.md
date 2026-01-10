@@ -13,20 +13,48 @@ Use this data source to retrieve information about an aggregate in Netbox. You c
 ## Example Usage
 
 ```terraform
+# Look up aggregate by prefix
 data "netbox_aggregate" "by_prefix" {
   prefix = "10.0.0.0/8"
 }
 
+# Look up aggregate by ID
 data "netbox_aggregate" "by_id" {
-  id = 123
+  id = "123"
 }
 
-output "by_prefix" {
-  value = data.netbox_aggregate.by_prefix.id
-}
-
-output "by_id" {
+# Use aggregate data in other resources
+output "aggregate_prefix" {
   value = data.netbox_aggregate.by_id.prefix
+}
+
+output "aggregate_rir" {
+  value = data.netbox_aggregate.by_prefix.rir
+}
+
+output "aggregate_tenant" {
+  value = data.netbox_aggregate.by_id.tenant
+}
+
+output "aggregate_description" {
+  value = data.netbox_aggregate.by_id.description
+}
+
+# Access all custom fields
+output "aggregate_custom_fields" {
+  value       = data.netbox_aggregate.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this aggregate"
+}
+
+# Access specific custom fields by name
+output "aggregate_allocation_date" {
+  value       = try([for cf in data.netbox_aggregate.by_id.custom_fields : cf.value if cf.name == "allocation_date"][0], null)
+  description = "Example: accessing a date custom field"
+}
+
+output "aggregate_ipv6_enabled" {
+  value       = try([for cf in data.netbox_aggregate.by_id.custom_fields : cf.value if cf.name == "ipv6_enabled"][0], null)
+  description = "Example: accessing a boolean custom field"
 }
 ```
 
@@ -41,6 +69,7 @@ output "by_id" {
 ### Read-Only
 
 - `comments` (String) Additional comments about the aggregate.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `date_added` (String) The date this aggregate was added (YYYY-MM-DD format).
 - `description` (String) A description of the aggregate.
 - `display_name` (String) The display name of the aggregate.
@@ -49,3 +78,12 @@ output "by_id" {
 - `tags` (List of String) Tags assigned to this aggregate.
 - `tenant` (String) The ID of the tenant this aggregate is assigned to.
 - `tenant_name` (String) The name of the tenant this aggregate is assigned to.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

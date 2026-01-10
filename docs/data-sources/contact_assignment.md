@@ -13,12 +13,47 @@ Use this data source to get information about a contact assignment in Netbox.
 ## Example Usage
 
 ```terraform
-data "netbox_contact_assignment" "example" {
+# Look up contact assignment by ID
+data "netbox_contact_assignment" "by_id" {
   id = "123"
 }
 
-output "example" {
-  value = data.netbox_contact_assignment.example.contact_name
+# Use contact assignment data in other resources
+output "assignment_contact" {
+  value = data.netbox_contact_assignment.by_id.contact
+}
+
+output "assignment_object_type" {
+  value = data.netbox_contact_assignment.by_id.object_type
+}
+
+output "assignment_object_id" {
+  value = data.netbox_contact_assignment.by_id.object_id
+}
+
+output "assignment_role" {
+  value = data.netbox_contact_assignment.by_id.role
+}
+
+output "assignment_priority" {
+  value = data.netbox_contact_assignment.by_id.priority
+}
+
+# Access all custom fields
+output "assignment_custom_fields" {
+  value       = data.netbox_contact_assignment.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this contact assignment"
+}
+
+# Access specific custom fields by name
+output "assignment_notification_method" {
+  value       = try([for cf in data.netbox_contact_assignment.by_id.custom_fields : cf.value if cf.name == "notification_method"][0], null)
+  description = "Example: accessing a select custom field"
+}
+
+output "assignment_escalation_level" {
+  value       = try([for cf in data.netbox_contact_assignment.by_id.custom_fields : cf.value if cf.name == "escalation_level"][0], null)
+  description = "Example: accessing a numeric custom field"
 }
 ```
 
@@ -33,6 +68,7 @@ output "example" {
 
 - `contact_id` (String) ID of the contact.
 - `contact_name` (String) Name of the contact.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `display_name` (String) The display name of the contact assignment.
 - `object_id` (String) ID of the assigned object.
 - `object_type` (String) Content type of the assigned object (e.g., dcim.site, dcim.device).
@@ -41,6 +77,16 @@ output "example" {
 - `role_id` (String) ID of the contact role.
 - `role_name` (String) Name of the contact role.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.
+
 
 <a id="nestedatt--tags"></a>
 ### Nested Schema for `tags`

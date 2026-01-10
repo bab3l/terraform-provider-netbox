@@ -4,14 +4,47 @@ data "netbox_virtual_device_context" "by_id" {
 }
 
 # Use virtual device context data in outputs
-output "vdc_info" {
-  value = {
-    id          = data.netbox_virtual_device_context.by_id.id
-    name        = data.netbox_virtual_device_context.by_id.name
-    device      = data.netbox_virtual_device_context.by_id.device
-    identifier  = data.netbox_virtual_device_context.by_id.identifier
-    status      = data.netbox_virtual_device_context.by_id.status
-    primary_ip4 = data.netbox_virtual_device_context.by_id.primary_ip4
-    primary_ip6 = data.netbox_virtual_device_context.by_id.primary_ip6
-  }
+output "vdc_id" {
+  value = data.netbox_virtual_device_context.by_id.id
+}
+
+output "vdc_name" {
+  value = data.netbox_virtual_device_context.by_id.name
+}
+
+output "vdc_device" {
+  value = data.netbox_virtual_device_context.by_id.device
+}
+
+output "vdc_identifier" {
+  value = data.netbox_virtual_device_context.by_id.identifier
+}
+
+output "vdc_status" {
+  value = data.netbox_virtual_device_context.by_id.status
+}
+
+output "vdc_primary_ip4" {
+  value = data.netbox_virtual_device_context.by_id.primary_ip4
+}
+
+output "vdc_primary_ip6" {
+  value = data.netbox_virtual_device_context.by_id.primary_ip6
+}
+
+# Access all custom fields
+output "vdc_custom_fields" {
+  value       = data.netbox_virtual_device_context.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this virtual device context"
+}
+
+# Access specific custom field by name
+output "vdc_tenant_name" {
+  value       = try([for cf in data.netbox_virtual_device_context.by_id.custom_fields : cf.value if cf.name == "tenant_name"][0], null)
+  description = "Example: accessing a text custom field for tenant name"
+}
+
+output "vdc_cpu_limit" {
+  value       = try([for cf in data.netbox_virtual_device_context.by_id.custom_fields : cf.value if cf.name == "cpu_limit"][0], null)
+  description = "Example: accessing a numeric custom field for CPU limit"
 }

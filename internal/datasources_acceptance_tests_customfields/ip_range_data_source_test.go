@@ -13,8 +13,11 @@ import (
 )
 
 func TestAccIPRangeDataSource_customFields(t *testing.T) {
-	startAddress := fmt.Sprintf("10.%d.%d.1", acctest.RandIntRange(1, 254), acctest.RandIntRange(1, 254))
-	endAddress := fmt.Sprintf("10.%d.%d.254", acctest.RandIntRange(1, 254), acctest.RandIntRange(1, 254))
+	octet2 := acctest.RandIntRange(100, 200)
+	octet3 := acctest.RandIntRange(100, 200)
+	octet4Start := acctest.RandIntRange(1, 50)
+	startAddress := fmt.Sprintf("10.%d.%d.%d", octet2, octet3, octet4Start)
+	endAddress := fmt.Sprintf("10.%d.%d.%d", octet2, octet3, octet4Start+50)
 	customFieldName := testutil.RandomCustomFieldName("tf_test_iprange_ds_cf")
 	customFieldValue := "test-value-" + acctest.RandString(8)
 

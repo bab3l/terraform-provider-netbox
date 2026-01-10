@@ -20,7 +20,7 @@ data "netbox_vlan" "by_id" {
 
 # Look up a VLAN by VID
 data "netbox_vlan" "by_vid" {
-  vid = 100
+  vid = "100"
 }
 
 # Look up a VLAN by name
@@ -30,30 +30,58 @@ data "netbox_vlan" "by_name" {
 
 # Look up a VLAN by VID with optional name filter
 data "netbox_vlan" "by_vid_and_name" {
-  vid  = 100
+  vid  = "100"
   name = "test-vlan"
 }
 
-# Use VLAN data in outputs
-output "by_id" {
+# Use VLAN data in other resources
+output "vlan_name" {
   value = data.netbox_vlan.by_id.name
 }
 
-output "by_vid" {
-  value = data.netbox_vlan.by_vid.name
+output "vlan_vid" {
+  value = data.netbox_vlan.by_name.vid
 }
 
-output "vlan_info" {
-  value = {
-    id          = data.netbox_vlan.by_name.id
-    vid         = data.netbox_vlan.by_name.vid
-    name        = data.netbox_vlan.by_name.name
-    site        = data.netbox_vlan.by_name.site
-    group       = data.netbox_vlan.by_name.group
-    status      = data.netbox_vlan.by_name.status
-    role        = data.netbox_vlan.by_name.role
-    description = data.netbox_vlan.by_name.description
-  }
+output "vlan_site" {
+  value = data.netbox_vlan.by_id.site
+}
+
+output "vlan_group" {
+  value = data.netbox_vlan.by_id.group
+}
+
+output "vlan_status" {
+  value = data.netbox_vlan.by_id.status
+}
+
+output "vlan_role" {
+  value = data.netbox_vlan.by_vid.role
+}
+
+output "vlan_tenant" {
+  value = data.netbox_vlan.by_id.tenant
+}
+
+output "vlan_description" {
+  value = data.netbox_vlan.by_name.description
+}
+
+# Access all custom fields
+output "vlan_custom_fields" {
+  value       = data.netbox_vlan.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this VLAN"
+}
+
+# Access specific custom fields by name
+output "vlan_subnet" {
+  value       = try([for cf in data.netbox_vlan.by_id.custom_fields : cf.value if cf.name == "subnet"][0], null)
+  description = "Example: accessing a text custom field"
+}
+
+output "vlan_dhcp_enabled" {
+  value       = try([for cf in data.netbox_vlan.by_id.custom_fields : cf.value if cf.name == "dhcp_enabled"][0], null)
+  description = "Example: accessing a boolean custom field"
 }
 ```
 
@@ -69,6 +97,7 @@ output "vlan_info" {
 ### Read-Only
 
 - `comments` (String) Comments for the VLAN.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) The description of the VLAN.
 - `display_name` (String) Display name of the VLAN.
 - `group` (String) The name of the VLAN group this VLAN belongs to.
@@ -81,3 +110,12 @@ output "vlan_info" {
 - `tags` (List of String) The tags assigned to this VLAN.
 - `tenant` (String) The name of the tenant this VLAN is assigned to.
 - `tenant_id` (Number) The ID of the tenant this VLAN is assigned to.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

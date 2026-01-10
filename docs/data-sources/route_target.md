@@ -24,17 +24,33 @@ data "netbox_route_target" "by_name" {
 }
 
 # Use route target data in other resources
-output "route_target_info" {
-  value = {
-    id          = data.netbox_route_target.by_name.id
-    name        = data.netbox_route_target.by_name.name
-    tenant      = data.netbox_route_target.by_name.tenant
-    description = data.netbox_route_target.by_name.description
-  }
+output "route_target_name" {
+  value = data.netbox_route_target.by_name.name
 }
 
-output "route_target_by_id" {
-  value = data.netbox_route_target.by_id
+output "route_target_tenant" {
+  value = data.netbox_route_target.by_id.tenant
+}
+
+output "route_target_description" {
+  value = data.netbox_route_target.by_id.description
+}
+
+# Access all custom fields
+output "route_target_custom_fields" {
+  value       = data.netbox_route_target.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this route target"
+}
+
+# Access specific custom fields by name
+output "route_target_vrf_name" {
+  value       = try([for cf in data.netbox_route_target.by_id.custom_fields : cf.value if cf.name == "vrf_name"][0], null)
+  description = "Example: accessing a text custom field"
+}
+
+output "route_target_import_enabled" {
+  value       = try([for cf in data.netbox_route_target.by_id.custom_fields : cf.value if cf.name == "import_enabled"][0], null)
+  description = "Example: accessing a boolean custom field"
 }
 ```
 
@@ -49,8 +65,18 @@ output "route_target_by_id" {
 ### Read-Only
 
 - `comments` (String) Comments about the route target.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) The description of the route target.
 - `display_name` (String) The display name of the route target.
 - `tags` (List of String) The tags assigned to this route target.
 - `tenant` (String) The ID of the tenant that owns this route target.
 - `tenant_name` (String) The name of the tenant that owns this route target.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.
