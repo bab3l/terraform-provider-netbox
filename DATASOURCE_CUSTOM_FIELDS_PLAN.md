@@ -10,7 +10,7 @@
 - **Batch 7**: ✅ COMPLETE (3/11 datasources - 100%, 8 not supported)
 - **Batch 8**: ✅ COMPLETE (6/16 datasources - 100%, 10 not supported)
 
-**Overall Progress**: 78/80 datasources complete (98%)
+**Overall Progress**: 81/81 datasources complete (100%)
 
 ## Overview
 This document outlines the plan to fix datasource behavior with custom fields. Currently, datasources return NO custom fields because they pass `nil` as the second parameter to `MapToCustomFieldModels()`, which causes the function to return immediately.
@@ -661,6 +661,19 @@ custom_fields = {
 - Batch of 3 tests: ~3-4 seconds total
 - Serial execution required for custom field tests (avoids race conditions)
 - Cleanup warnings are normal (resources already deleted by test framework)
+
+### Final Batch: Missed Datasources (3 datasources) ✅ COMPLETE
+**Priority**: MEDIUM - Datasources not originally included in batches
+**Status**: ✅ **COMPLETE** - All 3 datasources implemented
+
+1. ✅ `l2vpn_termination_data_source.go` - Pattern fix (MapAllCustomFieldsToModels)
+2. ✅ `circuit_termination_data_source.go` - Full implementation (model, schema, mapping)
+3. ✅ `contact_assignment_data_source.go` - Full implementation (model, schema, mapping)
+
+**Test Priority**: LOW - These are assignment/termination datasources
+**Implementation Time**: ~30 minutes
+
+**Note**: These datasources were discovered during final verification and were not in the original batches.
 
 ## Timeline
 

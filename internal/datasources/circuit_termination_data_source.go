@@ -49,6 +49,7 @@ type CircuitTerminationDataSourceModel struct {
 	DisplayName     types.String `tfsdk:"display_name"`
 	MarkConnected   types.Bool   `tfsdk:"mark_connected"`
 	Tags            types.List   `tfsdk:"tags"`
+	CustomFields    types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -121,6 +122,7 @@ func (d *CircuitTerminationDataSource) Schema(ctx context.Context, req datasourc
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -287,5 +289,16 @@ func (d *CircuitTerminationDataSource) mapResponseToModel(ctx context.Context, t
 		data.DisplayName = types.StringValue(termination.GetDisplay())
 	} else {
 		data.DisplayName = types.StringNull()
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if termination.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(termination.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

@@ -166,8 +166,8 @@ func (d *L2VPNTerminationDataSource) mapResponseToState(ctx context.Context, ter
 	}
 
 	// Custom fields
-	if termination.HasCustomFields() && len(termination.GetCustomFields()) > 0 {
-		customFields := utils.MapToCustomFieldModels(termination.GetCustomFields(), nil)
+	if termination.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(termination.GetCustomFields())
 		customFieldsValue, d := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		diags.Append(d...)
 		data.CustomFields = customFieldsValue
