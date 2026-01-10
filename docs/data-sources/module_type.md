@@ -15,12 +15,7 @@ Retrieves information about a module type in NetBox. Module types define hardwar
 ```terraform
 # Example 1: Lookup by ID
 data "netbox_module_type" "by_id" {
-  id = 1
-}
-
-output "module_type_by_id" {
-  value       = data.netbox_module_type.by_id.model
-  description = "Module type model when looked up by ID"
+  id = "1"
 }
 
 # Example 2: Lookup by model only
@@ -28,20 +23,44 @@ data "netbox_module_type" "by_model" {
   model = "XM-100"
 }
 
-output "module_type_by_model" {
-  value       = data.netbox_module_type.by_model.manufacturer
-  description = "Manufacturer of module type when looked up by model"
-}
-
 # Example 3: Lookup by model and manufacturer_id
 data "netbox_module_type" "by_model_and_manufacturer" {
   model           = "XM-200"
-  manufacturer_id = 10
+  manufacturer_id = "10"
 }
 
-output "module_type_by_model_and_manufacturer" {
-  value       = data.netbox_module_type.by_model_and_manufacturer.part_number
-  description = "Part number of module type when looked up by model and manufacturer"
+# Use module type data in other resources
+output "module_type_model" {
+  value = data.netbox_module_type.by_id.model
+}
+
+output "module_type_manufacturer" {
+  value = data.netbox_module_type.by_model.manufacturer
+}
+
+output "module_type_part_number" {
+  value = data.netbox_module_type.by_model_and_manufacturer.part_number
+}
+
+output "module_type_weight" {
+  value = data.netbox_module_type.by_id.weight
+}
+
+# Access all custom fields
+output "module_type_custom_fields" {
+  value       = data.netbox_module_type.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this module type"
+}
+
+# Access specific custom fields by name
+output "module_type_power_consumption" {
+  value       = try([for cf in data.netbox_module_type.by_id.custom_fields : cf.value if cf.name == "power_consumption_watts"][0], null)
+  description = "Example: accessing a numeric custom field"
+}
+
+output "module_type_compatible_chassis" {
+  value       = try([for cf in data.netbox_module_type.by_id.custom_fields : cf.value if cf.name == "compatible_chassis"][0], null)
+  description = "Example: accessing a multiselect custom field"
 }
 ```
 
@@ -58,9 +77,19 @@ output "module_type_by_model_and_manufacturer" {
 
 - `airflow` (String) Airflow direction.
 - `comments` (String) Additional comments or notes.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) A description of the module type.
 - `display_name` (String) The display name of the module type.
 - `manufacturer` (String) The name of the manufacturer.
 - `part_number` (String) Discrete part number (optional).
 - `weight` (Number) Weight of the module.
 - `weight_unit` (String) Unit for weight measurement.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

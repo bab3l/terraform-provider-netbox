@@ -376,7 +376,7 @@ func (d *DeviceDataSource) mapDeviceToDataSource(ctx context.Context, device *ne
 
 	// Handle custom fields
 	if device.HasCustomFields() && len(device.GetCustomFields()) > 0 {
-		customFields := utils.MapToCustomFieldModels(device.GetCustomFields(), nil)
+		customFields := utils.MapAllCustomFieldsToModels(device.GetCustomFields())
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		resp.Diagnostics.Append(cfDiags...)
 		if resp.Diagnostics.HasError() {

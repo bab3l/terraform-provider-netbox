@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -47,6 +48,7 @@ type IPAddressDataSourceModel struct {
 	Description        types.String `tfsdk:"description"`
 	Comments           types.String `tfsdk:"comments"`
 	Tags               types.List   `tfsdk:"tags"`
+	CustomFields       types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -122,6 +124,7 @@ func (d *IPAddressDataSource) Schema(ctx context.Context, req datasource.SchemaR
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -324,5 +327,16 @@ func (d *IPAddressDataSource) mapIPAddressToState(ctx context.Context, ipAddress
 		data.Tags = tagList
 	} else {
 		data.Tags = types.ListNull(types.StringType)
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if ipAddress.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(ipAddress.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

@@ -446,7 +446,7 @@ func mapRackDataSourceToState(ctx context.Context, rack *netbox.Rack, data *Rack
 
 	// Handle custom fields
 	if rack.HasCustomFields() {
-		customFields := utils.MapToCustomFieldModels(rack.GetCustomFields(), []utils.CustomFieldModel{})
+		customFields := utils.MapAllCustomFieldsToModels(rack.GetCustomFields())
 		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		if !diags.HasError() {
 			data.CustomFields = customFieldsValue

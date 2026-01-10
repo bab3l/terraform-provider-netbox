@@ -240,20 +240,12 @@ func (d *ServiceTemplateDataSource) mapResponseToState(ctx context.Context, serv
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 	}
 
-	// Handle custom fields
+	// Handle custom fields - datasources return ALL fields
 	if serviceTemplate.HasCustomFields() {
-		var existingModels []utils.CustomFieldModel
-		if !data.CustomFields.IsNull() {
-			diagErr := data.CustomFields.ElementsAs(ctx, &existingModels, false)
-			diags.Append(diagErr...)
-		}
-		customFields := utils.MapToCustomFieldModels(serviceTemplate.GetCustomFields(), existingModels)
-		if len(customFields) > 0 {
-			customFieldsValue, diagErr := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-			diags.Append(diagErr...)
+		customFields := utils.MapAllCustomFieldsToModels(serviceTemplate.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
 			data.CustomFields = customFieldsValue
-		} else {
-			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
 	} else {
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)

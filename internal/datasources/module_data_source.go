@@ -8,6 +8,7 @@ import (
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -42,6 +43,7 @@ type ModuleDataSourceModel struct {
 	AssetTag     types.String `tfsdk:"asset_tag"`
 	Description  types.String `tfsdk:"description"`
 	Comments     types.String `tfsdk:"comments"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -109,6 +111,17 @@ func (d *ModuleDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			"comments": schema.StringAttribute{
 				MarkdownDescription: "Additional comments or notes.",
 				Computed:            true,
+			},
+			"custom_fields": schema.SetAttribute{
+				MarkdownDescription: "Custom fields associated with this module.",
+				Computed:            true,
+				ElementType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"name":  types.StringType,
+						"type":  types.StringType,
+						"value": types.StringType,
+					},
+				},
 			},
 		},
 	}
@@ -269,5 +282,18 @@ func (d *ModuleDataSource) mapResponseToModel(module *netbox.Module, data *Modul
 		data.Comments = types.StringValue(*comments)
 	} else {
 		data.Comments = types.StringNull()
+	}
+
+	// Handle custom fields
+	if module.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(module.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

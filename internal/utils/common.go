@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -673,6 +674,82 @@ func MapToCustomFieldModels(customFields map[string]interface{}, stateCustomFiel
 
 	return result
 
+}
+
+// MapAllCustomFieldsToModels converts ALL custom fields from NetBox API to Terraform models.
+// Used by datasources to return complete custom field data.
+// Unlike MapToCustomFieldModels which filters to owned fields for resources,
+// this returns ALL fields present in NetBox.
+func MapAllCustomFieldsToModels(customFields map[string]interface{}) []CustomFieldModel {
+	if len(customFields) == 0 {
+		return nil
+	}
+
+	result := make([]CustomFieldModel, 0, len(customFields))
+
+	for name, value := range customFields {
+		if value == nil {
+			continue // Skip null values
+		}
+
+		cf := CustomFieldModel{
+			Name: types.StringValue(name),
+		}
+
+		// Infer type from value and format accordingly
+		switch v := value.(type) {
+		case map[string]interface{}:
+			// JSON/object type
+			cf.Type = types.StringValue("json")
+			if jsonBytes, err := json.Marshal(v); err == nil {
+				cf.Value = types.StringValue(string(jsonBytes))
+			} else {
+				cf.Value = types.StringValue("")
+			}
+
+		case []interface{}:
+			// Multiselect type
+			cf.Type = types.StringValue("multiselect")
+			var stringValues []string
+			for _, item := range v {
+				if s, ok := item.(string); ok {
+					stringValues = append(stringValues, strings.TrimSpace(s))
+				} else {
+					stringValues = append(stringValues, fmt.Sprintf("%v", item))
+				}
+			}
+			cf.Value = types.StringValue(strings.Join(stringValues, ","))
+
+		case bool:
+			// Boolean type
+			cf.Type = types.StringValue("boolean")
+			cf.Value = types.StringValue(fmt.Sprintf("%t", v))
+
+		case float64:
+			// Number type (JSON unmarshals numbers as float64)
+			cf.Type = types.StringValue("integer")
+			cf.Value = types.StringValue(fmt.Sprintf("%.0f", v))
+
+		case string:
+			// Text/URL/select type (we'll default to text)
+			cf.Type = types.StringValue("text")
+			cf.Value = types.StringValue(strings.TrimSpace(v))
+
+		default:
+			// Fallback to text
+			cf.Type = types.StringValue("text")
+			cf.Value = types.StringValue(fmt.Sprintf("%v", v))
+		}
+
+		result = append(result, cf)
+	}
+
+	// Sort by name for consistent ordering
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Name.ValueString() < result[j].Name.ValueString()
+	})
+
+	return result
 }
 
 // GetTagsAttributeType returns the attribute type for tags.

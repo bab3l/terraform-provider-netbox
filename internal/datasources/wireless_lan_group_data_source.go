@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -33,14 +34,15 @@ type WirelessLANGroupDataSource struct {
 
 // WirelessLANGroupDataSourceModel describes the data source data model.
 type WirelessLANGroupDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Slug        types.String `tfsdk:"slug"`
-	Description types.String `tfsdk:"description"`
-	DisplayName types.String `tfsdk:"display_name"`
-	ParentID    types.Int64  `tfsdk:"parent_id"`
-	ParentName  types.String `tfsdk:"parent_name"`
-	Tags        types.Set    `tfsdk:"tags"`
+	ID           types.String `tfsdk:"id"`
+	Name         types.String `tfsdk:"name"`
+	Slug         types.String `tfsdk:"slug"`
+	Description  types.String `tfsdk:"description"`
+	DisplayName  types.String `tfsdk:"display_name"`
+	ParentID     types.Int64  `tfsdk:"parent_id"`
+	ParentName   types.String `tfsdk:"parent_name"`
+	Tags         types.Set    `tfsdk:"tags"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -91,6 +93,7 @@ func (d *WirelessLANGroupDataSource) Schema(ctx context.Context, req datasource.
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -232,6 +235,17 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 		data.Tags = tagsValue
 	} else {
 		data.Tags = types.SetNull(types.StringType)
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if group.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(group.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

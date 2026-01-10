@@ -30,7 +30,8 @@ data "netbox_service" "by_name_and_vm" {
   virtual_machine = "1"
 }
 
-output "service_by_id" {
+# Use service data in other resources
+output "service_name" {
   value = data.netbox_service.by_id.name
 }
 
@@ -40,6 +41,31 @@ output "service_protocol" {
 
 output "service_ports" {
   value = data.netbox_service.by_name_and_device.ports
+}
+
+output "service_description" {
+  value = data.netbox_service.by_id.description
+}
+
+output "service_ipaddresses" {
+  value = data.netbox_service.by_id.ipaddresses
+}
+
+# Access all custom fields
+output "service_custom_fields" {
+  value       = data.netbox_service.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this service"
+}
+
+# Access specific custom fields by name
+output "service_monitoring_enabled" {
+  value       = try([for cf in data.netbox_service.by_id.custom_fields : cf.value if cf.name == "monitoring_enabled"][0], null)
+  description = "Example: accessing a boolean custom field"
+}
+
+output "service_health_check_url" {
+  value       = try([for cf in data.netbox_service.by_id.custom_fields : cf.value if cf.name == "health_check_url"][0], null)
+  description = "Example: accessing a URL custom field"
 }
 ```
 

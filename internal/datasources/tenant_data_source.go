@@ -184,7 +184,7 @@ func (d *TenantDataSource) mapTenantToState(ctx context.Context, tenant *netbox.
 
 	// Handle custom fields
 	if tenant.HasCustomFields() {
-		customFields := utils.MapToCustomFieldModels(tenant.GetCustomFields(), []utils.CustomFieldModel{})
+		customFields := utils.MapAllCustomFieldsToModels(tenant.GetCustomFields())
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		if !cfDiags.HasError() {
 			data.CustomFields = customFieldsValue

@@ -47,6 +47,7 @@ type CableDataSourceModel struct {
 	Comments      types.String  `tfsdk:"comments"`
 	DisplayName   types.String  `tfsdk:"display_name"`
 	Tags          types.Set     `tfsdk:"tags"`
+	CustomFields  types.Set     `tfsdk:"custom_fields"`
 }
 
 // TerminationDataSourceModel represents a cable termination point.
@@ -96,11 +97,12 @@ func (d *CableDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 				MarkdownDescription: "Length of the cable.",
 				Computed:            true,
 			},
-			"length_unit":  nbschema.DSComputedStringAttribute("Unit for cable length."),
-			"description":  nbschema.DSComputedStringAttribute("Description of the cable."),
-			"comments":     nbschema.DSComputedStringAttribute("Comments about the cable."),
-			"display_name": nbschema.DSComputedStringAttribute("The display name of the cable."),
-			"tags":         nbschema.DSTagsAttribute(),
+			"length_unit":   nbschema.DSComputedStringAttribute("Unit for cable length."),
+			"description":   nbschema.DSComputedStringAttribute("Description of the cable."),
+			"comments":      nbschema.DSComputedStringAttribute("Comments about the cable."),
+			"display_name":  nbschema.DSComputedStringAttribute("The display name of the cable."),
+			"tags":          nbschema.DSTagsAttribute(),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -279,6 +281,19 @@ func (d *CableDataSource) mapResponseToState(ctx context.Context, result *netbox
 		data.DisplayName = types.StringValue(result.GetDisplay())
 	} else {
 		data.DisplayName = types.StringNull()
+	}
+
+	// Handle custom fields
+	if result.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(result.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 	return diags
 }

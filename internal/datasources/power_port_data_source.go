@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -40,6 +41,7 @@ type PowerPortDataSourceModel struct {
 	Description   types.String `tfsdk:"description"`
 	MarkConnected types.Bool   `tfsdk:"mark_connected"`
 	DisplayName   types.String `tfsdk:"display_name"`
+	CustomFields  types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -99,6 +101,7 @@ func (d *PowerPortDataSource) Schema(ctx context.Context, req datasource.SchemaR
 				MarkdownDescription: "The display name of the power port.",
 				Computed:            true,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -251,5 +254,15 @@ func (d *PowerPortDataSource) mapResponseToModel(powerPort *netbox.PowerPort, da
 		data.DisplayName = types.StringValue(powerPort.GetDisplay())
 	} else {
 		data.DisplayName = types.StringNull()
+	}
+	// Map custom fields - datasources return ALL fields
+	if powerPort.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(powerPort.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

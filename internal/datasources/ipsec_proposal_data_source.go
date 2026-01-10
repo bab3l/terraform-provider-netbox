@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -42,6 +43,7 @@ type IPSecProposalDataSourceModel struct {
 	SALifetimeData          types.Int64  `tfsdk:"sa_lifetime_data"`
 	Comments                types.String `tfsdk:"comments"`
 	Tags                    types.List   `tfsdk:"tags"`
+	CustomFields            types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -97,6 +99,7 @@ func (d *IPSecProposalDataSource) Schema(ctx context.Context, req datasource.Sch
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -268,5 +271,16 @@ func (d *IPSecProposalDataSource) mapIPSecProposalToState(ipsec *netbox.IPSecPro
 		data.Tags = tagsValue
 	} else {
 		data.Tags = types.ListNull(types.StringType)
+	}
+
+	// Custom fields - datasources return ALL fields
+	if ipsec.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(ipsec.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

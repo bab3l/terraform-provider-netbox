@@ -22,3 +22,19 @@ output "device_bay_name" {
 output "device_bay_device" {
   value = data.netbox_device_bay.by_device_and_name.device
 }
+
+output "device_bay_installed_device" {
+  value = data.netbox_device_bay.by_id.installed_device
+}
+
+# Access all custom fields
+output "device_bay_custom_fields" {
+  value       = data.netbox_device_bay.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this device bay"
+}
+
+# Access a specific custom field by name
+output "device_bay_slot_type" {
+  value       = try([for cf in data.netbox_device_bay.by_id.custom_fields : cf.value if cf.name == "slot_type"][0], null)
+  description = "Example: accessing a specific custom field value"
+}

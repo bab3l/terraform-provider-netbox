@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -28,14 +29,15 @@ type FHRPGroupDataSource struct {
 
 // FHRPGroupDataSourceModel describes the data source data model.
 type FHRPGroupDataSourceModel struct {
-	ID          types.Int32  `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Protocol    types.String `tfsdk:"protocol"`
-	GroupID     types.Int32  `tfsdk:"group_id"`
-	AuthType    types.String `tfsdk:"auth_type"`
-	Description types.String `tfsdk:"description"`
-	DisplayName types.String `tfsdk:"display_name"`
-	Comments    types.String `tfsdk:"comments"`
+	ID           types.Int32  `tfsdk:"id"`
+	Name         types.String `tfsdk:"name"`
+	Protocol     types.String `tfsdk:"protocol"`
+	GroupID      types.Int32  `tfsdk:"group_id"`
+	AuthType     types.String `tfsdk:"auth_type"`
+	Description  types.String `tfsdk:"description"`
+	DisplayName  types.String `tfsdk:"display_name"`
+	Comments     types.String `tfsdk:"comments"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -82,8 +84,7 @@ func (d *FHRPGroupDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"comments": schema.StringAttribute{
 				MarkdownDescription: "Additional comments about the FHRP group.",
 				Computed:            true,
-			},
-		},
+			}, "custom_fields": nbschema.DSCustomFieldsAttribute()},
 	}
 }
 
@@ -220,6 +221,18 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 	} else {
 		data.Comments = types.StringNull()
 	}
+
+	// Handle custom fields - datasources return ALL fields
+	if fhrpGroup.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(fhrpGroup.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	}
+
 	tflog.Debug(ctx, "Read FHRP group", map[string]interface{}{
 		"id":       data.ID.ValueInt32(),
 		"protocol": data.Protocol.ValueString(),

@@ -15,10 +15,14 @@ Retrieves information about a journal entry in NetBox.
 ```terraform
 # Example: Look up a journal entry by ID (only supported lookup method)
 data "netbox_journal_entry" "by_id" {
-  id = 123
+  id = "123"
 }
 
 # Example: Use journal entry data in other resources
+output "journal_id" {
+  value = data.netbox_journal_entry.by_id.id
+}
+
 output "journal_comments" {
   value = data.netbox_journal_entry.by_id.comments
 }
@@ -29,6 +33,20 @@ output "journal_kind" {
 
 output "journal_object_type" {
   value = data.netbox_journal_entry.by_id.assigned_object_type
+}
+
+output "journal_created_by" {
+  value = data.netbox_journal_entry.by_id.created_by
+}
+
+output "journal_created" {
+  value = data.netbox_journal_entry.by_id.created
+}
+
+# Note: Journal entries do not support custom fields in NetBox API
+output "journal_entry_note" {
+  value       = "Journal entry data is read-only and does not support custom fields"
+  description = "Journal entries track audit history and configuration changes"
 }
 ```
 
@@ -44,5 +62,15 @@ output "journal_object_type" {
 - `assigned_object_id` (Number) The ID of the assigned object.
 - `assigned_object_type` (String) The content type of the assigned object (e.g., `dcim.device`, `dcim.site`, `ipam.ipaddress`).
 - `comments` (String) The content of the journal entry.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `display_name` (String) The display name of the journal entry.
 - `kind` (String) The kind/severity of the journal entry (info, success, warning, danger).
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

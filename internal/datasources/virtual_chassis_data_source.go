@@ -250,8 +250,7 @@ func (d *VirtualChassisDataSource) mapResponseToModel(ctx context.Context, vc *n
 
 	// Handle custom fields
 	if vc.HasCustomFields() {
-		apiCustomFields := vc.GetCustomFields()
-		customFields := utils.MapToCustomFieldModels(apiCustomFields, nil)
+		customFields := utils.MapAllCustomFieldsToModels(vc.GetCustomFields())
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		diags.Append(cfDiags...)
 		if diags.HasError() {

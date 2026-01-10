@@ -221,7 +221,7 @@ func (d *CircuitGroupDataSource) mapResponseToState(ctx context.Context, group *
 
 	// Custom fields
 	if group.HasCustomFields() && len(group.GetCustomFields()) > 0 {
-		customFields := utils.MapToCustomFieldModels(group.GetCustomFields(), nil)
+		customFields := utils.MapAllCustomFieldsToModels(group.GetCustomFields())
 		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		resp.Diagnostics.Append(diags...)
 		data.CustomFields = customFieldsValue

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -44,6 +45,7 @@ type IKEProposalDataSourceModel struct {
 	Comments                types.String `tfsdk:"comments"`
 	DisplayName             types.String `tfsdk:"display_name"`
 	Tags                    types.List   `tfsdk:"tags"`
+	CustomFields            types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -103,6 +105,7 @@ func (d *IKEProposalDataSource) Schema(ctx context.Context, req datasource.Schem
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -274,5 +277,16 @@ func (d *IKEProposalDataSource) mapIKEProposalToState(ike *netbox.IKEProposal, d
 		data.Tags = tagsValue
 	} else {
 		data.Tags = types.ListNull(types.StringType)
+	}
+
+	// Custom fields - datasources return ALL fields
+	if ike.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(ike.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -35,6 +36,7 @@ type JournalEntryDataSourceModel struct {
 	AssignedObjectID   types.Int64  `tfsdk:"assigned_object_id"`
 	Kind               types.String `tfsdk:"kind"`
 	Comments           types.String `tfsdk:"comments"`
+	CustomFields       types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -70,8 +72,7 @@ func (d *JournalEntryDataSource) Schema(ctx context.Context, req datasource.Sche
 			"comments": schema.StringAttribute{
 				MarkdownDescription: "The content of the journal entry.",
 				Computed:            true,
-			},
-		},
+			}, "custom_fields": nbschema.DSCustomFieldsAttribute()},
 	}
 }
 
@@ -140,6 +141,19 @@ func (d *JournalEntryDataSource) Read(ctx context.Context, req datasource.ReadRe
 	} else {
 		data.Kind = types.StringValue("info")
 	}
+
+	// Map custom fields
+	if journalEntry.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(journalEntry.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+		resp.Diagnostics.Append(cfDiags...)
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	}
+
 	tflog.Debug(ctx, "Read journal entry", map[string]interface{}{
 		"id":                   data.ID.ValueInt32(),
 		"assigned_object_type": data.AssignedObjectType.ValueString(),

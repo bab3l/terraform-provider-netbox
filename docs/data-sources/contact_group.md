@@ -33,16 +33,33 @@ output "contact_group_name" {
   value = data.netbox_contact_group.by_name.name
 }
 
-output "contact_group_parent_id" {
-  value = data.netbox_contact_group.by_name.parent_id
+output "contact_group_slug" {
+  value = data.netbox_contact_group.by_slug.slug
 }
 
-output "contact_group_by_id" {
-  value = data.netbox_contact_group.by_id
+output "contact_group_parent" {
+  value = data.netbox_contact_group.by_id.parent
 }
 
-output "contact_group_by_slug" {
-  value = data.netbox_contact_group.by_slug
+output "contact_group_description" {
+  value = data.netbox_contact_group.by_id.description
+}
+
+# Access all custom fields
+output "contact_group_custom_fields" {
+  value       = data.netbox_contact_group.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this contact group"
+}
+
+# Access specific custom fields by name
+output "contact_group_manager" {
+  value       = try([for cf in data.netbox_contact_group.by_id.custom_fields : cf.value if cf.name == "manager_name"][0], null)
+  description = "Example: accessing a text custom field"
+}
+
+output "contact_group_budget_code" {
+  value       = try([for cf in data.netbox_contact_group.by_id.custom_fields : cf.value if cf.name == "budget_code"][0], null)
+  description = "Example: accessing a text custom field"
 }
 ```
 
@@ -57,7 +74,17 @@ output "contact_group_by_slug" {
 
 ### Read-Only
 
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the contact group.
 - `display_name` (String) The display name of the contact group.
 - `parent` (String) Name of the parent contact group.
 - `parent_id` (String) ID of the parent contact group.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

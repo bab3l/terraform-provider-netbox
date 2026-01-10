@@ -397,8 +397,7 @@ func (d *RackTypeDataSource) mapResponseToModel(ctx context.Context, rackType *n
 
 	// Handle custom fields
 	if rackType.HasCustomFields() {
-		apiCustomFields := rackType.GetCustomFields()
-		customFields := utils.MapToCustomFieldModels(apiCustomFields, nil)
+		customFields := utils.MapAllCustomFieldsToModels(rackType.GetCustomFields())
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		diags.Append(cfDiags...)
 		if diags.HasError() {

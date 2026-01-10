@@ -26,18 +26,19 @@ type ContactDataSource struct {
 
 // ContactDataSourceModel describes the contact data source data model.
 type ContactDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Group       types.String `tfsdk:"group"`
-	Title       types.String `tfsdk:"title"`
-	Phone       types.String `tfsdk:"phone"`
-	Email       types.String `tfsdk:"email"`
-	Address     types.String `tfsdk:"address"`
-	Link        types.String `tfsdk:"link"`
-	Description types.String `tfsdk:"description"`
-	Comments    types.String `tfsdk:"comments"`
-	Tags        types.Set    `tfsdk:"tags"`
-	DisplayName types.String `tfsdk:"display_name"`
+	ID           types.String             `tfsdk:"id"`
+	Name         types.String             `tfsdk:"name"`
+	Group        types.String             `tfsdk:"group"`
+	Title        types.String             `tfsdk:"title"`
+	Phone        types.String             `tfsdk:"phone"`
+	Email        types.String             `tfsdk:"email"`
+	Address      types.String             `tfsdk:"address"`
+	Link         types.String             `tfsdk:"link"`
+	Description  types.String             `tfsdk:"description"`
+	Comments     types.String             `tfsdk:"comments"`
+	Tags         types.Set                `tfsdk:"tags"`
+	DisplayName  types.String             `tfsdk:"display_name"`
+	CustomFields []utils.CustomFieldModel `tfsdk:"custom_fields"`
 }
 
 func (d *ContactDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -58,12 +59,13 @@ func (d *ContactDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				Optional:            true,
 				Computed:            true,
 			},
-			"address":      nbschema.DSComputedStringAttribute("Physical address of the contact."),
-			"link":         nbschema.DSComputedStringAttribute("URL link associated with the contact."),
-			"description":  nbschema.DSComputedStringAttribute("Description of the contact."),
-			"comments":     nbschema.DSComputedStringAttribute("Comments about the contact."),
-			"tags":         nbschema.DSTagsAttribute(),
-			"display_name": nbschema.DSComputedStringAttribute("The display name of the contact."),
+			"address":       nbschema.DSComputedStringAttribute("Physical address of the contact."),
+			"link":          nbschema.DSComputedStringAttribute("URL link associated with the contact."),
+			"description":   nbschema.DSComputedStringAttribute("Description of the contact."),
+			"comments":      nbschema.DSComputedStringAttribute("Comments about the contact."),
+			"tags":          nbschema.DSTagsAttribute(),
+			"display_name":  nbschema.DSComputedStringAttribute("The display name of the contact."),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -222,5 +224,12 @@ func (d *ContactDataSource) mapContactToState(ctx context.Context, contact *netb
 		data.DisplayName = types.StringValue(contact.GetDisplay())
 	} else {
 		data.DisplayName = types.StringNull()
+	}
+
+	// Handle custom fields
+	if contact.HasCustomFields() && len(contact.GetCustomFields()) > 0 {
+		data.CustomFields = utils.MapAllCustomFieldsToModels(contact.GetCustomFields())
+	} else {
+		data.CustomFields = nil
 	}
 }

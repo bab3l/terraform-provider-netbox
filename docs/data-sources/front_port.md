@@ -15,12 +15,12 @@ Retrieves information about a front port in NetBox.
 ```terraform
 # Example: Look up a front port by ID
 data "netbox_front_port" "by_id" {
-  id = 1
+  id = "1"
 }
 
 # Example: Look up a front port by device_id and name
 data "netbox_front_port" "by_device_and_name" {
-  device_id = 5
+  device_id = "5"
   name      = "eth0"
 }
 
@@ -33,8 +33,24 @@ output "front_port_name" {
   value = data.netbox_front_port.by_device_and_name.name
 }
 
-output "front_port_device" {
-  value = data.netbox_front_port.by_device_and_name.device
+output "front_port_type" {
+  value = data.netbox_front_port.by_id.type
+}
+
+output "front_port_rear_port" {
+  value = data.netbox_front_port.by_device_and_name.rear_port
+}
+
+# Access all custom fields
+output "front_port_custom_fields" {
+  value       = data.netbox_front_port.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this front port"
+}
+
+# Access a specific custom field by name
+output "front_port_cable_type" {
+  value       = try([for cf in data.netbox_front_port.by_id.custom_fields : cf.value if cf.name == "cable_type"][0], null)
+  description = "Example: accessing a specific custom field value"
 }
 ```
 
@@ -50,6 +66,7 @@ output "front_port_device" {
 ### Read-Only
 
 - `color` (String) Color of the front port in hex format.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) A description of the front port.
 - `device` (String) The name of the device.
 - `display_name` (String) The display name of the front port.
@@ -59,3 +76,12 @@ output "front_port_device" {
 - `rear_port_name` (String) The name of the rear port this front port maps to.
 - `rear_port_position` (Number) Position on the rear port that this front port maps to.
 - `type` (String) The type of front port.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

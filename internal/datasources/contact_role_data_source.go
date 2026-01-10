@@ -25,11 +25,12 @@ type ContactRoleDataSource struct {
 }
 
 type ContactRoleDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Slug        types.String `tfsdk:"slug"`
-	Description types.String `tfsdk:"description"`
-	DisplayName types.String `tfsdk:"display_name"`
+	ID           types.String             `tfsdk:"id"`
+	Name         types.String             `tfsdk:"name"`
+	Slug         types.String             `tfsdk:"slug"`
+	Description  types.String             `tfsdk:"description"`
+	DisplayName  types.String             `tfsdk:"display_name"`
+	CustomFields []utils.CustomFieldModel `tfsdk:"custom_fields"`
 }
 
 func (d *ContactRoleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -41,11 +42,12 @@ func (d *ContactRoleDataSource) Schema(ctx context.Context, req datasource.Schem
 		MarkdownDescription: "Use this data source to get information about a contact role in Netbox.",
 
 		Attributes: map[string]schema.Attribute{
-			"id":           nbschema.DSIDAttribute("contact role"),
-			"name":         nbschema.DSNameAttribute("contact role"),
-			"slug":         nbschema.DSSlugAttribute("contact role"),
-			"description":  nbschema.DSComputedStringAttribute("Description of the contact role."),
-			"display_name": nbschema.DSComputedStringAttribute("The display name of the contact role."),
+			"id":            nbschema.DSIDAttribute("contact role"),
+			"name":          nbschema.DSNameAttribute("contact role"),
+			"slug":          nbschema.DSSlugAttribute("contact role"),
+			"description":   nbschema.DSComputedStringAttribute("Description of the contact role."),
+			"display_name":  nbschema.DSComputedStringAttribute("The display name of the contact role."),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -146,6 +148,13 @@ func (d *ContactRoleDataSource) Read(ctx context.Context, req datasource.ReadReq
 		data.DisplayName = types.StringValue(contactRole.GetDisplay())
 	} else {
 		data.DisplayName = types.StringNull()
+	}
+
+	// Handle custom fields
+	if contactRole.HasCustomFields() && len(contactRole.GetCustomFields()) > 0 {
+		data.CustomFields = utils.MapAllCustomFieldsToModels(contactRole.GetCustomFields())
+	} else {
+		data.CustomFields = nil
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

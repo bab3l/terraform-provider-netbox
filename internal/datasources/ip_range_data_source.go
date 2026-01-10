@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -48,6 +49,7 @@ type IPRangeDataSourceModel struct {
 	Comments     types.String `tfsdk:"comments"`
 	MarkUtilized types.Bool   `tfsdk:"mark_utilized"`
 	Tags         types.List   `tfsdk:"tags"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -128,6 +130,7 @@ func (d *IPRangeDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -328,5 +331,16 @@ func (d *IPRangeDataSource) mapIPRangeToDataSourceModel(ctx context.Context, ipR
 		data.Tags = tagsList
 	} else {
 		data.Tags = types.ListNull(types.StringType)
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if ipRange.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(ipRange.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

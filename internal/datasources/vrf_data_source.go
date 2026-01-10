@@ -242,10 +242,9 @@ func (d *VRFDataSource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 	}
 
-	// Custom fields
+	// Custom fields - datasources return ALL fields
 	if vrf.HasCustomFields() {
-		cf := vrf.GetCustomFields()
-		customFields := utils.MapToCustomFieldModels(cf, nil)
+		customFields := utils.MapAllCustomFieldsToModels(vrf.GetCustomFields())
 		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		diags.Append(cfValueDiags...)
 		if diags.HasError() {

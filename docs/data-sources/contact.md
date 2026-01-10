@@ -28,17 +28,42 @@ data "netbox_contact" "by_email" {
   email = "john.doe@example.com"
 }
 
-# Use contact data in another resource
+# Use contact data in other resources
+output "contact_name" {
+  value = data.netbox_contact.by_id.name
+}
+
 output "contact_phone" {
   value = data.netbox_contact.by_name.phone
 }
 
-output "contact_by_id" {
-  value = data.netbox_contact.by_id
+output "contact_email" {
+  value = data.netbox_contact.by_email.email
 }
 
-output "contact_by_email" {
-  value = data.netbox_contact.by_email
+output "contact_group" {
+  value = data.netbox_contact.by_id.group
+}
+
+output "contact_title" {
+  value = data.netbox_contact.by_id.title
+}
+
+# Access all custom fields
+output "contact_custom_fields" {
+  value       = data.netbox_contact.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this contact"
+}
+
+# Access specific custom fields by name
+output "contact_department" {
+  value       = try([for cf in data.netbox_contact.by_id.custom_fields : cf.value if cf.name == "department"][0], null)
+  description = "Example: accessing a text custom field"
+}
+
+output "contact_on_call" {
+  value       = try([for cf in data.netbox_contact.by_id.custom_fields : cf.value if cf.name == "on_call"][0], null)
+  description = "Example: accessing a boolean custom field"
 }
 ```
 
@@ -55,6 +80,7 @@ output "contact_by_email" {
 
 - `address` (String) Physical address of the contact.
 - `comments` (String) Comments about the contact.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the contact.
 - `display_name` (String) The display name of the contact.
 - `group` (String) ID of the contact group this contact belongs to.
@@ -62,6 +88,16 @@ output "contact_by_email" {
 - `phone` (String) Phone number of the contact.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
 - `title` (String) Job title or role of the contact.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.
+
 
 <a id="nestedatt--tags"></a>
 ### Nested Schema for `tags`

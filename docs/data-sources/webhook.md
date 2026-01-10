@@ -24,6 +24,14 @@ data "netbox_webhook" "by_name" {
 }
 
 # Use webhook data in another configuration
+output "webhook_id" {
+  value = data.netbox_webhook.by_id.id
+}
+
+output "webhook_name" {
+  value = data.netbox_webhook.by_name.name
+}
+
 output "webhook_url" {
   value = data.netbox_webhook.by_name.payload_url
 }
@@ -32,8 +40,24 @@ output "webhook_method" {
   value = data.netbox_webhook.by_name.http_method
 }
 
-output "webhook_by_id" {
-  value = data.netbox_webhook.by_id
+output "webhook_ssl_verification" {
+  value = data.netbox_webhook.by_id.ssl_verification
+}
+
+output "webhook_secret" {
+  value     = data.netbox_webhook.by_id.secret
+  sensitive = true
+}
+
+# Note: Webhooks do not support custom fields in NetBox API
+output "webhook_event_types" {
+  value       = data.netbox_webhook.by_id.events
+  description = "Events that trigger this webhook"
+}
+
+output "webhook_content_type" {
+  value       = data.netbox_webhook.by_id.content_type
+  description = "Content type for webhook payload"
 }
 ```
 
@@ -50,6 +74,7 @@ output "webhook_by_id" {
 - `additional_headers` (String) Additional HTTP headers to include in the request.
 - `body_template` (String) Jinja2 template for a custom request body.
 - `ca_file_path` (String) The specific CA certificate file to use for SSL verification.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the webhook.
 - `display_name` (String) Display name for the webhook.
 - `http_content_type` (String) The HTTP content type header.
@@ -57,6 +82,16 @@ output "webhook_by_id" {
 - `payload_url` (String) The URL that will be called when the webhook is triggered.
 - `ssl_verification` (Boolean) Whether SSL certificate verification is enabled.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.
+
 
 <a id="nestedatt--tags"></a>
 ### Nested Schema for `tags`

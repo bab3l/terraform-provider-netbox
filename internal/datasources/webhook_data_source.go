@@ -38,6 +38,7 @@ type WebhookDataSourceModel struct {
 	SSLVerification   types.Bool   `tfsdk:"ssl_verification"`
 	CAFilePath        types.String `tfsdk:"ca_file_path"`
 	Tags              types.Set    `tfsdk:"tags"`
+	CustomFields      types.Set    `tfsdk:"custom_fields"`
 }
 
 func (d *WebhookDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -60,6 +61,7 @@ func (d *WebhookDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			"ssl_verification":   nbschema.DSComputedBoolAttribute("Whether SSL certificate verification is enabled."),
 			"ca_file_path":       nbschema.DSComputedStringAttribute("The specific CA certificate file to use for SSL verification."),
 			"tags":               nbschema.DSTagsAttribute(),
+			"custom_fields":      nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -206,5 +208,16 @@ func (d *WebhookDataSource) mapWebhookToState(ctx context.Context, webhook *netb
 		}
 	} else {
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	}
+
+	// Map custom fields
+	if webhook.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(webhook.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

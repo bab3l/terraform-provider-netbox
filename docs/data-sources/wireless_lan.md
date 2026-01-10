@@ -37,16 +37,49 @@ output "by_ssid" {
   value = data.netbox_wireless_lan.by_ssid.id
 }
 
-output "wlan_info" {
-  value = {
-    id          = data.netbox_wireless_lan.by_ssid.id
-    ssid        = data.netbox_wireless_lan.by_ssid.ssid
-    status      = data.netbox_wireless_lan.by_ssid.status
-    group_name  = data.netbox_wireless_lan.by_ssid.group_name
-    vlan_name   = data.netbox_wireless_lan.by_ssid.vlan_name
-    auth_type   = data.netbox_wireless_lan.by_ssid.auth_type
-    description = data.netbox_wireless_lan.by_ssid.description
-  }
+output "wlan_id" {
+  value = data.netbox_wireless_lan.by_ssid.id
+}
+
+output "wlan_ssid" {
+  value = data.netbox_wireless_lan.by_ssid.ssid
+}
+
+output "wlan_status" {
+  value = data.netbox_wireless_lan.by_ssid.status
+}
+
+output "wlan_group_name" {
+  value = data.netbox_wireless_lan.by_ssid.group_name
+}
+
+output "wlan_vlan_name" {
+  value = data.netbox_wireless_lan.by_ssid.vlan_name
+}
+
+output "wlan_auth_type" {
+  value = data.netbox_wireless_lan.by_ssid.auth_type
+}
+
+output "wlan_description" {
+  value = data.netbox_wireless_lan.by_ssid.description
+}
+
+# Access all custom fields
+output "wlan_custom_fields" {
+  value       = data.netbox_wireless_lan.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this wireless LAN"
+}
+
+# Access specific custom field by name
+output "wlan_channel" {
+  value       = try([for cf in data.netbox_wireless_lan.by_id.custom_fields : cf.value if cf.name == "channel"][0], null)
+  description = "Example: accessing a numeric custom field for channel number"
+}
+
+output "wlan_is_guest" {
+  value       = try([for cf in data.netbox_wireless_lan.by_id.custom_fields : cf.value if cf.name == "is_guest_network"][0], null)
+  description = "Example: accessing a boolean custom field for guest network status"
 }
 ```
 
@@ -64,6 +97,7 @@ output "wlan_info" {
 - `auth_cipher` (String) Authentication cipher (auto, tkip, aes).
 - `auth_type` (String) Authentication type (open, wep, wpa-personal, wpa-enterprise).
 - `comments` (String) Additional comments or notes about the wireless LAN.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) A description of the wireless LAN.
 - `display_name` (String) Display name for the wireless LAN.
 - `group_name` (String) The name of the wireless LAN group.
@@ -73,3 +107,12 @@ output "wlan_info" {
 - `tenant_name` (String) The name of the tenant this wireless LAN belongs to.
 - `vlan_id` (Number) The ID of the associated VLAN.
 - `vlan_name` (String) The name of the associated VLAN.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

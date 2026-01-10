@@ -15,21 +15,51 @@ Retrieves information about a rear port in NetBox.
 ```terraform
 # Lookup by ID
 data "netbox_rear_port" "by_id" {
-  id = 123
-}
-
-output "by_id" {
-  value = data.netbox_rear_port.by_id.name
+  id = "123"
 }
 
 # Lookup by device_id and name
 data "netbox_rear_port" "by_device_and_name" {
-  device_id = 456
+  device_id = "456"
   name      = "RearPort1"
 }
 
-output "by_device_and_name" {
+# Use rear port data in other resources
+output "rear_port_name" {
+  value = data.netbox_rear_port.by_id.name
+}
+
+output "rear_port_type" {
   value = data.netbox_rear_port.by_device_and_name.type
+}
+
+output "rear_port_device" {
+  value = data.netbox_rear_port.by_id.device
+}
+
+output "rear_port_positions" {
+  value = data.netbox_rear_port.by_id.positions
+}
+
+output "rear_port_label" {
+  value = data.netbox_rear_port.by_id.label
+}
+
+# Access all custom fields
+output "rear_port_custom_fields" {
+  value       = data.netbox_rear_port.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this rear port"
+}
+
+# Access specific custom fields by name
+output "rear_port_patch_panel" {
+  value       = try([for cf in data.netbox_rear_port.by_id.custom_fields : cf.value if cf.name == "patch_panel_id"][0], null)
+  description = "Example: accessing a text custom field"
+}
+
+output "rear_port_managed" {
+  value       = try([for cf in data.netbox_rear_port.by_id.custom_fields : cf.value if cf.name == "is_managed"][0], null)
+  description = "Example: accessing a boolean custom field"
 }
 ```
 
@@ -45,6 +75,7 @@ output "by_device_and_name" {
 ### Read-Only
 
 - `color` (String) Color of the rear port in hex format.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) A description of the rear port.
 - `device` (String) The name of the device.
 - `display_name` (String) The display name of the rear port.
@@ -52,3 +83,12 @@ output "by_device_and_name" {
 - `mark_connected` (Boolean) Whether the port is marked as connected.
 - `positions` (Number) Number of front ports that may be mapped to this rear port.
 - `type` (String) The type of rear port.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

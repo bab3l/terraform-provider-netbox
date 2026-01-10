@@ -41,6 +41,7 @@ type ContactAssignmentDataSourceModel struct {
 	PriorityName types.String `tfsdk:"priority_name"`
 	Tags         types.Set    `tfsdk:"tags"`
 	DisplayName  types.String `tfsdk:"display_name"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 func (d *ContactAssignmentDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -62,6 +63,7 @@ func (d *ContactAssignmentDataSource) Schema(ctx context.Context, req datasource
 			"priority_name": nbschema.DSComputedStringAttribute("Display name for the priority."),
 			"tags":          nbschema.DSTagsAttribute(),
 			"display_name":  nbschema.DSComputedStringAttribute("The display name of the contact assignment."),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -183,5 +185,16 @@ func (d *ContactAssignmentDataSource) mapResponseToState(ctx context.Context, as
 		data.DisplayName = types.StringValue(assignment.GetDisplay())
 	} else {
 		data.DisplayName = types.StringNull()
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if assignment.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(assignment.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

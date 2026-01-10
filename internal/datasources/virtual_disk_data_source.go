@@ -32,14 +32,15 @@ type VirtualDiskDataSource struct {
 
 // VirtualDiskDataSourceModel describes the data source data model.
 type VirtualDiskDataSourceModel struct {
-	ID                 types.String `tfsdk:"id"`
-	Name               types.String `tfsdk:"name"`
-	VirtualMachine     types.String `tfsdk:"virtual_machine"`
-	VirtualMachineName types.String `tfsdk:"virtual_machine_name"`
-	Size               types.String `tfsdk:"size"`
-	Description        types.String `tfsdk:"description"`
-	DisplayName        types.String `tfsdk:"display_name"`
-	Tags               types.List   `tfsdk:"tags"`
+	ID                 types.String             `tfsdk:"id"`
+	Name               types.String             `tfsdk:"name"`
+	VirtualMachine     types.String             `tfsdk:"virtual_machine"`
+	VirtualMachineName types.String             `tfsdk:"virtual_machine_name"`
+	Size               types.String             `tfsdk:"size"`
+	Description        types.String             `tfsdk:"description"`
+	DisplayName        types.String             `tfsdk:"display_name"`
+	Tags               types.List               `tfsdk:"tags"`
+	CustomFields       []utils.CustomFieldModel `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -87,6 +88,26 @@ func (d *VirtualDiskDataSource) Schema(ctx context.Context, req datasource.Schem
 				MarkdownDescription: "The tags assigned to this virtual disk.",
 				Computed:            true,
 				ElementType:         types.StringType,
+			},
+			"custom_fields": schema.ListNestedAttribute{
+				MarkdownDescription: "Custom fields for this virtual disk.",
+				Computed:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							MarkdownDescription: "The name of the custom field.",
+							Computed:            true,
+						},
+						"type": schema.StringAttribute{
+							MarkdownDescription: "The type of the custom field.",
+							Computed:            true,
+						},
+						"value": schema.StringAttribute{
+							MarkdownDescription: "The value of the custom field.",
+							Computed:            true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -248,5 +269,12 @@ func (d *VirtualDiskDataSource) mapVirtualDiskToDataSourceModel(ctx context.Cont
 		data.Tags = tagsList
 	} else {
 		data.Tags = types.ListNull(types.StringType)
+	}
+
+	// Handle custom fields
+	if vd.CustomFields != nil && len(vd.CustomFields) > 0 {
+		data.CustomFields = utils.MapAllCustomFieldsToModels(vd.CustomFields)
+	} else {
+		data.CustomFields = nil
 	}
 }

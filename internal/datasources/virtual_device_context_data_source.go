@@ -267,7 +267,7 @@ func (d *VirtualDeviceContextDataSource) mapToState(ctx context.Context, result 
 
 	// Map custom fields
 	if result.HasCustomFields() && len(result.GetCustomFields()) > 0 {
-		customFields := utils.MapToCustomFieldModels(result.GetCustomFields(), nil)
+		customFields := utils.MapAllCustomFieldsToModels(result.GetCustomFields())
 		cfValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		diags.Append(cfDiags...)
 		data.CustomFields = cfValue

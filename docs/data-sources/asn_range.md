@@ -17,7 +17,7 @@ Use this data source to get information about an ASN Range in Netbox.
 
 # Look up an ASN range by ID
 data "netbox_asn_range" "by_id" {
-  id = 1
+  id = "1"
 }
 
 # Look up an ASN range by name
@@ -30,25 +30,46 @@ data "netbox_asn_range" "by_slug" {
   slug = "private-asn-pool"
 }
 
-# Use the data source to reference ASN range properties
-output "asn_range_details" {
-  value = {
-    id        = data.netbox_asn_range.by_name.id
-    name      = data.netbox_asn_range.by_name.name
-    slug      = data.netbox_asn_range.by_name.slug
-    rir       = data.netbox_asn_range.by_name.rir
-    start     = data.netbox_asn_range.by_name.start
-    end       = data.netbox_asn_range.by_name.end
-    asn_count = data.netbox_asn_range.by_name.asn_count
-  }
+# Use ASN range data in other resources
+output "asn_range_name" {
+  value = data.netbox_asn_range.by_name.name
 }
 
-output "asn_range_by_id" {
-  value = data.netbox_asn_range.by_id
+output "asn_range_slug" {
+  value = data.netbox_asn_range.by_slug.slug
 }
 
-output "asn_range_by_slug" {
-  value = data.netbox_asn_range.by_slug
+output "asn_range_rir" {
+  value = data.netbox_asn_range.by_id.rir
+}
+
+output "asn_range_start" {
+  value = data.netbox_asn_range.by_id.start
+}
+
+output "asn_range_end" {
+  value = data.netbox_asn_range.by_id.end
+}
+
+output "asn_range_count" {
+  value = data.netbox_asn_range.by_name.asn_count
+}
+
+# Access all custom fields
+output "asn_range_custom_fields" {
+  value       = data.netbox_asn_range.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this ASN range"
+}
+
+# Access specific custom fields by name
+output "asn_range_purpose" {
+  value       = try([for cf in data.netbox_asn_range.by_id.custom_fields : cf.value if cf.name == "purpose"][0], null)
+  description = "Example: accessing a select custom field"
+}
+
+output "asn_range_contact" {
+  value       = try([for cf in data.netbox_asn_range.by_id.custom_fields : cf.value if cf.name == "contact_email"][0], null)
+  description = "Example: accessing a text custom field"
 }
 ```
 
@@ -64,6 +85,7 @@ output "asn_range_by_slug" {
 ### Read-Only
 
 - `asn_count` (Number) The number of ASNs allocated from this range.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) The description of the ASN range.
 - `display_name` (String) The display name of the ASN range.
 - `end` (String) The ending ASN in this range.
@@ -73,3 +95,12 @@ output "asn_range_by_slug" {
 - `tags` (List of String) The tags assigned to this ASN range.
 - `tenant` (String) The ID of the tenant that owns this ASN range.
 - `tenant_name` (String) The name of the tenant that owns this ASN range.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

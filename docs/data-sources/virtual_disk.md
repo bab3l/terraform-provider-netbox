@@ -25,18 +25,41 @@ data "netbox_virtual_disk" "by_name" {
 }
 
 # Use virtual disk data in outputs
-output "disk_info" {
-  value = {
-    id                   = data.netbox_virtual_disk.by_name.id
-    name                 = data.netbox_virtual_disk.by_name.name
-    size                 = data.netbox_virtual_disk.by_name.size
-    virtual_machine_name = data.netbox_virtual_disk.by_name.virtual_machine_name
-    description          = data.netbox_virtual_disk.by_name.description
-  }
+output "disk_id" {
+  value = data.netbox_virtual_disk.by_name.id
 }
 
-output "virtual_disk_by_id" {
-  value = data.netbox_virtual_disk.by_id
+output "disk_name" {
+  value = data.netbox_virtual_disk.by_name.name
+}
+
+output "disk_size" {
+  value = data.netbox_virtual_disk.by_name.size
+}
+
+output "disk_virtual_machine" {
+  value = data.netbox_virtual_disk.by_name.virtual_machine_name
+}
+
+output "disk_description" {
+  value = data.netbox_virtual_disk.by_name.description
+}
+
+# Access all custom fields
+output "disk_custom_fields" {
+  value       = data.netbox_virtual_disk.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this virtual disk"
+}
+
+# Access specific custom field by name
+output "disk_storage_type" {
+  value       = try([for cf in data.netbox_virtual_disk.by_id.custom_fields : cf.value if cf.name == "storage_type"][0], null)
+  description = "Example: accessing a select custom field for storage type"
+}
+
+output "disk_iops_limit" {
+  value       = try([for cf in data.netbox_virtual_disk.by_id.custom_fields : cf.value if cf.name == "iops_limit"][0], null)
+  description = "Example: accessing a numeric custom field for IOPS limit"
 }
 ```
 
@@ -51,8 +74,18 @@ output "virtual_disk_by_id" {
 
 ### Read-Only
 
+- `custom_fields` (Attributes List) Custom fields for this virtual disk. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) The description of the virtual disk.
 - `display_name` (String) Display name of the virtual disk.
 - `size` (String) The size of the virtual disk in GB.
 - `tags` (List of String) The tags assigned to this virtual disk.
 - `virtual_machine_name` (String) The name of the virtual machine this disk belongs to.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) The name of the custom field.
+- `type` (String) The type of the custom field.
+- `value` (String) The value of the custom field.

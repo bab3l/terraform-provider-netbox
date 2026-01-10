@@ -237,7 +237,7 @@ func (d *ProviderNetworkDataSource) mapResponseToModel(ctx context.Context, pn *
 	// Handle custom fields
 	if pn.HasCustomFields() {
 		apiCustomFields := pn.GetCustomFields()
-		customFields := utils.MapToCustomFieldModels(apiCustomFields, nil)
+		customFields := utils.MapAllCustomFieldsToModels(apiCustomFields)
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		diags.Append(cfDiags...)
 		if diags.HasError() {

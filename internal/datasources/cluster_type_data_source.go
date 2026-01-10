@@ -220,9 +220,9 @@ func (d *ClusterTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 	}
 
-	// Handle custom fields
+	// Handle custom fields - datasources return ALL fields
 	if clusterType.HasCustomFields() {
-		customFields := utils.MapToCustomFieldModels(clusterType.GetCustomFields(), nil)
+		customFields := utils.MapAllCustomFieldsToModels(clusterType.GetCustomFields())
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		resp.Diagnostics.Append(cfDiags...)
 		if resp.Diagnostics.HasError() {

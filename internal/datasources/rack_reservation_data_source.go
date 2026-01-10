@@ -224,12 +224,13 @@ func (d *RackReservationDataSource) mapToState(ctx context.Context, result *netb
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 	}
 
-	// Map custom fields
-	if result.HasCustomFields() && len(result.GetCustomFields()) > 0 {
-		customFields := utils.MapToCustomFieldModels(result.GetCustomFields(), nil)
-		cfValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		data.CustomFields = cfValue
+	// Handle custom fields - datasources return ALL fields
+	if result.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(result.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
 	} else {
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}

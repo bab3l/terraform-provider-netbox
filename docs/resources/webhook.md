@@ -70,6 +70,7 @@ resource "netbox_webhook" "insecure" {
 - `additional_headers` (String) Additional HTTP headers to include in the request. Headers should be defined in the format `Name: Value`. Jinja2 template processing is supported.
 - `body_template` (String) Jinja2 template for a custom request body. If blank, a JSON object representing the change will be included.
 - `ca_file_path` (String) The specific CA certificate file to use for SSL verification. Leave blank to use the system defaults.
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the webhook.
 - `http_content_type` (String) The HTTP content type header. Defaults to `application/json`.
 - `http_method` (String) The HTTP method used when calling the webhook URL. Valid values: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`. Defaults to `POST`.
@@ -80,6 +81,16 @@ resource "netbox_webhook" "insecure" {
 ### Read-Only
 
 - `id` (String) Unique identifier for the webhook (assigned by Netbox).
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Required:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
+- `value` (String) Value of the custom field.
+
 
 <a id="nestedatt--tags"></a>
 ### Nested Schema for `tags`

@@ -281,7 +281,7 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 	// Handle custom fields
 	if location.HasCustomFields() {
-		customFields := utils.MapToCustomFieldModels(location.GetCustomFields(), []utils.CustomFieldModel{})
+		customFields := utils.MapAllCustomFieldsToModels(location.GetCustomFields())
 		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {

@@ -45,6 +45,7 @@ type WebhookResourceModel struct {
 	SSLVerification   types.Bool   `tfsdk:"ssl_verification"`
 	CAFilePath        types.String `tfsdk:"ca_file_path"`
 	Tags              types.Set    `tfsdk:"tags"`
+	CustomFields      types.Set    `tfsdk:"custom_fields"`
 }
 
 func (r *WebhookResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -55,10 +56,11 @@ func (r *WebhookResource) Schema(ctx context.Context, req resource.SchemaRequest
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a webhook in Netbox. Webhooks allow Netbox to send HTTP requests to external systems when certain events occur.",
 		Attributes: map[string]schema.Attribute{
-			"id":          nbschema.IDAttribute("webhook"),
-			"name":        nbschema.NameAttribute("webhook", 150),
-			"description": nbschema.DescriptionAttribute("webhook"),
-			"tags":        nbschema.TagsAttribute(),
+			"id":            nbschema.IDAttribute("webhook"),
+			"name":          nbschema.NameAttribute("webhook", 150),
+			"description":   nbschema.DescriptionAttribute("webhook"),
+			"tags":          nbschema.TagsAttribute(),
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 			"payload_url": schema.StringAttribute{
 				MarkdownDescription: "The URL that will be called when the webhook is triggered. Jinja2 template processing is supported.",
 				Required:            true,
@@ -173,8 +175,10 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 		webhookRequest.CaFilePath = *netbox.NewNullableString(utils.StringPtr(data.CAFilePath))
 	}
 
-	// Apply metadata fields (tags only for webhook)
+	// Apply metadata fields (tags and custom fields)
+	// Note: We can't use ApplyCommonFields since webhook doesn't have comments
 	utils.ApplyTags(ctx, webhookRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, webhookRequest, data.CustomFields, &resp.Diagnostics)
 
 	webhook, httpResp, err := r.client.ExtrasAPI.ExtrasWebhooksCreate(ctx).WebhookRequest(*webhookRequest).Execute()
 	defer utils.CloseResponseBody(httpResp)
@@ -278,8 +282,9 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 		webhookRequest.CaFilePath = *netbox.NewNullableString(utils.StringPtr(data.CAFilePath))
 	}
 
-	// Handle tags
+	// Handle tags and custom fields
 	utils.ApplyTags(ctx, webhookRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, webhookRequest, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -403,6 +408,12 @@ func (r *WebhookResource) mapWebhookToState(ctx context.Context, webhook *netbox
 	// Map display_name
 	// Handle tags using consolidated helper
 	data.Tags = utils.PopulateTagsFromAPI(ctx, webhook.HasTags(), webhook.GetTags(), data.Tags, diags)
+	if diags.HasError() {
+		return
+	}
+
+	// Map custom fields
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, webhook.GetCustomFields(), diags)
 	if diags.HasError() {
 		return
 	}

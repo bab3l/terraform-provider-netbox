@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -40,6 +41,7 @@ type PowerOutletDataSourceModel struct {
 	FeedLeg       types.String `tfsdk:"feed_leg"`
 	Description   types.String `tfsdk:"description"`
 	MarkConnected types.Bool   `tfsdk:"mark_connected"`
+	CustomFields  types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -61,6 +63,7 @@ func (d *PowerOutletDataSource) Schema(ctx context.Context, req datasource.Schem
 				MarkdownDescription: "The display name of the power outlet.",
 				Computed:            true,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 			"device_id": schema.Int32Attribute{
 				MarkdownDescription: "The numeric ID of the device. Used with name for lookup when ID is not provided.",
 				Optional:            true,
@@ -250,5 +253,15 @@ func (d *PowerOutletDataSource) mapResponseToModel(powerOutlet *netbox.PowerOutl
 		data.MarkConnected = types.BoolValue(*mc)
 	} else {
 		data.MarkConnected = types.BoolValue(false)
+	}
+	// Map custom fields - datasources return ALL fields
+	if powerOutlet.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(powerOutlet.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

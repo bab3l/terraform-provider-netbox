@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -50,6 +51,7 @@ type InventoryItemDataSourceModel struct {
 	Description      types.String `tfsdk:"description"`
 	DisplayName      types.String `tfsdk:"display_name"`
 	Tags             types.Set    `tfsdk:"tags"`
+	CustomFields     types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -153,6 +155,8 @@ func (d *InventoryItemDataSource) Schema(ctx context.Context, req datasource.Sch
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -355,6 +359,17 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 		data.DisplayName = types.StringValue(item.GetDisplay())
 	} else {
 		data.DisplayName = types.StringNull()
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if item.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(item.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

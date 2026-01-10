@@ -13,21 +13,40 @@ Retrieves information about a console server port in NetBox. You can identify th
 ## Example Usage
 
 ```terraform
+# Look up a console server port by ID
 data "netbox_console_server_port" "by_id" {
   id = "789"
 }
 
+# Look up a console server port by device and name
 data "netbox_console_server_port" "by_device_and_name" {
   device_id = "456"
   name      = "csp0"
 }
 
-output "by_id" {
+# Access standard attributes
+output "console_server_port_name" {
   value = data.netbox_console_server_port.by_id.name
 }
 
-output "by_device_and_name" {
-  value = data.netbox_console_server_port.by_device_and_name.id
+output "console_server_port_type" {
+  value = data.netbox_console_server_port.by_id.type
+}
+
+output "console_server_port_device" {
+  value = data.netbox_console_server_port.by_device_and_name.device_id
+}
+
+# Access all custom fields
+output "console_server_port_custom_fields" {
+  value       = data.netbox_console_server_port.by_id.custom_fields
+  description = "All custom fields defined in NetBox for this console server port"
+}
+
+# Access a specific custom field by name
+output "console_server_port_terminal_server" {
+  value       = try([for cf in data.netbox_console_server_port.by_id.custom_fields : cf.value if cf.name == "terminal_server"][0], null)
+  description = "Example: accessing a specific custom field value"
 }
 ```
 
@@ -42,6 +61,7 @@ output "by_device_and_name" {
 
 ### Read-Only
 
+- `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) A description of the console server port.
 - `device` (String) The name of the device.
 - `display_name` (String) The display name of the console server port.
@@ -49,3 +69,12 @@ output "by_device_and_name" {
 - `mark_connected` (Boolean) Treat as if a cable is connected.
 - `speed` (Number) Console server port speed in bps.
 - `type` (String) Console server port type.
+
+<a id="nestedatt--custom_fields"></a>
+### Nested Schema for `custom_fields`
+
+Read-Only:
+
+- `name` (String) Name of the custom field.
+- `type` (String) Type of the custom field.
+- `value` (String) Value of the custom field.

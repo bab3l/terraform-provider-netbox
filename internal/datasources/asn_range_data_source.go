@@ -34,19 +34,20 @@ type ASNRangeDataSource struct {
 
 // ASNRangeDataSourceModel describes the data source data model.
 type ASNRangeDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Slug        types.String `tfsdk:"slug"`
-	RIR         types.String `tfsdk:"rir"`
-	RIRName     types.String `tfsdk:"rir_name"`
-	Start       types.String `tfsdk:"start"`
-	End         types.String `tfsdk:"end"`
-	Tenant      types.String `tfsdk:"tenant"`
-	TenantName  types.String `tfsdk:"tenant_name"`
-	Description types.String `tfsdk:"description"`
-	DisplayName types.String `tfsdk:"display_name"`
-	ASNCount    types.Int64  `tfsdk:"asn_count"`
-	Tags        types.List   `tfsdk:"tags"`
+	ID           types.String `tfsdk:"id"`
+	Name         types.String `tfsdk:"name"`
+	Slug         types.String `tfsdk:"slug"`
+	RIR          types.String `tfsdk:"rir"`
+	RIRName      types.String `tfsdk:"rir_name"`
+	Start        types.String `tfsdk:"start"`
+	End          types.String `tfsdk:"end"`
+	Tenant       types.String `tfsdk:"tenant"`
+	TenantName   types.String `tfsdk:"tenant_name"`
+	Description  types.String `tfsdk:"description"`
+	DisplayName  types.String `tfsdk:"display_name"`
+	ASNCount     types.Int64  `tfsdk:"asn_count"`
+	Tags         types.List   `tfsdk:"tags"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -112,6 +113,7 @@ func (d *ASNRangeDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -294,6 +296,17 @@ func (d *ASNRangeDataSource) mapASNRangeToDataSourceModel(ctx context.Context, a
 		data.Tags = tagsList
 	} else {
 		data.Tags = types.ListNull(types.StringType)
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if asnRange.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(asnRange.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 
 	// Map display name
