@@ -3,10 +3,12 @@ package resources_acceptance_tests
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 // NOTE: Custom field tests for cable resource are in resources_acceptance_tests_customfields package
@@ -575,6 +577,8 @@ func TestAccCableResource_externalDeletion(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName + "-a")
 	cleanup.RegisterDeviceCleanup(deviceName + "-b")
 
+	var createdCableID string
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
@@ -583,25 +587,38 @@ func TestAccCableResource_externalDeletion(t *testing.T) {
 				Config: testAccCableResourceConfig(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_cable.test", "id"),
+					func(s *terraform.State) error {
+						r, ok := s.RootModule().Resources["netbox_cable.test"]
+						if !ok {
+							return fmt.Errorf("resource netbox_cable.test not found in state")
+						}
+						if r.Primary.ID == "" {
+							return fmt.Errorf("netbox_cable.test has empty ID")
+						}
+						createdCableID = r.Primary.ID
+						return nil
+					},
 				),
 			},
 			{
 				PreConfig: func() {
+					if createdCableID == "" {
+						t.Fatalf("created cable ID was not captured from state")
+					}
+					cableID64, err := strconv.ParseInt(createdCableID, 10, 32)
+					if err != nil {
+						t.Fatalf("failed to parse created cable ID %q: %v", createdCableID, err)
+					}
+					cableID := int32(cableID64)
 					client, err := testutil.GetSharedClient()
 					if err != nil {
 						t.Fatalf("Failed to get shared client: %v", err)
 					}
-					// List cables and delete the first one (we just created it)
-					items, _, err := client.DcimAPI.DcimCablesList(context.Background()).Limit(10).Execute()
-					if err != nil || items == nil || len(items.Results) == 0 {
-						t.Fatalf("Failed to list cables for external deletion: %v", err)
-					}
-					itemID := items.Results[0].Id
-					_, err = client.DcimAPI.DcimCablesDestroy(context.Background(), itemID).Execute()
+					_, err = client.DcimAPI.DcimCablesDestroy(context.Background(), cableID).Execute()
 					if err != nil {
 						t.Fatalf("Failed to externally delete cable: %v", err)
 					}
-					t.Logf("Successfully externally deleted cable with ID: %d", itemID)
+					t.Logf("Successfully externally deleted cable with ID: %d", cableID)
 				},
 				Config: testAccCableResourceConfig(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB),
 				Check: resource.ComposeTestCheckFunc(
