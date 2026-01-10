@@ -510,7 +510,11 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 
 		datasources.NewDeviceDataSource,
 
+		datasources.NewDevicesDataSource,
+
 		datasources.NewInterfaceDataSource,
+
+		datasources.NewInterfacesDataSource,
 
 		datasources.NewVRFDataSource,
 
@@ -522,6 +526,10 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 
 		datasources.NewIPAddressDataSource,
 
+		datasources.NewIPAddressesDataSource,
+
+		datasources.NewPrefixesDataSource,
+
 		// Phase 3: Virtualization data sources
 
 		datasources.NewClusterTypeDataSource,
@@ -529,6 +537,8 @@ func (p *NetboxProvider) DataSources(ctx context.Context) []func() datasource.Da
 		datasources.NewClusterDataSource,
 
 		datasources.NewVirtualMachineDataSource,
+
+		datasources.NewVirtualMachinesDataSource,
 
 		datasources.NewVMInterfaceDataSource,
 
