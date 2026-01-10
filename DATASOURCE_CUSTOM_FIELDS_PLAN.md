@@ -4,13 +4,13 @@
 - **Batch 1**: ✅ COMPLETE (13/13 datasources - 100%)
 - **Batch 2**: ✅ COMPLETE (12/12 datasources - 100%)
 - **Batch 3**: ✅ COMPLETE (10/10 datasources - 100%)
-- **Batch 4**: ⏳ Pending (12 datasources - Circuits & VPN)
-- **Batch 5**: ⏳ Pending (10 datasources - Wireless & Contacts)
-- **Batch 6**: ⏳ Pending (11 datasources - VPN & Tunnels)
-- **Batch 7**: ⏳ Pending (12 datasources - Miscellaneous)
+- **Batch 4**: ✅ COMPLETE (12/12 datasources - 100%)
+- **Batch 5**: ✅ COMPLETE (12/12 datasources - 100%)
+- **Batch 6**: 🔧 IN PROGRESS (0/10 datasources - 0%)
+- **Batch 7**: ⏳ Pending (11 datasources - Extras & Admin)
 - **Batch 8**: ⏳ Pending (~10 datasources - Remaining)
 
-**Overall Progress**: 35/80 datasources complete (44%)
+**Overall Progress**: 59/80 datasources complete (74%)
 
 ## Overview
 This document outlines the plan to fix datasource behavior with custom fields. Currently, datasources return NO custom fields because they pass `nil` as the second parameter to `MapToCustomFieldModels()`, which causes the function to return immediately.
@@ -243,44 +243,80 @@ Split into 8 batches of ~10-13 datasources each for manageable PRs.
 **Total Test Time**: ~35 seconds for all tests
 **Implementation Time**: ~6 hours
 
-### Batch 4: Circuits & VPN (12 datasources)
+### Batch 4: Circuits & VPN (12 datasources) ✅ COMPLETE
 **Priority**: MEDIUM - Network connectivity
+**Status**: ✅ **COMPLETE** - All 12 datasources implemented and tested
 
-1. `provider_data_source.go`
-2. `provider_account_data_source.go`
-3. `provider_network_data_source.go`
-4. `circuit_group_data_source.go`
-5. `l2vpn_data_source.go`
-6. `tunnel_data_source.go`
-7. `tunnel_group_data_source.go`
-8. `ike_policy_data_source.go`
-9. `ike_proposal_data_source.go`
-10. `ipsec_policy_data_source.go`
-11. `ipsec_profile_data_source.go`
-12. `ipsec_proposal_data_source.go`
+1. ✅ `provider_data_source.go` - Simple fix (already had custom fields)
+2. ✅ `provider_account_data_source.go` - **Full implementation** (was missing custom fields)
+3. ✅ `provider_network_data_source.go` - Simple fix (already had custom fields)
+4. ✅ `circuit_group_data_source.go` - Simple fix (already had custom fields)
+5. ✅ `l2vpn_data_source.go` - Refactored (removed complex existingModels logic)
+6. ✅ `tunnel_data_source.go` - Simple fix (already had custom fields)
+7. ✅ `tunnel_group_data_source.go` - Simple fix (already had custom fields)
+8. ✅ `ike_policy_data_source.go` - **Full implementation** (was missing custom fields)
+9. ✅ `ike_proposal_data_source.go` - **Full implementation** (was missing custom fields)
+10. ✅ `ipsec_policy_data_source.go` - **Full implementation** (was missing custom fields)
+11. ✅ `ipsec_profile_data_source.go` - **Full implementation** (was missing custom fields)
+12. ✅ `ipsec_proposal_data_source.go` - **Full implementation** (was missing custom fields)
 
-**Test Priority**: MEDIUM - Focus on circuit and L2VPN datasources
+**Test Priority**: MEDIUM - ✅ All 12 tests created and passing
+**Total Test Time**: ~16 seconds for all tests
+**Implementation Time**: ~7 hours
 
-### Batch 5: Ports & Interfaces (12 datasources)
+### Batch 5: Ports & Interfaces (12 datasources) ✅ COMPLETE
 **Priority**: MEDIUM - Port management
+**Status**: ✅ **COMPLETE** - All 12 datasources implemented and tested
 
-1. `console_port_data_source.go`
-2. `console_server_port_data_source.go`
-3. `power_port_data_source.go`
-4. `power_outlet_data_source.go`
-5. `front_port_data_source.go`
-6. `rear_port_data_source.go`
-7. `module_bay_data_source.go`
-8. `inventory_item_data_source.go`
-9. `inventory_item_role_data_source.go`
-10. `power_feed_data_source.go`
-11. `power_panel_data_source.go`
-12. `rack_reservation_data_source.go`
+1. ✅ `console_port_data_source.go` - **Full implementation** (was missing custom fields)
+2. ✅ `console_server_port_data_source.go` - **Full implementation** (was missing custom fields)
+3. ✅ `power_port_data_source.go` - **Full implementation** (was missing custom fields)
+4. ✅ `power_outlet_data_source.go` - **Full implementation** (was missing custom fields) + **RESOURCE BUG FIX**
+5. ✅ `front_port_data_source.go` - **Full implementation** (was missing custom fields)
+6. ✅ `rear_port_data_source.go` - **Full implementation** (was missing custom fields)
+7. ✅ `module_bay_data_source.go` - **Full implementation** (was missing custom fields)
+8. ✅ `inventory_item_data_source.go` - **Full implementation** (was missing custom fields)
+9. ✅ `inventory_item_role_data_source.go` - **Full implementation** (was missing custom fields)
+10. ✅ `power_feed_data_source.go` - Fixed pattern (had custom fields but wrong function)
+11. ✅ `power_panel_data_source.go` - Fixed pattern (had custom fields but wrong function)
+12. ✅ `rack_reservation_data_source.go` - Fixed pattern (had custom fields but wrong function)
 
-**Test Priority**: LOW - Sample tests for port datasources
+**Test Priority**: MEDIUM - ✅ All 12 tests created and passing
+**Total Test Time**: ~46 seconds for all tests
+**Implementation Time**: ~5 hours + bug fix
 
-### Batch 6: Wireless & Services (10 datasources)
+#### Critical Bug Fix: power_outlet Resource
+During implementation, discovered a long-standing bug in `power_outlet_resource.go`:
+
+**Problem**: Resource incorrectly created `BriefPowerPortRequest` with fabricated name:
+```go
+powerPortReq := netbox.BriefPowerPortRequest{
+    Name: fmt.Sprintf("Power Port %d", powerPortID),
+}
+```
+
+This caused API errors: "Related object not found using the provided attributes: {'name': 'Power Port 418'}"
+
+**Root Cause**:
+- Bug existed since resource creation
+- Existing tests deliberately avoided testing `power_port` attribute
+- First test to actually use `power_port` was our datasource test
+
+**Solution**:
+1. Created `LookupPowerPort()` function in `internal/netboxlookup/generic_lookup.go`
+2. Implemented `PowerPortLookupConfig` using `GenericLookup` pattern
+3. Fixed both Create and Update functions in `power_outlet_resource.go`
+4. Handled complex type: `BriefDeviceRequest.Name` is `NullableString`, requires `.Set(&deviceName)`
+
+**Files Modified**:
+- `internal/netboxlookup/generic_lookup.go`: Added PowerPortLookupConfig and LookupPowerPort
+- `internal/resources/power_outlet_resource.go`: Fixed lines ~161 (Create) and ~300 (Update)
+
+**Impact**: Power outlet resource now functional with power_port references for the first time
+
+### Batch 6: Wireless & Services (10 datasources) 🔧 IN PROGRESS
 **Priority**: LOW - Specialized features
+**Status**: 🔧 **IN PROGRESS** - 0 of 10 datasources implemented
 
 1. `wireless_lan_data_source.go`
 2. `wireless_lan_group_data_source.go`
@@ -420,12 +456,19 @@ go test -tags=customfields ./internal/datasources_acceptance_tests_customfields/
 - ✅ Commit and push Batch 2
 
 ### Phase 3.5: Batch 3 Implementation (Week 2) ✅ COMPLETE
-- ✅ Update 10 virtualization/tenancy datasources
-- ✅ Create custom field tests for all Batch 3 datasources
-- ✅ Run tests and verify all passing (10/10 passing)
-- ✅ Commit and push Batch 3atasources
-- [ ] Create custom field tests for all Batch 2 datasources
-- [ ] Run tests and verify all passing
+- ✅ Update 10 virtualizatio
+
+### Phase 4: Batch 4 Implementation (Week 2) ✅ COMPLETE
+- ✅ Update 12 circuits/VPN datasources
+- ✅ Create custom field tests for all Batch 4 datasources
+- ✅ Run tests and verify al
+
+### Phase 5: Batch 5 Implementation (Week 3) ✅ COMPLETE
+- ✅ Update 12 ports/interfaces datasources
+- ✅ Create custom field tests for all Batch 5 datasources
+- ✅ Run tests and verify all passing (12/12 passing)
+- ✅ Fix critical power_outlet resource bug
+- ✅ Commit and push Batch 5l passing
 - [ ] Commit and push Batch 2
 
 ### Phase 4: Batch 3-8 Implementation (Week 3-4)
@@ -449,9 +492,9 @@ go test -tags=customfields ./internal/datasources_acceptance_tests_customfields/
 3. ✅ Test suite verifies 1-3 (35/80 datasources = 44%)
 - **Remaining**: Batches 4-8 (45 datasources)
 - **On Track**: Yes, significantlypdated with examples (planned for final phase)
-6. ✅ All tests passing (13/13 tests, ~15 seconds total runtime)
-
-### Overall Progress
+6. ✅ All tests passinges 1-4 (47/80 datasources = 59%)
+- **Remaining**: Batches 5-8 (33 datasources)
+- **On Track**: Yes, significantly
 - **Completed**: Batch 1 (13/80 datasources = 16%)
 - **Remaining**: Batches 2-8 (67 datasources)
 - **On Track**: Yes, ahead of schedule

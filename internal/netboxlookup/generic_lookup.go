@@ -2809,3 +2809,68 @@ func LookupIPAddress(ctx context.Context, client *netbox.APIClient, value string
 	return GenericLookup(ctx, value, IPAddressLookupConfig(client))
 
 }
+
+// PowerPortLookupConfig returns the lookup configuration for Power Ports.
+
+func PowerPortLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.PowerPort, netbox.BriefPowerPortRequest] {
+
+	return LookupConfig[*netbox.PowerPort, netbox.BriefPowerPortRequest]{
+
+		ResourceName: "Power Port",
+
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.PowerPort, *http.Response, error) {
+
+			return client.DcimAPI.DcimPowerPortsRetrieve(ctx, id).Execute()
+
+		},
+
+		ListBySlug: func(ctx context.Context, name string) ([]*netbox.PowerPort, *http.Response, error) {
+
+			// PowerPort uses name instead of slug
+
+			list, resp, err := client.DcimAPI.DcimPowerPortsList(ctx).Name([]string{name}).Execute()
+
+			if err != nil {
+
+				return nil, resp, err
+
+			}
+
+			results := make([]*netbox.PowerPort, len(list.Results))
+
+			for i := range list.Results {
+
+				results[i] = &list.Results[i]
+
+			}
+
+			return results, resp, nil
+
+		},
+
+		ToBriefRequest: func(p *netbox.PowerPort) netbox.BriefPowerPortRequest {
+
+			device := p.GetDevice()
+			deviceName := device.GetName()
+			powerPortName := p.GetName()
+
+			deviceReq := netbox.BriefDeviceRequest{}
+			deviceReq.Name.Set(&deviceName)
+
+			return netbox.BriefPowerPortRequest{
+				Device: deviceReq,
+				Name:   powerPortName,
+			}
+
+		},
+	}
+
+}
+
+// LookupPowerPort looks up a Power Port by ID or name.
+
+func LookupPowerPort(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefPowerPortRequest, diag.Diagnostics) {
+
+	return GenericLookup(ctx, value, PowerPortLookupConfig(client))
+
+}

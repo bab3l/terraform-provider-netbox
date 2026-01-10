@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -38,6 +39,7 @@ type ModuleBayDataSourceModel struct {
 	Position        types.String `tfsdk:"position"`
 	Description     types.String `tfsdk:"description"`
 	InstalledModule types.Int32  `tfsdk:"installed_module"`
+	CustomFields    types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -88,8 +90,7 @@ func (d *ModuleBayDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"installed_module": schema.Int32Attribute{
 				MarkdownDescription: "The ID of the installed module, if any.",
 				Computed:            true,
-			},
-		},
+			}, "custom_fields": nbschema.DSCustomFieldsAttribute()},
 	}
 }
 
@@ -226,5 +227,16 @@ func (d *ModuleBayDataSource) mapResponseToModel(moduleBay *netbox.ModuleBay, da
 		data.InstalledModule = types.Int32Value(moduleBay.InstalledModule.Get().Id)
 	} else {
 		data.InstalledModule = types.Int32Null()
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if moduleBay.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(moduleBay.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

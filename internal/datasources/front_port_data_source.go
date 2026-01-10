@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -42,6 +43,7 @@ type FrontPortDataSourceModel struct {
 	Description      types.String `tfsdk:"description"`
 	DisplayName      types.String `tfsdk:"display_name"`
 	MarkConnected    types.Bool   `tfsdk:"mark_connected"`
+	CustomFields     types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -109,6 +111,8 @@ func (d *FrontPortDataSource) Schema(ctx context.Context, req datasource.SchemaR
 				MarkdownDescription: "Whether the port is marked as connected.",
 				Computed:            true,
 			},
+
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -263,5 +267,16 @@ func (d *FrontPortDataSource) mapResponseToModel(port *netbox.FrontPort, data *F
 		data.MarkConnected = types.BoolValue(*mc)
 	} else {
 		data.MarkConnected = types.BoolValue(false)
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if port.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(port.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

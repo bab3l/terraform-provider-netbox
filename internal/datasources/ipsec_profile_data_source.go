@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -32,15 +33,16 @@ type IPSecProfileDataSource struct {
 
 // IPSecProfileDataSourceModel describes the data source data model.
 type IPSecProfileDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	DisplayName types.String `tfsdk:"display_name"`
-	Name        types.String `tfsdk:"name"`
-	Description types.String `tfsdk:"description"`
-	Mode        types.String `tfsdk:"mode"`
-	IKEPolicy   types.String `tfsdk:"ike_policy"`
-	IPSecPolicy types.String `tfsdk:"ipsec_policy"`
-	Comments    types.String `tfsdk:"comments"`
-	Tags        types.List   `tfsdk:"tags"`
+	ID           types.String `tfsdk:"id"`
+	DisplayName  types.String `tfsdk:"display_name"`
+	Name         types.String `tfsdk:"name"`
+	Description  types.String `tfsdk:"description"`
+	Mode         types.String `tfsdk:"mode"`
+	IKEPolicy    types.String `tfsdk:"ike_policy"`
+	IPSecPolicy  types.String `tfsdk:"ipsec_policy"`
+	Comments     types.String `tfsdk:"comments"`
+	Tags         types.List   `tfsdk:"tags"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -92,6 +94,7 @@ func (d *IPSecProfileDataSource) Schema(ctx context.Context, req datasource.Sche
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -247,5 +250,16 @@ func (d *IPSecProfileDataSource) mapIPSecProfileToState(ipsec *netbox.IPSecProfi
 		data.Tags = tagsValue
 	} else {
 		data.Tags = types.ListNull(types.StringType)
+	}
+
+	// Custom fields - datasources return ALL fields
+	if ipsec.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(ipsec.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

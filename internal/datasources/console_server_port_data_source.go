@@ -40,6 +40,7 @@ type ConsoleServerPortDataSourceModel struct {
 	Description   types.String `tfsdk:"description"`
 	MarkConnected types.Bool   `tfsdk:"mark_connected"`
 	DisplayName   types.String `tfsdk:"display_name"`
+	CustomFields  types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -91,7 +92,8 @@ func (d *ConsoleServerPortDataSource) Schema(ctx context.Context, req datasource
 				MarkdownDescription: "Treat as if a cable is connected.",
 				Computed:            true,
 			},
-			"display_name": nbschema.DSComputedStringAttribute("The display name of the console server port."),
+			"display_name":  nbschema.DSComputedStringAttribute("The display name of the console server port."),
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -236,5 +238,16 @@ func (d *ConsoleServerPortDataSource) mapResponseToModel(consoleServerPort *netb
 		data.DisplayName = types.StringValue(consoleServerPort.GetDisplay())
 	} else {
 		data.DisplayName = types.StringNull()
+	}
+
+	// Map custom fields - datasources return ALL fields
+	if consoleServerPort.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(consoleServerPort.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }

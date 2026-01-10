@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -33,13 +34,14 @@ type InventoryItemRoleDataSource struct {
 
 // InventoryItemRoleDataSourceModel describes the data source data model.
 type InventoryItemRoleDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Slug        types.String `tfsdk:"slug"`
-	Color       types.String `tfsdk:"color"`
-	Description types.String `tfsdk:"description"`
-	DisplayName types.String `tfsdk:"display_name"`
-	Tags        types.Set    `tfsdk:"tags"`
+	ID           types.String `tfsdk:"id"`
+	Name         types.String `tfsdk:"name"`
+	Slug         types.String `tfsdk:"slug"`
+	Color        types.String `tfsdk:"color"`
+	Description  types.String `tfsdk:"description"`
+	DisplayName  types.String `tfsdk:"display_name"`
+	Tags         types.Set    `tfsdk:"tags"`
+	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -86,6 +88,8 @@ func (d *InventoryItemRoleDataSource) Schema(ctx context.Context, req datasource
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
+
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -224,6 +228,17 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 		data.DisplayName = types.StringValue(role.GetDisplay())
 	} else {
 		data.DisplayName = types.StringNull()
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if role.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(role.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

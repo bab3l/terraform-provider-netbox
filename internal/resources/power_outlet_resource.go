@@ -156,10 +156,14 @@ func (r *PowerOutletResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	if !data.PowerPort.IsNull() && !data.PowerPort.IsUnknown() {
-		powerPortReq := netbox.BriefPowerPortRequest{
-			Name: fmt.Sprintf("Power Port %d", data.PowerPort.ValueInt32()),
+		// Look up the power port to get its device and name
+		powerPortID := fmt.Sprintf("%d", data.PowerPort.ValueInt32())
+		powerPortReq, ppDiags := lookup.LookupPowerPort(ctx, r.client, powerPortID)
+		resp.Diagnostics.Append(ppDiags...)
+		if resp.Diagnostics.HasError() {
+			return
 		}
-		apiReq.SetPowerPort(powerPortReq)
+		apiReq.SetPowerPort(*powerPortReq)
 	}
 
 	if !data.FeedLeg.IsNull() && !data.FeedLeg.IsUnknown() {
@@ -291,10 +295,14 @@ func (r *PowerOutletResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	if !data.PowerPort.IsNull() && !data.PowerPort.IsUnknown() {
-		powerPortReq := netbox.BriefPowerPortRequest{
-			Name: fmt.Sprintf("Power Port %d", data.PowerPort.ValueInt32()),
+		// Look up the power port to get its device and name
+		powerPortID := fmt.Sprintf("%d", data.PowerPort.ValueInt32())
+		powerPortReq, ppDiags := lookup.LookupPowerPort(ctx, r.client, powerPortID)
+		resp.Diagnostics.Append(ppDiags...)
+		if resp.Diagnostics.HasError() {
+			return
 		}
-		apiReq.SetPowerPort(powerPortReq)
+		apiReq.SetPowerPort(*powerPortReq)
 	}
 
 	if !data.FeedLeg.IsNull() && !data.FeedLeg.IsUnknown() {

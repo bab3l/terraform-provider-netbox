@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bab3l/go-netbox"
+	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -40,6 +41,7 @@ type RearPortDataSourceModel struct {
 	Description   types.String `tfsdk:"description"`
 	MarkConnected types.Bool   `tfsdk:"mark_connected"`
 	DisplayName   types.String `tfsdk:"display_name"`
+	CustomFields  types.Set    `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -99,6 +101,8 @@ func (d *RearPortDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 				MarkdownDescription: "The display name of the rear port.",
 				Computed:            true,
 			},
+
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -246,5 +250,16 @@ func (d *RearPortDataSource) mapResponseToModel(port *netbox.RearPort, data *Rea
 		data.DisplayName = types.StringValue(port.GetDisplay())
 	} else {
 		data.DisplayName = types.StringNull()
+	}
+
+	// Handle custom fields - datasources return ALL fields
+	if port.HasCustomFields() {
+		customFields := utils.MapAllCustomFieldsToModels(port.GetCustomFields())
+		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
 }
