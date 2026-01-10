@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.0.14 (2026-01-10)
+
+### ✨ Major Feature: AWS-style plural/query data sources
+- Added AWS-style plural/query data sources using `filter { name, values }` blocks:
+  - `netbox_devices`
+  - `netbox_virtual_machines`
+  - `netbox_ip_addresses`
+  - `netbox_prefixes`
+  - `netbox_interfaces`
+- Query semantics:
+  - Multiple `filter` blocks are ANDed.
+  - Multiple values within a filter are ORed.
+  - At least one filter is required to avoid accidental full listings.
+- Added client-side custom field filtering for plural/query data sources:
+  - `custom_field` (existence)
+  - `custom_field_value` (`field=value`)
+
+### 🧪 Testing & tooling
+- Added unit tests and acceptance tests (including customfields acceptance suites).
+- Improved customfields acceptance execution reliability by ensuring package discovery includes the `customfields` build tag.
+- Added convenience scripts for running unit tests and acceptance tests.
+- Added a VS Code task for running customfields acceptance tests serially.
+
+### 📚 Docs & examples
+- Added/updated examples for the plural/query data sources.
+- Updated generated docs for the new data sources.
+
 ## v0.0.13 (2026-01-08)
 
 ### 🎉 Major Feature: Custom Fields Partial Management
