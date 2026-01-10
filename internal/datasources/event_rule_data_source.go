@@ -281,10 +281,12 @@ func (d *EventRuleDataSource) mapToDataSourceModel(ctx context.Context, result *
 
 	// Map custom fields
 	if result.HasCustomFields() {
-		customFields := utils.MapToCustomFieldModels(result.GetCustomFields(), nil)
+		customFields := utils.MapAllCustomFieldsToModels(result.GetCustomFields())
 		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
+		if !cfDiags.HasError() {
+			data.CustomFields = customFieldsValue
+		}
 		diags.Append(cfDiags...)
-		data.CustomFields = customFieldsValue
 	} else {
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}

@@ -7,10 +7,10 @@
 - **Batch 4**: ✅ COMPLETE (12/12 datasources - 100%)
 - **Batch 5**: ✅ COMPLETE (12/12 datasources - 100%)
 - **Batch 6**: ✅ COMPLETE (10/10 datasources - 100%)
-- **Batch 7**: ⏳ Pending (11 datasources - Extras & Admin)
-- **Batch 8**: ⏳ Pending (~10 datasources - Remaining)
+- **Batch 7**: ✅ COMPLETE (3/11 datasources - 100%, 8 not supported)
+- **Batch 8**: 🔧 IN PROGRESS (~10 datasources - Templates & Miscellaneous)
 
-**Overall Progress**: 69/80 datasources complete (86%)
+**Overall Progress**: 72/80 datasources complete (90%)
 
 ## Overview
 This document outlines the plan to fix datasource behavior with custom fields. Currently, datasources return NO custom fields because they pass `nil` as the second parameter to `MapToCustomFieldModels()`, which causes the function to return immediately.
@@ -333,31 +333,38 @@ This caused API errors: "Related object not found using the provided attributes:
 **Total Test Time**: ~22 seconds for all tests
 **Implementation Time**: ~2.5 hours
 
-### Batch 7: Extras & Admin (11 datasources)
+### Batch 7: Extras & Admin (11 datasources) ✅ COMPLETE
 **Priority**: LOW - Administrative features
+**Status**: ✅ **COMPLETE** - 3/11 datasources implemented, 8 not supported by NetBox API
 
-1. `event_rule_data_source.go`
-2. `journal_entry_data_source.go`
-3. `config_context_data_source.go`
-4. `config_template_data_source.go`
-5. `custom_field_data_source.go`
-6. `custom_link_data_source.go`
-7. `export_template_data_source.go`
-8. `notification_group_data_source.go`
-9. `script_data_source.go`
-10. `webhook_data_source.go`
-11. `tag_data_source.go`
+1. ✅ `event_rule_data_source.go` - COMPLETE (fixed pattern)
+2. ✅ `journal_entry_data_source.go` - COMPLETE (full implementation)
+3. ⚠️ `config_context_data_source.go` - NOT SUPPORTED (no CustomFields in go-netbox)
+4. ⚠️ `config_template_data_source.go` - NOT SUPPORTED (no CustomFields in go-netbox)
+5. ⚠️ `custom_field_data_source.go` - NOT SUPPORTED (no CustomFields in go-netbox)
+6. ⚠️ `custom_link_data_source.go` - NOT SUPPORTED (no CustomFields in go-netbox)
+7. ⚠️ `export_template_data_source.go` - NOT SUPPORTED (no CustomFields in go-netbox)
+8. ⚠️ `notification_group_data_source.go` - NOT SUPPORTED (no CustomFields in go-netbox)
+9. ⚠️ `script_data_source.go` - NOT SUPPORTED (no CustomFields in go-netbox)
+10. ✅ `webhook_data_source.go` - COMPLETE (full implementation + fixed resource)
+11. ⚠️ `tag_data_source.go` - NOT SUPPORTED (no CustomFields in go-netbox)
 
-**Test Priority**: LOW - Sample tests
+**Test Priority**: LOW - ✅ All 3 supported datasources tested and passing
+**Total Test Time**: ~5 seconds for all tests
+**Implementation Time**: ~4 hours (including webhook resource enhancement)
+**Bonus**: Fixed webhook resource to support custom fields with preservation test
+
+**Note**: Most Extras/Admin objects don't support custom fields in NetBox API
 
 ### Batch 8: Templates & Miscellaneous (10 datasources)
 **Priority**: LOW - Template resources (likely no custom fields)
+**Status**: 🔧 IN PROGRESS
 
-1. `console_port_template_data_source.go`
-2. `console_server_port_template_data_source.go`
-3. `device_bay_template_data_source.go`
-4. `front_port_template_data_source.go`
-5. `interface_template_data_source.go`
+1. ⏳ `console_port_template_data_source.go`
+2. ⏳ `console_server_port_template_data_source.go`
+3. ⏳ `device_bay_template_data_source.go`
+4. ⏳ `front_port_template_data_source.go`
+5. ⏳ `interface_template_data_source.go`
 6. `inventory_item_template_data_source.go`
 7. `module_bay_template_data_source.go`
 8. `module_type_data_source.go`
