@@ -427,3 +427,59 @@ resource "netbox_site" "test" {
 }
 `, name, slug, tenantName, tenantSlug, regionName, regionSlug, groupName, groupSlug)
 }
+
+func TestAccSiteResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-optional")
+	siteSlug := testutil.RandomName("tf-test-site-optional")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteName)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_site",
+		BaseConfig: func() string {
+			return testAccSiteResourceConfig_minimal(siteName, siteSlug)
+		},
+		ConfigWithFields: func() string {
+			return testAccSiteResourceConfig_withDescriptionAndComments(
+				siteName,
+				siteSlug,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		RequiredFields: map[string]string{
+			"name": siteName,
+			"slug": siteSlug,
+		},
+		CheckDestroy: testutil.CheckSiteDestroy,
+	})
+}
+
+func testAccSiteResourceConfig_minimal(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+`, name, slug)
+}
+
+func testAccSiteResourceConfig_withDescriptionAndComments(name, slug, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  status      = "active"
+  description = %[3]q
+  comments    = %[4]q
+}
+`, name, slug, description, comments)
+}
