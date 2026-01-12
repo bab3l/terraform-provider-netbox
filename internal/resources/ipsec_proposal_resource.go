@@ -365,6 +365,7 @@ func (r *IPSecProposalResource) setOptionalFields(ctx context.Context, ipsecRequ
 		authAlg := netbox.Authentication(plan.AuthenticationAlgorithm.ValueString())
 		ipsecRequest.AuthenticationAlgorithm = &authAlg
 	}
+	// Note: authentication_algorithm is not explicitly cleared when null - it's simply omitted from the request
 
 	// SA Lifetime Seconds
 	if utils.IsSet(plan.SALifetimeSeconds) {

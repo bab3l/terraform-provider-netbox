@@ -192,3 +192,36 @@ func TestAccWirelessLANGroupResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccWirelessLANGroupResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-wlan-group-rem")
+	slug := testutil.RandomSlug("tf-test-wlan-group-rem")
+	const testDescription = "Test Description"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterWirelessLANGroupCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckWirelessLANGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLANGroupResourceConfig_full(name, slug, testDescription),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_wireless_lan_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_wireless_lan_group.test", "description", testDescription),
+				),
+			},
+			{
+				Config: testAccWirelessLANGroupResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_wireless_lan_group.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_wireless_lan_group.test", "description"),
+				),
+			},
+		},
+	})
+}

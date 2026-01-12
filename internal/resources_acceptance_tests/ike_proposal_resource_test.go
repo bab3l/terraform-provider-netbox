@@ -220,6 +220,55 @@ resource "netbox_ike_proposal" "test" {
 `, name)
 }
 
+func TestAccIKEProposalResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ike-proposal-rem")
+	const testDescription = "Test Description"
+	const testComments = "Test Comments"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEProposalCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckIKEProposalDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEProposalResourceConfig_withDescriptionComments(name, testDescription, testComments),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "comments", testComments),
+				),
+			},
+			{
+				Config: testAccIKEProposalResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_ike_proposal.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_ike_proposal.test", "comments"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIKEProposalResourceConfig_withDescriptionComments(name, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_ike_proposal" "test" {
+  name                     = %[1]q
+  authentication_method    = "preshared-keys"
+  encryption_algorithm     = "aes-128-cbc"
+  authentication_algorithm = "hmac-sha256"
+  group                    = 14
+  description              = %[2]q
+  comments                 = %[3]q
+}
+`, name, description, comments)
+}
+
 func testAccIKEProposalResourceConfig_updated(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_ike_proposal" "test" {

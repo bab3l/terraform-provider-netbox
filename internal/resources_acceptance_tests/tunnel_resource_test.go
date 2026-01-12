@@ -309,3 +309,50 @@ resource "netbox_tunnel" "test" {
 }
 `, name, status)
 }
+
+func TestAccTunnelResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-tunnel-rem")
+	const testDescription = "Test Description"
+	const testComments = "Test Comments"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTunnelResourceConfig_withDescriptionComments(name, testDescription, testComments),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tunnel.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_tunnel.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_tunnel.test", "comments", testComments),
+				),
+			},
+			{
+				Config: testAccTunnelResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tunnel.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_tunnel.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_tunnel.test", "comments"),
+				),
+			},
+		},
+	})
+}
+
+func testAccTunnelResourceConfig_withDescriptionComments(name, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_tunnel" "test" {
+	name          = %[1]q
+	encapsulation = "gre"
+	status        = "active"
+	description   = %[2]q
+	comments      = %[3]q
+}
+`, name, description, comments)
+}

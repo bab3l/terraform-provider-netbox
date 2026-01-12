@@ -615,10 +615,10 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	// Handle description
-	tunnelRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(tunnelRequest, data.Description)
 
 	// Handle comments
-	tunnelRequest.Comments = utils.StringPtr(data.Comments)
+	utils.ApplyComments(tunnelRequest, data.Comments)
 
 	// Handle tags - merge-aware
 	utils.ApplyTags(ctx, tunnelRequest, data.Tags, &resp.Diagnostics)

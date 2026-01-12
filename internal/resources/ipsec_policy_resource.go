@@ -363,6 +363,7 @@ func (r *IPSecPolicyResource) setOptionalFields(ctx context.Context, ipsecReques
 		pfsGroup := netbox.PatchedWritableIPSecPolicyRequestPfsGroup(pfsGroupVal)
 		ipsecRequest.PfsGroup = *netbox.NewNullablePatchedWritableIPSecPolicyRequestPfsGroup(&pfsGroup)
 	}
+	// Note: pfs_group is not explicitly cleared when null - it's simply omitted from the request
 
 	// Set description
 	utils.ApplyDescription(ipsecRequest, plan.Description)

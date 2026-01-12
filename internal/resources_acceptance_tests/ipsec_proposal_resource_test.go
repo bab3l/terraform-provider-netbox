@@ -201,6 +201,52 @@ resource "netbox_ipsec_proposal" "test" {
 `, name)
 }
 
+func TestAccIPSecProposalResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ipsec-proposal-rem")
+	const testDescription = "Test Description"
+	const testComments = "Test Comments"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProposalCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckIPSecProposalDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSECProposalResourceConfig_withDescriptionComments(name, testDescription, testComments),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "comments", testComments),
+				),
+			},
+			{
+				Config: testAccIPSECProposalResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_ipsec_proposal.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_ipsec_proposal.test", "comments"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIPSECProposalResourceConfig_withDescriptionComments(name, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_ipsec_proposal" "test" {
+  name                 = %[1]q
+  encryption_algorithm = "aes-128-cbc"
+  description          = %[2]q
+  comments             = %[3]q
+}
+`, name, description, comments)
+}
+
 func TestAccConsistency_IPSECProposal_LiteralNames(t *testing.T) {
 	t.Parallel()
 

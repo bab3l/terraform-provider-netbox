@@ -220,6 +220,83 @@ resource "netbox_ike_policy" "test" {
 `, proposalName, name)
 }
 
+func TestAccIKEPolicyResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ike-policy-rem")
+	proposalName := testutil.RandomName("tf-test-ike-proposal-rem")
+	const testDescription = "Test Description"
+	const testComments = "Test Comments"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEPolicyCleanup(name)
+	cleanup.RegisterIKEProposalCleanup(proposalName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckIKEPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEPolicyResourceConfig_withDescriptionComments(proposalName, name, testDescription, testComments),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_policy.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_ike_policy.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_ike_policy.test", "comments", testComments),
+				),
+			},
+			{
+				Config: testAccIKEPolicyResourceConfig_basicWithProposal(proposalName, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_policy.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_ike_policy.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_ike_policy.test", "comments"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIKEPolicyResourceConfig_basicWithProposal(proposalName, name string) string {
+	return fmt.Sprintf(`
+resource "netbox_ike_proposal" "test" {
+  name                     = %[1]q
+  authentication_method    = "preshared-keys"
+  encryption_algorithm     = "aes-128-cbc"
+  authentication_algorithm = "hmac-sha256"
+  group                    = 14
+}
+
+resource "netbox_ike_policy" "test" {
+  name      = %[2]q
+  version   = 1
+  mode      = "aggressive"
+  proposals = [netbox_ike_proposal.test.id]
+}
+`, proposalName, name)
+}
+
+func testAccIKEPolicyResourceConfig_withDescriptionComments(proposalName, name, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_ike_proposal" "test" {
+  name                     = %[1]q
+  authentication_method    = "preshared-keys"
+  encryption_algorithm     = "aes-128-cbc"
+  authentication_algorithm = "hmac-sha256"
+  group                    = 14
+}
+
+resource "netbox_ike_policy" "test" {
+  name        = %[2]q
+  version     = 1
+  mode        = "aggressive"
+  proposals   = [netbox_ike_proposal.test.id]
+  description = %[3]q
+  comments    = %[4]q
+}
+`, proposalName, name, description, comments)
+}
+
 func testAccIKEPolicyResourceConfig_updated(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_ike_policy" "test" {

@@ -245,6 +245,51 @@ resource "netbox_wireless_lan" "test" {
 `, wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug)
 }
 
+func TestAccWirelessLANResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	ssid := testutil.RandomName("tf-test-wlan-rem")
+	const testDescription = "Test Description"
+	const testComments = "Test Comments"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterWirelessLANCleanup(ssid)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckWirelessLANDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLANResourceConfig_withDescriptionComments(ssid, testDescription, testComments),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "ssid", ssid),
+					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "comments", testComments),
+				),
+			},
+			{
+				Config: testAccWirelessLANResourceConfig_basic(ssid),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "ssid", ssid),
+					resource.TestCheckNoResourceAttr("netbox_wireless_lan.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_wireless_lan.test", "comments"),
+				),
+			},
+		},
+	})
+}
+
+func testAccWirelessLANResourceConfig_withDescriptionComments(ssid, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_wireless_lan" "test" {
+  ssid        = %[1]q
+  description = %[2]q
+  comments    = %[3]q
+}
+`, ssid, description, comments)
+}
+
 func TestAccConsistency_WirelessLAN_LiteralNames(t *testing.T) {
 	t.Parallel()
 	ssid := testutil.RandomName("tf-test-ssid-lit")
