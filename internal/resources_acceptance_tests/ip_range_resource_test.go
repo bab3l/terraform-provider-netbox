@@ -389,3 +389,52 @@ resource "netbox_ip_range" "test" {
 }
 `, startAddress, endAddress, vrfName, vrfRD, tenantName, tenantSlug, roleName, roleSlug)
 }
+
+func TestAccIPRangeResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	secondOctet := acctest.RandIntRange(201, 254)
+	thirdOctet := acctest.RandIntRange(201, 254)
+	startOctet := 10 + acctest.RandIntRange(1, 200)
+	endOctet := startOctet + 10
+	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
+	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPRangeCleanup(startAddress)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_ip_range",
+		BaseConfig: func() string {
+			return testAccIPRangeResourceConfig_basic(startAddress, endAddress)
+		},
+		ConfigWithFields: func() string {
+			return testAccIPRangeResourceConfig_withDescriptionAndComments(
+				startAddress,
+				endAddress,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		RequiredFields: map[string]string{
+			"start_address": startAddress,
+			"end_address":   endAddress,
+		},
+	})
+}
+
+func testAccIPRangeResourceConfig_withDescriptionAndComments(startAddress, endAddress, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_ip_range" "test" {
+  start_address = %[1]q
+  end_address   = %[2]q
+  status        = "active"
+  description   = %[3]q
+  comments      = %[4]q
+}
+`, startAddress, endAddress, description, comments)
+}

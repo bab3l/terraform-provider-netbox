@@ -84,8 +84,8 @@ Consider creating a test generator that:
 
 ### Phase 2: High-Priority Fixes (Week 2-3) 🚧 IN PROGRESS
 **Batch 2A - Core IPAM Resources (8 resources)** 🚧 CURRENT
-- [ ] `ip_address_resource.go` - description, comments
-- [ ] `prefix_resource.go` - description, comments
+- [x] `ip_address_resource.go` - ✅ **FIXED** (description, comments)
+- [x] `prefix_resource.go` - ✅ **FIXED** (description, comments)
 - [ ] `ip_range_resource.go` - description, comments
 - [ ] `vlan_resource.go` - Status field
 - [ ] `vrf_resource.go` - description, comments

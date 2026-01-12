@@ -442,10 +442,14 @@ func (r *IPRangeResource) setOptionalFields(ctx context.Context, ipRangeRequest 
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		desc := data.Description.ValueString()
 		ipRangeRequest.SetDescription(desc)
+	} else if data.Description.IsNull() {
+		ipRangeRequest.SetDescription("")
 	}
 	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
 		comments := data.Comments.ValueString()
 		ipRangeRequest.SetComments(comments)
+	} else if data.Comments.IsNull() {
+		ipRangeRequest.SetComments("")
 	}
 
 	// Apply tags
