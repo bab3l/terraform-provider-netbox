@@ -142,6 +142,46 @@ func TestAccAggregateResource_IDPreservation(t *testing.T) {
 
 }
 
+func TestAccAggregateResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	rirName := testutil.RandomName("tf-test-rir-optional")
+	rirSlug := testutil.RandomSlug("tf-test-rir-optional")
+	tenantName := testutil.RandomName("tf-test-tenant-optional")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-optional")
+	prefix := testutil.RandomIPv4Prefix()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_aggregate",
+		BaseConfig: func() string {
+			return testAccAggregateResourceConfig_withTenant(rirName, rirSlug, tenantName, tenantSlug, prefix)
+		},
+		ConfigWithFields: func() string {
+			return testAccAggregateResourceConfig_full(
+				rirName, rirSlug, tenantName, tenantSlug,
+				prefix,
+				"Test description",
+				"Test comments",
+				"2024-01-15",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+			"date_added":  "2024-01-15",
+			// Note: tenant is not included as it requires TestCheckResourceAttrSet verification
+			// which the test helper doesn't support for ID-based references
+		},
+		RequiredFields: map[string]string{
+			"prefix": prefix,
+		},
+	})
+}
+
 func testAccAggregateResourceConfig_basic(rirName, rirSlug, prefix string) string {
 	return fmt.Sprintf(`
 resource "netbox_rir" "test" {
@@ -169,6 +209,25 @@ resource "netbox_aggregate" "test" {
   description = %q
 }
 `, rirName, rirSlug, prefix, description)
+}
+
+func testAccAggregateResourceConfig_withTenant(rirName, rirSlug, tenantName, tenantSlug, prefix string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_aggregate" "test" {
+  prefix = %q
+  rir    = netbox_rir.test.id
+}
+`, rirName, rirSlug, tenantName, tenantSlug, prefix)
 }
 
 func testAccAggregateResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, prefix, description, comments, dateAdded string) string {
