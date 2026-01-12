@@ -299,17 +299,6 @@ resource "netbox_rack" "test" {
 // testAccRackResourceConfig_basic returns a basic test configuration.
 func testAccRackResourceConfig_basic(siteName, siteSlug, rackName string) string {
 	return fmt.Sprintf(`
-terraform {
-  required_providers {
-    netbox = {
-      source = "bab3l/netbox"
-      version = ">= 0.1.0"
-    }
-  }
-}
-
-provider "netbox" {}
-
 resource "netbox_site" "test" {
   name   = %q
   slug   = %q
@@ -317,8 +306,9 @@ resource "netbox_site" "test" {
 }
 
 resource "netbox_rack" "test" {
-  name = %q
-  site = netbox_site.test.id
+  name   = %q
+  site   = netbox_site.test.id
+  status = "active"
 }
 `, siteName, siteSlug, rackName)
 }
@@ -490,6 +480,8 @@ func TestAccRackResource_removeOptionalFields(t *testing.T) {
 	tenantSlug := testutil.RandomSlug("tf-test-tenant-rack")
 	roleName := testutil.RandomName("tf-test-role-rack")
 	roleSlug := testutil.RandomSlug("tf-test-role-rack")
+	mfgName := testutil.RandomName("tf-test-mfg-rack")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-rack")
 	rackTypeName := testutil.RandomName("tf-test-racktype")
 	rackTypeSlug := testutil.RandomSlug("tf-test-racktype")
 	rackName := testutil.RandomName("tf-test-rack")
@@ -499,6 +491,7 @@ func TestAccRackResource_removeOptionalFields(t *testing.T) {
 	cleanup.RegisterLocationCleanup(locationSlug)
 	cleanup.RegisterTenantCleanup(tenantSlug)
 	cleanup.RegisterRackRoleCleanup(roleSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
 	cleanup.RegisterSiteCleanup(siteSlug)
 
 	resource.Test(t, resource.TestCase{
@@ -514,7 +507,7 @@ func TestAccRackResource_removeOptionalFields(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Step 1: Create rack with location, tenant, role, and rack_type
 			{
-				Config: testAccRackResourceConfig_withAllFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName),
+				Config: testAccRackResourceConfig_withAllFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
@@ -526,7 +519,7 @@ func TestAccRackResource_removeOptionalFields(t *testing.T) {
 			},
 			// Step 2: Remove location, tenant, role, and rack_type - should set them to null
 			{
-				Config: testAccRackResourceConfig_withoutOptionalFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName),
+				Config: testAccRackResourceConfig_withoutOptionalFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
@@ -538,7 +531,7 @@ func TestAccRackResource_removeOptionalFields(t *testing.T) {
 			},
 			// Step 3: Re-add location, tenant, role, and rack_type - verify they can be set again
 			{
-				Config: testAccRackResourceConfig_withAllFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName),
+				Config: testAccRackResourceConfig_withAllFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
@@ -552,7 +545,7 @@ func TestAccRackResource_removeOptionalFields(t *testing.T) {
 	})
 }
 
-func testAccRackResourceConfig_withAllFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName string) string {
+func testAccRackResourceConfig_withAllFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = %q
@@ -576,8 +569,8 @@ resource "netbox_rack_role" "test" {
 }
 
 resource "netbox_manufacturer" "test" {
-  name = "Test Manufacturer"
-  slug = "test-mfg"
+  name = %q
+  slug = %q
 }
 
 resource "netbox_rack_type" "test" {
@@ -595,10 +588,10 @@ resource "netbox_rack" "test" {
   role      = netbox_rack_role.test.id
   rack_type = netbox_rack_type.test.id
 }
-`, siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName)
+`, siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName)
 }
 
-func testAccRackResourceConfig_withoutOptionalFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName string) string {
+func testAccRackResourceConfig_withoutOptionalFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = %q
@@ -622,8 +615,8 @@ resource "netbox_rack_role" "test" {
 }
 
 resource "netbox_manufacturer" "test" {
-  name = "Test Manufacturer"
-  slug = "test-mfg"
+  name = %q
+  slug = %q
 }
 
 resource "netbox_rack_type" "test" {
@@ -637,7 +630,7 @@ resource "netbox_rack" "test" {
   name = %q
   site = netbox_site.test.id
 }
-`, siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName)
+`, siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName)
 }
 
 func TestAccRackResource_removeDescriptionAndComments(t *testing.T) {

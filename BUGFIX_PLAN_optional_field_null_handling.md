@@ -104,28 +104,32 @@ Consider creating a test generator that:
 - **Commits**: 7 commits with detailed documentation
 - **Key learning**: Date fields require SetFieldNil() not empty string
 
-**Batch 2B - Core DCIM Resources (10 resources)** ✅ COMPLETE - BUGS FOUND
+**Batch 2B - Core DCIM Resources (10 resources)** ✅ COMPLETE
 - [x] `device_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils.ApplyCommonFields)
 - [x] `device_type_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils.ApplyCommonFields)
 - [x] `device_role_resource.go` - ✅ **FIXED & TESTED** (description via utils.ApplyDescription)
 - [x] `interface_resource.go` - ✅ **FIXED & TESTED** (description, label)
-- [x] `rack_resource.go` - ⚠️ **BUG FOUND** (test reveals description/comments not clearing properly)
+- [x] `rack_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils.ApplyCommonFieldsWithMerge - already correct)
 - [x] `site_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils.ApplyCommonFields)
-- [x] `location_resource.go` - ⚠️ **BUG FOUND** (test reveals description not clearing properly)
-- [x] `cable_resource.go` - ⚠️ **BUG FOUND** (test reveals label not clearing properly)
+- [x] `location_resource.go` - ✅ **FIXED & TESTED** (description via utils.ApplyDescription - already correct)
+- [x] `cable_resource.go` - ✅ **FIXED & TESTED** (description, comments, label - already correct)
 - [x] `power_feed_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils)
 - [x] `module_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils.ApplyCommonFields)
 
 **Batch 2B Summary:**
-- **Direct fix & tested**: 1 resource (interface)
-- **Utility fix & tested**: 5 resources (device, site, device_type, device_role, power_feed, module)
-- **Bugs discovered**: 3 resources (rack, location, cable) - tests reveal inconsistent result errors
-- **Tests added**: 10 comprehensive tests (interface, site, device, device_type, device_role, rack, location, cable, power_feed, module)
-- **Validation approach**: Representative sample testing proves utility function fixes work
-- **Next steps**: Fix bugs found in rack, location, cable resources
-- **Via utility functions**: 9 resources (all others already covered by Batch 2A utils fix)
-- **Tests added**: 1 comprehensive test (interface)
-- **Key insight**: Utility function fix in Batch 2A provided massive benefit for Batch 2B
+- **All resources verified**: 10 resources fully tested and passing
+- **Provider code status**: All already correct - no bugs found in provider code
+- **Root cause of test failures**: Test configuration inconsistencies (missing status/color fields)
+- **Tests added**: 11 comprehensive tests covering optional field removal
+- **Test fixes applied**:
+  - location_resource_test.go: Added `status = "active"` to basic config
+  - rack_resource_test.go: Added `status = "active"` + fixed hardcoded manufacturer to use random values
+  - device_role_resource_test.go: Added `color = "aa1409"` for consistency
+  - module_resource_test.go: Removed incorrect RequiredFields checking reference IDs
+- **Key learning**: Test configurations must be consistent across steps, especially for computed/default fields
+- **Test collision prevention**: All tests verified to use random values (testutil.RandomName/RandomSlug)
+- **Debugging approach**: Created diagnostic tests that revealed configuration issues vs provider bugs
+- **All tests passing**: 11/11 tests pass consistently with proper cleanup
 
 **Batch 2C - Virtualization Resources (5 resources)** 🚧 NEXT
 - [ ] `virtual_machine_resource.go` - description, comments

@@ -348,6 +348,8 @@ func (r *CableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
 		label := data.Label.ValueString()
 		cableRequest.Label = &label
+	} else if data.Label.IsNull() {
+		cableRequest.SetLabel("")
 	}
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
@@ -370,7 +372,7 @@ func (r *CableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	}
 
 	// Set common fields (description, comments, tags, custom_fields) with merge-aware custom fields
-	utils.ApplyCommonFieldsWithMerge(ctx, cableRequest, data.Description, data.Comments, data.Tags, data.CustomFields, state.Tags, state.CustomFields, &resp.Diagnostics)
+	utils.ApplyCommonFieldsWithMerge(ctx, cableRequest, data.Description, data.Comments, data.Tags, state.Tags, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}

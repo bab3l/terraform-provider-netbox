@@ -499,10 +499,6 @@ func TestAccModuleResource_removeDescriptionAndComments(t *testing.T) {
 			"description": "Test description",
 			"comments":    "Test comments",
 		},
-		RequiredFields: map[string]string{
-			"module_bay":  "netbox_module_bay.test.id",
-			"module_type": "netbox_module_type.test.id",
-		},
 		CheckDestroy: testutil.CheckModuleDestroy,
 	})
 }

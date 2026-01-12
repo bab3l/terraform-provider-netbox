@@ -232,17 +232,6 @@ resource "netbox_location" "test" {
 
 func testAccLocationResourceConfig_basic(siteName, siteSlug, name, slug string) string {
 	return fmt.Sprintf(`
-terraform {
-  required_providers {
-    netbox = {
-      source  = "bab3l/netbox"
-      version = ">= 0.1.0"
-    }
-  }
-}
-
-provider "netbox" {}
-
 resource "netbox_site" "test" {
   name   = %q
   slug   = %q
@@ -250,9 +239,10 @@ resource "netbox_site" "test" {
 }
 
 resource "netbox_location" "test" {
-  name = %q
-  slug = %q
-  site = netbox_site.test.id
+  name   = %q
+  slug   = %q
+  site   = netbox_site.test.id
+  status = "active"
 }
 `, siteName, siteSlug, name, slug)
 }

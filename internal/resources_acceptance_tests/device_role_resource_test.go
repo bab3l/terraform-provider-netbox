@@ -129,8 +129,9 @@ func TestAccDeviceRoleResource_update(t *testing.T) {
 func testAccDeviceRoleResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_device_role" "test" {
-  name = %q
-  slug = %q
+  name  = %q
+  slug  = %q
+  color = "aa1409"
 }
 `, name, slug)
 }
