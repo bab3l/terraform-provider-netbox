@@ -172,12 +172,34 @@ Consider creating a test generator that:
 - [x] `region_resource.go` - description (Fixed - added parent null handling in Update)
 - [x] `site_group_resource.go` - description (Fixed - added parent null handling in Update)
 
-**Batch 3C - VPN & Wireless (8 resources)**
-- [ ] `tunnel_resource.go` - description, comments
-- [ ] `tunnel_group_resource.go` - description
-- [ ] `l2vpn_resource.go` - description, comments
-- [ ] `ike_policy_resource.go` - description, comments
-- [ ] `ike_proposal_resource.go` - description, comments
+**Batch 3C - VPN & Wireless (10 resources)** 🚧 IN PROGRESS
+- [x] `tunnel_resource.go` - **FIXED** - Added missing comments handling in Create/Update
+- [x] `tunnel_group_resource.go` - **VERIFIED** - Uses utils.ApplyDescription
+- [x] `l2vpn_resource.go` - **VERIFIED** - Uses utils.StringPtr for description/comments, already has removal test
+- [x] `ike_policy_resource.go` - **VERIFIED** - Uses utils.ApplyDescription/ApplyComments
+- [x] `ike_proposal_resource.go` - **VERIFIED** - Uses utils helpers
+- [x] `ipsec_policy_resource.go` - **VERIFIED** - Uses utils helpers
+- [x] `ipsec_profile_resource.go` - **VERIFIED** - Uses utils helpers
+- [x] `ipsec_proposal_resource.go` - **VERIFIED** - Uses utils helpers
+- [x] `wireless_lan_resource.go` - **VERIFIED** - Uses utils.ApplyDescription/ApplyComments
+- [x] `wireless_lan_group_resource.go` - **VERIFIED** - Uses utils helpers
+
+**Batch 3C Tests Status:**
+- [x] `l2vpn` - Already has TestAcc..._removeOptionalFields test
+- [ ] `tunnel` - Need to add removal test for description/comments
+- [ ] `tunnel_group` - Need to add removal test for description
+- [ ] `ike_policy` - Need to add removal test for description/comments
+- [ ] `ike_proposal` - Need to add removal test for description/comments
+- [ ] `ipsec_policy` - Need to add removal test for description/comments
+- [ ] `ipsec_profile` - Need to add removal test for description/comments
+- [ ] `ipsec_proposal` - Need to add removal test for description/comments
+- [ ] `wireless_lan` - Need to add removal test for description/comments
+- [ ] `wireless_lan_group` - Need to add removal test for description
+
+**Batch 3C Summary:**
+- **Code fixes completed**: 1 resource (tunnel) - added missing comments handling
+- **Verification completed**: 9 resources already using utils helpers correctly
+- **Tests remaining**: 9 resources need removal tests added (l2vpn already done)
 - [ ] `ipsec_policy_resource.go` - description, comments
 - [ ] `ipsec_profile_resource.go` - description, comments
 - [ ] `ipsec_proposal_resource.go` - description, comments
