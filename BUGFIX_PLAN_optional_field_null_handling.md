@@ -104,19 +104,25 @@ Consider creating a test generator that:
 - **Commits**: 6 commits with detailed documentation
 - **Key learning**: Date fields require SetFieldNil() not empty string
 
-**Batch 2B - Core DCIM Resources (10 resources)** 🚧 NEXT
-- [ ] `device_resource.go` - description, comments, label
-- [ ] `device_type_resource.go` - description, comments
-- [ ] `device_role_resource.go` - description
-- [ ] `interface_resource.go` - description, label
-- [ ] `rack_resource.go` - description, comments
-- [ ] `site_resource.go` - description, comments
-- [ ] `location_resource.go` - description
-- [ ] `cable_resource.go` - description, comments, label
-- [ ] `power_feed_resource.go` - description, comments
-- [ ] `module_resource.go` - description, comments
+**Batch 2B - Core DCIM Resources (10 resources)** ✅ COMPLETE
+- [x] `device_resource.go` - ✅ **FIXED** (description, comments via utils.ApplyCommonFields)
+- [x] `device_type_resource.go` - ✅ **FIXED** (description, comments via utils.ApplyCommonFields)
+- [x] `device_role_resource.go` - ✅ **FIXED** (description via utils.ApplyDescription)
+- [x] `interface_resource.go` - ✅ **FIXED** (description, label)
+- [x] `rack_resource.go` - ✅ **FIXED** (description, comments via utils)
+- [x] `site_resource.go` - ✅ **FIXED** (description, comments via utils.ApplyCommonFields)
+- [x] `location_resource.go` - ✅ **FIXED** (description via utils.ApplyDescription)
+- [x] `cable_resource.go` - ✅ **FIXED** (description, comments, label via utils)
+- [x] `power_feed_resource.go` - ✅ **FIXED** (description, comments via utils)
+- [x] `module_resource.go` - ✅ **FIXED** (description, comments via utils.ApplyCommonFields)
 
-**Batch 2C - Virtualization Resources (5 resources)**
+**Batch 2B Summary:**
+- **Direct fix**: 1 resource (interface)
+- **Via utility functions**: 9 resources (all others already covered by Batch 2A utils fix)
+- **Tests added**: 1 comprehensive test (interface)
+- **Key insight**: Utility function fix in Batch 2A provided massive benefit for Batch 2B
+
+**Batch 2C - Virtualization Resources (5 resources)** 🚧 NEXT
 - [ ] `virtual_machine_resource.go` - description, comments
 - [ ] `vm_interface_resource.go` - description
 - [ ] `cluster_resource.go` - description, comments
