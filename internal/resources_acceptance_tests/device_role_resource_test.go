@@ -238,4 +238,47 @@ func TestAccDeviceRoleResource_externalDeletion(t *testing.T) {
 	})
 }
 
+func TestAccDeviceRoleResource_removeDescription(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-devrole-optional")
+	slug := testutil.RandomSlug("tf-test-devrole-optional")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceRoleCleanup(slug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_device_role",
+		BaseConfig: func() string {
+			return testAccDeviceRoleResourceConfig_basic(name, slug)
+		},
+		ConfigWithFields: func() string {
+			return testAccDeviceRoleResourceConfig_withDescription(
+				name,
+				slug,
+				"Test description",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+		},
+		RequiredFields: map[string]string{
+			"name": name,
+			"slug": slug,
+		},
+		CheckDestroy: testutil.CheckDeviceRoleDestroy,
+	})
+}
+
+func testAccDeviceRoleResourceConfig_withDescription(name, slug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_device_role" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  color       = "aa1409"
+  description = %[3]q
+}
+`, name, slug, description)
+}
+
 // NOTE: Custom field tests for device_role resource are in resources_acceptance_tests_customfields package

@@ -307,4 +307,60 @@ func TestAccDeviceTypeResource_externalDeletion(t *testing.T) {
 	})
 }
 
+func TestAccDeviceTypeResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	model := testutil.RandomName("tf-test-devtype-optional")
+	slug := testutil.RandomSlug("tf-test-devtype-optional")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(slug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_device_type",
+		BaseConfig: func() string {
+			return testAccDeviceTypeResourceConfig_basic(model, slug, manufacturerName, manufacturerSlug)
+		},
+		ConfigWithFields: func() string {
+			return testAccDeviceTypeResourceConfig_withDescriptionAndComments(
+				model,
+				slug,
+				manufacturerName,
+				manufacturerSlug,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		RequiredFields: map[string]string{
+			"model": model,
+			"slug":  slug,
+		},
+		CheckDestroy: testutil.CheckDeviceTypeDestroy,
+	})
+}
+
+func testAccDeviceTypeResourceConfig_withDescriptionAndComments(model, slug, manufacturerName, manufacturerSlug, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[1]q
+  slug         = %[2]q
+  manufacturer = netbox_manufacturer.test.id
+  description  = %[5]q
+  comments     = %[6]q
+}
+`, model, slug, manufacturerName, manufacturerSlug, description, comments)
+}
+
 // NOTE: Custom field tests for device_type resource are in resources_acceptance_tests_customfields package

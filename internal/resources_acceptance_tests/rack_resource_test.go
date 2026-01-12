@@ -639,3 +639,57 @@ resource "netbox_rack" "test" {
 }
 `, siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName)
 }
+
+func TestAccRackResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-rack-optional")
+	siteSlug := testutil.RandomSlug("tf-test-site-rack")
+	rackName := testutil.RandomName("tf-test-rack-optional")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterRackCleanup(rackName)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_rack",
+		BaseConfig: func() string {
+			return testAccRackResourceConfig_basic(siteName, siteSlug, rackName)
+		},
+		ConfigWithFields: func() string {
+			return testAccRackResourceConfig_withDescriptionAndComments(
+				siteName,
+				siteSlug,
+				rackName,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		RequiredFields: map[string]string{
+			"name": rackName,
+		},
+		CheckDestroy: testutil.CheckRackDestroy,
+	})
+}
+
+func testAccRackResourceConfig_withDescriptionAndComments(siteName, siteSlug, rackName, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_rack" "test" {
+  name        = %[3]q
+  site        = netbox_site.test.id
+  status      = "active"
+  description = %[4]q
+  comments    = %[5]q
+}
+`, siteName, siteSlug, rackName, description, comments)
+}

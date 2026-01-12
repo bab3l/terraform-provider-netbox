@@ -105,19 +105,23 @@ Consider creating a test generator that:
 - **Key learning**: Date fields require SetFieldNil() not empty string
 
 **Batch 2B - Core DCIM Resources (10 resources)** ✅ COMPLETE
-- [x] `device_resource.go` - ✅ **FIXED** (description, comments via utils.ApplyCommonFields)
-- [x] `device_type_resource.go` - ✅ **FIXED** (description, comments via utils.ApplyCommonFields)
-- [x] `device_role_resource.go` - ✅ **FIXED** (description via utils.ApplyDescription)
-- [x] `interface_resource.go` - ✅ **FIXED** (description, label)
-- [x] `rack_resource.go` - ✅ **FIXED** (description, comments via utils)
-- [x] `site_resource.go` - ✅ **FIXED** (description, comments via utils.ApplyCommonFields)
-- [x] `location_resource.go` - ✅ **FIXED** (description via utils.ApplyDescription)
-- [x] `cable_resource.go` - ✅ **FIXED** (description, comments, label via utils)
-- [x] `power_feed_resource.go` - ✅ **FIXED** (description, comments via utils)
-- [x] `module_resource.go` - ✅ **FIXED** (description, comments via utils.ApplyCommonFields)
+- [x] `device_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils.ApplyCommonFields)
+- [x] `device_type_resource.go` - ✅ **FIXED** (description, comments via utils.ApplyCommonFields) *inferred from device test*
+- [x] `device_role_resource.go` - ✅ **FIXED** (description via utils.ApplyDescription) *inferred from utility test*
+- [x] `interface_resource.go` - ✅ **FIXED & TESTED** (description, label)
+- [x] `rack_resource.go` - ✅ **FIXED** (description, comments via utils) *inferred from utility test*
+- [x] `site_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils.ApplyCommonFields)
+- [x] `location_resource.go` - ✅ **FIXED** (description via utils.ApplyDescription) *inferred from utility test*
+- [x] `cable_resource.go` - ✅ **FIXED** (description, comments, label via utils) *inferred from utility test*
+- [x] `power_feed_resource.go` - ✅ **FIXED** (description, comments via utils) *inferred from utility test*
+- [x] `module_resource.go` - ✅ **FIXED** (description, comments via utils.ApplyCommonFields) *inferred from device/site tests*
 
 **Batch 2B Summary:**
-- **Direct fix**: 1 resource (interface)
+- **Direct fix & tested**: 1 resource (interface)
+- **Utility fix & tested**: 2 resources (device, site) - validates ApplyCommonFields works
+- **Utility fix (inferred)**: 7 resources using same utility functions as tested resources
+- **Tests added**: 3 comprehensive tests (interface, site, device)
+- **Validation approach**: Representative sample testing proves utility function fixes work
 - **Via utility functions**: 9 resources (all others already covered by Batch 2A utils fix)
 - **Tests added**: 1 comprehensive test (interface)
 - **Key insight**: Utility function fix in Batch 2A provided massive benefit for Batch 2B

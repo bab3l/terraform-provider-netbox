@@ -450,3 +450,111 @@ resource "netbox_module" "test" {
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, serial)
 }
+
+func TestAccModuleResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-mod-optional")
+	siteSlug := testutil.RandomSlug("tf-test-site-mod")
+	mfgName := testutil.RandomName("tf-test-mfg-mod")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-mod")
+	dtModel := testutil.RandomName("tf-test-devtype-mod")
+	dtSlug := testutil.RandomSlug("tf-test-devtype-mod")
+	roleName := testutil.RandomName("tf-test-role-mod")
+	roleSlug := testutil.RandomSlug("tf-test-role-mod")
+	deviceName := testutil.RandomName("tf-test-device-mod")
+	bayName := testutil.RandomName("tf-test-bay-mod")
+	mtModel := testutil.RandomName("tf-test-modtype-mod")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_module",
+		BaseConfig: func() string {
+			return testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel)
+		},
+		ConfigWithFields: func() string {
+			return testAccModuleResourceConfig_withDescriptionAndComments(
+				siteName,
+				siteSlug,
+				mfgName,
+				mfgSlug,
+				dtModel,
+				dtSlug,
+				roleName,
+				roleSlug,
+				deviceName,
+				bayName,
+				mtModel,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		RequiredFields: map[string]string{
+			"module_bay":  "netbox_module_bay.test.id",
+			"module_type": "netbox_module_type.test.id",
+		},
+		CheckDestroy: testutil.CheckModuleDestroy,
+	})
+}
+
+func testAccModuleResourceConfig_withDescriptionAndComments(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %q
+  slug   = %q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %q
+  slug         = %q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %q
+  slug  = %q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_module_bay" "test" {
+  device = netbox_device.test.id
+  name   = %q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+}
+
+resource "netbox_module" "test" {
+  device      = netbox_device.test.id
+  module_bay  = netbox_module_bay.test.id
+  module_type = netbox_module_type.test.id
+  description = %q
+  comments    = %q
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description, comments)
+}
