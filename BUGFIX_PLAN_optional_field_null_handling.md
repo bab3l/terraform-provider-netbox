@@ -84,14 +84,14 @@ Consider creating a test generator that:
 
 ### Phase 2: High-Priority Fixes (Week 2-3) 🚧 IN PROGRESS
 **Batch 2A - Core IPAM Resources (8 resources)** ✅ COMPLETE
-- [x] `ip_address_resource.go` - ✅ **FIXED** (description, comments)
-- [x] `prefix_resource.go` - ✅ **FIXED** (description, comments)
-- [x] `ip_range_resource.go` - ✅ **FIXED** (description, comments)
+- [x] `ip_address_resource.go` - ✅ **FIXED & TESTED** (description, comments)
+- [x] `prefix_resource.go` - ✅ **FIXED & TESTED** (description, comments)
+- [x] `ip_range_resource.go` - ✅ **FIXED & TESTED** (description, comments)
 - [x] `vlan_resource.go` - ✅ **N/A** (Status field has default value, already correct)
-- [x] `vrf_resource.go` - ✅ **FIXED** (description, comments via utils.ApplyDescription/ApplyComments)
-- [x] `aggregate_resource.go` - ✅ **FIXED** (description, comments, date_added, tenant)
-- [x] `asn_resource.go` - ✅ **FIXED** (Phase 1 reference implementation - description, comments)
-- [x] `asn_range_resource.go` - ✅ **FIXED** (description via utils.ApplyDescription)
+- [x] `vrf_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils.ApplyDescription/ApplyComments)
+- [x] `aggregate_resource.go` - ✅ **FIXED & TESTED** (description, comments, date_added, tenant)
+- [x] `asn_resource.go` - ✅ **FIXED & TESTED** (Phase 1 reference implementation - description, comments)
+- [x] `asn_range_resource.go` - ✅ **FIXED & TESTED** (description via utils.ApplyDescription - no comments field in schema)
 
 **Batch 2A Summary:**
 - **Direct fixes**: 5 resources (ip_address, prefix, ip_range, aggregate, asn)
@@ -100,28 +100,29 @@ Consider creating a test generator that:
   - inventory_item, ipsec_profile, ipsec_proposal, module_bay
   - notification_group, rear_port, wireless_lan, wireless_lan_group
   - vrf, asn_range
-- **Tests added**: 6 comprehensive tests (aggregate, ip_address, prefix, ip_range, vrf, asn from Phase 1)
-- **Commits**: 6 commits with detailed documentation
+- **Tests added**: 7 comprehensive tests (aggregate, ip_address, prefix, ip_range, vrf, asn from Phase 1, asn_range)
+- **Commits**: 7 commits with detailed documentation
 - **Key learning**: Date fields require SetFieldNil() not empty string
 
-**Batch 2B - Core DCIM Resources (10 resources)** ✅ COMPLETE
+**Batch 2B - Core DCIM Resources (10 resources)** ✅ COMPLETE - BUGS FOUND
 - [x] `device_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils.ApplyCommonFields)
-- [x] `device_type_resource.go` - ✅ **FIXED** (description, comments via utils.ApplyCommonFields) *inferred from device test*
-- [x] `device_role_resource.go` - ✅ **FIXED** (description via utils.ApplyDescription) *inferred from utility test*
+- [x] `device_type_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils.ApplyCommonFields)
+- [x] `device_role_resource.go` - ✅ **FIXED & TESTED** (description via utils.ApplyDescription)
 - [x] `interface_resource.go` - ✅ **FIXED & TESTED** (description, label)
-- [x] `rack_resource.go` - ✅ **FIXED** (description, comments via utils) *inferred from utility test*
+- [x] `rack_resource.go` - ⚠️ **BUG FOUND** (test reveals description/comments not clearing properly)
 - [x] `site_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils.ApplyCommonFields)
-- [x] `location_resource.go` - ✅ **FIXED** (description via utils.ApplyDescription) *inferred from utility test*
-- [x] `cable_resource.go` - ✅ **FIXED** (description, comments, label via utils) *inferred from utility test*
-- [x] `power_feed_resource.go` - ✅ **FIXED** (description, comments via utils) *inferred from utility test*
-- [x] `module_resource.go` - ✅ **FIXED** (description, comments via utils.ApplyCommonFields) *inferred from device/site tests*
+- [x] `location_resource.go` - ⚠️ **BUG FOUND** (test reveals description not clearing properly)
+- [x] `cable_resource.go` - ⚠️ **BUG FOUND** (test reveals label not clearing properly)
+- [x] `power_feed_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils)
+- [x] `module_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils.ApplyCommonFields)
 
 **Batch 2B Summary:**
 - **Direct fix & tested**: 1 resource (interface)
-- **Utility fix & tested**: 2 resources (device, site) - validates ApplyCommonFields works
-- **Utility fix (inferred)**: 7 resources using same utility functions as tested resources
-- **Tests added**: 3 comprehensive tests (interface, site, device)
+- **Utility fix & tested**: 5 resources (device, site, device_type, device_role, power_feed, module)
+- **Bugs discovered**: 3 resources (rack, location, cable) - tests reveal inconsistent result errors
+- **Tests added**: 10 comprehensive tests (interface, site, device, device_type, device_role, rack, location, cable, power_feed, module)
 - **Validation approach**: Representative sample testing proves utility function fixes work
+- **Next steps**: Fix bugs found in rack, location, cable resources
 - **Via utility functions**: 9 resources (all others already covered by Batch 2A utils fix)
 - **Tests added**: 1 comprehensive test (interface)
 - **Key insight**: Utility function fix in Batch 2A provided massive benefit for Batch 2B
