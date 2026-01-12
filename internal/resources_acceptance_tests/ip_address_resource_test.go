@@ -569,3 +569,44 @@ resource "netbox_ip_address" "test" {
 }
 `, vrfName, vrfRD, tenantName, tenantSlug, address)
 }
+
+func TestAccIPAddressResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	address := fmt.Sprintf("198.51.100.%d/32", acctest.RandIntRange(1, 254))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_ip_address",
+		BaseConfig: func() string {
+			return testAccIPAddressResourceConfig_basic(address)
+		},
+		ConfigWithFields: func() string {
+			return testAccIPAddressResourceConfig_withDescriptionAndComments(
+				address,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		RequiredFields: map[string]string{
+			"address": address,
+		},
+	})
+}
+
+func testAccIPAddressResourceConfig_withDescriptionAndComments(address, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_ip_address" "test" {
+  address     = %[1]q
+  status      = "active"
+  description = %[2]q
+  comments    = %[3]q
+}
+`, address, description, comments)
+}

@@ -394,10 +394,20 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 	}
 
 	// Description
-	ipRequest.Description = utils.StringPtr(plan.Description)
+	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
+		desc := plan.Description.ValueString()
+		ipRequest.Description = &desc
+	} else if plan.Description.IsNull() {
+		ipRequest.SetDescription("")
+	}
 
 	// Comments
-	ipRequest.Comments = utils.StringPtr(plan.Comments)
+	if !plan.Comments.IsNull() && !plan.Comments.IsUnknown() {
+		comments := plan.Comments.ValueString()
+		ipRequest.Comments = &comments
+	} else if plan.Comments.IsNull() {
+		ipRequest.SetComments("")
+	}
 
 	// Handle tags
 	utils.ApplyTags(ctx, ipRequest, plan.Tags, diags)
