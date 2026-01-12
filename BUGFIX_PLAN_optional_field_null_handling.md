@@ -83,17 +83,28 @@ Consider creating a test generator that:
 - Comprehensive documentation in `docs/TESTING_OPTIONAL_FIELDS.md`
 
 ### Phase 2: High-Priority Fixes (Week 2-3) 🚧 IN PROGRESS
-**Batch 2A - Core IPAM Resources (8 resources)** 🚧 CURRENT
+**Batch 2A - Core IPAM Resources (8 resources)** ✅ COMPLETE
 - [x] `ip_address_resource.go` - ✅ **FIXED** (description, comments)
 - [x] `prefix_resource.go` - ✅ **FIXED** (description, comments)
-- [ ] `ip_range_resource.go` - description, comments
-- [ ] `vlan_resource.go` - Status field
-- [ ] `vrf_resource.go` - description, comments
+- [x] `ip_range_resource.go` - ✅ **FIXED** (description, comments)
+- [x] `vlan_resource.go` - ✅ **N/A** (Status field has default value, already correct)
+- [x] `vrf_resource.go` - ✅ **FIXED** (description, comments via utils.ApplyDescription/ApplyComments)
 - [x] `aggregate_resource.go` - ✅ **FIXED** (description, comments, date_added, tenant)
 - [x] `asn_resource.go` - ✅ **FIXED** (Phase 1 reference implementation - description, comments)
-- [ ] `asn_range_resource.go` - description
+- [x] `asn_range_resource.go` - ✅ **FIXED** (description via utils.ApplyDescription)
 
-**Batch 2B - Core DCIM Resources (10 resources)**
+**Batch 2A Summary:**
+- **Direct fixes**: 5 resources (ip_address, prefix, ip_range, aggregate, asn)
+- **Utility function fixes**: 14+ resources via ApplyDescription/ApplyComments improvements
+  - config_template, console_port, device_bay_template, interface_template
+  - inventory_item, ipsec_profile, ipsec_proposal, module_bay
+  - notification_group, rear_port, wireless_lan, wireless_lan_group
+  - vrf, asn_range
+- **Tests added**: 6 comprehensive tests (aggregate, ip_address, prefix, ip_range, vrf, asn from Phase 1)
+- **Commits**: 6 commits with detailed documentation
+- **Key learning**: Date fields require SetFieldNil() not empty string
+
+**Batch 2B - Core DCIM Resources (10 resources)** 🚧 NEXT
 - [ ] `device_resource.go` - description, comments, label
 - [ ] `device_type_resource.go` - description, comments
 - [ ] `device_role_resource.go` - description
