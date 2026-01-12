@@ -27,6 +27,11 @@ type CommentsSetter interface {
 	SetComments(v string)
 }
 
+// LabelSetter is implemented by request types that have a Label field.
+type LabelSetter interface {
+	SetLabel(v string)
+}
+
 // TagsSetter is implemented by request types that have a Tags field.
 type TagsSetter interface {
 	SetTags(v []netbox.NestedTagRequest)
@@ -77,6 +82,16 @@ func ApplyComments[T CommentsSetter](request T, comments types.String) {
 		request.SetComments(comments.ValueString())
 	} else if comments.IsNull() {
 		request.SetComments("")
+	}
+}
+
+// ApplyLabel sets the Label field on a request if the value is set.
+// Works with any request type that implements LabelSetter.
+func ApplyLabel[T LabelSetter](request T, label types.String) {
+	if IsSet(label) {
+		request.SetLabel(label.ValueString())
+	} else if label.IsNull() {
+		request.SetLabel("")
 	}
 }
 

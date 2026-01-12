@@ -278,9 +278,7 @@ func (r *ConsoleServerPortResource) Update(ctx context.Context, req resource.Upd
 	apiReq := netbox.NewWritableConsoleServerPortRequest(*device, plan.Name.ValueString())
 
 	// Set optional fields
-	if !plan.Label.IsNull() && !plan.Label.IsUnknown() {
-		apiReq.SetLabel(plan.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, plan.Label)
 
 	if !plan.Type.IsNull() && !plan.Type.IsUnknown() {
 		portType := netbox.PatchedWritableConsolePortRequestType(plan.Type.ValueString())

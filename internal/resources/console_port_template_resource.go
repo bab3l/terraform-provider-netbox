@@ -138,9 +138,7 @@ func (r *ConsolePortTemplateResource) Create(ctx context.Context, req resource.C
 	}
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		apiReq.SetType(netbox.ConsolePortTypeValue(data.Type.ValueString()))
@@ -235,9 +233,7 @@ func (r *ConsolePortTemplateResource) Update(ctx context.Context, req resource.U
 	}
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		apiReq.SetType(netbox.ConsolePortTypeValue(data.Type.ValueString()))

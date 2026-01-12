@@ -167,9 +167,7 @@ func (r *FrontPortTemplateResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
 		apiReq.SetColor(data.Color.ValueString())
@@ -276,9 +274,7 @@ func (r *FrontPortTemplateResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
 		apiReq.SetColor(data.Color.ValueString())
 	}

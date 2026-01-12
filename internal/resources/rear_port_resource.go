@@ -200,10 +200,7 @@ func (r *RearPortResource) Create(ctx context.Context, req resource.CreateReques
 	apiReq := netbox.NewWritableRearPortRequest(*device, data.Name.ValueString(), netbox.FrontPortTypeValue(data.Type.ValueString()))
 
 	// Set optional fields
-
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
 		apiReq.SetColor(data.Color.ValueString())

@@ -208,10 +208,7 @@ func (r *RearPortTemplateResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// Set optional fields
-
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
 		apiReq.SetColor(data.Color.ValueString())
@@ -347,10 +344,7 @@ func (r *RearPortTemplateResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// Set optional fields
-
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
 		apiReq.SetColor(data.Color.ValueString())

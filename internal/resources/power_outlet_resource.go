@@ -146,9 +146,7 @@ func (r *PowerOutletResource) Create(ctx context.Context, req resource.CreateReq
 	apiReq := netbox.NewWritablePowerOutletRequest(*device, data.Name.ValueString())
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		outletType := netbox.PatchedWritablePowerOutletRequestType(data.Type.ValueString())
@@ -285,9 +283,7 @@ func (r *PowerOutletResource) Update(ctx context.Context, req resource.UpdateReq
 	apiReq := netbox.NewWritablePowerOutletRequest(*device, data.Name.ValueString())
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		outletType := netbox.PatchedWritablePowerOutletRequestType(data.Type.ValueString())

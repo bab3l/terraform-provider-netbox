@@ -139,9 +139,7 @@ func (r *ConsolePortResource) Create(ctx context.Context, req resource.CreateReq
 	apiReq := netbox.NewWritableConsolePortRequest(*device, data.Name.ValueString())
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		portType := netbox.PatchedWritableConsolePortRequestType(data.Type.ValueString())
 		apiReq.SetType(portType)
@@ -258,9 +256,7 @@ func (r *ConsolePortResource) Update(ctx context.Context, req resource.UpdateReq
 	apiReq := netbox.NewWritableConsolePortRequest(*device, data.Name.ValueString())
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		portType := netbox.PatchedWritableConsolePortRequestType(data.Type.ValueString())

@@ -199,10 +199,7 @@ func (r *PowerPortTemplateResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// Set optional fields
-
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		apiReq.SetType(netbox.PatchedWritablePowerPortTemplateRequestType(data.Type.ValueString()))
@@ -342,10 +339,7 @@ func (r *PowerPortTemplateResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Set optional fields
-
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		apiReq.SetType(netbox.PatchedWritablePowerPortTemplateRequestType(data.Type.ValueString()))

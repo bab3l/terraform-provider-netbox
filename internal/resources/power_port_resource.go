@@ -192,10 +192,7 @@ func (r *PowerPortResource) Create(ctx context.Context, req resource.CreateReque
 	apiReq := netbox.NewWritablePowerPortRequest(*device, data.Name.ValueString())
 
 	// Set optional fields
-
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		portType := netbox.PatchedWritablePowerPortRequestType(data.Type.ValueString())
@@ -375,10 +372,7 @@ func (r *PowerPortResource) Update(ctx context.Context, req resource.UpdateReque
 	apiReq := netbox.NewWritablePowerPortRequest(*device, data.Name.ValueString())
 
 	// Set optional fields
-
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		portType := netbox.PatchedWritablePowerPortRequestType(data.Type.ValueString())
