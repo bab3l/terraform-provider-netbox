@@ -283,6 +283,9 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 	// Handle description
 	tunnelRequest.Description = utils.StringPtr(data.Description)
 
+	// Handle comments
+	tunnelRequest.Comments = utils.StringPtr(data.Comments)
+
 	// Handle tags
 	if !data.Tags.IsNull() {
 		var tagModels []utils.TagModel
@@ -613,6 +616,9 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	// Handle description
 	tunnelRequest.Description = utils.StringPtr(data.Description)
+
+	// Handle comments
+	tunnelRequest.Comments = utils.StringPtr(data.Comments)
 
 	// Handle tags - merge-aware
 	utils.ApplyTags(ctx, tunnelRequest, data.Tags, &resp.Diagnostics)
