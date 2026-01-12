@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -105,10 +104,6 @@ func (r *RearPortTemplateResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "Physical label of the rear port template.",
 
 				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"type": schema.StringAttribute{
@@ -121,10 +116,6 @@ func (r *RearPortTemplateResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "Color of the rear port in hex format (e.g., `aa1409`).",
 
 				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"positions": schema.Int32Attribute{

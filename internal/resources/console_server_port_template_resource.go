@@ -78,7 +78,6 @@ func (r *ConsoleServerPortTemplateResource) Schema(ctx context.Context, req reso
 			"label": schema.StringAttribute{
 				MarkdownDescription: "Physical label of the console server port template.",
 				Optional:            true,
-				Computed:            true,
 			},
 			"type": schema.StringAttribute{
 				MarkdownDescription: "The type of console server port (e.g., de-9, db-25, rj-45, usb-a, usb-b, usb-c, usb-mini-a, usb-mini-b, usb-micro-a, usb-micro-b, usb-micro-ab, other).",

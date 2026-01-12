@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -83,8 +82,6 @@ func (r *FrontPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 			"label": schema.StringAttribute{
 				MarkdownDescription: "Physical label of the front port template.",
 				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
 			},
 			"type": schema.StringAttribute{
 				MarkdownDescription: "The type of front port (e.g., `8p8c`, `8p6c`, `110-punch`, `bnc`, `f`, `n`, `mrj21`, `fc`, `lc`, `lc-pc`, `lc-upc`, `lc-apc`, `lsh`, `lsh-pc`, `lsh-upc`, `lsh-apc`, `mpo`, `mtrj`, `sc`, `sc-pc`, `sc-upc`, `sc-apc`, `st`, `cs`, `sn`, `sma-905`, `sma-906`, `splice`, `other`).",
@@ -93,8 +90,6 @@ func (r *FrontPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 			"color": schema.StringAttribute{
 				MarkdownDescription: "Color of the front port in hex format (e.g., `aa1409`).",
 				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
 			},
 			"rear_port": schema.StringAttribute{
 				MarkdownDescription: "The name of the rear port template on the same device type or module type that this front port maps to.",
