@@ -78,6 +78,30 @@ Still available - runs all tests with `TestAcc` prefix.
 - Prefer diagnostics for error handling.
 - Use `tflog` for structured logging.
 - Follow patterns defined in `RESOURCE-IMPLEMENTATION-TODO.md`.
+- **Optional fields must handle null values** - see [Optional Field Null Handling](#optional-field-null-handling).
+
+## Optional Field Null Handling
+All optional fields must explicitly clear their values when set to null to prevent "inconsistent result" errors.
+
+### Required Pattern
+```go
+if !data.FieldName.IsNull() && !data.FieldName.IsUnknown() {
+    request.SetFieldName(data.FieldName.ValueString())
+} else if data.FieldName.IsNull() {
+    request.SetFieldName("")  // Clear the field
+}
+```
+
+### Testing Requirement
+Include a test that verifies optional fields can be removed:
+- Use `testutil.TestRemoveOptionalFields()` helper
+- Or add removal step to existing tests
+- See [docs/TESTING_OPTIONAL_FIELDS.md](docs/TESTING_OPTIONAL_FIELDS.md)
+
+### PR Checklist for Optional Fields
+- [ ] All optional fields in `buildXRequest()` have `else if IsNull()` handling
+- [ ] Test case verifies optional fields can be removed from config
+- [ ] Test case verifies fields can be re-added after removal
 
 ## Security
 - Do not include secrets or tokens in code or tests.
