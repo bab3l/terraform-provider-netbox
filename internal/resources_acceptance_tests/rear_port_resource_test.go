@@ -238,37 +238,40 @@ func TestAccRearPortResource_externalDeletion(t *testing.T) {
 func testAccRearPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
-  name = %q
-  slug = %q
+  name = %[1]q
+  slug = %[2]q
+  status = "active"
 }
 
 resource "netbox_manufacturer" "test" {
-  name = %q
-  slug = %q
+  name = %[3]q
+  slug = %[4]q
 }
 
 resource "netbox_device_type" "test" {
+  model = %[5]q
+  slug = %[6]q
   manufacturer = netbox_manufacturer.test.id
-  model        = %q
-  slug         = %q
 }
 
 resource "netbox_device_role" "test" {
-  name = %q
-  slug = %q
+  name = %[7]q
+  slug = %[8]q
+  color = "aa1409"
 }
 
 resource "netbox_device" "test" {
-  name        = %q
-  site        = netbox_site.test.id
+  name = %[9]q
   device_type = netbox_device_type.test.id
-  role        = netbox_device_role.test.id
+  role = netbox_device_role.test.id
+  site = netbox_site.test.id
+  status = "active"
 }
 
 resource "netbox_rear_port" "test" {
-  device = netbox_device.test.id
-  name   = %q
-  type   = "8p8c"
+  device = netbox_device.test.name
+  name = %[10]q
+  type = "8p8c"
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName)
 }

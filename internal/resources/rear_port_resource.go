@@ -362,10 +362,7 @@ func (r *RearPortResource) Update(ctx context.Context, req resource.UpdateReques
 	apiReq := netbox.NewWritableRearPortRequest(*device, plan.Name.ValueString(), netbox.FrontPortTypeValue(plan.Type.ValueString()))
 
 	// Set optional fields
-
-	if !plan.Label.IsNull() && !plan.Label.IsUnknown() {
-		apiReq.SetLabel(plan.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, plan.Label)
 
 	if !plan.Color.IsNull() && !plan.Color.IsUnknown() {
 		apiReq.SetColor(plan.Color.ValueString())
