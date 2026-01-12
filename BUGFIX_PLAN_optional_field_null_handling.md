@@ -144,7 +144,7 @@ Consider creating a test generator that:
 - **Test robustness**: All tests use `testutil.RandomName` to prevent collisions
 - **Verification**: All 5 tests passing consistently
 
-### Phase 3: Medium-Priority Fixes (Week 4-5) 🚧 NEXT
+### Phase 3: Medium-Priority Fixes (Week 4-5) ✅ COMPLETE
 **Batch 3A - Circuits Resources (6 resources)** ✅ COMPLETE
 - [x] `circuit_resource.go` - description, comments (Fixed & Tested - updated to use utils.ApplyDescription/ApplyComments)
 - [x] `circuit_type_resource.go` - description (Verified & Tested - already correct, fixed test expectation)
@@ -172,39 +172,40 @@ Consider creating a test generator that:
 - [x] `region_resource.go` - description (Fixed - added parent null handling in Update)
 - [x] `site_group_resource.go` - description (Fixed - added parent null handling in Update)
 
-**Batch 3C - VPN & Wireless (10 resources)** 🚧 IN PROGRESS
-- [x] `tunnel_resource.go` - **FIXED** - Added missing comments handling in Create/Update
-- [x] `tunnel_group_resource.go` - **VERIFIED** - Uses utils.ApplyDescription
+**Batch 3C - VPN & Wireless (10 resources)** ✅ COMPLETE
+- [x] `tunnel_resource.go` - **FIXED** - Added missing comments handling in Create/Update, replaced StringPtr with ApplyDescription/ApplyComments
+- [x] `tunnel_group_resource.go` - **FIXED** - Replaced manual description handling with utils.ApplyDescription
 - [x] `l2vpn_resource.go` - **VERIFIED** - Uses utils.StringPtr for description/comments, already has removal test
 - [x] `ike_policy_resource.go` - **VERIFIED** - Uses utils.ApplyDescription/ApplyComments
 - [x] `ike_proposal_resource.go` - **VERIFIED** - Uses utils helpers
-- [x] `ipsec_policy_resource.go` - **VERIFIED** - Uses utils helpers
+- [x] `ipsec_policy_resource.go` - **VERIFIED** - Uses utils helpers (pfs_group not clearable per API)
 - [x] `ipsec_profile_resource.go` - **VERIFIED** - Uses utils helpers
-- [x] `ipsec_proposal_resource.go` - **VERIFIED** - Uses utils helpers
+- [x] `ipsec_proposal_resource.go` - **VERIFIED** - Uses utils helpers (authentication_algorithm not clearable per API)
 - [x] `wireless_lan_resource.go` - **VERIFIED** - Uses utils.ApplyDescription/ApplyComments
 - [x] `wireless_lan_group_resource.go` - **VERIFIED** - Uses utils helpers
 
 **Batch 3C Tests Status:**
 - [x] `l2vpn` - Already has TestAcc..._removeOptionalFields test
-- [ ] `tunnel` - Need to add removal test for description/comments
-- [ ] `tunnel_group` - Need to add removal test for description
-- [ ] `ike_policy` - Need to add removal test for description/comments
-- [ ] `ike_proposal` - Need to add removal test for description/comments
-- [ ] `ipsec_policy` - Need to add removal test for description/comments
-- [ ] `ipsec_profile` - Need to add removal test for description/comments
-- [ ] `ipsec_proposal` - Need to add removal test for description/comments
-- [ ] `wireless_lan` - Need to add removal test for description/comments
-- [ ] `wireless_lan_group` - Need to add removal test for description
+- [x] `tunnel` - Added removal test for description/comments
+- [x] `tunnel_group` - Added removal test for description
+- [x] `ike_policy` - Added removal test for description/comments
+- [x] `ike_proposal` - Added removal test for description/comments
+- [x] `ipsec_policy` - Added removal test for description/comments
+- [x] `ipsec_profile` - Added removal test for description/comments
+- [x] `ipsec_proposal` - Added removal test for description/comments
+- [x] `wireless_lan` - Added removal test for description/comments
+- [x] `wireless_lan_group` - Added removal test for description
 
 **Batch 3C Summary:**
-- **Code fixes completed**: 1 resource (tunnel) - added missing comments handling
-- **Verification completed**: 9 resources already using utils helpers correctly
-- **Tests remaining**: 9 resources need removal tests added (l2vpn already done)
-- [ ] `ipsec_policy_resource.go` - description, comments
-- [ ] `ipsec_profile_resource.go` - description, comments
-- [ ] `ipsec_proposal_resource.go` - description, comments
+- **Code fixes**: 2 resources (tunnel, tunnel_group) - fixed null handling for description/comments
+- **Verification**: 8 resources already using utils helpers correctly
+- **Tests added**: 9 comprehensive removal tests (l2vpn already existed)
+- **All tests passing**: 10/10 tests pass consistently
+- **Key findings**:
+  - Some API fields (pfs_group, authentication_algorithm) cannot be cleared once set - omitted from request when null
+  - tunnel and tunnel_group needed explicit ApplyDescription/ApplyComments usage
 
-### Phase 4: Remaining Resources (Week 6-7)
+### Phase 4: Remaining Resources (Week 6-7) 🚧 IN PROGRESS
 **Batch 4A - Port & Interface Templates (16 resources)**
 - All port templates: console, power, interface, front/rear ports
 - [ ] `console_port_resource.go` + `console_port_template_resource.go`
