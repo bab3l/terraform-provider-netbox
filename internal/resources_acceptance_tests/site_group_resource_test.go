@@ -265,3 +265,67 @@ func TestAccSiteGroupResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccSiteGroupResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-sg-rem")
+	slug := testutil.RandomSlug("tf-test-sg-rem")
+	parentName := testutil.RandomName("tf-test-sg-parent")
+	parentSlug := testutil.RandomSlug("tf-test-sg-parent")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteGroupCleanup(slug)
+	cleanup.RegisterSiteGroupCleanup(parentSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckSiteGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSiteGroupResourceConfig_withParent(name, slug, parentName, parentSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_site_group.test", "name", name),
+					resource.TestCheckResourceAttrSet("netbox_site_group.test", "parent"),
+				),
+			},
+			{
+				Config: testAccSiteGroupResourceConfig_detached(name, slug, parentName, parentSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_site_group.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_site_group.test", "parent"),
+				),
+			},
+		},
+	})
+}
+
+func testAccSiteGroupResourceConfig_withParent(name, slug, parentName, parentSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site_group" "parent" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_site_group" "test" {
+  name   = %q
+  slug   = %q
+  parent = netbox_site_group.parent.id
+}
+`, parentName, parentSlug, name, slug)
+}
+
+func testAccSiteGroupResourceConfig_detached(name, slug, parentName, parentSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site_group" "parent" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_site_group" "test" {
+  name   = %q
+  slug   = %q
+}
+`, parentName, parentSlug, name, slug)
+}

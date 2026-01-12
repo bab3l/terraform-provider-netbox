@@ -451,6 +451,9 @@ func (r *ProviderNetworkResource) buildProviderNetworkRequest(ctx context.Contex
 		serviceID := data.ServiceID.ValueString()
 
 		pnRequest.ServiceId = &serviceID
+	} else if data.ServiceID.IsNull() {
+		serviceID := ""
+		pnRequest.ServiceId = &serviceID
 	}
 
 	// Apply common fields (description, comments, tags, custom_fields) - merge-aware

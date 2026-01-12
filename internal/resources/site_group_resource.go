@@ -306,6 +306,8 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 		}
 
 		siteGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
+	} else if plan.Parent.IsNull() {
+		siteGroupRequest.SetParentNil()
 	}
 
 	siteGroup, httpResp, err := r.client.DcimAPI.DcimSiteGroupsUpdate(ctx, siteGroupIDInt).WritableSiteGroupRequest(siteGroupRequest).Execute()

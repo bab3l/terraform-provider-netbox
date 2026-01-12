@@ -403,8 +403,8 @@ func (r *CircuitResource) buildCircuitRequest(ctx context.Context, data *Circuit
 	}
 
 	// Apply common fields (description, comments, tags)
-	circuitReq.Description = utils.StringPtr(data.Description)
-	circuitReq.Comments = utils.StringPtr(data.Comments)
+	utils.ApplyDescription(circuitReq, data.Description)
+	utils.ApplyComments(circuitReq, data.Comments)
 	utils.ApplyTags(ctx, circuitReq, data.Tags, &diags)
 	if diags.HasError() {
 		return nil, diags

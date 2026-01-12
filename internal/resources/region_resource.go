@@ -299,6 +299,8 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 		}
 
 		regionRequest.Parent = *netbox.NewNullableInt32(&parentID)
+	} else if data.Parent.IsNull() {
+		regionRequest.SetParentNil()
 	}
 
 	// Call the API

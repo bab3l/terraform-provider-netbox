@@ -339,3 +339,52 @@ func TestAccRegionResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccRegionResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	childName := testutil.RandomName("tf-test-region-child")
+	childSlug := testutil.RandomSlug("tf-test-region-child")
+	parentName := testutil.RandomName("tf-test-region-parent")
+	parentSlug := testutil.RandomSlug("tf-test-region-parent")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRegionCleanup(childSlug)
+	cleanup.RegisterRegionCleanup(parentSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRegionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRegionResourceConfig_withParent(parentName, parentSlug, childName, childSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_region.child", "name", childName),
+					resource.TestCheckResourceAttrSet("netbox_region.child", "parent"),
+				),
+			},
+			{
+				Config: testAccRegionResourceConfig_childOnly(parentName, parentSlug, childName, childSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_region.child", "name", childName),
+					resource.TestCheckNoResourceAttr("netbox_region.child", "parent"),
+				),
+			},
+		},
+	})
+}
+
+func testAccRegionResourceConfig_childOnly(parentName, parentSlug, childName, childSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_region" "parent" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_region" "child" {
+  name = %q
+  slug = %q
+}
+`, parentName, parentSlug, childName, childSlug)
+}

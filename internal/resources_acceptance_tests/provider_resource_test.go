@@ -249,3 +249,37 @@ func TestAccProviderResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccProviderResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-provider-remove")
+	slug := testutil.RandomSlug("tf-test-provider-remove")
+	description := "Description"
+	comments := "Comments"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckProviderDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderResourceConfig_full(name, slug, description, comments),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_provider.test", "comments", comments),
+				),
+			},
+			{
+				Config: testAccProviderResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_provider.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_provider.test", "comments"),
+				),
+			},
+		},
+	})
+}

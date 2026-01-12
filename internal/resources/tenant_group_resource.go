@@ -311,6 +311,8 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 		}
 
 		tenantGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
+	} else if plan.Parent.IsNull() {
+		tenantGroupRequest.SetParentNil()
 	}
 
 	// Apply tags and custom_fields with merge-aware helpers

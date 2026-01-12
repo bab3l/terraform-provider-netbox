@@ -265,3 +265,43 @@ func TestAccCircuitTypeResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccCircuitTypeResource_removeDescription(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-circuit-type-rem-desc")
+	slug := testutil.RandomSlug("tf-test-circuit-type-rem-desc")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitTypeCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitTypeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitTypeResourceConfig_withDescription(name, slug, "Description"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit_type.test", "description", "Description"),
+				),
+			},
+			{
+				Config: testAccCircuitTypeResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_circuit_type.test", "description"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCircuitTypeResourceConfig_withDescription(name, slug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_circuit_type" "test" {
+  name        = %q
+  slug        = %q
+  description = %q
+}
+`, name, slug, description)
+}

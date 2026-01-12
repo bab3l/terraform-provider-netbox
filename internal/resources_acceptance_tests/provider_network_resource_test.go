@@ -265,3 +265,55 @@ func TestAccProviderNetworkResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccProviderNetworkResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-rem")
+	providerSlug := testutil.RandomSlug("tf-test-provider-rem")
+	networkName := testutil.RandomName("tf-test-network")
+	serviceID := "svc-12345"
+	description := "Description"
+	comments := "Comments"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderNetworkResourceConfig_fullWithComments(providerName, providerSlug, networkName, serviceID, description, comments),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "comments", comments),
+				),
+			},
+			{
+				Config: testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, networkName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_provider_network.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_provider_network.test", "comments"),
+				),
+			},
+		},
+	})
+}
+
+func testAccProviderNetworkResourceConfig_fullWithComments(providerName, providerSlug, networkName, serviceID, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_provider_network" "test" {
+  name             = %q
+  circuit_provider = netbox_provider.test.id
+  service_id       = %q
+  description      = %q
+  comments         = %q
+}
+`, providerName, providerSlug, networkName, serviceID, description, comments)
+}

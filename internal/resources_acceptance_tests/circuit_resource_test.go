@@ -537,3 +537,62 @@ func TestAccCircuitResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccCircuitResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	cid := testutil.RandomName("tf-test-circuit-rem-desc")
+	providerName := testutil.RandomName("tf-test-provider-rem-desc")
+	providerSlug := testutil.RandomSlug("tf-test-provider-rem-desc")
+	typeName := testutil.RandomName("tf-test-circuit-type-rem-desc")
+	typeSlug := testutil.RandomSlug("tf-test-circuit-type-rem-desc")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitCleanup(cid)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(typeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitResourceConfig_withDescriptionAndComments(cid, providerName, providerSlug, typeName, typeSlug, "Description", "Comments"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit.test", "description", "Description"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "comments", "Comments"),
+				),
+			},
+			{
+				Config: testAccCircuitResourceConfig_basic(cid, providerName, providerSlug, typeName, typeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_circuit.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_circuit.test", "comments"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCircuitResourceConfig_withDescriptionAndComments(cid, providerName, providerSlug, typeName, typeSlug, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %q
+  circuit_provider = netbox_provider.test.slug
+  type             = netbox_circuit_type.test.slug
+  description      = %q
+  comments         = %q
+}
+`, providerName, providerSlug, typeName, typeSlug, cid, description, comments)
+}

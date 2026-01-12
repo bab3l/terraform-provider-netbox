@@ -233,6 +233,8 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 			return
 		}
 		contactRequest.SetGroup(*group)
+	} else if plan.Group.IsNull() {
+		contactRequest.SetGroupNil()
 	}
 
 	// Set optional fields

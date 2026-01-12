@@ -145,22 +145,32 @@ Consider creating a test generator that:
 - **Verification**: All 5 tests passing consistently
 
 ### Phase 3: Medium-Priority Fixes (Week 4-5) 🚧 NEXT
-**Batch 3A - Circuits Resources (6 resources)**
-- [ ] `circuit_resource.go` - description, comments
-- [ ] `circuit_type_resource.go` - description
-- [ ] `circuit_termination_resource.go` - description
-- [ ] `provider_resource.go` - description, comments
-- [ ] `provider_account_resource.go` - description, comments
-- [ ] `provider_network_resource.go` - description, comments
+**Batch 3A - Circuits Resources (6 resources)** ✅ COMPLETE
+- [x] `circuit_resource.go` - description, comments (Fixed & Tested - updated to use utils.ApplyDescription/ApplyComments)
+- [x] `circuit_type_resource.go` - description (Verified & Tested - already correct, fixed test expectation)
+- [x] `circuit_termination_resource.go` - description (Verified & Tested - already correct, fixed test expectation)
+- [x] `provider_resource.go` - description, comments (Verified - uses utils.ApplyCommonFields)
+- [x] `provider_account_resource.go` - description, comments (Verified - uses utils.ApplyCommonFieldsWithMerge)
+- [x] `provider_network_resource.go` - description, comments (Verified - uses utils.ApplyCommonFieldsWithMerge)
 
-**Batch 3B - Tenancy & Organization (7 resources)**
-- [ ] `tenant_resource.go` - description, comments
-- [ ] `tenant_group_resource.go` - description
-- [ ] `contact_resource.go` - description, comments
-- [ ] `contact_role_resource.go` - description
-- [ ] `contact_group_resource.go` - description
-- [ ] `region_resource.go` - description
-- [ ] `site_group_resource.go` - description
+**Batch 3A Summary:**
+- **Code Changes**:
+  - `circuit_resource.go`: Fixed `Update` method to explicitly clear description/comments when null.
+  - Verified other resources already leveraged `utils` helpers correctly.
+  - `circuit_group_resource.go` also verified to handle nulls correctly (explicitly sets empty string).
+- **Test Fixes**:
+  - Validated 3 resources (`circuit`, `circuit_type`, `circuit_termination`) with focused acceptance tests.
+  - Updated test expectations to assert field absence (`TestCheckNoResourceAttr`) rather than empty strings.
+  - Verified tests pass for `circuit_group` deletion of optional fields.
+
+**Batch 3B - Tenancy & Organization (7 resources)** ✅ COMPLETE
+- [x] `tenant_resource.go` - description, comments (Verified - uses utils.ApplyDescriptiveFields, added explicit group null handling check)
+- [x] `tenant_group_resource.go` - description (Fixed - added parent null handling in Update)
+- [x] `contact_resource.go` - description, comments (Fixed - added group null handling in Update)
+- [x] `contact_role_resource.go` - description (Verified - uses utils.ApplyDescription)
+- [x] `contact_group_resource.go` - description (Fixed - added parent null handling in Update)
+- [x] `region_resource.go` - description (Fixed - added parent null handling in Update)
+- [x] `site_group_resource.go` - description (Fixed - added parent null handling in Update)
 
 **Batch 3C - VPN & Wireless (8 resources)**
 - [ ] `tunnel_resource.go` - description, comments

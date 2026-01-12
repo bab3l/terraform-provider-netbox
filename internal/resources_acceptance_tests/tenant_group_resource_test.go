@@ -300,3 +300,67 @@ func TestAccTenantGroupResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccTenantGroupResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-tg-remove")
+	slug := testutil.RandomSlug("tf-test-tg-remove")
+	parentName := testutil.RandomName("tf-test-tg-parent")
+	parentSlug := testutil.RandomSlug("tf-test-tg-parent")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTenantGroupCleanup(slug)
+	cleanup.RegisterTenantGroupCleanup(parentSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTenantGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTenantGroupResourceConfig_withParent(name, slug, parentName, parentSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tenant_group.test", "name", name),
+					resource.TestCheckResourceAttrSet("netbox_tenant_group.test", "parent"),
+				),
+			},
+			{
+				Config: testAccTenantGroupResourceConfig_detached(name, slug, parentName, parentSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tenant_group.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_tenant_group.test", "parent"),
+				),
+			},
+		},
+	})
+}
+
+func testAccTenantGroupResourceConfig_withParent(name, slug, parentName, parentSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant_group" "parent" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tenant_group" "test" {
+  name   = %q
+  slug   = %q
+  parent = netbox_tenant_group.parent.id
+}
+`, parentName, parentSlug, name, slug)
+}
+
+func testAccTenantGroupResourceConfig_detached(name, slug, parentName, parentSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant_group" "parent" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tenant_group" "test" {
+  name   = %q
+  slug   = %q
+}
+`, parentName, parentSlug, name, slug)
+}

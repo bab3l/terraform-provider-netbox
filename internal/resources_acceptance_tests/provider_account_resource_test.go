@@ -265,3 +265,55 @@ func TestAccProviderAccountResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccProviderAccountResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-rem")
+	providerSlug := testutil.RandomSlug("tf-test-provider-rem")
+	accountID := testutil.RandomName("acct")
+	accountName := "Account Name"
+	const testDescription = "Description"
+	const testComments = "Comments"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderAccountResourceConfig_fullWithComments(providerName, providerSlug, accountID, accountName, testDescription, testComments),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_account.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_provider_account.test", "comments", testComments),
+				),
+			},
+			{
+				Config: testAccProviderAccountResourceConfig_basic(providerName, providerSlug, accountID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_provider_account.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_provider_account.test", "comments"),
+				),
+			},
+		},
+	})
+}
+
+func testAccProviderAccountResourceConfig_fullWithComments(providerName, providerSlug, accountID, accountName, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_provider_account" "test" {
+  account          = %q
+  circuit_provider = netbox_provider.test.id
+  name             = %q
+  description      = %q
+  comments         = %q
+}
+`, providerName, providerSlug, accountID, accountName, description, comments)
+}

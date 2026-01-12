@@ -426,3 +426,74 @@ func TestAccCircuitTerminationResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccCircuitTerminationResource_removeDescription(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-prov-desc")
+	providerSlug := testutil.RandomSlug("tf-test-prov-desc")
+	circuitTypeName := testutil.RandomName("tf-test-ct-desc")
+	circuitTypeSlug := testutil.RandomSlug("tf-test-ct-desc")
+	circuitCID := testutil.RandomName("tf-test-circ-desc")
+	siteName := testutil.RandomName("tf-test-site-desc")
+	siteSlug := testutil.RandomSlug("tf-test-site-desc")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
+	cleanup.RegisterCircuitCleanup(circuitCID)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitTerminationResourceConfig_withDescription(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, "Description"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "description", "Description"),
+				),
+			},
+			{
+				Config: testAccCircuitTerminationResourceConfig_basic(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_circuit_termination.test", "description"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCircuitTerminationResourceConfig_withDescription(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+}
+
+resource "netbox_site" "test" {
+  name   = %q
+  slug   = %q
+  status = "active"
+}
+
+resource "netbox_circuit_termination" "test" {
+  circuit     = netbox_circuit.test.id
+  term_side   = "A"
+  site        = netbox_site.test.id
+  description = %q
+}
+`, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, description)
+}
