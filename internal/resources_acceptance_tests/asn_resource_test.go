@@ -165,7 +165,7 @@ func TestAccASNResource_removeOptionalFields(t *testing.T) {
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Step 1: Create ASN with tenant and RIR
+			// Step 1: Create ASN with all optional fields populated
 			{
 				Config: testAccASNResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, asn, "Initial description", testutil.Comments),
 				Check: resource.ComposeTestCheckFunc(
@@ -176,7 +176,7 @@ func TestAccASNResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_asn.test", "comments", testutil.Comments),
 				),
 			},
-			// Step 2: Remove tenant and verify it's actually removed (not just omitted)
+			// Step 2: Remove tenant and verify it's actually removed
 			{
 				Config: testAccASNResourceConfig_noTenant(rirName, rirSlug, tenantName, tenantSlug, asn, "Description after tenant removal"),
 				Check: resource.ComposeTestCheckFunc(
@@ -184,15 +184,29 @@ func TestAccASNResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckNoResourceAttr("netbox_asn.test", "tenant"),
 					resource.TestCheckResourceAttrSet("netbox_asn.test", "rir"),
 					resource.TestCheckResourceAttr("netbox_asn.test", "description", "Description after tenant removal"),
+					resource.TestCheckResourceAttr("netbox_asn.test", "comments", testutil.Comments),
 				),
 			},
-			// Step 3: Re-add tenant to verify it can be set again
+			// Step 3: Remove description and comments - this tests the null value handling bug
+			{
+				Config: testAccASNResourceConfig_noDescriptionOrComments(rirName, rirSlug, asn),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
+					resource.TestCheckResourceAttrSet("netbox_asn.test", "rir"),
+					resource.TestCheckNoResourceAttr("netbox_asn.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_asn.test", "comments"),
+					resource.TestCheckNoResourceAttr("netbox_asn.test", "tenant"),
+				),
+			},
+			// Step 4: Re-add all fields to verify they can be set again
 			{
 				Config: testAccASNResourceConfig_full(rirName, rirSlug, tenantName, tenantSlug, asn, "Final description", testutil.Comments),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
 					resource.TestCheckResourceAttrSet("netbox_asn.test", "tenant"),
 					resource.TestCheckResourceAttrSet("netbox_asn.test", "rir"),
+					resource.TestCheckResourceAttr("netbox_asn.test", "description", "Final description"),
+					resource.TestCheckResourceAttr("netbox_asn.test", "comments", testutil.Comments),
 				),
 			},
 		},
@@ -321,6 +335,21 @@ resource "netbox_asn" "test" {
   # tenant intentionally omitted - should be null in state
 }
 `, rirName, rirSlug, tenantName, tenantSlug, asn, description, testutil.Comments)
+}
+
+func testAccASNResourceConfig_noDescriptionOrComments(rirName, rirSlug string, asn int64) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_asn" "test" {
+  asn = %d
+  rir = netbox_rir.test.id
+  # description and comments intentionally omitted - should be null/empty in state
+}
+`, rirName, rirSlug, asn)
 }
 
 // TestAccConsistency_ASN_LiteralNames tests that reference attributes specified as literal string names
