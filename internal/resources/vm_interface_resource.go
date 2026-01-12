@@ -324,11 +324,7 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, plan 
 
 	// Description
 
-	if utils.IsSet(plan.Description) {
-		description := plan.Description.ValueString()
-
-		ifaceRequest.Description = &description
-	}
+	utils.ApplyDescription(ifaceRequest, plan.Description)
 
 	// Mode
 

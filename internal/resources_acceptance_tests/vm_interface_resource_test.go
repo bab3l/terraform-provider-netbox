@@ -1226,3 +1226,65 @@ resource "netbox_vm_interface" "test" {
 }
 `, clusterTypeName, clusterTypeSlug, siteName, siteSlug, clusterName, vmName, vlanName, vlanVID, vrfName, ifaceName)
 }
+
+func TestAccVMInterfaceResource_removeDescription(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-vm-int-desc")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-vm-int-desc")
+	clusterName := testutil.RandomName("tf-test-cluster-vm-int-desc")
+	vmName := testutil.RandomName("tf-test-vm-int-desc")
+	ifaceName := testutil.RandomName("tf-test-int-desc")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_vm_interface",
+		BaseConfig: func() string {
+			return testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName)
+		},
+		ConfigWithFields: func() string {
+			return testAccVMInterfaceResourceConfig_withDescription(
+				clusterTypeName,
+				clusterTypeSlug,
+				clusterName,
+				vmName,
+				ifaceName,
+				"Test description",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+		},
+		CheckDestroy: testutil.CheckVMInterfaceDestroy,
+	})
+}
+
+func testAccVMInterfaceResourceConfig_withDescription(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = %q
+  cluster = netbox_cluster.test.id
+}
+
+resource "netbox_vm_interface" "test" {
+  virtual_machine = netbox_virtual_machine.test.id
+  name            = %q
+  description     = %q
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, description)
+}

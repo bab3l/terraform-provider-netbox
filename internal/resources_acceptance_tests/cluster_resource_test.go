@@ -462,3 +462,36 @@ resource "netbox_cluster" "test" {
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, tenantName, tenantSlug, groupName, groupSlug)
 }
+
+func TestAccClusterResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-desc")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-desc")
+	clusterName := testutil.RandomName("tf-test-cluster-desc")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_cluster",
+		BaseConfig: func() string {
+			return testAccClusterResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName)
+		},
+		ConfigWithFields: func() string {
+			return testAccClusterResourceConfig_full(
+				clusterTypeName,
+				clusterTypeSlug,
+				clusterName,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		CheckDestroy: testutil.CheckClusterDestroy,
+	})
+}

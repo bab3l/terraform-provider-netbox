@@ -600,3 +600,60 @@ resource "netbox_virtual_machine" "test" {
 		platformName, platformSlug,
 		vmName)
 }
+
+func TestAccVirtualMachineResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-vm-desc")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-vm-desc")
+	clusterName := testutil.RandomName("tf-test-cluster-vm-desc")
+	vmName := testutil.RandomName("tf-test-vm-desc")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_virtual_machine",
+		BaseConfig: func() string {
+			return testAccVirtualMachineResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName)
+		},
+		ConfigWithFields: func() string {
+			return testAccVirtualMachineResourceConfig_withDescriptionAndComments(
+				clusterTypeName,
+				clusterTypeSlug,
+				clusterName,
+				vmName,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		CheckDestroy: testutil.CheckVirtualMachineDestroy,
+	})
+}
+
+func testAccVirtualMachineResourceConfig_withDescriptionAndComments(clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+  name        = %q
+  cluster     = netbox_cluster.test.id
+  description = %q
+  comments    = %q
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments)
+}

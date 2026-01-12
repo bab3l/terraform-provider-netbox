@@ -131,14 +131,20 @@ Consider creating a test generator that:
 - **Debugging approach**: Created diagnostic tests that revealed configuration issues vs provider bugs
 - **All tests passing**: 11/11 tests pass consistently with proper cleanup
 
-**Batch 2C - Virtualization Resources (5 resources)** 🚧 NEXT
-- [ ] `virtual_machine_resource.go` - description, comments
-- [ ] `vm_interface_resource.go` - description
-- [ ] `cluster_resource.go` - description, comments
-- [ ] `cluster_type_resource.go` - description
-- [ ] `cluster_group_resource.go` - description
+**Batch 2C - Virtualization Resources (5 resources)** ✅ COMPLETE
+- [x] `virtual_machine_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils.ApplyCommonFields - already correct)
+- [x] `vm_interface_resource.go` - ✅ **FIXED & TESTED** (description field fixed - updated to usage utils.ApplyDescription)
+- [x] `cluster_resource.go` - ✅ **FIXED & TESTED** (description, comments via utils.ApplyCommonFields - already correct)
+- [x] `cluster_type_resource.go` - ✅ **FIXED & TESTED** (description via utils.ApplyDescription - already correct)
+- [x] `cluster_group_resource.go` - ✅ **FIXED & TESTED** (description via utils.ApplyDescription - already correct)
 
-### Phase 3: Medium-Priority Fixes (Week 4-5)
+**Batch 2C Summary:**
+- **Provider code fixes**: identified and fixed bug in `vm_interface_resource.go` where description was not being explicitly cleared when null
+- **Test coverage**: Added 5 new acceptance tests covering removal of optional description/comments fields
+- **Test robustness**: All tests use `testutil.RandomName` to prevent collisions
+- **Verification**: All 5 tests passing consistently
+
+### Phase 3: Medium-Priority Fixes (Week 4-5) 🚧 NEXT
 **Batch 3A - Circuits Resources (6 resources)**
 - [ ] `circuit_resource.go` - description, comments
 - [ ] `circuit_type_resource.go` - description

@@ -252,3 +252,31 @@ func TestAccClusterTypeResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccClusterTypeResource_removeDescription(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-cluster-type-desc")
+	slug := testutil.RandomSlug("tf-test-cluster-type-desc")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterTypeCleanup(slug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_cluster_type",
+		BaseConfig: func() string {
+			return testAccClusterTypeResourceConfig_basic(name, slug)
+		},
+		ConfigWithFields: func() string {
+			return testAccClusterTypeResourceConfig_full(
+				name,
+				slug,
+				"Test description",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+		},
+		CheckDestroy: testutil.CheckClusterTypeDestroy,
+	})
+}
