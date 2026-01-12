@@ -65,6 +65,8 @@ type FullCommonFieldsSetter interface {
 func ApplyDescription[T DescriptionSetter](request T, description types.String) {
 	if IsSet(description) {
 		request.SetDescription(description.ValueString())
+	} else if description.IsNull() {
+		request.SetDescription("")
 	}
 }
 
@@ -73,6 +75,8 @@ func ApplyDescription[T DescriptionSetter](request T, description types.String) 
 func ApplyComments[T CommentsSetter](request T, comments types.String) {
 	if IsSet(comments) {
 		request.SetComments(comments.ValueString())
+	} else if comments.IsNull() {
+		request.SetComments("")
 	}
 }
 
