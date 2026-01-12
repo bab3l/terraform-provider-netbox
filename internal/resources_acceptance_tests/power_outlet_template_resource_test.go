@@ -370,3 +370,60 @@ resource "netbox_power_outlet_template" "test" {
 }
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, powerOutletTemplateName, labelValue)
 }
+
+func TestAccPowerOutletTemplateResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg-rem")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-rem")
+	dtModel := testutil.RandomName("tf-test-dt-rem")
+	dtSlug := testutil.RandomSlug("tf-test-dt-rem")
+	portName := testutil.RandomName("tf-test-pot-rem")
+	const testLabel = "Test Label"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerOutletTemplateResourceConfig_withLabel(mfgName, mfgSlug, dtModel, dtSlug, portName, testLabel),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_outlet_template.test", "name", portName),
+					resource.TestCheckResourceAttr("netbox_power_outlet_template.test", "label", testLabel),
+				),
+			},
+			{
+				Config: testAccPowerOutletTemplateResourceBasic(mfgName, mfgSlug, dtModel, dtSlug, portName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_outlet_template.test", "name", portName),
+					resource.TestCheckNoResourceAttr("netbox_power_outlet_template.test", "label"),
+				),
+			},
+		},
+	})
+}
+
+func testAccPowerOutletTemplateResourceConfig_withLabel(mfgName, mfgSlug, dtModel, dtSlug, portName, label string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[3]q
+  slug = %[4]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_power_outlet_template" "test" {
+  device_type = netbox_device_type.test.id
+  name = %[5]q
+  label = %[6]q
+}
+`, mfgName, mfgSlug, dtModel, dtSlug, portName, label)
+}

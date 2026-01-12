@@ -569,4 +569,104 @@ resource "netbox_front_port" "test" {
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, deviceName, deviceName, resourceName)
 }
 
+func TestAccFrontPortResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-rem")
+	siteSlug := testutil.RandomSlug("tf-test-site-rem")
+	mfgName := testutil.RandomName("tf-test-mfg-rem")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-rem")
+	dtModel := testutil.RandomName("tf-test-dt-rem")
+	dtSlug := testutil.RandomSlug("tf-test-dt-rem")
+	roleName := testutil.RandomName("tf-test-role-rem")
+	roleSlug := testutil.RandomSlug("tf-test-role-rem")
+	deviceName := testutil.RandomName("tf-test-device-rem")
+	rearPortName := testutil.RandomName("tf-test-rear-rem")
+	portName := testutil.RandomName("tf-test-fp-rem")
+	const testLabel = "Test Label"
+	const testDescription = "Test Description"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFrontPortResourceConfig_withLabel(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, portName, testLabel, testDescription),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_front_port.test", "name", portName),
+					resource.TestCheckResourceAttr("netbox_front_port.test", "label", testLabel),
+					resource.TestCheckResourceAttr("netbox_front_port.test", "description", testDescription),
+				),
+			},
+			{
+				Config: testAccFrontPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, portName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_front_port.test", "name", portName),
+					resource.TestCheckNoResourceAttr("netbox_front_port.test", "label"),
+					resource.TestCheckNoResourceAttr("netbox_front_port.test", "description"),
+				),
+			},
+		},
+	})
+}
+
+func testAccFrontPortResourceConfig_withLabel(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, portName, label, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[5]q
+  slug = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name = %[7]q
+  slug = %[8]q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name = %[9]q
+  device_type = netbox_device_type.test.id
+  role = netbox_device_role.test.id
+  site = netbox_site.test.id
+  status = "active"
+}
+
+resource "netbox_rear_port" "rear" {
+  device = netbox_device.test.name
+  name = %[10]q
+  type = "8p8c"
+  positions = 1
+}
+
+resource "netbox_front_port" "test" {
+  device = netbox_device.test.name
+  name = %[11]q
+  type = "8p8c"
+  rear_port = netbox_rear_port.rear.id
+  rear_port_position = 1
+  label = %[12]q
+  description = %[13]q
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, portName, label, description)
+}
+
 // NOTE: Custom field tests for front_port resource are in resources_acceptance_tests_customfields package

@@ -377,3 +377,71 @@ resource "netbox_front_port_template" "test" {
 }
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortTemplateName, resourceName)
 }
+
+func TestAccFrontPortTemplateResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg-rem")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-rem")
+	dtModel := testutil.RandomName("tf-test-dt-rem")
+	dtSlug := testutil.RandomSlug("tf-test-dt-rem")
+	rearPortName := testutil.RandomName("tf-test-rear-rem")
+	portName := testutil.RandomName("tf-test-fpt-rem")
+	const testLabel = "Test Label"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFrontPortTemplateResourceConfig_withLabel(mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName, testLabel),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "name", portName),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "label", testLabel),
+				),
+			},
+			{
+				Config: testAccFrontPortTemplateResourceBasic(mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName, "8p8c"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "name", portName),
+					resource.TestCheckNoResourceAttr("netbox_front_port_template.test", "label"),
+				),
+			},
+		},
+	})
+}
+
+func testAccFrontPortTemplateResourceConfig_withLabel(mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName, label string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[3]q
+  slug = %[4]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_rear_port_template" "rear" {
+  device_type = netbox_device_type.test.id
+  name = %[5]q
+  type = "8p8c"
+  positions = 1
+}
+
+resource "netbox_front_port_template" "test" {
+  device_type = netbox_device_type.test.id
+  name = %[6]q
+  type = "8p8c"
+  rear_port = netbox_rear_port_template.rear.name
+  rear_port_position = 1
+  label = %[7]q
+}
+`, mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName, label)
+}
