@@ -428,3 +428,92 @@ resource "netbox_service" "test" {
 }
 `, serviceName, vmName, clusterName, clusterTypeName, clusterTypeSlug)
 }
+
+func TestAccServiceResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	// Unique names and slugs
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+	mfgName := testutil.RandomName("tf-test-mfg")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg")
+	dtModel := testutil.RandomName("tf-test-dt")
+	dtSlug := testutil.RandomSlug("tf-test-dt")
+	roleName := testutil.RandomName("tf-test-role")
+	roleSlug := testutil.RandomSlug("tf-test-role")
+	deviceName := testutil.RandomName("tf-test-device")
+	serviceName := testutil.RandomName("tf-test-svc")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	// Common dependency config
+	depsConfig := fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %q
+  slug   = %q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_device_role" "test" {
+  name  = %q
+  slug  = %q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName)
+
+	config := testutil.MultiFieldOptionalTestConfig{
+		ResourceType: "netbox_service",
+		ResourceName: "netbox_service",
+		ConfigWithFields: func() string {
+			return depsConfig + fmt.Sprintf(`
+resource "netbox_service" "test" {
+  device      = netbox_device.test.id
+  name        = %q
+  protocol    = "tcp"
+  ports       = [80]
+  description = "Test Description"
+  comments    = "Test Comments"
+}
+`, serviceName)
+		},
+		BaseConfig: func() string {
+			return depsConfig + fmt.Sprintf(`
+resource "netbox_service" "test" {
+  device      = netbox_device.test.id
+  name        = %q
+  protocol    = "tcp"
+  ports       = [80]
+}
+`, serviceName)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test Description",
+			"comments":    "Test Comments",
+		},
+	}
+
+	testutil.TestRemoveOptionalFields(t, config)
+}

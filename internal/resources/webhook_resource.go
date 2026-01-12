@@ -148,9 +148,24 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// Set optional fields
 	utils.ApplyDescription(webhookRequest, data.Description)
-	webhookRequest.AdditionalHeaders = utils.StringPtr(data.AdditionalHeaders)
-	webhookRequest.BodyTemplate = utils.StringPtr(data.BodyTemplate)
-	webhookRequest.Secret = utils.StringPtr(data.Secret)
+
+	if !data.AdditionalHeaders.IsNull() {
+		webhookRequest.SetAdditionalHeaders(data.AdditionalHeaders.ValueString())
+	} else {
+		webhookRequest.SetAdditionalHeaders("")
+	}
+
+	if !data.BodyTemplate.IsNull() {
+		webhookRequest.SetBodyTemplate(data.BodyTemplate.ValueString())
+	} else {
+		webhookRequest.SetBodyTemplate("")
+	}
+
+	if !data.Secret.IsNull() {
+		webhookRequest.SetSecret(data.Secret.ValueString())
+	} else {
+		webhookRequest.SetSecret("")
+	}
 
 	// Set HTTP method
 	if !data.HTTPMethod.IsNull() && !data.HTTPMethod.IsUnknown() {
@@ -255,9 +270,24 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// Set optional fields
 	utils.ApplyDescription(webhookRequest, data.Description)
-	webhookRequest.AdditionalHeaders = utils.StringPtr(data.AdditionalHeaders)
-	webhookRequest.BodyTemplate = utils.StringPtr(data.BodyTemplate)
-	webhookRequest.Secret = utils.StringPtr(data.Secret)
+
+	if !data.AdditionalHeaders.IsNull() {
+		webhookRequest.SetAdditionalHeaders(data.AdditionalHeaders.ValueString())
+	} else {
+		webhookRequest.SetAdditionalHeaders("")
+	}
+
+	if !data.BodyTemplate.IsNull() {
+		webhookRequest.SetBodyTemplate(data.BodyTemplate.ValueString())
+	} else {
+		webhookRequest.SetBodyTemplate("")
+	}
+
+	if !data.Secret.IsNull() {
+		webhookRequest.SetSecret(data.Secret.ValueString())
+	} else {
+		webhookRequest.SetSecret("")
+	}
 
 	// Set HTTP method
 	if !data.HTTPMethod.IsNull() && !data.HTTPMethod.IsUnknown() {

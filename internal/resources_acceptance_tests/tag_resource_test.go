@@ -139,6 +139,29 @@ func TestAccTagResource_IDPreservation(t *testing.T) {
 	})
 }
 
+func TestAccTagResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tag")
+	slug := testutil.RandomSlug("tag")
+
+	config := testutil.MultiFieldOptionalTestConfig{
+		ResourceType: "netbox_tag",
+		ResourceName: "netbox_tag",
+		ConfigWithFields: func() string {
+			return testAccTagResourceFull(name, slug, "2196f3", "Test description")
+		},
+		BaseConfig: func() string {
+			return testAccTagResourceBasic(name, slug)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+		},
+	}
+
+	testutil.TestRemoveOptionalFields(t, config)
+}
+
 func testAccTagResourceBasic(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "test" {

@@ -205,10 +205,7 @@ func (r *ConfigContextResource) Create(ctx context.Context, req resource.CreateR
 	request := netbox.NewConfigContextRequest(data.Name.ValueString(), jsonData)
 
 	// Set optional fields
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		desc := data.Description.ValueString()
-		request.Description = &desc
-	}
+	utils.ApplyDescription(request, data.Description)
 	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
 		weight, err := utils.SafeInt32FromValue(data.Weight)
 		if err != nil {
@@ -382,9 +379,7 @@ func (r *ConfigContextResource) Update(ctx context.Context, req resource.UpdateR
 	request := netbox.NewConfigContextRequest(plan.Name.ValueString(), jsonData)
 
 	// Set optional fields
-	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
-		request.SetDescription(plan.Description.ValueString())
-	}
+	utils.ApplyDescription(request, plan.Description)
 
 	if !plan.Weight.IsNull() && !plan.Weight.IsUnknown() {
 		weight, err := utils.SafeInt32FromValue(plan.Weight)
@@ -417,8 +412,6 @@ func (r *ConfigContextResource) Update(ctx context.Context, req resource.UpdateR
 	// Apply tags with merge-aware handling (manual since ConfigContext uses []string not []NestedTag)
 	if utils.IsSet(plan.Tags) {
 		request.Tags = setToStringSlice(ctx, plan.Tags)
-	} else if utils.IsSet(state.Tags) {
-		request.Tags = setToStringSlice(ctx, state.Tags)
 	}
 
 	tflog.Debug(ctx, "Updating config context", map[string]interface{}{

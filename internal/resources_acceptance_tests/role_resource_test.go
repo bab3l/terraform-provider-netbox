@@ -295,6 +295,68 @@ func TestAccRoleResource_externalDeletion(t *testing.T) {
 	})
 }
 
+// TestAccRoleResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccRoleResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-role-rem")
+	slug := testutil.RandomSlug("tf-test-role-rem")
+	description := testutil.RandomName("description")
+	tagSlug := testutil.RandomSlug("tf-test-tag")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRoleCleanup(slug)
+	cleanup.RegisterTagCleanup(tagSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoleResourceConfig_withOptionalFields(name, slug, description, tagSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_role.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_role.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_role.test", "tags.#", "1"),
+				),
+			},
+			{
+				Config: testAccRoleResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_role.test", "slug", slug),
+					resource.TestCheckNoResourceAttr("netbox_role.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_role.test", "tags"),
+				),
+			},
+		},
+	})
+}
+
+func testAccRoleResourceConfig_withOptionalFields(name, slug, description, tagSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tag" "test" {
+  name = %[4]q
+  slug = %[4]q
+}
+
+resource "netbox_role" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  description = %[3]q
+  tags = [
+    {
+      name = netbox_tag.test.name
+      slug = netbox_tag.test.slug
+    }
+  ]
+}
+`, name, slug, description, tagSlug)
+}
+
 // TestAccRoleResource_Weight tests comprehensive scenarios for role weight field.
 // This validates that Optional+Computed int64 fields with proper defaults work correctly.
 func TestAccRoleResource_Weight(t *testing.T) {

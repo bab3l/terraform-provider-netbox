@@ -8,6 +8,7 @@ package resources_acceptance_tests_customfields
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -336,4 +337,56 @@ resource "netbox_custom_field" "test" {
   description  = %[2]q
 }
 `, name, description)
+}
+
+// TestAccCustomFieldResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccCustomFieldResource_removeOptionalFields(t *testing.T) {
+	// Not testing in parallel due to custom field constraints
+	// t.Parallel()
+
+	name := testutil.RandomName("tf_test_cf_rem")
+	name = strings.ReplaceAll(name, "-", "_")
+	const testLabel = "Test Label"
+	const testDesc = "Test Description"
+	const testGroup = "Test Group"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_custom_field" "test" {
+  name         = %[1]q
+  type         = "text"
+  object_types = ["dcim.site"]
+  description  = %[2]q
+  label        = %[3]q
+  group_name   = %[4]q
+}
+`, name, testDesc, testLabel, testGroup),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "label", testLabel),
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "description", testDesc),
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "group_name", testGroup),
+				),
+			},
+			{
+				Config: testAccCustomFieldResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "name", name),
+					// Label defaults to empty string in provider schema
+					resource.TestCheckResourceAttr("netbox_custom_field.test", "label", ""),
+					resource.TestCheckNoResourceAttr("netbox_custom_field.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_custom_field.test", "group_name"),
+				),
+			},
+		},
+	})
 }

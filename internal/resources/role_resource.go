@@ -462,12 +462,7 @@ func (r *RoleResource) buildRoleRequest(ctx context.Context, data *RoleResourceM
 	}
 
 	// Handle description (optional)
-
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		desc := data.Description.ValueString()
-
-		roleRequest.Description = &desc
-	}
+	utils.ApplyDescription(roleRequest, data.Description)
 
 	// Apply tags
 	utils.ApplyTags(ctx, roleRequest, data.Tags, &diags)

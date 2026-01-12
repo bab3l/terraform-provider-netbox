@@ -239,6 +239,72 @@ func TestAccConfigContextResource_externalDeletion(t *testing.T) {
 	})
 }
 
+// TestAccConfigContextResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccConfigContextResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ctx-rem")
+	description := testutil.RandomName("description")
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+	tagSlug := testutil.RandomSlug("tf-test-tag")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigContextCleanup(name)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTagCleanup(tagSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigContextResourceConfig_withOptionalFields(name, description, siteName, siteSlug, tagSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_config_context.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_config_context.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_config_context.test", "sites.#", "1"),
+					resource.TestCheckResourceAttr("netbox_config_context.test", "tags.#", "1"),
+				),
+			},
+			{
+				Config: testAccConfigContextResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_config_context.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_config_context.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_config_context.test", "sites"),
+					resource.TestCheckNoResourceAttr("netbox_config_context.test", "tags"),
+				),
+			},
+		},
+	})
+}
+
+func testAccConfigContextResourceConfig_withOptionalFields(name, description, siteName, siteSlug, tagSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[3]q
+  slug   = %[4]q
+  status = "active"
+}
+
+resource "netbox_tag" "test" {
+  name = %[5]q
+  slug = %[5]q
+}
+
+resource "netbox_config_context" "test" {
+  name        = %[1]q
+  data        = "{\"key\": \"value\"}"
+  description = %[2]q
+  sites       = [netbox_site.test.id]
+  tags        = [netbox_tag.test.slug]
+}
+`, name, description, siteName, siteSlug, tagSlug)
+}
+
 func testAccConfigContextResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`

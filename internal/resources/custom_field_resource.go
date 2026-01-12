@@ -436,13 +436,13 @@ func (r *CustomFieldResource) buildCustomFieldRequest(ctx context.Context, data 
 	}
 
 	// Handle label (optional)
-	if !data.Label.IsNull() && !data.Label.IsUnknown() && data.Label.ValueString() != "" {
-		createReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(createReq, data.Label)
 
 	// Handle group_name (optional)
 	if !data.GroupName.IsNull() && !data.GroupName.IsUnknown() {
 		createReq.SetGroupName(data.GroupName.ValueString())
+	} else {
+		createReq.SetGroupName("")
 	}
 
 	// Apply common descriptive fields (description, comments)
@@ -515,6 +515,8 @@ func (r *CustomFieldResource) buildCustomFieldRequest(ctx context.Context, data 
 	// Handle validation_regex (optional)
 	if !data.ValidationRegex.IsNull() && !data.ValidationRegex.IsUnknown() {
 		createReq.SetValidationRegex(data.ValidationRegex.ValueString())
+	} else {
+		createReq.SetValidationRegex("")
 	}
 
 	// Handle choice_set (optional) - lookup by name

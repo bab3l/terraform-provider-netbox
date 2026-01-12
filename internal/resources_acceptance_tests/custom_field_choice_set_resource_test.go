@@ -255,3 +255,44 @@ func TestAccCustomFieldChoiceSetResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccCustomFieldChoiceSetResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("cfcs")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomFieldChoiceSetCleanupByName(name)
+
+	config := testutil.MultiFieldOptionalTestConfig{
+		ResourceType: "netbox_custom_field_choice_set",
+		ResourceName: "netbox_custom_field_choice_set",
+		ConfigWithFields: func() string {
+			return fmt.Sprintf(`
+resource "netbox_custom_field_choice_set" "test" {
+  name                 = "%[1]s"
+  description          = "Test choice set"
+  order_alphabetically = true
+  extra_choices = [
+    { value = "opt1", label = "Option 1" },
+  ]
+}
+`, name)
+		},
+		BaseConfig: func() string {
+			return fmt.Sprintf(`
+resource "netbox_custom_field_choice_set" "test" {
+  name                 = "%[1]s"
+  extra_choices = [
+    { value = "opt1", label = "Option 1" },
+  ]
+}
+`, name)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test choice set",
+		},
+	}
+
+	testutil.TestRemoveOptionalFields(t, config)
+}

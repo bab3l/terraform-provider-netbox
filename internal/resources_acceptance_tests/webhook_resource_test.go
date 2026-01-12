@@ -228,6 +228,57 @@ resource "netbox_webhook" "test" {
 `, name, description)
 }
 
+func TestAccWebhookResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+	testutil.TestAccPreCheck(t)
+
+	randomName := testutil.RandomName("test-webhook-remove")
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create with optional fields
+			{
+				Config: testAccWebhookResourceWithOptionalFields(randomName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_webhook.test", "description", "Test webhook description"),
+					resource.TestCheckResourceAttr("netbox_webhook.test", "additional_headers", "X-Custom-Header: test-value"),
+					resource.TestCheckResourceAttr("netbox_webhook.test", "body_template", "{ \"foo\": \"bar\" }"),
+					resource.TestCheckResourceAttr("netbox_webhook.test", "secret", "mysecretkey"),
+					resource.TestCheckResourceAttr("netbox_webhook.test", "ssl_verification", "false"),
+				),
+			},
+			// Update to remove optional fields
+			{
+				Config: testAccWebhookResource(randomName, "https://example.com/webhook"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_webhook.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_webhook.test", "additional_headers"),
+					resource.TestCheckNoResourceAttr("netbox_webhook.test", "body_template"),
+					resource.TestCheckNoResourceAttr("netbox_webhook.test", "secret"),
+					resource.TestCheckResourceAttr("netbox_webhook.test", "ssl_verification", "true"),
+				),
+			},
+		},
+	})
+}
+
+func testAccWebhookResourceWithOptionalFields(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_webhook" "test" {
+  name               = %[1]q
+  payload_url        = "https://example.com/webhook"
+  http_method        = "PUT"
+  http_content_type  = "application/xml"
+  description        = "Test webhook description"
+  additional_headers = "X-Custom-Header: test-value"
+  body_template      = "{ \"foo\": \"bar\" }"
+  secret             = "mysecretkey"
+  ssl_verification   = false
+}
+`, name)
+}
+
 func TestAccWebhookResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 	testutil.TestAccPreCheck(t)
