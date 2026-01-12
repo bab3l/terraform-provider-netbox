@@ -308,9 +308,8 @@ func (r *InventoryItemResource) Update(ctx context.Context, req resource.UpdateR
 	apiReq := netbox.NewInventoryItemRequest(*device, data.Name.ValueString())
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
+
 	if !data.Parent.IsNull() && !data.Parent.IsUnknown() {
 		parentID, err := utils.ParseID(data.Parent.ValueString())
 		if err != nil {

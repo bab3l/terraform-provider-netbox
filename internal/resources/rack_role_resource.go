@@ -136,15 +136,11 @@ func (r *RackRoleResource) Create(ctx context.Context, req resource.CreateReques
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
 		color := data.Color.ValueString()
-
 		rackRoleRequest.Color = &color
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		description := data.Description.ValueString()
-
-		rackRoleRequest.Description = &description
-	}
+	// Use utils helper for description
+	utils.ApplyDescription(&rackRoleRequest, data.Description)
 
 	// Apply metadata fields (tags, custom_fields)
 
@@ -356,15 +352,11 @@ func (r *RackRoleResource) Update(ctx context.Context, req resource.UpdateReques
 
 	if !plan.Color.IsNull() && !plan.Color.IsUnknown() {
 		color := plan.Color.ValueString()
-
 		rackRoleRequest.Color = &color
 	}
 
-	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
-		description := plan.Description.ValueString()
-
-		rackRoleRequest.Description = &description
-	}
+	// Use utils helper for description
+	utils.ApplyDescription(&rackRoleRequest, plan.Description)
 
 	// Apply merge-aware metadata fields
 

@@ -404,4 +404,88 @@ func TestAccModuleBayResource_external_deletion(t *testing.T) {
 	})
 }
 
-// NOTE: Custom field tests for module_bay resource are in resources_acceptance_tests_customfields package
+// TestAccModuleBayResource_removeOptionalFields tests that the label field
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccModuleBayResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-rem")
+	siteSlug := testutil.RandomSlug("tf-test-site-rem")
+	mfgName := testutil.RandomName("tf-test-mfg-rem")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-rem")
+	dtModel := testutil.RandomName("tf-test-dt-rem")
+	dtSlug := testutil.RandomSlug("tf-test-dt-rem")
+	roleName := testutil.RandomName("tf-test-role-rem")
+	roleSlug := testutil.RandomSlug("tf-test-role-rem")
+	deviceName := testutil.RandomName("tf-test-device-rem")
+	bayName := testutil.RandomName("tf-test-mbay-rem")
+	const testLabel = "Test Label"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleBayResourceConfig_withLabel(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, testLabel),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module_bay.test", "name", bayName),
+					resource.TestCheckResourceAttr("netbox_module_bay.test", "label", testLabel),
+				),
+			},
+			{
+				Config: testAccModuleBayResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module_bay.test", "name", bayName),
+					resource.TestCheckNoResourceAttr("netbox_module_bay.test", "label"),
+				),
+			},
+		},
+	})
+}
+
+func testAccModuleBayResourceConfig_withLabel(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, label string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_device_role" "test" {
+  name  = %q
+  slug  = %q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_module_bay" "test" {
+  device = netbox_device.test.id
+  name   = %q
+  label  = %q
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, label)
+}

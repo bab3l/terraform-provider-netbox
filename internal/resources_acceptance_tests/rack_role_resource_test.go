@@ -301,3 +301,48 @@ func TestAccRackRoleResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccRackRoleResource_removeOptionalFields tests that the description field
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccRackRoleResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	roleName := testutil.RandomName("tf-test-rackrole-rem")
+	roleSlug := testutil.RandomSlug("tf-test-rr-rem")
+	const testDescription = "Test Description"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackRoleCleanup(roleSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackRoleResourceConfig_withDescription(roleName, roleSlug, testDescription),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "name", roleName),
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "description", testDescription),
+				),
+			},
+			{
+				Config: testAccRackRoleConsistencyConfig(roleName, roleSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "name", roleName),
+					resource.TestCheckNoResourceAttr("netbox_rack_role.test", "description"),
+				),
+			},
+		},
+	})
+}
+
+func testAccRackRoleResourceConfig_withDescription(name, slug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_rack_role" "test" {
+  name        = %q
+  slug        = %q
+  description = %q
+}
+`, name, slug, description)
+}

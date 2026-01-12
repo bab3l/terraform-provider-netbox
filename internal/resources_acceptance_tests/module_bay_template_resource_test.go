@@ -290,3 +290,64 @@ func TestAccConsistency_ModuleBayTemplate_LiteralNames(t *testing.T) {
 		},
 	})
 }
+
+// TestAccModuleBayTemplateResource_removeOptionalFields tests that the label field
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+// NOTE: This test may fail due to NetBox API limitation for templates (see Batch 4A results).
+func TestAccModuleBayTemplateResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg-rem")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-rem")
+	dtModel := testutil.RandomName("tf-test-dt-rem")
+	dtSlug := testutil.RandomSlug("tf-test-dt-rem")
+	templateName := testutil.RandomName("tf-test-mbaytempl-rem")
+	const testLabel = "Test Label"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleBayTemplateResourceConfig_withLabel(mfgName, mfgSlug, dtModel, dtSlug, templateName, testLabel),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module_bay_template.test", "name", templateName),
+					resource.TestCheckResourceAttr("netbox_module_bay_template.test", "label", testLabel),
+				),
+			},
+			{
+				Config: testAccModuleBayTemplateResourceConfig_basic(mfgName, mfgSlug, dtModel, dtSlug, templateName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module_bay_template.test", "name", templateName),
+					resource.TestCheckNoResourceAttr("netbox_module_bay_template.test", "label"),
+				),
+			},
+		},
+	})
+}
+
+func testAccModuleBayTemplateResourceConfig_withLabel(mfgName, mfgSlug, dtModel, dtSlug, templateName, label string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_module_bay_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %q
+  label       = %q
+}
+`, mfgName, mfgSlug, dtModel, dtSlug, templateName, label)
+}

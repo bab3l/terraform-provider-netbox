@@ -162,9 +162,7 @@ func (r *InventoryItemTemplateResource) Create(ctx context.Context, req resource
 		apiReq.SetParent(parentID)
 	}
 
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Role.IsNull() && !data.Role.IsUnknown() {
 		role, roleDiags := lookup.LookupInventoryItemRole(ctx, r.client, data.Role.ValueString())
@@ -315,9 +313,7 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 		}
 		apiReq.SetParent(parentID)
 	}
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Role.IsNull() && !data.Role.IsUnknown() {
 		role, roleDiags := lookup.LookupInventoryItemRole(ctx, r.client, data.Role.ValueString())

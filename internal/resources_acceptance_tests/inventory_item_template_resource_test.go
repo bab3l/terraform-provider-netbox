@@ -282,3 +282,45 @@ resource "netbox_inventory_item_template" "test" {
 }
 `, name, name, name, name, name)
 }
+
+// TestAccInventoryItemTemplateResource_removeOptionalFields tests that the label field
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+// NOTE: This test may fail due to NetBox API limitation for templates (see Batch 4A results).
+func TestAccInventoryItemTemplateResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	templateName := testutil.RandomName("tf-test-invtempl-rem")
+	const testLabel = "Test Label"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemTemplateResourceConfig_withLabel(templateName, testLabel),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "name", templateName),
+					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "label", testLabel),
+				),
+			},
+			{
+				Config: testAccInventoryItemTemplateResourceConfig_basic(templateName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "name", templateName),
+					resource.TestCheckNoResourceAttr("netbox_inventory_item_template.test", "label"),
+				),
+			},
+		},
+	})
+}
+
+func testAccInventoryItemTemplateResourceConfig_withLabel(name, label string) string {
+	return testAccInventoryItemTemplateResourcePrereqs(name) + fmt.Sprintf(`
+resource "netbox_inventory_item_template" "test" {
+  device_type = netbox_device_type.test.id
+  name = %q
+  label = %q
+}
+`, name, label)
+}

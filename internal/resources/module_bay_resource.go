@@ -129,9 +129,7 @@ func (r *ModuleBayResource) Create(ctx context.Context, req resource.CreateReque
 	apiReq := netbox.NewModuleBayRequest(*device, data.Name.ValueString())
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 	if !data.Position.IsNull() && !data.Position.IsUnknown() {
 		apiReq.SetPosition(data.Position.ValueString())
 	}
@@ -260,9 +258,7 @@ func (r *ModuleBayResource) Update(ctx context.Context, req resource.UpdateReque
 	apiReq := netbox.NewModuleBayRequest(*device, plan.Name.ValueString())
 
 	// Set optional fields
-	if !plan.Label.IsNull() && !plan.Label.IsUnknown() {
-		apiReq.SetLabel(plan.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, plan.Label)
 	if !plan.Position.IsNull() && !plan.Position.IsUnknown() {
 		apiReq.SetPosition(plan.Position.ValueString())
 	}

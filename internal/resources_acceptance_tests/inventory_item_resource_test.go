@@ -342,4 +342,43 @@ resource "netbox_inventory_item" "test" {
 `, name, name, name, name, name, name, name, name, name, name)
 }
 
-// NOTE: Custom field tests for inventory_item resource are in resources_acceptance_tests_customfields package
+// TestAccInventoryItemResource_removeOptionalFields tests that the label field
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccInventoryItemResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	itemName := testutil.RandomName("tf-test-invitem-rem")
+	const testLabel = "Test Label"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemResourceConfig_withLabel(itemName, testLabel),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_inventory_item.test", "name", itemName),
+					resource.TestCheckResourceAttr("netbox_inventory_item.test", "label", testLabel),
+				),
+			},
+			{
+				Config: testAccInventoryItemResourceConfig_basic(itemName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_inventory_item.test", "name", itemName),
+					resource.TestCheckNoResourceAttr("netbox_inventory_item.test", "label"),
+				),
+			},
+		},
+	})
+}
+
+func testAccInventoryItemResourceConfig_withLabel(name, label string) string {
+	return testAccInventoryItemResourcePrereqs(name) + fmt.Sprintf(`
+resource "netbox_inventory_item" "test" {
+  device = netbox_device.test.name
+  name = %q
+  label = %q
+}
+`, name, label)
+}
