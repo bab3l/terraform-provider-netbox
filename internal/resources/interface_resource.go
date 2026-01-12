@@ -392,6 +392,8 @@ func (r *InterfaceResource) setOptionalFields(ctx context.Context, interfaceReq 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
 		label := data.Label.ValueString()
 		interfaceReq.Label = &label
+	} else if data.Label.IsNull() {
+		interfaceReq.SetLabel("")
 	}
 
 	// Enabled
@@ -472,6 +474,8 @@ func (r *InterfaceResource) setOptionalFields(ctx context.Context, interfaceReq 
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		desc := data.Description.ValueString()
 		interfaceReq.Description = &desc
+	} else if data.Description.IsNull() {
+		interfaceReq.SetDescription("")
 	}
 
 	// Mode (WritableInterfaceRequest uses PatchedWritableInterfaceRequestMode)
