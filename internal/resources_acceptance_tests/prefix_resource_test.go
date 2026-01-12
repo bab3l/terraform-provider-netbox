@@ -716,3 +716,45 @@ resource "netbox_prefix" "test" {
 }
 `, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVID, roleName, roleSlug, prefix)
 }
+
+func TestAccPrefixResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	prefix := testutil.RandomIPv4Prefix()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_prefix",
+		BaseConfig: func() string {
+			return testAccPrefixResourceConfig_basic(prefix)
+		},
+		ConfigWithFields: func() string {
+			return testAccPrefixResourceConfig_withDescriptionAndComments(
+				prefix,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		RequiredFields: map[string]string{
+			"prefix": prefix,
+		},
+		CheckDestroy: testutil.CheckPrefixDestroy,
+	})
+}
+
+func testAccPrefixResourceConfig_withDescriptionAndComments(prefix, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_prefix" "test" {
+  prefix      = %[1]q
+  status      = "active"
+  description = %[2]q
+  comments    = %[3]q
+}
+`, prefix, description, comments)
+}

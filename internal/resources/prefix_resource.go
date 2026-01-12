@@ -584,12 +584,20 @@ func (r *PrefixResource) setOptionalFields(ctx context.Context, prefixRequest *n
 	}
 
 	// Description
-
-	prefixRequest.Description = utils.StringPtr(data.Description)
+	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+		desc := data.Description.ValueString()
+		prefixRequest.Description = &desc
+	} else if data.Description.IsNull() {
+		prefixRequest.SetDescription("")
+	}
 
 	// Comments
-
-	prefixRequest.Comments = utils.StringPtr(data.Comments)
+	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
+		comments := data.Comments.ValueString()
+		prefixRequest.Comments = &comments
+	} else if data.Comments.IsNull() {
+		prefixRequest.SetComments("")
+	}
 
 	// Handle tags
 
