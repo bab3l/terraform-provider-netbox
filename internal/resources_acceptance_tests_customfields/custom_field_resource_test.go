@@ -381,8 +381,8 @@ resource "netbox_custom_field" "test" {
 				Config: testAccCustomFieldResourceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_custom_field.test", "name", name),
-					// Label defaults to empty string in provider schema
-					resource.TestCheckResourceAttr("netbox_custom_field.test", "label", ""),
+					// When label is removed from config, it returns as null
+					resource.TestCheckNoResourceAttr("netbox_custom_field.test", "label"),
 					resource.TestCheckNoResourceAttr("netbox_custom_field.test", "description"),
 					resource.TestCheckNoResourceAttr("netbox_custom_field.test", "group_name"),
 				),
