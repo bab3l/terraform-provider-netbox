@@ -349,3 +349,58 @@ resource "netbox_rir" "test" {
 }
 `, name, slug, description)
 }
+
+// TestAccRIRResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccRIRResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-rir-rem")
+	slug := testutil.RandomSlug("tf-test-rir-rem")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRIRDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRIRResourceConfig_withIsPrivate(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rir.test", "is_private", "true"),
+				),
+			},
+			{
+				Config: testAccRIRResourceConfig_withoutIsPrivate(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rir.test", "is_private", "false"), // default value
+				),
+			},
+		},
+	})
+}
+
+func testAccRIRResourceConfig_withIsPrivate(name, slug string) string {
+	return fmt.Sprintf(`
+provider "netbox" {}
+
+resource "netbox_rir" "test" {
+  name       = %[1]q
+  slug       = %[2]q
+  is_private = true
+}
+`, name, slug)
+}
+
+func testAccRIRResourceConfig_withoutIsPrivate(name, slug string) string {
+	return fmt.Sprintf(`
+provider "netbox" {}
+
+resource "netbox_rir" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+`, name, slug)
+}

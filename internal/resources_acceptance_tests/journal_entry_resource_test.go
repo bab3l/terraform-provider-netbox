@@ -356,3 +356,70 @@ resource "netbox_journal_entry" "test" {
 }
 `, siteName, siteSlug, kindValue)
 }
+
+// TestAccJournalEntryResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccJournalEntryResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-rem")
+	siteSlug := testutil.RandomSlug("tf-test-site-rem")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckJournalEntryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccJournalEntryResourceConfig_withKind(siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_journal_entry.test", "kind", "warning"),
+				),
+			},
+			{
+				Config: testAccJournalEntryResourceConfig_withoutKind(siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_journal_entry.test", "kind", "info"), // default value
+				),
+			},
+		},
+	})
+}
+
+func testAccJournalEntryResourceConfig_withKind(siteName, siteSlug string) string {
+	return fmt.Sprintf(`
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_journal_entry" "test" {
+  assigned_object_type = "dcim.site"
+  assigned_object_id   = netbox_site.test.id
+  comments             = "Test journal entry"
+  kind                 = "warning"
+}
+`, siteName, siteSlug)
+}
+
+func testAccJournalEntryResourceConfig_withoutKind(siteName, siteSlug string) string {
+	return fmt.Sprintf(`
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_journal_entry" "test" {
+  assigned_object_type = "dcim.site"
+  assigned_object_id   = netbox_site.test.id
+  comments             = "Test journal entry"
+}
+`, siteName, siteSlug)
+}
