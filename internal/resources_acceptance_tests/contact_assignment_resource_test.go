@@ -411,3 +411,44 @@ func TestAccContactAssignmentResource_externalDeletion(t *testing.T) {
 			},
 		}})
 }
+
+// TestAccContactAssignmentResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccContactAssignmentResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+	randomName := testutil.RandomName("test-contact-rem")
+	randomSlug := testutil.RandomSlug("test-ca-rem")
+	contactEmail := fmt.Sprintf("%s@example.com", testutil.RandomSlug("ca-rem"))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(randomSlug + "-site")
+	cleanup.RegisterContactCleanup(contactEmail)
+	cleanup.RegisterContactRoleCleanup(randomSlug + "-role")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactAssignmentResourceWithPriorityEmail(randomName, randomSlug, contactEmail, "primary"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "object_type", "dcim.site"),
+					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "contact_id"),
+					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "role_id"),
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "priority", "primary"),
+				),
+			},
+			{
+				Config: testAccContactAssignmentResourceBasicWithEmail(randomName, randomSlug, contactEmail),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "object_type", "dcim.site"),
+					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "contact_id"),
+					resource.TestCheckNoResourceAttr("netbox_contact_assignment.test", "priority"),
+					// Note: role_id is present in basic config so we test removal separately
+				),
+			},
+		},
+	})
+}

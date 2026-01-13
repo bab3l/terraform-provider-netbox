@@ -247,10 +247,13 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 	// Build the update request
 	updateReq := *netbox.NewDeviceBayTemplateRequest(*deviceTypeRef, data.Name.ValueString())
 
-	// Set optional fields
+	// Set optional fields - use empty string to clear
 	if utils.IsSet(data.Label) {
 		label := data.Label.ValueString()
 		updateReq.Label = &label
+	} else {
+		emptyLabel := ""
+		updateReq.Label = &emptyLabel
 	}
 
 	// Apply description

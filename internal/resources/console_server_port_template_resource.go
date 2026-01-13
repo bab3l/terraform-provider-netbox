@@ -161,6 +161,7 @@ func (r *ConsoleServerPortTemplateResource) Create(ctx context.Context, req reso
 
 	// Map response to model
 	r.mapResponseToModel(response, &data)
+
 	tflog.Trace(ctx, "Created console server port template", map[string]interface{}{
 		"id": data.ID.ValueInt32(),
 	})
@@ -198,6 +199,7 @@ func (r *ConsoleServerPortTemplateResource) Read(ctx context.Context, req resour
 
 	// Map response to model
 	r.mapResponseToModel(response, &data)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -258,6 +260,7 @@ func (r *ConsoleServerPortTemplateResource) Update(ctx context.Context, req reso
 
 	// Map response to model
 	r.mapResponseToModel(response, &data)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -325,10 +328,10 @@ func (r *ConsoleServerPortTemplateResource) mapResponseToModel(template *netbox.
 	}
 
 	// Map label
-	if label, ok := template.GetLabelOk(); ok && label != nil {
-		data.Label = types.StringValue(*label)
+	if template.HasLabel() && template.GetLabel() != "" {
+		data.Label = types.StringValue(template.GetLabel())
 	} else {
-		data.Label = types.StringValue("")
+		data.Label = types.StringNull()
 	}
 
 	// Map type

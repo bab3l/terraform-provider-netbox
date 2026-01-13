@@ -305,3 +305,42 @@ resource "netbox_circuit_type" "test" {
 }
 `, name, slug, description)
 }
+
+// TestAccCircuitTypeResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccCircuitTypeResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-circuit-type-rem")
+	slug := testutil.RandomSlug("tf-test-circuit-type-rem")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitTypeCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitTypeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitTypeResourceConfig_full(name, slug, description, testutil.Color),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit_type.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_circuit_type.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_circuit_type.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_circuit_type.test", "color", testutil.Color),
+				),
+			},
+			{
+				Config: testAccCircuitTypeResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit_type.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_circuit_type.test", "slug", slug),
+					resource.TestCheckNoResourceAttr("netbox_circuit_type.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_circuit_type.test", "color"),
+				),
+			},
+		},
+	})
+}

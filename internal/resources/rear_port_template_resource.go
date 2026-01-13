@@ -201,8 +201,11 @@ func (r *RearPortTemplateResource) Create(ctx context.Context, req resource.Crea
 	// Set optional fields
 	utils.ApplyLabel(apiReq, data.Label)
 
-	if !data.Color.IsNull() && !data.Color.IsUnknown() {
+	if utils.IsSet(data.Color) {
 		apiReq.SetColor(data.Color.ValueString())
+	} else if data.Color.IsNull() {
+		// Explicitly clear color when removed from config
+		apiReq.SetColor("")
 	}
 
 	if !data.Positions.IsNull() && !data.Positions.IsUnknown() {
@@ -337,8 +340,11 @@ func (r *RearPortTemplateResource) Update(ctx context.Context, req resource.Upda
 	// Set optional fields
 	utils.ApplyLabel(apiReq, data.Label)
 
-	if !data.Color.IsNull() && !data.Color.IsUnknown() {
+	if utils.IsSet(data.Color) {
 		apiReq.SetColor(data.Color.ValueString())
+	} else if data.Color.IsNull() {
+		// Explicitly clear color when removed from config
+		apiReq.SetColor("")
 	}
 
 	if !data.Positions.IsNull() && !data.Positions.IsUnknown() {
@@ -469,19 +475,11 @@ func (r *RearPortTemplateResource) mapResponseToModel(template *netbox.RearPortT
 
 	// Map label
 
-	if label, ok := template.GetLabelOk(); ok && label != nil {
-		data.Label = types.StringValue(*label)
-	} else {
-		data.Label = types.StringValue("")
-	}
+	data.Label = utils.StringFromAPI(template.HasLabel(), template.GetLabel, data.Label)
 
 	// Map color
 
-	if color, ok := template.GetColorOk(); ok && color != nil {
-		data.Color = types.StringValue(*color)
-	} else {
-		data.Color = types.StringValue("")
-	}
+	data.Color = utils.StringFromAPI(template.HasColor(), template.GetColor, data.Color)
 
 	// Map positions
 

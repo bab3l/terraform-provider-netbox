@@ -311,3 +311,44 @@ resource "netbox_device_bay_template" "test" {
 }
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, description)
 }
+
+// TestAccDeviceBayTemplateResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccDeviceBayTemplateResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-dbt-rem")
+	manufacturerName := testutil.RandomName("tf-test-mfr")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr")
+	deviceTypeName := testutil.RandomName("tf-test-dt")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dt")
+	label := testutil.RandomName("label")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceBayTemplateResourceConfig_updated(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, label, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "label", label),
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "description", description),
+				),
+			},
+			{
+				Config: testAccDeviceBayTemplateResourceConfig_basic(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_device_bay_template.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_device_bay_template.test", "label"),
+					resource.TestCheckNoResourceAttr("netbox_device_bay_template.test", "description"),
+				),
+			},
+		},
+	})
+}

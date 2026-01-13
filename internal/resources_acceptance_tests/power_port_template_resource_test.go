@@ -297,83 +297,6 @@ resource "netbox_power_port_template" "test" {
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceTypeSlug, resourceName)
 }
 
-// TestAccPowerPortTemplateResource_Label tests comprehensive scenarios for power port template label field.
-// This validates that Optional+Computed string fields with empty string defaults work correctly.
-func TestAccPowerPortTemplateResource_Label(t *testing.T) {
-	t.Parallel()
-
-	manufacturerName := testutil.RandomName("tf-test-mfr-pwr-port-tpl")
-	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-pwr-port-tpl")
-	deviceTypeName := testutil.RandomName("tf-test-dev-type-pwr-port-tpl")
-	deviceTypeSlug := testutil.RandomSlug("tf-test-dev-type-pwr-port-tpl")
-	powerPortTemplateName := testutil.RandomName("tf-test-pwr-port-tpl")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
-	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy: testutil.ComposeCheckDestroy(
-			testutil.CheckDeviceTypeDestroy,
-			testutil.CheckManufacturerDestroy,
-		),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccPowerPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, powerPortTemplateName, "label", ""),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_power_port_template.test", "id"),
-					resource.TestCheckResourceAttr("netbox_power_port_template.test", "name", powerPortTemplateName),
-					resource.TestCheckResourceAttr("netbox_power_port_template.test", "label", ""),
-				),
-			},
-			{
-				Config:   testAccPowerPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, powerPortTemplateName, "label", ""),
-				PlanOnly: true,
-			},
-			{
-				Config: testAccPowerPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, powerPortTemplateName, "label", "Port-01"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_power_port_template.test", "id"),
-					resource.TestCheckResourceAttr("netbox_power_port_template.test", "name", powerPortTemplateName),
-					resource.TestCheckResourceAttr("netbox_power_port_template.test", "label", "Port-01"),
-				),
-			},
-			{
-				Config:   testAccPowerPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, powerPortTemplateName, "label", "Port-01"),
-				PlanOnly: true,
-			},
-		},
-	})
-}
-
-func testAccPowerPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, optionalFieldName, optionalFieldValue string) string {
-	optionalField := ""
-	if optionalFieldValue != "" {
-		optionalField = fmt.Sprintf("\n  %s = %q", optionalFieldName, optionalFieldValue)
-	}
-
-	return fmt.Sprintf(`
-resource "netbox_manufacturer" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_device_type" "test" {
-  manufacturer = netbox_manufacturer.test.id
-  model        = %q
-  slug         = %q
-}
-
-resource "netbox_power_port_template" "test" {
-  device_type = netbox_device_type.test.id
-  name        = %q
-  type        = "iec-60320-c14"%s
-}
-`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, optionalField)
-}
-
 func TestAccPowerPortTemplateResource_removeOptionalFields(t *testing.T) {
 	t.Parallel()
 
@@ -382,7 +305,13 @@ func TestAccPowerPortTemplateResource_removeOptionalFields(t *testing.T) {
 	dtModel := testutil.RandomName("tf-test-dt-rem")
 	dtSlug := testutil.RandomSlug("tf-test-dt-rem")
 	portName := testutil.RandomName("tf-test-ppt-rem")
+
+	// Test values for all optional fields
 	const testLabel = "Test Label"
+	const testType = "iec-60320-c14"
+	const testMaxDraw = 500
+	const testAllocDraw = 400
+	const testDescription = "Test Description"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
@@ -393,24 +322,34 @@ func TestAccPowerPortTemplateResource_removeOptionalFields(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPowerPortTemplateResourceConfig_withLabel(mfgName, mfgSlug, dtModel, dtSlug, portName, testLabel),
+				// Step 1: Create with all optional fields
+				Config: testAccPowerPortTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, testLabel, testType, testMaxDraw, testAllocDraw, testDescription),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_port_template.test", "name", portName),
 					resource.TestCheckResourceAttr("netbox_power_port_template.test", "label", testLabel),
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "type", testType),
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "maximum_draw", "500"),
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "allocated_draw", "400"),
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "description", testDescription),
 				),
 			},
 			{
-				Config: testAccPowerPortTemplateResourceBasic(mfgName, mfgSlug, dtModel, dtSlug, portName),
+				// Step 2: Remove all optional fields
+				Config: testAccPowerPortTemplateResourceConfig_noOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_port_template.test", "name", portName),
 					resource.TestCheckNoResourceAttr("netbox_power_port_template.test", "label"),
+					resource.TestCheckNoResourceAttr("netbox_power_port_template.test", "type"),
+					resource.TestCheckNoResourceAttr("netbox_power_port_template.test", "maximum_draw"),
+					resource.TestCheckNoResourceAttr("netbox_power_port_template.test", "allocated_draw"),
+					resource.TestCheckNoResourceAttr("netbox_power_port_template.test", "description"),
 				),
 			},
 		},
 	})
 }
 
-func testAccPowerPortTemplateResourceConfig_withLabel(mfgName, mfgSlug, dtModel, dtSlug, portName, label string) string {
+func testAccPowerPortTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, label, portType string, maxDraw, allocDraw int, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
   name = %[1]q
@@ -427,6 +366,30 @@ resource "netbox_power_port_template" "test" {
   device_type = netbox_device_type.test.id
   name = %[5]q
   label = %[6]q
+  type = %[7]q
+  maximum_draw = %[8]d
+  allocated_draw = %[9]d
+  description = %[10]q
 }
-`, mfgName, mfgSlug, dtModel, dtSlug, portName, label)
+`, mfgName, mfgSlug, dtModel, dtSlug, portName, label, portType, maxDraw, allocDraw, description)
+}
+
+func testAccPowerPortTemplateResourceConfig_noOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[3]q
+  slug = %[4]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_power_port_template" "test" {
+  device_type = netbox_device_type.test.id
+  name = %[5]q
+}
+`, mfgName, mfgSlug, dtModel, dtSlug, portName)
 }

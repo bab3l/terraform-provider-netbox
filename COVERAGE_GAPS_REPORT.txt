@@ -1,0 +1,389 @@
+﻿
+Γ¥î aggregate:
+   Optional fields: date_added
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   date_added
+
+Γ¥î asn:
+   Optional fields: comments, description, rir, tenant
+   Tested fields:   comments, description, tenant
+   Missing tests:   rir
+
+Γ¥î cable:
+   Optional fields: label, length, length_unit, status, type
+   Tested fields:   tenant
+   Missing tests:   label, length, length_unit, status, type
+
+Γ¥î circuit:
+   Optional fields: commit_rate, install_date, status, tenant, termination_date
+   Tested fields:   tenant
+   Missing tests:   commit_rate, install_date, status, termination_date
+
+Γ¥î circuit_group_assignment:
+   Optional fields: priority
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   priority
+
+Γ¥î circuit_termination:
+   Optional fields: mark_connected, port_speed, pp_info, provider_network, site, upstream_speed, xconnect_id
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   mark_connected, port_speed, pp_info, provider_network, site, upstream_speed, xconnect_id
+
+Γ¥î circuit_type:
+   Optional fields: color
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   color
+
+Γ¥î cluster:
+   Optional fields: group, site, status, tenant
+   Tested fields:   group, site, tenant
+   Missing tests:   status
+
+Γ¥î config_context:
+   Optional fields: cluster_groups, cluster_types, clusters, device_types, is_active, locations, platforms, regions, roles, site_groups, sites, tags, tenant_groups, tenants, weight
+   Tested fields:   description, sites, tags
+   Missing tests:   cluster_groups, cluster_types, clusters, device_types, is_active, locations, platforms, regions, roles, site_groups, tenant_groups, tenants, weight
+
+Γ¥î console_port:
+   Optional fields: label, mark_connected, speed, type
+   Tested fields:   description, label
+   Missing tests:   mark_connected, speed, type
+
+Γ¥î console_port_template:
+   Optional fields: description, label, type
+   Tested fields:   description, label
+   Missing tests:   type
+
+Γ¥î console_server_port:
+   Optional fields: label, mark_connected, speed, type
+   Tested fields:   description, label
+   Missing tests:   mark_connected, speed, type
+
+Γ¥î console_server_port_template:
+   Optional fields: label, type
+   Tested fields:   description, label
+   Missing tests:   type
+
+Γ¥î contact:
+   Optional fields: address, email, link, phone, title
+   Tested fields:   group
+   Missing tests:   address, email, link, phone, title
+
+Γ¥î contact_assignment:
+   Optional fields: priority, role_id
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   priority, role_id
+
+Γ¥î custom_field:
+   Optional fields: choice_set, default, filter_logic, group_name, is_cloneable, label, related_object_type, required, search_weight, ui_editable, ui_visible, validation_maximum, validation_minimum, validation_regex, weight
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   choice_set, default, filter_logic, group_name, is_cloneable, label, related_object_type, required, search_weight, ui_editable, ui_visible, validation_maximum, validation_minimum, validation_regex, weight
+
+Γ¥î custom_field_choice_set:
+   Optional fields: base_choices, order_alphabetically
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   base_choices, order_alphabetically
+
+Γ¥î custom_link:
+   Optional fields: button_class, enabled, group_name, new_window, weight
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   button_class, enabled, group_name, new_window, weight
+
+Γ¥î device:
+   Optional fields: airflow, face, latitude, longitude, position, status, vc_position, vc_priority
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   airflow, face, latitude, longitude, position, status, vc_position, vc_priority
+
+Γ¥î device_bay:
+   Optional fields: installed_device, label
+   Tested fields:   installed_device
+   Missing tests:   label
+
+Γ¥î device_bay_template:
+   Optional fields: label
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   label
+
+Γ¥î device_type:
+   Optional fields: airflow, part_number, subdevice_role, u_height, weight, weight_unit
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   airflow, part_number, subdevice_role, u_height, weight, weight_unit
+
+Γ¥î event_rule:
+   Optional fields: action_object_id, conditions, enabled
+   Tested fields:   description
+   Missing tests:   action_object_id, conditions, enabled
+
+Γ¥î export_template:
+   Optional fields: as_attachment, file_extension, mime_type
+   Tested fields:   description
+   Missing tests:   as_attachment, file_extension, mime_type
+
+Γ¥î fhrp_group:
+   Optional fields: auth_key, auth_type, name
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   auth_key, auth_type, name
+
+Γ¥î front_port:
+   Optional fields: color, label, mark_connected, rear_port_position
+   Tested fields:   description, label
+   Missing tests:   color, mark_connected, rear_port_position
+
+Γ¥î front_port_template:
+   Optional fields: color, label, rear_port_position
+   Tested fields:   color, description, label
+   Missing tests:   rear_port_position
+
+Γ¥î ike_policy:
+   Optional fields: mode, preshared_key, proposals, version
+   Tested fields:   comments, description
+   Missing tests:   mode, preshared_key, proposals, version
+
+Γ¥î ike_proposal:
+   Optional fields: authentication_algorithm, sa_lifetime
+   Tested fields:   comments, description
+   Missing tests:   authentication_algorithm, sa_lifetime
+
+Γ¥î interface:
+   Optional fields: duplex, enabled, label, mac_address, mark_connected, mgmt_only, mode, mtu, speed, wwn
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   duplex, enabled, label, mac_address, mark_connected, mgmt_only, mode, mtu, speed, wwn
+
+Γ¥î interface_template:
+   Optional fields: bridge, enabled, label, mgmt_only, poe_mode, poe_type, rf_role
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   bridge, enabled, label, mgmt_only, poe_mode, poe_type, rf_role
+
+Γ¥î inventory_item:
+   Optional fields: asset_tag, discovered, label, part_id, serial
+   Tested fields:   label
+   Missing tests:   asset_tag, discovered, part_id, serial
+
+Γ¥î inventory_item_template:
+   Optional fields: component_id, component_type, label, manufacturer, parent, part_id, role
+   Tested fields:   label
+   Missing tests:   component_id, component_type, manufacturer, parent, part_id, role
+
+Γ¥î ip_address:
+   Optional fields: assigned_object_id, assigned_object_type, dns_name, role, status
+   Tested fields:   tenant, vrf
+   Missing tests:   assigned_object_id, assigned_object_type, dns_name, role, status
+
+Γ¥î ip_range:
+   Optional fields: mark_utilized, role, status, tenant, vrf
+   Tested fields:   role, tenant, vrf
+   Missing tests:   mark_utilized, status
+
+Γ¥î ipsec_policy:
+   Optional fields: pfs_group, proposals
+   Tested fields:   comments, description
+   Missing tests:   pfs_group, proposals
+
+Γ¥î ipsec_proposal:
+   Optional fields: authentication_algorithm, encryption_algorithm, sa_lifetime_data, sa_lifetime_seconds
+   Tested fields:   comments, description
+   Missing tests:   authentication_algorithm, encryption_algorithm, sa_lifetime_data, sa_lifetime_seconds
+
+Γ¥î journal_entry:
+   Optional fields: kind
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   kind
+
+Γ¥î l2vpn:
+   Optional fields: export_targets, identifier, import_targets, tenant
+   Tested fields:   identifier, tenant
+   Missing tests:   export_targets, import_targets
+
+Γ¥î module:
+   Optional fields: asset_tag, serial, status
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   asset_tag, serial, status
+
+Γ¥î module_bay:
+   Optional fields: label, position
+   Tested fields:   label
+   Missing tests:   position
+
+Γ¥î module_bay_template:
+   Optional fields: description, label, position
+   Tested fields:   label
+   Missing tests:   description, position
+
+Γ¥î module_type:
+   Optional fields: airflow, description, part_number, weight, weight_unit
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   airflow, description, part_number, weight, weight_unit
+
+Γ¥î notification_group:
+   Optional fields: group_ids, user_ids
+   Tested fields:   description
+   Missing tests:   group_ids, user_ids
+
+Γ¥î power_feed:
+   Optional fields: amperage, mark_connected, max_utilization, phase, status, supply, type, voltage
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   amperage, mark_connected, max_utilization, phase, status, supply, type, voltage
+
+Γ¥î power_outlet:
+   Optional fields: feed_leg, label, mark_connected, power_port, type
+   Tested fields:   description, label
+   Missing tests:   feed_leg, mark_connected, power_port, type
+
+Γ¥î power_outlet_template:
+   Optional fields: feed_leg, label, power_port, type
+   Tested fields:   description, feed_leg, label, type
+   Missing tests:   power_port
+
+Γ¥î power_panel:
+   Optional fields: description, location
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   description, location
+
+Γ¥î power_port:
+   Optional fields: allocated_draw, label, mark_connected, maximum_draw, type
+   Tested fields:   description, label
+   Missing tests:   allocated_draw, mark_connected, maximum_draw, type
+
+Γ¥î prefix:
+   Optional fields: is_pool, mark_utilized, role, status
+   Tested fields:   role, site, tenant, vlan, vrf
+   Missing tests:   is_pool, mark_utilized, status
+
+Γ¥î provider_account:
+   Optional fields: name
+   Tested fields:   comments, description
+   Missing tests:   name
+
+Γ¥î provider_network:
+   Optional fields: description, service_id
+   Tested fields:   comments, description
+   Missing tests:   service_id
+
+Γ¥î rack:
+   Optional fields: airflow, desc_units, form_factor, max_weight, mounting_depth, outer_depth, outer_unit, outer_width, starting_unit, u_height, weight, weight_unit, width
+   Tested fields:   location, rack_type, role, tenant
+   Missing tests:   airflow, desc_units, form_factor, max_weight, mounting_depth, outer_depth, outer_unit, outer_width, starting_unit, u_height, weight, weight_unit, width
+
+Γ¥î rack_reservation:
+   Optional fields: tenant
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   tenant
+
+Γ¥î rack_type:
+   Optional fields: desc_units, form_factor, max_weight, mounting_depth, outer_depth, outer_unit, outer_width, starting_unit, u_height, weight, weight_unit, width
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   desc_units, form_factor, max_weight, mounting_depth, outer_depth, outer_unit, outer_width, starting_unit, u_height, weight, weight_unit, width
+
+Γ¥î rear_port:
+   Optional fields: color, label, mark_connected, positions
+   Tested fields:   description, label
+   Missing tests:   color, mark_connected, positions
+
+Γ¥î rear_port_template:
+   Optional fields: color, label, positions
+   Tested fields:   color, description, label
+   Missing tests:   positions
+
+Γ¥î rir:
+   Optional fields: is_private
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   is_private
+
+Γ¥î role:
+   Optional fields: weight
+   Tested fields:   description, tags
+   Missing tests:   weight
+
+Γ¥î service:
+   Optional fields: ipaddresses
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   ipaddresses
+
+Γ¥î service_template:
+   Optional fields: protocol
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   protocol
+
+Γ¥î site:
+   Optional fields: facility
+   Tested fields:   group, region, tenant
+   Missing tests:   facility
+
+Γ¥î tag:
+   Optional fields: object_types
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   object_types
+
+Γ¥î tunnel:
+   Optional fields: group, ipsec_profile, status, tenant, tunnel_id
+   Tested fields:   comments, description
+   Missing tests:   group, ipsec_profile, status, tenant, tunnel_id
+
+Γ¥î tunnel_termination:
+   Optional fields: outside_ip, role, termination_id
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   outside_ip, role, termination_id
+
+Γ¥î virtual_chassis:
+   Optional fields: domain, master
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   domain, master
+
+Γ¥î virtual_device_context:
+   Optional fields: identifier, primary_ip4, primary_ip6, tenant
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   identifier, primary_ip4, primary_ip6, tenant
+
+Γ¥î virtual_machine:
+   Optional fields: disk, memory, status, vcpus
+   Tested fields:   platform, role, site, tenant
+   Missing tests:   disk, memory, status, vcpus
+
+Γ¥î vlan:
+   Optional fields: role, status
+   Tested fields:   group, role, site, tenant
+   Missing tests:   status
+
+Γ¥î vlan_group:
+   Optional fields: scope_id, scope_type
+   Tested fields:   (none - no removeOptionalFields test found)
+   Missing tests:   scope_id, scope_type
+
+Γ¥î vm_interface:
+   Optional fields: enabled, mac_address, mode, mtu
+   Tested fields:   untagged_vlan, vrf
+   Missing tests:   enabled, mac_address, mode, mtu
+go : exit status 1
+At line:1 char:1
++ go run scripts/check_optional_field_coverage.go 2>&1 | Out-File -File ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (exit status 1:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+
+Γ¥î vrf:
+   Optional fields: enforce_unique, rd
+   Tested fields:   tenant
+   Missing tests:   enforce_unique, rd
+
+Γ¥î webhook:
+   Optional fields: additional_headers, body_template, ca_file_path, http_content_type, http_method, secret, ssl_verification
+   Tested fields:   additional_headers, body_template, description, secret
+   Missing tests:   ca_file_path, http_content_type, http_method, ssl_verification
+
+Γ¥î wireless_lan:
+   Optional fields: auth_cipher, auth_psk, auth_type, description, group, status, tenant, vlan
+   Tested fields:   comments, description
+   Missing tests:   auth_cipher, auth_psk, auth_type, group, status, tenant, vlan
+
+Γ¥î wireless_lan_group:
+   Optional fields: parent
+   Tested fields:   description
+   Missing tests:   parent
+
+Γ¥î wireless_link:
+   Optional fields: auth_cipher, auth_psk, auth_type, distance, distance_unit, ssid, status, tenant
+   Tested fields:   tenant
+   Missing tests:   auth_cipher, auth_psk, auth_type, distance, distance_unit, ssid, status
+
+Note: Some fields may be intentionally untested (e.g., Computed+Default fields).

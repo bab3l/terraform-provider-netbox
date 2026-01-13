@@ -270,8 +270,11 @@ func (r *FrontPortTemplateResource) Update(ctx context.Context, req resource.Upd
 
 	// Set optional fields
 	utils.ApplyLabel(apiReq, data.Label)
-	if !data.Color.IsNull() && !data.Color.IsUnknown() {
+	if utils.IsSet(data.Color) {
 		apiReq.SetColor(data.Color.ValueString())
+	} else if data.Color.IsNull() {
+		// Explicitly clear color when removed from config
+		apiReq.SetColor("")
 	}
 	if !data.RearPortPosition.IsNull() && !data.RearPortPosition.IsUnknown() {
 		apiReq.SetRearPortPosition(data.RearPortPosition.ValueInt32())
@@ -367,18 +370,10 @@ func (r *FrontPortTemplateResource) mapResponseToModel(template *netbox.FrontPor
 	data.Type = types.StringValue(string(template.Type.GetValue()))
 
 	// Map label
-	if label, ok := template.GetLabelOk(); ok && label != nil {
-		data.Label = types.StringValue(*label)
-	} else {
-		data.Label = types.StringValue("")
-	}
+	data.Label = utils.StringFromAPI(template.HasLabel(), template.GetLabel, data.Label)
 
 	// Map color - always set since it's computed
-	if color, ok := template.GetColorOk(); ok && color != nil {
-		data.Color = types.StringValue(*color)
-	} else {
-		data.Color = types.StringValue("")
-	}
+	data.Color = utils.StringFromAPI(template.HasColor(), template.GetColor, data.Color)
 
 	// Map rear port - store the name for reference
 	data.RearPort = types.StringValue(template.RearPort.GetName())
