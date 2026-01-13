@@ -6,13 +6,13 @@
 ## Executive Summary
 
 - **Total Resources with Optional Fields:** 76
-- **Resources Needing New Tests:** 20 (no `_removeOptionalFields` test exists)
+- **Resources Needing New Tests:** 17 (no `_removeOptionalFields` test exists)
 - **Resources Needing Extended Tests:** 50 (test exists but incomplete coverage)
-- **Recently Completed:** 6 resources (circuit_type, device_bay_template, circuit_group_assignment, aggregate, contact_assignment, power_panel)
+- **Recently Completed:** 9 resources (circuit_type, device_bay_template, circuit_group_assignment, aggregate, contact_assignment, power_panel, rack_reservation, virtual_chassis, vlan_group)
 
 ## Priority Classification
 
-### 🔴 Priority 1: No Test Coverage (20 Resources)
+### 🔴 Priority 1: No Test Coverage (17 Resources)
 
 These resources have NO `_removeOptionalFields` test. A new test must be created.
 
@@ -31,18 +31,15 @@ These resources have NO `_removeOptionalFields` test. A new test must be created
 | `module` | asset_tag, serial, status | 3 |
 | `module_type` | airflow, description, part_number, weight, weight_unit | 5 |
 | `power_feed` | amperage, mark_connected, max_utilization, phase, status, supply, type, voltage | 8 |
-| `rack_reservation` | tenant | 1 |
 | `rack_type` | desc_units, form_factor, max_weight, mounting_depth, outer_depth, outer_unit, outer_width, starting_unit, u_height, weight, weight_unit, width | 12 |
 | `rir` | is_private | 1 |
 | `service` | ipaddresses | 1 |
 | `service_template` | protocol | 1 |
 | `tag` | object_types | 1 |
 | `tunnel_termination` | outside_ip, role, termination_id | 3 |
-| `virtual_chassis` | domain, master | 2 |
 | `virtual_device_context` | identifier, primary_ip4, primary_ip6, tenant | 4 |
-| `vlan_group` | scope_id, scope_type | 2 |
 
-**Total Missing Fields:** 120
+**Total Missing Fields:** 113
 
 ---
 
@@ -214,6 +211,8 @@ Update this document as tests are completed or issues are discovered.
 3. ✅ **FIXED:** Nullable ints (`maximum_draw`, `allocated_draw`) - needed `SetXxxNil()` method
 4. ✅ **FIXED:** `device_bay_template.label` - wasn't explicitly cleared with empty string in Update method
 5. ✅ **FIXED:** `circuit_group_assignment.priority` - enum field wasn't explicitly cleared with empty string in Update method
+6. ✅ **FIXED:** `virtual_chassis.domain` - wasn't explicitly cleared with empty string in Update method
+7. ✅ **FIXED:** `rack_reservation.tenant` - needed `SetTenantNil()` method to clear nullable reference
 
 ### Potential Future Issues
 Based on the pattern of bugs found, watch for:
