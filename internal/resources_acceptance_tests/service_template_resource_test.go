@@ -231,3 +231,70 @@ func TestAccServiceTemplateResource_external_deletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccServiceTemplateResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("service-template-opt")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_service_template" "test" {
+  name        = %[1]q
+  protocol    = "udp"
+  ports       = [80]
+  description = "Description"
+  comments    = "Comments"
+  tags        = []
+}
+`, name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_service_template.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_service_template.test", "protocol", "udp"),
+					resource.TestCheckResourceAttr("netbox_service_template.test", "description", "Description"),
+					resource.TestCheckResourceAttr("netbox_service_template.test", "comments", "Comments"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_service_template" "test" {
+  name        = %[1]q
+  protocol    = "udp"
+  ports       = [80]
+  description = "Description"
+  comments    = "Comments"
+  tags        = []
+}
+`, name),
+				PlanOnly: true,
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_service_template" "test" {
+  name     = %[1]q
+  ports    = [80]
+}
+`, name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_service_template.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_service_template.test", "protocol", "tcp"), // Default protocol is tcp
+					resource.TestCheckNoResourceAttr("netbox_service_template.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_service_template.test", "comments"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_service_template" "test" {
+  name     = %[1]q
+  ports    = [80]
+}
+`, name),
+				PlanOnly: true,
+			},
+		},
+	})
+}

@@ -6,9 +6,9 @@
 ## Executive Summary
 
 - **Total Resources with Optional Fields:** 76
-- **Resources Needing New Tests:** 15 (no `_removeOptionalFields` test exists)
-- **Resources Needing Extended Tests:** 50 (test exists but incomplete coverage)
-- **Recently Completed:** 11 resources (circuit_type, device_bay_template, circuit_group_assignment, aggregate, contact_assignment, power_panel, rack_reservation, virtual_chassis, vlan_group, journal_entry, rir)
+- **Resources Needing New Tests:** 12 (no `_removeOptionalFields` test exists)
+- **Resources Needing Extended Tests:** 47 (test exists but incomplete coverage)
+- **Recently Completed:** 17 resources (circuit_type, device_bay_template, circuit_group_assignment, aggregate, contact_assignment, power_panel, rack_reservation, virtual_chassis, vlan_group, journal_entry, rir, service_template, tag, cable, asn)
 
 ## Priority Classification
 
@@ -20,7 +20,6 @@ These resources have NO `_removeOptionalFields` test. A new test must be created
 |----------|---------------|-------|
 | `circuit_termination` | mark_connected, port_speed, pp_info, provider_network, site, upstream_speed, xconnect_id | 7 |
 | `custom_field` | choice_set, default, filter_logic, group_name, is_cloneable, label, related_object_type, required, search_weight, ui_editable, ui_visible, validation_maximum, validation_minimum, validation_regex, weight | 15 |
-| `custom_field_choice_set` | base_choices, order_alphabetically | 2 |
 | `custom_link` | button_class, enabled, group_name, new_window, weight | 5 |
 | `device` | airflow, face, latitude, longitude, position, status, vc_position, vc_priority | 8 |
 | `device_type` | airflow, part_number, subdevice_role, u_height, weight, weight_unit | 6 |
@@ -31,12 +30,10 @@ These resources have NO `_removeOptionalFields` test. A new test must be created
 | `module_type` | airflow, description, part_number, weight, weight_unit | 5 |
 | `power_feed` | amperage, mark_connected, max_utilization, phase, status, supply, type, voltage | 8 |
 | `rack_type` | desc_units, form_factor, max_weight, mounting_depth, outer_depth, outer_unit, outer_width, starting_unit, u_height, weight, weight_unit, width | 12 |
-| `service_template` | protocol | 1 |
-| `tag` | object_types | 1 |
 | `tunnel_termination` | outside_ip, role, termination_id | 3 |
 | `virtual_device_context` | identifier, primary_ip4, primary_ip6, tenant | 4 |
 
-**Total Missing Fields:** 107
+**Total Missing Fields:** 101
 
 ---
 
@@ -65,7 +62,7 @@ These resources have a `_removeOptionalFields` test but don't cover all optional
 | `cable` | tenant | label, length, length_unit, status, type | 5 |
 | `circuit` | tenant | commit_rate, install_date, status, termination_date | 4 |
 | `console_port` | description, label | mark_connected, speed, type | 3 |
-| `console_server_port` | description, label | mark_connected, speed, type | 3 |
+| `console_slabel, length, length_unit, status, type, color | tenant | 1eed, type | 3 |
 | `contact` | group | address, email, link, phone, title | 5 |
 | `event_rule` | description | action_object_id, conditions, enabled | 3 |
 | `export_template` | description | as_attachment, file_extension, mime_type | 3 |
@@ -85,7 +82,7 @@ These resources have a `_removeOptionalFields` test but don't cover all optional
 
 | Resource | Currently Tested | Missing | Count |
 |----------|-----------------|---------|-------|
-| `asn` | comments, description, tenant | rir | 1 |
+| `asn` | comments, description, rir, tenant | (none) | 0 |
 | `cluster` | group, site, tenant | status | 1 |
 | `console_port_template` | description, label | type | 1 |
 | `console_server_port_template` | description, label | type | 1 |
@@ -136,9 +133,19 @@ For 20 remaining resources with no test, create new `TestAccXxxResource_removeOp
 - ✅ `circuit_type` - Added test for `color` field
 - ✅ `device_bay_template` - Added test for `label` field (fixed provider bug)
 - ✅ `circuit_group_assignment` - Added test for `priority` field (fixed provider bug)
-- ✅ `aggregate` - Test already existed for `date_added` field
+- ✅ `aggregate` - Test already existed, added test for `date_added` field
 - ✅ `contact_assignment` - Added test for `priority` and `role_id` fields
 - ✅ `power_panel` - Added test for `description` and `location` fields
+- ✅ `rack_reservation` - Added test for `tenant` field (fixed provider bug with SetTenantNil)
+- ✅ `virtual_chassis` - Added test for `domain` field (fixed provider bug)
+- ✅ `vlan_group` - Added test for `min_vid` and `max_vid` fields
+- ✅ `journal_entry` - Added test for `comments` and `kind` fields
+- ✅ `rir` - Added test for `is_private` field
+- ✅ `service_template` - Added test for `protocol` field (fixed schema bug with UseStateForUnknown)
+- ✅ `tag` - Added test for `object_types` field (fixed provider bug with explicit clear)
+- ✅ `cable` - Extended test to cover `label`, `length`, `length_unit`, `status`, `type`, `color` (fixed provider bugs for type and color)
+- ✅ `asn` - Test already existed, verified `rir` field coverage
+- ✅ `custom_field_choice_set` - Investigated `base_choices` - API limitation, cannot be cleared once set
 
 **Template Pattern:**
 ```go
@@ -200,6 +207,10 @@ Update this document as tests are completed or issues are discovered.
 
 ---
 
+8. ✅ **FIXED:** `service_template.protocol` - had `UseStateForUnknown()` modifier causing sticky behavior
+9. ✅ **FIXED:** `tag.object_types` - needed explicit empty list set in Update method when null
+10. ✅ **FIXED:** `cable.type` and `cable.color` - needed empty string to clear, not null
+11. **KNOWN API LIMITATION:** `custom_field_choice_set.base_choices` - API rejects clearing this field once set
 ## Known Issues
 
 ### Provider Bugs Found

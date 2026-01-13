@@ -643,8 +643,9 @@ func TestAccCableResource_removeOptionalFields(t *testing.T) {
 	deviceTypeSlug := testutil.RandomSlug("device-type-opt")
 	interfaceNameA := testutil.RandomName("eth")
 	interfaceNameB := testutil.RandomName("eth")
-	tenantName := testutil.RandomName("tf-test-tenant-cable")
-	tenantSlug := testutil.RandomSlug("tf-test-tenant-cable")
+	label := "Test Label"
+	length := 10.5
+	lengthUnit := "m"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -653,194 +654,169 @@ func TestAccCableResource_removeOptionalFields(t *testing.T) {
 	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 	cleanup.RegisterDeviceCleanup(deviceName + "-a")
 	cleanup.RegisterDeviceCleanup(deviceName + "-b")
-	cleanup.RegisterTenantCleanup(tenantSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy: testutil.ComposeCheckDestroy(
-			testutil.CheckSiteDestroy,
-			testutil.CheckManufacturerDestroy,
-			testutil.CheckDeviceRoleDestroy,
-			testutil.CheckDeviceTypeDestroy,
-			testutil.CheckTenantDestroy,
-		),
 		Steps: []resource.TestStep{
-			// Step 1: Create cable with tenant
 			{
-				Config: testAccCableResourceConfig_withTenant(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tenantName, tenantSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_cable.test", "id"),
-					resource.TestCheckResourceAttrSet("netbox_cable.test", "tenant"),
+				Config: fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_device_role" "test" {
+  name = %[6]q
+  slug = %[7]q
+  color = "ff0000"
+}
+
+resource "netbox_device_type" "test" {
+  model = %[8]q
+  slug  = %[9]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device" "test_a" {
+  name = "%[3]s-a"
+  device_type = netbox_device_type.test.id
+  role = netbox_device_role.test.id
+  site = netbox_site.test.id
+}
+
+resource "netbox_device" "test_b" {
+  name = "%[3]s-b"
+  device_type = netbox_device_type.test.id
+  role = netbox_device_role.test.id
+  site = netbox_site.test.id
+}
+
+resource "netbox_interface" "test_a" {
+  device = netbox_device.test_a.id
+  name   = %[10]q
+  type   = "1000base-t"
+}
+
+resource "netbox_interface" "test_b" {
+  device = netbox_device.test_b.id
+  name   = %[11]q
+  type   = "1000base-t"
+}
+
+resource "netbox_cable" "test" {
+  status      = "planned"
+  type        = "cat6"
+  description = "Description"
+  comments    = "Comments"
+  label       = %[12]q
+  length      = %[13]f
+  length_unit = %[14]q
+  color       = "ff0000"
+  a_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = netbox_interface.test_a.id
+    }
+  ]
+  b_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = netbox_interface.test_b.id
+    }
+  ]
+}
+`, siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, label, length, lengthUnit),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_cable.test", "status", "planned"),
+					resource.TestCheckResourceAttr("netbox_cable.test", "type", "cat6"),
+					resource.TestCheckResourceAttr("netbox_cable.test", "label", label),
+					resource.TestCheckResourceAttr("netbox_cable.test", "length", fmt.Sprintf("%g", length)),
+					resource.TestCheckResourceAttr("netbox_cable.test", "length_unit", lengthUnit),
+					resource.TestCheckResourceAttr("netbox_cable.test", "color", "ff0000"),
 				),
 			},
-			// Step 2: Remove tenant (should set it to null)
 			{
-				Config: testAccCableResourceConfig_withoutTenant(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tenantName, tenantSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_cable.test", "id"),
-					resource.TestCheckNoResourceAttr("netbox_cable.test", "tenant"),
-				),
-			},
-			// Step 3: Re-add tenant (verify it can be set again)
-			{
-				Config: testAccCableResourceConfig_withTenant(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tenantName, tenantSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_cable.test", "id"),
-					resource.TestCheckResourceAttrSet("netbox_cable.test", "tenant"),
+				Config: fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_device_role" "test" {
+  name = %[6]q
+  slug = %[7]q
+  color = "ff0000"
+}
+
+resource "netbox_device_type" "test" {
+  model = %[8]q
+  slug  = %[9]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device" "test_a" {
+  name = "%[3]s-a"
+  device_type = netbox_device_type.test.id
+  role = netbox_device_role.test.id
+  site = netbox_site.test.id
+}
+
+resource "netbox_device" "test_b" {
+  name = "%[3]s-b"
+  device_type = netbox_device_type.test.id
+  role = netbox_device_role.test.id
+  site = netbox_site.test.id
+}
+
+resource "netbox_interface" "test_a" {
+  device = netbox_device.test_a.id
+  name   = %[10]q
+  type   = "1000base-t"
+}
+
+resource "netbox_interface" "test_b" {
+  device = netbox_device.test_b.id
+  name   = %[11]q
+  type   = "1000base-t"
+}
+
+resource "netbox_cable" "test" {
+  a_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = netbox_interface.test_a.id
+    }
+  ]
+  b_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = netbox_interface.test_b.id
+    }
+  ]
+}
+`, siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_cable.test", "status", "connected"), // Default
+					resource.TestCheckNoResourceAttr("netbox_cable.test", "type"),
+					resource.TestCheckNoResourceAttr("netbox_cable.test", "label"),
+					resource.TestCheckNoResourceAttr("netbox_cable.test", "length"),
+					resource.TestCheckNoResourceAttr("netbox_cable.test", "length_unit"),
+					resource.TestCheckNoResourceAttr("netbox_cable.test", "color"),
 				),
 			},
 		},
 	})
-}
-
-func testAccCableResourceConfig_withTenant(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tenantName, tenantSlug string) string {
-	return fmt.Sprintf(`
-resource "netbox_site" "test" {
-  name = %[1]q
-  slug = %[2]q
-  status = "active"
-}
-
-resource "netbox_manufacturer" "test" {
-  name = %[4]q
-  slug = %[5]q
-}
-
-resource "netbox_device_role" "test" {
-  name = %[6]q
-  slug = %[7]q
-}
-
-resource "netbox_device_type" "test" {
-  model = %[8]q
-  slug  = %[9]q
-  manufacturer = netbox_manufacturer.test.id
-}
-
-resource "netbox_tenant" "test" {
-  name = %[12]q
-  slug = %[13]q
-}
-
-resource "netbox_device" "test_a" {
-  name           = "%[3]s-a"
-  device_type    = netbox_device_type.test.id
-  role           = netbox_device_role.test.id
-  site           = netbox_site.test.id
-}
-
-resource "netbox_device" "test_b" {
-  name           = "%[3]s-b"
-  device_type    = netbox_device_type.test.id
-  role           = netbox_device_role.test.id
-  site           = netbox_site.test.id
-}
-
-resource "netbox_interface" "test_a" {
-  name      = %[10]q
-  device    = netbox_device.test_a.id
-  type      = "1000base-t"
-}
-
-resource "netbox_interface" "test_b" {
-  name      = %[11]q
-  device    = netbox_device.test_b.id
-  type      = "1000base-t"
-}
-
-resource "netbox_cable" "test" {
-  status = "connected"
-  type   = "cat6"
-  tenant = netbox_tenant.test.id
-  a_terminations = [
-    {
-      object_type = "dcim.interface"
-      object_id   = netbox_interface.test_a.id
-    }
-  ]
-  b_terminations = [
-    {
-      object_type = "dcim.interface"
-      object_id   = netbox_interface.test_b.id
-    }
-  ]
-}
-`, siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tenantName, tenantSlug)
-}
-
-func testAccCableResourceConfig_withoutTenant(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tenantName, tenantSlug string) string {
-	return fmt.Sprintf(`
-resource "netbox_site" "test" {
-  name = %[1]q
-  slug = %[2]q
-  status = "active"
-}
-
-resource "netbox_manufacturer" "test" {
-  name = %[4]q
-  slug = %[5]q
-}
-
-resource "netbox_device_role" "test" {
-  name = %[6]q
-  slug = %[7]q
-}
-
-resource "netbox_device_type" "test" {
-  model = %[8]q
-  slug  = %[9]q
-  manufacturer = netbox_manufacturer.test.id
-}
-
-resource "netbox_tenant" "test" {
-  name = %[12]q
-  slug = %[13]q
-}
-
-resource "netbox_device" "test_a" {
-  name           = "%[3]s-a"
-  device_type    = netbox_device_type.test.id
-  role           = netbox_device_role.test.id
-  site           = netbox_site.test.id
-}
-
-resource "netbox_device" "test_b" {
-  name           = "%[3]s-b"
-  device_type    = netbox_device_type.test.id
-  role           = netbox_device_role.test.id
-  site           = netbox_site.test.id
-}
-
-resource "netbox_interface" "test_a" {
-  name      = %[10]q
-  device    = netbox_device.test_a.id
-  type      = "1000base-t"
-}
-
-resource "netbox_interface" "test_b" {
-  name      = %[11]q
-  device    = netbox_device.test_b.id
-  type      = "1000base-t"
-}
-
-resource "netbox_cable" "test" {
-  status = "connected"
-  type   = "cat6"
-  a_terminations = [
-    {
-      object_type = "dcim.interface"
-      object_id   = netbox_interface.test_a.id
-    }
-  ]
-  b_terminations = [
-    {
-      object_type = "dcim.interface"
-      object_id   = netbox_interface.test_b.id
-    }
-  ]
-}
-`, siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tenantName, tenantSlug)
 }
 
 func TestAccCableResource_removeDescriptionCommentsLabel(t *testing.T) {

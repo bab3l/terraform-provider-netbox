@@ -327,10 +327,18 @@ func (r *CableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	if !data.Type.IsNull() && !data.Type.IsUnknown() && data.Type.ValueString() != "" {
 		cableType := netbox.CableType(data.Type.ValueString())
 		cableRequest.Type = &cableType
+	} else if data.Type.IsNull() || (!data.Type.IsUnknown() && data.Type.ValueString() == "") {
+		// Send empty string to clear
+		empty := netbox.CableType("")
+		cableRequest.Type = &empty
 	}
 
 	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		status := netbox.CableStatusValue(data.Status.ValueString())
+		cableRequest.Status = &status
+	} else if data.Status.IsNull() {
+		// Default to connected if removed
+		status := netbox.CABLESTATUSVALUE_CONNECTED
 		cableRequest.Status = &status
 	}
 
@@ -355,6 +363,10 @@ func (r *CableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
 		color := data.Color.ValueString()
 		cableRequest.Color = &color
+	} else if data.Color.IsNull() {
+		// Send empty string to clear
+		empty := ""
+		cableRequest.Color = &empty
 	}
 
 	if !data.Length.IsNull() && !data.Length.IsUnknown() {

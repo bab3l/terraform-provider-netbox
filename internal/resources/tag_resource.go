@@ -210,6 +210,9 @@ func (r *TagResource) Update(ctx context.Context, req resource.UpdateRequest, re
 			return
 		}
 		tagRequest.ObjectTypes = objectTypes
+	} else if !data.ObjectTypes.IsUnknown() {
+		// Explicitly set empty list to clear the field
+		tagRequest.ObjectTypes = []string{}
 	}
 
 	tag, httpResp, err := r.client.ExtrasAPI.ExtrasTagsUpdate(ctx, tagID).TagRequest(*tagRequest).Execute()

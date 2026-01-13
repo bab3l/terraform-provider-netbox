@@ -229,6 +229,7 @@ func (r *CustomFieldChoiceSetResource) Update(ctx context.Context, req resource.
 		baseChoices := netbox.PatchedWritableCustomFieldChoiceSetRequestBaseChoices(data.BaseChoices.ValueString())
 		request.BaseChoices = &baseChoices
 	}
+	// Note: base_choices cannot be cleared once set - API requires it to be non-empty or omitted
 	if !data.OrderAlphabetically.IsNull() && !data.OrderAlphabetically.IsUnknown() {
 		orderAlpha := data.OrderAlphabetically.ValueBool()
 		request.OrderAlphabetically = &orderAlpha
