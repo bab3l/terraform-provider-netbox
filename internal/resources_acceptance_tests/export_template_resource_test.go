@@ -267,6 +267,40 @@ func TestAccExportTemplateResource_externalDeletion(t *testing.T) {
 	})
 }
 
+// TestAccExportTemplateResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccExportTemplateResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	const testDescription = "Test Description"
+
+	name := testutil.RandomName("export-tmpl-remove")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterExportTemplateCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccExportTemplateResourceConfig_withDescription(name, testDescription),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_export_template.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_export_template.test", "description", testDescription),
+				),
+			},
+			{
+				Config: testAccExportTemplateResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_export_template.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_export_template.test", "description"),
+				),
+			},
+		},
+	})
+}
+
 func testAccExportTemplateResourceConfig_withDescription(name string, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_export_template" "test" {
