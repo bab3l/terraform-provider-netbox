@@ -6,13 +6,13 @@
 ## Executive Summary
 
 - **Total Resources with Optional Fields:** 76
-- **Resources Needing New Tests:** 17 (no `_removeOptionalFields` test exists)
+- **Resources Needing New Tests:** 15 (no `_removeOptionalFields` test exists)
 - **Resources Needing Extended Tests:** 50 (test exists but incomplete coverage)
-- **Recently Completed:** 9 resources (circuit_type, device_bay_template, circuit_group_assignment, aggregate, contact_assignment, power_panel, rack_reservation, virtual_chassis, vlan_group)
+- **Recently Completed:** 11 resources (circuit_type, device_bay_template, circuit_group_assignment, aggregate, contact_assignment, power_panel, rack_reservation, virtual_chassis, vlan_group, journal_entry, rir)
 
 ## Priority Classification
 
-### 🔴 Priority 1: No Test Coverage (17 Resources)
+### 🔴 Priority 1: No Test Coverage (15 Resources)
 
 These resources have NO `_removeOptionalFields` test. A new test must be created.
 
@@ -27,19 +27,16 @@ These resources have NO `_removeOptionalFields` test. A new test must be created
 | `fhrp_group` | auth_key, auth_type, name | 3 |
 | `interface` | duplex, enabled, label, mac_address, mark_connected, mgmt_only, mode, mtu, speed, wwn | 10 |
 | `interface_template` | bridge, enabled, label, mgmt_only, poe_mode, poe_type, rf_role | 7 |
-| `journal_entry` | kind | 1 |
 | `module` | asset_tag, serial, status | 3 |
 | `module_type` | airflow, description, part_number, weight, weight_unit | 5 |
 | `power_feed` | amperage, mark_connected, max_utilization, phase, status, supply, type, voltage | 8 |
 | `rack_type` | desc_units, form_factor, max_weight, mounting_depth, outer_depth, outer_unit, outer_width, starting_unit, u_height, weight, weight_unit, width | 12 |
-| `rir` | is_private | 1 |
-| `service` | ipaddresses | 1 |
 | `service_template` | protocol | 1 |
 | `tag` | object_types | 1 |
 | `tunnel_termination` | outside_ip, role, termination_id | 3 |
 | `virtual_device_context` | identifier, primary_ip4, primary_ip6, tenant | 4 |
 
-**Total Missing Fields:** 113
+**Total Missing Fields:** 107
 
 ---
 
