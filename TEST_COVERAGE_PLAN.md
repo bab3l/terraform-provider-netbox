@@ -6,13 +6,13 @@
 ## Executive Summary
 
 - **Total Resources with Optional Fields:** 76
-- **Resources Needing New Tests:** 9 (no `_removeOptionalFields` test exists)
+- **Resources Needing New Tests:** 6 (no `_removeOptionalFields` test exists)
 - **Resources Needing Extended Tests:** 47 (test exists but incomplete coverage)
-- **Recently Completed:** 20 resources (circuit_type, device_bay_template, circuit_group_assignment, aggregate, contact_assignment, power_panel, rack_reservation, virtual_chassis, vlan_group, journal_entry, rir, service_template, tag, cable, asn, circuit_termination, custom_link, fhrp_group)
+- **Recently Completed:** 24 resources (circuit_type, device_bay_template, circuit_group_assignment, aggregate, contact_assignment, power_panel, rack_reservation, virtual_chassis, vlan_group, journal_entry, rir, service_template, tag, cable, asn, circuit_termination, custom_link, fhrp_group, module, module_type, tunnel_termination, virtual_device_context)
 
 ## Priority Classification
 
-### 🔴 Priority 1: No Test Coverage (12 Resources)
+### 🔴 Priority 1: No Test Coverage (6 Resources)
 
 These resources have NO `_removeOptionalFields` test. A new test must be created.
 
@@ -20,18 +20,12 @@ These resources have NO `_removeOptionalFields` test. A new test must be created
 |----------|---------------|-------|
 | `custom_field` | choice_set, default, filter_logic, group_name, is_cloneable, label, related_object_type, required, search_weight, ui_editable, ui_visible, validation_maximum, validation_minimum, validation_regex, weight | 15 |
 | `device` | airflow, face, latitude, longitude, position, status, vc_position, vc_priority | 8 |
-| `device_type` | airflow, part_number, subdevice_role, u_height, weight, weight_unit | 6 |
 | `interface` | duplex, enabled, label, mac_address, mark_connected, mgmt_only, mode, mtu, speed, wwn | 10 |
-| `interface_template` | bridge, enabled, label, mgmt_only, poe_mode, poe_type, rf_role | 7 |
-| `module` | asset_tag, serial, status | 3 |
-| `module_type` | airflow, description, part_number, weight, weight_unit | 5 |
 | `power_feed` | amperage, mark_connected, max_utilization, phase, status, supply, type, voltage | 8 |
 | `rack_type` | desc_units, form_factor, max_weight, mounting_depth, outer_depth, outer_unit, outer_width, starting_unit, u_height, weight, weight_unit, width | 12 |
-| `tunnel_termination` | outside_ip, role, termination_id | 3 |
-| `virtual_device_context` | identifier, primary_ip4, primary_ip6, tenant | 4 |
-| `wireless_lan` | comments, description | auth_cipher, auth_psk, auth_type, group, status, tenant, vlan | 7 |
+| `wireless_lan` | auth_cipher, auth_psk, auth_type, comments, description, group, status, tenant, vlan | 9 |
 
-**Total Missing Fields:** 91
+**Total Missing Fields:** 80
 
 ---
 
@@ -56,6 +50,7 @@ These resources have a `_removeOptionalFields` test but don't cover all optional
 
 | Resource | Currently Tested | Missing | Count |
 |----------|-----------------|---------|-------|
+| `device_type` | comments, description, part_number, u_height, weight | airflow *(NetBox DB NOT NULL)*, subdevice_role *(NetBox DB NOT NULL)*, weight_unit *(NetBox DB NOT NULL)* | 3 |
 | `cable` | tenant | label, length, length_unit, status, type | 5 |
 | `circuit` | tenant | commit_rate, install_date, status, termination_date | 4 |
 | `console_port` | description, label | mark_connected, speed, type | 3 |
@@ -65,6 +60,7 @@ These resources have a `_removeOptionalFields` test but don't cover all optional
 | `export_template` | description | as_attachment, file_extension, mime_type | 3 |
 | `front_port` | description, label | color, mark_connected, rear_port_position | 3 |
 | `ike_policy` | comments, description | mode, preshared_key, proposals, version | 4 |
+| `interface_template` | bridge, enabled, label, mgmt_only | poe_mode *(NetBox DB NOT NULL)*, poe_type *(NetBox DB NOT NULL)*, rf_role *(NetBox DB NOT NULL / sticky)* | 3 |
 | `inventory_item` | label | asset_tag, discovered, part_id, serial | 4 |
 | `ip_address` | tenant, vrf | assigned_object_id, assigned_object_type, dns_name, role, status | 5 |
 | `ipsec_proposal` | comments, description | authentication_algorithm, encryption_algorithm, sa_lifetime_data, sa_lifetime_seconds | 4 |

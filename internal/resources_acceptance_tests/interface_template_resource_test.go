@@ -288,3 +288,67 @@ resource "netbox_device_type" "test" {
 
 `, name+"-mfr", name+"-mfr-slug", name+"-model", name+"-model-slug")
 }
+
+func TestAccInterfaceTemplateResource_removeOptionalFields_enabled_mgmt_only_label_bridge(t *testing.T) {
+	name := testutil.RandomName("tf-test-if-tmpl-opt")
+	mfgSlug := name + "-mfr-slug"
+	dtSlug := name + "-model-slug"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create with optional fields
+			{
+				Config: fmt.Sprintf(`
+%s
+
+resource "netbox_interface_template" "bridge" {
+  device_type = netbox_device_type.test.id
+  name        = "%[2]s-bridge"
+  type        = "1000base-t"
+}
+
+resource "netbox_interface_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %[2]q
+  type        = "1000base-t"
+  enabled     = false
+  mgmt_only   = true
+  label       = "Management Port"
+  bridge      = tonumber(netbox_interface_template.bridge.id)
+}
+`, testAccInterfaceTemplateResourcePrereqs(name), name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "enabled", "false"),
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "mgmt_only", "true"),
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "label", "Management Port"),
+					resource.TestCheckResourceAttrSet("netbox_interface_template.test", "bridge"),
+				),
+			},
+			// Step 2: Remove optional fields
+			{
+				Config: fmt.Sprintf(`
+%s
+
+resource "netbox_interface_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %[2]q
+  type        = "1000base-t"
+}
+`, testAccInterfaceTemplateResourcePrereqs(name), name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					// enabled defaults to true when not set
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "enabled", "true"),
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "mgmt_only", "false"),
+					resource.TestCheckNoResourceAttr("netbox_interface_template.test", "label"),
+					resource.TestCheckNoResourceAttr("netbox_interface_template.test", "bridge"),
+				),
+			},
+		},
+	})
+}

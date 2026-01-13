@@ -282,3 +282,66 @@ func TestAccModuleTypeResource_external_deletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccModuleTypeResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg-opt")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-opt")
+	model := testutil.RandomName("tf-test-mt-opt")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[3]q
+  description  = "Test module type"
+  part_number  = "MT-98765"
+  airflow      = "front-to-rear"
+  weight       = 2.5
+  weight_unit  = "lb"
+}
+`, mfgName, mfgSlug, model),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module_type.test", "description", "Test module type"),
+					resource.TestCheckResourceAttr("netbox_module_type.test", "part_number", "MT-98765"),
+					resource.TestCheckResourceAttr("netbox_module_type.test", "airflow", "front-to-rear"),
+					resource.TestCheckResourceAttr("netbox_module_type.test", "weight", "2.5"),
+					resource.TestCheckResourceAttr("netbox_module_type.test", "weight_unit", "lb"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[3]q
+}
+`, mfgName, mfgSlug, model),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_module_type.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_module_type.test", "part_number"),
+					resource.TestCheckNoResourceAttr("netbox_module_type.test", "airflow"),
+					resource.TestCheckNoResourceAttr("netbox_module_type.test", "weight"),
+					resource.TestCheckNoResourceAttr("netbox_module_type.test", "weight_unit"),
+				),
+			},
+		},
+	})
+}

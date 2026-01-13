@@ -426,6 +426,9 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 		}
 
 		apiReq.SetIdentifier(identifier)
+	} else if plan.Identifier.IsNull() {
+		// Explicitly clear identifier
+		apiReq.SetIdentifierNil()
 	}
 
 	if !plan.Tenant.IsNull() && !plan.Tenant.IsUnknown() {
@@ -438,6 +441,9 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 		}
 
 		apiReq.SetTenant(*tenant)
+	} else if plan.Tenant.IsNull() {
+		// Explicitly clear tenant
+		apiReq.SetTenantNil()
 	}
 
 	if !plan.PrimaryIP4.IsNull() && !plan.PrimaryIP4.IsUnknown() {
@@ -450,6 +456,9 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 		}
 
 		apiReq.SetPrimaryIp4(*ipAddr)
+	} else if plan.PrimaryIP4.IsNull() {
+		// Explicitly clear primary_ip4
+		apiReq.SetPrimaryIp4Nil()
 	}
 
 	if !plan.PrimaryIP6.IsNull() && !plan.PrimaryIP6.IsUnknown() {
@@ -462,6 +471,9 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 		}
 
 		apiReq.SetPrimaryIp6(*ipAddr)
+	} else if plan.PrimaryIP6.IsNull() {
+		// Explicitly clear primary_ip6
+		apiReq.SetPrimaryIp6Nil()
 	}
 
 	// Apply common fields individually with merge-aware helpers

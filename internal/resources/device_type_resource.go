@@ -178,11 +178,21 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 	if !data.PartNumber.IsNull() && !data.PartNumber.IsUnknown() {
 		partNumber := data.PartNumber.ValueString()
 		deviceTypeRequest.PartNumber = &partNumber
+	} else if data.PartNumber.IsNull() {
+		// NetBox may reject explicit nulls for some fields, but for updates we need to
+		// clear fields when removed from config. The OpenAPI client represents nullable
+		// strings as pointers, so we use an empty string and map it back to null in state.
+		empty := ""
+		deviceTypeRequest.PartNumber = &empty
 	}
 
 	if !data.UHeight.IsNull() && !data.UHeight.IsUnknown() {
 		uHeight := data.UHeight.ValueFloat64()
 		deviceTypeRequest.UHeight = &uHeight
+	} else if data.UHeight.IsNull() {
+		// NetBox defaults u_height to 1.0 when omitted; restore that default on update.
+		defaultUHeight := 1.0
+		deviceTypeRequest.UHeight = &defaultUHeight
 	}
 
 	if !data.ExcludeFromUtilization.IsNull() && !data.ExcludeFromUtilization.IsUnknown() {
@@ -198,21 +208,32 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 	if !data.SubdeviceRole.IsNull() && !data.SubdeviceRole.IsUnknown() && data.SubdeviceRole.ValueString() != "" {
 		subdeviceRole := netbox.ParentChildStatus1(data.SubdeviceRole.ValueString())
 		deviceTypeRequest.SubdeviceRole = &subdeviceRole
+	} else if data.SubdeviceRole.IsNull() {
+		empty := netbox.ParentChildStatus1("")
+		deviceTypeRequest.SubdeviceRole = &empty
 	}
 
 	if !data.Airflow.IsNull() && !data.Airflow.IsUnknown() && data.Airflow.ValueString() != "" {
 		airflow := netbox.DeviceAirflowValue(data.Airflow.ValueString())
 		deviceTypeRequest.Airflow = &airflow
+	} else if data.Airflow.IsNull() {
+		empty := netbox.DeviceAirflowValue("")
+		deviceTypeRequest.Airflow = &empty
 	}
 
 	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
 		weight := data.Weight.ValueFloat64()
 		deviceTypeRequest.Weight = *netbox.NewNullableFloat64(&weight)
+	} else if data.Weight.IsNull() {
+		deviceTypeRequest.SetWeightNil()
 	}
 
 	if !data.WeightUnit.IsNull() && !data.WeightUnit.IsUnknown() && data.WeightUnit.ValueString() != "" {
 		weightUnit := netbox.DeviceTypeWeightUnitValue(data.WeightUnit.ValueString())
 		deviceTypeRequest.WeightUnit = &weightUnit
+	} else if data.WeightUnit.IsNull() {
+		empty := netbox.DeviceTypeWeightUnitValue("")
+		deviceTypeRequest.WeightUnit = &empty
 	}
 
 	// Set common fields (description, comments, tags, custom_fields)
@@ -345,11 +366,17 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 	if !data.PartNumber.IsNull() && !data.PartNumber.IsUnknown() {
 		partNumber := data.PartNumber.ValueString()
 		deviceTypeRequest.PartNumber = &partNumber
+	} else if data.PartNumber.IsNull() {
+		empty := ""
+		deviceTypeRequest.PartNumber = &empty
 	}
 
 	if !data.UHeight.IsNull() && !data.UHeight.IsUnknown() {
 		uHeight := data.UHeight.ValueFloat64()
 		deviceTypeRequest.UHeight = &uHeight
+	} else if data.UHeight.IsNull() {
+		defaultUHeight := 1.0
+		deviceTypeRequest.UHeight = &defaultUHeight
 	}
 
 	if !data.ExcludeFromUtilization.IsNull() && !data.ExcludeFromUtilization.IsUnknown() {
@@ -366,21 +393,26 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 		subdeviceRole := netbox.ParentChildStatus1(data.SubdeviceRole.ValueString())
 		deviceTypeRequest.SubdeviceRole = &subdeviceRole
 	}
+	// Note: subdevice_role has a NOT NULL constraint in Netbox DB and cannot be explicitly cleared
 
 	if !data.Airflow.IsNull() && !data.Airflow.IsUnknown() && data.Airflow.ValueString() != "" {
 		airflow := netbox.DeviceAirflowValue(data.Airflow.ValueString())
 		deviceTypeRequest.Airflow = &airflow
 	}
+	// Note: airflow has a NOT NULL constraint in Netbox DB and cannot be explicitly cleared
 
 	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
 		weight := data.Weight.ValueFloat64()
 		deviceTypeRequest.Weight = *netbox.NewNullableFloat64(&weight)
+	} else if data.Weight.IsNull() {
+		deviceTypeRequest.SetWeightNil()
 	}
 
 	if !data.WeightUnit.IsNull() && !data.WeightUnit.IsUnknown() && data.WeightUnit.ValueString() != "" {
 		weightUnit := netbox.DeviceTypeWeightUnitValue(data.WeightUnit.ValueString())
 		deviceTypeRequest.WeightUnit = &weightUnit
 	}
+	// Note: weight_unit has a DB NOT NULL constraint and cannot be cleared once set
 
 	// Set common fields with merge-aware custom fields (description, comments, tags, custom_fields)
 	utils.ApplyCommonFieldsWithMerge(ctx, &deviceTypeRequest, data.Description, data.Comments, data.Tags, state.Tags, data.CustomFields, state.CustomFields, &resp.Diagnostics)
@@ -506,14 +538,14 @@ func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceTyp
 	}
 
 	// Handle subdevice_role
-	if deviceType.HasSubdeviceRole() && deviceType.SubdeviceRole.Get() != nil {
+	if deviceType.HasSubdeviceRole() && deviceType.SubdeviceRole.Get() != nil && string(deviceType.SubdeviceRole.Get().GetValue()) != "" {
 		data.SubdeviceRole = types.StringValue(string(deviceType.SubdeviceRole.Get().GetValue()))
 	} else if !data.SubdeviceRole.IsNull() {
 		data.SubdeviceRole = types.StringNull()
 	}
 
 	// Handle airflow
-	if deviceType.HasAirflow() && deviceType.Airflow.Get() != nil {
+	if deviceType.HasAirflow() && deviceType.Airflow.Get() != nil && string(deviceType.Airflow.Get().GetValue()) != "" {
 		data.Airflow = types.StringValue(string(deviceType.Airflow.Get().GetValue()))
 	} else if !data.Airflow.IsNull() {
 		data.Airflow = types.StringNull()
@@ -527,7 +559,7 @@ func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceTyp
 	}
 
 	// Handle weight_unit
-	if deviceType.HasWeightUnit() && deviceType.WeightUnit.Get() != nil {
+	if deviceType.HasWeightUnit() && deviceType.WeightUnit.Get() != nil && string(deviceType.WeightUnit.Get().GetValue()) != "" {
 		data.WeightUnit = types.StringValue(string(deviceType.WeightUnit.Get().GetValue()))
 	} else if !data.WeightUnit.IsNull() {
 		data.WeightUnit = types.StringNull()

@@ -554,3 +554,145 @@ resource "netbox_module" "test" {
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description, comments)
 }
+
+func TestAccModuleResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-opt")
+	siteSlug := testutil.RandomSlug("tf-test-site-opt")
+	mfgName := testutil.RandomName("tf-test-mfg-opt")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-opt")
+	dtModel := testutil.RandomName("tf-test-dt-opt")
+	dtSlug := testutil.RandomSlug("tf-test-dt-opt")
+	roleName := testutil.RandomName("tf-test-role-opt")
+	roleSlug := testutil.RandomSlug("tf-test-role-opt")
+	deviceName := testutil.RandomName("tf-test-device-opt")
+	bayName := testutil.RandomName("tf-test-mbay-opt")
+	mtModel := testutil.RandomName("tf-test-mt-opt")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[5]q
+  slug         = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[7]q
+  slug  = %[8]q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name        = %[9]q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_module_bay" "test" {
+  device = netbox_device.test.id
+  name   = %[10]q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[11]q
+}
+
+resource "netbox_module" "test" {
+  device      = netbox_device.test.id
+  module_bay  = netbox_module_bay.test.id
+  module_type = netbox_module_type.test.id
+  asset_tag   = "ASSET-12345"
+  serial      = "SN-12345"
+  status      = "active"
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module.test", "asset_tag", "ASSET-12345"),
+					resource.TestCheckResourceAttr("netbox_module.test", "serial", "SN-12345"),
+					resource.TestCheckResourceAttr("netbox_module.test", "status", "active"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[5]q
+  slug         = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[7]q
+  slug  = %[8]q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name        = %[9]q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_module_bay" "test" {
+  device = netbox_device.test.id
+  name   = %[10]q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[11]q
+}
+
+resource "netbox_module" "test" {
+  device      = netbox_device.test.id
+  module_bay  = netbox_module_bay.test.id
+  module_type = netbox_module_type.test.id
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_module.test", "asset_tag"),
+					resource.TestCheckNoResourceAttr("netbox_module.test", "serial"),
+					// status is Computed - API returns "active" as default even when not set
+					resource.TestCheckResourceAttr("netbox_module.test", "status", "active"),
+				),
+			},
+		},
+	})
+}

@@ -389,3 +389,74 @@ resource "netbox_tunnel_termination" "test" {
 }
 `
 }
+
+func TestAccTunnelTerminationResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	tunnelName := testutil.RandomName("tf-test-tunnel-opt")
+	ipAddress := testutil.RandomIPv4Address()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelCleanup(tunnelName)
+	cleanup.RegisterTunnelTerminationCleanup(tunnelName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelTerminationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_tunnel" "test" {
+  name          = %[1]q
+  encapsulation = "ipsec-tunnel"
+}
+
+resource "netbox_ip_address" "test" {
+  address = %[2]q
+  status  = "active"
+}
+
+resource "netbox_tunnel_termination" "test" {
+  tunnel           = netbox_tunnel.test.id
+  termination_type = "dcim.device"
+  role             = "hub"
+  termination_id   = 123
+  outside_ip       = netbox_ip_address.test.id
+}
+`, tunnelName, ipAddress),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "role", "hub"),
+					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "termination_id", "123"),
+					resource.TestCheckResourceAttrSet("netbox_tunnel_termination.test", "outside_ip"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_tunnel" "test" {
+  name          = %[1]q
+  encapsulation = "ipsec-tunnel"
+}
+
+resource "netbox_ip_address" "test" {
+  address = %[2]q
+  status  = "active"
+}
+
+resource "netbox_tunnel_termination" "test" {
+  tunnel           = netbox_tunnel.test.id
+  termination_type = "dcim.device"
+  role             = "hub"
+}
+`, tunnelName, ipAddress),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					// role must remain as it's required by the API
+					resource.TestCheckResourceAttr("netbox_tunnel_termination.test", "role", "hub"),
+					// These fields should be removed
+					resource.TestCheckNoResourceAttr("netbox_tunnel_termination.test", "termination_id"),
+					resource.TestCheckNoResourceAttr("netbox_tunnel_termination.test", "outside_ip"),
+				),
+			},
+		},
+	})
+}
