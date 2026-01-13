@@ -497,3 +497,142 @@ resource "netbox_circuit_termination" "test" {
 }
 `, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, description)
 }
+
+func TestAccCircuitTerminationResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-opt")
+	providerSlug := testutil.RandomSlug("tf-test-provider-opt")
+	circuitTypeName := testutil.RandomName("tf-test-ct-opt")
+	circuitTypeSlug := testutil.RandomSlug("tf-test-ct-opt")
+	circuitCID := testutil.RandomName("tf-test-circuit-opt")
+	siteName := testutil.RandomName("tf-test-site-opt")
+	siteSlug := testutil.RandomSlug("tf-test-site-opt")
+	site2Name := testutil.RandomName("tf-test-site2-opt")
+	site2Slug := testutil.RandomSlug("tf-test-site2-opt")
+	providerNetworkName := testutil.RandomName("tf-test-pn-opt")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
+	cleanup.RegisterCircuitCleanup(circuitCID)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterSiteCleanup(site2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %[5]q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+}
+
+resource "netbox_site" "test" {
+  name   = %[6]q
+  slug   = %[7]q
+  status = "active"
+}
+
+resource "netbox_site" "test2" {
+  name   = %[8]q
+  slug   = %[9]q
+  status = "active"
+}
+
+resource "netbox_provider_network" "test" {
+  name             = %[10]q
+  circuit_provider = netbox_provider.test.id
+}
+
+resource "netbox_circuit_termination" "test" {
+  circuit          = netbox_circuit.test.id
+  term_side        = "A"
+  provider_network = netbox_provider_network.test.name
+  port_speed       = 1000000
+  upstream_speed   = 512000
+  xconnect_id      = "XCON-123"
+  pp_info          = "PP1-Port5"
+  mark_connected   = true
+}
+`, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, site2Name, site2Slug, providerNetworkName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit_termination.test", "provider_network"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "port_speed", "1000000"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "upstream_speed", "512000"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "xconnect_id", "XCON-123"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "pp_info", "PP1-Port5"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "mark_connected", "true"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %[5]q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+}
+
+resource "netbox_site" "test" {
+  name   = %[6]q
+  slug   = %[7]q
+  status = "active"
+}
+
+resource "netbox_site" "test2" {
+  name   = %[8]q
+  slug   = %[9]q
+  status = "active"
+}
+
+resource "netbox_provider_network" "test" {
+  name             = %[10]q
+  circuit_provider = netbox_provider.test.id
+}
+
+resource "netbox_circuit_termination" "test" {
+  circuit   = netbox_circuit.test.id
+  term_side = "A"
+  site      = netbox_site.test.id
+}
+`, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, site2Name, site2Slug, providerNetworkName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					// site must remain since circuit_termination requires either site or provider_network
+					resource.TestCheckResourceAttrSet("netbox_circuit_termination.test", "site"),
+					// provider_network should be removed
+					resource.TestCheckNoResourceAttr("netbox_circuit_termination.test", "provider_network"),
+					// All other optional fields should be removed
+					resource.TestCheckNoResourceAttr("netbox_circuit_termination.test", "port_speed"),
+					resource.TestCheckNoResourceAttr("netbox_circuit_termination.test", "upstream_speed"),
+					resource.TestCheckNoResourceAttr("netbox_circuit_termination.test", "xconnect_id"),
+					resource.TestCheckNoResourceAttr("netbox_circuit_termination.test", "pp_info"),
+					// mark_connected is Computed with default false, so check for default
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "mark_connected", "false"),
+				),
+			},
+		},
+	})
+}

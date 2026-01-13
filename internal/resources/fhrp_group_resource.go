@@ -314,6 +314,10 @@ func (r *FHRPGroupResource) setOptionalFields(ctx context.Context, fhrpGroupRequ
 	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
 		name := plan.Name.ValueString()
 		fhrpGroupRequest.Name = &name
+	} else if plan.Name.IsNull() {
+		// Explicitly clear the name
+		emptyString := ""
+		fhrpGroupRequest.Name = &emptyString
 	}
 
 	// Auth Type
@@ -324,6 +328,10 @@ func (r *FHRPGroupResource) setOptionalFields(ctx context.Context, fhrpGroupRequ
 			return
 		}
 		fhrpGroupRequest.AuthType = authType
+	} else if plan.AuthType.IsNull() {
+		// Explicitly clear the auth type by setting to empty value
+		emptyAuthType := netbox.AUTHENTICATIONTYPE_EMPTY
+		fhrpGroupRequest.AuthType = &emptyAuthType
 	}
 
 	// Auth Key

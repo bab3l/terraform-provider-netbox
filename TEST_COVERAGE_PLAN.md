@@ -6,24 +6,21 @@
 ## Executive Summary
 
 - **Total Resources with Optional Fields:** 76
-- **Resources Needing New Tests:** 12 (no `_removeOptionalFields` test exists)
+- **Resources Needing New Tests:** 9 (no `_removeOptionalFields` test exists)
 - **Resources Needing Extended Tests:** 47 (test exists but incomplete coverage)
-- **Recently Completed:** 17 resources (circuit_type, device_bay_template, circuit_group_assignment, aggregate, contact_assignment, power_panel, rack_reservation, virtual_chassis, vlan_group, journal_entry, rir, service_template, tag, cable, asn)
+- **Recently Completed:** 20 resources (circuit_type, device_bay_template, circuit_group_assignment, aggregate, contact_assignment, power_panel, rack_reservation, virtual_chassis, vlan_group, journal_entry, rir, service_template, tag, cable, asn, circuit_termination, custom_link, fhrp_group)
 
 ## Priority Classification
 
-### 🔴 Priority 1: No Test Coverage (15 Resources)
+### 🔴 Priority 1: No Test Coverage (12 Resources)
 
 These resources have NO `_removeOptionalFields` test. A new test must be created.
 
 | Resource | Missing Fields | Count |
 |----------|---------------|-------|
-| `circuit_termination` | mark_connected, port_speed, pp_info, provider_network, site, upstream_speed, xconnect_id | 7 |
 | `custom_field` | choice_set, default, filter_logic, group_name, is_cloneable, label, related_object_type, required, search_weight, ui_editable, ui_visible, validation_maximum, validation_minimum, validation_regex, weight | 15 |
-| `custom_link` | button_class, enabled, group_name, new_window, weight | 5 |
 | `device` | airflow, face, latitude, longitude, position, status, vc_position, vc_priority | 8 |
 | `device_type` | airflow, part_number, subdevice_role, u_height, weight, weight_unit | 6 |
-| `fhrp_group` | auth_key, auth_type, name | 3 |
 | `interface` | duplex, enabled, label, mac_address, mark_connected, mgmt_only, mode, mtu, speed, wwn | 10 |
 | `interface_template` | bridge, enabled, label, mgmt_only, poe_mode, poe_type, rf_role | 7 |
 | `module` | asset_tag, serial, status | 3 |
@@ -32,8 +29,9 @@ These resources have NO `_removeOptionalFields` test. A new test must be created
 | `rack_type` | desc_units, form_factor, max_weight, mounting_depth, outer_depth, outer_unit, outer_width, starting_unit, u_height, weight, weight_unit, width | 12 |
 | `tunnel_termination` | outside_ip, role, termination_id | 3 |
 | `virtual_device_context` | identifier, primary_ip4, primary_ip6, tenant | 4 |
+| `wireless_lan` | comments, description | auth_cipher, auth_psk, auth_type, group, status, tenant, vlan | 7 |
 
-**Total Missing Fields:** 101
+**Total Missing Fields:** 91
 
 ---
 
@@ -52,7 +50,6 @@ These resources have a `_removeOptionalFields` test but don't cover all optional
 | `rack` | location, rack_type, role, tenant | airflow, desc_units, form_factor, max_weight, mounting_depth, outer_depth, outer_unit, outer_width, starting_unit, u_height, weight, weight_unit, width | 13 |
 | `rack_type` | *(no test)* | *(see Priority 1)* | 12 |
 | `tunnel` | comments, description | group, ipsec_profile, status, tenant, tunnel_id | 5 |
-| `wireless_lan` | comments, description | auth_cipher, auth_psk, auth_type, group, status, tenant, vlan | 7 |
 | `wireless_link` | tenant | auth_cipher, auth_psk, auth_type, distance, distance_unit, ssid, status | 7 |
 
 #### Medium Impact (3-4 missing fields)
@@ -146,6 +143,9 @@ For 20 remaining resources with no test, create new `TestAccXxxResource_removeOp
 - ✅ `cable` - Extended test to cover `label`, `length`, `length_unit`, `status`, `type`, `color` (fixed provider bugs for type and color)
 - ✅ `asn` - Test already existed, verified `rir` field coverage
 - ✅ `custom_field_choice_set` - Investigated `base_choices` - API limitation, cannot be cleared once set
+- ✅ `circuit_termination` - Added test for `mark_connected`, `port_speed`, `pp_info`, `provider_network`, `upstream_speed`, `xconnect_id` (fixed provider bugs for nullable fields)
+- ✅ `custom_link` - Added test for `enabled`, `weight`, `group_name` (fixed provider bug for group_name; button_class/new_window have API limitations)
+- ✅ `fhrp_group` - Added test for `auth_key`, `auth_type`, `name` (fixed provider bugs for auth_type and name)
 
 **Template Pattern:**
 ```go
@@ -211,6 +211,12 @@ Update this document as tests are completed or issues are discovered.
 9. ✅ **FIXED:** `tag.object_types` - needed explicit empty list set in Update method when null
 10. ✅ **FIXED:** `cable.type` and `cable.color` - needed empty string to clear, not null
 11. **KNOWN API LIMITATION:** `custom_field_choice_set.base_choices` - API rejects clearing this field once set
+12. ✅ **FIXED:** `custom_link.group_name` - needed explicit empty string to clear in Update method
+13. ✅ **FIXED:** `fhrp_group.name` - needed explicit empty string to clear in setOptionalFields
+14. ✅ **FIXED:** `fhrp_group.auth_type` - needed AUTHENTICATIONTYPE_EMPTY constant to clear enum field
+15. ✅ **FIXED:** `circuit_termination` nullable fields - needed SetProviderNetworkNil(), SetPortSpeedNil(), SetUpstreamSpeedNil() methods
+16. ✅ **FIXED:** `circuit_termination` string fields - pp_info and xconnect_id needed explicit empty string to clear
+17. **KNOWN API LIMITATION:** `custom_link.button_class` and `new_window` - API doesn't properly clear these fields when set to defaults
 ## Known Issues
 
 ### Provider Bugs Found

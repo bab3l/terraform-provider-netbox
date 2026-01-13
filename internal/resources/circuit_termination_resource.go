@@ -364,6 +364,9 @@ func (r *CircuitTerminationResource) buildCreateRequest(ctx context.Context, dat
 		// Provider network is referenced by name
 		pnReq := netbox.NewBriefProviderNetworkRequest(data.ProviderNetwork.ValueString())
 		createReq.SetProviderNetwork(*pnReq)
+	} else if data.ProviderNetwork.IsNull() {
+		// Explicitly clear provider_network
+		createReq.SetProviderNetworkNil()
 	}
 
 	// Handle port_speed (optional)
@@ -374,6 +377,9 @@ func (r *CircuitTerminationResource) buildCreateRequest(ctx context.Context, dat
 			return nil, diags
 		}
 		createReq.SetPortSpeed(portSpeed)
+	} else if data.PortSpeed.IsNull() {
+		// Explicitly clear port_speed
+		createReq.SetPortSpeedNil()
 	}
 
 	// Handle upstream_speed (optional)
@@ -384,16 +390,27 @@ func (r *CircuitTerminationResource) buildCreateRequest(ctx context.Context, dat
 			return nil, diags
 		}
 		createReq.SetUpstreamSpeed(upstreamSpeed)
+	} else if data.UpstreamSpeed.IsNull() {
+		// Explicitly clear upstream_speed
+		createReq.SetUpstreamSpeedNil()
 	}
 
 	// Handle xconnect_id (optional)
 	if !data.XconnectID.IsNull() && !data.XconnectID.IsUnknown() {
 		createReq.SetXconnectId(data.XconnectID.ValueString())
+	} else if data.XconnectID.IsNull() {
+		// Explicitly clear xconnect_id
+		emptyString := ""
+		createReq.XconnectId = &emptyString
 	}
 
 	// Handle pp_info (optional)
 	if !data.PPInfo.IsNull() && !data.PPInfo.IsUnknown() {
 		createReq.SetPpInfo(data.PPInfo.ValueString())
+	} else if data.PPInfo.IsNull() {
+		// Explicitly clear pp_info
+		emptyString := ""
+		createReq.PpInfo = &emptyString
 	}
 
 	// Handle description (optional)
