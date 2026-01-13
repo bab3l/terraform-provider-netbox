@@ -294,11 +294,11 @@ Consider creating a test generator that:
 - [ ] `event_rule_resource.go` - Deferred (complex action parameters)
 - [ ] `notification_group_resource.go` - Deferred (complex notification settings)
 - [x] `config_context_resource.go` - ✅ **FIXED & TESTED** (description via utils.ApplyDescription, fixed tags removal bug)
-- [ ] `config_template_resource.go` - Deferred (already uses utils.ApplyDescription)
+- [x] `config_template_resource.go` - ✅ **VERIFIED** (already uses utils.ApplyDescription, added test)
 - [ ] `export_template_resource.go` - Deferred (template content handling)
 - [x] `journal_entry_resource.go` - ✅ **VERIFIED** (comments is required API field, optional removal not applicable)
-- [ ] `manufacturer_resource.go` - Deferred (already uses utils.ApplyDescription)
-- [ ] `platform_resource.go` - Deferred (already uses utils.ApplyDescription)
+- [x] `manufacturer_resource.go` - ✅ **VERIFIED** (already uses utils.ApplyDescription, added test)
+- [x] `platform_resource.go` - ✅ **VERIFIED** (already uses utils.ApplyDescription, test exists)
 - [ ] `rir_resource.resource.go` - Deferred (already verified in Batch 3B)
 - [x] `role_resource.go` - ✅ **FIXED & TESTED** (description via utils.ApplyDescription; verified tags/custom_fields removal works)
 
@@ -316,11 +316,13 @@ Consider creating a test generator that:
   - `config_context_resource.go`: Fixed null description handling using utils.ApplyDescription; Fixed tags removal bug by removing incorrect state fallback
   - `role_resource.go`: Fixed null description handling using utils.ApplyDescription
 - **Test Coverage**:
-  - Added 7 comprehensive `TestAcc..._removeOptionalFields` tests
+  - Added 9 comprehensive `TestAcc..._removeOptionalFields` tests
   - All tests verify fields can be removed and are absent from state
   - Tests use `testutil.RandomName` for collision prevention
-- **Test Results (7/7 PASS)**:
+  - Verified resources already using utils.ApplyDescription: manufacturer, platform, config_template
+- **Test Results (10/10 PASS)**:
   - ✅ service, custom_field, custom_field_choice_set, tag, webhook, config_context, role
+  - ✅ manufacturer, platform, config_template (verified correct utils usage)
   - All successfully verify optional fields can be removed
 - **Upstream Dependency**:
   - **go-netbox v0.1.4** released (2026-01-13)
