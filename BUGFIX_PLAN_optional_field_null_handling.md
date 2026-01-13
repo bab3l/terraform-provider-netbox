@@ -287,7 +287,7 @@ Consider creating a test generator that:
 
 **Batch 4C - Miscellaneous (15 resources)** ✅ COMPLETE
 - [x] `service_resource.go` - ✅ **FIXED & TESTED** (custom fields/vm/device/ipaddresses)
-- [x] `custom_field_resource.go` - ✅ **FIXED & TESTED** (label, group_name, validation_regex)
+- [x] `custom_field_resource.go` - ✅ **FIXED & TESTED** (label schema bug fixed - removed Optional+Computed pattern, requires go-netbox v0.1.4)
 - [x] `custom_field_choice_set_resource.go` - ✅ **FIXED & TESTED** (base_choices, order_alphabetically via AdditionalProperties)
 - [x] `tag_resource.go` - ✅ **FIXED & TESTED** (color, description)
 - [x] `webhook_resource.go` - ✅ **FIXED & TESTED** (additional_headers, body_template, secret using empty strings)
@@ -305,7 +305,11 @@ Consider creating a test generator that:
 **Batch 4C Summary:**
 - **Code Changes**:
   - `service_resource.go`: Fixed null handling for `device`, `virtual_machine`, `custom_fields`, and `ipaddresses` references using SetXNil() methods
-  - `custom_field_resource.go`: Fixed proper clearing of label, group_name, and validation_regex using SetXNil() methods
+  - `custom_field_resource.go`: **CRITICAL FIX** - Removed `Computed: true` from label schema attribute (same bug as template resources in Batch 4A)
+    * Root cause: Optional+Computed prevented Terraform from detecting field removal
+    * Updated Read function to return `types.StringNull()` instead of `types.StringValue("")` for consistency
+    * Required go-netbox v0.1.4 with Label field `omitempty` removed (upstream fix)
+    * Fixed both provider schema AND go-netbox API client issues
   - `custom_field_choice_set_resource.go`: Fixed null handling for `base_choices` and `order_alphabetically` using `AdditionalProperties` workaround for `omitempty` fields
   - `tag_resource.go`: Fixed null handling for `color` (SetColorNil) and `description` (empty string)
   - `webhook_resource.go`: Fixed null handling for `additional_headers`, `body_template`, and `secret` using empty string setters
@@ -318,6 +322,11 @@ Consider creating a test generator that:
 - **Test Results (7/7 PASS)**:
   - ✅ service, custom_field, custom_field_choice_set, tag, webhook, config_context, role
   - All successfully verify optional fields can be removed
+- **Upstream Dependency**:
+  - **go-netbox v0.1.4** released (2026-01-13)
+  - Removed `omitempty` from CustomField Label field to allow empty strings in PUT requests
+  - PR #12: https://github.com/bab3l/go-netbox/pull/12
+  - Release: https://github.com/bab3l/go-netbox/releases/tag/v0.1.4
 - **Key Findings**:
   - Reference fields require SetXNil() methods to clear
   - String fields use empty string to clear
@@ -325,8 +334,10 @@ Consider creating a test generator that:
   - Tags/custom_fields arrays properly cleared when set to empty slice
   - Verified `ApplyTags` helper correctly handles removal
   - Verified `AdditionalProperties` workaround effectively clears fields that the generated client omits
-- **Key Findings**:
-  - **State Fallback Anti-Pattern**: In `config_context`, code was falling back to `state.Tags` if `plan.Tags` was null: `if plan.Tags != nil { ... } else if state.Tags != nil { ... }`. This prevents clearing the field. The fix is to only use plan values for updates.
+  - **Schema Pattern Bug Repeated**: custom_field had the same Optional+Computed issue as template resources
+  - **Two-layer Fix Required**: Both provider schema (Computed flag) AND API client (omitempty) needed fixing
+- **Anti-Patterns Identified**:
+  - **State Fallback**: In `config_context`, code was falling back to `state.Tags` if `plan.Tags` was null: `if plan.Tags != nil { ... } else if state.Tags != nil { ... }`. This prevents clearing the field. The fix is to only use plan values for updates.
   - **APIClient omitempty**: The generic `ApplyTags` helper relies on the generated API client's `omitempty` tags to clear fields when they are nil in the request.
   - **Workaround for omitempty**: For fields like `order_alphabetically` (boolean) or `additional_headers` (string) that are `omitempty` in the client, we used `AdditionalProperties` or empty strings to force sending the value to NetBox.
 
