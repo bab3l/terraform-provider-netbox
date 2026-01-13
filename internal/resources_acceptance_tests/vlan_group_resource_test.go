@@ -271,3 +271,81 @@ resource "netbox_vlan_group" "test" {
 }
 `, name, slug, description)
 }
+
+// TestAccVLANGroupResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccVLANGroupResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-vlangrp-rem")
+	slug := testutil.GenerateSlug("tf-test-vlangrp-rem")
+	siteName := testutil.RandomName("tf-test-site-rem")
+	siteSlug := testutil.RandomSlug("tf-test-site-rem")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVLANGroupCleanup(slug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVLANGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVLANGroupResourceConfig_withScope(name, slug, siteName, siteSlug, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vlan_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_vlan_group.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_vlan_group.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_vlan_group.test", "scope_type", "dcim.site"),
+					resource.TestCheckResourceAttrSet("netbox_vlan_group.test", "scope_id"),
+				),
+			},
+			{
+				Config: testAccVLANGroupResourceConfig_withSite(name, slug, siteName, siteSlug, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_vlan_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_vlan_group.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_vlan_group.test", "description", description),
+					resource.TestCheckNoResourceAttr("netbox_vlan_group.test", "scope_type"),
+					resource.TestCheckNoResourceAttr("netbox_vlan_group.test", "scope_id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVLANGroupResourceConfig_withScope(name, slug, siteName, siteSlug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[3]q
+  slug   = %[4]q
+  status = "active"
+}
+
+resource "netbox_vlan_group" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  description = %[5]q
+  scope_type  = "dcim.site"
+  scope_id    = netbox_site.test.id
+}
+`, name, slug, siteName, siteSlug, description)
+}
+
+func testAccVLANGroupResourceConfig_withSite(name, slug, siteName, siteSlug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[3]q
+  slug   = %[4]q
+  status = "active"
+}
+
+resource "netbox_vlan_group" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  description = %[5]q
+}
+`, name, slug, siteName, siteSlug, description)
+}

@@ -238,3 +238,46 @@ func TestAccVirtualChassisResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccVirtualChassisResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccVirtualChassisResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-vc-rem")
+	description := testutil.RandomName("description")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualChassisResourceConfig_withDomainDescription(name, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "domain", "test-domain"),
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "description", description),
+					// Note: master is not tested here as it requires a device to be created
+				),
+			},
+			{
+				Config: testAccVirtualChassisResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_virtual_chassis.test", "domain"),
+					resource.TestCheckNoResourceAttr("netbox_virtual_chassis.test", "description"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVirtualChassisResourceConfig_withDomainDescription(name, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_virtual_chassis" "test" {
+  name        = %[1]q
+  domain      = "test-domain"
+  description = %[2]q
+}
+`, name, description)
+}
