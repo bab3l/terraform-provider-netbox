@@ -291,7 +291,7 @@ Consider creating a test generator that:
 - [x] `custom_field_choice_set_resource.go` - ✅ **FIXED & TESTED** (base_choices, order_alphabetically via AdditionalProperties)
 - [x] `tag_resource.go` - ✅ **FIXED & TESTED** (color, description)
 - [x] `webhook_resource.go` - ✅ **FIXED & TESTED** (additional_headers, body_template, secret using empty strings)
-- [ ] `event_rule_resource.go` - ✅ **VERIFIED** (already uses utils.ApplyDescription, correct schema, test deferred - complex dependencies)
+- [x] `event_rule_resource.go` - ✅ **FIXED & TESTED** (already uses utils.ApplyDescription, correct schema, test passes)
 - [ ] `notification_group_resource.go` - ✅ **VERIFIED** (already uses utils.ApplyDescription, correct schema, test deferred - requires user/group setup)
 - [x] `config_context_resource.go` - ✅ **FIXED & TESTED** (description via utils.ApplyDescription, fixed tags removal bug)
 - [x] `config_template_resource.go` - ✅ **FIXED & TESTED** (already uses utils.ApplyDescription, test passes)
@@ -316,18 +316,18 @@ Consider creating a test generator that:
   - `config_context_resource.go`: Fixed null description handling using utils.ApplyDescription; Fixed tags removal bug by removing incorrect state fallback
   - `role_resource.go`: Fixed null description handling using utils.ApplyDescription
 - **Test Coverage**:
-  - Added 10 comprehensive `TestAcc..._removeOptionalFields` tests
+  - Added 11 comprehensive `TestAcc..._removeOptionalFields` tests
   - All tests verify fields can be removed and are absent from state
   - Tests use `testutil.RandomName` for collision prevention
-  - Verified resources already using utils.ApplyDescription: manufacturer, platform, config_template, export_template
-  - event_rule and notification_group verified via code review (correct schema + utils usage, complex test setup deferred)
-- **Test Results (13/13 PASS)**:
+  - Verified resources already using utils.ApplyDescription: manufacturer, platform, config_template, export_template, event_rule
+  - notification_group verified via code review (correct schema + utils usage, complex test setup deferred)
+- **Test Results (14/14 PASS)**:
   - ✅ service, custom_field, custom_field_choice_set, tag, webhook, config_context, role
-  - ✅ manufacturer, platform, config_template, export_template (all tests pass)
+  - ✅ manufacturer, platform, config_template, export_template, event_rule (all tests pass)
   - All successfully verify optional fields can be removed
-- **Code Review (2 verified)**:
-  - ✅ event_rule, notification_group: Both use nbschema.DescriptionAttribute() (Optional only) + utils.ApplyDescription + correct Read logic
-  - Test creation deferred due to complex dependencies (webhooks, user groups)
+- **Code Review (1 verified)**:
+  - ✅ notification_group: Uses nbschema.DescriptionAttribute() (Optional only) + utils.ApplyDescription + correct Read logic
+  - Test creation deferred due to complex dependencies (requires user groups and users)
 - **Upstream Dependency**:
   - **go-netbox v0.1.4** released (2026-01-13)
   - Removed `omitempty` from CustomField Label field to allow empty strings in PUT requests

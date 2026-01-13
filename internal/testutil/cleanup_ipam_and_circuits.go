@@ -2378,6 +2378,34 @@ func (c *CleanupResource) RegisterWebhookCleanup(name string) {
 
 }
 
+// RegisterEventRuleCleanup registers a cleanup function that will delete
+// an event rule by name after the test completes.
+func (c *CleanupResource) RegisterEventRuleCleanup(name string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.ExtrasAPI.ExtrasEventRulesList(ctx).Name([]string{name}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list event rules with name %s: %v", name, err)
+			return
+		}
+
+		if resp.StatusCode != http.StatusOK || list.Count == 0 {
+			c.t.Logf("Cleanup: event rule with name %s not found (already deleted)", name)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.ExtrasAPI.ExtrasEventRulesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete event rule %d (name: %s): %v", id, name, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted event rule %d (name: %s)", id, name)
+		}
+	})
+}
+
 // RegisterExportTemplateCleanup registers a cleanup function that will delete
 
 // an export template by name after the test completes.
