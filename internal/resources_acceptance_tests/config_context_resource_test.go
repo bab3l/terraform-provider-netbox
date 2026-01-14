@@ -250,44 +250,68 @@ func TestAccConfigContextResource_removeOptionalFields(t *testing.T) {
 	siteName := testutil.RandomName("tf-test-site")
 	siteSlug := testutil.RandomSlug("tf-test-site")
 	tagSlug := testutil.RandomSlug("tf-test-tag")
+	regionName := testutil.RandomName("tf-test-region")
+	regionSlug := testutil.RandomSlug("tf-test-region")
+	tenantName := testutil.RandomName("tf-test-tenant")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterConfigContextCleanup(name)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterTagCleanup(tagSlug)
+	cleanup.RegisterRegionCleanup(regionSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccConfigContextResourceConfig_withOptionalFields(name, description, siteName, siteSlug, tagSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_config_context.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_config_context.test", "description", description),
-					resource.TestCheckResourceAttr("netbox_config_context.test", "sites.#", "1"),
-					resource.TestCheckResourceAttr("netbox_config_context.test", "tags.#", "1"),
-				),
-			},
-			{
-				Config: testAccConfigContextResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_config_context.test", "name", name),
-					resource.TestCheckNoResourceAttr("netbox_config_context.test", "description"),
-					resource.TestCheckNoResourceAttr("netbox_config_context.test", "sites"),
-					resource.TestCheckNoResourceAttr("netbox_config_context.test", "tags"),
-				),
-			},
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_config_context",
+		BaseConfig: func() string {
+			return testAccConfigContextResourceConfig_removeOptionalFields_base(name)
 		},
+		ConfigWithFields: func() string {
+			return testAccConfigContextResourceConfig_removeOptionalFields_withFields(
+				name, description, siteName, siteSlug, tagSlug,
+				regionName, regionSlug, tenantName, tenantSlug,
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": description,
+			// Note: weight and is_active have computed defaults and cannot be truly cleared
+		},
+		RequiredFields: map[string]string{
+			"name": name,
+			// Note: data field has JSON normalization, so we don't check its exact value
+		},
+		CheckDestroy: nil, // No CheckConfigContextDestroy function available
 	})
 }
 
-func testAccConfigContextResourceConfig_withOptionalFields(name, description, siteName, siteSlug, tagSlug string) string {
+func testAccConfigContextResourceConfig_removeOptionalFields_base(name string) string {
 	return fmt.Sprintf(`
+resource "netbox_config_context" "test" {
+  name = %q
+  data = "{\"key\":\"value\"}"
+}
+`, name)
+}
+
+func testAccConfigContextResourceConfig_removeOptionalFields_withFields(
+	name, description, siteName, siteSlug, tagSlug,
+	regionName, regionSlug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_region" "test" {
+  name = %[6]q
+  slug = %[7]q
+}
+
 resource "netbox_site" "test" {
   name   = %[3]q
   slug   = %[4]q
   status = "active"
+}
+
+resource "netbox_tenant" "test" {
+  name = %[8]q
+  slug = %[9]q
 }
 
 resource "netbox_tag" "test" {
@@ -297,12 +321,14 @@ resource "netbox_tag" "test" {
 
 resource "netbox_config_context" "test" {
   name        = %[1]q
-  data        = "{\"key\": \"value\"}"
+  data        = "{\"key\":\"value\"}"
   description = %[2]q
+  regions     = [netbox_region.test.id]
   sites       = [netbox_site.test.id]
+  tenants     = [netbox_tenant.test.id]
   tags        = [netbox_tag.test.slug]
 }
-`, name, description, siteName, siteSlug, tagSlug)
+`, name, description, siteName, siteSlug, tagSlug, regionName, regionSlug, tenantName, tenantSlug)
 }
 
 func testAccConfigContextResourceConfig_basic(name string) string {
