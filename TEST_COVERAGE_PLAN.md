@@ -37,7 +37,7 @@ These resources have a `_removeOptionalFields` test but don't cover all optional
 | Resource | Currently Tested | Missing | Count |
 |----------|-----------------|---------|-------|
 | `config_context` | description, sites, tags | cluster_groups, cluster_types, clusters, device_types, is_active, locations, platforms, regions, roles, site_groups, tenant_groups, tenants, weight | 13 |
-| `inventory_item_template` | label, description | component_id, component_type, manufacturer, parent, part_id *(NetBox rejects null)*, role | 6 |
+| inventory_item_template | label, description, manufacturer, role | component_id, component_type, parent, part_id *(NetBox rejects null)* | 4 | ✅ Extended - 4 fields tested. Excluded component/parent (complex). |
 | `tunnel` | description, comments, tunnel_id | group *(ref, state-aware clearing)*, ipsec_profile *(ref, state-aware clearing)*, status *(default)*, tenant *(ref, state-aware clearing)*, encapsulation, tags, custom_fields | 8 | ✅ Extended - 3 fields tested. State-aware clearing implemented. Keep dependency resources in both configs. |
 | `virtual_chassis` | domain, description, comments | master *(requires device)*, tags, custom_fields | 6 | ✅ Extended - 3 fields tested (from 1). Excluded master (complex setup). Test passes. |
 | `wireless_link` | tenant, auth_type, auth_cipher, auth_psk, description, comments, distance, distance_unit | status *(default)*, tags, custom_fields | 11 | ✅ Extended - 8 fields tested. Logic fixed (empty string clearing for auth/distance). |
