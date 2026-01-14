@@ -1,8 +1,0 @@
-"Resource","File","OptionalFieldsCount","FieldsWithIssues","IssueCount","Priority"
-"aggregate","aggregate_resource.go","4","Comments, DateAdded, Description, Tenant","4","LOW"
-"circuit_termination","circuit_termination_resource.go","8","MarkConnected, PortSpeed, PPInfo, ProviderNetwork, Site, Tags, UpstreamSpeed, XconnectID","8","LOW"
-"custom_field","custom_field_resource.go","15","ChoiceSet, Default, FilterLogic, GroupName, IsCloneable, Label, RelatedObjectType, Required, SearchWeight, UIEditable, UIVisible, ValidationMaximum, ValidationMinimum, ValidationRegex, Weight","15","LOW"
-"provider_account","provider_account_resource.go","1","Name","1","LOW"
-"provider_network","provider_network_resource.go","1","ServiceID","1","LOW"
-"rack","rack_resource.go","20","Airflow, AssetTag, DescUnits, FormFactor, Location, MaxWeight, MountingDepth, OuterDepth, OuterUnit, OuterWidth, RackType, Role, Serial, StartingUnit, Status, Tenant, UHeight, Weight, WeightUnit, Width","20","MEDIUM"
-"role","role_resource.go","2","Description, Weight","2","LOW"

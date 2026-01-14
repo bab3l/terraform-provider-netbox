@@ -446,6 +446,34 @@ func (c *CleanupResource) RegisterRackRoleCleanup(slug string) {
 
 }
 
+// RegisterRackTypeCleanup registers a cleanup function that will delete
+// a rack type by slug after the test completes.
+func (c *CleanupResource) RegisterRackTypeCleanup(slug string) {
+	c.t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, resp, err := c.client.DcimAPI.DcimRackTypesList(ctx).Slug([]string{slug}).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to list rack types with slug %s: %v", slug, err)
+			return
+		}
+
+		if resp.StatusCode != http.StatusOK || list == nil || len(list.Results) == 0 {
+			c.t.Logf("Cleanup: rack type with slug %s not found (already deleted)", slug)
+			return
+		}
+
+		id := list.Results[0].GetId()
+		_, err = c.client.DcimAPI.DcimRackTypesDestroy(ctx, id).Execute()
+		if err != nil {
+			c.t.Logf("Cleanup: failed to delete rack type %d (slug: %s): %v", id, slug, err)
+		} else {
+			c.t.Logf("Cleanup: successfully deleted rack type %d (slug: %s)", id, slug)
+		}
+	})
+}
+
 // RegisterDeviceTypeCleanup registers a cleanup function that will delete
 
 // a device type by slug after the test completes.

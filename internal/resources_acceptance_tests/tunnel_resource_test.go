@@ -314,45 +314,82 @@ func TestAccTunnelResource_removeOptionalFields(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-tunnel-rem")
-	const testDescription = "Test Description"
-	const testComments = "Test Comments"
+	groupName := testutil.RandomName("tf-test-tunnel-group")
+	groupSlug := testutil.RandomSlug("tf-test-tunnel-group")
+	tenantName := testutil.RandomName("tf-test-tenant")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterTunnelCleanup(name)
+	cleanup.RegisterTunnelGroupCleanup(groupSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.CheckTunnelDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccTunnelResourceConfig_withDescriptionComments(name, testDescription, testComments),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_tunnel.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_tunnel.test", "description", testDescription),
-					resource.TestCheckResourceAttr("netbox_tunnel.test", "comments", testComments),
-				),
-			},
-			{
-				Config: testAccTunnelResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_tunnel.test", "name", name),
-					resource.TestCheckNoResourceAttr("netbox_tunnel.test", "description"),
-					resource.TestCheckNoResourceAttr("netbox_tunnel.test", "comments"),
-				),
-			},
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_tunnel",
+		BaseConfig: func() string {
+			return testAccTunnelResourceConfig_removeOptionalFields_base(
+				name, groupName, groupSlug, tenantName, tenantSlug,
+			)
 		},
+		ConfigWithFields: func() string {
+			return testAccTunnelResourceConfig_removeOptionalFields_withFields(
+				name, groupName, groupSlug, tenantName, tenantSlug,
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test Description",
+			"comments":    "Test Comments",
+			"tunnel_id":   "100",
+			// Note: status has a default value and cannot be truly cleared
+			// Note: ipsec_profile requires ipsec encapsulation type
+		},
+		RequiredFields: map[string]string{
+			"name": name,
+		},
+		CheckDestroy: testutil.CheckTunnelDestroy,
 	})
 }
 
-func testAccTunnelResourceConfig_withDescriptionComments(name, description, comments string) string {
+func testAccTunnelResourceConfig_removeOptionalFields_base(name, groupName, groupSlug, tenantName, tenantSlug string) string {
 	return fmt.Sprintf(`
-resource "netbox_tunnel" "test" {
-	name          = %[1]q
-	encapsulation = "gre"
-	status        = "active"
-	description   = %[2]q
-	comments      = %[3]q
+resource "netbox_tunnel_group" "test" {
+  name = %[2]q
+  slug = %[3]q
 }
-`, name, description, comments)
+
+resource "netbox_tenant" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_tunnel" "test" {
+  name          = %[1]q
+  encapsulation = "gre"
+}
+`, name, groupName, groupSlug, tenantName, tenantSlug)
+}
+
+func testAccTunnelResourceConfig_removeOptionalFields_withFields(
+	name, groupName, groupSlug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tunnel_group" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_tenant" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_tunnel" "test" {
+  name          = %[1]q
+  encapsulation = "gre"
+  description   = "Test Description"
+  comments      = "Test Comments"
+  tunnel_id     = 100
+  group         = netbox_tunnel_group.test.id
+  tenant        = netbox_tenant.test.id
+}
+`, name, groupName, groupSlug, tenantName, tenantSlug)
 }

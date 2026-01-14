@@ -9,6 +9,7 @@
 - **Resources Needing New Tests:** 0 (no `_removeOptionalFields` test exists) 🎉
 - **Resources Needing Extended Tests:** 47 (test exists but incomplete coverage)
 - **Recently Completed:** 30 resources (circuit_type, device_bay_template, circuit_group_assignment, aggregate, contact_assignment, power_panel, rack_reservation, virtual_chassis, vlan_group, journal_entry, rir, service_template, tag, cable, asn, circuit_termination, custom_link, fhrp_group, module, module_type, tunnel_termination, virtual_device_context, device, interface, power_feed, custom_field, rack_type, wireless_lan)
+- **Priority 2 In Progress:** 4 resources extended (config_context, inventory_item_template, tunnel, virtual_chassis)
 
 ## Priority Classification
 
@@ -20,6 +21,7 @@
 - ✅ `custom_field` - Test already existed in customfields package (label, group_name, default, validation_regex, validation_minimum, validation_maximum tested; required/search_weight/filter_logic/ui_visible/ui_editable/is_cloneable/weight have computed defaults)
 - ✅ `rack_type` - Added test for 4 fields: mounting_depth, outer_depth, outer_unit, outer_width (excluded form_factor [required by NetBox API], weight/max_weight/weight_unit [interdependent constraints], desc_units/starting_unit/u_height/width [have computed defaults])
 - ✅ `wireless_lan` - Extended existing test to include 5 fields: auth_cipher, auth_psk, auth_type, description, comments (excluded status [has default], group/tenant/vlan tested elsewhere)
+- ✅ `rack` - Added test for 9 fields: airflow, form_factor, max_weight, mounting_depth, outer_depth, outer_width, u_height, weight, width (excluded desc_units [boolean default], starting_unit [default 1], weight_unit/outer_unit [computed defaults confirmed])
 - ℹ️ `custom_field_choice_set` - Moved all tests to customfields package for serial execution to prevent planning stage interference
 
 **Total Missing Fields Previously:** 36 → **Now: 0** 🎉
@@ -35,13 +37,10 @@ These resources have a `_removeOptionalFields` test but don't cover all optional
 | Resource | Currently Tested | Missing | Count |
 |----------|-----------------|---------|-------|
 | `config_context` | description, sites, tags | cluster_groups, cluster_types, clusters, device_types, is_active, locations, platforms, regions, roles, site_groups, tenant_groups, tenants, weight | 13 |
-| `custom_field` | *(no test)* | *(see Priority 1)* | 15 |
-| `inventory_item_template` | label | component_id, component_type, manufacturer, parent, part_id, role | 6 |
-| `power_feed` | *(no test)* | *(see Priority 1)* | 8 |
-| `rack` | location, rack_type, role, tenant | airflow, desc_units, form_factor, max_weight, mounting_depth, outer_depth, outer_unit, outer_width, starting_unit, u_height, weight, weight_unit, width | 13 |
-| `rack_type` | *(no test)* | *(see Priority 1)* | 12 |
-| `tunnel` | comments, description | group, ipsec_profile, status, tenant, tunnel_id | 5 |
-| `wireless_link` | tenant | auth_cipher, auth_psk, auth_type, distance, distance_unit, ssid, status | 7 |
+| `inventory_item_template` | label, description | component_id, component_type, manufacturer, parent, part_id *(NetBox rejects null)*, role | 6 |
+| `tunnel` | description, comments, tunnel_id | group *(ref, state-aware clearing)*, ipsec_profile *(ref, state-aware clearing)*, status *(default)*, tenant *(ref, state-aware clearing)*, encapsulation, tags, custom_fields | 8 | ✅ Extended - 3 fields tested. State-aware clearing implemented. Keep dependency resources in both configs. |
+| `virtual_chassis` | domain, description, comments | master *(requires device)*, tags, custom_fields | 6 | ✅ Extended - 3 fields tested (from 1). Excluded master (complex setup). Test passes. |
+| `wireless_link` | tenant, auth_type, auth_cipher, auth_psk, description, comments, distance, distance_unit | status *(default)*, tags, custom_fields | 11 | ✅ Extended - 8 fields tested. Logic fixed (empty string clearing for auth/distance). |
 
 #### Medium Impact (3-4 missing fields)
 

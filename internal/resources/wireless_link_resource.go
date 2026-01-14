@@ -586,30 +586,55 @@ func (r *WirelessLinkResource) Update(ctx context.Context, req resource.UpdateRe
 		authType := netbox.AuthenticationType1(plan.AuthType.ValueString())
 
 		request.AuthType = &authType
+	} else if plan.AuthType.IsNull() && !state.AuthType.IsNull() {
+		if request.AdditionalProperties == nil {
+			request.AdditionalProperties = make(map[string]interface{})
+		}
+		request.AdditionalProperties["auth_type"] = ""
 	}
 
 	if !plan.AuthCipher.IsNull() && !plan.AuthCipher.IsUnknown() {
 		authCipher := netbox.AuthenticationCipher(plan.AuthCipher.ValueString())
 
 		request.AuthCipher = &authCipher
+	} else if plan.AuthCipher.IsNull() && !state.AuthCipher.IsNull() {
+		if request.AdditionalProperties == nil {
+			request.AdditionalProperties = make(map[string]interface{})
+		}
+		request.AdditionalProperties["auth_cipher"] = ""
 	}
 
 	if !plan.AuthPSK.IsNull() && !plan.AuthPSK.IsUnknown() {
 		psk := plan.AuthPSK.ValueString()
 
 		request.AuthPsk = &psk
+	} else if plan.AuthPSK.IsNull() && !state.AuthPSK.IsNull() {
+		if request.AdditionalProperties == nil {
+			request.AdditionalProperties = make(map[string]interface{})
+		}
+		request.AdditionalProperties["auth_psk"] = ""
 	}
 
 	if !plan.Distance.IsNull() && !plan.Distance.IsUnknown() {
 		distance := plan.Distance.ValueFloat64()
 
 		request.Distance = *netbox.NewNullableFloat64(&distance)
+	} else if plan.Distance.IsNull() && !state.Distance.IsNull() {
+		if request.AdditionalProperties == nil {
+			request.AdditionalProperties = make(map[string]interface{})
+		}
+		request.AdditionalProperties["distance"] = nil
 	}
 
 	if !plan.DistanceUnit.IsNull() && !plan.DistanceUnit.IsUnknown() {
 		distanceUnit := netbox.PatchedWritableWirelessLinkRequestDistanceUnit(plan.DistanceUnit.ValueString())
 
 		request.DistanceUnit = &distanceUnit
+	} else if plan.DistanceUnit.IsNull() && !state.DistanceUnit.IsNull() {
+		if request.AdditionalProperties == nil {
+			request.AdditionalProperties = make(map[string]interface{})
+		}
+		request.AdditionalProperties["distance_unit"] = ""
 	}
 
 	// Store plan values before mapping for filter-to-owned pattern

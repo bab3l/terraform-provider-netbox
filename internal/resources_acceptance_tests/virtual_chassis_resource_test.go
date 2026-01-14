@@ -245,39 +245,43 @@ func TestAccVirtualChassisResource_removeOptionalFields(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-vc-rem")
-	description := testutil.RandomName("description")
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccVirtualChassisResourceConfig_withDomainDescription(name, description),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "domain", "test-domain"),
-					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "description", description),
-					// Note: master is not tested here as it requires a device to be created
-				),
-			},
-			{
-				Config: testAccVirtualChassisResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "name", name),
-					resource.TestCheckNoResourceAttr("netbox_virtual_chassis.test", "domain"),
-					resource.TestCheckNoResourceAttr("netbox_virtual_chassis.test", "description"),
-				),
-			},
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_virtual_chassis",
+		BaseConfig: func() string {
+			return testAccVirtualChassisResourceConfig_removeOptionalFields_base(name)
+		},
+		ConfigWithFields: func() string {
+			return testAccVirtualChassisResourceConfig_removeOptionalFields_withFields(name)
+		},
+		OptionalFields: map[string]string{
+			"domain":      "test-domain.example.com",
+			"description": "Test Description",
+			"comments":    "Test Comments",
+			// Note: master requires a device to be created and is tested separately
+			// Note: tags and custom_fields are generic metadata fields tested elsewhere
+		},
+		RequiredFields: map[string]string{
+			"name": name,
 		},
 	})
 }
 
-func testAccVirtualChassisResourceConfig_withDomainDescription(name, description string) string {
+func testAccVirtualChassisResourceConfig_removeOptionalFields_base(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_virtual_chassis" "test" {
+  name = %q
+}
+`, name)
+}
+
+func testAccVirtualChassisResourceConfig_removeOptionalFields_withFields(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_virtual_chassis" "test" {
   name        = %[1]q
-  domain      = "test-domain"
-  description = %[2]q
+  domain      = "test-domain.example.com"
+  description = "Test Description"
+  comments    = "Test Comments"
 }
-`, name, description)
+`, name)
 }
