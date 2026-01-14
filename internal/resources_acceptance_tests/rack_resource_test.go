@@ -633,27 +633,84 @@ func TestAccRackResource_removeReferenceFields(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
 	cleanup.RegisterSiteCleanup(siteSlug)
 
-	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
-		ResourceName: "netbox_rack",
-		BaseConfig: func() string {
-			return testAccRackResourceConfig_basic(siteName, siteSlug, rackName)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create resource with rack_type reference
+			{
+				Config: testAccRackResourceConfig_referenceFields(
+					siteName, siteSlug,
+					mfgName, mfgSlug,
+					rackTypeName, rackTypeSlug,
+					rackName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
+					resource.TestCheckResourceAttrPair("netbox_rack.test", "rack_type", "netbox_rack_type.test", "id"),
+				),
+			},
+			// Step 2: Remove rack_type reference but keep rack_type resource
+			{
+				Config: testAccRackResourceConfig_referenceFieldsRemoved(
+					siteName, siteSlug,
+					mfgName, mfgSlug,
+					rackTypeName, rackTypeSlug,
+					rackName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
+					resource.TestCheckNoResourceAttr("netbox_rack.test", "rack_type"),
+				),
+			},
+			// Step 3: Re-add rack_type to verify it can be set again
+			{
+				Config: testAccRackResourceConfig_referenceFields(
+					siteName, siteSlug,
+					mfgName, mfgSlug,
+					rackTypeName, rackTypeSlug,
+					rackName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
+					resource.TestCheckResourceAttrPair("netbox_rack.test", "rack_type", "netbox_rack_type.test", "id"),
+				),
+			},
 		},
-		ConfigWithFields: func() string {
-			return testAccRackResourceConfig_referenceFields(
-				siteName, siteSlug,
-				mfgName, mfgSlug,
-				rackTypeName, rackTypeSlug,
-				rackName,
-			)
-		},
-		OptionalFields: map[string]string{
-			"rack_type": rackTypeName,
-		},
-		RequiredFields: map[string]string{
-			"name": rackName,
-		},
-		CheckDestroy: testutil.CheckRackDestroy,
 	})
+}
+
+func testAccRackResourceConfig_referenceFieldsRemoved(siteName, siteSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_rack_type" "test" {
+  model        = %[5]q
+  slug         = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+  form_factor  = "4-post-cabinet"
+  u_height     = 42
+  width        = 19
+  weight_unit  = "kg"
+}
+
+resource "netbox_rack" "test" {
+  name      = %[7]q
+  site      = netbox_site.test.id
+  status    = "active"
+  # rack_type removed
+}
+`, siteName, siteSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName)
 }
 
 func testAccRackResourceConfig_referenceFields(siteName, siteSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName string) string {

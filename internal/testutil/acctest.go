@@ -92,10 +92,9 @@ func RandomIPv4Prefix() string {
 func RandomIPv6Prefix() string {
 	// Use fd00:xxxx:xxxx::/48 format (ULA)
 	segment1 := acctest.RandIntRange(0, 65535)
-
 	segment2 := acctest.RandIntRange(0, 65535)
 
-	return fmt.Sprintf("fd00:%x:%x::/48", segment1, segment2)
+	return fmt.Sprintf("fd00:%04x:%04x::/48", segment1, segment2)
 }
 
 // RandomIPv4Address generates a random private IPv4 address with CIDR notation.
@@ -118,8 +117,7 @@ func RandomIPv6Address() string {
 	segment2 := acctest.RandIntRange(0, 65535)
 
 	host := acctest.RandIntRange(1, 65535)
-
-	return fmt.Sprintf("fd00:%04x:%04x::%x/128", segment1, segment2, host)
+	return fmt.Sprintf("fd00:%04x:%04x::%04x/128", segment1, segment2, host)
 }
 
 // RandomColor generates a random hex color for tags.

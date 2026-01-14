@@ -86,7 +86,7 @@ func TestAccModuleResource_full(t *testing.T) {
 				Config: testAccModuleResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_module.test", "id"),
-					resource.TestCheckResourceAttr("netbox_module.test", "serial", "SN123456"),
+					resource.TestCheckResourceAttr("netbox_module.test", "asset_tag", mtModel+"-asset"),
 					resource.TestCheckResourceAttr("netbox_module.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_module.test", "status", "active"),
 				),
@@ -226,12 +226,14 @@ resource "netbox_module" "test" {
   device      = netbox_device.test.id
   module_bay  = netbox_module_bay.test.id
   module_type = netbox_module_type.test.id
+  asset_tag   = "%s-asset-basic"
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, mtModel)
 }
 
 // NOTE: Custom field tests for module resource are in resources_acceptance_tests_customfields package.
 func testAccModuleResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description string) string {
+	// Using mtModel as part of asset_tag to ensure uniqueness
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name   = %q
@@ -278,10 +280,10 @@ resource "netbox_module" "test" {
   module_bay  = netbox_module_bay.test.id
   module_type = netbox_module_type.test.id
   status      = "active"
-  serial      = "SN123456"
+  asset_tag   = "%s-asset"
   description = %q
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, mtModel, description)
 }
 
 func TestAccModuleResource_update(t *testing.T) {
@@ -446,9 +448,10 @@ resource "netbox_module" "test" {
   device      = netbox_device.test.id
   module_bay  = netbox_module_bay.test.id
   module_type = netbox_module_type.test.id
+	asset_tag   = "%s-asset-serial"
   serial      = %q
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, serial)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, mtModel, serial)
 }
 
 func TestAccModuleResource_removeDescriptionAndComments(t *testing.T) {
@@ -549,10 +552,11 @@ resource "netbox_module" "test" {
   device      = netbox_device.test.id
   module_bay  = netbox_module_bay.test.id
   module_type = netbox_module_type.test.id
+  asset_tag   = "%s-asset-desc"
   description = %q
   comments    = %q
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description, comments)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, mtModel, description, comments)
 }
 
 func TestAccModuleResource_removeOptionalFields(t *testing.T) {
@@ -627,13 +631,13 @@ resource "netbox_module" "test" {
   device      = netbox_device.test.id
   module_bay  = netbox_module_bay.test.id
   module_type = netbox_module_type.test.id
-  asset_tag   = "ASSET-12345"
+  asset_tag   = "%s-asset-opt"
   serial      = "SN-12345"
   status      = "active"
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, mtModel),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_module.test", "asset_tag", "ASSET-12345"),
+					resource.TestCheckResourceAttr("netbox_module.test", "asset_tag", mtModel+"-asset-opt"),
 					resource.TestCheckResourceAttr("netbox_module.test", "serial", "SN-12345"),
 					resource.TestCheckResourceAttr("netbox_module.test", "status", "active"),
 				),

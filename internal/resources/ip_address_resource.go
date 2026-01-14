@@ -439,7 +439,22 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 // mapIPAddressToState maps a Netbox IPAddress to the Terraform state model.
 func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *netbox.IPAddress, data *IPAddressResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipAddress.Id))
-	data.Address = types.StringValue(ipAddress.Address)
+
+	// Address: preserve user formatting (especially for IPv6) when semantically equivalent.
+	// NetBox canonicalizes IPv6 strings (e.g., removes leading zeros), but Terraform requires
+	// required attributes to remain equal to the configured value after apply.
+	apiAddress := ipAddress.Address
+	if !data.Address.IsNull() && !data.Address.IsUnknown() {
+		current := data.Address.ValueString()
+		if utils.NormalizeIPAddress(current) == utils.NormalizeIPAddress(apiAddress) {
+			// Keep user's original formatting
+			data.Address = types.StringValue(current)
+		} else {
+			data.Address = types.StringValue(apiAddress)
+		}
+	} else {
+		data.Address = types.StringValue(apiAddress)
+	}
 
 	// VRF
 	if ipAddress.Vrf.IsSet() && ipAddress.Vrf.Get() != nil {

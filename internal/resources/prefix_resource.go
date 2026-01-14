@@ -626,7 +626,18 @@ func (r *PrefixResource) setOptionalFields(ctx context.Context, prefixRequest *n
 func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Prefix, data *PrefixResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", prefix.Id))
 
-	data.Prefix = types.StringValue(prefix.Prefix)
+	// Prefix: preserve user formatting (especially for IPv6) when semantically equivalent.
+	apiPrefix := prefix.Prefix
+	if !data.Prefix.IsNull() && !data.Prefix.IsUnknown() {
+		current := data.Prefix.ValueString()
+		if utils.NormalizeIPAddress(current) == utils.NormalizeIPAddress(apiPrefix) {
+			data.Prefix = types.StringValue(current)
+		} else {
+			data.Prefix = types.StringValue(apiPrefix)
+		}
+	} else {
+		data.Prefix = types.StringValue(apiPrefix)
+	}
 
 	// Site
 

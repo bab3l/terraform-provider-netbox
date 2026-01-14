@@ -182,7 +182,7 @@ func TestAccIPSecPolicyResource_IDPreservation(t *testing.T) {
 func testAccIPSECPolicyResourceConfig_basic(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_ipsec_proposal" "test" {
-  name                 = "test-proposal-for-policy"
+  name                 = "%s-proposal"
   encryption_algorithm = "aes-128-cbc"
 }
 
@@ -190,7 +190,7 @@ resource "netbox_ipsec_policy" "test" {
   name      = %q
   proposals = [netbox_ipsec_proposal.test.id]
 }
-`, name)
+`, name, name)
 }
 
 func testAccIPSECPolicyResourceConfig_full(name string) string {
@@ -245,7 +245,7 @@ func TestAccIPSecPolicyResource_removeOptionalFields(t *testing.T) {
 func testAccIPSECPolicyResourceConfig_withDescriptionCommentsPFSGroup(name, description, comments string, pfsGroup int) string {
 	return fmt.Sprintf(`
 resource "netbox_ipsec_proposal" "test" {
-  name                 = "test-proposal-for-policy"
+  name                 = "%s-proposal"
   encryption_algorithm = "aes-128-cbc"
 }
 
@@ -262,14 +262,14 @@ resource "netbox_ipsec_policy" "test" {
 func testAccIPSECPolicyResourceConfig_nameOnly(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_ipsec_proposal" "test" {
-  name                 = "test-proposal-for-policy"
+  name                 = "%s-proposal"
   encryption_algorithm = "aes-128-cbc"
 }
 
 resource "netbox_ipsec_policy" "test" {
   name = %q
 }
-`, name)
+`, name, name)
 }
 
 func TestAccConsistency_IPSECPolicy_LiteralNames(t *testing.T) {
