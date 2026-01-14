@@ -279,6 +279,13 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 		return
 	}
 
+	// Get prior state to check what fields were previously set
+	var state InventoryItemTemplateResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Parse ID
 	var id int32
 	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
@@ -312,6 +319,12 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 			return
 		}
 		apiReq.SetParent(parentID)
+	} else if data.Parent.IsNull() && !state.Parent.IsNull() {
+		// Only send null if we're removing a previously-set value
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["parent"] = nil
 	}
 	utils.ApplyLabel(apiReq, data.Label)
 
@@ -322,6 +335,12 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 			return
 		}
 		apiReq.SetRole(*role)
+	} else if data.Role.IsNull() && !state.Role.IsNull() {
+		// Only send null if we're removing a previously-set value
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["role"] = nil
 	}
 
 	if !data.Manufacturer.IsNull() && !data.Manufacturer.IsUnknown() {
@@ -331,16 +350,35 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 			return
 		}
 		apiReq.SetManufacturer(*manufacturer)
+	} else if data.Manufacturer.IsNull() && !state.Manufacturer.IsNull() {
+		// Only send null if we're removing a previously-set value
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["manufacturer"] = nil
 	}
 
 	if !data.PartID.IsNull() && !data.PartID.IsUnknown() {
 		apiReq.SetPartId(data.PartID.ValueString())
+	} else if data.PartID.IsNull() && !state.PartID.IsNull() {
+		// Only send null if we're removing a previously-set value
+		// NOTE: NetBox API may reject this with "This field may not be null"
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["part_id"] = nil
 	}
 
 	// Apply description
 	utils.ApplyDescription(apiReq, data.Description)
 	if !data.ComponentType.IsNull() && !data.ComponentType.IsUnknown() {
 		apiReq.SetComponentType(data.ComponentType.ValueString())
+	} else if data.ComponentType.IsNull() && !state.ComponentType.IsNull() {
+		// Only send null if we're removing a previously-set value
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["component_type"] = nil
 	}
 
 	if !data.ComponentID.IsNull() && !data.ComponentID.IsUnknown() {
@@ -354,6 +392,12 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 			return
 		}
 		apiReq.SetComponentId(componentID)
+	} else if data.ComponentID.IsNull() && !state.ComponentID.IsNull() {
+		// Only send null if we're removing a previously-set value
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["component_id"] = nil
 	}
 	tflog.Debug(ctx, "Updating inventory item template", map[string]interface{}{
 		"id":          id,
