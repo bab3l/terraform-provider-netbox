@@ -255,39 +255,39 @@ func TestAccWirelessLANResource_removeOptionalFields(t *testing.T) {
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterWirelessLANCleanup(ssid)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.CheckWirelessLANDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccWirelessLANResourceConfig_withDescriptionComments(ssid, testDescription, testComments),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "ssid", ssid),
-					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "description", testDescription),
-					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "comments", testComments),
-				),
-			},
-			{
-				Config: testAccWirelessLANResourceConfig_basic(ssid),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "ssid", ssid),
-					resource.TestCheckNoResourceAttr("netbox_wireless_lan.test", "description"),
-					resource.TestCheckNoResourceAttr("netbox_wireless_lan.test", "comments"),
-				),
-			},
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_wireless_lan",
+		BaseConfig: func() string {
+			return testAccWirelessLANResourceConfig_basic(ssid)
 		},
+		ConfigWithFields: func() string {
+			return testAccWirelessLANResourceConfig_removeOptionalFields_withFields(ssid)
+		},
+		OptionalFields: map[string]string{
+			"auth_cipher": "aes",
+			"auth_psk":    "test_psk_12345678",
+			"auth_type":   "wpa-personal",
+			"description": testDescription,
+			"comments":    testComments,
+		},
+		RequiredFields: map[string]string{
+			"ssid": ssid,
+		},
+		CheckDestroy: testutil.CheckWirelessLANDestroy,
 	})
 }
 
-func testAccWirelessLANResourceConfig_withDescriptionComments(ssid, description, comments string) string {
+func testAccWirelessLANResourceConfig_removeOptionalFields_withFields(ssid string) string {
 	return fmt.Sprintf(`
 resource "netbox_wireless_lan" "test" {
-  ssid        = %[1]q
-  description = %[2]q
-  comments    = %[3]q
+  ssid         = %[1]q
+  auth_cipher  = "aes"
+  auth_psk     = "test_psk_12345678"
+  auth_type    = "wpa-personal"
+  description  = "Test Description"
+  comments     = "Test Comments"
 }
-`, ssid, description, comments)
+`, ssid)
 }
 
 func TestAccConsistency_WirelessLAN_LiteralNames(t *testing.T) {

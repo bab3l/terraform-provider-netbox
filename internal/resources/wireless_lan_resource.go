@@ -479,12 +479,24 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 		authType := netbox.AuthenticationType1(plan.AuthType.ValueString())
 
 		apiReq.SetAuthType(authType)
+	} else if plan.AuthType.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["auth_type"] = nil
 	}
 
 	if !plan.AuthCipher.IsNull() && !plan.AuthCipher.IsUnknown() {
 		authCipher := netbox.AuthenticationCipher(plan.AuthCipher.ValueString())
 
 		apiReq.SetAuthCipher(authCipher)
+	} else if plan.AuthCipher.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["auth_cipher"] = nil
 	}
 
 	if !plan.AuthPSK.IsNull() && !plan.AuthPSK.IsUnknown() {

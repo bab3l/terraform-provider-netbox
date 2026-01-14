@@ -268,9 +268,79 @@ func TestAccRackTypeResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted rack type with ID: %d", typeID)
 				},
-				RefreshState:       true,
-				ExpectNonEmptyPlan: true,
+				RefreshState: true,
 			},
 		},
 	})
+}
+
+func TestAccRackTypeResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg-optional")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-opt")
+	model := testutil.RandomName("tf-test-rack-type-opt")
+	slug := testutil.RandomSlug("tf-test-rack-type-opt")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_rack_type",
+		BaseConfig: func() string {
+			return testAccRackTypeResourceConfig_removeOptionalFields_base(mfgName, mfgSlug, model, slug)
+		},
+		ConfigWithFields: func() string {
+			return testAccRackTypeResourceConfig_removeOptionalFields_withFields(mfgName, mfgSlug, model, slug)
+		},
+		OptionalFields: map[string]string{
+			"mounting_depth": "30",
+			"outer_depth":    "1000",
+			"outer_unit":     "mm",
+			"outer_width":    "600",
+		},
+		RequiredFields: map[string]string{
+			"model": model,
+			"slug":  slug,
+		},
+		CheckDestroy: nil, // No CheckRackTypeDestroy function available
+	})
+}
+
+func testAccRackTypeResourceConfig_removeOptionalFields_base(mfgName, mfgSlug, model, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_rack_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[3]q
+  slug         = %[4]q
+  form_factor  = "4-post-frame"
+  weight_unit  = "kg"
+}
+`, mfgName, mfgSlug, model, slug)
+}
+
+func testAccRackTypeResourceConfig_removeOptionalFields_withFields(mfgName, mfgSlug, model, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_rack_type" "test" {
+  manufacturer   = netbox_manufacturer.test.id
+  model          = %[3]q
+  slug           = %[4]q
+  form_factor    = "4-post-frame"
+  weight_unit    = "kg"
+  mounting_depth = 30
+  outer_depth    = 1000
+  outer_unit     = "mm"
+  outer_width    = 600
+}
+`, mfgName, mfgSlug, model, slug)
 }

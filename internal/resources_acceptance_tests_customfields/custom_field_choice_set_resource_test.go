@@ -1,4 +1,6 @@
-package resources_acceptance_tests
+//go:build customfields
+
+package resources_acceptance_tests_customfields
 
 import (
 	"context"
@@ -9,12 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-// NOTE: CustomFieldChoiceSet resources are safe to create with t.Parallel()
-// because they do not have a "required" flag and do not persist state
-// that interferes with other tests.
+// NOTE: CustomFieldChoiceSet tests run serially to avoid interference with other tests
+// during the planning stage, even though they don't have a "required" flag.
 func TestAccCustomFieldChoiceSetResource_basic(t *testing.T) {
-	t.Parallel()
-
 	name := testutil.RandomName("cfcs")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -47,8 +46,6 @@ func TestAccCustomFieldChoiceSetResource_basic(t *testing.T) {
 }
 
 func TestAccCustomFieldChoiceSetResource_full(t *testing.T) {
-	t.Parallel()
-
 	name := testutil.RandomName("cfcs")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -78,8 +75,6 @@ func TestAccCustomFieldChoiceSetResource_full(t *testing.T) {
 }
 
 func TestAccCustomFieldChoiceSetResource_update(t *testing.T) {
-	t.Parallel()
-
 	name := testutil.RandomName("cfcs")
 	updatedName := name + "-updated"
 
@@ -119,8 +114,6 @@ func TestAccCustomFieldChoiceSetResource_update(t *testing.T) {
 }
 
 func TestAccConsistency_CustomFieldChoiceSet_LiteralNames(t *testing.T) {
-	t.Parallel()
-
 	name := testutil.RandomName("cfcs-lit")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -150,8 +143,6 @@ func TestAccConsistency_CustomFieldChoiceSet_LiteralNames(t *testing.T) {
 }
 
 func TestAccCustomFieldChoiceSetResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
 	name := testutil.RandomName("custom-field-choice-set-id")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -206,7 +197,6 @@ resource "netbox_custom_field_choice_set" "test" {
 }
 
 func TestAccCustomFieldChoiceSetResource_externalDeletion(t *testing.T) {
-	t.Parallel()
 	testutil.TestAccPreCheck(t)
 
 	name := testutil.RandomName("tf-test-cfcs-extdel")
@@ -257,8 +247,6 @@ func TestAccCustomFieldChoiceSetResource_externalDeletion(t *testing.T) {
 }
 
 func TestAccCustomFieldChoiceSetResource_removeOptionalFields(t *testing.T) {
-	t.Parallel()
-
 	name := testutil.RandomName("cfcs")
 
 	cleanup := testutil.NewCleanupResource(t)
