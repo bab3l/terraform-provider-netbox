@@ -6,26 +6,23 @@
 ## Executive Summary
 
 - **Total Resources with Optional Fields:** 76
-- **Resources Needing New Tests:** 6 (no `_removeOptionalFields` test exists)
+- **Resources Needing New Tests:** 3 (no `_removeOptionalFields` test exists)
 - **Resources Needing Extended Tests:** 47 (test exists but incomplete coverage)
-- **Recently Completed:** 24 resources (circuit_type, device_bay_template, circuit_group_assignment, aggregate, contact_assignment, power_panel, rack_reservation, virtual_chassis, vlan_group, journal_entry, rir, service_template, tag, cable, asn, circuit_termination, custom_link, fhrp_group, module, module_type, tunnel_termination, virtual_device_context)
+- **Recently Completed:** 27 resources (circuit_type, device_bay_template, circuit_group_assignment, aggregate, contact_assignment, power_panel, rack_reservation, virtual_chassis, vlan_group, journal_entry, rir, service_template, tag, cable, asn, circuit_termination, custom_link, fhrp_group, module, module_type, tunnel_termination, virtual_device_context, device, interface, power_feed)
 
 ## Priority Classification
 
-### 🔴 Priority 1: No Test Coverage (6 Resources)
+### 🔴 Priority 1: No Test Coverage (3 Resources)
 
 These resources have NO `_removeOptionalFields` test. A new test must be created.
 
 | Resource | Missing Fields | Count |
 |----------|---------------|-------|
 | `custom_field` | choice_set, default, filter_logic, group_name, is_cloneable, label, related_object_type, required, search_weight, ui_editable, ui_visible, validation_maximum, validation_minimum, validation_regex, weight | 15 |
-| `device` | airflow, face, latitude, longitude, position, status, vc_position, vc_priority | 8 |
-| `interface` | duplex, enabled, label, mac_address, mark_connected, mgmt_only, mode, mtu, speed, wwn | 10 |
-| `power_feed` | amperage, mark_connected, max_utilization, phase, status, supply, type, voltage | 8 |
 | `rack_type` | desc_units, form_factor, max_weight, mounting_depth, outer_depth, outer_unit, outer_width, starting_unit, u_height, weight, weight_unit, width | 12 |
 | `wireless_lan` | auth_cipher, auth_psk, auth_type, comments, description, group, status, tenant, vlan | 9 |
 
-**Total Missing Fields:** 80
+**Total Missing Fields:** 36
 
 ---
 
@@ -142,6 +139,9 @@ For 20 remaining resources with no test, create new `TestAccXxxResource_removeOp
 - ✅ `circuit_termination` - Added test for `mark_connected`, `port_speed`, `pp_info`, `provider_network`, `upstream_speed`, `xconnect_id` (fixed provider bugs for nullable fields)
 - ✅ `custom_link` - Added test for `enabled`, `weight`, `group_name` (fixed provider bug for group_name; button_class/new_window have API limitations)
 - ✅ `fhrp_group` - Added test for `auth_key`, `auth_type`, `name` (fixed provider bugs for auth_type and name)
+- ✅ `device` - Added test for `latitude`, `longitude`, `vc_position`, `vc_priority` (fixed provider bugs; excluded airflow/face/position/status due to NOT NULL constraint, rack requirement, or defaults)
+- ✅ `interface` - Added test for `duplex`, `label`, `mac_address`, `mode`, `mtu`, `speed` (fixed provider bugs; excluded enabled/mark_connected/mgmt_only/wwn due to defaults or case normalization)
+- ✅ `power_feed` - Added test verifying all clearable optional fields (fixed provider bugs; excluded amperage/max_utilization/phase/status/supply/type/voltage/mark_connected due to default values)
 
 **Template Pattern:**
 ```go

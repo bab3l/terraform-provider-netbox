@@ -620,3 +620,120 @@ resource "netbox_device" "test" {
 }
 `, deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, description, comments)
 }
+
+func TestAccDeviceResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	deviceName := testutil.RandomName("tf-test-device-optional")
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+	manufacturerName := testutil.RandomName("tf-test-mfr")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr")
+	deviceTypeName := testutil.RandomName("tf-test-devtype")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-devtype")
+	roleName := testutil.RandomName("tf-test-role")
+	roleSlug := testutil.RandomSlug("tf-test-role")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_device",
+		BaseConfig: func() string {
+			return testAccDeviceResourceConfig_removeOptionalFields_base(
+				deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug,
+				deviceTypeName, deviceTypeSlug, roleName, roleSlug,
+			)
+		},
+		ConfigWithFields: func() string {
+			return testAccDeviceResourceConfig_removeOptionalFields_withFields(
+				deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug,
+				deviceTypeName, deviceTypeSlug, roleName, roleSlug,
+			)
+		},
+		OptionalFields: map[string]string{
+			"latitude":    "37.7749",
+			"longitude":   "-122.4194",
+			"vc_position": "1",
+			"vc_priority": "100",
+		},
+		RequiredFields: map[string]string{
+			"name": deviceName,
+		},
+		CheckDestroy: testutil.CheckDeviceDestroy,
+	})
+}
+
+func testAccDeviceResourceConfig_removeOptionalFields_base(deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[6]q
+  slug         = %[7]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[8]q
+  slug  = %[9]q
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = %[1]q
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+}
+`, deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug)
+}
+
+func testAccDeviceResourceConfig_removeOptionalFields_withFields(deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[6]q
+  slug         = %[7]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[8]q
+  slug  = %[9]q
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = %[1]q
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  latitude    = 37.7749
+  longitude   = -122.4194
+  vc_position = 1
+  vc_priority = 100
+}
+`, deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug)
+}

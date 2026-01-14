@@ -449,4 +449,138 @@ resource "netbox_interface" "test" {
 `, name, siteSlug, mfrSlug, deviceSlug, roleSlug, description, label, deviceName)
 }
 
+func TestAccInterfaceResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	interfaceName := testutil.RandomName("tf-test-iface-optional")
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+	manufacturerName := testutil.RandomName("tf-test-mfr")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr")
+	deviceTypeName := testutil.RandomName("tf-test-devtype")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-devtype")
+	roleName := testutil.RandomName("tf-test-role")
+	roleSlug := testutil.RandomSlug("tf-test-role")
+	deviceName := testutil.RandomName("tf-test-device")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_interface",
+		BaseConfig: func() string {
+			return testAccInterfaceResourceConfig_removeOptionalFields_base(
+				interfaceName, siteName, siteSlug, manufacturerName, manufacturerSlug,
+				deviceTypeName, deviceTypeSlug, roleName, roleSlug, deviceName,
+			)
+		},
+		ConfigWithFields: func() string {
+			return testAccInterfaceResourceConfig_removeOptionalFields_withFields(
+				interfaceName, siteName, siteSlug, manufacturerName, manufacturerSlug,
+				deviceTypeName, deviceTypeSlug, roleName, roleSlug, deviceName,
+			)
+		},
+		OptionalFields: map[string]string{
+			"duplex":      "full",
+			"label":       "Test Label",
+			"mac_address": "00:11:22:33:44:55",
+			"mode":        "access",
+			"mtu":         "1500",
+			"speed":       "1000000",
+		},
+		RequiredFields: map[string]string{
+			"name": interfaceName,
+		},
+		CheckDestroy: testutil.CheckInterfaceDestroy,
+	})
+}
+
+func testAccInterfaceResourceConfig_removeOptionalFields_base(interfaceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, deviceName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[6]q
+  slug         = %[7]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[8]q
+  slug  = %[9]q
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = %[10]q
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+}
+
+resource "netbox_interface" "test" {
+  name   = %[1]q
+  device = netbox_device.test.id
+  type   = "1000base-t"
+}
+`, interfaceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, deviceName)
+}
+
+func testAccInterfaceResourceConfig_removeOptionalFields_withFields(interfaceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, deviceName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[6]q
+  slug         = %[7]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[8]q
+  slug  = %[9]q
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = %[10]q
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+}
+
+resource "netbox_interface" "test" {
+  name        = %[1]q
+  device      = netbox_device.test.id
+  type        = "1000base-t"
+  duplex      = "full"
+  label       = "Test Label"
+  mac_address = "00:11:22:33:44:55"
+  mode        = "access"
+  mtu         = 1500
+  speed       = 1000000
+}
+`, interfaceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, deviceName)
+}
+
 // NOTE: Custom field tests for interface resource are in resources_acceptance_tests_customfields package
