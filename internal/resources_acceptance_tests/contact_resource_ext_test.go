@@ -7,7 +7,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 )
 
-// TestAccContactResource_removeOptionalFields_extended tests adding and removing optional contact fields
+// TestAccContactResource_removeOptionalFields_extended tests adding and removing optional contact fields.
 func TestAccContactResource_removeOptionalFields_extended(t *testing.T) {
 	t.Parallel()
 

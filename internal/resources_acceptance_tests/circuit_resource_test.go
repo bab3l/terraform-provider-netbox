@@ -9,6 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+var (
+	_ = testAccCircuitResourceConfig_withTenant
+	_ = testAccCircuitResourceConfig_noTenant
+)
+
 func TestAccCircuitResource_basic(t *testing.T) {
 	t.Parallel()
 

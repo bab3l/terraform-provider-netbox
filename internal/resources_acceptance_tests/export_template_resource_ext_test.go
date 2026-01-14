@@ -7,7 +7,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 )
 
-// TestAccExportTemplateResource_removeOptionalFields_extended tests removing additional optional fields
+// TestAccExportTemplateResource_removeOptionalFields_extended tests removing additional optional fields.
 func TestAccExportTemplateResource_removeOptionalFields_extended(t *testing.T) {
 	t.Parallel()
 

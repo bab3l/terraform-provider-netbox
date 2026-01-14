@@ -60,7 +60,7 @@ resource "netbox_event_rule" "test" {
 }
 
 // testAccEventRuleResourceConfig_removeOptionalFields_withFields creates an event rule
-// with action_object_id set. (conditions excluded due to provider bug)
+// with action_object_id set. (conditions excluded due to provider bug).
 func testAccEventRuleResourceConfig_removeOptionalFields_withFields(eventRuleName, webhookName string, fields map[string]string) string {
 	return fmt.Sprintf(`
 resource "netbox_webhook" "test" {

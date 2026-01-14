@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+var _ = testAccConsolePortResourceConfig_withLabel
+
 func TestAccConsolePortResource_basic(t *testing.T) {
 	t.Parallel()
 

@@ -311,7 +311,7 @@ func TestAccFHRPGroupResource_removeOptionalFields(t *testing.T) {
 	t.Parallel()
 
 	protocol := "vrrp3"
-	groupID := int32(acctest.RandIntRange(141, 175))
+	groupID := int32(acctest.RandIntRange(141, 175)) // nolint:gosec
 	name := testutil.RandomName("tf-test-fhrp-opt")
 	authType := "md5"
 	authKey := "secret123"

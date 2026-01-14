@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+var _ = testAccInventoryItemTemplateResourceConfig_removeOptionalFields_base
+
 func TestAccInventoryItemTemplateResource_basic(t *testing.T) {
 	t.Parallel()
 

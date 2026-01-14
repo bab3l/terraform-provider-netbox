@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+var _ = testAccIKEPolicyResourceConfig_withoutVersion
+
 func TestAccIKEPolicyResource_basic(t *testing.T) {
 	t.Parallel()
 

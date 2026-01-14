@@ -330,12 +330,13 @@ func (r *WirelessLANGroupResource) Update(ctx context.Context, req resource.Upda
 		apiReq.SetDescription(plan.Description.ValueString())
 	}
 
-	if plan.Parent.IsUnknown() {
+	switch {
+	case plan.Parent.IsUnknown():
 		// Leave unchanged
-	} else if plan.Parent.IsNull() {
+	case plan.Parent.IsNull():
 		// NetBox PATCH doesn't clear omitted optional fields; clear explicitly.
 		apiReq.SetParentNil()
-	} else {
+	default:
 		parentID, err := utils.ParseID(plan.Parent.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
