@@ -297,6 +297,7 @@ func TestAccFrontPortTemplateResource_removeOptionalFields(t *testing.T) {
 	const testLabel = "Test Label"
 	const testColor = "aa1409"
 	const testDescription = "Test Description"
+	const testRearPortPosition = 2
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
@@ -308,9 +309,10 @@ func TestAccFrontPortTemplateResource_removeOptionalFields(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// Step 1: Create with all optional fields
-				Config: testAccFrontPortTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName, testLabel, testColor, testDescription),
+				Config: testAccFrontPortTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName, testRearPortPosition, testLabel, testColor, testDescription),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_front_port_template.test", "name", portName),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "rear_port_position", "2"),
 					resource.TestCheckResourceAttr("netbox_front_port_template.test", "label", testLabel),
 					resource.TestCheckResourceAttr("netbox_front_port_template.test", "color", testColor),
 					resource.TestCheckResourceAttr("netbox_front_port_template.test", "description", testDescription),
@@ -321,6 +323,7 @@ func TestAccFrontPortTemplateResource_removeOptionalFields(t *testing.T) {
 				Config: testAccFrontPortTemplateResourceConfig_noOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_front_port_template.test", "name", portName),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "rear_port_position", "1"),
 					resource.TestCheckNoResourceAttr("netbox_front_port_template.test", "label"),
 					resource.TestCheckNoResourceAttr("netbox_front_port_template.test", "color"),
 					resource.TestCheckNoResourceAttr("netbox_front_port_template.test", "description"),
@@ -330,7 +333,7 @@ func TestAccFrontPortTemplateResource_removeOptionalFields(t *testing.T) {
 	})
 }
 
-func testAccFrontPortTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName, label, color, description string) string {
+func testAccFrontPortTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName string, rearPortPosition int, label, color, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
   name = %[1]q
@@ -347,7 +350,7 @@ resource "netbox_rear_port_template" "rear" {
   device_type = netbox_device_type.test.id
   name = %[5]q
   type = "8p8c"
-  positions = 1
+	positions = 2
 }
 
 resource "netbox_front_port_template" "test" {
@@ -355,12 +358,12 @@ resource "netbox_front_port_template" "test" {
   name = %[6]q
   type = "8p8c"
   rear_port = netbox_rear_port_template.rear.name
-  rear_port_position = 1
-  label = %[7]q
-  color = %[8]q
-  description = %[9]q
+	rear_port_position = %[7]d
+	label = %[8]q
+	color = %[9]q
+	description = %[10]q
 }
-`, mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName, label, color, description)
+`, mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName, rearPortPosition, label, color, description)
 }
 
 func testAccFrontPortTemplateResourceConfig_noOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName string) string {
@@ -380,7 +383,7 @@ resource "netbox_rear_port_template" "rear" {
   device_type = netbox_device_type.test.id
   name = %[5]q
   type = "8p8c"
-  positions = 1
+	positions = 2
 }
 
 resource "netbox_front_port_template" "test" {
@@ -388,7 +391,6 @@ resource "netbox_front_port_template" "test" {
   name = %[6]q
   type = "8p8c"
   rear_port = netbox_rear_port_template.rear.name
-  rear_port_position = 1
 }
 `, mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName)
 }

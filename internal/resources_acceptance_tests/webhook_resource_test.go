@@ -245,7 +245,10 @@ func TestAccWebhookResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_webhook.test", "additional_headers", "X-Custom-Header: test-value"),
 					resource.TestCheckResourceAttr("netbox_webhook.test", "body_template", "{ \"foo\": \"bar\" }"),
 					resource.TestCheckResourceAttr("netbox_webhook.test", "secret", "mysecretkey"),
-					resource.TestCheckResourceAttr("netbox_webhook.test", "ssl_verification", "false"),
+					resource.TestCheckResourceAttr("netbox_webhook.test", "ca_file_path", "/path/to/ca.crt"),
+					resource.TestCheckResourceAttr("netbox_webhook.test", "http_content_type", "application/xml"),
+					resource.TestCheckResourceAttr("netbox_webhook.test", "http_method", "PUT"),
+					resource.TestCheckResourceAttr("netbox_webhook.test", "ssl_verification", "true"),
 				),
 			},
 			// Update to remove optional fields
@@ -256,6 +259,9 @@ func TestAccWebhookResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckNoResourceAttr("netbox_webhook.test", "additional_headers"),
 					resource.TestCheckNoResourceAttr("netbox_webhook.test", "body_template"),
 					resource.TestCheckNoResourceAttr("netbox_webhook.test", "secret"),
+					resource.TestCheckNoResourceAttr("netbox_webhook.test", "ca_file_path"),
+					resource.TestCheckResourceAttr("netbox_webhook.test", "http_content_type", "application/json"),
+					resource.TestCheckResourceAttr("netbox_webhook.test", "http_method", "POST"),
 					resource.TestCheckResourceAttr("netbox_webhook.test", "ssl_verification", "true"),
 				),
 			},
@@ -270,11 +276,12 @@ resource "netbox_webhook" "test" {
   payload_url        = "https://example.com/webhook"
   http_method        = "PUT"
   http_content_type  = "application/xml"
+  ca_file_path       = "/path/to/ca.crt"
   description        = "Test webhook description"
   additional_headers = "X-Custom-Header: test-value"
   body_template      = "{ \"foo\": \"bar\" }"
   secret             = "mysecretkey"
-  ssl_verification   = false
+  ssl_verification   = true
 }
 `, name)
 }

@@ -277,10 +277,14 @@ func TestAccL2VPNResource_removeOptionalFields(t *testing.T) {
 	name := acctest.RandomWithPrefix("test-l2vpn-opt")
 	tenantName := testutil.RandomName("tf-test-tenant-l2vpn")
 	tenantSlug := testutil.RandomSlug("tf-test-tenant-l2vpn")
+	importTargetName := fmt.Sprintf("65000:%d", acctest.RandIntRange(1000, 9999))
+	exportTargetName := fmt.Sprintf("65000:%d", acctest.RandIntRange(1000, 9999))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterL2VPNCleanup(name)
 	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterRouteTargetCleanup(importTargetName)
+	cleanup.RegisterRouteTargetCleanup(exportTargetName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -292,43 +296,57 @@ func TestAccL2VPNResource_removeOptionalFields(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Step 1: Create L2VPN with tenant and identifier
 			{
-				Config: testAccL2VPNResourceConfig_withTenant(name, tenantName, tenantSlug),
+				Config: testAccL2VPNResourceConfig_withTenantAndTargets(name, tenantName, tenantSlug, importTargetName, exportTargetName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
 					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
 					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "tenant"),
 					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "identifier"),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "import_targets.#", "1"),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "export_targets.#", "1"),
 				),
 			},
-			// Step 2: Remove tenant and identifier (should set them to null)
+			// Step 2: Remove optional fields (should clear them)
 			{
-				Config: testAccL2VPNResourceConfig_withoutTenant(name, tenantName, tenantSlug),
+				Config: testAccL2VPNResourceConfig_requiredOnly(name, tenantName, tenantSlug, importTargetName, exportTargetName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
 					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
 					resource.TestCheckNoResourceAttr("netbox_l2vpn.test", "tenant"),
 					resource.TestCheckNoResourceAttr("netbox_l2vpn.test", "identifier"),
+					resource.TestCheckNoResourceAttr("netbox_l2vpn.test", "import_targets"),
+					resource.TestCheckNoResourceAttr("netbox_l2vpn.test", "export_targets"),
 				),
 			},
 			// Step 3: Re-add tenant and identifier (verify they can be set again)
 			{
-				Config: testAccL2VPNResourceConfig_withTenant(name, tenantName, tenantSlug),
+				Config: testAccL2VPNResourceConfig_withTenantAndTargets(name, tenantName, tenantSlug, importTargetName, exportTargetName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
 					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
 					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "tenant"),
 					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "identifier"),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "import_targets.#", "1"),
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "export_targets.#", "1"),
 				),
 			},
 		},
 	})
 }
 
-func testAccL2VPNResourceConfig_withTenant(name, tenantName, tenantSlug string) string {
+func testAccL2VPNResourceConfig_withTenantAndTargets(name, tenantName, tenantSlug, importTargetName, exportTargetName string) string {
 	return fmt.Sprintf(`
 resource "netbox_tenant" "test" {
   name = %[2]q
   slug = %[3]q
+}
+
+resource "netbox_route_target" "import" {
+  name = %[4]q
+}
+
+resource "netbox_route_target" "export" {
+  name = %[5]q
 }
 
 resource "netbox_l2vpn" "test" {
@@ -337,15 +355,25 @@ resource "netbox_l2vpn" "test" {
   type       = "vxlan"
   tenant     = netbox_tenant.test.id
   identifier = 12345
+  import_targets = [netbox_route_target.import.id]
+  export_targets = [netbox_route_target.export.id]
 }
-`, name, tenantName, tenantSlug)
+`, name, tenantName, tenantSlug, importTargetName, exportTargetName)
 }
 
-func testAccL2VPNResourceConfig_withoutTenant(name, tenantName, tenantSlug string) string {
+func testAccL2VPNResourceConfig_requiredOnly(name, tenantName, tenantSlug, importTargetName, exportTargetName string) string {
 	return fmt.Sprintf(`
 resource "netbox_tenant" "test" {
   name = %[2]q
   slug = %[3]q
+}
+
+resource "netbox_route_target" "import" {
+  name = %[4]q
+}
+
+resource "netbox_route_target" "export" {
+  name = %[5]q
 }
 
 resource "netbox_l2vpn" "test" {
@@ -353,5 +381,5 @@ resource "netbox_l2vpn" "test" {
   slug = %[1]q
   type = "vxlan"
 }
-`, name, tenantName, tenantSlug)
+`, name, tenantName, tenantSlug, importTargetName, exportTargetName)
 }

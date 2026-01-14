@@ -633,13 +633,9 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, plan, state *RackTy
 		weightUnit := netbox.DeviceTypeWeightUnitValue(plan.WeightUnit.ValueString())
 
 		rackTypeRequest.SetWeightUnit(weightUnit)
-	} else if plan.WeightUnit.IsNull() {
-		// Use AdditionalProperties to send null because of omitempty in the generated client
-		if rackTypeRequest.AdditionalProperties == nil {
-			rackTypeRequest.AdditionalProperties = make(map[string]interface{})
-		}
-		rackTypeRequest.AdditionalProperties["weight_unit"] = nil
 	}
+	// Note: Don't send explicit null for weight_unit - NetBox has a default value (kg)
+	// and sending null violates the NOT NULL constraint in NetBox 4.1.11+
 
 	if !plan.MountingDepth.IsNull() && !plan.MountingDepth.IsUnknown() {
 		mountingDepth, err := utils.SafeInt32FromValue(plan.MountingDepth)

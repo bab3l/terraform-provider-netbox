@@ -290,8 +290,15 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		Slug: plan.Slug.ValueString(),
 	}
 
-	// Use helper for optional string fields
-	siteRequest.Facility = utils.StringPtr(plan.Facility)
+	// Handle optional string fields
+	// NetBox uses PATCH semantics: omitting a field does not clear it.
+	// When the user removes an optional string from config, send an explicit empty string to clear it.
+	if plan.Facility.IsNull() {
+		empty := ""
+		siteRequest.Facility = &empty
+	} else {
+		siteRequest.Facility = utils.StringPtr(plan.Facility)
+	}
 
 	// Set status if provided
 	if utils.IsSet(plan.Status) {

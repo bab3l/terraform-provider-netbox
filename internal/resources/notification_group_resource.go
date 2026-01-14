@@ -215,7 +215,12 @@ func (r *NotificationGroupResource) Update(ctx context.Context, req resource.Upd
 	// Set optional fields (same as Create)
 	utils.ApplyDescription(request, data.Description)
 
-	if !data.GroupIDs.IsNull() && !data.GroupIDs.IsUnknown() {
+	if data.GroupIDs.IsUnknown() {
+		// leave unchanged
+	} else if data.GroupIDs.IsNull() {
+		// Explicitly clear when removed from config (NetBox PATCH semantics)
+		request.Groups = []int32{}
+	} else {
 		var groupIDs []int32
 		resp.Diagnostics.Append(data.GroupIDs.ElementsAs(ctx, &groupIDs, false)...)
 		if resp.Diagnostics.HasError() {
@@ -224,7 +229,12 @@ func (r *NotificationGroupResource) Update(ctx context.Context, req resource.Upd
 		request.Groups = groupIDs
 	}
 
-	if !data.UserIDs.IsNull() && !data.UserIDs.IsUnknown() {
+	if data.UserIDs.IsUnknown() {
+		// leave unchanged
+	} else if data.UserIDs.IsNull() {
+		// Explicitly clear when removed from config (NetBox PATCH semantics)
+		request.Users = []int32{}
+	} else {
 		var userIDs []int32
 		resp.Diagnostics.Append(data.UserIDs.ElementsAs(ctx, &userIDs, false)...)
 		if resp.Diagnostics.HasError() {

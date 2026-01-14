@@ -385,11 +385,17 @@ func (r *CircuitResource) buildCircuitRequest(ctx context.Context, data *Circuit
 	// Install date
 	if utils.IsSet(data.InstallDate) {
 		circuitReq.InstallDate = *netbox.NewNullableString(netbox.PtrString(data.InstallDate.ValueString()))
+	} else if data.InstallDate.IsNull() {
+		// Explicitly set to null to clear the field
+		circuitReq.InstallDate = *netbox.NewNullableString(nil)
 	}
 
 	// Termination date
 	if utils.IsSet(data.TerminationDate) {
 		circuitReq.TerminationDate = *netbox.NewNullableString(netbox.PtrString(data.TerminationDate.ValueString()))
+	} else if data.TerminationDate.IsNull() {
+		// Explicitly set to null to clear the field
+		circuitReq.TerminationDate = *netbox.NewNullableString(nil)
 	}
 
 	// Commit rate
@@ -400,6 +406,9 @@ func (r *CircuitResource) buildCircuitRequest(ctx context.Context, data *Circuit
 			return nil, diags
 		}
 		circuitReq.CommitRate = *netbox.NewNullableInt32(netbox.PtrInt32(commitRate))
+	} else if data.CommitRate.IsNull() {
+		// Explicitly set to null to clear the field
+		circuitReq.CommitRate = *netbox.NewNullableInt32(nil)
 	}
 
 	// Apply common fields (description, comments, tags)

@@ -500,11 +500,15 @@ func TestAccPowerOutletResource_removeOptionalFields(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPowerOutletResourceConfig_withLabel(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, testLabel, testDescription),
+				Config: testAccPowerOutletResourceConfig_withAllFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, testLabel, testDescription),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_outlet.test", "name", portName),
 					resource.TestCheckResourceAttr("netbox_power_outlet.test", "label", testLabel),
 					resource.TestCheckResourceAttr("netbox_power_outlet.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_power_outlet.test", "type", "iec-60320-c13"),
+					resource.TestCheckResourceAttrSet("netbox_power_outlet.test", "power_port"),
+					resource.TestCheckResourceAttr("netbox_power_outlet.test", "feed_leg", "A"),
+					resource.TestCheckResourceAttr("netbox_power_outlet.test", "mark_connected", "true"),
 				),
 			},
 			{
@@ -513,10 +517,65 @@ func TestAccPowerOutletResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_power_outlet.test", "name", portName),
 					resource.TestCheckNoResourceAttr("netbox_power_outlet.test", "label"),
 					resource.TestCheckNoResourceAttr("netbox_power_outlet.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_power_outlet.test", "type"),
+					resource.TestCheckNoResourceAttr("netbox_power_outlet.test", "power_port"),
+					resource.TestCheckNoResourceAttr("netbox_power_outlet.test", "feed_leg"),
+					resource.TestCheckResourceAttr("netbox_power_outlet.test", "mark_connected", "false"),
 				),
 			},
 		},
 	})
+}
+
+func testAccPowerOutletResourceConfig_withAllFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, label, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[5]q
+  slug = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name = %[7]q
+  slug = %[8]q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name = %[9]q
+  device_type = netbox_device_type.test.id
+  role = netbox_device_role.test.id
+  site = netbox_site.test.id
+  status = "active"
+}
+
+resource "netbox_power_port" "test" {
+  device = netbox_device.test.name
+  name   = "%[10]s-pp"
+}
+
+resource "netbox_power_outlet" "test" {
+  device        = netbox_device.test.name
+  name          = %[10]q
+  label         = %[11]q
+  description   = %[12]q
+  type          = "iec-60320-c13"
+  power_port    = tonumber(netbox_power_port.test.id)
+  feed_leg      = "A"
+  mark_connected = true
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, label, description)
 }
 
 func testAccPowerOutletResourceConfig_withLabel(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, label, description string) string {

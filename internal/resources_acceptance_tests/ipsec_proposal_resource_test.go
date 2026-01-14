@@ -217,11 +217,13 @@ func TestAccIPSecProposalResource_removeOptionalFields(t *testing.T) {
 		CheckDestroy:             testutil.CheckIPSecProposalDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIPSECProposalResourceConfig_withDescriptionComments(name, testDescription, testComments),
+				Config: testAccIPSECProposalResourceConfig_withAllFields(name, testDescription, testComments),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "description", testDescription),
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "comments", testComments),
+					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "sa_lifetime_seconds", "3600"),
+					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "sa_lifetime_data", "1024"),
 				),
 			},
 			{
@@ -230,19 +232,23 @@ func TestAccIPSecProposalResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_ipsec_proposal.test", "name", name),
 					resource.TestCheckNoResourceAttr("netbox_ipsec_proposal.test", "description"),
 					resource.TestCheckNoResourceAttr("netbox_ipsec_proposal.test", "comments"),
+					resource.TestCheckNoResourceAttr("netbox_ipsec_proposal.test", "sa_lifetime_seconds"),
+					resource.TestCheckNoResourceAttr("netbox_ipsec_proposal.test", "sa_lifetime_data"),
 				),
 			},
 		},
 	})
 }
 
-func testAccIPSECProposalResourceConfig_withDescriptionComments(name, description, comments string) string {
+func testAccIPSECProposalResourceConfig_withAllFields(name, description, comments string) string {
 	return fmt.Sprintf(`
 resource "netbox_ipsec_proposal" "test" {
   name                 = %[1]q
   encryption_algorithm = "aes-128-cbc"
   description          = %[2]q
   comments             = %[3]q
+  sa_lifetime_seconds  = 3600
+  sa_lifetime_data     = 1024
 }
 `, name, description, comments)
 }

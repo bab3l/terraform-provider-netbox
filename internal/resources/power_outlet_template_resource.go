@@ -385,6 +385,9 @@ func (r *PowerOutletTemplateResource) Update(ctx context.Context, req resource.U
 		apiReq.SetPowerPort(netbox.BriefPowerPortTemplateRequest{
 			Name: powerPort.GetName(),
 		})
+	} else if data.PowerPort.IsNull() {
+		// Explicitly clear power_port when removed from config
+		apiReq.SetPowerPortNil()
 	}
 
 	if utils.IsSet(data.FeedLeg) {

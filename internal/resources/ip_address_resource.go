@@ -373,24 +373,38 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 	if utils.IsSet(plan.Role) {
 		role := netbox.PatchedWritableIPAddressRequestRole(plan.Role.ValueString())
 		ipRequest.Role = &role
+	} else if plan.Role.IsNull() && state != nil && utils.IsSet(state.Role) {
+		// Clear by setting to empty string
+		emptyRole := netbox.PatchedWritableIPAddressRequestRole("")
+		ipRequest.Role = &emptyRole
 	}
 
 	// Assigned Object Type
 	if utils.IsSet(plan.AssignedObjectType) {
 		objType := plan.AssignedObjectType.ValueString()
 		ipRequest.AssignedObjectType = *netbox.NewNullableString(&objType)
+	} else if plan.AssignedObjectType.IsNull() && state != nil && utils.IsSet(state.AssignedObjectType) {
+		// Clear by setting to nil
+		ipRequest.SetAssignedObjectTypeNil()
 	}
 
 	// Assigned Object ID
 	if utils.IsSet(plan.AssignedObjectID) {
 		objID := plan.AssignedObjectID.ValueInt64()
 		ipRequest.AssignedObjectId = *netbox.NewNullableInt64(&objID)
+	} else if plan.AssignedObjectID.IsNull() && state != nil && utils.IsSet(state.AssignedObjectID) {
+		// Clear by setting to nil
+		ipRequest.SetAssignedObjectIdNil()
 	}
 
 	// DNS Name
 	if utils.IsSet(plan.DNSName) {
 		dnsName := plan.DNSName.ValueString()
 		ipRequest.DnsName = &dnsName
+	} else if plan.DNSName.IsNull() && state != nil && utils.IsSet(state.DNSName) {
+		// Clear by setting to empty string
+		emptyDNS := ""
+		ipRequest.DnsName = &emptyDNS
 	}
 
 	// Description

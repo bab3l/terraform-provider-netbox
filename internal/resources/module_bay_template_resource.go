@@ -284,8 +284,12 @@ func (r *ModuleBayTemplateResource) Update(ctx context.Context, req resource.Upd
 
 	// Set optional fields
 	utils.ApplyLabel(apiReq, data.Label)
-
-	if !data.Position.IsNull() && !data.Position.IsUnknown() {
+	if data.Position.IsUnknown() {
+		// Leave position unset when unknown to avoid sending an invalid value.
+	} else if data.Position.IsNull() {
+		// NetBox PATCH semantics: omitted fields are preserved, so explicitly clear.
+		apiReq.SetPosition("")
+	} else {
 		apiReq.SetPosition(data.Position.ValueString())
 	}
 

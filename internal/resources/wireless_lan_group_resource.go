@@ -330,20 +330,20 @@ func (r *WirelessLANGroupResource) Update(ctx context.Context, req resource.Upda
 		apiReq.SetDescription(plan.Description.ValueString())
 	}
 
-	if !plan.Parent.IsNull() && !plan.Parent.IsUnknown() {
+	if plan.Parent.IsUnknown() {
+		// Leave unchanged
+	} else if plan.Parent.IsNull() {
+		// NetBox PATCH doesn't clear omitted optional fields; clear explicitly.
+		apiReq.SetParentNil()
+	} else {
 		parentID, err := utils.ParseID(plan.Parent.ValueString())
-
 		if err != nil {
 			resp.Diagnostics.AddError(
-
 				"Invalid Parent ID",
-
 				fmt.Sprintf("Parent must be a numeric ID, got: %s", plan.Parent.ValueString()),
 			)
-
 			return
 		}
-
 		apiReq.SetParent(parentID)
 	}
 

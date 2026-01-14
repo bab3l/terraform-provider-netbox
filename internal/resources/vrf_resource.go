@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -83,6 +84,8 @@ func (r *VRFResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				Optional: true,
 
 				Computed: true,
+
+				Default: booldefault.StaticBool(true),
 			},
 
 			"description": nbschema.DescriptionAttribute("VRF"),
@@ -418,6 +421,10 @@ func (r *VRFResource) setOptionalFields(ctx context.Context, vrfRequest *netbox.
 		rdValue := data.RD.ValueString()
 
 		vrfRequest.Rd = *netbox.NewNullableString(&rdValue)
+	} else if state != nil && data.RD.IsNull() {
+		// NetBox PATCH semantics: omitting a field does not clear it.
+		// When removed from config during Update, explicitly clear it.
+		vrfRequest.SetRdNil()
 	}
 
 	// Tenant

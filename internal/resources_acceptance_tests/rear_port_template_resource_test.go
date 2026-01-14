@@ -377,6 +377,7 @@ func TestAccRearPortTemplateResource_removeOptionalFields(t *testing.T) {
 	const testLabel = "Test Label"
 	const testColor = "aa1409"
 	const testDescription = "Test Description"
+	const testPositions = 4
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
@@ -388,12 +389,13 @@ func TestAccRearPortTemplateResource_removeOptionalFields(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// Step 1: Create with all optional fields
-				Config: testAccRearPortTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, testLabel, testColor, testDescription),
+				Config: testAccRearPortTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, testLabel, testColor, testDescription, testPositions),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "name", portName),
 					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "label", testLabel),
 					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "color", testColor),
 					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "positions", fmt.Sprintf("%d", testPositions)),
 				),
 			},
 			{
@@ -404,13 +406,14 @@ func TestAccRearPortTemplateResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckNoResourceAttr("netbox_rear_port_template.test", "label"),
 					resource.TestCheckNoResourceAttr("netbox_rear_port_template.test", "color"),
 					resource.TestCheckNoResourceAttr("netbox_rear_port_template.test", "description"),
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "positions", "1"),
 				),
 			},
 		},
 	})
 }
 
-func testAccRearPortTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, label, color, description string) string {
+func testAccRearPortTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, label, color, description string, positions int) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
   name = %[1]q
@@ -429,9 +432,10 @@ resource "netbox_rear_port_template" "test" {
   type = "8p8c"
   label = %[6]q
   color = %[7]q
-  description = %[8]q
+	description = %[8]q
+	positions = %[9]d
 }
-`, mfgName, mfgSlug, dtModel, dtSlug, portName, label, color, description)
+`, mfgName, mfgSlug, dtModel, dtSlug, portName, label, color, description, positions)
 }
 
 func testAccRearPortTemplateResourceConfig_noOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName string) string {

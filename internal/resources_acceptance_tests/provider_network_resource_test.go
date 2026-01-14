@@ -286,6 +286,7 @@ func TestAccProviderNetworkResource_removeOptionalFields(t *testing.T) {
 			{
 				Config: testAccProviderNetworkResourceConfig_fullWithComments(providerName, providerSlug, networkName, serviceID, description, comments),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "service_id", serviceID),
 					resource.TestCheckResourceAttr("netbox_provider_network.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_provider_network.test", "comments", comments),
 				),
@@ -293,6 +294,7 @@ func TestAccProviderNetworkResource_removeOptionalFields(t *testing.T) {
 			{
 				Config: testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, networkName),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_provider_network.test", "service_id"),
 					resource.TestCheckNoResourceAttr("netbox_provider_network.test", "description"),
 					resource.TestCheckNoResourceAttr("netbox_provider_network.test", "comments"),
 				),

@@ -139,8 +139,11 @@ func (r *ConsoleServerPortTemplateResource) Create(ctx context.Context, req reso
 	// Set optional fields
 	utils.ApplyLabel(apiReq, data.Label)
 
-	if !data.Type.IsNull() && !data.Type.IsUnknown() {
+	if utils.IsSet(data.Type) {
 		apiReq.SetType(netbox.ConsolePortTypeValue(data.Type.ValueString()))
+	} else if data.Type.IsNull() {
+		// NetBox expects an empty enum value to clear the field.
+		apiReq.SetType(netbox.CONSOLEPORTTYPEVALUE_EMPTY)
 	}
 
 	// Apply description
@@ -237,8 +240,11 @@ func (r *ConsoleServerPortTemplateResource) Update(ctx context.Context, req reso
 	// Set optional fields
 	utils.ApplyLabel(apiReq, data.Label)
 
-	if !data.Type.IsNull() && !data.Type.IsUnknown() {
+	if utils.IsSet(data.Type) {
 		apiReq.SetType(netbox.ConsolePortTypeValue(data.Type.ValueString()))
+	} else if data.Type.IsNull() {
+		// NetBox expects an empty enum value to clear the field.
+		apiReq.SetType(netbox.CONSOLEPORTTYPEVALUE_EMPTY)
 	}
 
 	// Apply description
@@ -336,7 +342,12 @@ func (r *ConsoleServerPortTemplateResource) mapResponseToModel(template *netbox.
 
 	// Map type
 	if template.Type != nil {
-		data.Type = types.StringValue(string(template.Type.GetValue()))
+		v := string(template.Type.GetValue())
+		if v != "" {
+			data.Type = types.StringValue(v)
+		} else {
+			data.Type = types.StringNull()
+		}
 	} else {
 		data.Type = types.StringNull()
 	}

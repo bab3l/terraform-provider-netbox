@@ -288,6 +288,9 @@ func (r *PowerOutletResource) Update(ctx context.Context, req resource.UpdateReq
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		outletType := netbox.PatchedWritablePowerOutletRequestType(data.Type.ValueString())
 		apiReq.SetType(outletType)
+	} else if data.Type.IsNull() {
+		// Clear the type by sending empty string
+		apiReq.SetType("")
 	}
 
 	if !data.PowerPort.IsNull() && !data.PowerPort.IsUnknown() {
@@ -299,11 +302,17 @@ func (r *PowerOutletResource) Update(ctx context.Context, req resource.UpdateReq
 			return
 		}
 		apiReq.SetPowerPort(*powerPortReq)
+	} else if data.PowerPort.IsNull() {
+		// Clear the power port
+		apiReq.SetPowerPortNil()
 	}
 
 	if !data.FeedLeg.IsNull() && !data.FeedLeg.IsUnknown() {
 		feedLeg := netbox.PatchedWritablePowerOutletRequestFeedLeg(data.FeedLeg.ValueString())
 		apiReq.SetFeedLeg(feedLeg)
+	} else if data.FeedLeg.IsNull() {
+		// Clear the feed leg by sending empty string
+		apiReq.SetFeedLeg("")
 	}
 
 	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {

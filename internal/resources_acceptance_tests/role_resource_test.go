@@ -305,6 +305,7 @@ func TestAccRoleResource_removeOptionalFields(t *testing.T) {
 	slug := testutil.RandomSlug("tf-test-role-rem")
 	description := testutil.RandomName("description")
 	tagSlug := testutil.RandomSlug("tf-test-tag")
+	const weight = 2000
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRoleCleanup(slug)
@@ -315,11 +316,12 @@ func TestAccRoleResource_removeOptionalFields(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRoleResourceConfig_withOptionalFields(name, slug, description, tagSlug),
+				Config: testAccRoleResourceConfig_withOptionalFields(name, slug, description, tagSlug, weight),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_role.test", "slug", slug),
 					resource.TestCheckResourceAttr("netbox_role.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_role.test", "weight", "2000"),
 					resource.TestCheckResourceAttr("netbox_role.test", "tags.#", "1"),
 				),
 			},
@@ -329,6 +331,7 @@ func TestAccRoleResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_role.test", "slug", slug),
 					resource.TestCheckNoResourceAttr("netbox_role.test", "description"),
+					resource.TestCheckResourceAttr("netbox_role.test", "weight", "1000"),
 					resource.TestCheckNoResourceAttr("netbox_role.test", "tags"),
 				),
 			},
@@ -336,7 +339,7 @@ func TestAccRoleResource_removeOptionalFields(t *testing.T) {
 	})
 }
 
-func testAccRoleResourceConfig_withOptionalFields(name, slug, description, tagSlug string) string {
+func testAccRoleResourceConfig_withOptionalFields(name, slug, description, tagSlug string, weight int) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "test" {
   name = %[4]q
@@ -347,6 +350,7 @@ resource "netbox_role" "test" {
   name        = %[1]q
   slug        = %[2]q
   description = %[3]q
+  weight      = %[5]d
   tags = [
     {
       name = netbox_tag.test.name
@@ -354,7 +358,7 @@ resource "netbox_role" "test" {
     }
   ]
 }
-`, name, slug, description, tagSlug)
+`, name, slug, description, tagSlug, weight)
 }
 
 // TestAccRoleResource_Weight tests comprehensive scenarios for role weight field.

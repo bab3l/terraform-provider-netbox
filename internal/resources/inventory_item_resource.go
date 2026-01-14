@@ -181,20 +181,32 @@ func (r *InventoryItemResource) Create(ctx context.Context, req resource.CreateR
 		apiReq.SetManufacturer(*manufacturer)
 	}
 
-	if !data.PartID.IsNull() && !data.PartID.IsUnknown() {
+	// Part ID
+	if utils.IsSet(data.PartID) {
 		apiReq.SetPartId(data.PartID.ValueString())
+	} else if data.PartID.IsNull() {
+		apiReq.SetPartId("")
 	}
 
-	if !data.Serial.IsNull() && !data.Serial.IsUnknown() {
+	// Serial
+	if utils.IsSet(data.Serial) {
 		apiReq.SetSerial(data.Serial.ValueString())
+	} else if data.Serial.IsNull() {
+		apiReq.SetSerial("")
 	}
 
-	if !data.AssetTag.IsNull() && !data.AssetTag.IsUnknown() {
+	// Asset tag
+	if utils.IsSet(data.AssetTag) {
 		apiReq.SetAssetTag(data.AssetTag.ValueString())
+	} else if data.AssetTag.IsNull() {
+		apiReq.AssetTag = *netbox.NewNullableString(nil)
 	}
 
-	if !data.Discovered.IsNull() && !data.Discovered.IsUnknown() {
+	// Discovered
+	if utils.IsSet(data.Discovered) {
 		apiReq.SetDiscovered(data.Discovered.ValueBool())
+	} else if data.Discovered.IsNull() {
+		apiReq.Discovered = nil
 	}
 
 	// Handle description, tags, and custom fields
@@ -340,20 +352,32 @@ func (r *InventoryItemResource) Update(ctx context.Context, req resource.UpdateR
 		apiReq.SetManufacturer(*manufacturer)
 	}
 
-	if !data.PartID.IsNull() && !data.PartID.IsUnknown() {
+	// Part ID
+	if utils.IsSet(data.PartID) {
 		apiReq.SetPartId(data.PartID.ValueString())
+	} else if data.PartID.IsNull() {
+		apiReq.SetPartId("")
 	}
 
-	if !data.Serial.IsNull() && !data.Serial.IsUnknown() {
+	// Serial
+	if utils.IsSet(data.Serial) {
 		apiReq.SetSerial(data.Serial.ValueString())
+	} else if data.Serial.IsNull() {
+		apiReq.SetSerial("")
 	}
 
-	if !data.AssetTag.IsNull() && !data.AssetTag.IsUnknown() {
+	// Asset tag
+	if utils.IsSet(data.AssetTag) {
 		apiReq.SetAssetTag(data.AssetTag.ValueString())
+	} else if data.AssetTag.IsNull() {
+		apiReq.AssetTag = *netbox.NewNullableString(nil)
 	}
 
-	if !data.Discovered.IsNull() && !data.Discovered.IsUnknown() {
+	// Discovered
+	if utils.IsSet(data.Discovered) {
 		apiReq.SetDiscovered(data.Discovered.ValueBool())
+	} else if data.Discovered.IsNull() {
+		apiReq.Discovered = nil
 	}
 
 	// Handle description, tags, and custom fields with merge-aware behavior

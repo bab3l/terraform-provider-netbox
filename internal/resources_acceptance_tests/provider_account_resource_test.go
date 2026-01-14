@@ -286,6 +286,7 @@ func TestAccProviderAccountResource_removeOptionalFields(t *testing.T) {
 			{
 				Config: testAccProviderAccountResourceConfig_fullWithComments(providerName, providerSlug, accountID, accountName, testDescription, testComments),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_account.test", "name", accountName),
 					resource.TestCheckResourceAttr("netbox_provider_account.test", "description", testDescription),
 					resource.TestCheckResourceAttr("netbox_provider_account.test", "comments", testComments),
 				),
@@ -293,6 +294,7 @@ func TestAccProviderAccountResource_removeOptionalFields(t *testing.T) {
 			{
 				Config: testAccProviderAccountResourceConfig_basic(providerName, providerSlug, accountID),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_provider_account.test", "name"),
 					resource.TestCheckNoResourceAttr("netbox_provider_account.test", "description"),
 					resource.TestCheckNoResourceAttr("netbox_provider_account.test", "comments"),
 				),

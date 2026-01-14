@@ -43,7 +43,7 @@ repos:
 
       - id: tflint
         name: tflint
-        entry: go run scripts/tflint_wrapper.go
+        entry: go run ./scripts/tflint_wrapper
         language: system
         files: \.tf$
         pass_filenames: false

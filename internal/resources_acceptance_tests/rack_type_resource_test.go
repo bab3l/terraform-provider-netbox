@@ -268,7 +268,8 @@ func TestAccRackTypeResource_externalDeletion(t *testing.T) {
 					}
 					t.Logf("Successfully externally deleted rack type with ID: %d", typeID)
 				},
-				RefreshState: true,
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

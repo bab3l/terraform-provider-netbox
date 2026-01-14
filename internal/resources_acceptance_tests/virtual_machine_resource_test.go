@@ -431,6 +431,11 @@ func TestAccVirtualMachineResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "role"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "tenant"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "platform"),
+					// New fields to test
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "status", "staged"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "vcpus", "4"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "memory", "8192"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "disk", "100"),
 				),
 			},
 			// Step 2: Remove optional fields (should set them to null)
@@ -451,6 +456,11 @@ func TestAccVirtualMachineResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "role"),
 					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "tenant"),
 					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "platform"),
+					// New fields should be cleared (status reverts to default 'active')
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "status", "active"),
+					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "vcpus"),
+					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "memory"),
+					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "disk"),
 				),
 			},
 			// Step 3: Re-add optional fields (verify they can be set again)
@@ -471,6 +481,11 @@ func TestAccVirtualMachineResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "role"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "tenant"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "platform"),
+					// New fields should be re-added
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "status", "staged"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "vcpus", "4"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "memory", "8192"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "disk", "100"),
 				),
 			},
 		},
@@ -531,6 +546,10 @@ resource "netbox_virtual_machine" "test" {
   tenant   = netbox_tenant.test.name
   role     = netbox_device_role.test.name
   platform = netbox_platform.test.name
+  status   = "staged"
+  vcpus    = 4
+  memory   = 8192
+  disk     = 100
 }
 `, clusterTypeName, clusterTypeSlug, clusterName,
 		siteName, siteSlug,

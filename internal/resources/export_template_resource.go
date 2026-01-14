@@ -144,8 +144,20 @@ func (r *ExportTemplateResource) Create(ctx context.Context, req resource.Create
 
 	// Set optional fields
 	utils.ApplyDescription(exportTemplateRequest, data.Description)
-	exportTemplateRequest.MimeType = utils.StringPtr(data.MimeType)
-	exportTemplateRequest.FileExtension = utils.StringPtr(data.FileExtension)
+	if utils.IsSet(data.MimeType) {
+		mimeType := data.MimeType.ValueString()
+		exportTemplateRequest.MimeType = &mimeType
+	} else if data.MimeType.IsNull() {
+		empty := ""
+		exportTemplateRequest.MimeType = &empty
+	}
+	if utils.IsSet(data.FileExtension) {
+		fileExtension := data.FileExtension.ValueString()
+		exportTemplateRequest.FileExtension = &fileExtension
+	} else if data.FileExtension.IsNull() {
+		empty := ""
+		exportTemplateRequest.FileExtension = &empty
+	}
 	if !data.AsAttachment.IsNull() && !data.AsAttachment.IsUnknown() {
 		asAttachment := data.AsAttachment.ValueBool()
 		exportTemplateRequest.AsAttachment = &asAttachment
@@ -254,8 +266,20 @@ func (r *ExportTemplateResource) Update(ctx context.Context, req resource.Update
 
 	// Set optional fields
 	utils.ApplyDescription(exportTemplateRequest, data.Description)
-	exportTemplateRequest.MimeType = utils.StringPtr(data.MimeType)
-	exportTemplateRequest.FileExtension = utils.StringPtr(data.FileExtension)
+	if utils.IsSet(data.MimeType) {
+		mimeType := data.MimeType.ValueString()
+		exportTemplateRequest.MimeType = &mimeType
+	} else if data.MimeType.IsNull() {
+		empty := ""
+		exportTemplateRequest.MimeType = &empty
+	}
+	if utils.IsSet(data.FileExtension) {
+		fileExtension := data.FileExtension.ValueString()
+		exportTemplateRequest.FileExtension = &fileExtension
+	} else if data.FileExtension.IsNull() {
+		empty := ""
+		exportTemplateRequest.FileExtension = &empty
+	}
 	if !data.AsAttachment.IsNull() && !data.AsAttachment.IsUnknown() {
 		asAttachment := data.AsAttachment.ValueBool()
 		exportTemplateRequest.AsAttachment = &asAttachment

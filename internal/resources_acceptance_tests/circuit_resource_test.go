@@ -198,42 +198,80 @@ func TestAccCircuitResource_removeOptionalFields(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(typeSlug)
 	cleanup.RegisterTenantCleanup(tenantSlug)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.CheckCircuitDestroy,
-		Steps: []resource.TestStep{
-			// Step 1: Create circuit with tenant
-			{
-				Config: testAccCircuitResourceConfig_withTenant(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
-					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
-					resource.TestCheckResourceAttrSet("netbox_circuit.test", "tenant"),
-					resource.TestCheckResourceAttr("netbox_circuit.test", "description", "Circuit with tenant"),
-				),
-			},
-			// Step 2: Remove tenant and verify it's actually removed
-			{
-				Config: testAccCircuitResourceConfig_noTenant(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
-					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
-					resource.TestCheckNoResourceAttr("netbox_circuit.test", "tenant"),
-					resource.TestCheckResourceAttr("netbox_circuit.test", "description", "Circuit after tenant removal"),
-				),
-			},
-			// Step 3: Re-add tenant to verify it can be set again
-			{
-				Config: testAccCircuitResourceConfig_withTenant(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
-					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
-					resource.TestCheckResourceAttrSet("netbox_circuit.test", "tenant"),
-				),
-			},
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_circuit",
+		BaseConfig: func() string {
+			return testAccCircuitResourceConfig_removeOptionalFields_base(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
 		},
+		ConfigWithFields: func() string {
+			return testAccCircuitResourceConfig_removeOptionalFields_withFields(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
+		},
+		OptionalFields: map[string]string{
+			"tenant":           tenantName,
+			"commit_rate":      "1000",
+			"install_date":     "2024-01-15",
+			"termination_date": "2025-12-31",
+			// Note: status is Optional+Computed - API provides default value, cannot test removal
+		},
+		RequiredFields: map[string]string{
+			"cid": cid,
+		},
+		CheckDestroy: testutil.CheckCircuitDestroy,
 	})
+}
+
+func testAccCircuitResourceConfig_removeOptionalFields_base(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_tenant" "test" {
+  name = %[6]q
+  slug = %[7]q
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %[1]q
+  circuit_provider = netbox_provider.test.slug
+  type             = netbox_circuit_type.test.slug
+}
+`, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
+}
+
+func testAccCircuitResourceConfig_removeOptionalFields_withFields(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_tenant" "test" {
+  name = %[6]q
+  slug = %[7]q
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %[1]q
+  circuit_provider = netbox_provider.test.slug
+  type             = netbox_circuit_type.test.slug
+  tenant           = netbox_tenant.test.name
+  commit_rate      = 1000
+  install_date     = "2024-01-15"
+  termination_date = "2025-12-31"
+}
+`, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
 }
 
 // NOTE: Custom field tests for circuit resource are in resources_acceptance_tests_customfields package

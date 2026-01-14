@@ -540,6 +540,9 @@ func TestAccRearPortResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_rear_port.test", "name", portName),
 					resource.TestCheckResourceAttr("netbox_rear_port.test", "label", testLabel),
 					resource.TestCheckResourceAttr("netbox_rear_port.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "color", "ff0000"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "mark_connected", "true"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "positions", "8"),
 				),
 			},
 			{
@@ -548,6 +551,9 @@ func TestAccRearPortResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_rear_port.test", "name", portName),
 					resource.TestCheckNoResourceAttr("netbox_rear_port.test", "label"),
 					resource.TestCheckNoResourceAttr("netbox_rear_port.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_rear_port.test", "color"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "mark_connected", "false"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "positions", "1"),
 				),
 			},
 		},
@@ -588,11 +594,14 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_rear_port" "test" {
-  device = netbox_device.test.name
-  name = %[10]q
-  type = "8p8c"
-  label = %[11]q
-  description = %[12]q
+  device        = netbox_device.test.name
+  name          = %[10]q
+  type          = "8p8c"
+  label         = %[11]q
+  description   = %[12]q
+  color         = "ff0000"
+  mark_connected = true
+  positions     = 8
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, label, description)
 }

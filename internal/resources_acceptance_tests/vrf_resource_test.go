@@ -446,6 +446,65 @@ func TestAccVRFResource_removeDescriptionAndComments(t *testing.T) {
 	})
 }
 
+func TestAccVRFResource_removeOptionalFields_rd(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-vrf-rd-rem")
+	rd := "65000:999"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVRFCleanup(name)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_vrf",
+		BaseConfig: func() string {
+			return testAccVRFResourceConfig_basic(name)
+		},
+		ConfigWithFields: func() string {
+			return testAccVRFResourceConfig_withRD(name, rd)
+		},
+		OptionalFields: map[string]string{
+			"rd": rd,
+		},
+		RequiredFields: map[string]string{
+			"name": name,
+		},
+		CheckDestroy: testutil.CheckVRFDestroy,
+	})
+}
+
+func TestAccVRFResource_EnforceUniqueOptionalComputed(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-vrf-enforce-unique")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVRFCleanup(name)
+
+	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
+		ResourceName:   "netbox_vrf",
+		OptionalField:  "enforce_unique",
+		DefaultValue:   "true",
+		FieldTestValue: "false",
+		BaseConfig: func() string {
+			return fmt.Sprintf(`
+resource "netbox_vrf" "test" {
+  name = %q
+}
+`, name)
+		},
+		WithFieldConfig: func(value string) string {
+			return fmt.Sprintf(`
+resource "netbox_vrf" "test" {
+  name           = %q
+  enforce_unique = %s
+}
+`, name, value)
+		},
+		CheckDestroy: testutil.CheckVRFDestroy,
+	})
+}
+
 func testAccVRFResourceConfig_withRD(name, rd string) string {
 	return fmt.Sprintf(`
 resource "netbox_vrf" "test" {

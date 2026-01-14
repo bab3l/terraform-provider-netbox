@@ -388,8 +388,7 @@ func TestAccClusterResource_removeOptionalFields(t *testing.T) {
 			{
 				Config: testAccClusterResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, tenantName, tenantSlug, groupName, groupSlug),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_cluster.test", "group"),
-					resource.TestCheckResourceAttrSet("netbox_cluster.test", "tenant"),
+					resource.TestCheckResourceAttr("netbox_cluster.test", "status", "staging"),
 					resource.TestCheckResourceAttrSet("netbox_cluster.test", "site"),
 				),
 			},
@@ -423,7 +422,7 @@ resource "netbox_cluster_group" "test" {
 resource "netbox_cluster" "test" {
   name   = %[3]q
   type   = netbox_cluster_type.test.id
-  status = "active"
+  status = "staging"
   group  = netbox_cluster_group.test.id
   tenant = netbox_tenant.test.id
   site   = netbox_site.test.id

@@ -219,26 +219,30 @@ func TestAccIPSecPolicyResource_removeOptionalFields(t *testing.T) {
 		CheckDestroy:             testutil.CheckIPSecPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIPSECPolicyResourceConfig_withDescriptionComments(name, testDescription, testComments),
+				Config: testAccIPSECPolicyResourceConfig_withDescriptionCommentsPFSGroup(name, testDescription, testComments, 14),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "description", testDescription),
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "comments", testComments),
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "pfs_group", "14"),
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "proposals.#", "1"),
 				),
 			},
 			{
-				Config: testAccIPSECPolicyResourceConfig_basic(name),
+				Config: testAccIPSECPolicyResourceConfig_nameOnly(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "name", name),
 					resource.TestCheckNoResourceAttr("netbox_ipsec_policy.test", "description"),
 					resource.TestCheckNoResourceAttr("netbox_ipsec_policy.test", "comments"),
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "pfs_group", "14"),
+					resource.TestCheckNoResourceAttr("netbox_ipsec_policy.test", "proposals"),
 				),
 			},
 		},
 	})
 }
 
-func testAccIPSECPolicyResourceConfig_withDescriptionComments(name, description, comments string) string {
+func testAccIPSECPolicyResourceConfig_withDescriptionCommentsPFSGroup(name, description, comments string, pfsGroup int) string {
 	return fmt.Sprintf(`
 resource "netbox_ipsec_proposal" "test" {
   name                 = "test-proposal-for-policy"
@@ -248,10 +252,24 @@ resource "netbox_ipsec_proposal" "test" {
 resource "netbox_ipsec_policy" "test" {
   name        = %[1]q
   proposals   = [netbox_ipsec_proposal.test.id]
+	pfs_group    = %[4]d
   description = %[2]q
   comments    = %[3]q
 }
-`, name, description, comments)
+`, name, description, comments, pfsGroup)
+}
+
+func testAccIPSECPolicyResourceConfig_nameOnly(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_ipsec_proposal" "test" {
+  name                 = "test-proposal-for-policy"
+  encryption_algorithm = "aes-128-cbc"
+}
+
+resource "netbox_ipsec_policy" "test" {
+  name = %q
+}
+`, name)
 }
 
 func TestAccConsistency_IPSECPolicy_LiteralNames(t *testing.T) {

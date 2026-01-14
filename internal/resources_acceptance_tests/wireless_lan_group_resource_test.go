@@ -196,11 +196,14 @@ func TestAccWirelessLANGroupResource_externalDeletion(t *testing.T) {
 func TestAccWirelessLANGroupResource_removeOptionalFields(t *testing.T) {
 	t.Parallel()
 
+	parentName := testutil.RandomName("tf-test-wlan-group-parent")
+	parentSlug := testutil.RandomSlug("tf-test-wlan-group-parent")
 	name := testutil.RandomName("tf-test-wlan-group-rem")
 	slug := testutil.RandomSlug("tf-test-wlan-group-rem")
 	const testDescription = "Test Description"
 
 	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterWirelessLANGroupCleanup(parentName)
 	cleanup.RegisterWirelessLANGroupCleanup(name)
 
 	resource.Test(t, resource.TestCase{
@@ -209,19 +212,51 @@ func TestAccWirelessLANGroupResource_removeOptionalFields(t *testing.T) {
 		CheckDestroy:             testutil.CheckWirelessLANGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccWirelessLANGroupResourceConfig_full(name, slug, testDescription),
+				Config: testAccWirelessLANGroupResourceConfig_removeOptionalFields_withParent(parentName, parentSlug, name, slug, testDescription),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_wireless_lan_group.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_wireless_lan_group.test", "description", testDescription),
+					resource.TestCheckResourceAttrPair("netbox_wireless_lan_group.test", "parent", "netbox_wireless_lan_group.parent", "id"),
 				),
 			},
 			{
-				Config: testAccWirelessLANGroupResourceConfig_basic(name, slug),
+				Config: testAccWirelessLANGroupResourceConfig_removeOptionalFields_noOptional(parentName, parentSlug, name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_wireless_lan_group.test", "name", name),
 					resource.TestCheckNoResourceAttr("netbox_wireless_lan_group.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_wireless_lan_group.test", "parent"),
 				),
 			},
 		},
 	})
+}
+
+func testAccWirelessLANGroupResourceConfig_removeOptionalFields_withParent(parentName, parentSlug, name, slug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_wireless_lan_group" "parent" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_wireless_lan_group" "test" {
+  name        = %q
+  slug        = %q
+  description = %q
+  parent      = netbox_wireless_lan_group.parent.id
+}
+`, parentName, parentSlug, name, slug, description)
+}
+
+func testAccWirelessLANGroupResourceConfig_removeOptionalFields_noOptional(parentName, parentSlug, name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_wireless_lan_group" "parent" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_wireless_lan_group" "test" {
+  name = %q
+  slug = %q
+}
+`, parentName, parentSlug, name, slug)
 }

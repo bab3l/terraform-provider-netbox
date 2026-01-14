@@ -482,6 +482,33 @@ resource "netbox_console_port" "test" {
 func TestAccConsolePortResource_removeOptionalFields(t *testing.T) {
 	t.Parallel()
 
+	cpName := testutil.RandomName("tf-test-cp-rem")
+
+	// Note: mark_connected is excluded from this test because it has a default value (false)
+	// and cannot be truly "unset" - when removed from config, it reverts to its default, not null.
+	testFields := map[string]string{
+		"label":       "Test Label",
+		"description": "Test Description",
+		"speed":       "9600",
+		"type":        "de-9",
+	}
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_console_port",
+		BaseConfig: func() string {
+			return testAccConsolePortResourceConfig_removeOptionalFields_base(cpName)
+		},
+		ConfigWithFields: func() string {
+			return testAccConsolePortResourceConfig_removeOptionalFields_withFields(cpName, testFields)
+		},
+		OptionalFields: testFields,
+		RequiredFields: map[string]string{
+			"name": cpName,
+		},
+	})
+}
+
+func testAccConsolePortResourceConfig_removeOptionalFields_base(cpName string) string {
 	siteName := testutil.RandomName("tf-test-site-rem")
 	siteSlug := testutil.RandomSlug("tf-test-site-rem")
 	mfgName := testutil.RandomName("tf-test-mfg-rem")
@@ -491,39 +518,111 @@ func TestAccConsolePortResource_removeOptionalFields(t *testing.T) {
 	roleName := testutil.RandomName("tf-test-role-rem")
 	roleSlug := testutil.RandomSlug("tf-test-role-rem")
 	deviceName := testutil.RandomName("tf-test-device-rem")
-	consolePortName := testutil.RandomName("tf-test-cp-rem")
-	const testLabel = "Test Label"
-	const testDescription = "Test Description"
 
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterManufacturerCleanup(mfgSlug)
-	cleanup.RegisterDeviceTypeCleanup(dtSlug)
-	cleanup.RegisterDeviceRoleCleanup(roleSlug)
-	cleanup.RegisterDeviceCleanup(deviceName)
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+  status = "active"
+}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccConsolePortResourceConfig_withLabel(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, consolePortName, testLabel, testDescription),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_console_port.test", "name", consolePortName),
-					resource.TestCheckResourceAttr("netbox_console_port.test", "label", testLabel),
-					resource.TestCheckResourceAttr("netbox_console_port.test", "description", testDescription),
-				),
-			},
-			{
-				Config: testAccConsolePortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, consolePortName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_console_port.test", "name", consolePortName),
-					resource.TestCheckNoResourceAttr("netbox_console_port.test", "label"),
-					resource.TestCheckNoResourceAttr("netbox_console_port.test", "description"),
-				),
-			},
-		},
-	})
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[5]q
+  slug = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name = %[7]q
+  slug = %[8]q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name = %[9]q
+  device_type = netbox_device_type.test.id
+  role = netbox_device_role.test.id
+  site = netbox_site.test.id
+  status = "active"
+}
+
+resource "netbox_console_port" "test" {
+  device = netbox_device.test.name
+  name = %[10]q
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, cpName)
+}
+
+func testAccConsolePortResourceConfig_removeOptionalFields_withFields(cpName string, fields map[string]string) string {
+	siteName := testutil.RandomName("tf-test-site-rem")
+	siteSlug := testutil.RandomSlug("tf-test-site-rem")
+	mfgName := testutil.RandomName("tf-test-mfg-rem")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-rem")
+	dtModel := testutil.RandomName("tf-test-dt-rem")
+	dtSlug := testutil.RandomSlug("tf-test-dt-rem")
+	roleName := testutil.RandomName("tf-test-role-rem")
+	roleSlug := testutil.RandomSlug("tf-test-role-rem")
+	deviceName := testutil.RandomName("tf-test-device-rem")
+
+	optionalFields := ""
+	if label, ok := fields["label"]; ok {
+		optionalFields += fmt.Sprintf("  label = %q\n", label)
+	}
+	if description, ok := fields["description"]; ok {
+		optionalFields += fmt.Sprintf("  description = %q\n", description)
+	}
+	if markConnected, ok := fields["mark_connected"]; ok {
+		optionalFields += fmt.Sprintf("  mark_connected = %s\n", markConnected)
+	}
+	if speed, ok := fields["speed"]; ok {
+		optionalFields += fmt.Sprintf("  speed = %s\n", speed)
+	}
+	if cpType, ok := fields["type"]; ok {
+		optionalFields += fmt.Sprintf("  type = %q\n", cpType)
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[5]q
+  slug = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name = %[7]q
+  slug = %[8]q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name = %[9]q
+  device_type = netbox_device_type.test.id
+  role = netbox_device_role.test.id
+  site = netbox_site.test.id
+  status = "active"
+}
+
+resource "netbox_console_port" "test" {
+  device = netbox_device.test.name
+  name = %[10]q
+%[11]s}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, cpName, optionalFields)
 }
 
 func testAccConsolePortResourceConfig_withLabel(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, consolePortName, label, description string) string {

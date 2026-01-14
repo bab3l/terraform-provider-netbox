@@ -438,6 +438,10 @@ func (r *VirtualMachineResource) buildVirtualMachineRequestWithState(ctx context
 	if utils.IsSet(plan.Status) {
 		status := netbox.ModuleStatusValue(plan.Status.ValueString())
 		vmRequest.Status = &status
+	} else {
+		// Clear status when removed (will revert to default "active")
+		status := netbox.ModuleStatusValue("")
+		vmRequest.Status = &status
 	}
 
 	// Site
@@ -504,6 +508,9 @@ func (r *VirtualMachineResource) buildVirtualMachineRequestWithState(ctx context
 	if utils.IsSet(plan.Vcpus) {
 		vcpus := plan.Vcpus.ValueFloat64()
 		vmRequest.Vcpus = *netbox.NewNullableFloat64(&vcpus)
+	} else {
+		// Clear vcpus when removed
+		vmRequest.Vcpus = *netbox.NewNullableFloat64(nil)
 	}
 
 	// Memory
@@ -514,6 +521,9 @@ func (r *VirtualMachineResource) buildVirtualMachineRequestWithState(ctx context
 			return nil
 		}
 		vmRequest.Memory = *netbox.NewNullableInt32(&memory)
+	} else {
+		// Clear memory when removed
+		vmRequest.Memory = *netbox.NewNullableInt32(nil)
 	}
 
 	// Disk
@@ -524,6 +534,9 @@ func (r *VirtualMachineResource) buildVirtualMachineRequestWithState(ctx context
 			return nil
 		}
 		vmRequest.Disk = *netbox.NewNullableInt32(&disk)
+	} else {
+		// Clear disk when removed
+		vmRequest.Disk = *netbox.NewNullableInt32(nil)
 	}
 
 	// Apply description and comments

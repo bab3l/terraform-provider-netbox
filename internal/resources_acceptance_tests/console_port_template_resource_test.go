@@ -365,6 +365,7 @@ func TestAccConsolePortTemplateResource_removeOptionalFields(t *testing.T) {
 	portName := testutil.RandomName("tf-test-cpt-rem")
 	const testLabel = "Test Label"
 	const testDescription = "Test Description"
+	const testType = "rj-45"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
@@ -375,11 +376,12 @@ func TestAccConsolePortTemplateResource_removeOptionalFields(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConsolePortTemplateResourceConfig_withLabel(mfgName, mfgSlug, dtModel, dtSlug, portName, testLabel, testDescription),
+				Config: testAccConsolePortTemplateResourceConfig_withAllOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, testLabel, testDescription, testType),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_console_port_template.test", "name", portName),
 					resource.TestCheckResourceAttr("netbox_console_port_template.test", "label", testLabel),
 					resource.TestCheckResourceAttr("netbox_console_port_template.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_console_port_template.test", "type", testType),
 				),
 			},
 			{
@@ -388,13 +390,14 @@ func TestAccConsolePortTemplateResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_console_port_template.test", "name", portName),
 					resource.TestCheckNoResourceAttr("netbox_console_port_template.test", "label"),
 					resource.TestCheckNoResourceAttr("netbox_console_port_template.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_console_port_template.test", "type"),
 				),
 			},
 		},
 	})
 }
 
-func testAccConsolePortTemplateResourceConfig_withLabel(mfgName, mfgSlug, dtModel, dtSlug, portName, label, description string) string {
+func testAccConsolePortTemplateResourceConfig_withAllOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, label, description, portType string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
   name = %[1]q
@@ -412,6 +415,7 @@ resource "netbox_console_port_template" "test" {
   name = %[5]q
   label = %[6]q
   description = %[7]q
+  type = %[8]q
 }
-`, mfgName, mfgSlug, dtModel, dtSlug, portName, label, description)
+`, mfgName, mfgSlug, dtModel, dtSlug, portName, label, description, portType)
 }

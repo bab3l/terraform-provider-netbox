@@ -301,6 +301,7 @@ func TestAccPowerOutletTemplateResource_removeOptionalFields(t *testing.T) {
 	dtModel := testutil.RandomName("tf-test-dt-rem")
 	dtSlug := testutil.RandomSlug("tf-test-dt-rem")
 	portName := testutil.RandomName("tf-test-pot-rem")
+	powerPortName := testutil.RandomName("tf-test-ppt-rem")
 
 	// Test values for all optional fields
 	const testLabel = "Test Label"
@@ -318,31 +319,33 @@ func TestAccPowerOutletTemplateResource_removeOptionalFields(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// Step 1: Create with all optional fields
-				Config: testAccPowerOutletTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, testLabel, testType, testFeedLeg, testDescription),
+				Config: testAccPowerOutletTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, powerPortName, testLabel, testType, testFeedLeg, testDescription),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_outlet_template.test", "name", portName),
 					resource.TestCheckResourceAttr("netbox_power_outlet_template.test", "label", testLabel),
 					resource.TestCheckResourceAttr("netbox_power_outlet_template.test", "type", testType),
 					resource.TestCheckResourceAttr("netbox_power_outlet_template.test", "feed_leg", testFeedLeg),
 					resource.TestCheckResourceAttr("netbox_power_outlet_template.test", "description", testDescription),
+					resource.TestCheckResourceAttrPair("netbox_power_outlet_template.test", "power_port", "netbox_power_port_template.feed", "id"),
 				),
 			},
 			{
 				// Step 2: Remove all optional fields
-				Config: testAccPowerOutletTemplateResourceConfig_noOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName),
+				Config: testAccPowerOutletTemplateResourceConfig_noOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, powerPortName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_outlet_template.test", "name", portName),
 					resource.TestCheckNoResourceAttr("netbox_power_outlet_template.test", "label"),
 					resource.TestCheckNoResourceAttr("netbox_power_outlet_template.test", "type"),
 					resource.TestCheckNoResourceAttr("netbox_power_outlet_template.test", "feed_leg"),
 					resource.TestCheckNoResourceAttr("netbox_power_outlet_template.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_power_outlet_template.test", "power_port"),
 				),
 			},
 		},
 	})
 }
 
-func testAccPowerOutletTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, label, outletType, feedLeg, description string) string {
+func testAccPowerOutletTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, powerPortName, label, outletType, feedLeg, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
   name = %[1]q
@@ -355,18 +358,24 @@ resource "netbox_device_type" "test" {
   manufacturer = netbox_manufacturer.test.id
 }
 
+resource "netbox_power_port_template" "feed" {
+	device_type = netbox_device_type.test.id
+	name        = %[6]q
+}
+
 resource "netbox_power_outlet_template" "test" {
   device_type = netbox_device_type.test.id
   name = %[5]q
-  label = %[6]q
-  type = %[7]q
-  feed_leg = %[8]q
-  description = %[9]q
+	label = %[7]q
+	type = %[8]q
+	feed_leg = %[9]q
+	description = %[10]q
+	power_port = netbox_power_port_template.feed.id
 }
-`, mfgName, mfgSlug, dtModel, dtSlug, portName, label, outletType, feedLeg, description)
+`, mfgName, mfgSlug, dtModel, dtSlug, portName, powerPortName, label, outletType, feedLeg, description)
 }
 
-func testAccPowerOutletTemplateResourceConfig_noOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName string) string {
+func testAccPowerOutletTemplateResourceConfig_noOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, powerPortName string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
   name = %[1]q
@@ -379,9 +388,14 @@ resource "netbox_device_type" "test" {
   manufacturer = netbox_manufacturer.test.id
 }
 
+resource "netbox_power_port_template" "feed" {
+	device_type = netbox_device_type.test.id
+	name        = %[6]q
+}
+
 resource "netbox_power_outlet_template" "test" {
   device_type = netbox_device_type.test.id
   name = %[5]q
 }
-`, mfgName, mfgSlug, dtModel, dtSlug, portName)
+`, mfgName, mfgSlug, dtModel, dtSlug, portName, powerPortName)
 }

@@ -490,6 +490,8 @@ func TestAccConsoleServerPortResource_removeOptionalFields(t *testing.T) {
 	portName := testutil.RandomName("tf-test-csp-rem")
 	const testLabel = "Test Label"
 	const testDescription = "Test Description"
+	const testType = "rj-45"
+	const testSpeed = int32(9600)
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -503,26 +505,32 @@ func TestAccConsoleServerPortResource_removeOptionalFields(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConsoleServerPortResourceConfig_withLabel(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, testLabel, testDescription),
+				Config: testAccConsoleServerPortResourceConfig_withOptionalFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, testLabel, testDescription, testType, testSpeed),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_console_server_port.test", "name", portName),
 					resource.TestCheckResourceAttr("netbox_console_server_port.test", "label", testLabel),
 					resource.TestCheckResourceAttr("netbox_console_server_port.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_console_server_port.test", "type", testType),
+					resource.TestCheckResourceAttr("netbox_console_server_port.test", "speed", "9600"),
+					resource.TestCheckResourceAttr("netbox_console_server_port.test", "mark_connected", "true"),
 				),
 			},
 			{
 				Config: testAccConsoleServerPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_console_server_port.test", "name", portName),
+					resource.TestCheckResourceAttr("netbox_console_server_port.test", "mark_connected", "false"),
 					resource.TestCheckNoResourceAttr("netbox_console_server_port.test", "label"),
 					resource.TestCheckNoResourceAttr("netbox_console_server_port.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_console_server_port.test", "type"),
+					resource.TestCheckNoResourceAttr("netbox_console_server_port.test", "speed"),
 				),
 			},
 		},
 	})
 }
 
-func testAccConsoleServerPortResourceConfig_withLabel(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, label, description string) string {
+func testAccConsoleServerPortResourceConfig_withOptionalFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, label, description, portType string, speed int32) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = %[1]q
@@ -560,8 +568,11 @@ resource "netbox_console_server_port" "test" {
   name = %[10]q
   label = %[11]q
   description = %[12]q
+	type = %[13]q
+	speed = %[14]d
+	mark_connected = true
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, label, description)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, label, description, portType, speed)
 }
 
 // NOTE: Custom field tests for console_server_port resource are in resources_acceptance_tests_customfields package

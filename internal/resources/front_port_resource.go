@@ -299,7 +299,10 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 	// Set optional fields
 	utils.ApplyLabel(apiReq, plan.Label)
 
-	if !plan.Color.IsNull() && !plan.Color.IsUnknown() {
+	// For nullable string fields, explicitly clear if null in plan
+	if plan.Color.IsNull() {
+		apiReq.SetColor("")
+	} else if !plan.Color.IsUnknown() {
 		apiReq.SetColor(plan.Color.ValueString())
 	}
 

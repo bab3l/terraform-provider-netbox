@@ -137,12 +137,46 @@ func (r *ContactResource) Create(ctx context.Context, req resource.CreateRequest
 		contactRequest.SetGroup(*group)
 	}
 
-	// Set optional fields
-	contactRequest.Title = utils.StringPtr(data.Title)
-	contactRequest.Phone = utils.StringPtr(data.Phone)
-	contactRequest.Email = utils.StringPtr(data.Email)
-	contactRequest.Address = utils.StringPtr(data.Address)
-	contactRequest.Link = utils.StringPtr(data.Link)
+	// Set optional fields with explicit null clearing
+	if utils.IsSet(data.Title) {
+		title := data.Title.ValueString()
+		contactRequest.Title = &title
+	} else if data.Title.IsNull() {
+		empty := ""
+		contactRequest.Title = &empty
+	}
+
+	if utils.IsSet(data.Phone) {
+		phone := data.Phone.ValueString()
+		contactRequest.Phone = &phone
+	} else if data.Phone.IsNull() {
+		empty := ""
+		contactRequest.Phone = &empty
+	}
+
+	if utils.IsSet(data.Email) {
+		email := data.Email.ValueString()
+		contactRequest.Email = &email
+	} else if data.Email.IsNull() {
+		empty := ""
+		contactRequest.Email = &empty
+	}
+
+	if utils.IsSet(data.Address) {
+		address := data.Address.ValueString()
+		contactRequest.Address = &address
+	} else if data.Address.IsNull() {
+		empty := ""
+		contactRequest.Address = &empty
+	}
+
+	if utils.IsSet(data.Link) {
+		link := data.Link.ValueString()
+		contactRequest.Link = &link
+	} else if data.Link.IsNull() {
+		empty := ""
+		contactRequest.Link = &empty
+	}
 
 	// Apply description and comments
 	utils.ApplyDescription(contactRequest, data.Description)
@@ -237,12 +271,46 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 		contactRequest.SetGroupNil()
 	}
 
-	// Set optional fields
-	contactRequest.Title = utils.StringPtr(plan.Title)
-	contactRequest.Phone = utils.StringPtr(plan.Phone)
-	contactRequest.Email = utils.StringPtr(plan.Email)
-	contactRequest.Address = utils.StringPtr(plan.Address)
-	contactRequest.Link = utils.StringPtr(plan.Link)
+	// Set optional fields with explicit null clearing
+	if utils.IsSet(plan.Title) {
+		title := plan.Title.ValueString()
+		contactRequest.Title = &title
+	} else if plan.Title.IsNull() {
+		empty := ""
+		contactRequest.Title = &empty
+	}
+
+	if utils.IsSet(plan.Phone) {
+		phone := plan.Phone.ValueString()
+		contactRequest.Phone = &phone
+	} else if plan.Phone.IsNull() {
+		empty := ""
+		contactRequest.Phone = &empty
+	}
+
+	if utils.IsSet(plan.Email) {
+		email := plan.Email.ValueString()
+		contactRequest.Email = &email
+	} else if plan.Email.IsNull() {
+		empty := ""
+		contactRequest.Email = &empty
+	}
+
+	if utils.IsSet(plan.Address) {
+		address := plan.Address.ValueString()
+		contactRequest.Address = &address
+	} else if plan.Address.IsNull() {
+		empty := ""
+		contactRequest.Address = &empty
+	}
+
+	if utils.IsSet(plan.Link) {
+		link := plan.Link.ValueString()
+		contactRequest.Link = &link
+	} else if plan.Link.IsNull() {
+		empty := ""
+		contactRequest.Link = &empty
+	}
 
 	// Apply description and comments
 	utils.ApplyDescription(contactRequest, plan.Description)

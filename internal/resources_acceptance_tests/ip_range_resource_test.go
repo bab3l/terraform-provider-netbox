@@ -438,3 +438,69 @@ resource "netbox_ip_range" "test" {
 }
 `, startAddress, endAddress, description, comments)
 }
+
+func TestAccIPRangeResource_StatusOptionalComputed(t *testing.T) {
+	t.Parallel()
+
+	secondOctet := acctest.RandIntRange(1, 50)
+	thirdOctet := acctest.RandIntRange(1, 50)
+	startOctet := 10 + acctest.RandIntRange(1, 200)
+	endOctet := startOctet + 10
+	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
+	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPRangeCleanup(startAddress)
+
+	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
+		ResourceName:   "netbox_ip_range",
+		OptionalField:  "status",
+		DefaultValue:   "active",
+		FieldTestValue: "reserved",
+		BaseConfig: func() string {
+			return testAccIPRangeResourceConfig_basic(startAddress, endAddress)
+		},
+		WithFieldConfig: func(value string) string {
+			return fmt.Sprintf(`
+resource "netbox_ip_range" "test" {
+  start_address = %[1]q
+  end_address   = %[2]q
+  status        = %[3]q
+}
+`, startAddress, endAddress, value)
+		},
+	})
+}
+
+func TestAccIPRangeResource_MarkUtilizedOptionalComputed(t *testing.T) {
+	t.Parallel()
+
+	secondOctet := acctest.RandIntRange(51, 100)
+	thirdOctet := acctest.RandIntRange(51, 100)
+	startOctet := 10 + acctest.RandIntRange(1, 200)
+	endOctet := startOctet + 10
+	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
+	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPRangeCleanup(startAddress)
+
+	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
+		ResourceName:   "netbox_ip_range",
+		OptionalField:  "mark_utilized",
+		DefaultValue:   "false",
+		FieldTestValue: "true",
+		BaseConfig: func() string {
+			return testAccIPRangeResourceConfig_basic(startAddress, endAddress)
+		},
+		WithFieldConfig: func(value string) string {
+			return fmt.Sprintf(`
+resource "netbox_ip_range" "test" {
+  start_address  = %[1]q
+  end_address    = %[2]q
+  mark_utilized  = %[3]s
+}
+`, startAddress, endAddress, value)
+		},
+	})
+}

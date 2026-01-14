@@ -342,43 +342,75 @@ resource "netbox_inventory_item" "test" {
 `, name, name, name, name, name, name, name, name, name, name)
 }
 
-// TestAccInventoryItemResource_removeOptionalFields tests that the label field
-// can be successfully removed from the configuration without causing inconsistent state.
-// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+// TestAccInventoryItemResource_removeOptionalFields tests that optional fields
+// can be successfully added, removed, and re-added from the configuration.
 func TestAccInventoryItemResource_removeOptionalFields(t *testing.T) {
 	t.Parallel()
 
 	itemName := testutil.RandomName("tf-test-invitem-rem")
-	const testLabel = "Test Label"
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccInventoryItemResourceConfig_withLabel(itemName, testLabel),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_inventory_item.test", "name", itemName),
-					resource.TestCheckResourceAttr("netbox_inventory_item.test", "label", testLabel),
-				),
-			},
-			{
-				Config: testAccInventoryItemResourceConfig_basic(itemName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_inventory_item.test", "name", itemName),
-					resource.TestCheckNoResourceAttr("netbox_inventory_item.test", "label"),
-				),
-			},
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(testutil.RandomSlug("site"))
+	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
+	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
+	cleanup.RegisterDeviceRoleCleanup(testutil.RandomSlug("role"))
+	cleanup.RegisterDeviceCleanup(itemName + "-device")
+
+	testFields := map[string]string{
+		"label":     "Test Label",
+		"serial":    "SN-12345",
+		"asset_tag": itemName + "-asset",
+		"part_id":   "PART-789",
+		// Note: "discovered" field is omitted as it has API default behavior that cannot be cleared
+	}
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_inventory_item",
+		BaseConfig: func() string {
+			return testAccInventoryItemResourceConfig_removeOptionalFields_base(itemName)
+		},
+		ConfigWithFields: func() string {
+			return testAccInventoryItemResourceConfig_removeOptionalFields_withFields(itemName, testFields)
+		},
+		OptionalFields: testFields,
+		RequiredFields: map[string]string{
+			"name": itemName,
 		},
 	})
 }
 
-func testAccInventoryItemResourceConfig_withLabel(name, label string) string {
+func testAccInventoryItemResourceConfig_removeOptionalFields_base(name string) string {
 	return testAccInventoryItemResourcePrereqs(name) + fmt.Sprintf(`
 resource "netbox_inventory_item" "test" {
-  device = netbox_device.test.name
+  device = netbox_device.test.id
   name = %q
-  label = %q
 }
-`, name, label)
+`, name)
+}
+
+func testAccInventoryItemResourceConfig_removeOptionalFields_withFields(name string, fields map[string]string) string {
+	config := testAccInventoryItemResourcePrereqs(name) + fmt.Sprintf(`
+resource "netbox_inventory_item" "test" {
+  device = netbox_device.test.id
+  name = %q
+`, name)
+
+	if label, ok := fields["label"]; ok {
+		config += fmt.Sprintf("  label = %q\n", label)
+	}
+	if serial, ok := fields["serial"]; ok {
+		config += fmt.Sprintf("  serial = %q\n", serial)
+	}
+	if assetTag, ok := fields["asset_tag"]; ok {
+		config += fmt.Sprintf("  asset_tag = %q\n", assetTag)
+	}
+	if partID, ok := fields["part_id"]; ok {
+		config += fmt.Sprintf("  part_id = %q\n", partID)
+	}
+	if discovered, ok := fields["discovered"]; ok {
+		config += fmt.Sprintf("  discovered = %s\n", discovered)
+	}
+
+	config += "}\n"
+	return config
 }
