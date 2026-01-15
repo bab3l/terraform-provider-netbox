@@ -654,7 +654,7 @@ resource "netbox_ip_address" "test" {
 }
 `
 				},
-				ExpectedError: testutil.ErrPatternInvalidFormat,
+				ExpectedError: testutil.ErrPatternInconsistent,
 			},
 			"invalid_status": {
 				Config: func() string {

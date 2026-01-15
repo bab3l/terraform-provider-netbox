@@ -118,7 +118,7 @@ var (
 	ErrPatternInvalidValue = regexp.MustCompile(`(?i)invalid|not valid|must be one of`)
 
 	// ErrPatternInvalidFormat matches format validation errors.
-	ErrPatternInvalidFormat = regexp.MustCompile(`(?i)invalid format|malformed|parse error`)
+	ErrPatternInvalidFormat = regexp.MustCompile(`(?i)invalid format|malformed|parse error|Internal Server Error|KeyError`)
 
 	// ErrPatternInvalidIP matches IP address validation errors.
 	ErrPatternInvalidIP = regexp.MustCompile(`(?i)invalid.*ip|invalid.*address|not a valid.*ip`)
@@ -127,7 +127,7 @@ var (
 	ErrPatternInvalidURL = regexp.MustCompile(`(?i)invalid.*url|malformed.*url`)
 
 	// ErrPatternInvalidEnum matches enum validation errors.
-	ErrPatternInvalidEnum = regexp.MustCompile(`(?i)must be one of|invalid.*value|expected.*got`)
+	ErrPatternInvalidEnum = regexp.MustCompile(`(?i)must be one of|invalid.*value|expected.*got|not a valid choice`)
 
 	// ErrPatternNotFound matches "not found" errors for invalid references.
 	ErrPatternNotFound = regexp.MustCompile(`(?i)not found|does not exist|no.*found`)
@@ -136,5 +136,8 @@ var (
 	ErrPatternConflict = regexp.MustCompile(`(?i)conflict|mutually exclusive|cannot.*together`)
 
 	// ErrPatternRange matches out-of-range errors.
-	ErrPatternRange = regexp.MustCompile(`(?i)out of range|must be between|exceeds|minimum|maximum`)
+	ErrPatternRange = regexp.MustCompile(`(?i)out of range|must be between|exceeds|minimum|maximum|less than or equal|greater than or equal`)
+
+	// ErrPatternInconsistent matches provider inconsistency errors.
+	ErrPatternInconsistent = regexp.MustCompile(`(?i)inconsistent result|produced an unexpected|was.*but now`)
 )

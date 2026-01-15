@@ -380,14 +380,14 @@ resource "netbox_device_type" "test" {
   slug         = %q
 }
 
-resource "netbox_role" "test" {
+resource "netbox_device_role" "test" {
   name = %q
   slug = %q
 }
 
 resource "netbox_device" "test" {
   device_type = netbox_device_type.test.id
-  role        = netbox_role.test.id
+  role        = netbox_device_role.test.id
   site        = netbox_site.test.id
   name        = %q
 }
