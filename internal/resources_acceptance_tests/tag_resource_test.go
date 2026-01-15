@@ -9,6 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+const (
+	testColorBlue = "2196f3"
+)
+
 func TestAccTagResource_basic(t *testing.T) {
 	t.Parallel()
 
@@ -61,7 +65,7 @@ func TestAccTagResource_update(t *testing.T) {
 				Config: testAccTagResourceConfig_forUpdate(updatedName, slug, testutil.Description2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tag.test", "name", updatedName),
-					resource.TestCheckResourceAttr("netbox_tag.test", "color", "2196f3"),
+					resource.TestCheckResourceAttr("netbox_tag.test", "color", testColorBlue),
 					resource.TestCheckResourceAttr("netbox_tag.test", "description", testutil.Description2),
 				),
 			},
@@ -78,7 +82,7 @@ func TestAccTagResource_full(t *testing.T) {
 	description := testutil.RandomName("description")
 	updatedName := testutil.RandomName("tag-updated")
 	updatedSlug := testutil.RandomSlug("tag-updated")
-	updatedColor := "2196f3"
+	updatedColor := testColorBlue
 	updatedDescription := "Updated test tag description"
 
 	resource.Test(t, resource.TestCase{
@@ -182,7 +186,7 @@ func TestAccTagResource_removeOptionalFields(t *testing.T) {
 		ResourceType: "netbox_tag",
 		ResourceName: "netbox_tag",
 		ConfigWithFields: func() string {
-			return testAccTagResourceFull(name, slug, "2196f3", "Test description")
+			return testAccTagResourceFull(name, slug, testColorBlue, "Test description")
 		},
 		BaseConfig: func() string {
 			return testAccTagResourceBasic(name, slug)
@@ -207,7 +211,7 @@ resource "netbox_tag" "test" {
 func testAccTagResourceConfig_forUpdate(name, slug, description string) string {
 	color := testutil.ColorOrange
 	if description == testutil.Description2 {
-		color = "2196f3"
+		color = testColorBlue
 	}
 
 	return fmt.Sprintf(`

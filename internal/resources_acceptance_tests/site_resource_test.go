@@ -483,3 +483,81 @@ resource "netbox_site" "test" {
 }
 `, name, slug, description, comments)
 }
+func TestAccSiteResource_validationErrors(t *testing.T) {
+	t.Parallel()
+
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_site",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  slug = "test-site"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_status": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name   = "Test Site"
+  slug   = "test-site"
+  status = "invalid_status"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidEnum,
+			},
+			"invalid_region_reference": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name   = "Test Site"
+  slug   = "test-site"
+  region = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_group_reference": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name  = "Test Site"
+  slug  = "test-site"
+  group = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_tenant_reference": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name   = "Test Site"
+  slug   = "test-site"
+  tenant = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+		CheckDestroy: testutil.CheckSiteDestroy,
+	})
+}

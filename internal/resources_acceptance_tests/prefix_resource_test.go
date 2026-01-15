@@ -822,3 +822,88 @@ resource "netbox_prefix" "test" {
 }
 `, prefix, description, comments)
 }
+
+func TestAccPrefixResource_validationErrors(t *testing.T) {
+	t.Parallel()
+
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_prefix",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_prefix": {
+				Config: func() string {
+					return `
+resource "netbox_prefix" "test" {
+  status = "active"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_cidr_format": {
+				Config: func() string {
+					return `
+resource "netbox_prefix" "test" {
+  prefix = "not-a-valid-cidr"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidFormat,
+			},
+			"invalid_status": {
+				Config: func() string {
+					return `
+resource "netbox_prefix" "test" {
+  prefix = "10.0.0.0/8"
+  status = "invalid_status"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidEnum,
+			},
+			"invalid_site_reference": {
+				Config: func() string {
+					return `
+resource "netbox_prefix" "test" {
+  prefix = "10.0.0.0/8"
+  site   = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_vrf_reference": {
+				Config: func() string {
+					return `
+resource "netbox_prefix" "test" {
+  prefix = "10.0.0.0/8"
+  vrf    = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_tenant_reference": {
+				Config: func() string {
+					return `
+resource "netbox_prefix" "test" {
+  prefix = "10.0.0.0/8"
+  tenant = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_vlan_reference": {
+				Config: func() string {
+					return `
+resource "netbox_prefix" "test" {
+  prefix = "10.0.0.0/8"
+  vlan   = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}

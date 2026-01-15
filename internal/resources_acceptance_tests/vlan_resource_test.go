@@ -638,3 +638,104 @@ resource "netbox_vlan" "test" {
 }
 `, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug, vlanName, vid)
 }
+
+func TestAccVLANResource_validationErrors(t *testing.T) {
+	t.Parallel()
+
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_vlan",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_vid": {
+				Config: func() string {
+					return `
+resource "netbox_vlan" "test" {
+  name = "Test VLAN"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_vlan" "test" {
+  vid = 100
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"vid_too_low": {
+				Config: func() string {
+					return `
+resource "netbox_vlan" "test" {
+  name = "Test VLAN"
+  vid  = 0
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRange,
+			},
+			"vid_too_high": {
+				Config: func() string {
+					return `
+resource "netbox_vlan" "test" {
+  name = "Test VLAN"
+  vid  = 5000
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRange,
+			},
+			"invalid_status": {
+				Config: func() string {
+					return `
+resource "netbox_vlan" "test" {
+  name   = "Test VLAN"
+  vid    = 100
+  status = "invalid_status"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidEnum,
+			},
+			"invalid_site_reference": {
+				Config: func() string {
+					return `
+resource "netbox_vlan" "test" {
+  name = "Test VLAN"
+  vid  = 100
+  site = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_group_reference": {
+				Config: func() string {
+					return `
+resource "netbox_vlan" "test" {
+  name  = "Test VLAN"
+  vid   = 100
+  group = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_tenant_reference": {
+				Config: func() string {
+					return `
+resource "netbox_vlan" "test" {
+  name   = "Test VLAN"
+  vid    = 100
+  tenant = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+		CheckDestroy: testutil.CheckVLANDestroy,
+	})
+}
