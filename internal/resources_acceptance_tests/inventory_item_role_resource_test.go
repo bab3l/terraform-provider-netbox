@@ -274,3 +274,37 @@ func TestAccInventoryItemRoleResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccInventoryItemRoleResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_inventory_item_role",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_inventory_item_role" "test" {
+  # name missing
+  slug = "test-role"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_inventory_item_role" "test" {
+  name = "Test Role"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

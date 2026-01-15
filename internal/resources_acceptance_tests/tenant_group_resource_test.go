@@ -364,3 +364,37 @@ resource "netbox_tenant_group" "test" {
 }
 `, parentName, parentSlug, name, slug)
 }
+
+func TestAccTenantGroupResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_tenant_group",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_tenant_group" "test" {
+  # name missing
+  slug = "test-tenant-group"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_tenant_group" "test" {
+  name = "Test Tenant Group"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

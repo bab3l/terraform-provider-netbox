@@ -4,7 +4,7 @@
 
 Implement negative/validation tests for all 97 resources to verify proper error handling for invalid inputs. These tests improve user experience by ensuring clear, actionable error messages.
 
-**Current Status:** Batch 7 COMPLETE ✅ (64/97 resources, 196 tests, 96.9% pass rate overall)
+**Current Status:** Batch 8 COMPLETE ✅ (74/97 resources, 216 tests, 97.7% pass rate overall)
 
 ## Test Pattern
 
@@ -309,7 +309,52 @@ func TestAcc{Resource}Resource_validationErrors(t *testing.T) {
 
 ---
 
-### Batch 8: Tenancy & Contacts (10 resources)
+### Batch 8: Tenancy & Contacts (10 resources) ✅ COMPLETE
+
+**STATUS:** COMPLETED
+**Completion Date:** January 13, 2026
+**Test Results:** 20/20 tests passing (100% pass rate)
+**Execution Time:** 5.866s (main tests) + 1.020s (customfields test) = 6.886s
+
+65. ✅ TenantGroup (2 tests, 100% pass)
+    - Tests: missing_name, missing_slug
+66. ✅ ContactRole (2 tests, 100% pass)
+    - Tests: missing_name, missing_slug
+67. ✅ ContactGroup (2 tests, 100% pass)
+    - Tests: missing_name, missing_slug
+68. ✅ ContactAssignment (3 tests, 100% pass)
+    - Tests: missing_object_type, missing_object_id, missing_contact_id
+69. ✅ Contact (1 test, 100% pass)
+    - Tests: missing_name
+70. ✅ InventoryItemRole (2 tests, 100% pass)
+    - Tests: missing_name, missing_slug
+71. ✅ InventoryItemTemplate (2 tests, 100% pass)
+    - Tests: missing_device_type, missing_name
+72. ✅ Tag (2 tests, 100% pass)
+    - Tests: missing_name, missing_slug
+73. ✅ CustomField (3 tests, 100% pass) [separate customfields directory]
+    - Tests: missing_object_types, missing_type, missing_name
+74. ✅ CustomLink (4 tests, 100% pass)
+    - Tests: missing_object_types, missing_name, missing_link_text, missing_link_url
+
+**Test Focus:**
+- Tenant organization (TenantGroup with name + slug)
+- Contact management (Contact, ContactRole, ContactGroup, ContactAssignment)
+- Complex multi-field requirements (ContactAssignment with object_type + object_id + contact_id)
+- Inventory roles and templates (InventoryItemRole, InventoryItemTemplate)
+- Customization features (Tag, CustomField, CustomLink with object_types arrays)
+- CustomField tests located in separate resources_acceptance_tests_customfields directory with customfields build tag
+
+**Notes:**
+- Batch 8 maintains perfect 100% pass rate streak from Batches 2-8 (176 consecutive passing tests)
+- CustomField tests require customfields build tag and separate test execution
+- ContactAssignment demonstrates most complex requirement pattern (3 required fields)
+- Contact has simplest pattern (name only)
+- Overall project now at 74/97 resources (76.3%) complete with 216 total tests
+
+---
+
+### Batch 9: Circuits & Providers (10 resources)
 
 65. TenantGroup
 66. ContactRole

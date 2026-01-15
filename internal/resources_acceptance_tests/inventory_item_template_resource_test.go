@@ -393,3 +393,43 @@ resource "netbox_inventory_item_template" "test" {
 }
 `, name, manufacturerName, manufacturerSlug, roleName, roleSlug)
 }
+
+func TestAccInventoryItemTemplateResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_inventory_item_template",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_device_type": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_inventory_item_template" "test" {
+  # device_type missing
+  name = "Test Template"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_device_type" "test" {
+  model = "test-device-type"
+  slug = "test-device-type"
+  manufacturer = "test-manufacturer"
+}
+
+resource "netbox_inventory_item_template" "test" {
+  device_type = netbox_device_type.test.id
+  # name missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

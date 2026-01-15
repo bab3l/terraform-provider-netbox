@@ -390,3 +390,53 @@ resource "netbox_custom_field" "test" {
 		},
 	})
 }
+
+func TestAccCustomFieldResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_custom_field",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_object_types": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_custom_field" "test" {
+  # object_types missing
+  type = "text"
+  name = "test_field"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_type": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_custom_field" "test" {
+  object_types = ["dcim.site"]
+  # type missing
+  name = "test_field"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_custom_field" "test" {
+  object_types = ["dcim.site"]
+  type = "text"
+  # name missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

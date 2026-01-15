@@ -384,3 +384,37 @@ resource "netbox_tag" "test" {
 }
 `, name, slug)
 }
+
+func TestAccTagResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_tag",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_tag" "test" {
+  # name missing
+  slug = "test-tag"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_tag" "test" {
+  name = "Test Tag"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

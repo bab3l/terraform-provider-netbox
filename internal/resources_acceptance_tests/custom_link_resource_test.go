@@ -313,3 +313,71 @@ resource "netbox_custom_link" "test" {
 		},
 	})
 }
+
+func TestAccCustomLinkResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_custom_link",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_object_types": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_custom_link" "test" {
+  # object_types missing
+  name = "Test Link"
+  link_text = "Click here"
+  link_url = "https://example.com"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_custom_link" "test" {
+  object_types = ["dcim.site"]
+  # name missing
+  link_text = "Click here"
+  link_url = "https://example.com"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_link_text": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_custom_link" "test" {
+  object_types = ["dcim.site"]
+  name = "Test Link"
+  # link_text missing
+  link_url = "https://example.com"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_link_url": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_custom_link" "test" {
+  object_types = ["dcim.site"]
+  name = "Test Link"
+  link_text = "Click here"
+  # link_url missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

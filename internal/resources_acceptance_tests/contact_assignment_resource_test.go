@@ -452,3 +452,53 @@ func TestAccContactAssignmentResource_removeOptionalFields(t *testing.T) {
 		},
 	})
 }
+
+func TestAccContactAssignmentResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_contact_assignment",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_object_type": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_contact_assignment" "test" {
+  # object_type missing
+  object_id = "1"
+  contact_id = "1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_object_id": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_contact_assignment" "test" {
+  object_type = "dcim.site"
+  # object_id missing
+  contact_id = "1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_contact_id": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_contact_assignment" "test" {
+  object_type = "dcim.site"
+  object_id = "1"
+  # contact_id missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}
