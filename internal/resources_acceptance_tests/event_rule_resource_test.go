@@ -182,6 +182,58 @@ func TestAccEventRuleResource_IDPreservation(t *testing.T) {
 	})
 }
 
+func TestAccConsistency_EventRule_LiteralNames(t *testing.T) {
+	t.Parallel()
+
+	eventRuleName := testutil.RandomName("tf-test-eventrule-lit")
+	webhookName := testutil.RandomName("tf-test-webhook-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterEventRuleCleanup(eventRuleName)
+	cleanup.RegisterWebhookCleanup(webhookName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccEventRuleConsistencyLiteralNamesConfig(eventRuleName, webhookName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_event_rule.test", "id"),
+					resource.TestCheckResourceAttr("netbox_event_rule.test", "name", eventRuleName),
+					resource.TestCheckResourceAttr("netbox_event_rule.test", "action_type", "webhook"),
+					resource.TestCheckResourceAttr("netbox_event_rule.test", "action_object_type", "extras.webhook"),
+					resource.TestCheckResourceAttrSet("netbox_event_rule.test", "action_object_id"),
+				),
+			},
+			{
+				Config:   testAccEventRuleConsistencyLiteralNamesConfig(eventRuleName, webhookName),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func testAccEventRuleConsistencyLiteralNamesConfig(eventRuleName, webhookName string) string {
+	return fmt.Sprintf(`
+resource "netbox_webhook" "test" {
+  name        = %[2]q
+  payload_url = "https://example.com/webhook"
+  http_method = "POST"
+}
+
+resource "netbox_event_rule" "test" {
+  name               = %[1]q
+  object_types       = ["dcim.site"]
+  event_types        = ["object_created"]
+  action_type        = "webhook"
+  action_object_type = "extras.webhook"
+  action_object_id   = netbox_webhook.test.id
+  enabled            = true
+}
+`, eventRuleName, webhookName)
+}
+
 func TestAccEventRuleResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 

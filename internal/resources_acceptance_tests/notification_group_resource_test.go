@@ -152,6 +152,41 @@ func TestAccNotificationGroupResource_IDPreservation(t *testing.T) {
 	})
 }
 
+func TestAccConsistency_NotificationGroup_LiteralNames(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-notifgroup-lit")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterNotificationGroupCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccNotificationGroupConsistencyLiteralNamesConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_notification_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_notification_group.test", "name", name),
+				),
+			},
+			{
+				Config:   testAccNotificationGroupConsistencyLiteralNamesConfig(name),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func testAccNotificationGroupConsistencyLiteralNamesConfig(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_notification_group" "test" {
+  name = %q
+}
+`, name)
+}
+
 func TestAccNotificationGroupResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 

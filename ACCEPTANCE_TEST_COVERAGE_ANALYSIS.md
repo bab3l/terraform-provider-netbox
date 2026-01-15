@@ -15,10 +15,11 @@ Based on analysis of 97 resource types, the following key gaps have been identif
 | Missing externalDeletion Tests | 0 | Medium | ✅ COMPLETE (102% coverage - 101 tests!) |
 | Missing removeOptionalFields Tests | 0 | Medium | ✅ COMPLETE (99/99, 2 skipped) |
 | Missing Full Tests | 0 | Medium | ✅ COMPLETE (99/99 - 100% coverage!) |
-| Missing Consistency/LiteralNames Tests | ~70 | Low | - |
+| Missing Consistency/LiteralNames Tests | 0 | Medium | ✅ COMPLETE (99/99 - 100% coverage!) |
 | Critically Under-tested Resources | 0 | Critical | ✅ RESOLVED |
 
 **Latest Update (2026-01-15):**
+- **Consistency/LiteralNames Test Coverage: 100% COMPLETE!** 🎉 - All 99 resources now have consistency tests verifying proper handling of literal values vs resource references. Added 5 missing tests: event_rule, notification_group, service_template, virtual_chassis, wireless_lan_group. All tests passing (2.029s execution time).
 - **IDPreservation Test Coverage: 100% COMPLETE!** 🎉 - All 99 resources now have ID preservation tests. Added 10 missing tests: Device, FrontPortTemplate, Interface, InterfaceTemplate, PowerFeed, PowerPortTemplate, Prefix, RearPort, RearPortTemplate, Role. All tests passing with proper cleanup (3.344s execution time).
 - **Full Test Coverage: 100% COMPLETE!** 🎉 - All 99 resources now have comprehensive `_full` tests covering all optional fields. Completed in 3 phases: Phase 1 (ContactRole, ContactGroup, ClusterGroup), Phase 2 (ContactAssignment), Phase 3 (CircuitTermination, WirelessLink). All tests passing with clean teardown.
 - **Validation Test Coverage: 100% COMPLETE** - All 97 resources now have comprehensive validation error tests. Total of 270 tests with 98.5% pass rate. Validates required fields, invalid references, and error handling across all resource types. Implemented in 11 batches over 3 days.
@@ -41,7 +42,7 @@ The provider currently has these standard test types:
 6. **`_IDPreservation`** - Test that resource ID remains stable - ✅ 100%
 7. **`_externalDeletion`** - Test handling of resources deleted outside Terraform - ✅ 102%
 8. **`_removeOptionalFields`** - Test clearing optional fields - ✅ 100%
-9. **`Consistency_*_LiteralNames`** - Test using literal values vs resource references - ~30%
+9. **`Consistency_*_LiteralNames`** - Test using literal values vs resource references - ✅ 100%
 
 ---
 

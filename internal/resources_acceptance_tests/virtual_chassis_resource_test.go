@@ -128,6 +128,41 @@ func TestAccVirtualChassisResource_IDPreservation(t *testing.T) {
 
 }
 
+func TestAccConsistency_VirtualChassis_LiteralNames(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-vc-lit")
+	domain := "test-domain-lit.example.com"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualChassisConsistencyLiteralNamesConfig(name, domain),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_chassis.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "domain", domain),
+				),
+			},
+			{
+				Config:   testAccVirtualChassisConsistencyLiteralNamesConfig(name, domain),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func testAccVirtualChassisConsistencyLiteralNamesConfig(name, domain string) string {
+	return fmt.Sprintf(`
+resource "netbox_virtual_chassis" "test" {
+  name   = %q
+  domain = %q
+}
+`, name, domain)
+}
+
 func testAccVirtualChassisResourceConfig_basic(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_virtual_chassis" "test" {

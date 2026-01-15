@@ -231,7 +231,39 @@ func TestAccServiceTemplateResource_external_deletion(t *testing.T) {
 		},
 	})
 }
+func TestAccConsistency_ServiceTemplate_LiteralNames(t *testing.T) {
+	t.Parallel()
 
+	name := testutil.RandomName("service-template-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccServiceTemplateConsistencyLiteralNamesConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_service_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_service_template.test", "name", name),
+				),
+			},
+			{
+				Config:   testAccServiceTemplateConsistencyLiteralNamesConfig(name),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func testAccServiceTemplateConsistencyLiteralNamesConfig(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_service_template" "test" {
+  name     = %q
+  protocol = "tcp"
+  ports    = [80, 443]
+}
+`, name)
+}
 func TestAccServiceTemplateResource_removeOptionalFields(t *testing.T) {
 	t.Parallel()
 
