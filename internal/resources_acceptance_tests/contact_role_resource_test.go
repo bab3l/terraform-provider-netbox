@@ -46,6 +46,40 @@ func TestAccContactRoleResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccContactRoleResource_full(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("test-contact-role-full")
+	slug := testutil.GenerateSlug(name)
+	description := "Full test contact role with all optional fields"
+	tagName := testutil.RandomName("tf-test-tag")
+	tagSlug := testutil.RandomSlug("tf-test-tag")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactRoleCleanup(slug)
+	cleanup.RegisterTagCleanup(tagSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckContactRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactRoleResourceConfig_full(name, slug, description, tagName, tagSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_contact_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "tags.#", "1"),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "tags.0.name", tagName),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "tags.0.slug", tagSlug),
+				),
+			},
+		},
+	})
+}
+
 func TestAccContactRoleResource_withTags(t *testing.T) {
 	t.Parallel()
 
@@ -180,6 +214,27 @@ resource "netbox_contact_role" "test" {
   slug = %q
 }
 `, name, slug)
+}
+
+func testAccContactRoleResourceConfig_full(name, slug, description, tagName, tagSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tag" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_contact_role" "test" {
+  name        = %q
+  slug        = %q
+  description = %q
+  tags = [
+    {
+      name = netbox_tag.test.name
+      slug = netbox_tag.test.slug
+    }
+  ]
+}
+`, tagName, tagSlug, name, slug, description)
 }
 
 func testAccContactRoleResourceConfig_withTags(name, slug, description, tagName, tagSlug string) string {
