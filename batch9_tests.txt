@@ -1,0 +1,19 @@
+﻿go : # github.com/bab3l/terraform-provider-netbox/internal/resources_acceptance_tests
+At line:1 char:42
++ ... der-netbox; go test ./internal/resources_acceptance_tests/... -run 'T ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (# github.com/ba...cceptance_tests:String) [], Re
+   moteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+FAIL	github.com/bab3l/terraform-provider-netbox/internal/resources_acceptance_tests [setup failed]
+internal\resources_acceptance_tests\circuit_resource_test.go:650:10: expected ';', found `
+provider "netbox" {}
+FAIL
+
+resource "netbox_circuit" "test" {
+  # cid missing
+  circuit_provider = "test-provider"
+  type = "test-type"
+}
+`

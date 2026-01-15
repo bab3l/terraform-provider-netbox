@@ -1,0 +1,10 @@
+﻿=== RUN   TestAccCustomFieldResource_validationErrors
+=== RUN   TestAccCustomFieldResource_validationErrors/missing_object_types
+=== RUN   TestAccCustomFieldResource_validationErrors/missing_type
+=== RUN   TestAccCustomFieldResource_validationErrors/missing_name
+--- PASS: TestAccCustomFieldResource_validationErrors (0.86s)
+    --- PASS: TestAccCustomFieldResource_validationErrors/missing_object_types (0.29s)
+    --- PASS: TestAccCustomFieldResource_validationErrors/missing_type (0.29s)
+    --- PASS: TestAccCustomFieldResource_validationErrors/missing_name (0.28s)
+PASS
+ok  	github.com/bab3l/terraform-provider-netbox/internal/resources_acceptance_tests_customfields	1.020s

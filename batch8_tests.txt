@@ -1,0 +1,60 @@
+﻿=== RUN   TestAccContactAssignmentResource_validationErrors
+=== RUN   TestAccContactAssignmentResource_validationErrors/missing_object_type
+=== RUN   TestAccContactAssignmentResource_validationErrors/missing_object_id
+=== RUN   TestAccContactAssignmentResource_validationErrors/missing_contact_id
+--- PASS: TestAccContactAssignmentResource_validationErrors (0.87s)
+    --- PASS: TestAccContactAssignmentResource_validationErrors/missing_object_type (0.30s)
+    --- PASS: TestAccContactAssignmentResource_validationErrors/missing_object_id (0.29s)
+    --- PASS: TestAccContactAssignmentResource_validationErrors/missing_contact_id (0.29s)
+=== RUN   TestAccContactGroupResource_validationErrors
+=== RUN   TestAccContactGroupResource_validationErrors/missing_name
+=== RUN   TestAccContactGroupResource_validationErrors/missing_slug
+--- PASS: TestAccContactGroupResource_validationErrors (0.57s)
+    --- PASS: TestAccContactGroupResource_validationErrors/missing_name (0.28s)
+    --- PASS: TestAccContactGroupResource_validationErrors/missing_slug (0.28s)
+=== RUN   TestAccContactResource_validationErrors
+=== RUN   TestAccContactResource_validationErrors/missing_name
+--- PASS: TestAccContactResource_validationErrors (0.28s)
+    --- PASS: TestAccContactResource_validationErrors/missing_name (0.28s)
+=== RUN   TestAccContactRoleResource_validationErrors
+=== RUN   TestAccContactRoleResource_validationErrors/missing_name
+=== RUN   TestAccContactRoleResource_validationErrors/missing_slug
+--- PASS: TestAccContactRoleResource_validationErrors (0.59s)
+    --- PASS: TestAccContactRoleResource_validationErrors/missing_name (0.28s)
+    --- PASS: TestAccContactRoleResource_validationErrors/missing_slug (0.30s)
+=== RUN   TestAccCustomLinkResource_validationErrors
+=== RUN   TestAccCustomLinkResource_validationErrors/missing_object_types
+=== RUN   TestAccCustomLinkResource_validationErrors/missing_name
+=== RUN   TestAccCustomLinkResource_validationErrors/missing_link_text
+=== RUN   TestAccCustomLinkResource_validationErrors/missing_link_url
+--- PASS: TestAccCustomLinkResource_validationErrors (1.12s)
+    --- PASS: TestAccCustomLinkResource_validationErrors/missing_object_types (0.28s)
+    --- PASS: TestAccCustomLinkResource_validationErrors/missing_name (0.28s)
+    --- PASS: TestAccCustomLinkResource_validationErrors/missing_link_text (0.28s)
+    --- PASS: TestAccCustomLinkResource_validationErrors/missing_link_url (0.28s)
+=== RUN   TestAccInventoryItemRoleResource_validationErrors
+=== RUN   TestAccInventoryItemRoleResource_validationErrors/missing_name
+=== RUN   TestAccInventoryItemRoleResource_validationErrors/missing_slug
+--- PASS: TestAccInventoryItemRoleResource_validationErrors (0.56s)
+    --- PASS: TestAccInventoryItemRoleResource_validationErrors/missing_name (0.28s)
+    --- PASS: TestAccInventoryItemRoleResource_validationErrors/missing_slug (0.28s)
+=== RUN   TestAccInventoryItemTemplateResource_validationErrors
+=== RUN   TestAccInventoryItemTemplateResource_validationErrors/missing_device_type
+=== RUN   TestAccInventoryItemTemplateResource_validationErrors/missing_name
+--- PASS: TestAccInventoryItemTemplateResource_validationErrors (0.57s)
+    --- PASS: TestAccInventoryItemTemplateResource_validationErrors/missing_device_type (0.28s)
+    --- PASS: TestAccInventoryItemTemplateResource_validationErrors/missing_name (0.29s)
+=== RUN   TestAccTagResource_validationErrors
+=== RUN   TestAccTagResource_validationErrors/missing_name
+=== RUN   TestAccTagResource_validationErrors/missing_slug
+--- PASS: TestAccTagResource_validationErrors (0.56s)
+    --- PASS: TestAccTagResource_validationErrors/missing_name (0.28s)
+    --- PASS: TestAccTagResource_validationErrors/missing_slug (0.28s)
+=== RUN   TestAccTenantGroupResource_validationErrors
+=== RUN   TestAccTenantGroupResource_validationErrors/missing_name
+=== RUN   TestAccTenantGroupResource_validationErrors/missing_slug
+--- PASS: TestAccTenantGroupResource_validationErrors (0.57s)
+    --- PASS: TestAccTenantGroupResource_validationErrors/missing_name (0.28s)
+    --- PASS: TestAccTenantGroupResource_validationErrors/missing_slug (0.29s)
+PASS
+ok  	github.com/bab3l/terraform-provider-netbox/internal/resources_acceptance_tests	5.866s
