@@ -414,3 +414,60 @@ resource "netbox_inventory_item" "test" {
 	config += "}\n"
 	return config
 }
+
+func TestAccInventoryItemResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_inventory_item",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_device": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_inventory_item" "test" {
+  # device missing
+  name = "test-inventory"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name = "test-site"
+  slug = "test-site"
+}
+
+resource "netbox_device_role" "test" {
+  name = "test-role"
+  slug = "test-role"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "test-device-type"
+  slug         = "test-device-type"
+  manufacturer = "test-manufacturer"
+}
+
+resource "netbox_device" "test" {
+  name        = "test-device"
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_inventory_item" "test" {
+  device = netbox_device.test.id
+  # name missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

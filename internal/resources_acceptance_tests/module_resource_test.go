@@ -700,3 +700,99 @@ resource "netbox_module" "test" {
 		},
 	})
 }
+
+func TestAccModuleResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_module",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_device": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_module" "test" {
+  # device missing
+  module_bay = 1
+  module_type = "test"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_module_bay": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name = "test-site"
+  slug = "test-site"
+}
+
+resource "netbox_device_role" "test" {
+  name = "test-role"
+  slug = "test-role"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "test-device-type"
+  slug         = "test-device-type"
+  manufacturer = "test-manufacturer"
+}
+
+resource "netbox_device" "test" {
+  name        = "test-device"
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_module" "test" {
+  device = netbox_device.test.id
+  # module_bay missing
+  module_type = "test"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_module_type": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name = "test-site"
+  slug = "test-site"
+}
+
+resource "netbox_device_role" "test" {
+  name = "test-role"
+  slug = "test-role"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "test-device-type"
+  slug         = "test-device-type"
+  manufacturer = "test-manufacturer"
+}
+
+resource "netbox_device" "test" {
+  name        = "test-device"
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_module" "test" {
+  device     = netbox_device.test.id
+  module_bay = 1
+  # module_type missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

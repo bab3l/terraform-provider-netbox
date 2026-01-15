@@ -225,3 +225,37 @@ resource "netbox_cluster_group" "test" {
 }
 `, name, slug, description)
 }
+
+func TestAccClusterGroupResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_cluster_group",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_cluster_group" "test" {
+  # name missing
+  slug = "test-cluster-group"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_cluster_group" "test" {
+  name = "Test Cluster Group"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}
