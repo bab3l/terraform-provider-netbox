@@ -356,3 +356,91 @@ resource "netbox_event_rule" "test" {
 }
 `, eventRuleName, webhookName, description)
 }
+
+func TestAccEventRuleResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_event_rule",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_event_rule" "test" {
+  # name missing
+  object_types = ["dcim.site"]
+  event_types = ["object_created"]
+  action_type = "webhook"
+  action_object_type = "extras.webhook"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_object_types": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_event_rule" "test" {
+  name = "Test Rule"
+  # object_types missing
+  event_types = ["object_created"]
+  action_type = "webhook"
+  action_object_type = "extras.webhook"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_event_types": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_event_rule" "test" {
+  name = "Test Rule"
+  object_types = ["dcim.site"]
+  # event_types missing
+  action_type = "webhook"
+  action_object_type = "extras.webhook"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_action_type": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_event_rule" "test" {
+  name = "Test Rule"
+  object_types = ["dcim.site"]
+  event_types = ["object_created"]
+  # action_type missing
+  action_object_type = "extras.webhook"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_action_object_type": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_event_rule" "test" {
+  name = "Test Rule"
+  object_types = ["dcim.site"]
+  event_types = ["object_created"]
+  action_type = "webhook"
+  # action_object_type missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

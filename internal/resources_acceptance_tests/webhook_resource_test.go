@@ -338,3 +338,37 @@ func TestAccWebhookResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccWebhookResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_webhook",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_webhook" "test" {
+  # name missing
+  payload_url = "https://example.com/webhook"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_payload_url": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_webhook" "test" {
+  name = "Test Webhook"
+  # payload_url missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

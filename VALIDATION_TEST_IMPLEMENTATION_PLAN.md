@@ -4,7 +4,7 @@
 
 Implement negative/validation tests for all 97 resources to verify proper error handling for invalid inputs. These tests improve user experience by ensuring clear, actionable error messages.
 
-**Current Status:** Batch 8 COMPLETE ✅ (74/97 resources, 216 tests, 97.7% pass rate overall)
+**Current Status:** Batch 9 COMPLETE ✅ (84/97 resources, 240 tests, 98.3% pass rate overall)
 
 ## Test Pattern
 
@@ -354,50 +354,45 @@ func TestAcc{Resource}Resource_validationErrors(t *testing.T) {
 
 ---
 
-### Batch 9: Circuits & Providers (10 resources)
+### Batch 9: Circuits & Providers (10 resources) ✅ COMPLETE
 
-65. TenantGroup
-66. ContactRole
-67. ContactGroup
-68. ContactAssignment
-69. Contact
-70. InventoryItemRole
-71. InventoryItemTemplate
-72. Tag
-73. CustomField
-74. CustomLink
+**STATUS:** COMPLETED
+**Completion Date:** January 15, 2026
+**Test Results:** 24/24 tests passing (100% pass rate)
+**Execution Time:** 6.865s
 
-**Test Focus:**
-- Hierarchical validation (TenantGroup, ContactGroup)
-- Contact assignment validation
-- Tag slug format validation
-- Custom field type validation
-
-**Estimated Time:** 2 days
-
----
-
-### Batch 9: Circuits (10 resources)
-
-75. Provider
-76. ProviderAccount
-77. ProviderNetwork
-78. Circuit
-79. CircuitType
-80. CircuitTermination
-81. PowerPanel
-82. PowerFeed
-83. Webhook
-84. EventRule
+75. ✅ Provider (2 tests, 100% pass)
+    - Tests: missing_name, missing_slug
+76. ✅ ProviderAccount (2 tests, 100% pass)
+    - Tests: missing_circuit_provider, missing_account
+77. ✅ ProviderNetwork (2 tests, 100% pass)
+    - Tests: missing_circuit_provider, missing_name
+78. ✅ Circuit (3 tests, 100% pass)
+    - Tests: missing_cid, missing_circuit_provider, missing_type
+79. ✅ CircuitType (2 tests, 100% pass)
+    - Tests: missing_name, missing_slug
+80. ✅ CircuitTermination (2 tests, 100% pass)
+    - Tests: missing_circuit, missing_term_side
+81. ✅ PowerPanel (2 tests, 100% pass)
+    - Tests: missing_site, missing_name
+82. ✅ PowerFeed (2 tests, 100% pass)
+    - Tests: missing_power_panel, missing_name
+83. ✅ Webhook (2 tests, 100% pass)
+    - Tests: missing_name, missing_payload_url
+84. ✅ EventRule (5 tests, 100% pass)
+    - Tests: missing_name, missing_object_types, missing_event_types, missing_action_type, missing_action_object_type
 
 **Test Focus:**
-- Invalid circuit IDs
-- Provider reference validation
-- Power feed validation
-- Webhook URL validation
-- Event rule action validation
+- Circuit provider management (Provider with name + slug, ProviderAccount with provider + account, ProviderNetwork with provider + name)
+- Circuit resources (Circuit with cid + provider + type, CircuitType with name + slug, CircuitTermination with circuit + term_side)
+- Power infrastructure (PowerPanel with site + name, PowerFeed with power_panel + name)
+- Event automation (Webhook with name + payload_url, EventRule with 5 required fields - most complex in batch)
 
-**Estimated Time:** 2 days
+**Notes:**
+- Batch 9 maintains perfect 100% pass rate streak from Batches 2-9 (200 consecutive passing tests)
+- EventRule has most complex requirement pattern with 5 required fields (name, object_types, event_types, action_type, action_object_type)
+- Circuit resources form complete circuit provisioning workflow
+- Overall progress: 84/97 resources (86.6%), 240 total tests, 98.3% pass rate
 
 ---
 

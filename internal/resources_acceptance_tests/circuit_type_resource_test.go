@@ -344,3 +344,37 @@ func TestAccCircuitTypeResource_removeOptionalFields(t *testing.T) {
 		},
 	})
 }
+
+func TestAccCircuitTypeResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_circuit_type",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_circuit_type" "test" {
+  # name missing
+  slug = "test-type"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_circuit_type" "test" {
+  name = "Test Type"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

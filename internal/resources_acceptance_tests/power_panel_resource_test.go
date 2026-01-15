@@ -353,3 +353,42 @@ resource "netbox_power_panel" "test" {
 }
 `, siteName, siteSlug, locationName, locationSlug, panelName)
 }
+
+func TestAccPowerPanelResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_power_panel",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_site": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_power_panel" "test" {
+  # site missing
+  name = "Test Panel"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_power_panel" "test" {
+  site = netbox_site.test.id
+  # name missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

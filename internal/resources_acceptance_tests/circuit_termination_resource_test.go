@@ -636,3 +636,53 @@ resource "netbox_circuit_termination" "test" {
 		},
 	})
 }
+
+func TestAccCircuitTerminationResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_circuit_termination",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_circuit": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_circuit_termination" "test" {
+  # circuit missing
+  term_side = "A"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_term_side": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_provider" "test" {
+  name = "Test Provider"
+  slug = "test-provider"
+}
+
+resource "netbox_circuit_type" "test" {
+  name = "Test Type"
+  slug = "test-type"
+}
+
+resource "netbox_circuit" "test" {
+  cid = "TEST-001"
+  circuit_provider = netbox_provider.test.id
+  type = netbox_circuit_type.test.id
+}
+
+resource "netbox_circuit_termination" "test" {
+  circuit = netbox_circuit.test.id
+  # term_side missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}
