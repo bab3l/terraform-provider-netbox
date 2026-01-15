@@ -500,3 +500,37 @@ resource "netbox_config_context" "test" {
 }
 `, siteName, siteSlug, tenantName, tenantSlug, tagName, tagSlug, name, description, weight, isActive, data)
 }
+
+func TestAccConfigContextResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_config_context",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_config_context" "test" {
+  # name missing
+  data = "{}"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_data": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_config_context" "test" {
+  name = "Test Context"
+  # data missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

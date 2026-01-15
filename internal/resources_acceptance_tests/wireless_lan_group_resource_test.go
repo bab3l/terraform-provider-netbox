@@ -260,3 +260,37 @@ resource "netbox_wireless_lan_group" "test" {
 }
 `, parentName, parentSlug, name, slug)
 }
+
+func TestAccWirelessLANGroupResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_wireless_lan_group",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_wireless_lan_group" "test" {
+  # name missing
+  slug = "test-group"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_wireless_lan_group" "test" {
+  name = "Test Group"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

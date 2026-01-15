@@ -4,7 +4,7 @@
 
 Implement negative/validation tests for all 97 resources to verify proper error handling for invalid inputs. These tests improve user experience by ensuring clear, actionable error messages.
 
-**Current Status:** Batch 9 COMPLETE ✅ (84/97 resources, 240 tests, 98.3% pass rate overall)
+**Current Status:** Batch 10 COMPLETE ✅ (90/97 resources, 253 tests, 98.4% pass rate overall)
 
 ## Test Pattern
 
@@ -396,24 +396,44 @@ func TestAcc{Resource}Resource_validationErrors(t *testing.T) {
 
 ---
 
-### Batch 10: Wireless & Misc (7 resources)
+### Batch 10: Wireless & Misc (6 resources) ✅ COMPLETED
 
-85. WirelessLAN
-86. WirelessLANGroup
-87. WirelessLink
-88. ConfigContext
-89. ConfigTemplate
-90. ExportTemplate
-91. ImageAttachment
+**Status:** COMPLETED
+**Completion Date:** January 15, 2026
+**Test Results:** 13/13 tests passing (100% pass rate)
+**Execution Time:** 4.216s
+
+85. **WirelessLAN** - 1 test
+    - missing_ssid: Tests ssid requirement
+86. **WirelessLANGroup** - 2 tests
+    - missing_name: Tests name requirement
+    - missing_slug: Tests slug requirement
+87. **WirelessLink** - 2 tests
+    - missing_interface_a: Tests interface_a requirement
+    - missing_interface_b: Tests interface_b requirement
+88. **ConfigContext** - 2 tests
+    - missing_name: Tests name requirement
+    - missing_data: Tests JSON data requirement
+89. **ConfigTemplate** - 2 tests
+    - missing_name: Tests name requirement
+    - missing_template_code: Tests Jinja2 template code requirement
+90. **ExportTemplate** - 3 tests
+    - missing_name: Tests name requirement
+    - missing_object_types: Tests object_types array requirement
+    - missing_template_code: Tests Jinja2 template code requirement
 
 **Test Focus:**
-- Wireless channel validation
-- SSID validation
-- JSON schema validation (ConfigContext)
-- Template syntax validation
-- Image format validation
+- Wireless LAN configuration (WirelessLAN with SSID validation)
+- Wireless infrastructure hierarchy (WirelessLANGroup with name + slug)
+- Wireless connections (WirelessLink with dual interface requirements)
+- Configuration data management (ConfigContext with JSON data)
+- Template rendering (ConfigTemplate and ExportTemplate with Jinja2)
 
-**Estimated Time:** 2 days
+**Notable Achievements:**
+- 213 consecutive passing tests (Batches 2-10)
+- 90/97 resources complete (92.8% overall progress)
+- ExportTemplate has 3 required fields representing complex template configuration
+- Perfect 100% pass rate maintained through Batch 10
 
 ---
 
@@ -484,7 +504,7 @@ For each resource, test:
 | Batch 7 | 8 | Not Started | - | - |
 | Batch 8 | 10 | Not Started | - | - |
 | Batch 9 | 10 | Not Started | - | - |
-| Batch 10 | 7 | Not Started | - | - |
+| Batch 10 | 6 | COMPLETED | 13 | 100% |
 | Batch 11 | 6 | Not Started | - | - |
 | **Total** | **97** | **4%** | - | 4/97 resources with validation tests added |
 

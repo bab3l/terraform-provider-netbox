@@ -606,3 +606,37 @@ resource "netbox_wireless_link" "test" {
 }
 `, name)
 }
+
+func TestAccWirelessLinkResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_wireless_link",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_interface_a": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_wireless_link" "test" {
+  # interface_a missing
+  interface_b = "1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_interface_b": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_wireless_link" "test" {
+  interface_a = "1"
+  # interface_b missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}
