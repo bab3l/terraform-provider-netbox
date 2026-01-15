@@ -49,6 +49,48 @@ func TestAccFrontPortTemplateResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccFrontPortTemplateResource_update(t *testing.T) {
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("mfr")
+	manufacturerSlug := testutil.RandomSlug("mfr")
+	deviceTypeName := testutil.RandomName("dt")
+	deviceTypeSlug := testutil.RandomSlug("dt")
+	frontPortName := testutil.RandomName("front-port")
+	updatedFrontPortName := testutil.RandomName("front-port-updated")
+	rearPortName := testutil.RandomName("rear-port")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccFrontPortTemplateResourceConfig_forUpdate(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, testutil.Description1),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_front_port_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "name", frontPortName),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "type", "8p8c"),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "description", testutil.Description1),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "label", "Label 1"),
+				),
+			},
+			{
+				Config: testAccFrontPortTemplateResourceConfig_forUpdate(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, updatedFrontPortName, testutil.Description2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "name", updatedFrontPortName),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "type", "lc"),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "description", testutil.Description2),
+					resource.TestCheckResourceAttr("netbox_front_port_template.test", "label", "Label 2"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccFrontPortTemplateResource_full(t *testing.T) {
 	t.Parallel()
 
@@ -216,6 +258,46 @@ resource "netbox_front_port_template" "test" {
   rear_port   = netbox_rear_port_template.test.name
 }
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, portType, frontPortName, portType)
+}
+
+func testAccFrontPortTemplateResourceConfig_forUpdate(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, description string) string {
+	// Toggle between different types and labels based on description
+	portType := "8p8c"
+	label := "Label 1"
+
+	if description == testutil.Description2 {
+		portType = "lc"
+		label = "Label 2"
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_rear_port_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %q
+  type        = %q
+  positions   = 2
+}
+
+resource "netbox_front_port_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %q
+  type        = %q
+  rear_port   = netbox_rear_port_template.test.name
+  label       = %q
+  description = %q
+}
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, portType, frontPortName, portType, label, description)
 }
 
 func testAccFrontPortTemplateResourceFull(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, portType, label, color, description string, rearPortPosition int32) string {

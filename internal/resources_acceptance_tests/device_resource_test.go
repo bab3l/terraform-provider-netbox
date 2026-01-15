@@ -60,6 +60,57 @@ func TestAccDeviceResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccDeviceResource_update(t *testing.T) {
+	t.Parallel()
+
+	deviceName := testutil.RandomName("tf-test-device-update")
+	updatedDeviceName := testutil.RandomName("tf-test-device-updated")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr")
+	deviceTypeModel := testutil.RandomName("tf-test-device-type")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dt")
+	deviceRoleName := testutil.RandomName("tf-test-device-role")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-dr")
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+	serial := testutil.RandomName("SN")
+	updatedSerial := testutil.RandomName("SN-UPD")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceCleanup(updatedDeviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceResourceConfig_forUpdate(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, serial, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device.test", "id"),
+					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceName),
+					resource.TestCheckResourceAttr("netbox_device.test", "status", "active"),
+					resource.TestCheckResourceAttr("netbox_device.test", "serial", serial),
+					resource.TestCheckResourceAttr("netbox_device.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccDeviceResourceConfig_forUpdate(updatedDeviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, updatedSerial, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_device.test", "name", updatedDeviceName),
+					resource.TestCheckResourceAttr("netbox_device.test", "status", "planned"),
+					resource.TestCheckResourceAttr("netbox_device.test", "serial", updatedSerial),
+					resource.TestCheckResourceAttr("netbox_device.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDeviceResource_full(t *testing.T) {
 
 	t.Parallel()
@@ -310,6 +361,48 @@ resource "netbox_device" "test" {
   site        = netbox_site.test.id
 }
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName)
+}
+
+func testAccDeviceResourceConfig_forUpdate(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, serial, description string) string {
+	// Toggle status between active and planned to test updates
+	status := "active"
+	if description == testutil.Description2 {
+		status = "planned"
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[3]q
+  slug         = %[4]q
+}
+
+resource "netbox_device_role" "test" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_site" "test" {
+  name   = %[7]q
+  slug   = %[8]q
+  status = "active"
+}
+
+resource "netbox_device" "test" {
+  name        = %[9]q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+  status      = %[12]q
+  serial      = %[10]q
+  description = %[11]q
+}
+`, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, serial, description, status)
 }
 
 func testAccDeviceResourceConfig_full(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, serial, assetTag string) string {
