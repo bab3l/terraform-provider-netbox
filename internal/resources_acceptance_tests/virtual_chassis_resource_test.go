@@ -331,3 +331,21 @@ resource "netbox_virtual_chassis" "test" {
 }
 `, name)
 }
+
+func TestAccVirtualChassisResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_virtual_chassis",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_virtual_chassis" "test" {
+  domain = "test.example.com"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

@@ -955,3 +955,41 @@ resource "netbox_cable" "test" {
 }
 `, siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, description, comments, label)
 }
+
+func TestAccCableResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_cable",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_a_terminations": {
+				Config: func() string {
+					return `
+resource "netbox_cable" "test" {
+  b_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = 1
+    }
+  ]
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_b_terminations": {
+				Config: func() string {
+					return `
+resource "netbox_cable" "test" {
+  a_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = 1
+    }
+  ]
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

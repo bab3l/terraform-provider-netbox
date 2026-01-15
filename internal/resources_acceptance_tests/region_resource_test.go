@@ -388,3 +388,31 @@ resource "netbox_region" "child" {
 }
 `, parentName, parentSlug, childName, childSlug)
 }
+
+func TestAccRegionResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_region",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_region" "test" {
+  slug = "test-region"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+resource "netbox_region" "test" {
+  name = "Test Region"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

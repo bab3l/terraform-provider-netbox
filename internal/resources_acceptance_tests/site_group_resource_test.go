@@ -329,3 +329,31 @@ resource "netbox_site_group" "test" {
 }
 `, parentName, parentSlug, name, slug)
 }
+
+func TestAccSiteGroupResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_site_group",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_site_group" "test" {
+  slug = "test-group"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+resource "netbox_site_group" "test" {
+  name = "Test Group"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

@@ -4,7 +4,7 @@
 
 Implement negative/validation tests for all 97 resources to verify proper error handling for invalid inputs. These tests improve user experience by ensuring clear, actionable error messages.
 
-**Current Status:** Batch 3 COMPLETE ✅ (30/97 resources, 120 tests, 90.8% pass rate overall)
+**Current Status:** Batch 4 COMPLETE ✅ (38/97 resources, 141 tests, 93.6% pass rate overall)
 
 ## Test Pattern
 
@@ -129,24 +129,45 @@ func TestAcc{Resource}Resource_validationErrors(t *testing.T) {
 
 ---
 
-### Batch 4: DCIM - Racks & Locations (8 resources)
+### Batch 4: DCIM - Racks & Locations (8 resources) ✅ COMPLETE
+**Status: 100% complete | 21 tests | 21 passing (100%)**
 
-31. RackRole
-32. RackType
-33. RackReservation
-34. Location
-35. Region
-36. SiteGroup
-37. Cable
-38. VirtualChassis
+31. ✅ RackRole (2 tests, 100% pass)
+    - Tests: missing_name, missing_slug
+32. ✅ RackType (4 tests, 100% pass)
+    - Tests: missing_manufacturer, missing_model, missing_slug, invalid_manufacturer_reference
+33. ✅ RackReservation (4 tests, 100% pass)
+    - Tests: missing_rack, missing_units, missing_user, invalid_rack_reference
+34. ✅ Location (4 tests, 100% pass)
+    - Tests: missing_name, missing_slug, missing_site, invalid_site_reference
+35. ✅ Region (2 tests, 100% pass)
+    - Tests: missing_name, missing_slug
+36. ✅ SiteGroup (2 tests, 100% pass)
+    - Tests: missing_name, missing_slug
+37. ✅ Cable (2 tests, 100% pass)
+    - Tests: missing_a_terminations, missing_b_terminations
+38. ✅ VirtualChassis (1 test, 100% pass)
+    - Tests: missing_name
 
-**Test Focus:**
-- Hierarchical validation (Location, Region, SiteGroup)
-- Rack unit conflicts
-- Cable termination validation
-- Invalid height/width/depth values
+**Test Categories:**
+- Simple name + slug: RackRole, Region, SiteGroup
+- Reference validation: RackType (manufacturer), Location (site)
+- Multi-reference: RackReservation (rack + units + user)
+- Complex nested: Cable (a_terminations + b_terminations)
+- Minimal: VirtualChassis (name only)
 
-**Estimated Time:** 2 days
+**Statistics:**
+- **Total Tests**: 21
+- **Pass Rate**: 100%
+- **Execution Time**: 6.480s
+- **Date Completed**: January 15, 2025
+
+**Key Learnings:**
+- Hierarchical resources (Location, Region, SiteGroup) work consistently with site/parent references
+- Cable resource with nested termination structures validated properly
+- RackReservation multi-field validation (rack + units + user) worked perfectly
+- Reference validation (manufacturer, site, rack, user lookups) all passed
+- Maintained 100% pass rate streak from Batches 2 & 3 (total 84 tests at 100%)
 
 ---
 

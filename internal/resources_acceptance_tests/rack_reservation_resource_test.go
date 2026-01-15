@@ -553,3 +553,68 @@ resource "netbox_rack_reservation" "test" {
 }
 `, siteName, siteSlug, rackName, tenantName, tenantSlug, description)
 }
+
+func TestAccRackReservationResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_rack_reservation",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_rack": {
+				Config: func() string {
+					return `
+data "netbox_user" "admin" {
+  username = "admin"
+}
+
+resource "netbox_rack_reservation" "test" {
+  units = [1, 2]
+  user  = data.netbox_user.admin.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_units": {
+				Config: func() string {
+					return `
+data "netbox_user" "admin" {
+  username = "admin"
+}
+
+resource "netbox_rack_reservation" "test" {
+  rack = "1"
+  user = data.netbox_user.admin.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_user": {
+				Config: func() string {
+					return `
+resource "netbox_rack_reservation" "test" {
+  rack  = "1"
+  units = [1, 2]
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_rack_reference": {
+				Config: func() string {
+					return `
+data "netbox_user" "admin" {
+  username = "admin"
+}
+
+resource "netbox_rack_reservation" "test" {
+  rack  = "99999"
+  units = [1, 2]
+  user  = data.netbox_user.admin.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}
