@@ -282,4 +282,33 @@ resource "netbox_device_role" "test" {
 `, name, slug, description)
 }
 
+// TestAccDeviceRoleResource_validationErrors tests validation error scenarios.
+func TestAccDeviceRoleResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_device_role",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_device_role" "test" {
+  slug = "test-role"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+resource "netbox_device_role" "test" {
+  name = "Test Role"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}
+
 // NOTE: Custom field tests for device_role resource are in resources_acceptance_tests_customfields package

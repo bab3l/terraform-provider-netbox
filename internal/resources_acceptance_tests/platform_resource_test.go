@@ -226,6 +226,46 @@ resource "netbox_platform" "test" {
 `, manufacturerName, manufacturerSlug, platformName, platformSlug)
 }
 
+// TestAccPlatformResource_validationErrors tests validation error scenarios.
+func TestAccPlatformResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_platform",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_platform" "test" {
+  slug = "test-platform"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+resource "netbox_platform" "test" {
+  name = "Test Platform"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_manufacturer_reference": {
+				Config: func() string {
+					return `
+resource "netbox_platform" "test" {
+  name         = "Test Platform"
+  slug         = "test-platform"
+  manufacturer = "99999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}
 func testAccPlatformResourceConfig_full(platformName, platformSlug, manufacturerName, manufacturerSlug, description string) string {
 	return fmt.Sprintf(`
 terraform {

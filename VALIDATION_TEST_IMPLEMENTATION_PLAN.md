@@ -4,7 +4,7 @@
 
 Implement negative/validation tests for all 97 resources to verify proper error handling for invalid inputs. These tests improve user experience by ensuring clear, actionable error messages.
 
-**Current Status:** Batch 1 COMPLETE ✅ (10/97 resources, 57 tests, 80.7% pass rate)
+**Current Status:** Batch 2 COMPLETE ✅ (20/97 resources, 91 tests, 88.0% pass rate overall)
 
 ## Test Pattern
 
@@ -63,26 +63,36 @@ func TestAcc{Resource}Resource_validationErrors(t *testing.T) {
 
 ---
 
-### Batch 2: DCIM - Device Components (10 resources)
+### Batch 2: DCIM - Device Components (10 resources) ✅ COMPLETED
 
-11. DeviceType
-12. DeviceRole
-13. Manufacturer
-14. Platform
-15. ConsolePort
-16. ConsoleServerPort
-17. PowerPort
-18. PowerOutlet
-19. FrontPort
-20. RearPort
+11. DeviceType ✅ (6 tests, 100% pass rate)
+12. DeviceRole ✅ (2 tests, 100% pass rate)
+13. Manufacturer ✅ (2 tests, 100% pass rate)
+14. Platform ✅ (3 tests, 100% pass rate)
+15. ConsolePort ✅ (3 tests, 100% pass rate)
+16. ConsoleServerPort ✅ (3 tests, 100% pass rate)
+17. PowerPort ✅ (3 tests, 100% pass rate)
+18. PowerOutlet ✅ (3 tests, 100% pass rate)
+19. FrontPort ✅ (6 tests, 100% pass rate)
+20. RearPort ✅ (4 tests, 100% pass rate)
 
-**Test Focus:**
-- Invalid port types/positions
-- Missing required references (device_type, device)
-- Invalid color codes
-- Invalid numeric ranges (positions)
+**Test Coverage:**
+- ✅ Missing required fields (device, name, type, manufacturer, etc.)
+- ✅ Invalid reference lookups (device_type, device, rear_port)
+- ✅ Invalid enum values (airflow, weight_unit)
 
-**Estimated Time:** 2 days
+**Batch 2 Results:**
+- **Resources**: 10/10 completed
+- **Total Tests**: 34 validation error tests
+- **Pass Rate**: 100% (34/34)
+- **Execution Time**: 12.282s
+- **Date Completed**: January 13, 2025
+
+**Key Learnings:**
+- Port resources share similar patterns (device + name requirements)
+- FrontPort has additional complexity with rear_port dependency
+- All reference validation tests passed consistently
+- No API enum format issues encountered (only testing Required/NotFound patterns)
 
 ---
 

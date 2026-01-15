@@ -694,3 +694,72 @@ resource "netbox_rear_port" "test" {
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, label, description)
 }
+
+func TestAccRearPortResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_rear_port",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_device": {
+				Config: func() string {
+					return `
+resource "netbox_rear_port" "test" {
+  name = "Rear1"
+  type = "8p8c"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_device" "test" {
+  name = "test-device"
+  device_type = "1"
+  role = "1"
+  site = "1"
+  status = "active"
+}
+
+resource "netbox_rear_port" "test" {
+  device = netbox_device.test.id
+  type = "8p8c"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_type": {
+				Config: func() string {
+					return `
+resource "netbox_device" "test" {
+  name = "test-device"
+  device_type = "1"
+  role = "1"
+  site = "1"
+  status = "active"
+}
+
+resource "netbox_rear_port" "test" {
+  device = netbox_device.test.id
+  name = "Rear1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_device_reference": {
+				Config: func() string {
+					return `
+resource "netbox_rear_port" "test" {
+  device = "99999"
+  name = "Rear1"
+  type = "8p8c"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}
