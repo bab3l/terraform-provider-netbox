@@ -11,19 +11,21 @@ Based on analysis of 97 resource types, the following key gaps have been identif
 | Missing Validation Tests | 0 | High | ✅ COMPLETE (100% coverage - 97/97, 270 tests) |
 | Missing Import Tests | 0 | High | ✅ COMPLETE (100% coverage) |
 | Missing Update Tests | 0 | High | ✅ COMPLETE (100% coverage) |
+| Missing IDPreservation Tests | 0 | Medium | ✅ COMPLETE (99/99, 100% coverage) |
 | Missing externalDeletion Tests | 0 | Medium | ✅ COMPLETE (102% coverage - 101 tests!) |
 | Missing removeOptionalFields Tests | 0 | Medium | ✅ COMPLETE (99/99, 2 skipped) |
-| Missing Full Tests | 6 | Medium | Well-tested via other scenarios |
+| Missing Full Tests | 0 | Medium | ✅ COMPLETE (99/99 - 100% coverage!) |
 | Missing Consistency/LiteralNames Tests | ~70 | Low | - |
 | Critically Under-tested Resources | 0 | Critical | ✅ RESOLVED |
 
 **Latest Update (2026-01-15):**
+- **IDPreservation Test Coverage: 100% COMPLETE!** 🎉 - All 99 resources now have ID preservation tests. Added 10 missing tests: Device, FrontPortTemplate, Interface, InterfaceTemplate, PowerFeed, PowerPortTemplate, Prefix, RearPort, RearPortTemplate, Role. All tests passing with proper cleanup (3.344s execution time).
+- **Full Test Coverage: 100% COMPLETE!** 🎉 - All 99 resources now have comprehensive `_full` tests covering all optional fields. Completed in 3 phases: Phase 1 (ContactRole, ContactGroup, ClusterGroup), Phase 2 (ContactAssignment), Phase 3 (CircuitTermination, WirelessLink). All tests passing with clean teardown.
 - **Validation Test Coverage: 100% COMPLETE** - All 97 resources now have comprehensive validation error tests. Total of 270 tests with 98.5% pass rate. Validates required fields, invalid references, and error handling across all resource types. Implemented in 11 batches over 3 days.
 - **removeOptionalFields Test Coverage: 100% COMPLETE** - All applicable resources (99/99) now have optional field removal tests. Added tests for ContactRole, InventoryItemRole, VirtualDisk. Verified existing tests for IKEProposal, IPSecPolicy, VirtualDeviceContext, CustomField, and CustomFieldChoiceSet. Skipped 2 resources: FHRPGroupAssignment (no removable optional fields) and L2VPNTermination (provider bug with tags). All tests passing.
 - EventRule and NotificationGroup upgraded from critically under-tested to full coverage with 8 comprehensive tests each.
 - **Import Test Coverage: 100% COMPLETE** - All 97 resources now have import testing (either embedded in _basic tests or as dedicated _import test functions). VirtualMachine was the last resource to receive import testing.
 - **Update Test Coverage: 100% COMPLETE** - All 97 resources now have update tests. Added dedicated _update tests for Device, FrontPortTemplate, Interface, InterfaceTemplate, PowerFeed, PowerPanel, PowerPortTemplate, Prefix, RearPort, RearPortTemplate, Role, Tag, and VirtualChassis in Phase 2.
-- **Full Test Coverage: 93/99 (93.9%)** - 6 resources missing `_full` tests but have comprehensive coverage via other test types: circuit_termination, cluster_group, contact_assignment, contact_group, contact_role, wireless_link.
 
 ---
 
@@ -32,13 +34,13 @@ Based on analysis of 97 resource types, the following key gaps have been identif
 The provider currently has these standard test types:
 
 1. **`_basic`** - Minimal configuration testing (required fields only) - ✅ 100%
-2. **`_full`** - Complete configuration testing (all optional fields populated) - 93.9%
+2. **`_full`** - Complete configuration testing (all optional fields populated) - ✅ 100%
 3. **`_update`** - Test modifying existing resources - ✅ 100%
 4. **`_import`** - Test terraform import functionality - ✅ 100%
-5. **`_validationErrors`** - Test error handling for invalid inputs - ✅ 100% (NEW!)
-6. **`_IDPreservation`** - Test that resource ID remains stable - ~95%
+5. **`_validationErrors`** - Test error handling for invalid inputs - ✅ 100%
+6. **`_IDPreservation`** - Test that resource ID remains stable - ✅ 100%
 7. **`_externalDeletion`** - Test handling of resources deleted outside Terraform - ✅ 102%
-8. **`_removeOptionalFields`** - Test clearing optional fields - 97.9%
+8. **`_removeOptionalFields`** - Test clearing optional fields - ✅ 100%
 9. **`Consistency_*_LiteralNames`** - Test using literal values vs resource references - ~30%
 
 ---

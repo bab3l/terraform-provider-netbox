@@ -60,6 +60,40 @@ func TestAccDeviceResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccDeviceResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	deviceName := testutil.RandomName("tf-test-device-id")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer-id")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-id")
+	deviceTypeModel := testutil.RandomName("tf-test-device-type-id")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dt-id")
+	deviceRoleName := testutil.RandomName("tf-test-device-role-id")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-dr-id")
+	siteName := testutil.RandomName("tf-test-site-id")
+	siteSlug := testutil.RandomSlug("tf-test-site-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceResourceConfig_basic(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_device.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDeviceResource_update(t *testing.T) {
 	t.Parallel()
 

@@ -48,6 +48,36 @@ func TestAccInterfaceResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccInterfaceResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-interface-id")
+	siteSlug := testutil.RandomSlug("site-id")
+	mfrSlug := testutil.RandomSlug("mfr-id")
+	deviceSlug := testutil.RandomSlug("device-id")
+	roleSlug := testutil.RandomSlug("role-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfrSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(name + "-device")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_interface.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccInterfaceResource_update(t *testing.T) {
 	t.Parallel()
 

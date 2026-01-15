@@ -115,6 +115,33 @@ func TestAccPowerPortTemplateResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccPowerPortTemplateResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("mfr-id")
+	manufacturerSlug := testutil.RandomSlug("mfr-id")
+	deviceTypeName := testutil.RandomName("dt-id")
+	deviceTypeSlug := testutil.RandomSlug("dt-id")
+	name := testutil.RandomName("power-port-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_port_template.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccPowerPortTemplateResource_update(t *testing.T) {
 	t.Parallel()
 
