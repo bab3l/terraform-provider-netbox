@@ -36,6 +36,37 @@ func TestAccVirtualChassisResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccVirtualChassisResource_update(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-vc-update")
+	updatedName := testutil.RandomName("tf-test-vc-updated")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualChassisResourceConfig_forUpdate(name, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_chassis.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "domain", "domain1.example.com"),
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccVirtualChassisResourceConfig_forUpdate(updatedName, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "name", updatedName),
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "domain", "domain2.example.com"),
+					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccVirtualChassisResource_full(t *testing.T) {
 	t.Parallel()
 
@@ -103,6 +134,21 @@ resource "netbox_virtual_chassis" "test" {
   name = %q
 }
 `, name)
+}
+
+func testAccVirtualChassisResourceConfig_forUpdate(name, description string) string {
+	domain := "domain1.example.com"
+	if description == testutil.Description2 {
+		domain = "domain2.example.com"
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_virtual_chassis" "test" {
+  name        = %q
+  domain      = %q
+  description = %q
+}
+`, name, domain, description)
 }
 
 func testAccVirtualChassisResourceConfig_full(name, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {

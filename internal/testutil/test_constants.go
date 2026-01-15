@@ -17,6 +17,35 @@ const (
 	Color         = "aa1409"
 	ColorOrange   = "ff5722"
 	InterfaceName = "eth0"
+
+	// Device/Interface status values.
+	StatusActive  = "active"
+	StatusPlanned = "planned"
+	StatusStaged  = "staged"
+	StatusFailed  = "failed"
+	StatusOffline = "offline"
+
+	// Interface type constants.
+	InterfaceType1000BaseT   = "1000base-t"
+	InterfaceType10GBaseSFPP = "10gbase-x-sfpp"
+	InterfaceType10GBaseT    = "10gbase-t"
+	InterfaceType25GBaseSFP  = "25gbase-x-sfp28"
+
+	// Port type constants.
+	PortType8P8C = "8p8c"
+	PortTypeLC   = "lc"
+	PortTypeSC   = "sc"
+	PortTypeST   = "st"
+
+	// Power port type constants.
+	PowerPortTypeIEC60320C14 = "iec-60320-c14"
+	PowerPortTypeIEC60320C20 = "iec-60320-c20"
+
+	// Prefix status constants.
+	PrefixStatusContainer  = "container"
+	PrefixStatusActive     = "active"
+	PrefixStatusReserved   = "reserved"
+	PrefixStatusDeprecated = "deprecated"
 )
 
 // CheckCustomFieldValue returns a TestCheckFunc that verifies a custom field's name, type, and value.

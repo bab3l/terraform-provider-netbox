@@ -231,12 +231,12 @@ resource "netbox_power_feed" "test" {
 
 func testAccPowerFeedResourceConfig_forUpdate(siteName, siteSlug, panelName, feedName, description string) string {
 	// Toggle status, voltage, and amperage based on description
-	status := "active"
+	status := testutil.StatusActive
 	voltage := 120
 	amperage := 20
 
 	if description == testutil.Description2 {
-		status = "planned"
+		status = testutil.StatusPlanned
 		voltage = 240
 		amperage = 30
 	}

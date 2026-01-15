@@ -262,11 +262,11 @@ resource "netbox_front_port_template" "test" {
 
 func testAccFrontPortTemplateResourceConfig_forUpdate(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, frontPortName, description string) string {
 	// Toggle between different types and labels based on description
-	portType := "8p8c"
+	portType := testutil.PortType8P8C
 	label := "Label 1"
 
 	if description == testutil.Description2 {
-		portType = "lc"
+		portType = testutil.PortTypeLC
 		label = "Label 2"
 	}
 

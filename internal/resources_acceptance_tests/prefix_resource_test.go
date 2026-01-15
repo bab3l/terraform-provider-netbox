@@ -235,11 +235,11 @@ resource "netbox_prefix" "test" {
 
 func testAccPrefixResourceConfig_forUpdate(prefix, description string) string {
 	// Toggle status and is_pool based on description
-	status := "active"
+	status := testutil.PrefixStatusActive
 	isPool := "false"
 
 	if description == testutil.Description2 {
-		status = "reserved"
+		status = testutil.PrefixStatusReserved
 		isPool = "true"
 	}
 

@@ -52,6 +52,53 @@ func TestAccRearPortResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccRearPortResource_update(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-update")
+	siteSlug := testutil.RandomSlug("tf-test-site-update")
+	mfgName := testutil.RandomName("tf-test-mfg-update")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-update")
+	dtModel := testutil.RandomName("tf-test-dt-update")
+	dtSlug := testutil.RandomSlug("tf-test-dt-update")
+	roleName := testutil.RandomName("tf-test-role-update")
+	roleSlug := testutil.RandomSlug("tf-test-role-update")
+	deviceName := testutil.RandomName("tf-test-device-update")
+	rearPortName := testutil.RandomName("tf-test-rp-update")
+	updatedRearPortName := testutil.RandomName("tf-test-rp-updated")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRearPortResourceConfig_forUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rear_port.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "name", rearPortName),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "type", "8p8c"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccRearPortResourceConfig_forUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, updatedRearPortName, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "name", updatedRearPortName),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "type", "lc"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccRearPortResource_full(t *testing.T) {
 	t.Parallel()
 
@@ -275,7 +322,49 @@ resource "netbox_rear_port" "test" {
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName)
 }
+func testAccRearPortResourceConfig_forUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, description string) string {
+	rearPortType := testutil.PortType8P8C
+	if description == testutil.Description2 {
+		rearPortType = testutil.PortTypeLC
+	}
 
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device" "test" {
+  device_type = netbox_device_type.test.id
+  role        = netbox_role.test.id
+  site        = netbox_site.test.id
+  name        = %q
+}
+
+resource "netbox_rear_port" "test" {
+  device      = netbox_device.test.id
+  name        = %q
+  type        = %q
+  description = %q
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, rearPortType, description)
+}
 func testAccRearPortResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {

@@ -365,10 +365,9 @@ resource "netbox_device" "test" {
 
 func testAccDeviceResourceConfig_forUpdate(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, serial, description string) string {
 	// Toggle status between active and planned to test updates
-	//nolint:goconst // Status values used contextually in different config functions
-	status := "active"
+	status := testutil.StatusActive
 	if description == testutil.Description2 {
-		status = "planned"
+		status = testutil.StatusPlanned
 	}
 
 	return fmt.Sprintf(`

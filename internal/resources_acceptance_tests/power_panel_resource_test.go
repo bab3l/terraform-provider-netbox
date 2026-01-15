@@ -40,6 +40,40 @@ func TestAccPowerPanelResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccPowerPanelResource_update(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-update")
+	siteSlug := testutil.RandomSlug("tf-test-site-update")
+	panelName := testutil.RandomName("tf-test-panel-update")
+	updatedPanelName := testutil.RandomName("tf-test-panel-updated")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerPanelResourceConfig_forUpdate(siteName, siteSlug, panelName, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_panel.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_panel.test", "name", panelName),
+					resource.TestCheckResourceAttr("netbox_power_panel.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccPowerPanelResourceConfig_forUpdate(siteName, siteSlug, updatedPanelName, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_panel.test", "name", updatedPanelName),
+					resource.TestCheckResourceAttr("netbox_power_panel.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccPowerPanelResource_full(t *testing.T) {
 	t.Parallel()
 
@@ -72,6 +106,21 @@ func TestAccPowerPanelResource_full(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccPowerPanelResourceConfig_forUpdate(siteName, siteSlug, panelName, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_power_panel" "test" {
+  site        = netbox_site.test.id
+  name        = %q
+  description = %q
+}
+`, siteName, siteSlug, panelName, description)
 }
 
 func TestAccPowerPanelResource_IDPreservation(t *testing.T) {

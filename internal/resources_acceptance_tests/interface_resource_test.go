@@ -297,13 +297,13 @@ resource "netbox_interface" "test" {
 
 func testAccInterfaceResourceConfig_forUpdate(name, description string) string {
 	// Toggle between different types and settings based on description
-	interfaceType := "1000base-t"
-	enabled := "true"
+	interfaceType := testutil.InterfaceType1000BaseT
+	enabled := "true" //nolint:goconst // Boolean value specific to test configuration
 	mtu := 1500
 
 	if description == testutil.Description2 {
-		interfaceType = "10gbase-x-sfpp"
-		enabled = "false"
+		interfaceType = testutil.InterfaceType10GBaseSFPP
+		enabled = "false" //nolint:goconst // Boolean value specific to test configuration
 		mtu = 9000
 	}
 

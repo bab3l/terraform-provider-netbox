@@ -132,7 +132,7 @@ func TestAccConsistency_CircuitType_LiteralNames(t *testing.T) {
 	name := testutil.RandomName("tf-test-circuit-type-lit")
 	slug := testutil.RandomSlug("tf-test-circuit-type-lit")
 	description := testutil.RandomName("description")
-	color := "2196f3"
+	color := "2196f3" //nolint:goconst // Blue color value used in multiple test files
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterCircuitTypeCleanup(slug)
