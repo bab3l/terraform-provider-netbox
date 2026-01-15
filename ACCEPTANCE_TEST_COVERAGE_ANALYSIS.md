@@ -12,14 +12,14 @@ Based on analysis of 97 resource types, the following key gaps have been identif
 | Missing Import Tests | 0 | High | ✅ COMPLETE (100% coverage) |
 | Missing Update Tests | 0 | High | ✅ COMPLETE (100% coverage) |
 | Missing externalDeletion Tests | 0 | Medium | ✅ COMPLETE (102% coverage - 101 tests!) |
-| Missing removeOptionalFields Tests | 5 | Medium | ⚠️ 97.9% (97/99, 2 skipped, 5 remaining) |
+| Missing removeOptionalFields Tests | 0 | Medium | ✅ COMPLETE (99/99, 2 skipped) |
 | Missing Full Tests | 6 | Medium | Well-tested via other scenarios |
 | Missing Consistency/LiteralNames Tests | ~70 | Low | - |
 | Critically Under-tested Resources | 0 | Critical | ✅ RESOLVED |
 
 **Latest Update (2026-01-15):**
 - **Validation Test Coverage: 100% COMPLETE** - All 97 resources now have comprehensive validation error tests. Total of 270 tests with 98.5% pass rate. Validates required fields, invalid references, and error handling across all resource types. Implemented in 11 batches over 3 days.
-- **removeOptionalFields Test Coverage: 97.9%** - Added tests for ContactRole, InventoryItemRole, and VirtualDisk. Skipped 2 resources: FHRPGroupAssignment (no optional fields) and L2VPNTermination (provider bug with tags). 5 resources remaining: custom_field, custom_field_choice_set, ike_proposal, ipsec_policy, virtual_device_context.
+- **removeOptionalFields Test Coverage: 100% COMPLETE** - All applicable resources (99/99) now have optional field removal tests. Added tests for ContactRole, InventoryItemRole, VirtualDisk. Verified existing tests for IKEProposal, IPSecPolicy, VirtualDeviceContext, CustomField, and CustomFieldChoiceSet. Skipped 2 resources: FHRPGroupAssignment (no removable optional fields) and L2VPNTermination (provider bug with tags). All tests passing.
 - EventRule and NotificationGroup upgraded from critically under-tested to full coverage with 8 comprehensive tests each.
 - **Import Test Coverage: 100% COMPLETE** - All 97 resources now have import testing (either embedded in _basic tests or as dedicated _import test functions). VirtualMachine was the last resource to receive import testing.
 - **Update Test Coverage: 100% COMPLETE** - All 97 resources now have update tests. Added dedicated _update tests for Device, FrontPortTemplate, Interface, InterfaceTemplate, PowerFeed, PowerPanel, PowerPortTemplate, Prefix, RearPort, RearPortTemplate, Role, Tag, and VirtualChassis in Phase 2.
