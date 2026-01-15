@@ -494,3 +494,99 @@ func TestAccClusterResource_removeDescriptionAndComments(t *testing.T) {
 		CheckDestroy: testutil.CheckClusterDestroy,
 	})
 }
+
+// TestAccClusterResource_validationErrors tests validation error scenarios.
+func TestAccClusterResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_cluster",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_cluster_type" "test" {
+  name = "Test Type"
+  slug = "test-type"
+}
+
+resource "netbox_cluster" "test" {
+  type = netbox_cluster_type.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_type": {
+				Config: func() string {
+					return `
+resource "netbox_cluster" "test" {
+  name = "Test Cluster"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_status": {
+				Config: func() string {
+					return `
+resource "netbox_cluster_type" "test" {
+  name = "Test Type"
+  slug = "test-type"
+}
+
+resource "netbox_cluster" "test" {
+  name   = "Test Cluster"
+  type   = netbox_cluster_type.test.id
+  status = "invalid_status"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidEnum,
+			},
+			"invalid_type_reference": {
+				Config: func() string {
+					return `
+resource "netbox_cluster" "test" {
+  name = "Test Cluster"
+  type = "99999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_site_reference": {
+				Config: func() string {
+					return `
+resource "netbox_cluster_type" "test" {
+  name = "Test Type"
+  slug = "test-type"
+}
+
+resource "netbox_cluster" "test" {
+  name = "Test Cluster"
+  type = netbox_cluster_type.test.id
+  site = "99999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_tenant_reference": {
+				Config: func() string {
+					return `
+resource "netbox_cluster_type" "test" {
+  name = "Test Type"
+  slug = "test-type"
+}
+
+resource "netbox_cluster" "test" {
+  name   = "Test Cluster"
+  type   = netbox_cluster_type.test.id
+  tenant = "99999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}

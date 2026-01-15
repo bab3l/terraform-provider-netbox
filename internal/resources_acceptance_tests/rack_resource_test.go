@@ -744,3 +744,105 @@ resource "netbox_rack" "test" {
 }
 `, siteName, siteSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName)
 }
+
+// TestAccRackResource_validationErrors tests validation error scenarios.
+func TestAccRackResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_rack",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_rack" "test" {
+  site = netbox_site.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_site": {
+				Config: func() string {
+					return `
+resource "netbox_rack" "test" {
+  name = "Test Rack"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_status": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_rack" "test" {
+  name   = "Test Rack"
+  site   = netbox_site.test.id
+  status = "invalid_status"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidEnum,
+			},
+			"invalid_role_reference": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_rack" "test" {
+  name = "Test Rack"
+  site = netbox_site.test.id
+  role = "99999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_tenant_reference": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_rack" "test" {
+  name   = "Test Rack"
+  site   = netbox_site.test.id
+  tenant = "99999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_location_reference": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_rack" "test" {
+  name     = "Test Rack"
+  site     = netbox_site.test.id
+  location = "99999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}

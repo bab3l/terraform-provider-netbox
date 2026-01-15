@@ -830,3 +830,200 @@ resource "netbox_device" "test" {
 }
 `, deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug)
 }
+
+// TestAccDeviceResource_validationErrors tests validation error scenarios.
+func TestAccDeviceResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_device",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_device_type": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_device_role" "test" {
+  name  = "Test Role"
+  slug  = "test-role"
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name = "Test Device"
+  site = netbox_site.test.id
+  role = netbox_device_role.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_role": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "Test Model"
+  slug         = "test-model"
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device" "test" {
+  name        = "Test Device"
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_site": {
+				Config: func() string {
+					return `
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "Test Model"
+  slug         = "test-model"
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = "Test Role"
+  slug  = "test-role"
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = "Test Device"
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_status": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "Test Model"
+  slug         = "test-model"
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = "Test Role"
+  slug  = "test-role"
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = "Test Device"
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  status      = "invalid_status"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidEnum,
+			},
+			"invalid_tenant_reference": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "Test Model"
+  slug         = "test-model"
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = "Test Role"
+  slug  = "test-role"
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = "Test Device"
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  tenant      = "99999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_platform_reference": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "Test Model"
+  slug         = "test-model"
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = "Test Role"
+  slug  = "test-role"
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = "Test Device"
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  platform    = "99999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}

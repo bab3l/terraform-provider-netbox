@@ -655,4 +655,116 @@ resource "netbox_interface" "test" {
 `, interfaceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, deviceName)
 }
 
+// TestAccInterfaceResource_validationErrors tests validation error scenarios.
+func TestAccInterfaceResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_interface",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "Test Model"
+  slug         = "test-model"
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = "Test Role"
+  slug  = "test-role"
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = "Test Device"
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+}
+
+resource "netbox_interface" "test" {
+  device = netbox_device.test.id
+  type   = "1000base-t"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_device": {
+				Config: func() string {
+					return `
+resource "netbox_interface" "test" {
+  name = "eth0"
+  type = "1000base-t"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_type": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "Test Model"
+  slug         = "test-model"
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = "Test Role"
+  slug  = "test-role"
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = "Test Device"
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+}
+
+resource "netbox_interface" "test" {
+  name   = "eth0"
+  device = netbox_device.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_device_reference": {
+				Config: func() string {
+					return `
+resource "netbox_interface" "test" {
+  name   = "eth0"
+  device = "99999"
+  type   = "1000base-t"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}
+
 // NOTE: Custom field tests for interface resource are in resources_acceptance_tests_customfields package

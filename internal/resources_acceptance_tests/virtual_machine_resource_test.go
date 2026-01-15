@@ -682,3 +682,87 @@ resource "netbox_virtual_machine" "test" {
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments)
 }
+
+// TestAccVirtualMachineResource_validationErrors tests validation error scenarios.
+func TestAccVirtualMachineResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_virtual_machine",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_cluster_type" "test" {
+  name = "Test Type"
+  slug = "test-type"
+}
+
+resource "netbox_cluster" "test" {
+  name = "Test Cluster"
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+  cluster = netbox_cluster.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_status": {
+				Config: func() string {
+					return `
+resource "netbox_cluster_type" "test" {
+  name = "Test Type"
+  slug = "test-type"
+}
+
+resource "netbox_cluster" "test" {
+  name = "Test Cluster"
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = "Test VM"
+  cluster = netbox_cluster.test.id
+  status  = "invalid_status"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidEnum,
+			},
+			"invalid_cluster_reference": {
+				Config: func() string {
+					return `
+resource "netbox_virtual_machine" "test" {
+  name    = "Test VM"
+  cluster = "99999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_tenant_reference": {
+				Config: func() string {
+					return `
+resource "netbox_cluster_type" "test" {
+  name = "Test Type"
+  slug = "test-type"
+}
+
+resource "netbox_cluster" "test" {
+  name = "Test Cluster"
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = "Test VM"
+  cluster = netbox_cluster.test.id
+  tenant  = "99999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}
