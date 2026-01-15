@@ -181,6 +181,55 @@ func TestAccCircuitTerminationResource_IDPreservation(t *testing.T) {
 	})
 }
 
+func testAccCircuitTerminationResourceConfig_full(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, description, tagName, tagSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+}
+
+resource "netbox_site" "test" {
+  name   = %q
+  slug   = %q
+  status = "active"
+}
+
+resource "netbox_tag" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit_termination" "test" {
+  circuit        = netbox_circuit.test.id
+  term_side      = "A"
+  site           = netbox_site.test.id
+  port_speed     = 10000000
+  upstream_speed = 5000000
+  xconnect_id    = "XCON-FULL-123"
+  pp_info        = "Patch Panel 1, Port 24"
+  mark_connected = true
+  description    = %q
+  tags = [
+    {
+      name = netbox_tag.test.name
+      slug = netbox_tag.test.slug
+    }
+  ]
+}
+`, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tagName, tagSlug, description)
+}
+
 func testAccCircuitTerminationResourceConfig_basic(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_provider" "test" {
@@ -299,6 +348,53 @@ func TestAccCircuitTerminationResource_import(t *testing.T) {
 			{
 				Config:   testAccCircuitTerminationResourceConfig_basic(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug),
 				PlanOnly: true,
+			},
+		},
+	})
+}
+
+// NOTE: Custom field tests for circuit_termination resource are in resources_acceptance_tests_customfields package
+
+func TestAccCircuitTerminationResource_full(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-full")
+	providerSlug := testutil.RandomSlug("tf-test-provider-full")
+	circuitTypeName := testutil.RandomName("tf-test-ct-full")
+	circuitTypeSlug := testutil.RandomSlug("tf-test-ct-full")
+	circuitCID := testutil.RandomName("tf-test-circuit-full")
+	siteName := testutil.RandomName("tf-test-site-full")
+	siteSlug := testutil.RandomSlug("tf-test-site-full")
+	description := "Full test with all optional fields"
+	tagName := testutil.RandomName("tf-test-tag")
+	tagSlug := testutil.RandomSlug("tf-test-tag")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
+	cleanup.RegisterCircuitCleanup(circuitCID)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTagCleanup(tagSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitTerminationResourceConfig_full(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, description, tagName, tagSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit_termination.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "term_side", "A"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "port_speed", "10000000"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "upstream_speed", "5000000"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "xconnect_id", "XCON-FULL-123"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "pp_info", "Patch Panel 1, Port 24"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "mark_connected", "true"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "tags.#", "1"),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "tags.0.name", tagName),
+					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "tags.0.slug", tagSlug),
+				),
 			},
 		},
 	})

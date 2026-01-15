@@ -14,6 +14,45 @@ const (
 	wirelessInterfaceNameB = "wlan1"
 )
 
+func TestAccWirelessLinkResource_full(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("test-site-wireless-full")
+	siteSlug := testutil.GenerateSlug(siteName)
+	tenantName := testutil.RandomName("test-tenant-full")
+	tenantSlug := testutil.GenerateSlug(tenantName)
+	deviceName := testutil.RandomName("test-device-wireless-full")
+	interfaceNameA := wirelessInterfaceNameA
+	interfaceNameB := wirelessInterfaceNameB
+	tagName := testutil.RandomName("tf-test-tag")
+	tagSlug := testutil.RandomSlug("tf-test-tag")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLinkResourceConfig_full(siteName, siteSlug, tenantName, tenantSlug, deviceName, interfaceNameA, interfaceNameB, tagName, tagSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_wireless_link.test", "id"),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "ssid", "FullTestSSID"),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "status", "connected"),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "auth_type", "wpa-personal"),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "auth_cipher", "aes"),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "auth_psk", "test-secret-key-123"),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "distance", "15.75"),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "distance_unit", "km"),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "description", "Full test wireless link with all optional fields"),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "comments", "Comprehensive test configuration"),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "tags.#", "1"),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "tags.0.name", tagName),
+					resource.TestCheckResourceAttr("netbox_wireless_link.test", "tags.0.slug", tagSlug),
+				),
+			},
+		},
+	})
+}
+
 func TestAccWirelessLinkResource_basic(t *testing.T) {
 	t.Parallel()
 
@@ -67,6 +106,96 @@ func TestAccWirelessLinkResource_IDPreservation(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccWirelessLinkResourceConfig_full(siteName, siteSlug, tenantName, tenantSlug, deviceName, interfaceNameA, interfaceNameB, tagName, tagSlug string) string {
+	manufacturerName := testutil.RandomName("mfr")
+	manufacturerSlug := testutil.GenerateSlug(manufacturerName)
+	deviceRoleName := testutil.RandomName("role")
+	deviceRoleSlug := testutil.GenerateSlug(deviceRoleName)
+	deviceTypeName := testutil.RandomName("dtype")
+	deviceTypeSlug := testutil.GenerateSlug(deviceTypeName)
+
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+  status = "active"
+}
+
+resource "netbox_tenant" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_device_role" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[9]q
+  slug  = %[10]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device" "test_a" {
+  name           = "%[11]s-a"
+  device_type    = netbox_device_type.test.id
+  role           = netbox_device_role.test.id
+  site           = netbox_site.test.id
+}
+
+resource "netbox_device" "test_b" {
+  name           = "%[11]s-b"
+  device_type    = netbox_device_type.test.id
+  role           = netbox_device_role.test.id
+  site           = netbox_site.test.id
+}
+
+resource "netbox_interface" "test_a" {
+  name      = %[12]q
+  device    = netbox_device.test_a.id
+  type      = "ieee802.11ac"
+}
+
+resource "netbox_interface" "test_b" {
+  name      = %[13]q
+  device    = netbox_device.test_b.id
+  type      = "ieee802.11ac"
+}
+
+resource "netbox_tag" "test" {
+  name = %[14]q
+  slug = %[15]q
+}
+
+resource "netbox_wireless_link" "test" {
+  interface_a   = netbox_interface.test_a.id
+  interface_b   = netbox_interface.test_b.id
+  ssid          = "FullTestSSID"
+  status        = "connected"
+  tenant        = netbox_tenant.test.id
+  auth_type     = "wpa-personal"
+  auth_cipher   = "aes"
+  auth_psk      = "test-secret-key-123"
+  distance      = 15.75
+  distance_unit = "km"
+  description   = "Full test wireless link with all optional fields"
+  comments      = "Comprehensive test configuration"
+  tags = [
+    {
+      name = netbox_tag.test.name
+      slug = netbox_tag.test.slug
+    }
+  ]
+}
+`, siteName, siteSlug, tenantName, tenantSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceNameA, interfaceNameB, tagName, tagSlug)
 }
 
 func testAccWirelessLinkResourceConfig(siteName, siteSlug, deviceName, interfaceNameA, interfaceNameB string) string {
