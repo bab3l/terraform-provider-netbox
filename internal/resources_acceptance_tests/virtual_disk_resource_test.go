@@ -412,6 +412,49 @@ resource "netbox_virtual_disk" "test" {
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, diskName)
 }
 
+func TestAccVirtualDiskResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	diskName := testutil.RandomName("tf-test-disk-rem")
+	vmName := testutil.RandomName("tf-test-vm-rem")
+	clusterName := testutil.RandomName("tf-test-cluster-rem")
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-rem")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-ct-rem")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualDiskCleanup(diskName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVirtualDiskDestroy,
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVirtualDiskResourceConfig_full(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_disk.test", "name", diskName),
+					resource.TestCheckResourceAttr("netbox_virtual_disk.test", "description", "Test virtual disk with full options"),
+				),
+			},
+			{
+				Config: testAccVirtualDiskResourceConfig_basic(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_disk.test", "name", diskName),
+					resource.TestCheckNoResourceAttr("netbox_virtual_disk.test", "description"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccVirtualDiskResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 

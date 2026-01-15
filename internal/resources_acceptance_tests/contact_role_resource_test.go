@@ -203,6 +203,43 @@ resource "netbox_contact_role" "test" {
 `, tagName, tagSlug, name, slug, description)
 }
 
+func TestAccContactRoleResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("test-contact-role-rem")
+	slug := testutil.GenerateSlug(name)
+	tagName := testutil.RandomName("test-cr-tag")
+	tagSlug := testutil.GenerateSlug(tagName)
+	description := "Test description"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactRoleCleanup(slug)
+	cleanup.RegisterTagCleanup(tagSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactRoleResourceConfig_withTags(name, slug, description, tagName, tagSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "tags.#", "1"),
+				),
+			},
+			{
+				Config: testAccContactRoleResourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_contact_role.test", "description"),
+					resource.TestCheckResourceAttr("netbox_contact_role.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccContactRoleResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
