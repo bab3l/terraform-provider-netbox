@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+var _ = testAccInventoryItemTemplateResourceConfig_removeOptionalFields_base
+
 func TestAccInventoryItemTemplateResource_basic(t *testing.T) {
 	t.Parallel()
 
@@ -281,4 +283,113 @@ resource "netbox_inventory_item_template" "test" {
   part_id     = "PART-001"
 }
 `, name, name, name, name, name)
+}
+
+// TestAccInventoryItemTemplateResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccInventoryItemTemplateResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	templateName := testutil.RandomName("tf-test-invtempl-rem")
+	manufacturerName := testutil.RandomName("tf-test-mfr-rem")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-rem")
+	roleName := testutil.RandomName("tf-test-role-rem")
+	roleSlug := testutil.RandomSlug("tf-test-role-rem")
+
+	cleanup := testutil.NewCleanupResource(t)
+	// We only strictly track the extra resources here; prereqs are handled by their own implicit cleanup or best-effort
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterInventoryItemRoleCleanup(roleSlug)
+	// Note: RegisterInventoryItemTemplateCleanup might not be available or needed if we rely on CheckDestroy of the TestStep (default behavior destroys at end)
+
+	resourceName := "netbox_inventory_item_template.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemTemplateResourceConfig_removeOptionalFields_withFields(
+					templateName, manufacturerName, manufacturerSlug, roleName, roleSlug,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", templateName),
+					resource.TestCheckResourceAttr(resourceName, "label", "Test Label"),
+					resource.TestCheckResourceAttr(resourceName, "description", "Test Description"),
+					// Verify references are set to the IDs of the extra resources
+					resource.TestCheckResourceAttrPair(resourceName, "role", "netbox_inventory_item_role.extra", "id"),
+					resource.TestCheckResourceAttrPair(resourceName, "manufacturer", "netbox_manufacturer.extra", "id"),
+				),
+			},
+			{
+				Config: testAccInventoryItemTemplateResourceConfig_removeOptionalFields_detached(
+					templateName, manufacturerName, manufacturerSlug, roleName, roleSlug,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", templateName),
+					// Verify optional fields are cleared
+					resource.TestCheckNoResourceAttr(resourceName, "label"),
+					resource.TestCheckNoResourceAttr(resourceName, "description"),
+					resource.TestCheckNoResourceAttr(resourceName, "role"),
+					resource.TestCheckNoResourceAttr(resourceName, "manufacturer"),
+				),
+			},
+		},
+	})
+}
+
+func testAccInventoryItemTemplateResourceConfig_removeOptionalFields_base(name string) string {
+	return testAccInventoryItemTemplateResourcePrereqs(name) + fmt.Sprintf(`
+resource "netbox_inventory_item_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %q
+}
+`, name)
+}
+
+func testAccInventoryItemTemplateResourceConfig_removeOptionalFields_withFields(
+	name, manufacturerName, manufacturerSlug, roleName, roleSlug string) string {
+	return testAccInventoryItemTemplateResourcePrereqs(name) + fmt.Sprintf(`
+resource "netbox_manufacturer" "extra" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_inventory_item_role" "extra" {
+  name  = %[4]q
+  slug  = %[5]q
+  color = "ff0000"
+}
+
+resource "netbox_inventory_item_template" "test" {
+  device_type  = netbox_device_type.test.id
+  name         = %[1]q
+  label        = "Test Label"
+  description  = "Test Description"
+  role         = netbox_inventory_item_role.extra.id
+  manufacturer = netbox_manufacturer.extra.id
+}
+`, name, manufacturerName, manufacturerSlug, roleName, roleSlug)
+}
+
+func testAccInventoryItemTemplateResourceConfig_removeOptionalFields_detached(
+	name, manufacturerName, manufacturerSlug, roleName, roleSlug string) string {
+	return testAccInventoryItemTemplateResourcePrereqs(name) + fmt.Sprintf(`
+resource "netbox_manufacturer" "extra" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_inventory_item_role" "extra" {
+  name  = %[4]q
+  slug  = %[5]q
+  color = "ff0000"
+}
+
+resource "netbox_inventory_item_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %[1]q
+}
+`, name, manufacturerName, manufacturerSlug, roleName, roleSlug)
 }

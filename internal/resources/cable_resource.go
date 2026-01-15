@@ -327,10 +327,18 @@ func (r *CableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	if !data.Type.IsNull() && !data.Type.IsUnknown() && data.Type.ValueString() != "" {
 		cableType := netbox.CableType(data.Type.ValueString())
 		cableRequest.Type = &cableType
+	} else if data.Type.IsNull() || (!data.Type.IsUnknown() && data.Type.ValueString() == "") {
+		// Send empty string to clear
+		empty := netbox.CableType("")
+		cableRequest.Type = &empty
 	}
 
 	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		status := netbox.CableStatusValue(data.Status.ValueString())
+		cableRequest.Status = &status
+	} else if data.Status.IsNull() {
+		// Default to connected if removed
+		status := netbox.CABLESTATUSVALUE_CONNECTED
 		cableRequest.Status = &status
 	}
 
@@ -348,11 +356,17 @@ func (r *CableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
 		label := data.Label.ValueString()
 		cableRequest.Label = &label
+	} else if data.Label.IsNull() {
+		cableRequest.SetLabel("")
 	}
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
 		color := data.Color.ValueString()
 		cableRequest.Color = &color
+	} else if data.Color.IsNull() {
+		// Send empty string to clear
+		empty := ""
+		cableRequest.Color = &empty
 	}
 
 	if !data.Length.IsNull() && !data.Length.IsUnknown() {
@@ -370,7 +384,7 @@ func (r *CableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	}
 
 	// Set common fields (description, comments, tags, custom_fields) with merge-aware custom fields
-	utils.ApplyCommonFieldsWithMerge(ctx, cableRequest, data.Description, data.Comments, data.Tags, data.CustomFields, state.Tags, state.CustomFields, &resp.Diagnostics)
+	utils.ApplyCommonFieldsWithMerge(ctx, cableRequest, data.Description, data.Comments, data.Tags, state.Tags, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}

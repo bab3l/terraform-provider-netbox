@@ -283,6 +283,9 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 	// Handle description
 	tunnelRequest.Description = utils.StringPtr(data.Description)
 
+	// Handle comments
+	tunnelRequest.Comments = utils.StringPtr(data.Comments)
+
 	// Handle tags
 	if !data.Tags.IsNull() {
 		var tagModels []utils.TagModel
@@ -545,74 +548,69 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 	tunnelRequest.Status = &status
 
 	// Initialize additional properties for integer ID references
-
 	tunnelRequest.AdditionalProperties = make(map[string]interface{})
 
-	if !data.Group.IsNull() && data.Group.ValueString() != "" {
+	// Handle group - state-aware clearing (only clear if it was previously set)
+	if !data.Group.IsNull() && !data.Group.IsUnknown() && data.Group.ValueString() != "" {
 		groupID, err := utils.ParseID(data.Group.ValueString())
-
 		if err != nil {
 			resp.Diagnostics.AddError(
-
 				"Invalid Tunnel Group ID",
-
 				fmt.Sprintf("Unable to parse tunnel group ID: %s", err),
 			)
-
 			return
 		}
-
 		tunnelRequest.AdditionalProperties["group"] = int(groupID)
-	} else {
+	} else if data.Group.IsNull() && !state.Group.IsNull() {
+		// Only send null if we're removing a previously set value
 		tunnelRequest.AdditionalProperties["group"] = nil
 	}
 
+	// Handle ipsec_profile - state-aware clearing
 	if !data.IPSecProfile.IsNull() && data.IPSecProfile.ValueString() != "" {
 		ipsecProfileID, err := utils.ParseID(data.IPSecProfile.ValueString())
-
 		if err != nil {
 			resp.Diagnostics.AddError(
-
 				"Invalid IPSec Profile ID",
-
 				fmt.Sprintf("Unable to parse IPSec profile ID: %s", err),
 			)
-
 			return
 		}
-
 		tunnelRequest.AdditionalProperties["ipsec_profile"] = int(ipsecProfileID)
-	} else {
+	} else if data.IPSecProfile.IsNull() && !state.IPSecProfile.IsNull() {
+		// Only send null if we're removing a previously set value
 		tunnelRequest.AdditionalProperties["ipsec_profile"] = nil
 	}
 
-	if !data.Tenant.IsNull() && data.Tenant.ValueString() != "" {
+	// Handle tenant - state-aware clearing
+	if !data.Tenant.IsNull() && !data.Tenant.IsUnknown() && data.Tenant.ValueString() != "" {
 		tenantID, err := utils.ParseID(data.Tenant.ValueString())
-
 		if err != nil {
 			resp.Diagnostics.AddError(
-
 				"Invalid Tenant ID",
-
 				fmt.Sprintf("Unable to parse tenant ID: %s", err),
 			)
-
 			return
 		}
-
 		tunnelRequest.AdditionalProperties["tenant"] = int(tenantID)
-	} else {
+	} else if data.Tenant.IsNull() && !state.Tenant.IsNull() {
+		// Only send null if we're removing a previously set value
 		tunnelRequest.AdditionalProperties["tenant"] = nil
 	}
 
+	// Handle tunnel_id - state-aware clearing
 	if !data.TunnelID.IsNull() {
 		tunnelRequest.TunnelId = *netbox.NewNullableInt64(netbox.PtrInt64(data.TunnelID.ValueInt64()))
-	} else {
+	} else if data.TunnelID.IsNull() && !state.TunnelID.IsNull() {
+		// Only send null if we're removing a previously set value
 		tunnelRequest.TunnelId = *netbox.NewNullableInt64(nil)
 	}
 
 	// Handle description
-	tunnelRequest.Description = utils.StringPtr(data.Description)
+	utils.ApplyDescription(tunnelRequest, data.Description)
+
+	// Handle comments
+	utils.ApplyComments(tunnelRequest, data.Comments)
 
 	// Handle tags - merge-aware
 	utils.ApplyTags(ctx, tunnelRequest, data.Tags, &resp.Diagnostics)

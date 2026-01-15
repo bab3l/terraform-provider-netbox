@@ -220,6 +220,73 @@ resource "netbox_ike_proposal" "test" {
 `, name)
 }
 
+func TestAccIKEProposalResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ike-proposal-rem")
+	const testDescription = "Test Description"
+	const testComments = "Test Comments"
+	const testAuthAlgorithm = "hmac-sha256"
+	const testSALifetime = 28800
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEProposalCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckIKEProposalDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEProposalResourceConfig_withAllOptionalFields(name, testDescription, testComments, testAuthAlgorithm, testSALifetime),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "comments", testComments),
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "authentication_algorithm", testAuthAlgorithm),
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "sa_lifetime", fmt.Sprintf("%d", testSALifetime)),
+				),
+			},
+			{
+				Config: testAccIKEProposalResourceConfig_requiredOnly(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_ike_proposal.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_ike_proposal.test", "comments"),
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "authentication_algorithm", testAuthAlgorithm),
+					resource.TestCheckNoResourceAttr("netbox_ike_proposal.test", "sa_lifetime"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIKEProposalResourceConfig_withAllOptionalFields(name, description, comments, authenticationAlgorithm string, saLifetime int) string {
+	return fmt.Sprintf(`
+resource "netbox_ike_proposal" "test" {
+  name                     = %[1]q
+  authentication_method    = "preshared-keys"
+  encryption_algorithm     = "aes-128-cbc"
+  authentication_algorithm = %[4]q
+  group                    = 14
+  sa_lifetime              = %[5]d
+  description              = %[2]q
+  comments                 = %[3]q
+}
+`, name, description, comments, authenticationAlgorithm, saLifetime)
+}
+
+func testAccIKEProposalResourceConfig_requiredOnly(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_ike_proposal" "test" {
+  name                  = %q
+  authentication_method = "preshared-keys"
+  encryption_algorithm  = "aes-128-cbc"
+  group                 = 14
+}
+`, name)
+}
+
 func testAccIKEProposalResourceConfig_updated(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_ike_proposal" "test" {

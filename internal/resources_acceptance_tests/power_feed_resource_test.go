@@ -394,3 +394,132 @@ func TestAccPowerFeedResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccPowerFeedResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-pf-optional")
+	siteSlug := testutil.RandomSlug("tf-test-site-pf")
+	panelName := testutil.RandomName("tf-test-panel-optional")
+	feedName := testutil.RandomName("tf-test-feed-optional")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterPowerPanelCleanup(panelName)
+	cleanup.RegisterPowerFeedCleanup(feedName)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_power_feed",
+		BaseConfig: func() string {
+			return testAccPowerFeedResourceConfig_basic(siteName, siteSlug, panelName, feedName)
+		},
+		ConfigWithFields: func() string {
+			return testAccPowerFeedResourceConfig_withDescriptionAndComments(
+				siteName,
+				siteSlug,
+				panelName,
+				feedName,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		RequiredFields: map[string]string{
+			"name": feedName,
+		},
+		CheckDestroy: testutil.CheckPowerFeedDestroy,
+	})
+}
+
+func testAccPowerFeedResourceConfig_withDescriptionAndComments(siteName, siteSlug, panelName, feedName, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_power_panel" "test" {
+  name = %[3]q
+  site = netbox_site.test.id
+}
+
+resource "netbox_power_feed" "test" {
+  name         = %[4]q
+  power_panel  = netbox_power_panel.test.id
+  status       = "active"
+  description  = %[5]q
+  comments     = %[6]q
+}
+`, siteName, siteSlug, panelName, feedName, description, comments)
+}
+
+func TestAccPowerFeedResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-pf-optional")
+	siteSlug := testutil.RandomSlug("tf-test-site-pf")
+	panelName := testutil.RandomName("tf-test-panel-optional")
+	feedName := testutil.RandomName("tf-test-feed-optional")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterPowerPanelCleanup(panelName)
+	cleanup.RegisterPowerFeedCleanup(feedName)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_power_feed",
+		BaseConfig: func() string {
+			return testAccPowerFeedResourceConfig_removeOptionalFields_base(siteName, siteSlug, panelName, feedName)
+		},
+		ConfigWithFields: func() string {
+			return testAccPowerFeedResourceConfig_removeOptionalFields_withFields(siteName, siteSlug, panelName, feedName)
+		},
+		OptionalFields: map[string]string{},
+		RequiredFields: map[string]string{
+			"name": feedName,
+		},
+		CheckDestroy: testutil.CheckPowerFeedDestroy,
+	})
+}
+
+func testAccPowerFeedResourceConfig_removeOptionalFields_base(siteName, siteSlug, panelName, feedName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_power_panel" "test" {
+  name = %[3]q
+  site = netbox_site.test.id
+}
+
+resource "netbox_power_feed" "test" {
+  name        = %[4]q
+  power_panel = netbox_power_panel.test.id
+}
+`, siteName, siteSlug, panelName, feedName)
+}
+
+func testAccPowerFeedResourceConfig_removeOptionalFields_withFields(siteName, siteSlug, panelName, feedName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_power_panel" "test" {
+  name = %[3]q
+  site = netbox_site.test.id
+}
+
+resource "netbox_power_feed" "test" {
+  name        = %[4]q
+  power_panel = netbox_power_panel.test.id
+}
+`, siteName, siteSlug, panelName, feedName)
+}

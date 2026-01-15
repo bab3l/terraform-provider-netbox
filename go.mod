@@ -3,7 +3,7 @@ module github.com/bab3l/terraform-provider-netbox
 go 1.24.5
 
 require (
-	github.com/bab3l/go-netbox v0.1.3
+	github.com/bab3l/go-netbox v0.1.5
 	github.com/hashicorp/terraform-plugin-docs v0.24.0
 	github.com/hashicorp/terraform-plugin-framework v1.17.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0

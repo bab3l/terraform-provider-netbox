@@ -298,3 +298,39 @@ func TestAccContactResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccContactResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+	contactName := testutil.RandomName("tf-test-contact-rem")
+	contactGroupName := testutil.RandomName("tf-test-cg-rem")
+	contactGroupSlug := testutil.RandomSlug("tf-test-cg-rem")
+	email := "test@example.com"
+	phone := "+1234567890"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactGroupCleanup(contactGroupSlug)
+	cleanup.RegisterContactCleanup(contactName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactConsistencyConfig(contactName, contactGroupName, contactGroupSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact.test", "name", contactName),
+					resource.TestCheckResourceAttrSet("netbox_contact.test", "group"),
+				),
+			},
+			{
+				Config: testAccContactResource(contactName, email, phone),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact.test", "name", contactName),
+					resource.TestCheckNoResourceAttr("netbox_contact.test", "group"),
+				),
+			},
+		},
+	})
+}

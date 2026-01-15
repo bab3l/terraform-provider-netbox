@@ -442,10 +442,14 @@ func (r *IPRangeResource) setOptionalFields(ctx context.Context, ipRangeRequest 
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		desc := data.Description.ValueString()
 		ipRangeRequest.SetDescription(desc)
+	} else if data.Description.IsNull() {
+		ipRangeRequest.SetDescription("")
 	}
 	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
 		comments := data.Comments.ValueString()
 		ipRangeRequest.SetComments(comments)
+	} else if data.Comments.IsNull() {
+		ipRangeRequest.SetComments("")
 	}
 
 	// Apply tags
@@ -471,8 +475,30 @@ func (r *IPRangeResource) setOptionalFields(ctx context.Context, ipRangeRequest 
 
 func (r *IPRangeResource) mapIPRangeToState(ctx context.Context, ipRange *netbox.IPRange, data *IPRangeResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipRange.Id))
-	data.StartAddress = types.StringValue(ipRange.StartAddress)
-	data.EndAddress = types.StringValue(ipRange.EndAddress)
+
+	apiStart := ipRange.StartAddress
+	if !data.StartAddress.IsNull() && !data.StartAddress.IsUnknown() {
+		current := data.StartAddress.ValueString()
+		if utils.NormalizeIPAddress(current) == utils.NormalizeIPAddress(apiStart) {
+			data.StartAddress = types.StringValue(current)
+		} else {
+			data.StartAddress = types.StringValue(apiStart)
+		}
+	} else {
+		data.StartAddress = types.StringValue(apiStart)
+	}
+
+	apiEnd := ipRange.EndAddress
+	if !data.EndAddress.IsNull() && !data.EndAddress.IsUnknown() {
+		current := data.EndAddress.ValueString()
+		if utils.NormalizeIPAddress(current) == utils.NormalizeIPAddress(apiEnd) {
+			data.EndAddress = types.StringValue(current)
+		} else {
+			data.EndAddress = types.StringValue(apiEnd)
+		}
+	} else {
+		data.EndAddress = types.StringValue(apiEnd)
+	}
 	data.Size = types.Int64Value(int64(ipRange.Size))
 
 	// VRF - preserve user input if it matches

@@ -77,7 +77,6 @@ func (r *ConsolePortTemplateResource) Schema(ctx context.Context, req resource.S
 			"label": schema.StringAttribute{
 				MarkdownDescription: "Physical label of the console port template.",
 				Optional:            true,
-				Computed:            true,
 			},
 			"type": schema.StringAttribute{
 				MarkdownDescription: "The type of console port (e.g., de-9, db-25, rj-45, usb-a, usb-b, usb-c, usb-mini-a, usb-mini-b, usb-micro-a, usb-micro-b, usb-micro-ab, other).",
@@ -86,7 +85,6 @@ func (r *ConsolePortTemplateResource) Schema(ctx context.Context, req resource.S
 			"description": schema.StringAttribute{
 				MarkdownDescription: "A description of the console port template.",
 				Optional:            true,
-				Computed:            true,
 			},
 		},
 	}
@@ -138,12 +136,13 @@ func (r *ConsolePortTemplateResource) Create(ctx context.Context, req resource.C
 	}
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
-	if !data.Type.IsNull() && !data.Type.IsUnknown() {
+	if utils.IsSet(data.Type) {
 		apiReq.SetType(netbox.ConsolePortTypeValue(data.Type.ValueString()))
+	} else if data.Type.IsNull() {
+		// NetBox expects an empty enum value to clear the field.
+		apiReq.SetType(netbox.CONSOLEPORTTYPEVALUE_EMPTY)
 	}
 
 	// Apply description
@@ -235,12 +234,13 @@ func (r *ConsolePortTemplateResource) Update(ctx context.Context, req resource.U
 	}
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
-	if !data.Type.IsNull() && !data.Type.IsUnknown() {
+	if utils.IsSet(data.Type) {
 		apiReq.SetType(netbox.ConsolePortTypeValue(data.Type.ValueString()))
+	} else if data.Type.IsNull() {
+		// NetBox expects an empty enum value to clear the field.
+		apiReq.SetType(netbox.CONSOLEPORTTYPEVALUE_EMPTY)
 	}
 
 	// Apply description
@@ -327,16 +327,17 @@ func (r *ConsolePortTemplateResource) mapResponseToModel(template *netbox.Consol
 		data.ModuleType = types.StringNull()
 	}
 
-	// Map label
-	if label, ok := template.GetLabelOk(); ok && label != nil {
-		data.Label = types.StringValue(*label)
-	} else {
-		data.Label = types.StringValue("")
-	}
+	// Map label - use StringFromAPI to properly handle empty strings as null
+	data.Label = utils.StringFromAPI(template.HasLabel(), template.GetLabel, data.Label)
 
 	// Map type
 	if template.Type != nil {
-		data.Type = types.StringValue(string(template.Type.GetValue()))
+		v := string(template.Type.GetValue())
+		if v != "" {
+			data.Type = types.StringValue(v)
+		} else {
+			data.Type = types.StringNull()
+		}
 	} else {
 		data.Type = types.StringNull()
 	}

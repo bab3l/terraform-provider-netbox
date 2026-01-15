@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -104,10 +103,6 @@ func (r *PowerPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 				MarkdownDescription: "Physical label of the power port template.",
 
 				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"type": schema.StringAttribute{
@@ -199,10 +194,7 @@ func (r *PowerPortTemplateResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// Set optional fields
-
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		apiReq.SetType(netbox.PatchedWritablePowerPortTemplateRequestType(data.Type.ValueString()))
@@ -342,21 +334,27 @@ func (r *PowerPortTemplateResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Set optional fields
+	utils.ApplyLabel(apiReq, data.Label)
 
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
-
-	if !data.Type.IsNull() && !data.Type.IsUnknown() {
+	if utils.IsSet(data.Type) {
 		apiReq.SetType(netbox.PatchedWritablePowerPortTemplateRequestType(data.Type.ValueString()))
+	} else if data.Type.IsNull() {
+		// Explicitly clear type when removed from config
+		apiReq.SetType("")
 	}
 
-	if !data.MaximumDraw.IsNull() && !data.MaximumDraw.IsUnknown() {
+	if utils.IsSet(data.MaximumDraw) {
 		apiReq.SetMaximumDraw(data.MaximumDraw.ValueInt32())
+	} else if data.MaximumDraw.IsNull() {
+		// Explicitly clear maximum_draw when removed from config
+		apiReq.SetMaximumDrawNil()
 	}
 
-	if !data.AllocatedDraw.IsNull() && !data.AllocatedDraw.IsUnknown() {
+	if utils.IsSet(data.AllocatedDraw) {
 		apiReq.SetAllocatedDraw(data.AllocatedDraw.ValueInt32())
+	} else if data.AllocatedDraw.IsNull() {
+		// Explicitly clear allocated_draw when removed from config
+		apiReq.SetAllocatedDrawNil()
 	}
 
 	// Apply description
@@ -479,11 +477,7 @@ func (r *PowerPortTemplateResource) mapResponseToModel(template *netbox.PowerPor
 
 	// Map label
 
-	if label, ok := template.GetLabelOk(); ok && label != nil {
-		data.Label = types.StringValue(*label)
-	} else {
-		data.Label = types.StringValue("") // Always set default for Optional+Computed field
-	}
+	data.Label = utils.StringFromAPI(template.HasLabel(), template.GetLabel, data.Label)
 
 	// Map type
 

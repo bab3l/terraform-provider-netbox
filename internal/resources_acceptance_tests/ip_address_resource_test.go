@@ -501,28 +501,37 @@ func TestAccIPAddressResource_removeOptionalFields(t *testing.T) {
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Step 1: Create with VRF and tenant
+			// Step 1: Create with VRF, tenant, and other optional fields
 			{
 				Config: testAccIPAddressResourceConfig_withVRFAndTenant(vrfName, vrfRD, tenantName, tenantSlug, address),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "vrf"),
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "tenant"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "dns_name", "test.example.com"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "role", "loopback"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "status", "reserved"),
 				),
 			},
-			// Step 2: Remove VRF and tenant - should set to null
+			// Step 2: Remove all optional fields - should set to null or defaults
 			{
 				Config: testAccIPAddressResourceConfig_withoutVRFAndTenant(vrfName, vrfRD, tenantName, tenantSlug, address),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckNoResourceAttr("netbox_ip_address.test", "vrf"),
 					resource.TestCheckNoResourceAttr("netbox_ip_address.test", "tenant"),
+					resource.TestCheckNoResourceAttr("netbox_ip_address.test", "dns_name"),
+					resource.TestCheckNoResourceAttr("netbox_ip_address.test", "role"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "status", "active"), // Should revert to default
 				),
 			},
-			// Step 3: Re-add VRF and tenant - should work without errors
+			// Step 3: Re-add all optional fields - should work without errors
 			{
 				Config: testAccIPAddressResourceConfig_withVRFAndTenant(vrfName, vrfRD, tenantName, tenantSlug, address),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "vrf"),
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "tenant"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "dns_name", "test.example.com"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "role", "loopback"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "status", "reserved"),
 				),
 			},
 		},
@@ -542,10 +551,12 @@ resource "netbox_tenant" "test" {
 }
 
 resource "netbox_ip_address" "test" {
-  address = %[5]q
-  vrf     = netbox_vrf.test.id
-  tenant  = netbox_tenant.test.id
-  status  = "active"
+  address  = %[5]q
+  vrf      = netbox_vrf.test.id
+  tenant   = netbox_tenant.test.id
+  status   = "reserved"
+  role     = "loopback"
+  dns_name = "test.example.com"
 }
 `, vrfName, vrfRD, tenantName, tenantSlug, address)
 }
@@ -564,8 +575,48 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_ip_address" "test" {
   address = %[5]q
-  status  = "active"
-  # vrf and tenant removed - should set to null
+  # All optional fields removed - should set to null or default
 }
 `, vrfName, vrfRD, tenantName, tenantSlug, address)
+}
+
+func TestAccIPAddressResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	address := fmt.Sprintf("198.51.100.%d/32", acctest.RandIntRange(1, 254))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_ip_address",
+		BaseConfig: func() string {
+			return testAccIPAddressResourceConfig_basic(address)
+		},
+		ConfigWithFields: func() string {
+			return testAccIPAddressResourceConfig_withDescriptionAndComments(
+				address,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		RequiredFields: map[string]string{
+			"address": address,
+		},
+	})
+}
+
+func testAccIPAddressResourceConfig_withDescriptionAndComments(address, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_ip_address" "test" {
+  address     = %[1]q
+  status      = "active"
+  description = %[2]q
+  comments    = %[3]q
+}
+`, address, description, comments)
 }

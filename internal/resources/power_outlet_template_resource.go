@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -104,10 +103,6 @@ func (r *PowerOutletTemplateResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "Physical label of the power outlet template.",
 
 				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"type": schema.StringAttribute{
@@ -197,10 +192,7 @@ func (r *PowerOutletTemplateResource) Create(ctx context.Context, req resource.C
 	}
 
 	// Set optional fields
-
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		apiReq.SetType(netbox.PatchedWritablePowerOutletTemplateRequestType(data.Type.ValueString()))
@@ -361,13 +353,13 @@ func (r *PowerOutletTemplateResource) Update(ctx context.Context, req resource.U
 	}
 
 	// Set optional fields
+	utils.ApplyLabel(apiReq, data.Label)
 
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
-
-	if !data.Type.IsNull() && !data.Type.IsUnknown() {
+	if utils.IsSet(data.Type) {
 		apiReq.SetType(netbox.PatchedWritablePowerOutletTemplateRequestType(data.Type.ValueString()))
+	} else if data.Type.IsNull() {
+		// Explicitly clear type when removed from config
+		apiReq.SetType("")
 	}
 
 	if !data.PowerPort.IsNull() && !data.PowerPort.IsUnknown() {
@@ -393,10 +385,16 @@ func (r *PowerOutletTemplateResource) Update(ctx context.Context, req resource.U
 		apiReq.SetPowerPort(netbox.BriefPowerPortTemplateRequest{
 			Name: powerPort.GetName(),
 		})
+	} else if data.PowerPort.IsNull() {
+		// Explicitly clear power_port when removed from config
+		apiReq.SetPowerPortNil()
 	}
 
-	if !data.FeedLeg.IsNull() && !data.FeedLeg.IsUnknown() {
+	if utils.IsSet(data.FeedLeg) {
 		apiReq.SetFeedLeg(netbox.PatchedWritablePowerOutletRequestFeedLeg(data.FeedLeg.ValueString()))
+	} else if data.FeedLeg.IsNull() {
+		// Explicitly clear feed_leg when removed from config
+		apiReq.SetFeedLeg("")
 	}
 
 	// Apply description
@@ -521,11 +519,7 @@ func (r *PowerOutletTemplateResource) mapResponseToModel(template *netbox.PowerO
 
 	// Map label - always set since it's computed
 
-	if label, ok := template.GetLabelOk(); ok && label != nil {
-		data.Label = types.StringValue(*label)
-	} else {
-		data.Label = types.StringValue("")
-	}
+	data.Label = utils.StringFromAPI(template.HasLabel(), template.GetLabel, data.Label)
 
 	// Map type
 

@@ -392,6 +392,8 @@ func (r *InterfaceResource) setOptionalFields(ctx context.Context, interfaceReq 
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
 		label := data.Label.ValueString()
 		interfaceReq.Label = &label
+	} else if data.Label.IsNull() {
+		interfaceReq.SetLabel("")
 	}
 
 	// Enabled
@@ -432,12 +434,16 @@ func (r *InterfaceResource) setOptionalFields(ctx context.Context, interfaceReq 
 			return
 		}
 		interfaceReq.Mtu = *netbox.NewNullableInt32(&mtu)
+	} else if data.Mtu.IsNull() {
+		interfaceReq.Mtu.Set(nil)
 	}
 
 	// MAC Address
 	if !data.MacAddress.IsNull() && !data.MacAddress.IsUnknown() {
 		macAddr := data.MacAddress.ValueString()
 		interfaceReq.MacAddress = *netbox.NewNullableString(&macAddr)
+	} else if data.MacAddress.IsNull() {
+		interfaceReq.MacAddress.Set(nil)
 	}
 
 	// Speed
@@ -448,12 +454,16 @@ func (r *InterfaceResource) setOptionalFields(ctx context.Context, interfaceReq 
 			return
 		}
 		interfaceReq.Speed = *netbox.NewNullableInt32(&speed)
+	} else if data.Speed.IsNull() {
+		interfaceReq.Speed.Set(nil)
 	}
 
 	// Duplex
 	if !data.Duplex.IsNull() && !data.Duplex.IsUnknown() && data.Duplex.ValueString() != "" {
 		duplex := netbox.InterfaceRequestDuplex(data.Duplex.ValueString())
 		interfaceReq.Duplex = *netbox.NewNullableInterfaceRequestDuplex(&duplex)
+	} else if data.Duplex.IsNull() {
+		interfaceReq.Duplex.Set(nil)
 	}
 
 	// WWN
@@ -472,12 +482,20 @@ func (r *InterfaceResource) setOptionalFields(ctx context.Context, interfaceReq 
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		desc := data.Description.ValueString()
 		interfaceReq.Description = &desc
+	} else if data.Description.IsNull() {
+		interfaceReq.SetDescription("")
 	}
 
 	// Mode (WritableInterfaceRequest uses PatchedWritableInterfaceRequestMode)
 	if !data.Mode.IsNull() && !data.Mode.IsUnknown() && data.Mode.ValueString() != "" {
 		mode := netbox.PatchedWritableInterfaceRequestMode(data.Mode.ValueString())
 		interfaceReq.Mode = &mode
+	} else if data.Mode.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if interfaceReq.AdditionalProperties == nil {
+			interfaceReq.AdditionalProperties = make(map[string]interface{})
+		}
+		interfaceReq.AdditionalProperties["mode"] = nil
 	}
 
 	// MarkConnected

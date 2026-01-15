@@ -144,3 +144,42 @@ This repo uses pre-commit hooks to run linting/formatting checks.
 - `golangci-lint` formatting is run via a small Go wrapper at `scripts/golangci_wrapper/`.
   The wrapper sets a repo-local `GOTMPDIR` (in `.gotmp/`) before invoking `golangci-lint`.
   This helps avoid occasional Windows file-lock issues when Go creates temporary `.exe` files.
+
+## Optional Field Null Handling
+
+All optional fields must explicitly handle null values to prevent "inconsistent result" errors when fields are removed from Terraform configuration.
+
+### Pattern for Optional Fields
+
+```go
+// In buildXRequest() function:
+if !data.FieldName.IsNull() && !data.FieldName.IsUnknown() {
+    request.SetFieldName(data.FieldName.ValueString())
+} else if data.FieldName.IsNull() {
+    request.SetFieldName("")  // For strings: clear with empty string
+    // request.SetFieldNameNil()  // For nullable types: use Nil setter
+}
+```
+
+### Testing Optional Fields
+
+Use the test helpers in `internal/testutil/optional_fields_test_helpers.go`:
+
+```go
+func TestAccResource_removeOptionalFields(t *testing.T) {
+    t.Parallel()
+
+    testutil.TestRemoveOptionalFields(t, testutil.OptionalFieldTestConfig{
+        ResourceType: "netbox_resource",
+        ResourceName: "test",
+        CreateConfigWithOptionalFields:    func() string { return configWithFields() },
+        CreateConfigWithoutOptionalFields: func() string { return configMinimal() },
+        OptionalFields: map[string]string{
+            "description": "Test description",
+            "comments":    "Test comments",
+        },
+    })
+}
+```
+
+See [docs/TESTING_OPTIONAL_FIELDS.md](docs/TESTING_OPTIONAL_FIELDS.md) for complete documentation and examples.

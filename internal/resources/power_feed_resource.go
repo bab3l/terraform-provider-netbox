@@ -388,21 +388,45 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 	if !plan.Status.IsNull() && !plan.Status.IsUnknown() {
 		status := netbox.PatchedWritablePowerFeedRequestStatus(plan.Status.ValueString())
 		apiReq.SetStatus(status)
+	} else if plan.Status.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["status"] = nil
 	}
 
 	if !plan.Type.IsNull() && !plan.Type.IsUnknown() {
 		feedType := netbox.PatchedWritablePowerFeedRequestType(plan.Type.ValueString())
 		apiReq.SetType(feedType)
+	} else if plan.Type.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["type"] = nil
 	}
 
 	if !plan.Supply.IsNull() && !plan.Supply.IsUnknown() {
 		supply := netbox.PatchedWritablePowerFeedRequestSupply(plan.Supply.ValueString())
 		apiReq.SetSupply(supply)
+	} else if plan.Supply.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["supply"] = nil
 	}
 
 	if !plan.Phase.IsNull() && !plan.Phase.IsUnknown() {
 		phase := netbox.PatchedWritablePowerFeedRequestPhase(plan.Phase.ValueString())
 		apiReq.SetPhase(phase)
+	} else if plan.Phase.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["phase"] = nil
 	}
 
 	if !plan.Voltage.IsNull() && !plan.Voltage.IsUnknown() {
@@ -412,6 +436,12 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 			return
 		}
 		apiReq.SetVoltage(voltage)
+	} else if plan.Voltage.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["voltage"] = nil
 	}
 
 	if !plan.Amperage.IsNull() && !plan.Amperage.IsUnknown() {
@@ -421,6 +451,12 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 			return
 		}
 		apiReq.SetAmperage(amperage)
+	} else if plan.Amperage.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["amperage"] = nil
 	}
 
 	if !plan.MaxUtilization.IsNull() && !plan.MaxUtilization.IsUnknown() {
@@ -430,10 +466,22 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 			return
 		}
 		apiReq.SetMaxUtilization(maxUtilization)
+	} else if plan.MaxUtilization.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["max_utilization"] = nil
 	}
 
 	if !plan.MarkConnected.IsNull() && !plan.MarkConnected.IsUnknown() {
 		apiReq.SetMarkConnected(plan.MarkConnected.ValueBool())
+	} else if plan.MarkConnected.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if apiReq.AdditionalProperties == nil {
+			apiReq.AdditionalProperties = make(map[string]interface{})
+		}
+		apiReq.AdditionalProperties["mark_connected"] = nil
 	}
 
 	utils.ApplyDescription(apiReq, plan.Description)

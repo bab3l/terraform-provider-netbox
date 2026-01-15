@@ -209,6 +209,8 @@ func (r *RackResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 				Optional: true,
 
+				Computed: true,
+
 				Validators: []validator.String{
 					stringvalidator.OneOf("kg", "g", "lb", "oz"),
 				},
@@ -256,6 +258,8 @@ func (r *RackResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				MarkdownDescription: "Unit of measurement for outer dimensions. Valid values: `mm`, `in`.",
 
 				Optional: true,
+
+				Computed: true,
 
 				Validators: []validator.String{
 					stringvalidator.OneOf("mm", "in"),
@@ -852,6 +856,8 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 		if _, err := fmt.Sscanf(data.Weight.ValueString(), "%f", &weight); err == nil {
 			rackRequest.Weight = *netbox.NewNullableFloat64(&weight)
 		}
+	} else {
+		rackRequest.SetWeightNil()
 	}
 
 	// Set max_weight
@@ -862,6 +868,8 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 		if _, err := fmt.Sscanf(data.MaxWeight.ValueString(), "%d", &maxWeight); err == nil {
 			rackRequest.MaxWeight = *netbox.NewNullableInt32(&maxWeight)
 		}
+	} else {
+		rackRequest.SetMaxWeightNil()
 	}
 
 	// Set weight_unit
@@ -888,6 +896,8 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 		if _, err := fmt.Sscanf(data.OuterWidth.ValueString(), "%d", &outerWidth); err == nil {
 			rackRequest.OuterWidth = *netbox.NewNullableInt32(&outerWidth)
 		}
+	} else {
+		rackRequest.SetOuterWidthNil()
 	}
 
 	// Set outer_depth
@@ -898,6 +908,8 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 		if _, err := fmt.Sscanf(data.OuterDepth.ValueString(), "%d", &outerDepth); err == nil {
 			rackRequest.OuterDepth = *netbox.NewNullableInt32(&outerDepth)
 		}
+	} else {
+		rackRequest.SetOuterDepthNil()
 	}
 
 	// Set outer_unit
@@ -916,6 +928,8 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 		if _, err := fmt.Sscanf(data.MountingDepth.ValueString(), "%d", &mountingDepth); err == nil {
 			rackRequest.MountingDepth = *netbox.NewNullableInt32(&mountingDepth)
 		}
+	} else {
+		rackRequest.SetMountingDepthNil()
 	}
 
 	// Set airflow
@@ -924,6 +938,11 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 		airflowValue := netbox.PatchedWritableRackRequestAirflow(data.Airflow.ValueString())
 
 		rackRequest.Airflow = &airflowValue
+	} else {
+		if rackRequest.AdditionalProperties == nil {
+			rackRequest.AdditionalProperties = make(map[string]interface{})
+		}
+		rackRequest.AdditionalProperties["airflow"] = nil
 	}
 
 	// Set serial
@@ -932,6 +951,9 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 		serial := data.Serial.ValueString()
 
 		rackRequest.Serial = &serial
+	} else {
+		empty := ""
+		rackRequest.Serial = &empty
 	}
 
 	// Set asset_tag
@@ -940,6 +962,8 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 		assetTag := data.AssetTag.ValueString()
 
 		rackRequest.AssetTag = *netbox.NewNullableString(&assetTag)
+	} else {
+		rackRequest.SetAssetTagNil()
 	}
 
 	// Note: Common fields (description, comments, tags, custom_fields) are now applied in Update method

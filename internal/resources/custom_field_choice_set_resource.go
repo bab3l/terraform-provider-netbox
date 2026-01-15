@@ -144,6 +144,12 @@ func (r *CustomFieldChoiceSetResource) Create(ctx context.Context, req resource.
 	if !data.OrderAlphabetically.IsNull() && !data.OrderAlphabetically.IsUnknown() {
 		orderAlpha := data.OrderAlphabetically.ValueBool()
 		request.OrderAlphabetically = &orderAlpha
+	} else if data.OrderAlphabetically.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if request.AdditionalProperties == nil {
+			request.AdditionalProperties = make(map[string]interface{})
+		}
+		request.AdditionalProperties["order_alphabetically"] = nil
 	}
 
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasCustomFieldChoiceSetsCreate(ctx).
@@ -223,9 +229,16 @@ func (r *CustomFieldChoiceSetResource) Update(ctx context.Context, req resource.
 		baseChoices := netbox.PatchedWritableCustomFieldChoiceSetRequestBaseChoices(data.BaseChoices.ValueString())
 		request.BaseChoices = &baseChoices
 	}
+	// Note: base_choices cannot be cleared once set - API requires it to be non-empty or omitted
 	if !data.OrderAlphabetically.IsNull() && !data.OrderAlphabetically.IsUnknown() {
 		orderAlpha := data.OrderAlphabetically.ValueBool()
 		request.OrderAlphabetically = &orderAlpha
+	} else if data.OrderAlphabetically.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if request.AdditionalProperties == nil {
+			request.AdditionalProperties = make(map[string]interface{})
+		}
+		request.AdditionalProperties["order_alphabetically"] = nil
 	}
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasCustomFieldChoiceSetsUpdate(ctx, id).
 		WritableCustomFieldChoiceSetRequest(*request).Execute()

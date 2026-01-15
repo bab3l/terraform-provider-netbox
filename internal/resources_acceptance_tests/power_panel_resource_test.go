@@ -221,3 +221,86 @@ func TestAccPowerPanelResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccPowerPanelResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccPowerPanelResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-rem")
+	siteSlug := testutil.RandomSlug("tf-test-site-rem")
+	locationName := testutil.RandomName("tf-test-loc-rem")
+	locationSlug := testutil.RandomSlug("tf-test-loc-rem")
+	panelName := testutil.RandomName("tf-test-panel-rem")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerPanelResourceConfig_withLocation(siteName, siteSlug, locationName, locationSlug, panelName, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_panel.test", "name", panelName),
+					resource.TestCheckResourceAttr("netbox_power_panel.test", "description", description),
+					resource.TestCheckResourceAttrSet("netbox_power_panel.test", "location"),
+				),
+			},
+			{
+				Config: testAccPowerPanelResourceConfig_withLocationNoOptional(siteName, siteSlug, locationName, locationSlug, panelName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_panel.test", "name", panelName),
+					resource.TestCheckNoResourceAttr("netbox_power_panel.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_power_panel.test", "location"),
+				),
+			},
+		},
+	})
+}
+
+func testAccPowerPanelResourceConfig_withLocation(siteName, siteSlug, locationName, locationSlug, panelName, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_location" "test" {
+  name = %[3]q
+  slug = %[4]q
+  site = netbox_site.test.id
+}
+
+resource "netbox_power_panel" "test" {
+  site        = netbox_site.test.id
+  name        = %[5]q
+  location    = netbox_location.test.id
+  description = %[6]q
+}
+`, siteName, siteSlug, locationName, locationSlug, panelName, description)
+}
+
+func testAccPowerPanelResourceConfig_withLocationNoOptional(siteName, siteSlug, locationName, locationSlug, panelName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_location" "test" {
+  name = %[3]q
+  slug = %[4]q
+  site = netbox_site.test.id
+}
+
+resource "netbox_power_panel" "test" {
+  site = netbox_site.test.id
+  name = %[5]q
+}
+`, siteName, siteSlug, locationName, locationSlug, panelName)
+}

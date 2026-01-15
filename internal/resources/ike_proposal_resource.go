@@ -96,6 +96,10 @@ func (r *IKEProposalResource) Schema(ctx context.Context, req resource.SchemaReq
 			"authentication_algorithm": schema.StringAttribute{
 				MarkdownDescription: "The authentication algorithm (hash) for the IKE proposal. Optional. Valid values: `hmac-sha1`, `hmac-sha256`, `hmac-sha384`, `hmac-sha512`, `hmac-md5`.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.String{
 					stringvalidator.OneOf("hmac-sha1", "hmac-sha256", "hmac-sha384", "hmac-sha512", "hmac-md5"),
 				},
@@ -410,6 +414,9 @@ func (r *IKEProposalResource) setOptionalFields(ctx context.Context, ikeRequest 
 			return
 		}
 		ikeRequest.SaLifetime = *netbox.NewNullableInt32(&lifetime)
+	} else if state != nil && utils.IsSet(state.SALifetime) {
+		// Explicitly clear removed optional nullable int field (NetBox PATCH semantics).
+		ikeRequest.SaLifetime = *netbox.NewNullableInt32(nil)
 	}
 
 	// Set comments, tags, and custom fields with merge-aware helpers
@@ -454,7 +461,7 @@ func (r *IKEProposalResource) mapIKEProposalToState(ctx context.Context, ike *ne
 	}
 
 	// Authentication Algorithm
-	if ike.AuthenticationAlgorithm != nil && ike.AuthenticationAlgorithm.Value != nil {
+	if ike.AuthenticationAlgorithm != nil && ike.AuthenticationAlgorithm.Value != nil && string(*ike.AuthenticationAlgorithm.Value) != "" {
 		data.AuthenticationAlgorithm = types.StringValue(string(*ike.AuthenticationAlgorithm.Value))
 	} else {
 		data.AuthenticationAlgorithm = types.StringNull()

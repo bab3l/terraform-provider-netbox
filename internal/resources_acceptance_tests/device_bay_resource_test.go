@@ -534,6 +534,7 @@ func TestAccDeviceBayResource_removeOptionalFields(t *testing.T) {
 	parentDeviceName := testutil.RandomName("tf-test-parent-db")
 	childDeviceName := testutil.RandomName("tf-test-child-db")
 	bayName := testutil.RandomName("tf-test-bay-db")
+	const testLabel = "Test Bay Label"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -547,30 +548,33 @@ func TestAccDeviceBayResource_removeOptionalFields(t *testing.T) {
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Step 1: Create device bay with installed_device
+			// Step 1: Create device bay with all optional fields
 			{
-				Config: testAccDeviceBayResourceConfig_withInstalledDevice(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName),
+				Config: testAccDeviceBayResourceConfig_withAllOptionalFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName, testLabel),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_device_bay.test", "id"),
 					resource.TestCheckResourceAttr("netbox_device_bay.test", "name", bayName),
+					resource.TestCheckResourceAttr("netbox_device_bay.test", "label", testLabel),
 					resource.TestCheckResourceAttrSet("netbox_device_bay.test", "installed_device"),
 				),
 			},
-			// Step 2: Remove installed_device - should set it to null
+			// Step 2: Remove optional fields - should set them to null
 			{
-				Config: testAccDeviceBayResourceConfig_withoutInstalledDevice(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName),
+				Config: testAccDeviceBayResourceConfig_minimal(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_device_bay.test", "id"),
 					resource.TestCheckResourceAttr("netbox_device_bay.test", "name", bayName),
+					resource.TestCheckNoResourceAttr("netbox_device_bay.test", "label"),
 					resource.TestCheckNoResourceAttr("netbox_device_bay.test", "installed_device"),
 				),
 			},
-			// Step 3: Re-add installed_device - verify it can be set again
+			// Step 3: Re-add optional fields - verify they can be set again
 			{
-				Config: testAccDeviceBayResourceConfig_withInstalledDevice(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName),
+				Config: testAccDeviceBayResourceConfig_withAllOptionalFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName, testLabel),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_device_bay.test", "id"),
 					resource.TestCheckResourceAttr("netbox_device_bay.test", "name", bayName),
+					resource.TestCheckResourceAttr("netbox_device_bay.test", "label", testLabel),
 					resource.TestCheckResourceAttrSet("netbox_device_bay.test", "installed_device"),
 				),
 			},
@@ -578,7 +582,7 @@ func TestAccDeviceBayResource_removeOptionalFields(t *testing.T) {
 	})
 }
 
-func testAccDeviceBayResourceConfig_withInstalledDevice(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName string) string {
+func testAccDeviceBayResourceConfig_withAllOptionalFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName, label string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = %q
@@ -622,12 +626,13 @@ resource "netbox_device" "child" {
 resource "netbox_device_bay" "test" {
   device           = netbox_device.parent.id
   name             = %q
+  label            = %q
   installed_device = netbox_device.child.id
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName, label)
 }
 
-func testAccDeviceBayResourceConfig_withoutInstalledDevice(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName string) string {
+func testAccDeviceBayResourceConfig_minimal(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = %q

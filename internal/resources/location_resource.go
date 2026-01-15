@@ -300,10 +300,7 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 
 	// Set optional description
-	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
-		desc := plan.Description.ValueString()
-		locationRequest.Description = &desc
-	}
+	utils.ApplyDescription(locationRequest, plan.Description)
 
 	// Handle tags (prefer plan, fallback to state)
 	if utils.IsSet(plan.Tags) {

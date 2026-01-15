@@ -1110,32 +1110,44 @@ func TestAccVMInterfaceResource_removeOptionalFields(t *testing.T) {
 			testutil.CheckClusterTypeDestroy,
 		),
 		Steps: []resource.TestStep{
-			// Step 1: Create VM interface with untagged_vlan and vrf
+			// Step 1: Create VM interface with all optional fields
 			{
 				Config: testAccVMInterfaceResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName, vlanVID, vrfName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "enabled", "false"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mtu", "1500"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mac_address", "00:11:22:33:44:55"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mode", "access"),
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "untagged_vlan"),
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "vrf"),
 				),
 			},
-			// Step 2: Remove untagged_vlan and vrf - should set them to null
+			// Step 2: Remove optional fields - should clear them
 			{
 				Config: testAccVMInterfaceResourceConfig_withoutOptionalFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName, vlanVID, vrfName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "enabled", "true"), // Should revert to default
+					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "mtu"),
+					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "mac_address"),
+					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "mode"),
 					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "untagged_vlan"),
 					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "vrf"),
 				),
 			},
-			// Step 3: Re-add untagged_vlan and vrf - verify they can be set again
+			// Step 3: Re-add optional fields - verify they can be set again
 			{
 				Config: testAccVMInterfaceResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName, vlanVID, vrfName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "enabled", "false"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mtu", "1500"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mac_address", "00:11:22:33:44:55"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mode", "access"),
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "untagged_vlan"),
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "vrf"),
 				),
@@ -1180,6 +1192,9 @@ resource "netbox_vrf" "test" {
 resource "netbox_vm_interface" "test" {
   virtual_machine = netbox_virtual_machine.test.id
   name            = %q
+  enabled         = false
+  mtu             = 1500
+  mac_address     = "00:11:22:33:44:55"
   mode            = "access"
   untagged_vlan   = netbox_vlan.test.id
   vrf             = netbox_vrf.test.id
@@ -1225,4 +1240,66 @@ resource "netbox_vm_interface" "test" {
   name            = %q
 }
 `, clusterTypeName, clusterTypeSlug, siteName, siteSlug, clusterName, vmName, vlanName, vlanVID, vrfName, ifaceName)
+}
+
+func TestAccVMInterfaceResource_removeDescription(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-vm-int-desc")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-vm-int-desc")
+	clusterName := testutil.RandomName("tf-test-cluster-vm-int-desc")
+	vmName := testutil.RandomName("tf-test-vm-int-desc")
+	ifaceName := testutil.RandomName("tf-test-int-desc")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_vm_interface",
+		BaseConfig: func() string {
+			return testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName)
+		},
+		ConfigWithFields: func() string {
+			return testAccVMInterfaceResourceConfig_withDescription(
+				clusterTypeName,
+				clusterTypeSlug,
+				clusterName,
+				vmName,
+				ifaceName,
+				"Test description",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+		},
+		CheckDestroy: testutil.CheckVMInterfaceDestroy,
+	})
+}
+
+func testAccVMInterfaceResourceConfig_withDescription(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = %q
+  cluster = netbox_cluster.test.id
+}
+
+resource "netbox_vm_interface" "test" {
+  virtual_machine = netbox_virtual_machine.test.id
+  name            = %q
+  description     = %q
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, description)
 }

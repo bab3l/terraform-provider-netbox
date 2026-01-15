@@ -336,67 +336,6 @@ resource "netbox_rear_port_template" "test" {
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, optionalField)
 }
 
-// TestAccRearPortTemplateResource_Label tests comprehensive scenarios for rear port template label field.
-// This validates that Optional+Computed string fields with empty string defaults work correctly.
-func TestAccRearPortTemplateResource_Label(t *testing.T) {
-	// Generate unique names for this test run
-	manufacturerName := testutil.RandomName("tf-test-mfr-rear-port-tpl")
-	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-rear-port-tpl")
-	deviceTypeName := testutil.RandomName("tf-test-dev-type-rear-port-tpl")
-	deviceTypeSlug := testutil.RandomSlug("tf-test-dev-type-rear-port-tpl")
-	rearPortTemplateName := testutil.RandomName("tf-test-rear-port-tpl")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
-	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
-
-	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
-		ResourceName:   "netbox_rear_port_template",
-		OptionalField:  "label",
-		DefaultValue:   "",
-		FieldTestValue: "RP-01",
-		CheckDestroy: testutil.ComposeCheckDestroy(
-			testutil.CheckRearPortTemplateDestroy,
-			testutil.CheckDeviceTypeDestroy,
-			testutil.CheckManufacturerDestroy,
-		),
-		BaseConfig: func() string {
-			return testAccRearPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortTemplateName, "label", "")
-		},
-		WithFieldConfig: func(value string) string {
-			return testAccRearPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortTemplateName, "label", value)
-		},
-	})
-}
-
-// TestAccRearPortTemplateResource_Color tests comprehensive scenarios for rear port template color field.
-// This validates that Optional+Computed string fields with empty string defaults work correctly.
-func TestAccRearPortTemplateResource_Color(t *testing.T) {
-	// Generate unique names for this test run
-	manufacturerName := testutil.RandomName("tf-test-mfr-rear-port-tpl-color")
-	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-rear-port-tpl-color")
-	deviceTypeName := testutil.RandomName("tf-test-dev-type-rear-port-tpl-color")
-	deviceTypeSlug := testutil.RandomSlug("tf-test-dev-type-rear-port-tpl-color")
-	rearPortTemplateName := testutil.RandomName("tf-test-rear-port-tpl-color")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
-	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
-
-	testutil.RunOptionalComputedFieldTestSuite(t, testutil.OptionalComputedFieldTestConfig{
-		ResourceName:   "netbox_rear_port_template",
-		OptionalField:  "color",
-		DefaultValue:   "",
-		FieldTestValue: "aa1409",
-		BaseConfig: func() string {
-			return testAccRearPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortTemplateName, "color", "")
-		},
-		WithFieldConfig: func(value string) string {
-			return testAccRearPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortTemplateName, "color", value)
-		},
-	})
-}
-
 // TestAccRearPortTemplateResource_Positions tests comprehensive scenarios for rear port template positions field.
 // This validates that Optional+Computed int64 fields with proper defaults work correctly.
 func TestAccRearPortTemplateResource_Positions(t *testing.T) {
@@ -423,4 +362,99 @@ func TestAccRearPortTemplateResource_Positions(t *testing.T) {
 			return testAccRearPortTemplateResourceWithOptionalField(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortTemplateName, "positions", value)
 		},
 	})
+}
+
+func TestAccRearPortTemplateResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg-rem")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-rem")
+	dtModel := testutil.RandomName("tf-test-dt-rem")
+	dtSlug := testutil.RandomSlug("tf-test-dt-rem")
+	portName := testutil.RandomName("tf-test-rpt-rem")
+
+	// Test values for all optional fields
+	const testLabel = "Test Label"
+	const testColor = "aa1409"
+	const testDescription = "Test Description"
+	const testPositions = 4
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create with all optional fields
+				Config: testAccRearPortTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, testLabel, testColor, testDescription, testPositions),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "name", portName),
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "label", testLabel),
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "color", testColor),
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "positions", fmt.Sprintf("%d", testPositions)),
+				),
+			},
+			{
+				// Step 2: Remove all optional fields
+				Config: testAccRearPortTemplateResourceConfig_noOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "name", portName),
+					resource.TestCheckNoResourceAttr("netbox_rear_port_template.test", "label"),
+					resource.TestCheckNoResourceAttr("netbox_rear_port_template.test", "color"),
+					resource.TestCheckNoResourceAttr("netbox_rear_port_template.test", "description"),
+					resource.TestCheckResourceAttr("netbox_rear_port_template.test", "positions", "1"),
+				),
+			},
+		},
+	})
+}
+
+func testAccRearPortTemplateResourceConfig_allOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, label, color, description string, positions int) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[3]q
+  slug = %[4]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_rear_port_template" "test" {
+  device_type = netbox_device_type.test.id
+  name = %[5]q
+  type = "8p8c"
+  label = %[6]q
+  color = %[7]q
+	description = %[8]q
+	positions = %[9]d
+}
+`, mfgName, mfgSlug, dtModel, dtSlug, portName, label, color, description, positions)
+}
+
+func testAccRearPortTemplateResourceConfig_noOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[3]q
+  slug = %[4]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_rear_port_template" "test" {
+  device_type = netbox_device_type.test.id
+  name = %[5]q
+  type = "8p8c"
+}
+`, mfgName, mfgSlug, dtModel, dtSlug, portName)
 }

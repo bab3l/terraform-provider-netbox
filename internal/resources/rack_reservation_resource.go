@@ -431,6 +431,9 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 		}
 
 		apiReq.SetTenant(*tenant)
+	} else if !plan.Tenant.IsUnknown() {
+		// Explicitly set nil to clear the field
+		apiReq.SetTenantNil()
 	}
 
 	// Apply optional fields with merge-aware helpers

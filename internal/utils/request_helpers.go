@@ -27,6 +27,12 @@ type CommentsSetter interface {
 	SetComments(v string)
 }
 
+// LabelSetter is implemented by request types that have a Label field.
+// Includes both SetLabel for setting values and direct field access for clearing.
+type LabelSetter interface {
+	SetLabel(v string)
+}
+
 // TagsSetter is implemented by request types that have a Tags field.
 type TagsSetter interface {
 	SetTags(v []netbox.NestedTagRequest)
@@ -65,6 +71,8 @@ type FullCommonFieldsSetter interface {
 func ApplyDescription[T DescriptionSetter](request T, description types.String) {
 	if IsSet(description) {
 		request.SetDescription(description.ValueString())
+	} else if description.IsNull() {
+		request.SetDescription("")
 	}
 }
 
@@ -73,6 +81,22 @@ func ApplyDescription[T DescriptionSetter](request T, description types.String) 
 func ApplyComments[T CommentsSetter](request T, comments types.String) {
 	if IsSet(comments) {
 		request.SetComments(comments.ValueString())
+	} else if comments.IsNull() {
+		request.SetComments("")
+	}
+}
+
+// ApplyLabel sets the Label field on a request if the value is set, or clears it if null.
+// Works with any request type that implements LabelSetter.
+// Note: We explicitly set empty string to clear the field, as NetBox interprets omitted
+// fields as "keep current value" but accepts empty string as "clear the value".
+func ApplyLabel[T LabelSetter](request T, label types.String) {
+	if IsSet(label) {
+		request.SetLabel(label.ValueString())
+	} else if label.IsNull() {
+		// Set to empty string to clear the field
+		// Note: Setting to nil (omit from JSON) causes NetBox to keep the old value
+		request.SetLabel("")
 	}
 }
 

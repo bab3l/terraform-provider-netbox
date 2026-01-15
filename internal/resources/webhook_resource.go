@@ -148,9 +148,24 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// Set optional fields
 	utils.ApplyDescription(webhookRequest, data.Description)
-	webhookRequest.AdditionalHeaders = utils.StringPtr(data.AdditionalHeaders)
-	webhookRequest.BodyTemplate = utils.StringPtr(data.BodyTemplate)
-	webhookRequest.Secret = utils.StringPtr(data.Secret)
+
+	if !data.AdditionalHeaders.IsNull() {
+		webhookRequest.SetAdditionalHeaders(data.AdditionalHeaders.ValueString())
+	} else {
+		webhookRequest.SetAdditionalHeaders("")
+	}
+
+	if !data.BodyTemplate.IsNull() {
+		webhookRequest.SetBodyTemplate(data.BodyTemplate.ValueString())
+	} else {
+		webhookRequest.SetBodyTemplate("")
+	}
+
+	if !data.Secret.IsNull() {
+		webhookRequest.SetSecret(data.Secret.ValueString())
+	} else {
+		webhookRequest.SetSecret("")
+	}
 
 	// Set HTTP method
 	if !data.HTTPMethod.IsNull() && !data.HTTPMethod.IsUnknown() {
@@ -255,20 +270,43 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// Set optional fields
 	utils.ApplyDescription(webhookRequest, data.Description)
-	webhookRequest.AdditionalHeaders = utils.StringPtr(data.AdditionalHeaders)
-	webhookRequest.BodyTemplate = utils.StringPtr(data.BodyTemplate)
-	webhookRequest.Secret = utils.StringPtr(data.Secret)
+
+	if !data.AdditionalHeaders.IsNull() {
+		webhookRequest.SetAdditionalHeaders(data.AdditionalHeaders.ValueString())
+	} else {
+		webhookRequest.SetAdditionalHeaders("")
+	}
+
+	if !data.BodyTemplate.IsNull() {
+		webhookRequest.SetBodyTemplate(data.BodyTemplate.ValueString())
+	} else {
+		webhookRequest.SetBodyTemplate("")
+	}
+
+	if !data.Secret.IsNull() {
+		webhookRequest.SetSecret(data.Secret.ValueString())
+	} else {
+		webhookRequest.SetSecret("")
+	}
 
 	// Set HTTP method
 	if !data.HTTPMethod.IsNull() && !data.HTTPMethod.IsUnknown() {
 		method := netbox.PatchedWebhookRequestHttpMethod(data.HTTPMethod.ValueString())
 		webhookRequest.HttpMethod = &method
+	} else if data.HTTPMethod.IsNull() {
+		// Clear by setting to empty string (will use API default)
+		emptyMethod := netbox.PatchedWebhookRequestHttpMethod("")
+		webhookRequest.HttpMethod = &emptyMethod
 	}
 
 	// Set HTTP content type
 	if !data.HTTPContentType.IsNull() && !data.HTTPContentType.IsUnknown() {
 		contentType := data.HTTPContentType.ValueString()
 		webhookRequest.HttpContentType = &contentType
+	} else if data.HTTPContentType.IsNull() {
+		// Clear by setting to empty string (will use API default)
+		emptyContentType := ""
+		webhookRequest.HttpContentType = &emptyContentType
 	}
 
 	// Set SSL verification
@@ -280,6 +318,9 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 	// Set CA file path
 	if !data.CAFilePath.IsNull() && !data.CAFilePath.IsUnknown() {
 		webhookRequest.CaFilePath = *netbox.NewNullableString(utils.StringPtr(data.CAFilePath))
+	} else if data.CAFilePath.IsNull() {
+		// Clear by setting to nil
+		webhookRequest.SetCaFilePathNil()
 	}
 
 	// Handle tags and custom fields

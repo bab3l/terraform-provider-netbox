@@ -187,3 +187,66 @@ func TestAccContactGroupResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccContactGroupResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("test-contact-group-rem")
+	slug := testutil.GenerateSlug(name)
+	parentName := testutil.RandomName("test-cg-parent")
+	parentSlug := testutil.GenerateSlug(parentName)
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactGroupCleanup(slug)
+	cleanup.RegisterContactGroupCleanup(parentSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactGroupResourceConfig_withParent(name, slug, parentName, parentSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "name", name),
+					resource.TestCheckResourceAttrSet("netbox_contact_group.test", "parent"),
+				),
+			},
+			{
+				Config: testAccContactGroupResourceConfig_detached(name, slug, parentName, parentSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_contact_group.test", "parent"),
+				),
+			},
+		},
+	})
+}
+
+func testAccContactGroupResourceConfig_withParent(name, slug, parentName, parentSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_contact_group" "parent" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_contact_group" "test" {
+  name   = %q
+  slug   = %q
+  parent = netbox_contact_group.parent.id
+}
+`, parentName, parentSlug, name, slug)
+}
+
+func testAccContactGroupResourceConfig_detached(name, slug, parentName, parentSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_contact_group" "parent" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_contact_group" "test" {
+  name   = %q
+  slug   = %q
+}
+`, parentName, parentSlug, name, slug)
+}

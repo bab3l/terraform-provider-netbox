@@ -309,3 +309,87 @@ resource "netbox_tunnel" "test" {
 }
 `, name, status)
 }
+
+func TestAccTunnelResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-tunnel-rem")
+	groupName := testutil.RandomName("tf-test-tunnel-group")
+	groupSlug := testutil.RandomSlug("tf-test-tunnel-group")
+	tenantName := testutil.RandomName("tf-test-tenant")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelCleanup(name)
+	cleanup.RegisterTunnelGroupCleanup(groupSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_tunnel",
+		BaseConfig: func() string {
+			return testAccTunnelResourceConfig_removeOptionalFields_base(
+				name, groupName, groupSlug, tenantName, tenantSlug,
+			)
+		},
+		ConfigWithFields: func() string {
+			return testAccTunnelResourceConfig_removeOptionalFields_withFields(
+				name, groupName, groupSlug, tenantName, tenantSlug,
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test Description",
+			"comments":    "Test Comments",
+			"tunnel_id":   "100",
+			// Note: status has a default value and cannot be truly cleared
+			// Note: ipsec_profile requires ipsec encapsulation type
+		},
+		RequiredFields: map[string]string{
+			"name": name,
+		},
+		CheckDestroy: testutil.CheckTunnelDestroy,
+	})
+}
+
+func testAccTunnelResourceConfig_removeOptionalFields_base(name, groupName, groupSlug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tunnel_group" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_tenant" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_tunnel" "test" {
+  name          = %[1]q
+  encapsulation = "gre"
+}
+`, name, groupName, groupSlug, tenantName, tenantSlug)
+}
+
+func testAccTunnelResourceConfig_removeOptionalFields_withFields(
+	name, groupName, groupSlug, tenantName, tenantSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tunnel_group" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_tenant" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_tunnel" "test" {
+  name          = %[1]q
+  encapsulation = "gre"
+  description   = "Test Description"
+  comments      = "Test Comments"
+  tunnel_id     = 100
+  group         = netbox_tunnel_group.test.id
+  tenant        = netbox_tenant.test.id
+}
+`, name, groupName, groupSlug, tenantName, tenantSlug)
+}

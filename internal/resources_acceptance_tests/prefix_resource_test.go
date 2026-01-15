@@ -616,7 +616,7 @@ func TestAccPrefixResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_prefix.test", "role"),
 				),
 			},
-			// Step 2: Remove all nullable fields - should set them to null
+			// Step 2: Remove all nullable fields - should set them to null, and verify defaults
 			{
 				Config: testAccPrefixResourceConfig_withoutFields(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVID, roleName, roleSlug),
 				Check: resource.ComposeTestCheckFunc(
@@ -627,6 +627,9 @@ func TestAccPrefixResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckNoResourceAttr("netbox_prefix.test", "tenant"),
 					resource.TestCheckNoResourceAttr("netbox_prefix.test", "vlan"),
 					resource.TestCheckNoResourceAttr("netbox_prefix.test", "role"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "status", "active"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "is_pool", "false"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "mark_utilized", "false"),
 				),
 			},
 			// Step 3: Re-add all fields - verify they can be set again
@@ -640,6 +643,9 @@ func TestAccPrefixResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_prefix.test", "tenant"),
 					resource.TestCheckResourceAttrSet("netbox_prefix.test", "vlan"),
 					resource.TestCheckResourceAttrSet("netbox_prefix.test", "role"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "status", "reserved"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "is_pool", "true"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "mark_utilized", "true"),
 				),
 			},
 		},
@@ -674,12 +680,15 @@ resource "netbox_role" "test" {
 }
 
 resource "netbox_prefix" "test" {
-  prefix = %q
-  site   = netbox_site.test.id
-  vrf    = netbox_vrf.test.id
-  tenant = netbox_tenant.test.id
-  vlan   = netbox_vlan.test.id
-  role   = netbox_role.test.id
+  prefix        = %q
+  site          = netbox_site.test.id
+  vrf           = netbox_vrf.test.id
+  tenant        = netbox_tenant.test.id
+  vlan          = netbox_vlan.test.id
+  role          = netbox_role.test.id
+  status        = "reserved"
+  is_pool       = true
+  mark_utilized = true
 }
 `, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVID, roleName, roleSlug, prefix)
 }
@@ -715,4 +724,46 @@ resource "netbox_prefix" "test" {
   prefix = %q
 }
 `, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVID, roleName, roleSlug, prefix)
+}
+
+func TestAccPrefixResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	prefix := testutil.RandomIPv4Prefix()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_prefix",
+		BaseConfig: func() string {
+			return testAccPrefixResourceConfig_basic(prefix)
+		},
+		ConfigWithFields: func() string {
+			return testAccPrefixResourceConfig_withDescriptionAndComments(
+				prefix,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		RequiredFields: map[string]string{
+			"prefix": prefix,
+		},
+		CheckDestroy: testutil.CheckPrefixDestroy,
+	})
+}
+
+func testAccPrefixResourceConfig_withDescriptionAndComments(prefix, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_prefix" "test" {
+  prefix      = %[1]q
+  status      = "active"
+  description = %[2]q
+  comments    = %[3]q
+}
+`, prefix, description, comments)
 }

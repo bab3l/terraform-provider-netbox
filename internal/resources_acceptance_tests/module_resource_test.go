@@ -86,7 +86,7 @@ func TestAccModuleResource_full(t *testing.T) {
 				Config: testAccModuleResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_module.test", "id"),
-					resource.TestCheckResourceAttr("netbox_module.test", "serial", "SN123456"),
+					resource.TestCheckResourceAttr("netbox_module.test", "asset_tag", mtModel+"-asset"),
 					resource.TestCheckResourceAttr("netbox_module.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_module.test", "status", "active"),
 				),
@@ -226,12 +226,14 @@ resource "netbox_module" "test" {
   device      = netbox_device.test.id
   module_bay  = netbox_module_bay.test.id
   module_type = netbox_module_type.test.id
+  asset_tag   = "%s-asset-basic"
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, mtModel)
 }
 
 // NOTE: Custom field tests for module resource are in resources_acceptance_tests_customfields package.
 func testAccModuleResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description string) string {
+	// Using mtModel as part of asset_tag to ensure uniqueness
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name   = %q
@@ -278,10 +280,10 @@ resource "netbox_module" "test" {
   module_bay  = netbox_module_bay.test.id
   module_type = netbox_module_type.test.id
   status      = "active"
-  serial      = "SN123456"
+  asset_tag   = "%s-asset"
   description = %q
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, mtModel, description)
 }
 
 func TestAccModuleResource_update(t *testing.T) {
@@ -446,7 +448,255 @@ resource "netbox_module" "test" {
   device      = netbox_device.test.id
   module_bay  = netbox_module_bay.test.id
   module_type = netbox_module_type.test.id
+	asset_tag   = "%s-asset-serial"
   serial      = %q
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, serial)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, mtModel, serial)
+}
+
+func TestAccModuleResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-mod-optional")
+	siteSlug := testutil.RandomSlug("tf-test-site-mod")
+	mfgName := testutil.RandomName("tf-test-mfg-mod")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-mod")
+	dtModel := testutil.RandomName("tf-test-devtype-mod")
+	dtSlug := testutil.RandomSlug("tf-test-devtype-mod")
+	roleName := testutil.RandomName("tf-test-role-mod")
+	roleSlug := testutil.RandomSlug("tf-test-role-mod")
+	deviceName := testutil.RandomName("tf-test-device-mod")
+	bayName := testutil.RandomName("tf-test-bay-mod")
+	mtModel := testutil.RandomName("tf-test-modtype-mod")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_module",
+		BaseConfig: func() string {
+			return testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel)
+		},
+		ConfigWithFields: func() string {
+			return testAccModuleResourceConfig_withDescriptionAndComments(
+				siteName,
+				siteSlug,
+				mfgName,
+				mfgSlug,
+				dtModel,
+				dtSlug,
+				roleName,
+				roleSlug,
+				deviceName,
+				bayName,
+				mtModel,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		CheckDestroy: testutil.CheckModuleDestroy,
+	})
+}
+
+func testAccModuleResourceConfig_withDescriptionAndComments(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %q
+  slug   = %q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %q
+  slug         = %q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %q
+  slug  = %q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name        = %q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_module_bay" "test" {
+  device = netbox_device.test.id
+  name   = %q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+}
+
+resource "netbox_module" "test" {
+  device      = netbox_device.test.id
+  module_bay  = netbox_module_bay.test.id
+  module_type = netbox_module_type.test.id
+  asset_tag   = "%s-asset-desc"
+  description = %q
+  comments    = %q
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, mtModel, description, comments)
+}
+
+func TestAccModuleResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-opt")
+	siteSlug := testutil.RandomSlug("tf-test-site-opt")
+	mfgName := testutil.RandomName("tf-test-mfg-opt")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-opt")
+	dtModel := testutil.RandomName("tf-test-dt-opt")
+	dtSlug := testutil.RandomSlug("tf-test-dt-opt")
+	roleName := testutil.RandomName("tf-test-role-opt")
+	roleSlug := testutil.RandomSlug("tf-test-role-opt")
+	deviceName := testutil.RandomName("tf-test-device-opt")
+	bayName := testutil.RandomName("tf-test-mbay-opt")
+	mtModel := testutil.RandomName("tf-test-mt-opt")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[5]q
+  slug         = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[7]q
+  slug  = %[8]q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name        = %[9]q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_module_bay" "test" {
+  device = netbox_device.test.id
+  name   = %[10]q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[11]q
+}
+
+resource "netbox_module" "test" {
+  device      = netbox_device.test.id
+  module_bay  = netbox_module_bay.test.id
+  module_type = netbox_module_type.test.id
+  asset_tag   = "%s-asset-opt"
+  serial      = "SN-12345"
+  status      = "active"
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, mtModel),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module.test", "asset_tag", mtModel+"-asset-opt"),
+					resource.TestCheckResourceAttr("netbox_module.test", "serial", "SN-12345"),
+					resource.TestCheckResourceAttr("netbox_module.test", "status", "active"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[5]q
+  slug         = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[7]q
+  slug  = %[8]q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name        = %[9]q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_module_bay" "test" {
+  device = netbox_device.test.id
+  name   = %[10]q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[11]q
+}
+
+resource "netbox_module" "test" {
+  device      = netbox_device.test.id
+  module_bay  = netbox_module_bay.test.id
+  module_type = netbox_module_type.test.id
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_module.test", "asset_tag"),
+					resource.TestCheckNoResourceAttr("netbox_module.test", "serial"),
+					// status is Computed - API returns "active" as default even when not set
+					resource.TestCheckResourceAttr("netbox_module.test", "status", "active"),
+				),
+			},
+		},
+	})
 }

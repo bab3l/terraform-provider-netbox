@@ -231,6 +231,121 @@ resource "netbox_ipsec_policy" "test" {
 `, name+"-ike-policy", name+"-ipsec-policy")
 }
 
+func TestAccIPSecProfileResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ipsec-profile-rem")
+	ikePolicyName := testutil.RandomName("tf-test-ike-policy-rem")
+	ipsecPolicyName := testutil.RandomName("tf-test-ipsec-policy-rem")
+	const testDescription = "Test Description"
+	const testComments = "Test Comments"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecProfileCleanup(name)
+	cleanup.RegisterIKEPolicyCleanup(ikePolicyName)
+	cleanup.RegisterIPSecPolicyCleanup(ipsecPolicyName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckIPSecProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSECProfileResourceConfig_withDescriptionComments(ikePolicyName, ipsecPolicyName, name, testDescription, testComments),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "comments", testComments),
+				),
+			},
+			{
+				Config: testAccIPSECProfileResourceConfig_basicWithPrereqs(ikePolicyName, ipsecPolicyName, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ipsec_profile.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_ipsec_profile.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_ipsec_profile.test", "comments"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIPSECProfileResourceConfig_basicWithPrereqs(ikePolicyName, ipsecPolicyName, name string) string {
+	return fmt.Sprintf(`
+resource "netbox_ike_proposal" "test" {
+  name                     = "ike-proposal-for-profile"
+  authentication_method    = "preshared-keys"
+  encryption_algorithm     = "aes-128-cbc"
+  authentication_algorithm = "hmac-sha256"
+  group                    = 14
+}
+
+resource "netbox_ike_policy" "test" {
+  name      = %[1]q
+  version   = 1
+  mode      = "main"
+  proposals = [netbox_ike_proposal.test.id]
+}
+
+resource "netbox_ipsec_proposal" "test" {
+  name                     = "ipsec-proposal-for-profile"
+  encryption_algorithm     = "aes-128-cbc"
+  authentication_algorithm = "hmac-sha256"
+}
+
+resource "netbox_ipsec_policy" "test" {
+  name      = %[2]q
+  proposals = [netbox_ipsec_proposal.test.id]
+}
+
+resource "netbox_ipsec_profile" "test" {
+  name         = %[3]q
+  mode         = "esp"
+  ike_policy   = netbox_ike_policy.test.id
+  ipsec_policy = netbox_ipsec_policy.test.id
+}
+`, ikePolicyName, ipsecPolicyName, name)
+}
+
+func testAccIPSECProfileResourceConfig_withDescriptionComments(ikePolicyName, ipsecPolicyName, name, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_ike_proposal" "test" {
+  name                     = "ike-proposal-for-profile"
+  authentication_method    = "preshared-keys"
+  encryption_algorithm     = "aes-128-cbc"
+  authentication_algorithm = "hmac-sha256"
+  group                    = 14
+}
+
+resource "netbox_ike_policy" "test" {
+  name      = %[1]q
+  version   = 1
+  mode      = "main"
+  proposals = [netbox_ike_proposal.test.id]
+}
+
+resource "netbox_ipsec_proposal" "test" {
+  name                     = "ipsec-proposal-for-profile"
+  encryption_algorithm     = "aes-128-cbc"
+  authentication_algorithm = "hmac-sha256"
+}
+
+resource "netbox_ipsec_policy" "test" {
+  name      = %[2]q
+  proposals = [netbox_ipsec_proposal.test.id]
+}
+
+resource "netbox_ipsec_profile" "test" {
+  name         = %[3]q
+  mode         = "esp"
+  ike_policy   = netbox_ike_policy.test.id
+  ipsec_policy = netbox_ipsec_policy.test.id
+  description  = %[4]q
+  comments     = %[5]q
+}
+`, ikePolicyName, ipsecPolicyName, name, description, comments)
+}
+
 func TestAccConsistency_IPSECProfile_LiteralNames(t *testing.T) {
 	t.Parallel()
 

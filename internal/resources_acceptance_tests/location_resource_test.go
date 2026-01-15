@@ -232,17 +232,6 @@ resource "netbox_location" "test" {
 
 func testAccLocationResourceConfig_basic(siteName, siteSlug, name, slug string) string {
 	return fmt.Sprintf(`
-terraform {
-  required_providers {
-    netbox = {
-      source  = "bab3l/netbox"
-      version = ">= 0.1.0"
-    }
-  }
-}
-
-provider "netbox" {}
-
 resource "netbox_site" "test" {
   name   = %q
   slug   = %q
@@ -250,9 +239,10 @@ resource "netbox_site" "test" {
 }
 
 resource "netbox_location" "test" {
-  name = %q
-  slug = %q
-  site = netbox_site.test.id
+  name   = %q
+  slug   = %q
+  site   = netbox_site.test.id
+  status = "active"
 }
 `, siteName, siteSlug, name, slug)
 }
@@ -464,4 +454,59 @@ resource "netbox_location" "test" {
   # parent and tenant removed - should set to null
 }
 `, siteName, siteSlug, parentName, parentSlug, name, slug, tenantName, tenantSlug)
+}
+
+func TestAccLocationResource_removeDescription(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-loc-optional")
+	siteSlug := testutil.RandomSlug("tf-test-site-loc")
+	name := testutil.RandomName("tf-test-location-optional")
+	slug := testutil.RandomSlug("tf-test-location-optional")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterLocationCleanup(slug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_location",
+		BaseConfig: func() string {
+			return testAccLocationResourceConfig_basic(siteName, siteSlug, name, slug)
+		},
+		ConfigWithFields: func() string {
+			return testAccLocationResourceConfig_withDescription(
+				siteName,
+				siteSlug,
+				name,
+				slug,
+				"Test description",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+		},
+		RequiredFields: map[string]string{
+			"name": name,
+			"slug": slug,
+		},
+		CheckDestroy: testutil.CheckLocationDestroy,
+	})
+}
+
+func testAccLocationResourceConfig_withDescription(siteName, siteSlug, name, slug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_location" "test" {
+  name        = %[3]q
+  slug        = %[4]q
+  site        = netbox_site.test.id
+  status      = "active"
+  description = %[5]q
+}
+`, siteName, siteSlug, name, slug, description)
 }

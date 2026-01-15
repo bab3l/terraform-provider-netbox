@@ -275,9 +275,7 @@ func (r *DeviceBayResource) buildRequest(ctx context.Context, data, state *Devic
 	dbRequest := netbox.NewDeviceBayRequest(*deviceRef, data.Name.ValueString())
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		dbRequest.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(dbRequest, data.Label)
 
 	if !data.InstalledDevice.IsNull() && !data.InstalledDevice.IsUnknown() {
 		installedDeviceRef, lookupDiags := netboxlookup.LookupDevice(ctx, r.client, data.InstalledDevice.ValueString())

@@ -106,10 +106,8 @@ func (r *CustomFieldResource) Schema(ctx context.Context, req resource.SchemaReq
 				Required:            true,
 			},
 			"label": schema.StringAttribute{
-				MarkdownDescription: "Name of the field as displayed to users. If not provided, the field's name will be used.",
+				MarkdownDescription: "Name of the field as displayed to users.",
 				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
 			},
 			"group_name": schema.StringAttribute{
 				MarkdownDescription: "Custom fields within the same group will be displayed together.",
@@ -436,13 +434,17 @@ func (r *CustomFieldResource) buildCustomFieldRequest(ctx context.Context, data 
 	}
 
 	// Handle label (optional)
-	if !data.Label.IsNull() && !data.Label.IsUnknown() && data.Label.ValueString() != "" {
-		createReq.SetLabel(data.Label.ValueString())
-	}
+	// NOTE: Despite NetBox API documentation suggesting label defaults to field name when omitted,
+	// testing reveals this is NOT true. NetBox always treats label as empty string by default.
+	// When clearing label (null in Terraform), we must explicitly send empty string, not omit it.
+	// Omitting the field in PATCH requests causes NetBox to retain the previous value.
+	utils.ApplyLabel(createReq, data.Label)
 
 	// Handle group_name (optional)
 	if !data.GroupName.IsNull() && !data.GroupName.IsUnknown() {
 		createReq.SetGroupName(data.GroupName.ValueString())
+	} else {
+		createReq.SetGroupName("")
 	}
 
 	// Apply common descriptive fields (description, comments)
@@ -515,6 +517,8 @@ func (r *CustomFieldResource) buildCustomFieldRequest(ctx context.Context, data 
 	// Handle validation_regex (optional)
 	if !data.ValidationRegex.IsNull() && !data.ValidationRegex.IsUnknown() {
 		createReq.SetValidationRegex(data.ValidationRegex.ValueString())
+	} else {
+		createReq.SetValidationRegex("")
 	}
 
 	// Handle choice_set (optional) - lookup by name
@@ -551,7 +555,7 @@ func (r *CustomFieldResource) mapResponseToModel(ctx context.Context, customFiel
 	if label, ok := customField.GetLabelOk(); ok && label != nil && *label != "" {
 		data.Label = types.StringValue(*label)
 	} else {
-		data.Label = types.StringValue("")
+		data.Label = types.StringNull()
 	}
 
 	// Map group_name

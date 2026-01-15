@@ -686,3 +686,193 @@ func TestAccVirtualDeviceContextResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+func TestAccVirtualDeviceContextResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-opt")
+	siteSlug := testutil.RandomSlug("tf-test-site-opt")
+	mfgName := testutil.RandomName("tf-test-mfg-opt")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-opt")
+	dtModel := testutil.RandomName("tf-test-dt-opt")
+	dtSlug := testutil.RandomSlug("tf-test-dt-opt")
+	roleName := testutil.RandomName("tf-test-role-opt")
+	roleSlug := testutil.RandomSlug("tf-test-role-opt")
+	deviceName := testutil.RandomName("tf-test-device-opt")
+	vdcName := testutil.RandomName("tf-test-vdc-opt")
+	tenantName := testutil.RandomName("tf-test-tenant-opt")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-opt")
+	ipAddress4 := testutil.RandomIPv4Address()
+	ipAddress6 := testutil.RandomIPv6Address()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVirtualDeviceContextDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[5]q
+  slug         = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[7]q
+  slug  = %[8]q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name        = %[9]q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_tenant" "test" {
+  name = %[11]q
+  slug = %[12]q
+}
+
+resource "netbox_interface" "test" {
+  device = netbox_device.test.id
+  name   = "eth0"
+  type   = "1000base-t"
+}
+
+resource "netbox_ip_address" "ipv4" {
+  address            = %[13]q
+  status             = "active"
+  assigned_object_id = netbox_interface.test.id
+  assigned_object_type = "dcim.interface"
+}
+
+resource "netbox_interface" "test2" {
+  device = netbox_device.test.id
+  name   = "eth1"
+  type   = "1000base-t"
+}
+
+resource "netbox_ip_address" "ipv6" {
+  address            = %[14]q
+  status             = "active"
+  assigned_object_id = netbox_interface.test2.id
+  assigned_object_type = "dcim.interface"
+}
+
+resource "netbox_virtual_device_context" "test" {
+  name        = %[10]q
+  device      = netbox_device.test.id
+  status      = "active"
+  identifier  = 42
+  tenant      = netbox_tenant.test.id
+  primary_ip4 = netbox_ip_address.ipv4.id
+  primary_ip6 = netbox_ip_address.ipv6.id
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, ipAddress4, ipAddress6),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "identifier", "42"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_device_context.test", "tenant"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_device_context.test", "primary_ip4"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_device_context.test", "primary_ip6"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[5]q
+  slug         = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[7]q
+  slug  = %[8]q
+  color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+  name        = %[9]q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_tenant" "test" {
+  name = %[11]q
+  slug = %[12]q
+}
+
+resource "netbox_interface" "test" {
+  device = netbox_device.test.id
+  name   = "eth0"
+  type   = "1000base-t"
+}
+
+resource "netbox_ip_address" "ipv4" {
+  address            = %[13]q
+  status             = "active"
+  assigned_object_id = netbox_interface.test.id
+  assigned_object_type = "dcim.interface"
+}
+
+resource "netbox_interface" "test2" {
+  device = netbox_device.test.id
+  name   = "eth1"
+  type   = "1000base-t"
+}
+
+resource "netbox_ip_address" "ipv6" {
+  address            = %[14]q
+  status             = "active"
+  assigned_object_id = netbox_interface.test2.id
+  assigned_object_type = "dcim.interface"
+}
+
+resource "netbox_virtual_device_context" "test" {
+  name   = %[10]q
+  device = netbox_device.test.id
+  status = "active"
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, ipAddress4, ipAddress6),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_virtual_device_context.test", "identifier"),
+					resource.TestCheckNoResourceAttr("netbox_virtual_device_context.test", "tenant"),
+					resource.TestCheckNoResourceAttr("netbox_virtual_device_context.test", "primary_ip4"),
+					resource.TestCheckNoResourceAttr("netbox_virtual_device_context.test", "primary_ip6"),
+				),
+			},
+		},
+	})
+}

@@ -359,12 +359,14 @@ func (r *IPSecProposalResource) setOptionalFields(ctx context.Context, ipsecRequ
 		encAlg := netbox.Encryption(plan.EncryptionAlgorithm.ValueString())
 		ipsecRequest.EncryptionAlgorithm = &encAlg
 	}
+	// Note: encryption_algorithm cannot be cleared once set in NetBox (sticky field)
 
 	// Authentication Algorithm
 	if utils.IsSet(plan.AuthenticationAlgorithm) {
 		authAlg := netbox.Authentication(plan.AuthenticationAlgorithm.ValueString())
 		ipsecRequest.AuthenticationAlgorithm = &authAlg
 	}
+	// Note: authentication_algorithm cannot be cleared once set in NetBox (sticky field)
 
 	// SA Lifetime Seconds
 	if utils.IsSet(plan.SALifetimeSeconds) {
@@ -374,6 +376,9 @@ func (r *IPSecProposalResource) setOptionalFields(ctx context.Context, ipsecRequ
 			return
 		}
 		ipsecRequest.SaLifetimeSeconds = *netbox.NewNullableInt32(&lifetime)
+	} else if plan.SALifetimeSeconds.IsNull() && state != nil {
+		// Explicitly clear by setting to NullableInt32 with nil value
+		ipsecRequest.SaLifetimeSeconds = *netbox.NewNullableInt32(nil)
 	}
 
 	// SA Lifetime Data
@@ -384,6 +389,9 @@ func (r *IPSecProposalResource) setOptionalFields(ctx context.Context, ipsecRequ
 			return
 		}
 		ipsecRequest.SaLifetimeData = *netbox.NewNullableInt32(&lifetime)
+	} else if plan.SALifetimeData.IsNull() && state != nil {
+		// Explicitly clear by setting to NullableInt32 with nil value
+		ipsecRequest.SaLifetimeData = *netbox.NewNullableInt32(nil)
 	}
 
 	// Set description

@@ -301,3 +301,68 @@ resource "netbox_console_server_port_template" "test" {
 }
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceTypeSlug, portName)
 }
+
+func TestAccConsoleServerPortTemplateResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg-rem")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-rem")
+	dtModel := testutil.RandomName("tf-test-dt-rem")
+	dtSlug := testutil.RandomSlug("tf-test-dt-rem")
+	portName := testutil.RandomName("tf-test-cspt-rem")
+	const testLabel = "Test Label"
+	const testDescription = "Test Description"
+	const testType = "rj-45"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConsoleServerPortTemplateResourceConfig_withAllOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, testLabel, testDescription, testType),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_console_server_port_template.test", "name", portName),
+					resource.TestCheckResourceAttr("netbox_console_server_port_template.test", "label", testLabel),
+					resource.TestCheckResourceAttr("netbox_console_server_port_template.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_console_server_port_template.test", "type", testType),
+				),
+			},
+			{
+				Config: testAccConsoleServerPortTemplateResourceBasic(mfgName, mfgSlug, dtModel, dtSlug, portName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_console_server_port_template.test", "name", portName),
+					resource.TestCheckNoResourceAttr("netbox_console_server_port_template.test", "label"),
+					resource.TestCheckNoResourceAttr("netbox_console_server_port_template.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_console_server_port_template.test", "type"),
+				),
+			},
+		},
+	})
+}
+
+func testAccConsoleServerPortTemplateResourceConfig_withAllOptionalFields(mfgName, mfgSlug, dtModel, dtSlug, portName, label, description, portType string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[3]q
+  slug = %[4]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_console_server_port_template" "test" {
+  device_type = netbox_device_type.test.id
+  name = %[5]q
+  label = %[6]q
+  description = %[7]q
+  type = %[8]q
+}
+`, mfgName, mfgSlug, dtModel, dtSlug, portName, label, description, portType)
+}

@@ -312,6 +312,9 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, plan 
 		}
 
 		ifaceRequest.Mtu = *netbox.NewNullableInt32(&mtu)
+	} else if plan.MTU.IsNull() && utils.IsSet(state.MTU) {
+		// Only explicitly set to nil if we're clearing a previously set value
+		ifaceRequest.SetMtuNil()
 	}
 
 	// MAC Address
@@ -320,15 +323,14 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, plan 
 		macAddress := plan.MACAddress.ValueString()
 
 		ifaceRequest.MacAddress = *netbox.NewNullableString(&macAddress)
+	} else if plan.MACAddress.IsNull() && utils.IsSet(state.MACAddress) {
+		// Only explicitly set to nil if we're clearing a previously set value
+		ifaceRequest.SetMacAddressNil()
 	}
 
 	// Description
 
-	if utils.IsSet(plan.Description) {
-		description := plan.Description.ValueString()
-
-		ifaceRequest.Description = &description
-	}
+	utils.ApplyDescription(ifaceRequest, plan.Description)
 
 	// Mode
 
@@ -336,6 +338,10 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, plan 
 		mode := netbox.PatchedWritableInterfaceRequestMode(plan.Mode.ValueString())
 
 		ifaceRequest.Mode = &mode
+	} else if plan.Mode.IsNull() && utils.IsSet(state.Mode) {
+		// Only explicitly set to empty string if we're clearing a previously set value
+		emptyMode := netbox.PatchedWritableInterfaceRequestMode("")
+		ifaceRequest.Mode = &emptyMode
 	}
 
 	// Untagged VLAN

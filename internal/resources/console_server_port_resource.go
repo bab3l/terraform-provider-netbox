@@ -278,18 +278,24 @@ func (r *ConsoleServerPortResource) Update(ctx context.Context, req resource.Upd
 	apiReq := netbox.NewWritableConsoleServerPortRequest(*device, plan.Name.ValueString())
 
 	// Set optional fields
-	if !plan.Label.IsNull() && !plan.Label.IsUnknown() {
-		apiReq.SetLabel(plan.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, plan.Label)
 
+	// Handle type (optional enum)
 	if !plan.Type.IsNull() && !plan.Type.IsUnknown() {
 		portType := netbox.PatchedWritableConsolePortRequestType(plan.Type.ValueString())
 		apiReq.SetType(portType)
+	} else if plan.Type.IsNull() && !state.Type.IsNull() {
+		// Explicitly clear when removed from config, otherwise NetBox will keep the old value.
+		apiReq.SetType(netbox.PATCHEDWRITABLECONSOLEPORTREQUESTTYPE_EMPTY)
 	}
 
+	// Handle speed (nullable enum)
 	if !plan.Speed.IsNull() && !plan.Speed.IsUnknown() {
 		speed := netbox.PatchedWritableConsolePortRequestSpeed(plan.Speed.ValueInt32())
 		apiReq.SetSpeed(speed)
+	} else if plan.Speed.IsNull() && !state.Speed.IsNull() {
+		// Explicitly clear when removed from config.
+		apiReq.SetSpeedNil()
 	}
 
 	if !plan.MarkConnected.IsNull() && !plan.MarkConnected.IsUnknown() {
@@ -415,7 +421,12 @@ func (r *ConsoleServerPortResource) mapResponseToModel(ctx context.Context, cons
 
 	// Map type
 	if consoleServerPort.Type != nil {
-		data.Type = types.StringValue(string(consoleServerPort.Type.GetValue()))
+		portType := string(consoleServerPort.Type.GetValue())
+		if portType != "" {
+			data.Type = types.StringValue(portType)
+		} else {
+			data.Type = types.StringNull()
+		}
 	} else {
 		data.Type = types.StringNull()
 	}

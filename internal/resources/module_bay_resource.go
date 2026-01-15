@@ -129,9 +129,7 @@ func (r *ModuleBayResource) Create(ctx context.Context, req resource.CreateReque
 	apiReq := netbox.NewModuleBayRequest(*device, data.Name.ValueString())
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 	if !data.Position.IsNull() && !data.Position.IsUnknown() {
 		apiReq.SetPosition(data.Position.ValueString())
 	}
@@ -260,10 +258,14 @@ func (r *ModuleBayResource) Update(ctx context.Context, req resource.UpdateReque
 	apiReq := netbox.NewModuleBayRequest(*device, plan.Name.ValueString())
 
 	// Set optional fields
-	if !plan.Label.IsNull() && !plan.Label.IsUnknown() {
-		apiReq.SetLabel(plan.Label.ValueString())
-	}
-	if !plan.Position.IsNull() && !plan.Position.IsUnknown() {
+	utils.ApplyLabel(apiReq, plan.Label)
+	switch {
+	case plan.Position.IsUnknown():
+		// Leave position unset when unknown to avoid sending an invalid value.
+	case plan.Position.IsNull():
+		// NetBox PATCH semantics: omitted fields are preserved, so explicitly clear.
+		apiReq.SetPosition("")
+	default:
 		apiReq.SetPosition(plan.Position.ValueString())
 	}
 

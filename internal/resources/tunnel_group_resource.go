@@ -289,12 +289,7 @@ func (r *TunnelGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// Set optional fields
-
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		description := data.Description.ValueString()
-
-		tunnelGroupRequest.Description = &description
-	}
+	utils.ApplyDescription(&tunnelGroupRequest, data.Description)
 
 	// Handle tags
 

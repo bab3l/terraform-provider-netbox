@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -83,8 +82,6 @@ func (r *FrontPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 			"label": schema.StringAttribute{
 				MarkdownDescription: "Physical label of the front port template.",
 				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
 			},
 			"type": schema.StringAttribute{
 				MarkdownDescription: "The type of front port (e.g., `8p8c`, `8p6c`, `110-punch`, `bnc`, `f`, `n`, `mrj21`, `fc`, `lc`, `lc-pc`, `lc-upc`, `lc-apc`, `lsh`, `lsh-pc`, `lsh-upc`, `lsh-apc`, `mpo`, `mtrj`, `sc`, `sc-pc`, `sc-upc`, `sc-apc`, `st`, `cs`, `sn`, `sma-905`, `sma-906`, `splice`, `other`).",
@@ -93,8 +90,6 @@ func (r *FrontPortTemplateResource) Schema(ctx context.Context, req resource.Sch
 			"color": schema.StringAttribute{
 				MarkdownDescription: "Color of the front port in hex format (e.g., `aa1409`).",
 				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
 			},
 			"rear_port": schema.StringAttribute{
 				MarkdownDescription: "The name of the rear port template on the same device type or module type that this front port maps to.",
@@ -167,9 +162,7 @@ func (r *FrontPortTemplateResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
 		apiReq.SetColor(data.Color.ValueString())
@@ -276,11 +269,12 @@ func (r *FrontPortTemplateResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
-	if !data.Color.IsNull() && !data.Color.IsUnknown() {
+	utils.ApplyLabel(apiReq, data.Label)
+	if utils.IsSet(data.Color) {
 		apiReq.SetColor(data.Color.ValueString())
+	} else if data.Color.IsNull() {
+		// Explicitly clear color when removed from config
+		apiReq.SetColor("")
 	}
 	if !data.RearPortPosition.IsNull() && !data.RearPortPosition.IsUnknown() {
 		apiReq.SetRearPortPosition(data.RearPortPosition.ValueInt32())
@@ -376,18 +370,10 @@ func (r *FrontPortTemplateResource) mapResponseToModel(template *netbox.FrontPor
 	data.Type = types.StringValue(string(template.Type.GetValue()))
 
 	// Map label
-	if label, ok := template.GetLabelOk(); ok && label != nil {
-		data.Label = types.StringValue(*label)
-	} else {
-		data.Label = types.StringValue("")
-	}
+	data.Label = utils.StringFromAPI(template.HasLabel(), template.GetLabel, data.Label)
 
 	// Map color - always set since it's computed
-	if color, ok := template.GetColorOk(); ok && color != nil {
-		data.Color = types.StringValue(*color)
-	} else {
-		data.Color = types.StringValue("")
-	}
+	data.Color = utils.StringFromAPI(template.HasColor(), template.GetColor, data.Color)
 
 	// Map rear port - store the name for reference
 	data.RearPort = types.StringValue(template.RearPort.GetName())

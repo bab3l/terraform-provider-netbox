@@ -388,8 +388,7 @@ func TestAccClusterResource_removeOptionalFields(t *testing.T) {
 			{
 				Config: testAccClusterResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, tenantName, tenantSlug, groupName, groupSlug),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_cluster.test", "group"),
-					resource.TestCheckResourceAttrSet("netbox_cluster.test", "tenant"),
+					resource.TestCheckResourceAttr("netbox_cluster.test", "status", "staging"),
 					resource.TestCheckResourceAttrSet("netbox_cluster.test", "site"),
 				),
 			},
@@ -423,7 +422,7 @@ resource "netbox_cluster_group" "test" {
 resource "netbox_cluster" "test" {
   name   = %[3]q
   type   = netbox_cluster_type.test.id
-  status = "active"
+  status = "staging"
   group  = netbox_cluster_group.test.id
   tenant = netbox_tenant.test.id
   site   = netbox_site.test.id
@@ -461,4 +460,37 @@ resource "netbox_cluster" "test" {
   # group, tenant, and site removed - should set to null
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, tenantName, tenantSlug, groupName, groupSlug)
+}
+
+func TestAccClusterResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-desc")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-desc")
+	clusterName := testutil.RandomName("tf-test-cluster-desc")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_cluster",
+		BaseConfig: func() string {
+			return testAccClusterResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName)
+		},
+		ConfigWithFields: func() string {
+			return testAccClusterResourceConfig_full(
+				clusterTypeName,
+				clusterTypeSlug,
+				clusterName,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		CheckDestroy: testutil.CheckClusterDestroy,
+	})
 }

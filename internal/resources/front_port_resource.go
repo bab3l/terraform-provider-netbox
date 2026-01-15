@@ -165,9 +165,7 @@ func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateReque
 	apiReq := netbox.NewWritableFrontPortRequest(*device, data.Name.ValueString(), netbox.FrontPortTypeValue(data.Type.ValueString()), rearPortID)
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
 	if !data.Color.IsNull() && !data.Color.IsUnknown() {
 		apiReq.SetColor(data.Color.ValueString())
@@ -299,11 +297,12 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 	apiReq := netbox.NewWritableFrontPortRequest(*device, plan.Name.ValueString(), netbox.FrontPortTypeValue(plan.Type.ValueString()), rearPortID)
 
 	// Set optional fields
-	if !plan.Label.IsNull() && !plan.Label.IsUnknown() {
-		apiReq.SetLabel(plan.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, plan.Label)
 
-	if !plan.Color.IsNull() && !plan.Color.IsUnknown() {
+	// For nullable string fields, explicitly clear if null in plan
+	if plan.Color.IsNull() {
+		apiReq.SetColor("")
+	} else if !plan.Color.IsUnknown() {
 		apiReq.SetColor(plan.Color.ValueString())
 	}
 

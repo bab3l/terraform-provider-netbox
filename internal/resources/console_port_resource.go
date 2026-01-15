@@ -139,17 +139,24 @@ func (r *ConsolePortResource) Create(ctx context.Context, req resource.CreateReq
 	apiReq := netbox.NewWritableConsolePortRequest(*device, data.Name.ValueString())
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
-	if !data.Type.IsNull() && !data.Type.IsUnknown() {
+	utils.ApplyLabel(apiReq, data.Label)
+
+	// Type (*PatchedWritableConsolePortRequestType) - use empty string to clear
+	if utils.IsSet(data.Type) {
 		portType := netbox.PatchedWritableConsolePortRequestType(data.Type.ValueString())
 		apiReq.SetType(portType)
+	} else if data.Type.IsNull() {
+		apiReq.SetType("")
 	}
-	if !data.Speed.IsNull() && !data.Speed.IsUnknown() {
+
+	// Speed (NullablePatchedWritableConsolePortRequestSpeed) - use Nullable wrapper to clear
+	if utils.IsSet(data.Speed) {
 		speed := netbox.PatchedWritableConsolePortRequestSpeed(data.Speed.ValueInt32())
 		apiReq.SetSpeed(speed)
+	} else if data.Speed.IsNull() {
+		apiReq.Speed = *netbox.NewNullablePatchedWritableConsolePortRequestSpeed(nil)
 	}
+
 	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
 	}
@@ -258,19 +265,24 @@ func (r *ConsolePortResource) Update(ctx context.Context, req resource.UpdateReq
 	apiReq := netbox.NewWritableConsolePortRequest(*device, data.Name.ValueString())
 
 	// Set optional fields
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
+	utils.ApplyLabel(apiReq, data.Label)
 
-	if !data.Type.IsNull() && !data.Type.IsUnknown() {
+	// Type (*PatchedWritableConsolePortRequestType) - use empty string to clear
+	if utils.IsSet(data.Type) {
 		portType := netbox.PatchedWritableConsolePortRequestType(data.Type.ValueString())
 		apiReq.SetType(portType)
+	} else if data.Type.IsNull() {
+		apiReq.SetType("")
 	}
 
-	if !data.Speed.IsNull() && !data.Speed.IsUnknown() {
+	// Speed (NullablePatchedWritableConsolePortRequestSpeed) - use Nullable wrapper to clear
+	if utils.IsSet(data.Speed) {
 		speed := netbox.PatchedWritableConsolePortRequestSpeed(data.Speed.ValueInt32())
 		apiReq.SetSpeed(speed)
+	} else if data.Speed.IsNull() {
+		apiReq.Speed = *netbox.NewNullablePatchedWritableConsolePortRequestSpeed(nil)
 	}
+
 	if !data.MarkConnected.IsNull() && !data.MarkConnected.IsUnknown() {
 		apiReq.SetMarkConnected(data.MarkConnected.ValueBool())
 	}
@@ -416,7 +428,7 @@ func (r *ConsolePortResource) mapResponseToModel(ctx context.Context, consolePor
 	if mc, ok := consolePort.GetMarkConnectedOk(); ok && mc != nil {
 		data.MarkConnected = types.BoolValue(*mc)
 	} else {
-		data.MarkConnected = types.BoolValue(false)
+		data.MarkConnected = types.BoolNull()
 	}
 
 	// Handle tags

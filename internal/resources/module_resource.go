@@ -270,14 +270,24 @@ func (r *ModuleResource) Update(ctx context.Context, req resource.UpdateRequest,
 	if !plan.Status.IsNull() && !plan.Status.IsUnknown() {
 		status := netbox.ModuleStatusValue(plan.Status.ValueString())
 		apiReq.SetStatus(status)
+	} else if plan.Status.IsNull() {
+		// Explicitly clear status by setting empty string
+		emptyStatus := netbox.ModuleStatusValue("")
+		apiReq.SetStatus(emptyStatus)
 	}
 
 	if !plan.Serial.IsNull() && !plan.Serial.IsUnknown() {
 		apiReq.SetSerial(plan.Serial.ValueString())
+	} else if plan.Serial.IsNull() {
+		// Explicitly clear serial
+		apiReq.SetSerial("")
 	}
 
 	if !plan.AssetTag.IsNull() && !plan.AssetTag.IsUnknown() {
 		apiReq.SetAssetTag(plan.AssetTag.ValueString())
+	} else if plan.AssetTag.IsNull() {
+		// Explicitly clear asset_tag
+		apiReq.SetAssetTag("")
 	}
 
 	// Set common fields (description, comments, tags, custom_fields)

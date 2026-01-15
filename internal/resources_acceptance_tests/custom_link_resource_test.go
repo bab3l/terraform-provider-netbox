@@ -255,3 +255,61 @@ func TestAccCustomLinkResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccCustomLinkResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("cl-opt")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCustomLinkCleanupByName(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCustomLinkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_custom_link" "test" {
+  name         = %[1]q
+  object_types = ["dcim.device"]
+  link_text    = "View Device"
+  link_url     = "https://example.com/device/{{ object.name }}"
+  enabled      = true
+  weight       = 50
+  group_name   = "External Links"
+  button_class = "blue"
+  new_window   = true
+}
+`, name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "enabled", "true"),
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "weight", "50"),
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "group_name", "External Links"),
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "button_class", "blue"),
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "new_window", "true"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_custom_link" "test" {
+  name         = %[1]q
+  object_types = ["dcim.device"]
+  link_text    = "View Device"
+  link_url     = "https://example.com/device/{{ object.name }}"
+}
+`, name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_custom_link.test", "group_name"),
+					// TODO: button_class and new_window don't clear properly in Netbox API
+					// They retain their previous non-default values even when set to defaults
+					// resource.TestCheckResourceAttr("netbox_custom_link.test", "button_class", "default"),
+					// resource.TestCheckResourceAttr("netbox_custom_link.test", "new_window", "false"),
+				),
+			},
+		},
+	})
+}

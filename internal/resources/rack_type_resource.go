@@ -563,6 +563,12 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, plan, state *RackTy
 		}
 
 		rackTypeRequest.SetOuterWidth(outerWidth)
+	} else if plan.OuterWidth.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if rackTypeRequest.AdditionalProperties == nil {
+			rackTypeRequest.AdditionalProperties = make(map[string]interface{})
+		}
+		rackTypeRequest.AdditionalProperties["outer_width"] = nil
 	}
 
 	if !plan.OuterDepth.IsNull() && !plan.OuterDepth.IsUnknown() {
@@ -575,16 +581,34 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, plan, state *RackTy
 		}
 
 		rackTypeRequest.SetOuterDepth(outerDepth)
+	} else if plan.OuterDepth.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if rackTypeRequest.AdditionalProperties == nil {
+			rackTypeRequest.AdditionalProperties = make(map[string]interface{})
+		}
+		rackTypeRequest.AdditionalProperties["outer_depth"] = nil
 	}
 
 	if !plan.OuterUnit.IsNull() && !plan.OuterUnit.IsUnknown() {
 		outerUnit := netbox.PatchedWritableRackRequestOuterUnit(plan.OuterUnit.ValueString())
 
 		rackTypeRequest.SetOuterUnit(outerUnit)
+	} else if plan.OuterUnit.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if rackTypeRequest.AdditionalProperties == nil {
+			rackTypeRequest.AdditionalProperties = make(map[string]interface{})
+		}
+		rackTypeRequest.AdditionalProperties["outer_unit"] = nil
 	}
 
 	if !plan.Weight.IsNull() && !plan.Weight.IsUnknown() {
 		rackTypeRequest.SetWeight(plan.Weight.ValueFloat64())
+	} else if plan.Weight.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if rackTypeRequest.AdditionalProperties == nil {
+			rackTypeRequest.AdditionalProperties = make(map[string]interface{})
+		}
+		rackTypeRequest.AdditionalProperties["weight"] = nil
 	}
 
 	if !plan.MaxWeight.IsNull() && !plan.MaxWeight.IsUnknown() {
@@ -597,6 +621,12 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, plan, state *RackTy
 		}
 
 		rackTypeRequest.SetMaxWeight(maxWeight)
+	} else if plan.MaxWeight.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if rackTypeRequest.AdditionalProperties == nil {
+			rackTypeRequest.AdditionalProperties = make(map[string]interface{})
+		}
+		rackTypeRequest.AdditionalProperties["max_weight"] = nil
 	}
 
 	if !plan.WeightUnit.IsNull() && !plan.WeightUnit.IsUnknown() {
@@ -604,6 +634,8 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, plan, state *RackTy
 
 		rackTypeRequest.SetWeightUnit(weightUnit)
 	}
+	// Note: Don't send explicit null for weight_unit - NetBox has a default value (kg)
+	// and sending null violates the NOT NULL constraint in NetBox 4.1.11+
 
 	if !plan.MountingDepth.IsNull() && !plan.MountingDepth.IsUnknown() {
 		mountingDepth, err := utils.SafeInt32FromValue(plan.MountingDepth)
@@ -615,6 +647,12 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, plan, state *RackTy
 		}
 
 		rackTypeRequest.SetMountingDepth(mountingDepth)
+	} else if plan.MountingDepth.IsNull() {
+		// Use AdditionalProperties to send null because of omitempty in the generated client
+		if rackTypeRequest.AdditionalProperties == nil {
+			rackTypeRequest.AdditionalProperties = make(map[string]interface{})
+		}
+		rackTypeRequest.AdditionalProperties["mounting_depth"] = nil
 	}
 
 	utils.ApplyComments(rackTypeRequest, plan.Comments)

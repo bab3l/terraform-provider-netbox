@@ -260,20 +260,31 @@ func (r *ModuleTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 	// Set optional fields
 	if !data.PartNumber.IsNull() && !data.PartNumber.IsUnknown() {
 		apiReq.SetPartNumber(data.PartNumber.ValueString())
+	} else if data.PartNumber.IsNull() {
+		// Clear when removed from config
+		apiReq.SetPartNumber("")
 	}
 
 	if !data.Airflow.IsNull() && !data.Airflow.IsUnknown() {
 		airflow := netbox.ModuleTypeAirflowValue(data.Airflow.ValueString())
 		apiReq.SetAirflow(airflow)
+	} else if data.Airflow.IsNull() {
+		empty := netbox.ModuleTypeAirflowValue("")
+		apiReq.SetAirflow(empty)
 	}
 
 	if !data.Weight.IsNull() && !data.Weight.IsUnknown() {
 		apiReq.SetWeight(data.Weight.ValueFloat64())
+	} else if data.Weight.IsNull() {
+		apiReq.SetWeightNil()
 	}
 
 	if !data.WeightUnit.IsNull() && !data.WeightUnit.IsUnknown() {
 		weightUnit := netbox.DeviceTypeWeightUnitValue(data.WeightUnit.ValueString())
 		apiReq.SetWeightUnit(weightUnit)
+	} else if data.WeightUnit.IsNull() {
+		empty := netbox.DeviceTypeWeightUnitValue("")
+		apiReq.SetWeightUnit(empty)
 	}
 
 	// Set common fields with merge-aware custom fields (description, comments, tags, custom_fields)
@@ -379,7 +390,7 @@ func (r *ModuleTypeResource) mapResponseToModel(ctx context.Context, moduleType 
 	}
 
 	// Map airflow
-	if moduleType.Airflow.IsSet() && moduleType.Airflow.Get() != nil {
+	if moduleType.Airflow.IsSet() && moduleType.Airflow.Get() != nil && string(moduleType.Airflow.Get().GetValue()) != "" {
 		data.Airflow = types.StringValue(string(moduleType.Airflow.Get().GetValue()))
 	} else {
 		data.Airflow = types.StringNull()
@@ -393,7 +404,7 @@ func (r *ModuleTypeResource) mapResponseToModel(ctx context.Context, moduleType 
 	}
 
 	// Map weight_unit
-	if moduleType.WeightUnit.IsSet() && moduleType.WeightUnit.Get() != nil {
+	if moduleType.WeightUnit.IsSet() && moduleType.WeightUnit.Get() != nil && string(moduleType.WeightUnit.Get().GetValue()) != "" {
 		data.WeightUnit = types.StringValue(string(moduleType.WeightUnit.Get().GetValue()))
 	} else {
 		data.WeightUnit = types.StringNull()

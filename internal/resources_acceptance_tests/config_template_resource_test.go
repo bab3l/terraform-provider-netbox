@@ -235,6 +235,42 @@ func TestAccConfigTemplateResource_externalDeletion(t *testing.T) {
 	})
 }
 
+// TestAccConfigTemplateResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccConfigTemplateResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("config-tmpl-remove")
+	templateCode := defaultTemplateCode
+	description := "Test Description"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigTemplateCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigTemplateResourceConfig_full(name, templateCode, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_config_template.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_config_template.test", "template_code", templateCode),
+					resource.TestCheckResourceAttr("netbox_config_template.test", "description", description),
+				),
+			},
+			{
+				Config: testAccConfigTemplateResourceConfig_basic(name, templateCode),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_config_template.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_config_template.test", "template_code", templateCode),
+					resource.TestCheckNoResourceAttr("netbox_config_template.test", "description"),
+				),
+			},
+		},
+	})
+}
+
 func testAccConfigTemplateResourceConfig_basic(name, templateCode string) string {
 	return fmt.Sprintf(`
 resource "netbox_config_template" "test" {

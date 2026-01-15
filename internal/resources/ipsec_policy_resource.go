@@ -83,6 +83,7 @@ func (r *IPSecPolicyResource) Schema(ctx context.Context, req resource.SchemaReq
 			"pfs_group": schema.Int64Attribute{
 				MarkdownDescription: "The Diffie-Hellman group for Perfect Forward Secrecy. Optional. Valid values: 1, 2, 5, 14-34.",
 				Optional:            true,
+				Computed:            true,
 				Validators: []validator.Int64{
 					int64validator.OneOf(1, 2, 5, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34),
 				},
@@ -351,6 +352,10 @@ func (r *IPSecPolicyResource) setOptionalFields(ctx context.Context, ipsecReques
 			proposals[i] = val
 		}
 		ipsecRequest.Proposals = proposals
+	} else if state != nil && plan.Proposals.IsNull() && utils.IsSet(state.Proposals) {
+		// Explicitly clear on Update when removed from config.
+		// Note: go-netbox treats a non-nil empty slice as set, so it will be serialized.
+		ipsecRequest.Proposals = []int32{}
 	}
 
 	// PFS Group
@@ -363,6 +368,8 @@ func (r *IPSecPolicyResource) setOptionalFields(ctx context.Context, ipsecReques
 		pfsGroup := netbox.PatchedWritableIPSecPolicyRequestPfsGroup(pfsGroupVal)
 		ipsecRequest.PfsGroup = *netbox.NewNullablePatchedWritableIPSecPolicyRequestPfsGroup(&pfsGroup)
 	}
+	// Note: NetBox rejects clearing pfs_group (400 "may not be blank"), so omission should
+	// retain the prior value (Optional+Computed).
 
 	// Set description
 	utils.ApplyDescription(ipsecRequest, plan.Description)

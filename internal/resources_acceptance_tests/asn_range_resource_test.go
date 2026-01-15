@@ -530,4 +530,59 @@ resource "netbox_asn_range" "test" {
 `, rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug)
 }
 
+func TestAccASNRangeResource_removeDescription(t *testing.T) {
+	t.Parallel()
+
+	rangeName := testutil.RandomName("tf-test-asnrange-optional")
+	rangeSlug := testutil.RandomSlug("tf-test-asnrange-optional")
+	rirName := testutil.RandomName("tf-test-rir")
+	rirSlug := testutil.RandomSlug("tf-test-rir")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterASNRangeCleanup(rangeSlug)
+	cleanup.RegisterRIRCleanup(rirSlug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_asn_range",
+		BaseConfig: func() string {
+			return testAccASNRangeResourceConfig_basic(rangeName, rangeSlug, rirName, rirSlug)
+		},
+		ConfigWithFields: func() string {
+			return testAccASNRangeResourceConfig_withDescription(
+				rangeName,
+				rangeSlug,
+				rirName,
+				rirSlug,
+				"Test description",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+		},
+		RequiredFields: map[string]string{
+			"name": rangeName,
+			"slug": rangeSlug,
+		},
+		CheckDestroy: testutil.CheckASNRangeDestroy,
+	})
+}
+
+func testAccASNRangeResourceConfig_withDescription(name, slug, rirName, rirSlug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_asn_range" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  rir         = netbox_rir.test.id
+  start       = 65000
+  end         = 65100
+  description = %[5]q
+}
+`, name, slug, rirName, rirSlug, description)
+}
+
 // NOTE: Custom field tests for ASN Range resource are in resources_acceptance_tests_customfields package

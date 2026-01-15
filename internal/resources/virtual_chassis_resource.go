@@ -376,6 +376,9 @@ func (r *VirtualChassisResource) buildRequest(ctx context.Context, plan *Virtual
 
 	if !plan.Domain.IsNull() && !plan.Domain.IsUnknown() {
 		vcRequest.SetDomain(plan.Domain.ValueString())
+	} else if !plan.Domain.IsUnknown() {
+		// Explicitly set empty string to clear the field
+		vcRequest.SetDomain("")
 	}
 
 	if !plan.Master.IsNull() && !plan.Master.IsUnknown() {

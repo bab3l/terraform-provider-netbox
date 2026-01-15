@@ -518,11 +518,15 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	if !plan.Latitude.IsNull() && !plan.Latitude.IsUnknown() {
 		latitude := plan.Latitude.ValueFloat64()
 		deviceRequest.SetLatitude(latitude)
+	} else if plan.Latitude.IsNull() {
+		deviceRequest.SetLatitudeNil()
 	}
 
 	if !plan.Longitude.IsNull() && !plan.Longitude.IsUnknown() {
 		longitude := plan.Longitude.ValueFloat64()
 		deviceRequest.SetLongitude(longitude)
+	} else if plan.Longitude.IsNull() {
+		deviceRequest.SetLongitudeNil()
 	}
 
 	if !plan.Status.IsNull() && !plan.Status.IsUnknown() {
@@ -542,6 +546,8 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 			return
 		}
 		deviceRequest.SetVcPosition(vcPosition)
+	} else if plan.VcPosition.IsNull() {
+		deviceRequest.SetVcPositionNil()
 	}
 
 	if !plan.VcPriority.IsNull() && !plan.VcPriority.IsUnknown() {
@@ -551,6 +557,8 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 			return
 		}
 		deviceRequest.SetVcPriority(vcPriority)
+	} else if plan.VcPriority.IsNull() {
+		deviceRequest.SetVcPriorityNil()
 	}
 
 	// Set common fields with merge-aware custom fields handling

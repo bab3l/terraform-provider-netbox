@@ -187,3 +187,41 @@ func TestAccClusterGroupResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccClusterGroupResource_removeDescription(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-cluster-group-desc")
+	slug := testutil.RandomSlug("tf-test-cluster-group-desc")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterGroupCleanup(slug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_cluster_group",
+		BaseConfig: func() string {
+			return testAccClusterGroupResourceConfig_basic(name, slug)
+		},
+		ConfigWithFields: func() string {
+			return testAccClusterGroupResourceConfig_withDescription(
+				name,
+				slug,
+				"Test description",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+		},
+		CheckDestroy: testutil.CheckClusterGroupDestroy,
+	})
+}
+
+func testAccClusterGroupResourceConfig_withDescription(name, slug, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_group" "test" {
+  name        = %q
+  slug        = %q
+  description = %q
+}
+`, name, slug, description)
+}

@@ -35,7 +35,7 @@ func TestIPSecPolicyResourceSchema(t *testing.T) {
 	testutil.ValidateResourceSchema(t, schemaResponse.Schema.Attributes, testutil.SchemaValidation{
 		Required: []string{"name"},
 		Optional: []string{"description", "proposals", "pfs_group", "comments"},
-		Computed: []string{"id"},
+		Computed: []string{"id", "pfs_group"},
 	})
 }
 

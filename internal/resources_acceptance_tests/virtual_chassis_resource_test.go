@@ -238,3 +238,50 @@ func TestAccVirtualChassisResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccVirtualChassisResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccVirtualChassisResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-vc-rem")
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_virtual_chassis",
+		BaseConfig: func() string {
+			return testAccVirtualChassisResourceConfig_removeOptionalFields_base(name)
+		},
+		ConfigWithFields: func() string {
+			return testAccVirtualChassisResourceConfig_removeOptionalFields_withFields(name)
+		},
+		OptionalFields: map[string]string{
+			"domain":      "test-domain.example.com",
+			"description": "Test Description",
+			"comments":    "Test Comments",
+			// Note: master requires a device to be created and is tested separately
+			// Note: tags and custom_fields are generic metadata fields tested elsewhere
+		},
+		RequiredFields: map[string]string{
+			"name": name,
+		},
+	})
+}
+
+func testAccVirtualChassisResourceConfig_removeOptionalFields_base(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_virtual_chassis" "test" {
+  name = %q
+}
+`, name)
+}
+
+func testAccVirtualChassisResourceConfig_removeOptionalFields_withFields(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_virtual_chassis" "test" {
+  name        = %[1]q
+  domain      = "test-domain.example.com"
+  description = "Test Description"
+  comments    = "Test Comments"
+}
+`, name)
+}

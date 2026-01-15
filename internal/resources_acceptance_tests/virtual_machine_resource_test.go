@@ -431,6 +431,11 @@ func TestAccVirtualMachineResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "role"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "tenant"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "platform"),
+					// New fields to test
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "status", "staged"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "vcpus", "4"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "memory", "8192"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "disk", "100"),
 				),
 			},
 			// Step 2: Remove optional fields (should set them to null)
@@ -451,6 +456,11 @@ func TestAccVirtualMachineResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "role"),
 					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "tenant"),
 					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "platform"),
+					// New fields should be cleared (status reverts to default 'active')
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "status", "active"),
+					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "vcpus"),
+					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "memory"),
+					resource.TestCheckNoResourceAttr("netbox_virtual_machine.test", "disk"),
 				),
 			},
 			// Step 3: Re-add optional fields (verify they can be set again)
@@ -471,6 +481,11 @@ func TestAccVirtualMachineResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "role"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "tenant"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "platform"),
+					// New fields should be re-added
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "status", "staged"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "vcpus", "4"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "memory", "8192"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "disk", "100"),
 				),
 			},
 		},
@@ -531,6 +546,10 @@ resource "netbox_virtual_machine" "test" {
   tenant   = netbox_tenant.test.name
   role     = netbox_device_role.test.name
   platform = netbox_platform.test.name
+  status   = "staged"
+  vcpus    = 4
+  memory   = 8192
+  disk     = 100
 }
 `, clusterTypeName, clusterTypeSlug, clusterName,
 		siteName, siteSlug,
@@ -599,4 +618,61 @@ resource "netbox_virtual_machine" "test" {
 		manufacturerName, manufacturerSlug,
 		platformName, platformSlug,
 		vmName)
+}
+
+func TestAccVirtualMachineResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-vm-desc")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-vm-desc")
+	clusterName := testutil.RandomName("tf-test-cluster-vm-desc")
+	vmName := testutil.RandomName("tf-test-vm-desc")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_virtual_machine",
+		BaseConfig: func() string {
+			return testAccVirtualMachineResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName)
+		},
+		ConfigWithFields: func() string {
+			return testAccVirtualMachineResourceConfig_withDescriptionAndComments(
+				clusterTypeName,
+				clusterTypeSlug,
+				clusterName,
+				vmName,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		CheckDestroy: testutil.CheckVirtualMachineDestroy,
+	})
+}
+
+func testAccVirtualMachineResourceConfig_withDescriptionAndComments(clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+  name        = %q
+  cluster     = netbox_cluster.test.id
+  description = %q
+  comments    = %q
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments)
 }

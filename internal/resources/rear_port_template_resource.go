@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -105,10 +104,6 @@ func (r *RearPortTemplateResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "Physical label of the rear port template.",
 
 				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"type": schema.StringAttribute{
@@ -121,10 +116,6 @@ func (r *RearPortTemplateResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "Color of the rear port in hex format (e.g., `aa1409`).",
 
 				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(""),
 			},
 
 			"positions": schema.Int32Attribute{
@@ -208,13 +199,13 @@ func (r *RearPortTemplateResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// Set optional fields
+	utils.ApplyLabel(apiReq, data.Label)
 
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
-
-	if !data.Color.IsNull() && !data.Color.IsUnknown() {
+	if utils.IsSet(data.Color) {
 		apiReq.SetColor(data.Color.ValueString())
+	} else if data.Color.IsNull() {
+		// Explicitly clear color when removed from config
+		apiReq.SetColor("")
 	}
 
 	if !data.Positions.IsNull() && !data.Positions.IsUnknown() {
@@ -347,13 +338,13 @@ func (r *RearPortTemplateResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// Set optional fields
+	utils.ApplyLabel(apiReq, data.Label)
 
-	if !data.Label.IsNull() && !data.Label.IsUnknown() {
-		apiReq.SetLabel(data.Label.ValueString())
-	}
-
-	if !data.Color.IsNull() && !data.Color.IsUnknown() {
+	if utils.IsSet(data.Color) {
 		apiReq.SetColor(data.Color.ValueString())
+	} else if data.Color.IsNull() {
+		// Explicitly clear color when removed from config
+		apiReq.SetColor("")
 	}
 
 	if !data.Positions.IsNull() && !data.Positions.IsUnknown() {
@@ -484,19 +475,11 @@ func (r *RearPortTemplateResource) mapResponseToModel(template *netbox.RearPortT
 
 	// Map label
 
-	if label, ok := template.GetLabelOk(); ok && label != nil {
-		data.Label = types.StringValue(*label)
-	} else {
-		data.Label = types.StringValue("")
-	}
+	data.Label = utils.StringFromAPI(template.HasLabel(), template.GetLabel, data.Label)
 
 	// Map color
 
-	if color, ok := template.GetColorOk(); ok && color != nil {
-		data.Color = types.StringValue(*color)
-	} else {
-		data.Color = types.StringValue("")
-	}
+	data.Color = utils.StringFromAPI(template.HasColor(), template.GetColor, data.Color)
 
 	// Map positions
 

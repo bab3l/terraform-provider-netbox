@@ -345,10 +345,16 @@ func (r *ASNResource) buildASNRequest(ctx context.Context, data *ASNResourceMode
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		desc := data.Description.ValueString()
 		asnRequest.SetDescription(desc)
+	} else if data.Description.IsNull() {
+		// Explicitly set to empty string to clear the field
+		asnRequest.SetDescription("")
 	}
 	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
 		comments := data.Comments.ValueString()
 		asnRequest.SetComments(comments)
+	} else if data.Comments.IsNull() {
+		// Explicitly set to empty string to clear the field
+		asnRequest.SetComments("")
 	}
 
 	// Apply tags

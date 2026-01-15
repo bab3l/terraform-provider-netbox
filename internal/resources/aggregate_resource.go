@@ -332,21 +332,29 @@ func (r *AggregateResource) buildCreateRequest(ctx context.Context, data *Aggreg
 			return nil, diags
 		}
 		createReq.SetTenant(*tenant)
+	} else if data.Tenant.IsNull() {
+		createReq.SetTenantNil()
 	}
 
 	// Handle date_added (optional)
 	if !data.DateAdded.IsNull() && !data.DateAdded.IsUnknown() {
 		createReq.SetDateAdded(data.DateAdded.ValueString())
+	} else if data.DateAdded.IsNull() {
+		createReq.SetDateAddedNil()
 	}
 
 	// Apply description and comments
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		desc := data.Description.ValueString()
 		createReq.SetDescription(desc)
+	} else if data.Description.IsNull() {
+		createReq.SetDescription("")
 	}
 	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
 		comments := data.Comments.ValueString()
 		createReq.SetComments(comments)
+	} else if data.Comments.IsNull() {
+		createReq.SetComments("")
 	}
 
 	// Apply tags

@@ -181,10 +181,16 @@ func TestAccIPSecPolicyResource_IDPreservation(t *testing.T) {
 }
 func testAccIPSECPolicyResourceConfig_basic(name string) string {
 	return fmt.Sprintf(`
-resource "netbox_ipsec_policy" "test" {
-  name = %q
+resource "netbox_ipsec_proposal" "test" {
+  name                 = "%s-proposal"
+  encryption_algorithm = "aes-128-cbc"
 }
-`, name)
+
+resource "netbox_ipsec_policy" "test" {
+  name      = %q
+  proposals = [netbox_ipsec_proposal.test.id]
+}
+`, name, name)
 }
 
 func testAccIPSECPolicyResourceConfig_full(name string) string {
@@ -195,6 +201,75 @@ resource "netbox_ipsec_policy" "test" {
   description = "Test IPsec policy"
 }
 `, name)
+}
+
+func TestAccIPSecPolicyResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ipsec-policy-rem")
+	const testDescription = "Test Description"
+	const testComments = "Test Comments"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckIPSecPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSECPolicyResourceConfig_withDescriptionCommentsPFSGroup(name, testDescription, testComments, 14),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "description", testDescription),
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "comments", testComments),
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "pfs_group", "14"),
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "proposals.#", "1"),
+				),
+			},
+			{
+				Config: testAccIPSECPolicyResourceConfig_nameOnly(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_ipsec_policy.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_ipsec_policy.test", "comments"),
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "pfs_group", "14"),
+					resource.TestCheckNoResourceAttr("netbox_ipsec_policy.test", "proposals"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIPSECPolicyResourceConfig_withDescriptionCommentsPFSGroup(name, description, comments string, pfsGroup int) string {
+	return fmt.Sprintf(`
+resource "netbox_ipsec_proposal" "test" {
+  name                 = "%s-proposal"
+  encryption_algorithm = "aes-128-cbc"
+}
+
+resource "netbox_ipsec_policy" "test" {
+  name        = %[1]q
+  proposals   = [netbox_ipsec_proposal.test.id]
+	pfs_group    = %[4]d
+  description = %[2]q
+  comments    = %[3]q
+}
+`, name, description, comments, pfsGroup)
+}
+
+func testAccIPSECPolicyResourceConfig_nameOnly(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_ipsec_proposal" "test" {
+  name                 = "%s-proposal"
+  encryption_algorithm = "aes-128-cbc"
+}
+
+resource "netbox_ipsec_policy" "test" {
+  name = %q
+}
+`, name, name)
 }
 
 func TestAccConsistency_IPSECPolicy_LiteralNames(t *testing.T) {

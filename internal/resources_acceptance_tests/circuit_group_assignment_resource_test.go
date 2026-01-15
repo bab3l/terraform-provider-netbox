@@ -415,3 +415,52 @@ func TestAccCircuitGroupAssignmentResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccCircuitGroupAssignmentResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccCircuitGroupAssignmentResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	groupName := testutil.RandomName("tf-test-cga-rem")
+	groupSlug := testutil.RandomSlug("tf-test-cga-rem")
+	providerName := testutil.RandomName("tf-test-cga-prov-rem")
+	providerSlug := testutil.RandomSlug("tf-test-cga-prov-rem")
+	circuitTypeName := testutil.RandomName("tf-test-cga-type-rem")
+	circuitTypeSlug := testutil.RandomSlug("tf-test-cga-type-rem")
+	circuitCid := testutil.RandomSlug("tf-test-cga-ckt-rem")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitGroupAssignmentCleanup(groupName)
+	cleanup.RegisterCircuitGroupCleanup(groupName)
+	cleanup.RegisterCircuitCleanup(circuitCid)
+	cleanup.RegisterProviderCleanup(providerName)
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitGroupAssignmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitGroupAssignmentResourceConfig_withPriority(
+					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid, "primary"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "id"),
+					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "group_id"),
+					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "circuit_id"),
+					resource.TestCheckResourceAttr("netbox_circuit_group_assignment.test", "priority", "primary"),
+				),
+			},
+			{
+				Config: testAccCircuitGroupAssignmentResourceConfig_basic(
+					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "id"),
+					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "group_id"),
+					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "circuit_id"),
+					resource.TestCheckNoResourceAttr("netbox_circuit_group_assignment.test", "priority"),
+				),
+			},
+		},
+	})
+}

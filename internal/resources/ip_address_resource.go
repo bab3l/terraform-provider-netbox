@@ -373,31 +373,55 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 	if utils.IsSet(plan.Role) {
 		role := netbox.PatchedWritableIPAddressRequestRole(plan.Role.ValueString())
 		ipRequest.Role = &role
+	} else if plan.Role.IsNull() && state != nil && utils.IsSet(state.Role) {
+		// Clear by setting to empty string
+		emptyRole := netbox.PatchedWritableIPAddressRequestRole("")
+		ipRequest.Role = &emptyRole
 	}
 
 	// Assigned Object Type
 	if utils.IsSet(plan.AssignedObjectType) {
 		objType := plan.AssignedObjectType.ValueString()
 		ipRequest.AssignedObjectType = *netbox.NewNullableString(&objType)
+	} else if plan.AssignedObjectType.IsNull() && state != nil && utils.IsSet(state.AssignedObjectType) {
+		// Clear by setting to nil
+		ipRequest.SetAssignedObjectTypeNil()
 	}
 
 	// Assigned Object ID
 	if utils.IsSet(plan.AssignedObjectID) {
 		objID := plan.AssignedObjectID.ValueInt64()
 		ipRequest.AssignedObjectId = *netbox.NewNullableInt64(&objID)
+	} else if plan.AssignedObjectID.IsNull() && state != nil && utils.IsSet(state.AssignedObjectID) {
+		// Clear by setting to nil
+		ipRequest.SetAssignedObjectIdNil()
 	}
 
 	// DNS Name
 	if utils.IsSet(plan.DNSName) {
 		dnsName := plan.DNSName.ValueString()
 		ipRequest.DnsName = &dnsName
+	} else if plan.DNSName.IsNull() && state != nil && utils.IsSet(state.DNSName) {
+		// Clear by setting to empty string
+		emptyDNS := ""
+		ipRequest.DnsName = &emptyDNS
 	}
 
 	// Description
-	ipRequest.Description = utils.StringPtr(plan.Description)
+	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
+		desc := plan.Description.ValueString()
+		ipRequest.Description = &desc
+	} else if plan.Description.IsNull() {
+		ipRequest.SetDescription("")
+	}
 
 	// Comments
-	ipRequest.Comments = utils.StringPtr(plan.Comments)
+	if !plan.Comments.IsNull() && !plan.Comments.IsUnknown() {
+		comments := plan.Comments.ValueString()
+		ipRequest.Comments = &comments
+	} else if plan.Comments.IsNull() {
+		ipRequest.SetComments("")
+	}
 
 	// Handle tags
 	utils.ApplyTags(ctx, ipRequest, plan.Tags, diags)
@@ -415,7 +439,22 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 // mapIPAddressToState maps a Netbox IPAddress to the Terraform state model.
 func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *netbox.IPAddress, data *IPAddressResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipAddress.Id))
-	data.Address = types.StringValue(ipAddress.Address)
+
+	// Address: preserve user formatting (especially for IPv6) when semantically equivalent.
+	// NetBox canonicalizes IPv6 strings (e.g., removes leading zeros), but Terraform requires
+	// required attributes to remain equal to the configured value after apply.
+	apiAddress := ipAddress.Address
+	if !data.Address.IsNull() && !data.Address.IsUnknown() {
+		current := data.Address.ValueString()
+		if utils.NormalizeIPAddress(current) == utils.NormalizeIPAddress(apiAddress) {
+			// Keep user's original formatting
+			data.Address = types.StringValue(current)
+		} else {
+			data.Address = types.StringValue(apiAddress)
+		}
+	} else {
+		data.Address = types.StringValue(apiAddress)
+	}
 
 	// VRF
 	if ipAddress.Vrf.IsSet() && ipAddress.Vrf.Get() != nil {

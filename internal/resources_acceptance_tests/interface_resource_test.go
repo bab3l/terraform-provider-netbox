@@ -363,4 +363,224 @@ func TestAccInterfaceResource_externalDeletion(t *testing.T) {
 	})
 }
 
+func TestAccInterfaceResource_removeDescriptionAndLabel(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-interface-optional")
+	siteSlug := testutil.RandomSlug("site")
+	mfrSlug := testutil.RandomSlug("mfr")
+	deviceSlug := testutil.RandomSlug("device")
+	roleSlug := testutil.RandomSlug("role")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfrSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(name + "-device")
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_interface",
+		BaseConfig: func() string {
+			return testAccInterfaceResourceConfig_basic(name)
+		},
+		ConfigWithFields: func() string {
+			return testAccInterfaceResourceConfig_withDescriptionAndLabel(
+				name,
+				"Test description",
+				"Test label",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"label":       "Test label",
+		},
+		RequiredFields: map[string]string{
+			"name": name,
+			"type": "1000base-t",
+		},
+	})
+}
+
+func testAccInterfaceResourceConfig_withDescriptionAndLabel(name, description, label string) string {
+	siteSlug := testutil.RandomSlug("site")
+	mfrSlug := testutil.RandomSlug("mfr")
+	deviceSlug := testutil.RandomSlug("device")
+	roleSlug := testutil.RandomSlug("role")
+	deviceName := name + "-device"
+
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = %[2]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = %[3]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = "Test Device Type"
+  slug         = %[4]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name = "Test Role"
+  slug = %[5]q
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = %[8]q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_interface" "test" {
+  name        = %[1]q
+  device      = netbox_device.test.id
+  type        = "1000base-t"
+  description = %[6]q
+  label       = %[7]q
+}
+`, name, siteSlug, mfrSlug, deviceSlug, roleSlug, description, label, deviceName)
+}
+
+func TestAccInterfaceResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	interfaceName := testutil.RandomName("tf-test-iface-optional")
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+	manufacturerName := testutil.RandomName("tf-test-mfr")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr")
+	deviceTypeName := testutil.RandomName("tf-test-devtype")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-devtype")
+	roleName := testutil.RandomName("tf-test-role")
+	roleSlug := testutil.RandomSlug("tf-test-role")
+	deviceName := testutil.RandomName("tf-test-device")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_interface",
+		BaseConfig: func() string {
+			return testAccInterfaceResourceConfig_removeOptionalFields_base(
+				interfaceName, siteName, siteSlug, manufacturerName, manufacturerSlug,
+				deviceTypeName, deviceTypeSlug, roleName, roleSlug, deviceName,
+			)
+		},
+		ConfigWithFields: func() string {
+			return testAccInterfaceResourceConfig_removeOptionalFields_withFields(
+				interfaceName, siteName, siteSlug, manufacturerName, manufacturerSlug,
+				deviceTypeName, deviceTypeSlug, roleName, roleSlug, deviceName,
+			)
+		},
+		OptionalFields: map[string]string{
+			"duplex":      "full",
+			"label":       "Test Label",
+			"mac_address": "00:11:22:33:44:55",
+			"mode":        "access",
+			"mtu":         "1500",
+			"speed":       "1000000",
+		},
+		RequiredFields: map[string]string{
+			"name": interfaceName,
+		},
+		CheckDestroy: testutil.CheckInterfaceDestroy,
+	})
+}
+
+func testAccInterfaceResourceConfig_removeOptionalFields_base(interfaceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, deviceName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[6]q
+  slug         = %[7]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[8]q
+  slug  = %[9]q
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = %[10]q
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+}
+
+resource "netbox_interface" "test" {
+  name   = %[1]q
+  device = netbox_device.test.id
+  type   = "1000base-t"
+}
+`, interfaceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, deviceName)
+}
+
+func testAccInterfaceResourceConfig_removeOptionalFields_withFields(interfaceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, deviceName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[6]q
+  slug         = %[7]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[8]q
+  slug  = %[9]q
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = %[10]q
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+}
+
+resource "netbox_interface" "test" {
+  name        = %[1]q
+  device      = netbox_device.test.id
+  type        = "1000base-t"
+  duplex      = "full"
+  label       = "Test Label"
+  mac_address = "00:11:22:33:44:55"
+  mode        = "access"
+  mtu         = 1500
+  speed       = 1000000
+}
+`, interfaceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, deviceName)
+}
+
 // NOTE: Custom field tests for interface resource are in resources_acceptance_tests_customfields package

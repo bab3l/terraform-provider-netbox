@@ -306,3 +306,62 @@ resource "netbox_fhrp_group" "test" {
 }
 `, protocol, groupID, name, description)
 }
+
+func TestAccFHRPGroupResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	protocol := "vrrp3"
+	groupID := int32(acctest.RandIntRange(141, 175)) // nolint:gosec
+	name := testutil.RandomName("tf-test-fhrp-opt")
+	authType := "md5"
+	authKey := "secret123"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_fhrp_group" "test" {
+  protocol   = %[1]q
+  group_id   = %[2]d
+  name       = %[3]q
+  auth_type  = %[4]q
+  auth_key   = %[5]q
+  description = "Description"
+  comments    = "Comments"
+}
+`, protocol, groupID, name, authType, authKey),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "protocol", protocol),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "group_id", fmt.Sprintf("%d", groupID)),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "auth_type", authType),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "auth_key", authKey),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "description", "Description"),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "comments", "Comments"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_fhrp_group" "test" {
+  protocol = %[1]q
+  group_id = %[2]d
+}
+`, protocol, groupID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "protocol", protocol),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "group_id", fmt.Sprintf("%d", groupID)),
+					resource.TestCheckNoResourceAttr("netbox_fhrp_group.test", "name"),
+					resource.TestCheckNoResourceAttr("netbox_fhrp_group.test", "auth_type"),
+					resource.TestCheckNoResourceAttr("netbox_fhrp_group.test", "auth_key"),
+					resource.TestCheckNoResourceAttr("netbox_fhrp_group.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_fhrp_group.test", "comments"),
+				),
+			},
+		},
+	})
+}

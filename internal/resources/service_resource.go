@@ -208,6 +208,8 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 		}
 
 		apiReq.SetDevice(*device)
+	} else if data.Device.IsNull() {
+		apiReq.SetDeviceNil()
 	}
 
 	if !data.VirtualMachine.IsNull() && !data.VirtualMachine.IsUnknown() {
@@ -220,6 +222,8 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 		}
 
 		apiReq.SetVirtualMachine(*vm)
+	} else if data.VirtualMachine.IsNull() {
+		apiReq.SetVirtualMachineNil()
 	}
 
 	// Set IP addresses
@@ -248,6 +252,8 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 		}
 
 		apiReq.SetIpaddresses(ipIDsInt32)
+	} else if data.IPAddresses.IsNull() {
+		apiReq.SetIpaddresses([]int32{})
 	}
 
 	// Store plan values before mapping for filter-to-owned pattern
@@ -447,6 +453,8 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 		}
 
 		apiReq.SetDevice(*device)
+	} else if plan.Device.IsNull() {
+		apiReq.SetDeviceNil()
 	}
 
 	if !plan.VirtualMachine.IsNull() && !plan.VirtualMachine.IsUnknown() {
@@ -459,6 +467,8 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 		}
 
 		apiReq.SetVirtualMachine(*vm)
+	} else if plan.VirtualMachine.IsNull() {
+		apiReq.SetVirtualMachineNil()
 	}
 
 	// Set IP addresses
@@ -487,6 +497,8 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 		}
 
 		apiReq.SetIpaddresses(ipIDsInt32)
+	} else if plan.IPAddresses.IsNull() {
+		apiReq.SetIpaddresses([]int32{})
 	}
 
 	// Apply common fields with merge-aware helpers

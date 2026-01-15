@@ -258,3 +258,36 @@ resource "netbox_tunnel_group" "test" {
 }
 `, name, slug)
 }
+
+func TestAccTunnelGroupResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-tg-rem")
+	slug := testutil.RandomSlug("tf-test-tg-rem")
+	const testDescription = "Test Description"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTunnelGroupCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTunnelGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTunnelGroupResourceConfig_full(name, slug, testDescription),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "description", testDescription),
+				),
+			},
+			{
+				Config: testAccTunnelGroupResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_tunnel_group.test", "description"),
+				),
+			},
+		},
+	})
+}

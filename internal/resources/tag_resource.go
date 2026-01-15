@@ -86,8 +86,12 @@ func (r *TagResource) Create(ctx context.Context, req resource.CreateRequest, re
 	)
 
 	// Set optional fields
-	tagRequest.Color = utils.StringPtr(data.Color)
 	utils.ApplyDescription(tagRequest, data.Description)
+	if !data.Color.IsNull() && !data.Color.IsUnknown() {
+		tagRequest.SetColor(data.Color.ValueString())
+	} else if data.Color.IsNull() {
+		tagRequest.SetColor("")
+	}
 
 	// Handle object_types list
 	if !data.ObjectTypes.IsNull() && !data.ObjectTypes.IsUnknown() {
@@ -190,8 +194,12 @@ func (r *TagResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	)
 
 	// Set optional fields
-	tagRequest.Color = utils.StringPtr(data.Color)
 	utils.ApplyDescription(tagRequest, data.Description)
+	if !data.Color.IsNull() && !data.Color.IsUnknown() {
+		tagRequest.SetColor(data.Color.ValueString())
+	} else if data.Color.IsNull() {
+		tagRequest.SetColor("")
+	}
 
 	// Handle object_types list
 	if !data.ObjectTypes.IsNull() && !data.ObjectTypes.IsUnknown() {
@@ -202,6 +210,9 @@ func (r *TagResource) Update(ctx context.Context, req resource.UpdateRequest, re
 			return
 		}
 		tagRequest.ObjectTypes = objectTypes
+	} else if !data.ObjectTypes.IsUnknown() {
+		// Explicitly set empty list to clear the field
+		tagRequest.ObjectTypes = []string{}
 	}
 
 	tag, httpResp, err := r.client.ExtrasAPI.ExtrasTagsUpdate(ctx, tagID).TagRequest(*tagRequest).Execute()

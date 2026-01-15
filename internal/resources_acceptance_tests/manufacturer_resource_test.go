@@ -290,3 +290,46 @@ func TestAccManufacturerResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccManufacturerResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccManufacturerResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-mfr-remove")
+	slug := testutil.RandomSlug("tf-test-mfr-rem")
+	description := "Test Description"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckManufacturerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  description = %[3]q
+}
+`, name, slug, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "description", description),
+				),
+			},
+			{
+				Config: testAccManufacturerResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "slug", slug),
+					resource.TestCheckNoResourceAttr("netbox_manufacturer.test", "description"),
+				),
+			},
+		},
+	})
+}

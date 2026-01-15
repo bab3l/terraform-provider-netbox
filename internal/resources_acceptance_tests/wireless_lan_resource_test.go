@@ -245,6 +245,51 @@ resource "netbox_wireless_lan" "test" {
 `, wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug)
 }
 
+func TestAccWirelessLANResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	ssid := testutil.RandomName("tf-test-wlan-rem")
+	const testDescription = "Test Description"
+	const testComments = "Test Comments"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterWirelessLANCleanup(ssid)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_wireless_lan",
+		BaseConfig: func() string {
+			return testAccWirelessLANResourceConfig_basic(ssid)
+		},
+		ConfigWithFields: func() string {
+			return testAccWirelessLANResourceConfig_removeOptionalFields_withFields(ssid)
+		},
+		OptionalFields: map[string]string{
+			"auth_cipher": "aes",
+			"auth_psk":    "test_psk_12345678",
+			"auth_type":   "wpa-personal",
+			"description": testDescription,
+			"comments":    testComments,
+		},
+		RequiredFields: map[string]string{
+			"ssid": ssid,
+		},
+		CheckDestroy: testutil.CheckWirelessLANDestroy,
+	})
+}
+
+func testAccWirelessLANResourceConfig_removeOptionalFields_withFields(ssid string) string {
+	return fmt.Sprintf(`
+resource "netbox_wireless_lan" "test" {
+  ssid         = %[1]q
+  auth_cipher  = "aes"
+  auth_psk     = "test_psk_12345678"
+  auth_type    = "wpa-personal"
+  description  = "Test Description"
+  comments     = "Test Comments"
+}
+`, ssid)
+}
+
 func TestAccConsistency_WirelessLAN_LiteralNames(t *testing.T) {
 	t.Parallel()
 	ssid := testutil.RandomName("tf-test-ssid-lit")

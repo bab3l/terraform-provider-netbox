@@ -250,6 +250,8 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 			return
 		}
 		contactGroupRequest.Parent = *netbox.NewNullableInt32(&parentID)
+	} else if plan.Parent.IsNull() {
+		contactGroupRequest.SetParentNil()
 	}
 
 	// Apply tags and custom_fields with merge-aware helpers

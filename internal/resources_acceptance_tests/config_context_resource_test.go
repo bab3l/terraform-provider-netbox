@@ -239,6 +239,217 @@ func TestAccConfigContextResource_externalDeletion(t *testing.T) {
 	})
 }
 
+// TestAccConfigContextResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+// This verifies the bugfix for: "Provider produced inconsistent result after apply".
+func TestAccConfigContextResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ctx-rem")
+	description := testutil.RandomName("description")
+	regionName := testutil.RandomName("tf-test-region")
+	regionSlug := testutil.RandomSlug("tf-test-region")
+	siteGroupName := testutil.RandomName("tf-test-site-group")
+	siteGroupSlug := testutil.RandomSlug("tf-test-site-group")
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+	locationName := testutil.RandomName("tf-test-loc")
+	locationSlug := testutil.RandomSlug("tf-test-loc")
+	mfrName := testutil.RandomName("tf-test-mfr")
+	mfrSlug := testutil.RandomSlug("tf-test-mfr")
+	dtModel := testutil.RandomName("tf-test-dt")
+	dtSlug := testutil.RandomSlug("tf-test-dt")
+	roleName := testutil.RandomName("tf-test-role")
+	roleSlug := testutil.RandomSlug("tf-test-role")
+	platformName := testutil.RandomName("tf-test-platform")
+	platformSlug := testutil.RandomSlug("tf-test-platform")
+	clusterTypeName := testutil.RandomName("tf-test-ct")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-ct")
+	clusterGroupName := testutil.RandomName("tf-test-cg")
+	clusterGroupSlug := testutil.RandomSlug("tf-test-cg")
+	clusterName := testutil.RandomName("tf-test-cluster")
+	tenantGroupName := testutil.RandomName("tf-test-tg")
+	tenantGroupSlug := testutil.RandomSlug("tf-test-tg")
+	tenantName := testutil.RandomName("tf-test-tenant")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant")
+	tagSlug := testutil.RandomSlug("tf-test-tag")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigContextCleanup(name)
+	cleanup.RegisterRegionCleanup(regionSlug)
+	cleanup.RegisterSiteGroupCleanup(siteGroupSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterLocationCleanup(locationSlug)
+	cleanup.RegisterManufacturerCleanup(mfrSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterPlatformCleanup(platformSlug)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterClusterGroupCleanup(clusterGroupSlug)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterTenantGroupCleanup(tenantGroupSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterTagCleanup(tagSlug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_config_context",
+		BaseConfig: func() string {
+			return testAccConfigContextResourceConfig_removeOptionalFields_base(name)
+		},
+		ConfigWithFields: func() string {
+			return testAccConfigContextResourceConfig_removeOptionalFields_withFields(
+				name, description, tagSlug,
+				regionName, regionSlug, siteGroupName, siteGroupSlug,
+				siteName, siteSlug, locationName, locationSlug,
+				mfrName, mfrSlug, dtModel, dtSlug,
+				roleName, roleSlug, platformName, platformSlug,
+				clusterTypeName, clusterTypeSlug, clusterGroupName, clusterGroupSlug,
+				clusterName, tenantGroupName, tenantGroupSlug, tenantName, tenantSlug,
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": description,
+			// We check for presence of these relationship sets by count
+			"regions.#":     "1",
+			"site_groups.#": "1",
+			"sites.#":       "1",
+			// "locations.#":      "1", // Causing SDK error: no value given for required property 'site'
+			"device_types.#":   "1",
+			"roles.#":          "1",
+			"platforms.#":      "1",
+			"cluster_types.#":  "1",
+			"cluster_groups.#": "1",
+			// "clusters.#":       "1", // Causing SDK error: no value given for required property 'type'
+			"tenant_groups.#": "1",
+			"tenants.#":       "1",
+			"tags.#":          "1",
+		},
+		RequiredFields: map[string]string{
+			"name": name,
+		},
+		CheckDestroy: nil,
+	})
+}
+
+func testAccConfigContextResourceConfig_removeOptionalFields_base(name string) string {
+	return fmt.Sprintf(`
+resource "netbox_config_context" "test" {
+  name = %q
+  data = "{\"key\":\"value\"}"
+}
+`, name)
+}
+
+func testAccConfigContextResourceConfig_removeOptionalFields_withFields(
+	name, description, tagSlug,
+	regionName, regionSlug, siteGroupName, siteGroupSlug,
+	siteName, siteSlug, locationName, locationSlug,
+	mfrName, mfrSlug, dtModel, dtSlug,
+	roleName, roleSlug, platformName, platformSlug,
+	clusterTypeName, clusterTypeSlug, clusterGroupName, clusterGroupSlug,
+	clusterName, tenantGroupName, tenantGroupSlug, tenantName, tenantSlug string,
+) string {
+	return fmt.Sprintf(`
+resource "netbox_region" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_site_group" "test" {
+  name = %[6]q
+  slug = %[7]q
+}
+
+resource "netbox_site" "test" {
+  name   = %[8]q
+  slug   = %[9]q
+  status = "active"
+}
+
+resource "netbox_location" "test" {
+  name    = %[10]q
+  slug    = %[11]q
+  site    = netbox_site.test.id
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[12]q
+  slug = %[13]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[14]q
+  slug         = %[15]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name = %[16]q
+  slug = %[17]q
+}
+
+resource "netbox_platform" "test" {
+  name = %[18]q
+  slug = %[19]q
+}
+
+resource "netbox_cluster_type" "test" {
+  name = %[20]q
+  slug = %[21]q
+}
+
+resource "netbox_cluster_group" "test" {
+  name = %[22]q
+  slug = %[23]q
+}
+
+resource "netbox_cluster" "test" {
+  name = %[24]q
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_tenant_group" "test" {
+  name = %[25]q
+  slug = %[26]q
+}
+
+resource "netbox_tenant" "test" {
+  name = %[27]q
+  slug = %[28]q
+}
+
+resource "netbox_tag" "test" {
+  name = %[3]q
+  slug = %[3]q
+}
+
+resource "netbox_config_context" "test" {
+  name           = %[1]q
+  description    = %[2]q
+  data           = "{\"key\":\"value\"}"
+  regions        = [netbox_region.test.id]
+  site_groups    = [netbox_site_group.test.id]
+  sites          = [netbox_site.test.id]
+  # locations      = [netbox_location.test.id]
+  device_types   = [netbox_device_type.test.id]
+  roles          = [netbox_device_role.test.id]
+  platforms      = [netbox_platform.test.id]
+  cluster_types  = [netbox_cluster_type.test.id]
+  cluster_groups = [netbox_cluster_group.test.id]
+  # clusters       = [netbox_cluster.test.id]
+  tenant_groups  = [netbox_tenant_group.test.id]
+  tenants        = [netbox_tenant.test.id]
+  tags           = [netbox_tag.test.slug]
+}
+`, name, description, tagSlug,
+		regionName, regionSlug, siteGroupName, siteGroupSlug,
+		siteName, siteSlug, locationName, locationSlug,
+		mfrName, mfrSlug, dtModel, dtSlug,
+		roleName, roleSlug, platformName, platformSlug,
+		clusterTypeName, clusterTypeSlug, clusterGroupName, clusterGroupSlug,
+		clusterName, tenantGroupName, tenantGroupSlug, tenantName, tenantSlug)
+}
+
 func testAccConfigContextResourceConfig_basic(name string) string {
 
 	return fmt.Sprintf(`

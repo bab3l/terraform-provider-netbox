@@ -307,4 +307,125 @@ func TestAccDeviceTypeResource_externalDeletion(t *testing.T) {
 	})
 }
 
+func TestAccDeviceTypeResource_removeDescriptionAndComments(t *testing.T) {
+	t.Parallel()
+
+	model := testutil.RandomName("tf-test-devtype-optional")
+	slug := testutil.RandomSlug("tf-test-devtype-optional")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(slug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_device_type",
+		BaseConfig: func() string {
+			return testAccDeviceTypeResourceConfig_basic(model, slug, manufacturerName, manufacturerSlug)
+		},
+		ConfigWithFields: func() string {
+			return testAccDeviceTypeResourceConfig_withDescriptionAndComments(
+				model,
+				slug,
+				manufacturerName,
+				manufacturerSlug,
+				"Test description",
+				"Test comments",
+			)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+			"comments":    "Test comments",
+		},
+		RequiredFields: map[string]string{
+			"model": model,
+			"slug":  slug,
+		},
+		CheckDestroy: testutil.CheckDeviceTypeDestroy,
+	})
+}
+
+func testAccDeviceTypeResourceConfig_withDescriptionAndComments(model, slug, manufacturerName, manufacturerSlug, description, comments string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[1]q
+  slug         = %[2]q
+  manufacturer = netbox_manufacturer.test.id
+  description  = %[5]q
+  comments     = %[6]q
+}
+`, model, slug, manufacturerName, manufacturerSlug, description, comments)
+}
+
+func TestAccDeviceTypeResource_removeOptionalFields_part_number_u_height_weight(t *testing.T) {
+	model := testutil.RandomName("tf-test-dt-opt")
+	slug := testutil.RandomSlug("tf-test-dt-opt")
+	mfgName := testutil.RandomName("tf-test-mfg-opt")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-opt")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(slug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create with optional fields
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[3]q
+  slug         = %[4]q
+  manufacturer = netbox_manufacturer.test.id
+  part_number  = "PN-12345"
+  u_height     = 2.0
+  weight       = 10.5
+  weight_unit  = "kg"
+}
+`, mfgName, mfgSlug, model, slug),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_device_type.test", "part_number", "PN-12345"),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "u_height", "2"),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "weight", "10.5"),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "weight_unit", "kg"),
+				),
+			},
+			// Step 2: Remove optional fields
+			{
+				Config: fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[3]q
+  slug         = %[4]q
+  manufacturer = netbox_manufacturer.test.id
+  weight_unit  = "kg"
+}
+`, mfgName, mfgSlug, model, slug),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_device_type.test", "part_number"),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "u_height", "1"),
+					resource.TestCheckNoResourceAttr("netbox_device_type.test", "weight"),
+					resource.TestCheckResourceAttr("netbox_device_type.test", "weight_unit", "kg"),
+				),
+			},
+		},
+	})
+}
+
 // NOTE: Custom field tests for device_type resource are in resources_acceptance_tests_customfields package

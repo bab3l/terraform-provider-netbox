@@ -299,17 +299,6 @@ resource "netbox_rack" "test" {
 // testAccRackResourceConfig_basic returns a basic test configuration.
 func testAccRackResourceConfig_basic(siteName, siteSlug, rackName string) string {
 	return fmt.Sprintf(`
-terraform {
-  required_providers {
-    netbox = {
-      source = "bab3l/netbox"
-      version = ">= 0.1.0"
-    }
-  }
-}
-
-provider "netbox" {}
-
 resource "netbox_site" "test" {
   name   = %q
   slug   = %q
@@ -317,8 +306,9 @@ resource "netbox_site" "test" {
 }
 
 resource "netbox_rack" "test" {
-  name = %q
-  site = netbox_site.test.id
+  name   = %q
+  site   = netbox_site.test.id
+  status = "active"
 }
 `, siteName, siteSlug, rackName)
 }
@@ -476,24 +466,23 @@ func TestAccRackResource_externalDeletion(t *testing.T) {
 	})
 }
 
-// TestAccRackResource_removeOptionalFields tests that optional nullable fields
+// TestAccRackResource_removePhysicalFields tests that optional physical fields
 // can be successfully removed from the configuration without causing inconsistent state.
-// This verifies the bugfix for: "Provider produced inconsistent result after apply".
-func TestAccRackResource_removeOptionalFields(t *testing.T) {
+func TestAccRackResource_removePhysicalFields(t *testing.T) {
 	t.Parallel()
 
-	siteName := testutil.RandomName("tf-test-site-rack")
-	siteSlug := testutil.RandomSlug("tf-test-site-rack")
-	locationName := testutil.RandomName("tf-test-loc-rack")
-	locationSlug := testutil.RandomSlug("tf-test-loc-rack")
-	tenantName := testutil.RandomName("tf-test-tenant-rack")
-	tenantSlug := testutil.RandomSlug("tf-test-tenant-rack")
-	roleName := testutil.RandomName("tf-test-role-rack")
-	roleSlug := testutil.RandomSlug("tf-test-role-rack")
-	rackTypeName := testutil.RandomName("tf-test-racktype")
-	rackTypeSlug := testutil.RandomSlug("tf-test-racktype")
-	rackName := testutil.RandomName("tf-test-rack")
+	// Random names
+	siteName := testutil.RandomName("tf-test-site-rack-phys")
+	siteSlug := testutil.RandomSlug("tf-test-site-rack-phys")
+	locationName := testutil.RandomName("tf-test-loc-rack-phys")
+	locationSlug := testutil.RandomSlug("tf-test-loc-rack-phys")
+	tenantName := testutil.RandomName("tf-test-tenant-rack-phys")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-rack-phys")
+	roleName := testutil.RandomName("tf-test-role-rack-phys")
+	roleSlug := testutil.RandomSlug("tf-test-role-rack-phys")
+	rackName := testutil.RandomName("tf-test-rack-phys")
 
+	// Cleanup
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRackCleanup(rackName)
 	cleanup.RegisterLocationCleanup(locationSlug)
@@ -501,141 +490,257 @@ func TestAccRackResource_removeOptionalFields(t *testing.T) {
 	cleanup.RegisterRackRoleCleanup(roleSlug)
 	cleanup.RegisterSiteCleanup(siteSlug)
 
+	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
+		ResourceName: "netbox_rack",
+		BaseConfig: func() string {
+			return testAccRackResourceConfig_physicalFieldsRemoved(
+				siteName, siteSlug,
+				locationName, locationSlug,
+				tenantName, tenantSlug,
+				roleName, roleSlug,
+				rackName,
+			)
+		},
+		ConfigWithFields: func() string {
+			return testAccRackResourceConfig_physicalFields(
+				siteName, siteSlug,
+				locationName, locationSlug,
+				tenantName, tenantSlug,
+				roleName, roleSlug,
+				rackName,
+			)
+		},
+		OptionalFields: map[string]string{
+			"airflow":        "front-to-rear",
+			"form_factor":    "4-post-cabinet",
+			"max_weight":     "1000",
+			"mounting_depth": "100",
+			"outer_depth":    "120",
+			"outer_width":    "80",
+			"weight":         "50.5",
+			"serial":         "SN123456",
+			"asset_tag":      "TAG123456",
+			"description":    "Test description",
+			"comments":       "Test comments",
+		},
+		RequiredFields: map[string]string{
+			"name": rackName,
+		},
+		CheckDestroy: testutil.CheckRackDestroy,
+	})
+}
+
+func testAccRackResourceConfig_physicalFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_location" "test" {
+  name = %[3]q
+  slug = %[4]q
+  site = netbox_site.test.id
+}
+
+resource "netbox_tenant" "test" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_rack_role" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_rack" "test" {
+  name           = %[9]q
+  site           = netbox_site.test.id
+  status         = "active"
+  location       = netbox_location.test.id
+  tenant         = netbox_tenant.test.id
+  role           = netbox_rack_role.test.id
+  airflow        = "front-to-rear"
+  desc_units     = true
+  form_factor    = "4-post-cabinet"
+  max_weight     = "1000"
+  mounting_depth = "100"
+  outer_depth    = "120"
+  outer_unit     = "mm"
+  outer_width    = "80"
+  starting_unit  = "1"
+  u_height       = "48"
+  weight         = "50.5"
+  weight_unit    = "kg"
+  width          = "19"
+  serial         = "SN123456"
+  asset_tag      = "TAG123456"
+  description    = "Test description"
+  comments       = "Test comments"
+}
+`, siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackName)
+}
+
+func testAccRackResourceConfig_physicalFieldsRemoved(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_location" "test" {
+  name = %[3]q
+  slug = %[4]q
+  site = netbox_site.test.id
+}
+
+resource "netbox_tenant" "test" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_rack_role" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_rack" "test" {
+  name           = %[9]q
+  site           = netbox_site.test.id
+  status         = "active"
+}
+`, siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackName)
+}
+
+func TestAccRackResource_removeReferenceFields(t *testing.T) {
+	t.Parallel()
+
+	// Random names
+	siteName := testutil.RandomName("tf-test-site-rack-ref")
+	siteSlug := testutil.RandomSlug("tf-test-site-rack-ref")
+	mfgName := testutil.RandomName("tf-test-mfg-rack-ref")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-rack-ref")
+	rackTypeName := testutil.RandomName("tf-test-racktype-ref")
+	rackTypeSlug := testutil.RandomSlug("tf-test-racktype-ref")
+	rackName := testutil.RandomName("tf-test-rack-ref")
+
+	// Cleanup
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackCleanup(rackName)
+	cleanup.RegisterRackTypeCleanup(rackTypeSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy: testutil.ComposeCheckDestroy(
-			testutil.CheckRackDestroy,
-			testutil.CheckLocationDestroy,
-			testutil.CheckTenantDestroy,
-			testutil.CheckRackRoleDestroy,
-			testutil.CheckSiteDestroy,
-		),
+		CheckDestroy:             testutil.CheckRackDestroy,
 		Steps: []resource.TestStep{
-			// Step 1: Create rack with location, tenant, role, and rack_type
+			// Step 1: Create resource with rack_type reference
 			{
-				Config: testAccRackResourceConfig_withAllFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName),
+				Config: testAccRackResourceConfig_referenceFields(
+					siteName, siteSlug,
+					mfgName, mfgSlug,
+					rackTypeName, rackTypeSlug,
+					rackName,
+				),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
-					resource.TestCheckResourceAttrSet("netbox_rack.test", "location"),
-					resource.TestCheckResourceAttrSet("netbox_rack.test", "tenant"),
-					resource.TestCheckResourceAttrSet("netbox_rack.test", "role"),
-					resource.TestCheckResourceAttrSet("netbox_rack.test", "rack_type"),
+					resource.TestCheckResourceAttrPair("netbox_rack.test", "rack_type", "netbox_rack_type.test", "id"),
 				),
 			},
-			// Step 2: Remove location, tenant, role, and rack_type - should set them to null
+			// Step 2: Remove rack_type reference but keep rack_type resource
 			{
-				Config: testAccRackResourceConfig_withoutOptionalFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName),
+				Config: testAccRackResourceConfig_referenceFieldsRemoved(
+					siteName, siteSlug,
+					mfgName, mfgSlug,
+					rackTypeName, rackTypeSlug,
+					rackName,
+				),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
-					resource.TestCheckNoResourceAttr("netbox_rack.test", "location"),
-					resource.TestCheckNoResourceAttr("netbox_rack.test", "tenant"),
-					resource.TestCheckNoResourceAttr("netbox_rack.test", "role"),
 					resource.TestCheckNoResourceAttr("netbox_rack.test", "rack_type"),
 				),
 			},
-			// Step 3: Re-add location, tenant, role, and rack_type - verify they can be set again
+			// Step 3: Re-add rack_type to verify it can be set again
 			{
-				Config: testAccRackResourceConfig_withAllFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName),
+				Config: testAccRackResourceConfig_referenceFields(
+					siteName, siteSlug,
+					mfgName, mfgSlug,
+					rackTypeName, rackTypeSlug,
+					rackName,
+				),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
-					resource.TestCheckResourceAttrSet("netbox_rack.test", "location"),
-					resource.TestCheckResourceAttrSet("netbox_rack.test", "tenant"),
-					resource.TestCheckResourceAttrSet("netbox_rack.test", "role"),
-					resource.TestCheckResourceAttrSet("netbox_rack.test", "rack_type"),
+					resource.TestCheckResourceAttrPair("netbox_rack.test", "rack_type", "netbox_rack_type.test", "id"),
 				),
 			},
 		},
 	})
 }
 
-func testAccRackResourceConfig_withAllFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName string) string {
+func testAccRackResourceConfig_referenceFieldsRemoved(siteName, siteSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_location" "test" {
-  name = %q
-  slug = %q
-  site = netbox_site.test.id
-}
-
-resource "netbox_tenant" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_rack_role" "test" {
-  name = %q
-  slug = %q
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
 }
 
 resource "netbox_manufacturer" "test" {
-  name = "Test Manufacturer"
-  slug = "test-mfg"
+  name = %[3]q
+  slug = %[4]q
 }
 
 resource "netbox_rack_type" "test" {
-  model         = %q
-  slug          = %q
-  manufacturer  = netbox_manufacturer.test.id
-  form_factor   = "4-post-cabinet"
+  model        = %[5]q
+  slug         = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+  form_factor  = "4-post-cabinet"
+  u_height     = 42
+  width        = 19
+  weight_unit  = "kg"
 }
 
 resource "netbox_rack" "test" {
-  name      = %q
+  name      = %[7]q
   site      = netbox_site.test.id
-  location  = netbox_location.test.id
-  tenant    = netbox_tenant.test.id
-  role      = netbox_rack_role.test.id
+  status    = "active"
+  # rack_type removed
+}
+`, siteName, siteSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName)
+}
+
+func testAccRackResourceConfig_referenceFields(siteName, siteSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_rack_type" "test" {
+  model        = %[5]q
+  slug         = %[6]q
+  manufacturer = netbox_manufacturer.test.id
+  form_factor  = "4-post-cabinet"
+  u_height     = 42
+  width        = 19
+  weight_unit  = "kg"
+}
+
+resource "netbox_rack" "test" {
+  name      = %[7]q
+  site      = netbox_site.test.id
+  status    = "active"
   rack_type = netbox_rack_type.test.id
 }
-`, siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName)
-}
-
-func testAccRackResourceConfig_withoutOptionalFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName string) string {
-	return fmt.Sprintf(`
-resource "netbox_site" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_location" "test" {
-  name = %q
-  slug = %q
-  site = netbox_site.test.id
-}
-
-resource "netbox_tenant" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_rack_role" "test" {
-  name = %q
-  slug = %q
-}
-
-resource "netbox_manufacturer" "test" {
-  name = "Test Manufacturer"
-  slug = "test-mfg"
-}
-
-resource "netbox_rack_type" "test" {
-  model         = %q
-  slug          = %q
-  manufacturer  = netbox_manufacturer.test.id
-  form_factor   = "4-post-cabinet"
-}
-
-resource "netbox_rack" "test" {
-  name = %q
-  site = netbox_site.test.id
-}
-`, siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackTypeName, rackTypeSlug, rackName)
+`, siteName, siteSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName)
 }

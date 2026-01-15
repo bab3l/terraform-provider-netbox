@@ -89,6 +89,10 @@ func (r *IKEPolicyResource) Schema(ctx context.Context, req resource.SchemaReque
 			"mode": schema.StringAttribute{
 				MarkdownDescription: "The IKE negotiation mode. Valid values: `aggressive`, `main`. Only applicable for IKEv1.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.String{
 					stringvalidator.OneOf("aggressive", "main"),
 				},
@@ -358,7 +362,35 @@ func (r *IKEPolicyResource) setOptionalFields(ctx context.Context, ikeRequest *n
 	}
 
 	// Mode
-	if utils.IsSet(plan.Mode) {
+	// NetBox exposes "mode" as a non-nullable enum field. Practically this means:
+	// - For IKEv2 (version=2), mode must not be set.
+	// - If a policy already has mode set (IKEv1) and you try to switch to version=2,
+	//   NetBox requires mode to be cleared first, but it cannot be cleared via API.
+	//   The only viable path is to recreate the resource without mode.
+	modeIsKnown := !plan.Mode.IsNull() && !plan.Mode.IsUnknown()
+	if utils.IsSet(plan.Version) && plan.Version.ValueInt64() == 2 {
+		if modeIsKnown {
+			if state == nil {
+				diags.AddError(
+					"Invalid configuration",
+					"Attribute 'mode' is only applicable for IKEv1 (version=1) and must not be set when version=2.",
+				)
+				return
+			}
+			diags.AddError(
+				"Invalid update",
+				"Cannot change IKE policy to version=2 because it has an existing IKEv1-only 'mode' set in NetBox. NetBox does not allow clearing 'mode' via update; recreate the resource without 'mode' to use version=2.",
+			)
+			return
+		}
+		if state != nil && utils.IsSet(state.Mode) {
+			diags.AddError(
+				"Invalid update",
+				"Cannot change IKE policy to version=2 because it has an existing IKEv1-only 'mode' set in NetBox. NetBox does not allow clearing 'mode' via update; recreate the resource without 'mode' to use version=2.",
+			)
+			return
+		}
+	} else if modeIsKnown {
 		mode := netbox.PatchedWritableIKEPolicyRequestMode(plan.Mode.ValueString())
 		ikeRequest.Mode = &mode
 	}
@@ -380,6 +412,9 @@ func (r *IKEPolicyResource) setOptionalFields(ctx context.Context, ikeRequest *n
 			proposals[i] = val
 		}
 		ikeRequest.Proposals = proposals
+	} else if state != nil && utils.IsSet(state.Proposals) {
+		// If proposals were previously set but are now removed from config, explicitly clear them.
+		ikeRequest.Proposals = []int32{}
 	}
 
 	// Preshared Key

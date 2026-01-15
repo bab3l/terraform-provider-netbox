@@ -283,15 +283,25 @@ func (r *CustomLinkResource) Update(ctx context.Context, req resource.UpdateRequ
 	if !data.GroupName.IsNull() && !data.GroupName.IsUnknown() {
 		groupName := data.GroupName.ValueString()
 		request.GroupName = &groupName
+	} else if data.GroupName.IsNull() {
+		// Explicitly clear the group name
+		emptyString := ""
+		request.GroupName = &emptyString
 	}
 
 	if !data.ButtonClass.IsNull() && !data.ButtonClass.IsUnknown() {
 		buttonClass := netbox.CustomLinkButtonClass(data.ButtonClass.ValueString())
 		request.SetButtonClass(buttonClass)
+	} else if data.ButtonClass.IsNull() {
+		// Explicitly clear button class by setting to default
+		request.SetButtonClass(netbox.CUSTOMLINKBUTTONCLASS_DEFAULT)
 	}
 
 	if !data.NewWindow.IsNull() && !data.NewWindow.IsUnknown() {
 		request.SetNewWindow(data.NewWindow.ValueBool())
+	} else if data.NewWindow.IsNull() {
+		// Explicitly clear new_window by setting to false (default)
+		request.SetNewWindow(false)
 	}
 
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasCustomLinksUpdate(ctx, id).

@@ -443,3 +443,113 @@ func TestAccRackReservationResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccRackReservationResource_removeOptionalFields tests that optional fields
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccRackReservationResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-rem")
+	siteSlug := testutil.RandomSlug("tf-test-site-rem")
+	rackName := testutil.RandomName("tf-test-rack-rem")
+	tenantName := testutil.RandomName("tf-test-tenant-rem")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-rem")
+	description := testutil.RandomName("description")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterRackCleanup(rackName)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackReservationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackReservationResourceConfig_withTenant(siteName, siteSlug, rackName, tenantName, tenantSlug, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "description", description),
+					resource.TestCheckResourceAttrSet("netbox_rack_reservation.test", "tenant"),
+				),
+			},
+			{
+				Config: testAccRackReservationResourceConfig_withoutTenantRef(siteName, siteSlug, rackName, tenantName, tenantSlug, description),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "description", description),
+					resource.TestCheckNoResourceAttr("netbox_rack_reservation.test", "tenant"),
+				),
+			},
+		},
+	})
+}
+
+func testAccRackReservationResourceConfig_withTenant(siteName, siteSlug, rackName, tenantName, tenantSlug, description string) string {
+	return fmt.Sprintf(`
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_rack" "test" {
+  name     = %[3]q
+  site     = netbox_site.test.id
+  status   = "active"
+  u_height = 42
+}
+
+resource "netbox_tenant" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+data "netbox_user" "admin" {
+  username = "admin"
+}
+
+resource "netbox_rack_reservation" "test" {
+  rack        = netbox_rack.test.id
+  units       = [1, 2]
+  user        = data.netbox_user.admin.id
+  description = %[6]q
+  tenant      = netbox_tenant.test.id
+}
+`, siteName, siteSlug, rackName, tenantName, tenantSlug, description)
+}
+func testAccRackReservationResourceConfig_withoutTenantRef(siteName, siteSlug, rackName, tenantName, tenantSlug, description string) string {
+	return fmt.Sprintf(`
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_rack" "test" {
+  name     = %[3]q
+  site     = netbox_site.test.id
+  status   = "active"
+  u_height = 42
+}
+
+resource "netbox_tenant" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+data "netbox_user" "admin" {
+  username = "admin"
+}
+
+resource "netbox_rack_reservation" "test" {
+  rack        = netbox_rack.test.id
+  units       = [1, 2]
+  user        = data.netbox_user.admin.id
+  description = %[6]q
+}
+`, siteName, siteSlug, rackName, tenantName, tenantSlug, description)
+}

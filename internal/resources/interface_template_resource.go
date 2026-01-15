@@ -318,19 +318,24 @@ func (r *InterfaceTemplateResource) Update(ctx context.Context, req resource.Upd
 
 	if !data.Bridge.IsNull() && !data.Bridge.IsUnknown() {
 		apiReq.SetBridge(data.Bridge.ValueInt32())
+	} else if data.Bridge.IsNull() {
+		apiReq.SetBridgeNil()
 	}
 
 	if !data.PoeMode.IsNull() && !data.PoeMode.IsUnknown() {
 		apiReq.SetPoeMode(netbox.InterfacePoeModeValue(data.PoeMode.ValueString()))
 	}
+	// Note: poe_mode has a NOT NULL constraint in Netbox DB and cannot be explicitly cleared
 
 	if !data.PoeType.IsNull() && !data.PoeType.IsUnknown() {
 		apiReq.SetPoeType(netbox.InterfacePoeTypeValue(data.PoeType.ValueString()))
 	}
+	// Note: poe_type has a NOT NULL constraint in Netbox DB and cannot be explicitly cleared
 
 	if !data.RfRole.IsNull() && !data.RfRole.IsUnknown() {
 		apiReq.SetRfRole(netbox.WirelessRole(data.RfRole.ValueString()))
 	}
+	// Note: rf_role has a NOT NULL constraint in Netbox DB and cannot be explicitly cleared
 
 	tflog.Debug(ctx, "Updating interface template", map[string]interface{}{
 		"id": templateID,

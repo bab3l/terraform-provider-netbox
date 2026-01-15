@@ -139,6 +139,29 @@ func TestAccTagResource_IDPreservation(t *testing.T) {
 	})
 }
 
+func TestAccTagResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tag")
+	slug := testutil.RandomSlug("tag")
+
+	config := testutil.MultiFieldOptionalTestConfig{
+		ResourceType: "netbox_tag",
+		ResourceName: "netbox_tag",
+		ConfigWithFields: func() string {
+			return testAccTagResourceFull(name, slug, "2196f3", "Test description")
+		},
+		BaseConfig: func() string {
+			return testAccTagResourceBasic(name, slug)
+		},
+		OptionalFields: map[string]string{
+			"description": "Test description",
+		},
+	}
+
+	testutil.TestRemoveOptionalFields(t, config)
+}
+
 func testAccTagResourceBasic(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "test" {
@@ -252,4 +275,59 @@ func TestAccTagResource_externalDeletion(t *testing.T) {
 			},
 		},
 	})
+}
+
+// TestAccTagResource_removeOptionalFieldsObjectTypes tests that the object_types field
+// can be successfully removed from the configuration without causing inconsistent state.
+func TestAccTagResource_removeOptionalFieldsObjectTypes(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-tag-rem")
+	slug := testutil.RandomSlug("tf-test-tag-rem")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTagCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTagDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTagResourceConfig_withObjectTypes(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tag.test", "object_types.#", "2"),
+				),
+			},
+			{
+				Config: testAccTagResourceConfig_withoutObjectTypes(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("netbox_tag.test", "object_types"),
+				),
+			},
+		},
+	})
+}
+
+func testAccTagResourceConfig_withObjectTypes(name, slug string) string {
+	return fmt.Sprintf(`
+provider "netbox" {}
+
+resource "netbox_tag" "test" {
+  name         = %[1]q
+  slug         = %[2]q
+  object_types = ["dcim.device", "dcim.site"]
+}
+`, name, slug)
+}
+
+func testAccTagResourceConfig_withoutObjectTypes(name, slug string) string {
+	return fmt.Sprintf(`
+provider "netbox" {}
+
+resource "netbox_tag" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+`, name, slug)
 }

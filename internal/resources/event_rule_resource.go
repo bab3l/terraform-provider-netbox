@@ -198,13 +198,16 @@ func (r *EventRuleResource) Create(ctx context.Context, req resource.CreateReque
 		request.ActionType = &actionType
 	}
 
-	if !data.ActionObjectID.IsNull() && !data.ActionObjectID.IsUnknown() {
+	if utils.IsSet(data.ActionObjectID) {
 		actionObjectID, err := utils.ParseID64(data.ActionObjectID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("Invalid Action Object ID", fmt.Sprintf("Action Object ID must be a number, got: %s", data.ActionObjectID.ValueString()))
 			return
 		}
 		request.ActionObjectId = *netbox.NewNullableInt64(&actionObjectID)
+	} else if data.ActionObjectID.IsNull() {
+		// Explicitly set to null (not strictly necessary for Create, but consistent)
+		request.ActionObjectId = *netbox.NewNullableInt64(nil)
 	}
 
 	// Apply common fields (description, tags, custom_fields)
@@ -347,13 +350,16 @@ func (r *EventRuleResource) Update(ctx context.Context, req resource.UpdateReque
 		request.ActionType = &actionType
 	}
 
-	if !plan.ActionObjectID.IsNull() && !plan.ActionObjectID.IsUnknown() {
+	if utils.IsSet(plan.ActionObjectID) {
 		actionObjectID, err := utils.ParseID64(plan.ActionObjectID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("Invalid Action Object ID", fmt.Sprintf("Action Object ID must be a number, got: %s", plan.ActionObjectID.ValueString()))
 			return
 		}
 		request.ActionObjectId = *netbox.NewNullableInt64(&actionObjectID)
+	} else if plan.ActionObjectID.IsNull() {
+		// Explicitly clear the field by setting it to null
+		request.ActionObjectId = *netbox.NewNullableInt64(nil)
 	}
 
 	// Apply common fields (description, tags, custom_fields with merge)

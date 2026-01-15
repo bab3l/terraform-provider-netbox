@@ -252,10 +252,13 @@ func (r *CircuitGroupAssignmentResource) Update(ctx context.Context, req resourc
 	// Build the API request
 	assignmentRequest := netbox.NewWritableCircuitGroupAssignmentRequest(groupRequest, *circuit)
 
-	// Set priority if provided
+	// Set priority - use empty string to clear
 	if !data.Priority.IsNull() && !data.Priority.IsUnknown() && data.Priority.ValueString() != "" {
 		priority := netbox.BriefCircuitGroupAssignmentSerializerPriorityValue(data.Priority.ValueString())
 		assignmentRequest.Priority = &priority
+	} else {
+		emptyPriority := netbox.BriefCircuitGroupAssignmentSerializerPriorityValue("")
+		assignmentRequest.Priority = &emptyPriority
 	}
 
 	// Handle tags - merge-aware
