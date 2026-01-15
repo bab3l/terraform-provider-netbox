@@ -38,6 +38,12 @@ func TestAccVirtualMachineResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
 				),
 			},
+			{
+				ResourceName:            "netbox_virtual_machine.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"cluster"},
+			},
 		},
 	})
 }
