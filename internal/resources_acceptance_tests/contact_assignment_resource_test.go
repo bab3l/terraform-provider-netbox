@@ -11,6 +11,44 @@ import (
 
 // NOTE: Custom field tests for contact assignment resource are in resources_acceptance_tests_customfields package
 
+func TestAccContactAssignmentResource_full(t *testing.T) {
+	t.Parallel()
+
+	testutil.TestAccPreCheck(t)
+	randomName := testutil.RandomName("test-contact-assign-full")
+	randomSlug := testutil.RandomSlug("test-ca-full")
+	contactEmail := fmt.Sprintf("%s@example.com", testutil.RandomSlug("ca-full"))
+	tagName := testutil.RandomName("tf-test-tag")
+	tagSlug := testutil.RandomSlug("tf-test-tag")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(randomSlug + "-site")
+	cleanup.RegisterContactCleanup(contactEmail)
+	cleanup.RegisterContactRoleCleanup(randomSlug + "-role")
+	cleanup.RegisterTagCleanup(tagSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactAssignmentResourceConfig_full(randomName, randomSlug, contactEmail, tagName, tagSlug),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "id"),
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "object_type", "dcim.site"),
+					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "object_id"),
+					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "contact_id"),
+					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "role_id"),
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "priority", "primary"),
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "tags.#", "1"),
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "tags.0.name", tagName),
+					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "tags.0.slug", tagSlug),
+				),
+			},
+		},
+	})
+}
+
 func TestAccContactAssignmentResource_basic(t *testing.T) {
 	t.Parallel()
 
@@ -206,6 +244,45 @@ func TestAccContactAssignmentResource_IDPreservation(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccContactAssignmentResourceConfig_full(name, slug, email, tagName, tagSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = "%s-site"
+  slug   = "%s-site"
+  status = "active"
+}
+
+resource "netbox_contact" "test" {
+  name  = "%s-contact"
+  email = "%s"
+}
+
+resource "netbox_contact_role" "test" {
+  name = "%s-role"
+  slug = "%s-role"
+}
+
+resource "netbox_tag" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_contact_assignment" "test" {
+  object_type = "dcim.site"
+  object_id   = netbox_site.test.id
+  contact_id  = netbox_contact.test.id
+  role_id     = netbox_contact_role.test.id
+  priority    = "primary"
+  tags = [
+    {
+      name = netbox_tag.test.name
+      slug = netbox_tag.test.slug
+    }
+  ]
+}
+`, name, slug, name, email, name, slug, tagName, tagSlug)
 }
 
 func testAccContactAssignmentResourceBasicWithEmail(name, slug, email string) string {
