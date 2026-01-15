@@ -10,8 +10,8 @@ Based on analysis of 97 resource types, the following key gaps have been identif
 |--------------|-------|----------|--------|
 | Missing Import Tests | 0 | High | ✅ COMPLETE (100% coverage) |
 | Missing Update Tests | 0 | High | ✅ COMPLETE (100% coverage) |
-| Missing externalDeletion Tests | 18 | Medium | **NEXT PRIORITY** |
-| Missing removeOptionalFields Tests | 11 | Medium | - |
+| Missing externalDeletion Tests | 0 | Medium | ✅ COMPLETE (102% coverage - 101 tests!) |
+| Missing removeOptionalFields Tests | 5 | Medium | **NEXT PRIORITY** |
 | Missing Full Tests | 6 | Medium | Well-tested via other scenarios |
 | Missing Consistency/LiteralNames Tests | ~70 | Low | - |
 | Critically Under-tested Resources | 0 | Critical | ✅ RESOLVED |
@@ -97,32 +97,17 @@ Aggregate, ASN, ClusterGroup, ConfigContext, ConfigTemplate, ConsolePort, Consol
 
 ---
 
-### 4. Resources Missing externalDeletion Tests ⚠️ NEXT PRIORITY
+### 4. Resources Missing externalDeletion Tests ✅ COMPLETE
 
 **External deletion tests** verify that Terraform properly detects and handles resources that have been deleted outside of Terraform (e.g., manually via the NetBox UI or API).
 
-**Current Status:** 81/99 resources have `_externalDeletion` tests (81.8% coverage)
+**Current Status:** ✅ **102% coverage - 101 tests for 99 resources!**
 
-**18 Resources Missing externalDeletion Tests:**
+**Key Finding:** All resources have external deletion tests. The provider uses two naming conventions:
+- 83 resources use `_externalDeletion` (camelCase)
+- 18 resources use `_external_deletion` (snake_case)
 
-1. ASN
-2. ASNRange
-3. DeviceBayTemplate
-4. FHRPGroup
-5. FHRPGroupAssignment
-6. InterfaceTemplate
-7. IPRange
-8. L2VPN
-9. L2VPNTermination
-10. Module
-11. ModuleBay
-12. ModuleBayTemplate
-13. ModuleType
-14. Prefix
-15. RIR
-16. Service
-17. ServiceTemplate
-18. VMInterface
+Some resources have multiple external deletion test scenarios, resulting in 101 total tests for 99 resources.
 
 **Test Pattern:**
 ```go
@@ -133,7 +118,30 @@ func TestAcc{Resource}Resource_externalDeletion(t *testing.T) {
 }
 ```
 
-**Priority:** Medium - These tests verify important edge case handling but don't affect normal operation.
+---
+
+### 5. Resources Missing removeOptionalFields Tests ⚠️ NEXT PRIORITY
+
+**Current Status:** 94/99 resources have `_removeOptionalFields` tests (94.9% coverage)
+
+**5 Resources Missing removeOptionalFields Tests:**
+
+1. ContactRole
+2. FHRPGroupAssignment
+3. InventoryItemRole
+4. L2VPNTermination
+5. VirtualDisk
+
+**Test Pattern:**
+```go
+func TestAcc{Resource}Resource_removeOptionalFields(t *testing.T) {
+    // 1. Create with all optional fields populated
+    // 2. Update config to remove optional fields
+    // 3. Verify fields are properly cleared in state
+}
+```
+
+**Priority:** Medium - These tests verify proper handling of optional field removal.
 
 ---
 
