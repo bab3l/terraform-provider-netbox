@@ -10,9 +10,9 @@ Based on analysis of 97 resource types, the following key gaps have been identif
 |--------------|-------|----------|--------|
 | Missing Import Tests | 0 | High | ✅ COMPLETE (100% coverage) |
 | Missing Update Tests | 0 | High | ✅ COMPLETE (100% coverage) |
-| Missing externalDeletion Tests | 22 | Medium | 2 completed ✅ |
-| Missing removeOptionalFields Tests | 14 | Medium | All resources now covered |
-| Missing Full Tests | 5 | Medium | 2 completed ✅ |
+| Missing externalDeletion Tests | 18 | Medium | **NEXT PRIORITY** |
+| Missing removeOptionalFields Tests | 11 | Medium | - |
+| Missing Full Tests | 6 | Medium | Well-tested via other scenarios |
 | Missing Consistency/LiteralNames Tests | ~70 | Low | - |
 | Critically Under-tested Resources | 0 | Critical | ✅ RESOLVED |
 
@@ -20,6 +20,7 @@ Based on analysis of 97 resource types, the following key gaps have been identif
 - EventRule and NotificationGroup upgraded from critically under-tested to full coverage with 8 comprehensive tests each.
 - **Import Test Coverage: 100% COMPLETE** - All 97 resources now have import testing (either embedded in _basic tests or as dedicated _import test functions). VirtualMachine was the last resource to receive import testing.
 - **Update Test Coverage: 100% COMPLETE** - All 97 resources now have update tests. Added dedicated _update tests for Device, FrontPortTemplate, Interface, InterfaceTemplate, PowerFeed, PowerPanel, PowerPortTemplate, Prefix, RearPort, RearPortTemplate, Role, Tag, and VirtualChassis in Phase 2.
+- **Full Test Coverage: 93/99 (93.9%)** - 6 resources missing `_full` tests but have comprehensive coverage via other test types: circuit_termination, cluster_group, contact_assignment, contact_group, contact_role, wireless_link.
 
 ---
 
@@ -93,6 +94,46 @@ Aggregate, ASN, ClusterGroup, ConfigContext, ConfigTemplate, ConsolePort, Consol
 - ✅ VirtualChassis: Added dedicated _update test (tests name, domain, description)
 
 **Note:** All other resources have update logic tested within their `_full` tests (testing updates to optional fields).
+
+---
+
+### 4. Resources Missing externalDeletion Tests ⚠️ NEXT PRIORITY
+
+**External deletion tests** verify that Terraform properly detects and handles resources that have been deleted outside of Terraform (e.g., manually via the NetBox UI or API).
+
+**Current Status:** 81/99 resources have `_externalDeletion` tests (81.8% coverage)
+
+**18 Resources Missing externalDeletion Tests:**
+
+1. ASN
+2. ASNRange
+3. DeviceBayTemplate
+4. FHRPGroup
+5. FHRPGroupAssignment
+6. InterfaceTemplate
+7. IPRange
+8. L2VPN
+9. L2VPNTermination
+10. Module
+11. ModuleBay
+12. ModuleBayTemplate
+13. ModuleType
+14. Prefix
+15. RIR
+16. Service
+17. ServiceTemplate
+18. VMInterface
+
+**Test Pattern:**
+```go
+func TestAcc{Resource}Resource_externalDeletion(t *testing.T) {
+    // 1. Create resource via Terraform
+    // 2. In PreConfig, delete via direct API call
+    // 3. RefreshState and expect non-empty plan (recreate)
+}
+```
+
+**Priority:** Medium - These tests verify important edge case handling but don't affect normal operation.
 
 ---
 
