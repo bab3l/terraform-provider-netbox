@@ -464,3 +464,37 @@ func TestAccCircuitGroupAssignmentResource_removeOptionalFields(t *testing.T) {
 		},
 	})
 }
+
+func TestAccCircuitGroupAssignmentResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_circuit_group_assignment",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_group_id": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_circuit_group_assignment" "test" {
+  # group_id missing
+  circuit_id = "1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_circuit_id": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_circuit_group_assignment" "test" {
+  group_id = "1"
+  # circuit_id missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

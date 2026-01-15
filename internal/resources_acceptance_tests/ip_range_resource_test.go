@@ -504,3 +504,37 @@ resource "netbox_ip_range" "test" {
 		},
 	})
 }
+
+func TestAccIPRangeResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_ip_range",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_start_address": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_ip_range" "test" {
+  # start_address missing
+  end_address = "192.168.1.20/24"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_end_address": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_ip_range" "test" {
+  start_address = "192.168.1.10/24"
+  # end_address missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

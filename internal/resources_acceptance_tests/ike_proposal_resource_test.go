@@ -329,3 +329,71 @@ func TestAccConsistency_IKEProposal_LiteralNames(t *testing.T) {
 		},
 	})
 }
+
+func TestAccIKEProposalResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_ike_proposal",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_ike_proposal" "test" {
+  # name missing
+  authentication_method = "preshared-keys"
+  encryption_algorithm = "aes-256-cbc"
+  group = 14
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_authentication_method": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_ike_proposal" "test" {
+  name = "Test Proposal"
+  # authentication_method missing
+  encryption_algorithm = "aes-256-cbc"
+  group = 14
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_encryption_algorithm": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_ike_proposal" "test" {
+  name = "Test Proposal"
+  authentication_method = "preshared-keys"
+  # encryption_algorithm missing
+  group = 14
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_group": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_ike_proposal" "test" {
+  name = "Test Proposal"
+  authentication_method = "preshared-keys"
+  encryption_algorithm = "aes-256-cbc"
+  # group missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

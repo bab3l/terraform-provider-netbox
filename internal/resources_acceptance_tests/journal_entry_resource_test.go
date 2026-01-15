@@ -423,3 +423,39 @@ resource "netbox_journal_entry" "test" {
 }
 `, siteName, siteSlug)
 }
+
+func TestAccJournalEntryResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_journal_entry",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_assigned_object_type": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_journal_entry" "test" {
+  # assigned_object_type missing
+  assigned_object_id = 1
+  comments = "Test entry"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_assigned_object_id": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_journal_entry" "test" {
+  assigned_object_type = "dcim.device"
+  # assigned_object_id missing
+  comments = "Test entry"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}
