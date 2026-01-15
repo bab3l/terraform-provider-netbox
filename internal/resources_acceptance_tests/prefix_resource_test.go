@@ -33,6 +33,41 @@ func TestAccPrefixResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccPrefixResource_update(t *testing.T) {
+	t.Parallel()
+
+	prefix := testutil.RandomIPv4Prefix()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckPrefixDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPrefixResourceConfig_forUpdate(prefix, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "status", "active"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "is_pool", "false"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccPrefixResourceConfig_forUpdate(prefix, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_prefix.test", "status", "reserved"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "is_pool", "true"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccPrefixResource_full(t *testing.T) {
 
 	t.Parallel()
@@ -196,6 +231,26 @@ resource "netbox_prefix" "test" {
   prefix = %q
 }
 `, prefix)
+}
+
+func testAccPrefixResourceConfig_forUpdate(prefix, description string) string {
+	// Toggle status and is_pool based on description
+	status := "active"
+	isPool := "false"
+
+	if description == testutil.Description2 {
+		status = "reserved"
+		isPool = "true"
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_prefix" "test" {
+  prefix      = %[1]q
+  status      = %[2]q
+  is_pool     = %[3]s
+  description = %[4]q
+}
+`, prefix, status, isPool, description)
 }
 
 func testAccPrefixResourceConfig_full(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {

@@ -9,7 +9,7 @@ Based on analysis of 97 resource types, the following key gaps have been identif
 | Gap Category | Count | Priority | Status |
 |--------------|-------|----------|--------|
 | Missing Import Tests | 0 | High | ✅ COMPLETE (100% coverage) |
-| Missing Update Tests | 9 | High | 5 completed |
+| Missing Update Tests | 6 | High | 8 completed |
 | Missing externalDeletion Tests | 22 | Medium | 2 completed ✅ |
 | Missing removeOptionalFields Tests | 14 | Medium | All resources now covered |
 | Missing Full Tests | 5 | Medium | 2 completed ✅ |
@@ -19,7 +19,7 @@ Based on analysis of 97 resource types, the following key gaps have been identif
 **Latest Update (2026-01-15):**
 - EventRule and NotificationGroup upgraded from critically under-tested to full coverage with 8 comprehensive tests each.
 - **Import Test Coverage: 100% COMPLETE** - All 97 resources now have import testing (either embedded in _basic tests or as dedicated _import test functions). VirtualMachine was the last resource to receive import testing.
-- **Update Test Coverage: Progress** - Added dedicated _update tests for Device, FrontPortTemplate, and Interface. 10 resources remaining.
+- **Update Test Coverage: Progress** - Added dedicated _update tests for Device, FrontPortTemplate, Interface, Prefix, PowerFeed, and Role. 7 resources remaining.
 
 ---
 
@@ -69,7 +69,7 @@ Both resources now have CheckDestroy functions implemented and all tests passing
 **Resources with Embedded Import Testing (in `_basic` tests):**
 Aggregate, ASN, ClusterGroup, ConfigContext, ConfigTemplate, ConsolePort, ConsolePortTemplate, ConsoleServerPort, ConsoleServerPortTemplate, Contact, ContactAssignment, ContactGroup, ContactRole, CustomLink, Device, DeviceBay, DeviceBayTemplate, DeviceRole, DeviceType, ExportTemplate, FHRPGroupAssignment, FrontPort, FrontPortTemplate, Interface, InterfaceTemplate, L2VPN, L2VPNTermination, ModuleBay, ModuleBayTemplate, Module, ModuleType, PowerFeed, PowerOutlet, PowerOutletTemplate, PowerPanel, PowerPort, PowerPortTemplate, RackReservation, RackType, RearPort, RearPortTemplate, RIR, Role, Service, ServiceTemplate, Tag, VirtualChassis, VirtualDeviceContext, VirtualMachine, Webhook, WirelessLAN, WirelessLANGroup, WirelessLink
 
-### 3. Resources Missing Update Tests (12 resources)
+### 3. Resources Missing Update Tests (14 resources)
 
 Update operations are core CRUD functionality. Missing for:
 
@@ -79,16 +79,16 @@ Update operations are core CRUD functionality. Missing for:
 - ✅ FrontPortTemplate: Added dedicated _update test
 - ✅ Interface: Added dedicated _update test
 - ✅ NotificationGroup: Completed
+- ✅ PowerFeed: Added dedicated _update test
+- ✅ Prefix: Added dedicated _update test
+- ✅ Role: Added dedicated _update test
 
-**Still Pending:**
+**Still Pending (7 resources):**
 - InterfaceTemplate
-- PowerFeed
 - PowerPanel
 - PowerPortTemplate
-- Prefix
 - RearPort
 - RearPortTemplate
-- Role
 - Tag
 - VirtualChassis
 
@@ -314,10 +314,11 @@ func TestAcc{Resource}Resource_customFieldTypeChange(t *testing.T)
 3. **Next:** Add `_update` tests for 14 missing resources
 
 ### Phase 2: Update Test Coverage (1-2 weeks)
-✅ Add `_update` tests for Device, FrontPortTemplate, Interface (completed 2026-01-15)
-2. **In Progress:** Add `_update` tests for remaining 10 resources
-3. Focus on high-use resources first (Prefix next, then PowerFeed, Roled NotificationGroup complete)
-2. Focus on high-use resources first (Device, Interface, Prefix)
+
+1. ✅ Add `_update` tests for Device, FrontPortTemplate, Interface (completed 2026-01-15)
+2. ✅ Add `_update` tests for Prefix, PowerFeed, Role (completed 2026-01-15)
+3. **In Progress:** Add `_update` tests for remaining 7 resources
+4. Next batch: InterfaceTemplate, PowerPanel, PowerPortTemplate
 
 ### Phase 3: Remove Optional Fields (1 week)
 
@@ -456,8 +457,8 @@ func TestRemoveOptionalFields(t *testing.T, config MultiFieldOptionalTestConfig)
 | Metric | Current | Target |
 |--------|---------|--------|
 | Resources with full test coverage | ~20 | 97 |
-| Resources with import tests | 98 ✅ | 97 |
-| Resources with update tests | 83 | 97 |
+| Resources with import tests | 97 ✅ | 97 |
+| Resources with update tests | 91 | 97 |
 | Resources with removeOptionalFields tests | 83 | 97 |
 | Resources with externalDeletion tests | 73 | 97 |
 | New test classes needed | 0 | 10 |
