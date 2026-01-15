@@ -349,3 +349,37 @@ resource "netbox_vlan_group" "test" {
 }
 `, name, slug, siteName, siteSlug, description)
 }
+
+func TestAccVLANGroupResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_vlan_group",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_vlan_group" "test" {
+  # name missing
+  slug = "test-vlan-group"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_vlan_group" "test" {
+  name = "Test VLAN Group"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

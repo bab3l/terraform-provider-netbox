@@ -424,3 +424,75 @@ resource "netbox_l2vpn_termination" "test" {
 }
 `, l2vpnName, l2vpnName, l2vpnName, vlanVID)
 }
+
+func TestAccL2VPNTerminationResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_l2vpn_termination",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_l2vpn": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_vlan" "test" {
+  name = "test-vlan"
+  vid  = 100
+}
+
+resource "netbox_l2vpn_termination" "test" {
+  # l2vpn missing
+  assigned_object_type = "ipam.vlan"
+  assigned_object_id   = netbox_vlan.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_assigned_object_type": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_l2vpn" "test" {
+  name = "test-l2vpn"
+  slug = "test-l2vpn"
+  type = "vxlan"
+}
+
+resource "netbox_vlan" "test" {
+  name = "test-vlan"
+  vid  = 100
+}
+
+resource "netbox_l2vpn_termination" "test" {
+  l2vpn = netbox_l2vpn.test.id
+  # assigned_object_type missing
+  assigned_object_id = netbox_vlan.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_assigned_object_id": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_l2vpn" "test" {
+  name = "test-l2vpn"
+  slug = "test-l2vpn"
+  type = "vxlan"
+}
+
+resource "netbox_l2vpn_termination" "test" {
+  l2vpn                = netbox_l2vpn.test.id
+  assigned_object_type = "ipam.vlan"
+  # assigned_object_id missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}
