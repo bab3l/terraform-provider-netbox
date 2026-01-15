@@ -586,3 +586,127 @@ resource "netbox_asn_range" "test" {
 }
 
 // NOTE: Custom field tests for ASN Range resource are in resources_acceptance_tests_customfields package
+
+func TestAccASNRangeResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_asn_range",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_rir" "test" {
+  name = "test-rir"
+  slug = "test-rir"
+}
+
+resource "netbox_asn_range" "test" {
+  # name missing
+  slug  = "test-range"
+  rir   = netbox_rir.test.id
+  start = "65000"
+  end   = "65100"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_rir" "test" {
+  name = "test-rir"
+  slug = "test-rir"
+}
+
+resource "netbox_asn_range" "test" {
+  name  = "Test Range"
+  # slug missing
+  rir   = netbox_rir.test.id
+  start = "65000"
+  end   = "65100"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_rir": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_asn_range" "test" {
+  name  = "Test Range"
+  slug  = "test-range"
+  # rir missing
+  start = "65000"
+  end   = "65100"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_start": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_rir" "test" {
+  name = "test-rir"
+  slug = "test-rir"
+}
+
+resource "netbox_asn_range" "test" {
+  name = "Test Range"
+  slug = "test-range"
+  rir  = netbox_rir.test.id
+  # start missing
+  end  = "65100"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_end": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_rir" "test" {
+  name = "test-rir"
+  slug = "test-rir"
+}
+
+resource "netbox_asn_range" "test" {
+  name  = "Test Range"
+  slug  = "test-range"
+  rir   = netbox_rir.test.id
+  start = "65000"
+  # end missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_rir_reference": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_asn_range" "test" {
+  name  = "Test Range"
+  slug  = "test-range"
+  rir   = "nonexistent-rir"
+  start = "65000"
+  end   = "65100"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}

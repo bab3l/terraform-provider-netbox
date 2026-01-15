@@ -4,7 +4,7 @@
 
 Implement negative/validation tests for all 97 resources to verify proper error handling for invalid inputs. These tests improve user experience by ensuring clear, actionable error messages.
 
-**Current Status:** Batch 4 COMPLETE ✅ (38/97 resources, 141 tests, 93.6% pass rate overall)
+**Current Status:** Batch 5 COMPLETE ✅ (48/97 resources, 168 tests, 95.2% pass rate overall)
 
 ## Test Pattern
 
@@ -171,18 +171,53 @@ func TestAcc{Resource}Resource_validationErrors(t *testing.T) {
 
 ---
 
-### Batch 5: IPAM - Core (10 resources)
+### Batch 5: IPAM - Core (10 resources) ✅ COMPLETE
+**Status: 100% complete | 27 tests | 27 passing (100%)**
 
-39. Aggregate
-40. ASN
-41. ASNRange
-42. RIR
-43. RouteTarget
-44. ServiceTemplate
-45. Service
-46. FHRPGroup
-47. FHRPGroupAssignment
-48. L2VPN
+39. ✅ Aggregate (3 tests, 100% pass)
+    - Tests: missing_prefix, missing_rir, invalid_rir_reference
+40. ✅ ASN (1 test, 100% pass)
+    - Tests: missing_asn
+41. ✅ ASNRange (6 tests, 100% pass)
+    - Tests: missing_name, missing_slug, missing_rir, missing_start, missing_end, invalid_rir_reference
+42. ✅ RIR (2 tests, 100% pass)
+    - Tests: missing_name, missing_slug
+43. ✅ RouteTarget (1 test, 100% pass)
+    - Tests: missing_name
+44. ✅ ServiceTemplate (2 tests, 100% pass)
+    - Tests: missing_name, missing_ports
+45. ✅ Service (3 tests, 100% pass)
+    - Tests: missing_name, missing_protocol, missing_ports
+46. ✅ FHRPGroup (2 tests, 100% pass)
+    - Tests: missing_protocol, missing_group_id
+47. ✅ FHRPGroupAssignment (4 tests, 100% pass)
+    - Tests: missing_group_id, missing_interface_type, missing_interface_id, missing_priority
+48. ✅ L2VPN (3 tests, 100% pass)
+    - Tests: missing_name, missing_slug, missing_type
+
+**Test Categories:**
+- Simple required fields: ASN (asn), RouteTarget (name), RIR (name + slug)
+- Multi-field required: ASNRange (name + slug + rir + start + end)
+- Network services: ServiceTemplate (name + ports), Service (name + protocol + ports)
+- IPAM resources: Aggregate (prefix + rir)
+- HA/Redundancy: FHRPGroup (protocol + group_id), FHRPGroupAssignment (4 required fields)
+- VPN: L2VPN (name + slug + type)
+
+**Statistics:**
+- **Total Tests**: 27
+- **Pass Rate**: 100%
+- **Execution Time**: 8.369s
+- **Date Completed**: January 15, 2026
+
+**Key Learnings:**
+- IPAM resources follow consistent patterns for required fields
+- ASNRange has extensive validation (6 tests) due to multiple required fields
+- Service resources require device or VM plus service parameters
+- FHRPGroupAssignment is most complex with 4 required fields
+- All reference validations (rir, device, interface) passed consistently
+- Maintained 100% pass rate streak (total 111 consecutive tests since Batch 2)
+
+---
 
 **Test Focus:**
 - Invalid CIDR notation

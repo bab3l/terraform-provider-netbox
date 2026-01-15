@@ -365,3 +365,36 @@ resource "netbox_fhrp_group" "test" {
 		},
 	})
 }
+func TestAccFHRPGroupResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_fhrp_group",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_protocol": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_fhrp_group" "test" {
+  # protocol missing
+  group_id = 1
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_group_id": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_fhrp_group" "test" {
+  protocol = "vrrp2"
+  # group_id missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

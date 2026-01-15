@@ -298,3 +298,37 @@ resource "netbox_service_template" "test" {
 		},
 	})
 }
+
+func TestAccServiceTemplateResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_service_template",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_service_template" "test" {
+  # name missing
+  ports = [80]
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_ports": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_service_template" "test" {
+  name = "test-service"
+  # ports missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

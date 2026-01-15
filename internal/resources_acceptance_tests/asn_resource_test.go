@@ -412,3 +412,23 @@ resource "netbox_asn" "test" {
 }
 
 // NOTE: Custom field tests for ASN resource are in resources_acceptance_tests_customfields package
+
+func TestAccASNResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_asn",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_asn": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_asn" "test" {
+  # asn missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

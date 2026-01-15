@@ -383,3 +383,53 @@ resource "netbox_l2vpn" "test" {
 }
 `, name, tenantName, tenantSlug, importTargetName, exportTargetName)
 }
+
+func TestAccL2VPNResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_l2vpn",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_l2vpn" "test" {
+  # name missing
+  slug = "test-l2vpn"
+  type = "vxlan"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_l2vpn" "test" {
+  name = "Test L2VPN"
+  # slug missing
+  type = "vxlan"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_type": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_l2vpn" "test" {
+  name = "Test L2VPN"
+  slug = "test-l2vpn"
+  # type missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

@@ -9,6 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+const (
+	isPoolFalse = "false"
+	isPoolTrue  = "true"
+)
+
 func TestAccPrefixResource_basic(t *testing.T) {
 	t.Parallel()
 
@@ -236,11 +241,11 @@ resource "netbox_prefix" "test" {
 func testAccPrefixResourceConfig_forUpdate(prefix, description string) string {
 	// Toggle status and is_pool based on description
 	status := testutil.PrefixStatusActive
-	isPool := "false"
+	isPool := isPoolFalse
 
 	if description == testutil.Description2 {
 		status = testutil.PrefixStatusReserved
-		isPool = "true"
+		isPool = isPoolTrue
 	}
 
 	return fmt.Sprintf(`
