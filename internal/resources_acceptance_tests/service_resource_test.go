@@ -517,3 +517,121 @@ resource "netbox_service" "test" {
 
 	testutil.TestRemoveOptionalFields(t, config)
 }
+func TestAccServiceResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_service",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name = "test-site"
+  slug = "test-site"
+}
+
+resource "netbox_device_role" "test" {
+  name = "test-role"
+  slug = "test-role"
+}
+
+resource "netbox_device_type" "test" {
+  model = "test-type"
+  slug  = "test-type"
+}
+
+resource "netbox_device" "test" {
+  name        = "test-device"
+  site        = netbox_site.test.id
+  device_role = netbox_device_role.test.id
+  device_type = netbox_device_type.test.id
+}
+
+resource "netbox_service" "test" {
+  # name missing
+  device   = netbox_device.test.id
+  protocol = "tcp"
+  ports    = [80]
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_protocol": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name = "test-site"
+  slug = "test-site"
+}
+
+resource "netbox_device_role" "test" {
+  name = "test-role"
+  slug = "test-role"
+}
+
+resource "netbox_device_type" "test" {
+  model = "test-type"
+  slug  = "test-type"
+}
+
+resource "netbox_device" "test" {
+  name        = "test-device"
+  site        = netbox_site.test.id
+  device_role = netbox_device_role.test.id
+  device_type = netbox_device_type.test.id
+}
+
+resource "netbox_service" "test" {
+  name   = "test-service"
+  device = netbox_device.test.id
+  # protocol missing
+  ports  = [80]
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_ports": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name = "test-site"
+  slug = "test-site"
+}
+
+resource "netbox_device_role" "test" {
+  name = "test-role"
+  slug = "test-role"
+}
+
+resource "netbox_device_type" "test" {
+  model = "test-type"
+  slug  = "test-type"
+}
+
+resource "netbox_device" "test" {
+  name        = "test-device"
+  site        = netbox_site.test.id
+  device_role = netbox_device_role.test.id
+  device_type = netbox_device_type.test.id
+}
+
+resource "netbox_service" "test" {
+  name     = "test-service"
+  device   = netbox_device.test.id
+  protocol = "tcp"
+  # ports missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

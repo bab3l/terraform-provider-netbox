@@ -44,6 +44,72 @@ func TestAccPowerFeedResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccPowerFeedResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("site-id")
+	siteSlug := testutil.RandomSlug("site-id")
+	panelName := testutil.RandomName("power-panel-id")
+	feedName := testutil.RandomName("power-feed-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerFeedResourceConfig_basic(siteName, siteSlug, panelName, feedName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_feed.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccPowerFeedResource_update(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	panelName := testutil.RandomName("power-panel")
+	feedName := testutil.RandomName("power-feed")
+	updatedFeedName := testutil.RandomName("power-feed-updated")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerFeedResourceConfig_forUpdate(siteName, siteSlug, panelName, feedName, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_feed.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "name", feedName),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "status", "active"),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "voltage", "120"),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "amperage", "20"),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccPowerFeedResourceConfig_forUpdate(siteName, siteSlug, panelName, updatedFeedName, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "name", updatedFeedName),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "status", "planned"),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "voltage", "240"),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "amperage", "30"),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccPowerFeedResource_full(t *testing.T) {
 	t.Parallel()
 
@@ -186,6 +252,41 @@ resource "netbox_power_feed" "test" {
   name        = %[4]q
 }
 `, siteName, siteSlug, panelName, feedName)
+}
+
+func testAccPowerFeedResourceConfig_forUpdate(siteName, siteSlug, panelName, feedName, description string) string {
+	// Toggle status, voltage, and amperage based on description
+	status := testutil.StatusActive
+	voltage := 120
+	amperage := 20
+
+	if description == testutil.Description2 {
+		status = testutil.StatusPlanned
+		voltage = 240
+		amperage = 30
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_power_panel" "test" {
+  site = netbox_site.test.id
+  name = %[3]q
+}
+
+resource "netbox_power_feed" "test" {
+  power_panel = netbox_power_panel.test.id
+  name        = %[4]q
+  status      = %[6]q
+  voltage     = %[7]d
+  amperage    = %[8]d
+  description = %[5]q
+}
+`, siteName, siteSlug, panelName, feedName, description, status, voltage, amperage)
 }
 
 func testAccPowerFeedResourceConfig_full(siteName, siteSlug, panelName, feedName, description string) string {
@@ -522,4 +623,48 @@ resource "netbox_power_feed" "test" {
   power_panel = netbox_power_panel.test.id
 }
 `, siteName, siteSlug, panelName, feedName)
+}
+
+func TestAccPowerFeedResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_power_feed",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_power_panel": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_power_feed" "test" {
+  # power_panel missing
+  name = "Test Feed"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_power_panel" "test" {
+  site = netbox_site.test.id
+  name = "Test Panel"
+}
+
+resource "netbox_power_feed" "test" {
+  power_panel = netbox_power_panel.test.id
+  # name missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
 }

@@ -620,3 +620,86 @@ resource "netbox_ip_address" "test" {
 }
 `, address, description, comments)
 }
+func TestAccIPAddressResource_validationErrors(t *testing.T) {
+	t.Parallel()
+
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_ip_address",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_address": {
+				Config: func() string {
+					return `
+resource "netbox_ip_address" "test" {
+  status = "active"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_ip_format": {
+				Config: func() string {
+					return `
+resource "netbox_ip_address" "test" {
+  address = "not-an-ip-address"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidFormat,
+			},
+			"missing_prefix_length": {
+				Config: func() string {
+					return `
+resource "netbox_ip_address" "test" {
+  address = "192.168.1.1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInconsistent,
+			},
+			"invalid_status": {
+				Config: func() string {
+					return `
+resource "netbox_ip_address" "test" {
+  address = "192.168.1.1/24"
+  status  = "invalid_status"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidEnum,
+			},
+			"invalid_role": {
+				Config: func() string {
+					return `
+resource "netbox_ip_address" "test" {
+  address = "192.168.1.1/24"
+  role    = "invalid_role"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidEnum,
+			},
+			"invalid_vrf_reference": {
+				Config: func() string {
+					return `
+resource "netbox_ip_address" "test" {
+  address = "192.168.1.1/24"
+  vrf     = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_tenant_reference": {
+				Config: func() string {
+					return `
+resource "netbox_ip_address" "test" {
+  address = "192.168.1.1/24"
+  tenant  = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}

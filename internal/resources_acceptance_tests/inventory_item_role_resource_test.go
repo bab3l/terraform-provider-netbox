@@ -200,6 +200,37 @@ func TestAccConsistency_InventoryItemRole_LiteralNames(t *testing.T) {
 	})
 }
 
+func TestAccInventoryItemRoleResource_removeOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-inv-role-rem")
+	slug := testutil.RandomSlug("role")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterInventoryItemRoleCleanup(name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemRoleResourceConfig_full(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_inventory_item_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_inventory_item_role.test", "description", "Test role description"),
+				),
+			},
+			{
+				Config: testAccInventoryItemRoleResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_inventory_item_role.test", "name", name),
+					resource.TestCheckNoResourceAttr("netbox_inventory_item_role.test", "description"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccInventoryItemRoleResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
@@ -239,6 +270,40 @@ func TestAccInventoryItemRoleResource_externalDeletion(t *testing.T) {
 				},
 				RefreshState:       true,
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccInventoryItemRoleResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_inventory_item_role",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_inventory_item_role" "test" {
+  # name missing
+  slug = "test-role"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_inventory_item_role" "test" {
+  name = "Test Role"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
 			},
 		},
 	})

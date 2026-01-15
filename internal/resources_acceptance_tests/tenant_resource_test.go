@@ -431,3 +431,44 @@ resource "netbox_tenant" "test" {
 }
 `, groupName, groupSlug, name, slug)
 }
+
+// TestAccTenantResource_validationErrors tests validation error scenarios.
+func TestAccTenantResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_tenant",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_tenant" "test" {
+  slug = "test-tenant"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+resource "netbox_tenant" "test" {
+  name = "Test Tenant"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_group_reference": {
+				Config: func() string {
+					return `
+resource "netbox_tenant" "test" {
+  name  = "Test Tenant"
+  slug  = "test-tenant"
+  group = "99999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}

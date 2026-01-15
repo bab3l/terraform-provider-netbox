@@ -351,3 +351,30 @@ resource "netbox_module_bay_template" "test" {
 }
 `, mfgName, mfgSlug, dtModel, dtSlug, templateName, label)
 }
+
+func TestAccModuleBayTemplateResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_module_bay_template",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_device_type" "test" {
+  model        = "test-device-type"
+  slug         = "test-device-type"
+  manufacturer = "test-manufacturer"
+}
+
+resource "netbox_module_bay_template" "test" {
+  device_type = netbox_device_type.test.id
+  # name missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

@@ -334,3 +334,24 @@ func TestAccContactResource_removeOptionalFields(t *testing.T) {
 		},
 	})
 }
+
+func TestAccContactResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_contact",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_contact" "test" {
+  # name missing
+  title = "Test Title"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

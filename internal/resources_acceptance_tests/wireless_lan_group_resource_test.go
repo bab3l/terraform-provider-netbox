@@ -66,7 +66,40 @@ func TestAccWirelessLANGroupResource_full(t *testing.T) {
 		},
 	})
 }
+func TestAccConsistency_WirelessLANGroup_LiteralNames(t *testing.T) {
+	t.Parallel()
 
+	name := testutil.RandomName("tf-test-wlan-group-lit")
+	slug := testutil.RandomSlug("tf-test-wlan-group-lit")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWirelessLANGroupConsistencyLiteralNamesConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_wireless_lan_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_wireless_lan_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_wireless_lan_group.test", "slug", slug),
+				),
+			},
+			{
+				Config:   testAccWirelessLANGroupConsistencyLiteralNamesConfig(name, slug),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func testAccWirelessLANGroupConsistencyLiteralNamesConfig(name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_wireless_lan_group" "test" {
+  name = %q
+  slug = %q
+}
+`, name, slug)
+}
 func TestAccWirelessLANGroupResource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
@@ -259,4 +292,38 @@ resource "netbox_wireless_lan_group" "test" {
   slug = %q
 }
 `, parentName, parentSlug, name, slug)
+}
+
+func TestAccWirelessLANGroupResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_wireless_lan_group",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_wireless_lan_group" "test" {
+  # name missing
+  slug = "test-group"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_wireless_lan_group" "test" {
+  name = "Test Group"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
 }

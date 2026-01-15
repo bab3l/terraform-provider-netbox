@@ -400,3 +400,71 @@ resource "netbox_ipsec_profile" "test" {
 }
 `, ikePolicyName, ipsecPolicyName, profileName)
 }
+
+func TestAccIPSecProfileResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_ipsec_profile",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_ipsec_profile" "test" {
+  # name missing
+  mode = "esp"
+  ike_policy = "test-ike"
+  ipsec_policy = "test-ipsec"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_mode": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_ipsec_profile" "test" {
+  name = "Test Profile"
+  # mode missing
+  ike_policy = "test-ike"
+  ipsec_policy = "test-ipsec"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_ike_policy": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_ipsec_profile" "test" {
+  name = "Test Profile"
+  mode = "esp"
+  # ike_policy missing
+  ipsec_policy = "test-ipsec"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_ipsec_policy": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_ipsec_profile" "test" {
+  name = "Test Profile"
+  mode = "esp"
+  ike_policy = "test-ike"
+  # ipsec_policy missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

@@ -48,6 +48,82 @@ func TestAccInterfaceResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccInterfaceResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-interface-id")
+	siteSlug := testutil.RandomSlug("site-id")
+	mfrSlug := testutil.RandomSlug("mfr-id")
+	deviceSlug := testutil.RandomSlug("device-id")
+	roleSlug := testutil.RandomSlug("role-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfrSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(name + "-device")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_interface.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccInterfaceResource_update(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-interface-update")
+	updatedName := testutil.RandomName("tf-test-interface-updated")
+	siteSlug := testutil.RandomSlug("site")
+	mfrSlug := testutil.RandomSlug("mfr")
+	deviceSlug := testutil.RandomSlug("device")
+	roleSlug := testutil.RandomSlug("role")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfrSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(name + "-device")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceResourceConfig_forUpdate(name, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_interface.test", "id"),
+					resource.TestCheckResourceAttr("netbox_interface.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_interface.test", "type", "1000base-t"),
+					resource.TestCheckResourceAttr("netbox_interface.test", "enabled", "true"),
+					resource.TestCheckResourceAttr("netbox_interface.test", "mtu", "1500"),
+					resource.TestCheckResourceAttr("netbox_interface.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccInterfaceResourceConfig_forUpdate(updatedName, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_interface.test", "name", updatedName),
+					resource.TestCheckResourceAttr("netbox_interface.test", "type", "10gbase-x-sfpp"),
+					resource.TestCheckResourceAttr("netbox_interface.test", "enabled", "false"),
+					resource.TestCheckResourceAttr("netbox_interface.test", "mtu", "9000"),
+					resource.TestCheckResourceAttr("netbox_interface.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccInterfaceResource_full(t *testing.T) {
 	t.Parallel()
 
@@ -247,6 +323,32 @@ resource "netbox_interface" "test" {
 }
 `, testAccInterfaceResourcePrereqs(name), name)
 
+}
+
+func testAccInterfaceResourceConfig_forUpdate(name, description string) string {
+	// Toggle between different types and settings based on description
+	interfaceType := testutil.InterfaceType1000BaseT
+	enabled := "true" //nolint:goconst // Boolean value specific to test configuration
+	mtu := 1500
+
+	if description == testutil.Description2 {
+		interfaceType = testutil.InterfaceType10GBaseSFPP
+		enabled = "false" //nolint:goconst // Boolean value specific to test configuration
+		mtu = 9000
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "netbox_interface" "test" {
+  device      = netbox_device.test.id
+  name        = %q
+  type        = %q
+  enabled     = %s
+  mtu         = %d
+  description = %q
+}
+`, testAccInterfaceResourcePrereqs(name), name, interfaceType, enabled, mtu, description)
 }
 
 func testAccInterfaceResourceConfig_full(name string) string {
@@ -581,6 +683,118 @@ resource "netbox_interface" "test" {
   speed       = 1000000
 }
 `, interfaceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, deviceName)
+}
+
+// TestAccInterfaceResource_validationErrors tests validation error scenarios.
+func TestAccInterfaceResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_interface",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "Test Model"
+  slug         = "test-model"
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = "Test Role"
+  slug  = "test-role"
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = "Test Device"
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+}
+
+resource "netbox_interface" "test" {
+  device = netbox_device.test.id
+  type   = "1000base-t"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_device": {
+				Config: func() string {
+					return `
+resource "netbox_interface" "test" {
+  name = "eth0"
+  type = "1000base-t"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_type": {
+				Config: func() string {
+					return `
+resource "netbox_site" "test" {
+  name = "Test Site"
+  slug = "test-site"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "Test Model"
+  slug         = "test-model"
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = "Test Role"
+  slug  = "test-role"
+  color = "ff0000"
+}
+
+resource "netbox_device" "test" {
+  name        = "Test Device"
+  site        = netbox_site.test.id
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+}
+
+resource "netbox_interface" "test" {
+  name   = "eth0"
+  device = netbox_device.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_device_reference": {
+				Config: func() string {
+					return `
+resource "netbox_interface" "test" {
+  name   = "eth0"
+  device = "99999"
+  type   = "1000base-t"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
 }
 
 // NOTE: Custom field tests for interface resource are in resources_acceptance_tests_customfields package

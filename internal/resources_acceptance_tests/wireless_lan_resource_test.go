@@ -331,3 +331,23 @@ resource "netbox_wireless_lan" "test" {
 }
 `, groupName, groupSlug, ssid)
 }
+
+func TestAccWirelessLANResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_wireless_lan",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_ssid": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_wireless_lan" "test" {
+  # ssid missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

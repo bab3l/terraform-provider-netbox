@@ -54,6 +54,33 @@ resource "netbox_power_port_template" "test" {
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, label, portType, maxDraw, allocDraw, description)
 }
 
+func testAccPowerPortTemplateResourceConfig_forUpdate(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, description string) string {
+	maximumDraw := "100"
+	if description == testutil.Description2 {
+		maximumDraw = "200"
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_power_port_template" "test" {
+  device_type  = netbox_device_type.test.id
+  name         = %q
+  maximum_draw = %s
+  description  = %q
+}
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, maximumDraw, description)
+}
+
 func TestAccPowerPortTemplateResource_basic(t *testing.T) {
 
 	t.Parallel()
@@ -83,6 +110,72 @@ func TestAccPowerPortTemplateResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device_type"},
+			},
+		},
+	})
+}
+
+func TestAccPowerPortTemplateResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("mfr-id")
+	manufacturerSlug := testutil.RandomSlug("mfr-id")
+	deviceTypeName := testutil.RandomName("dt-id")
+	deviceTypeSlug := testutil.RandomSlug("dt-id")
+	name := testutil.RandomName("power-port-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_port_template.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccPowerPortTemplateResource_update(t *testing.T) {
+	t.Parallel()
+
+	manufacturerName := testutil.RandomName("mfr-update")
+	manufacturerSlug := testutil.RandomSlug("mfr-update")
+	deviceTypeName := testutil.RandomName("dt-update")
+	deviceTypeSlug := testutil.RandomSlug("dt-update")
+	name := testutil.RandomName("power-port-update")
+	updatedName := testutil.RandomName("power-port-updated")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerPortTemplateResourceConfig_forUpdate(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, testutil.Description1),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_power_port_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "maximum_draw", "100"),
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccPowerPortTemplateResourceConfig_forUpdate(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, updatedName, testutil.Description2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "name", updatedName),
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "maximum_draw", "200"),
+					resource.TestCheckResourceAttr("netbox_power_port_template.test", "description", testutil.Description2),
+				),
 			},
 		},
 	})
@@ -392,4 +485,39 @@ resource "netbox_power_port_template" "test" {
   name = %[5]q
 }
 `, mfgName, mfgSlug, dtModel, dtSlug, portName)
+}
+
+func TestAccPowerPortTemplateResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_power_port_template",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_device_type" "test" {
+  model = "Test Model"
+  slug = "test-model"
+  manufacturer = "1"
+}
+
+resource "netbox_power_port_template" "test" {
+  device_type = netbox_device_type.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_device_type_reference": {
+				Config: func() string {
+					return `
+resource "netbox_power_port_template" "test" {
+  device_type = "99999"
+  name = "Power1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
 }

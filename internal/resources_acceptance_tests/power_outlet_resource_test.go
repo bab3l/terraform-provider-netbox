@@ -622,4 +622,51 @@ resource "netbox_power_outlet" "test" {
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, label, description)
 }
 
+func TestAccPowerOutletResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_power_outlet",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_device": {
+				Config: func() string {
+					return `
+resource "netbox_power_outlet" "test" {
+  name = "Outlet1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_device" "test" {
+  name = "test-device"
+  device_type = "1"
+  role = "1"
+  site = "1"
+  status = "active"
+}
+
+resource "netbox_power_outlet" "test" {
+  device = netbox_device.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_device_reference": {
+				Config: func() string {
+					return `
+resource "netbox_power_outlet" "test" {
+  device = "99999"
+  name = "Outlet1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}
+
 // NOTE: Custom field tests for power_outlet resource are in resources_acceptance_tests_customfields package

@@ -464,3 +464,55 @@ func TestAccAggregateResource_importPreservesOptionalFields(t *testing.T) {
 		},
 	})
 }
+
+func TestAccAggregateResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_aggregate",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_prefix": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_rir" "test" {
+  name = "test-rir"
+  slug = "test-rir"
+}
+
+resource "netbox_aggregate" "test" {
+  # prefix missing
+  rir = netbox_rir.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_rir": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_aggregate" "test" {
+  prefix = "10.0.0.0/8"
+  # rir missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_rir_reference": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_aggregate" "test" {
+  prefix = "10.0.0.0/8"
+  rir = "nonexistent-rir"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}

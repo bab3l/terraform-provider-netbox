@@ -280,3 +280,37 @@ func TestAccClusterTypeResource_removeDescription(t *testing.T) {
 		CheckDestroy: testutil.CheckClusterTypeDestroy,
 	})
 }
+
+func TestAccClusterTypeResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_cluster_type",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_cluster_type" "test" {
+  # name missing
+  slug = "test-cluster-type"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_cluster_type" "test" {
+  name = "Test Cluster Type"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

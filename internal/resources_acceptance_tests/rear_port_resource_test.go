@@ -52,6 +52,88 @@ func TestAccRearPortResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccRearPortResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-id")
+	siteSlug := testutil.RandomSlug("tf-test-site-id")
+	mfgName := testutil.RandomName("tf-test-mfg-id")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-id")
+	dtModel := testutil.RandomName("tf-test-dt-id")
+	dtSlug := testutil.RandomSlug("tf-test-dt-id")
+	roleName := testutil.RandomName("tf-test-role-id")
+	roleSlug := testutil.RandomSlug("tf-test-role-id")
+	deviceName := testutil.RandomName("tf-test-device-id")
+	rearPortName := testutil.RandomName("tf-test-rp-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRearPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rear_port.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccRearPortResource_update(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-update")
+	siteSlug := testutil.RandomSlug("tf-test-site-update")
+	mfgName := testutil.RandomName("tf-test-mfg-update")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-update")
+	dtModel := testutil.RandomName("tf-test-dt-update")
+	dtSlug := testutil.RandomSlug("tf-test-dt-update")
+	roleName := testutil.RandomName("tf-test-role-update")
+	roleSlug := testutil.RandomSlug("tf-test-role-update")
+	deviceName := testutil.RandomName("tf-test-device-update")
+	rearPortName := testutil.RandomName("tf-test-rp-update")
+	updatedRearPortName := testutil.RandomName("tf-test-rp-updated")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRearPortResourceConfig_forUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_rear_port.test", "id"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "name", rearPortName),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "type", "8p8c"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccRearPortResourceConfig_forUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, updatedRearPortName, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "name", updatedRearPortName),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "type", "lc"),
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccRearPortResource_full(t *testing.T) {
 	t.Parallel()
 
@@ -275,7 +357,49 @@ resource "netbox_rear_port" "test" {
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName)
 }
+func testAccRearPortResourceConfig_forUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, description string) string {
+	rearPortType := testutil.PortType8P8C
+	if description == testutil.Description2 {
+		rearPortType = testutil.PortTypeLC
+	}
 
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %q
+  slug         = %q
+}
+
+resource "netbox_device_role" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_device" "test" {
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+  name        = %q
+}
+
+resource "netbox_rear_port" "test" {
+  device      = netbox_device.test.id
+  name        = %q
+  type        = %q
+  description = %q
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, rearPortType, description)
+}
 func testAccRearPortResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
@@ -604,4 +728,73 @@ resource "netbox_rear_port" "test" {
   positions     = 8
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, label, description)
+}
+
+func TestAccRearPortResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_rear_port",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_device": {
+				Config: func() string {
+					return `
+resource "netbox_rear_port" "test" {
+  name = "Rear1"
+  type = "8p8c"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_device" "test" {
+  name = "test-device"
+  device_type = "1"
+  role = "1"
+  site = "1"
+  status = "active"
+}
+
+resource "netbox_rear_port" "test" {
+  device = netbox_device.test.id
+  type = "8p8c"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_type": {
+				Config: func() string {
+					return `
+resource "netbox_device" "test" {
+  name = "test-device"
+  device_type = "1"
+  role = "1"
+  site = "1"
+  status = "active"
+}
+
+resource "netbox_rear_port" "test" {
+  device = netbox_device.test.id
+  name = "Rear1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_device_reference": {
+				Config: func() string {
+					return `
+resource "netbox_rear_port" "test" {
+  device = "99999"
+  name = "Rear1"
+  type = "8p8c"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
 }

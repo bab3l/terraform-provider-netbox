@@ -526,3 +526,23 @@ resource "netbox_vrf" "test" {
 }
 
 // NOTE: Custom field tests for VRF resource are in resources_acceptance_tests_customfields package
+
+func TestAccVRFResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_vrf",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_vrf" "test" {
+  # name missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

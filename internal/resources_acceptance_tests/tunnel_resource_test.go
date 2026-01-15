@@ -393,3 +393,24 @@ resource "netbox_tunnel" "test" {
 }
 `, name, groupName, groupSlug, tenantName, tenantSlug)
 }
+
+func TestAccTunnelResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_tunnel",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_encapsulation": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_tunnel" "test" {
+  name = "test-tunnel"
+  # encapsulation missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

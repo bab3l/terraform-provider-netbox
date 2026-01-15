@@ -2358,6 +2358,102 @@ func CheckWebhookDestroy(s *terraform.State) error {
 
 }
 
+// CheckEventRuleDestroy verifies that an event rule has been destroyed.
+func CheckEventRuleDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_event_rule" {
+			continue
+		}
+
+		// Try to get the ID from state
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			// If ID is not a number, skip this resource
+			continue
+		}
+
+		// Try to retrieve the event rule by ID
+		//nolint:gosec // ID from Terraform state is always a valid positive integer
+		_, resp, err := client.ExtrasAPI.ExtrasEventRulesRetrieve(ctx, int32(id)).Execute()
+		if err != nil {
+			// If 404, the resource is destroyed (expected)
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				continue
+			}
+			// For other errors, continue checking other resources
+			continue
+		}
+
+		// If we successfully retrieved the resource, it still exists
+		if resp.StatusCode == http.StatusOK {
+			return fmt.Errorf("event rule with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}
+
+// CheckNotificationGroupDestroy verifies that a notification group has been destroyed.
+func CheckNotificationGroupDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_notification_group" {
+			continue
+		}
+
+		// Try to get the ID from state
+		idStr := rs.Primary.ID
+		if idStr == "" {
+			continue
+		}
+
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			// If ID is not a number, skip this resource
+			continue
+		}
+
+		// Try to retrieve the notification group by ID
+		//nolint:gosec // ID from Terraform state is always a valid positive integer
+		_, resp, err := client.ExtrasAPI.ExtrasNotificationGroupsRetrieve(ctx, int32(id)).Execute()
+		if err != nil {
+			// If 404, the resource is destroyed (expected)
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				continue
+			}
+			// For other errors, continue checking other resources
+			continue
+		}
+
+		// If we successfully retrieved the resource, it still exists
+		if resp.StatusCode == http.StatusOK {
+			return fmt.Errorf("notification group with ID %d still exists", id)
+		}
+	}
+
+	return nil
+}
+
 // CheckExportTemplateDestroy verifies that an export template has been destroyed.
 
 func CheckExportTemplateDestroy(s *terraform.State) error {

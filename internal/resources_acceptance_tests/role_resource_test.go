@@ -49,6 +49,65 @@ func TestAccRoleResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccRoleResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-role-id")
+	slug := testutil.RandomSlug("tf-test-role-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoleResourceConfig_basic(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_role.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccRoleResource_update(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-role-update")
+	updatedName := testutil.RandomName("tf-test-role-updated")
+	slug := testutil.RandomSlug("tf-test-role-update")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoleResourceConfig_forUpdate(name, slug, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_role.test", "id"),
+					resource.TestCheckResourceAttr("netbox_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_role.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_role.test", "weight", "1000"),
+					resource.TestCheckResourceAttr("netbox_role.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccRoleResourceConfig_forUpdate(updatedName, slug, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_role.test", "name", updatedName),
+					resource.TestCheckResourceAttr("netbox_role.test", "weight", "2000"),
+					resource.TestCheckResourceAttr("netbox_role.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccRoleResource_full(t *testing.T) {
 	t.Parallel()
 
@@ -110,6 +169,23 @@ resource "netbox_role" "test" {
   slug = %q
 }
 `, name, slug)
+}
+
+func testAccRoleResourceConfig_forUpdate(name, slug, description string) string {
+	// Toggle weight based on description
+	weight := 1000
+	if description == testutil.Description2 {
+		weight = 2000
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_role" "test" {
+  name        = %[1]q
+  slug        = %[2]q
+  description = %[3]q
+  weight      = %[4]d
+}
+`, name, slug, description, weight)
 }
 
 func testAccRoleResourceConfig_full(name, slug, description string, weight int, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
@@ -415,4 +491,38 @@ resource "netbox_role" "test" {
   weight = %d
 }
 `, name, slug, weight)
+}
+
+func TestAccRoleResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_role",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_role" "test" {
+  # name missing
+  slug = "test-role"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_role" "test" {
+  name = "Test Role"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
 }

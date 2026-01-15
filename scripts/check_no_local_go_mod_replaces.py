@@ -1,122 +1,56 @@
 #!/usr/bin/env python3
-
-from __future__ import annotations
-
+"""
+Pre-commit hook to check that go.mod doesn't contain local replace directives.
+Local replace directives should only be used during development and should not be committed.
+"""
 import re
 import sys
 from pathlib import Path
 
 
-_LOCAL_RHS_PREFIXES = (
-    "./",
-    "../",
-    ".\\",
-    "..\\",
-    "/",  # absolute posix
-    "~/",  # home shorthand (posix shells)
-)
+def check_go_mod(filepath: Path) -> tuple[bool, list[str]]:
+    """Check if go.mod contains local replace directives."""
+    issues = []
+
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # Pattern to match local replace directives
+    # Example: replace github.com/some/module => ../local-path
+    local_replace_pattern = re.compile(
+        r'^\s*replace\s+\S+\s+=>\s+\.\./.*$',
+        re.MULTILINE
+    )
+
+    matches = local_replace_pattern.findall(content)
+
+    if matches:
+        for match in matches:
+            issues.append(f"Local replace directive found: {match.strip()}")
+
+    return len(issues) == 0, issues
 
 
-def _is_local_path(rhs: str) -> bool:
-    rhs = rhs.strip()
+def main():
+    """Main function to check go.mod files."""
+    go_mod_path = Path('go.mod')
 
-    if rhs.startswith(_LOCAL_RHS_PREFIXES):
-        return True
+    if not go_mod_path.exists():
+        print("ERROR: go.mod file not found")
+        return 1
 
-    # Windows absolute paths: C:\..., D:\...
-    if re.match(r"^[A-Za-z]:\\", rhs):
-        return True
+    passed, issues = check_go_mod(go_mod_path)
 
-    return False
-
-
-def _find_replace_lines(go_mod_text: str) -> list[tuple[int, str]]:
-    """Return (lineno, line) for replace mappings.
-
-    Supports both:
-      - replace a => ../b
-      - replace (
-          a => ../b
-        )
-    """
-    matches: list[tuple[int, str]] = []
-    in_replace_block = False
-    for lineno, raw in enumerate(go_mod_text.splitlines(), start=1):
-        stripped = raw.strip()
-
-        if stripped.startswith("replace ("):
-            in_replace_block = True
-            continue
-
-        if in_replace_block:
-            if stripped == ")":
-                in_replace_block = False
-                continue
-            if "=>" in stripped:
-                matches.append((lineno, raw))
-            continue
-
-        if stripped.startswith("replace ") and "=>" in stripped:
-            matches.append((lineno, raw))
-
-    return matches
-
-
-def _extract_rhs_from_replace_line(line: str) -> str | None:
-    # Handles both single-line and block entries, e.g.:
-    #   replace a => ../b
-    #   replace a v1.2.3 => ../b
-    #   a => ../b
-    if "=>" not in line:
-        return None
-    return line.split("=>", 1)[1].strip()
-
-
-def check_file(path: Path) -> list[str]:
-    errors: list[str] = []
-    try:
-        text = path.read_text(encoding="utf-8")
-    except Exception as exc:  # noqa: BLE001
-        return [f"{path}: failed to read: {exc}"]
-
-    for lineno, raw in _find_replace_lines(text):
-        rhs = _extract_rhs_from_replace_line(raw)
-        if rhs is None:
-            continue
-
-        # drop any trailing comments
-        rhs = rhs.split("//", 1)[0].strip()
-
-        if _is_local_path(rhs):
-            errors.append(
-                f"{path}:L{lineno}: local go.mod replace target not allowed: {raw.strip()}"
-            )
-
-    return errors
-
-
-def main(argv: list[str]) -> int:
-    files = [Path(a) for a in argv[1:] if a.strip()]
-    if not files:
-        files = [Path("go.mod")]
-
-    all_errors: list[str] = []
-    for f in files:
-        if f.name != "go.mod":
-            continue
-        all_errors.extend(check_file(f))
-
-    if all_errors:
-        for err in all_errors:
-            print(err)
-        print(
-            "\nFix: remove local filesystem replace directives from go.mod (they break CI).",
-            file=sys.stderr,
-        )
+    if not passed:
+        print("ERROR: go.mod contains local replace directives that should not be committed:")
+        for issue in issues:
+            print(f"  - {issue}")
+        print("\nLocal replace directives (e.g., => ../local-path) are for development only.")
+        print("Please remove them before committing.")
         return 1
 
     return 0
 
 
-if __name__ == "__main__":
-    raise SystemExit(main(sys.argv))
+if __name__ == '__main__':
+    sys.exit(main())

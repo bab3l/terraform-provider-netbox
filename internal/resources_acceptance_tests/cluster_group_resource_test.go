@@ -11,6 +11,40 @@ import (
 
 // NOTE: Custom field tests for cluster group resource are in resources_acceptance_tests_customfields package
 
+func TestAccClusterGroupResource_full(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-cluster-group-full")
+	slug := testutil.RandomSlug("tf-test-cluster-group-full")
+	description := "Full test cluster group with all optional fields"
+	tagName := testutil.RandomName("tf-test-tag")
+	tagSlug := testutil.RandomSlug("tf-test-tag")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterGroupCleanup(slug)
+	cleanup.RegisterTagCleanup(tagSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckClusterGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccClusterGroupResourceConfig_full(name, slug, description, tagName, tagSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_cluster_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "tags.#", "1"),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "tags.0.name", tagName),
+					resource.TestCheckResourceAttr("netbox_cluster_group.test", "tags.0.slug", tagSlug),
+				),
+			},
+		},
+	})
+}
+
 func TestAccClusterGroupResource_basic(t *testing.T) {
 	t.Parallel()
 
@@ -134,6 +168,27 @@ func TestAccClusterGroupResource_update(t *testing.T) {
 	})
 }
 
+func testAccClusterGroupResourceConfig_full(name, slug, description, tagName, tagSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tag" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster_group" "test" {
+  name        = %q
+  slug        = %q
+  description = %q
+  tags = [
+    {
+      name = netbox_tag.test.name
+      slug = netbox_tag.test.slug
+    }
+  ]
+}
+`, tagName, tagSlug, name, slug, description)
+}
+
 func testAccClusterGroupResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_cluster_group" "test" {
@@ -224,4 +279,38 @@ resource "netbox_cluster_group" "test" {
   description = %q
 }
 `, name, slug, description)
+}
+
+func TestAccClusterGroupResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_cluster_group",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_cluster_group" "test" {
+  # name missing
+  slug = "test-cluster-group"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_cluster_group" "test" {
+  name = "Test Cluster Group"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
 }

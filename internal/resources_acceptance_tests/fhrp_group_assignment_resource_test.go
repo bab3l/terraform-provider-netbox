@@ -430,3 +430,169 @@ func TestAccFHRPGroupAssignmentResource_external_deletion(t *testing.T) {
 		},
 	})
 }
+func TestAccFHRPGroupAssignmentResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_fhrp_group_assignment",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_group_id": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name = "test-site"
+  slug = "test-site"
+}
+
+resource "netbox_device_role" "test" {
+  name = "test-role"
+  slug = "test-role"
+}
+
+resource "netbox_device_type" "test" {
+  model = "test-type"
+  slug  = "test-type"
+}
+
+resource "netbox_device" "test" {
+  name        = "test-device"
+  site        = netbox_site.test.id
+  device_role = netbox_device_role.test.id
+  device_type = netbox_device_type.test.id
+}
+
+resource "netbox_interface" "test" {
+  name   = "eth0"
+  device = netbox_device.test.id
+  type   = "1000base-t"
+}
+
+resource "netbox_fhrp_group_assignment" "test" {
+  # group_id missing
+  interface_type = "dcim.interface"
+  interface_id   = netbox_interface.test.id
+  priority       = 100
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_interface_type": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_fhrp_group" "test" {
+  protocol = "vrrp2"
+  group_id = 1
+}
+
+resource "netbox_site" "test" {
+  name = "test-site"
+  slug = "test-site"
+}
+
+resource "netbox_device_role" "test" {
+  name = "test-role"
+  slug = "test-role"
+}
+
+resource "netbox_device_type" "test" {
+  model = "test-type"
+  slug  = "test-type"
+}
+
+resource "netbox_device" "test" {
+  name        = "test-device"
+  site        = netbox_site.test.id
+  device_role = netbox_device_role.test.id
+  device_type = netbox_device_type.test.id
+}
+
+resource "netbox_interface" "test" {
+  name   = "eth0"
+  device = netbox_device.test.id
+  type   = "1000base-t"
+}
+
+resource "netbox_fhrp_group_assignment" "test" {
+  group_id = netbox_fhrp_group.test.id
+  # interface_type missing
+  interface_id   = netbox_interface.test.id
+  priority       = 100
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_interface_id": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_fhrp_group" "test" {
+  protocol = "vrrp2"
+  group_id = 1
+}
+
+resource "netbox_fhrp_group_assignment" "test" {
+  group_id       = netbox_fhrp_group.test.id
+  interface_type = "dcim.interface"
+  # interface_id missing
+  priority       = 100
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_priority": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_fhrp_group" "test" {
+  protocol = "vrrp2"
+  group_id = 1
+}
+
+resource "netbox_site" "test" {
+  name = "test-site"
+  slug = "test-site"
+}
+
+resource "netbox_device_role" "test" {
+  name = "test-role"
+  slug = "test-role"
+}
+
+resource "netbox_device_type" "test" {
+  model = "test-type"
+  slug  = "test-type"
+}
+
+resource "netbox_device" "test" {
+  name        = "test-device"
+  site        = netbox_site.test.id
+  device_role = netbox_device_role.test.id
+  device_type = netbox_device_type.test.id
+}
+
+resource "netbox_interface" "test" {
+  name   = "eth0"
+  device = netbox_device.test.id
+  type   = "1000base-t"
+}
+
+resource "netbox_fhrp_group_assignment" "test" {
+  group_id       = netbox_fhrp_group.test.id
+  interface_type = "dcim.interface"
+  interface_id   = netbox_interface.test.id
+  # priority missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

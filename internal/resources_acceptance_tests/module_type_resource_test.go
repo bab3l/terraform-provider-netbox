@@ -345,3 +345,42 @@ resource "netbox_module_type" "test" {
 		},
 	})
 }
+
+func TestAccModuleTypeResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_module_type",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_manufacturer": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_module_type" "test" {
+  # manufacturer missing
+  model = "test-module-model"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_model": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_manufacturer" "test" {
+  name = "test-manufacturer"
+  slug = "test-manufacturer"
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  # model missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

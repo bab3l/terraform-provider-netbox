@@ -345,3 +345,66 @@ resource "netbox_rack_type" "test" {
 }
 `, mfgName, mfgSlug, model, slug)
 }
+
+func TestAccRackTypeResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_rack_type",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_manufacturer": {
+				Config: func() string {
+					return `
+resource "netbox_rack_type" "test" {
+  model = "Test Model"
+  slug  = "test-model"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_model": {
+				Config: func() string {
+					return `
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_rack_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  slug         = "test-model"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_rack_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = "Test Model"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_manufacturer_reference": {
+				Config: func() string {
+					return `
+resource "netbox_rack_type" "test" {
+  manufacturer = "99999"
+  model        = "Test Model"
+  slug         = "test-model"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}

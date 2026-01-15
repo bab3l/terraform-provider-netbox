@@ -575,4 +575,51 @@ resource "netbox_console_server_port" "test" {
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, portName, label, description, portType, speed)
 }
 
+func TestAccConsoleServerPortResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_console_server_port",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_device": {
+				Config: func() string {
+					return `
+resource "netbox_console_server_port" "test" {
+  name = "CSP1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_device" "test" {
+  name = "test-device"
+  device_type = "1"
+  role = "1"
+  site = "1"
+  status = "active"
+}
+
+resource "netbox_console_server_port" "test" {
+  device = netbox_device.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_device_reference": {
+				Config: func() string {
+					return `
+resource "netbox_console_server_port" "test" {
+  device = "99999"
+  name = "CSP1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}
+
 // NOTE: Custom field tests for console_server_port resource are in resources_acceptance_tests_customfields package

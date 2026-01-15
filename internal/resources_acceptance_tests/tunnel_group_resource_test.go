@@ -291,3 +291,37 @@ func TestAccTunnelGroupResource_removeOptionalFields(t *testing.T) {
 		},
 	})
 }
+
+func TestAccTunnelGroupResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_tunnel_group",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_tunnel_group" "test" {
+  # name missing
+  slug = "test-tunnel-group"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_tunnel_group" "test" {
+  name = "test-tunnel-group"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

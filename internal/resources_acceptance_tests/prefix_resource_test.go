@@ -9,6 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+const (
+	isPoolFalse = "false"
+	isPoolTrue  = "true"
+)
+
 func TestAccPrefixResource_basic(t *testing.T) {
 	t.Parallel()
 
@@ -27,6 +32,64 @@ func TestAccPrefixResource_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
 					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
+				),
+			},
+		},
+	})
+}
+
+func TestAccPrefixResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	prefix := testutil.RandomIPv4Prefix()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckPrefixDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPrefixResourceConfig_basic(prefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccPrefixResource_update(t *testing.T) {
+	t.Parallel()
+
+	prefix := testutil.RandomIPv4Prefix()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckPrefixDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPrefixResourceConfig_forUpdate(prefix, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "status", "active"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "is_pool", "false"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccPrefixResourceConfig_forUpdate(prefix, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_prefix.test", "status", "reserved"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "is_pool", "true"),
+					resource.TestCheckResourceAttr("netbox_prefix.test", "description", testutil.Description2),
 				),
 			},
 		},
@@ -196,6 +259,26 @@ resource "netbox_prefix" "test" {
   prefix = %q
 }
 `, prefix)
+}
+
+func testAccPrefixResourceConfig_forUpdate(prefix, description string) string {
+	// Toggle status and is_pool based on description
+	status := testutil.PrefixStatusActive
+	isPool := isPoolFalse
+
+	if description == testutil.Description2 {
+		status = testutil.PrefixStatusReserved
+		isPool = isPoolTrue
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_prefix" "test" {
+  prefix      = %[1]q
+  status      = %[2]q
+  is_pool     = %[3]s
+  description = %[4]q
+}
+`, prefix, status, isPool, description)
 }
 
 func testAccPrefixResourceConfig_full(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
@@ -766,4 +849,89 @@ resource "netbox_prefix" "test" {
   comments    = %[3]q
 }
 `, prefix, description, comments)
+}
+
+func TestAccPrefixResource_validationErrors(t *testing.T) {
+	t.Parallel()
+
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_prefix",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_prefix": {
+				Config: func() string {
+					return `
+resource "netbox_prefix" "test" {
+  status = "active"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_cidr_format": {
+				Config: func() string {
+					return `
+resource "netbox_prefix" "test" {
+  prefix = "not-a-valid-cidr"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidFormat,
+			},
+			"invalid_status": {
+				Config: func() string {
+					return `
+resource "netbox_prefix" "test" {
+  prefix = "10.0.0.0/8"
+  status = "invalid_status"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidEnum,
+			},
+			"invalid_site_reference": {
+				Config: func() string {
+					return `
+resource "netbox_prefix" "test" {
+  prefix = "10.0.0.0/8"
+  site   = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_vrf_reference": {
+				Config: func() string {
+					return `
+resource "netbox_prefix" "test" {
+  prefix = "10.0.0.0/8"
+  vrf    = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_tenant_reference": {
+				Config: func() string {
+					return `
+resource "netbox_prefix" "test" {
+  prefix = "10.0.0.0/8"
+  tenant = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_vlan_reference": {
+				Config: func() string {
+					return `
+resource "netbox_prefix" "test" {
+  prefix = "10.0.0.0/8"
+  vlan   = "99999999"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
 }

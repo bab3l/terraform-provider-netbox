@@ -428,4 +428,102 @@ resource "netbox_device_type" "test" {
 	})
 }
 
-// NOTE: Custom field tests for device_type resource are in resources_acceptance_tests_customfields package
+// TestAccDeviceTypeResource_validationErrors tests validation error scenarios.
+func TestAccDeviceTypeResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_device_type",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_manufacturer": {
+				Config: func() string {
+					return `
+resource "netbox_device_type" "test" {
+  model = "Test Model"
+  slug  = "test-model"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_model": {
+				Config: func() string {
+					return `
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  slug         = "test-model"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = "Test Model"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_manufacturer_reference": {
+				Config: func() string {
+					return `
+resource "netbox_device_type" "test" {
+  manufacturer = "99999"
+  model        = "Test Model"
+  slug         = "test-model"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+			"invalid_airflow": {
+				Config: func() string {
+					return `
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = "Test Model"
+  slug         = "test-model"
+  airflow      = "invalid_airflow"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidEnum,
+			},
+			"invalid_weight_unit": {
+				Config: func() string {
+					return `
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+  slug = "test-mfg"
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = "Test Model"
+  slug         = "test-model"
+  weight_unit  = "invalid_unit"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidEnum,
+			},
+		},
+	})
+}

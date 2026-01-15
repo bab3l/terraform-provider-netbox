@@ -132,7 +132,7 @@ func TestAccConsistency_CircuitType_LiteralNames(t *testing.T) {
 	name := testutil.RandomName("tf-test-circuit-type-lit")
 	slug := testutil.RandomSlug("tf-test-circuit-type-lit")
 	description := testutil.RandomName("description")
-	color := "2196f3"
+	color := "2196f3" //nolint:goconst // Blue color value used in multiple test files
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterCircuitTypeCleanup(slug)
@@ -340,6 +340,40 @@ func TestAccCircuitTypeResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckNoResourceAttr("netbox_circuit_type.test", "description"),
 					resource.TestCheckNoResourceAttr("netbox_circuit_type.test", "color"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccCircuitTypeResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_circuit_type",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_circuit_type" "test" {
+  # name missing
+  slug = "test-type"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_circuit_type" "test" {
+  name = "Test Type"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
 			},
 		},
 	})

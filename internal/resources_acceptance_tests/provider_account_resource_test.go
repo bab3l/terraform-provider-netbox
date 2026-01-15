@@ -319,3 +319,42 @@ resource "netbox_provider_account" "test" {
 }
 `, providerName, providerSlug, accountID, accountName, description, comments)
 }
+
+func TestAccProviderAccountResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_provider_account",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_circuit_provider": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_provider_account" "test" {
+  # circuit_provider missing
+  account = "12345"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_account": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_provider" "test" {
+  name = "Test Provider"
+  slug = "test-provider"
+}
+
+resource "netbox_provider_account" "test" {
+  circuit_provider = netbox_provider.test.id
+  # account missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

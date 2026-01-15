@@ -333,3 +333,32 @@ resource "netbox_manufacturer" "test" {
 		},
 	})
 }
+
+// TestAccManufacturerResource_validationErrors tests validation error scenarios.
+func TestAccManufacturerResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_manufacturer",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_manufacturer" "test" {
+  slug = "test-manufacturer"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+resource "netbox_manufacturer" "test" {
+  name = "Test Manufacturer"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

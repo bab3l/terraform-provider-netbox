@@ -1303,3 +1303,52 @@ resource "netbox_vm_interface" "test" {
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, description)
 }
+
+func TestAccVMInterfaceResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_vm_interface",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_virtual_machine": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_vm_interface" "test" {
+  # virtual_machine missing
+  name = "eth0"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_cluster_type" "test" {
+  name = "test-cluster-type"
+  slug = "test-cluster-type"
+}
+
+resource "netbox_cluster" "test" {
+  name = "test-cluster"
+  cluster_type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = "test-vm"
+  cluster = netbox_cluster.test.id
+}
+
+resource "netbox_vm_interface" "test" {
+  virtual_machine = netbox_virtual_machine.test.id
+  # name missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

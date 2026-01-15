@@ -460,3 +460,90 @@ resource "netbox_tunnel_termination" "test" {
 		},
 	})
 }
+
+func TestAccTunnelTerminationResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_tunnel_termination",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_tunnel": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+  name = "test-site"
+  slug = "test-site"
+}
+
+resource "netbox_device_role" "test" {
+  name = "test-role"
+  slug = "test-role"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "test-device-type"
+  slug         = "test-device-type"
+  manufacturer = "test-manufacturer"
+}
+
+resource "netbox_device" "test" {
+  name        = "test-device"
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_tunnel_termination" "test" {
+  # tunnel missing
+  termination_type = "dcim.device"
+  termination_id   = netbox_device.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_termination_type": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_tunnel" "test" {
+  name          = "test-tunnel"
+  encapsulation = "ipsec-transport"
+}
+
+resource "netbox_site" "test" {
+  name = "test-site"
+  slug = "test-site"
+}
+
+resource "netbox_device_role" "test" {
+  name = "test-role"
+  slug = "test-role"
+}
+
+resource "netbox_device_type" "test" {
+  model        = "test-device-type"
+  slug         = "test-device-type"
+  manufacturer = "test-manufacturer"
+}
+
+resource "netbox_device" "test" {
+  name        = "test-device"
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_tunnel_termination" "test" {
+  tunnel = netbox_tunnel.test.id
+  # termination_type missing
+  termination_id = netbox_device.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

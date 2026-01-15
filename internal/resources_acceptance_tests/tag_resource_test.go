@@ -9,6 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+const (
+	testColorBlue = "2196f3"
+)
+
 func TestAccTagResource_basic(t *testing.T) {
 	t.Parallel()
 
@@ -36,6 +40,39 @@ func TestAccTagResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccTagResource_update(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tag-update")
+	slug := testutil.RandomSlug("tag-update")
+	updatedName := testutil.RandomName("tag-updated")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTagResourceConfig_forUpdate(name, slug, testutil.Description1),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_tag.test", "id"),
+					resource.TestCheckResourceAttr("netbox_tag.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_tag.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_tag.test", "color", testutil.ColorOrange),
+					resource.TestCheckResourceAttr("netbox_tag.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccTagResourceConfig_forUpdate(updatedName, slug, testutil.Description2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tag.test", "name", updatedName),
+					resource.TestCheckResourceAttr("netbox_tag.test", "color", testColorBlue),
+					resource.TestCheckResourceAttr("netbox_tag.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccTagResource_full(t *testing.T) {
 	t.Parallel()
 
@@ -45,7 +82,7 @@ func TestAccTagResource_full(t *testing.T) {
 	description := testutil.RandomName("description")
 	updatedName := testutil.RandomName("tag-updated")
 	updatedSlug := testutil.RandomSlug("tag-updated")
-	updatedColor := "2196f3"
+	updatedColor := testColorBlue
 	updatedDescription := "Updated test tag description"
 
 	resource.Test(t, resource.TestCase{
@@ -149,7 +186,7 @@ func TestAccTagResource_removeOptionalFields(t *testing.T) {
 		ResourceType: "netbox_tag",
 		ResourceName: "netbox_tag",
 		ConfigWithFields: func() string {
-			return testAccTagResourceFull(name, slug, "2196f3", "Test description")
+			return testAccTagResourceFull(name, slug, testColorBlue, "Test description")
 		},
 		BaseConfig: func() string {
 			return testAccTagResourceBasic(name, slug)
@@ -169,6 +206,22 @@ resource "netbox_tag" "test" {
   slug = %q
 }
 `, name, slug)
+}
+
+func testAccTagResourceConfig_forUpdate(name, slug, description string) string {
+	color := testutil.ColorOrange
+	if description == testutil.Description2 {
+		color = testColorBlue
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "test" {
+  name        = %q
+  slug        = %q
+  color       = %q
+  description = %q
+}
+`, name, slug, color, description)
 }
 
 func TestAccConsistency_Tag_LiteralNames(t *testing.T) {
@@ -330,4 +383,38 @@ resource "netbox_tag" "test" {
   slug = %[2]q
 }
 `, name, slug)
+}
+
+func TestAccTagResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_tag",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_tag" "test" {
+  # name missing
+  slug = "test-tag"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_tag" "test" {
+  name = "Test Tag"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
 }

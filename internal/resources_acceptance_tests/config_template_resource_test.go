@@ -289,3 +289,37 @@ resource "netbox_config_template" "test" {
 }
 `, name, templateCode, description)
 }
+
+func TestAccConfigTemplateResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_config_template",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_config_template" "test" {
+  # name missing
+  template_code = "{{ device.name }}"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_template_code": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_config_template" "test" {
+  name = "Test Template"
+  # template_code missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

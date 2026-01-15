@@ -49,6 +49,66 @@ func TestAccInterfaceTemplateResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccInterfaceTemplateResource_IDPreservation(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-interface-template-id")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(name + "-mfr-slug")
+	cleanup.RegisterDeviceTypeCleanup(name + "-model-slug")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceTemplateResourceConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_interface_template.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccInterfaceTemplateResource_update(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-interface-template-update")
+	updatedName := testutil.RandomName("tf-test-interface-template-updated")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(name + "-mfr-slug")
+	cleanup.RegisterDeviceTypeCleanup(name + "-model-slug")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceTemplateResourceConfig_forUpdate(name, testutil.Description1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_interface_template.test", "id"),
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "type", "1000base-t"),
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "mgmt_only", "false"),
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "description", testutil.Description1),
+				),
+			},
+			{
+				Config: testAccInterfaceTemplateResourceConfig_forUpdate(updatedName, testutil.Description2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "name", updatedName),
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "type", "10gbase-x-sfpp"),
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "mgmt_only", "true"),
+					resource.TestCheckResourceAttr("netbox_interface_template.test", "description", testutil.Description2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccInterfaceTemplateResource_full(t *testing.T) {
 	t.Parallel()
 
@@ -256,6 +316,27 @@ resource "netbox_interface_template" "test" {
 `, testAccInterfaceTemplateResourcePrereqs(name), name)
 }
 
+func testAccInterfaceTemplateResourceConfig_forUpdate(name, description string) string {
+	interfaceType := testutil.InterfaceType1000BaseT
+	mgmtOnly := "false"
+	if description == testutil.Description2 {
+		interfaceType = testutil.InterfaceType10GBaseSFPP
+		mgmtOnly = "true"
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "netbox_interface_template" "test" {
+  device_type = netbox_device_type.test.id
+  name        = %q
+  type        = %q
+  mgmt_only   = %s
+  description = %q
+}
+`, testAccInterfaceTemplateResourcePrereqs(name), name, interfaceType, mgmtOnly, description)
+}
+
 func testAccInterfaceTemplateResourceConfig_full(name string) string {
 	return fmt.Sprintf(`
 %s
@@ -348,6 +429,59 @@ resource "netbox_interface_template" "test" {
 					resource.TestCheckNoResourceAttr("netbox_interface_template.test", "label"),
 					resource.TestCheckNoResourceAttr("netbox_interface_template.test", "bridge"),
 				),
+			},
+		},
+	})
+}
+func TestAccInterfaceTemplateResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_interface_template",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_device_type" "test" {
+  model = "Test Model"
+  slug = "test-model"
+  manufacturer = "1"
+}
+
+resource "netbox_interface_template" "test" {
+  device_type = netbox_device_type.test.id
+  type = "1000base-t"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_type": {
+				Config: func() string {
+					return `
+resource "netbox_device_type" "test" {
+  model = "Test Model"
+  slug = "test-model"
+  manufacturer = "1"
+}
+
+resource "netbox_interface_template" "test" {
+  device_type = netbox_device_type.test.id
+  name = "eth0"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_device_type_reference": {
+				Config: func() string {
+					return `
+resource "netbox_interface_template" "test" {
+  device_type = "99999"
+  name = "eth0"
+  type = "1000base-t"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
 			},
 		},
 	})

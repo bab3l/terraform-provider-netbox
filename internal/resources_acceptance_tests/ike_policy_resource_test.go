@@ -384,3 +384,24 @@ func TestAccConsistency_IKEPolicy_LiteralNames(t *testing.T) {
 		},
 	})
 }
+
+func TestAccIKEPolicyResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_ike_policy",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_ike_policy" "test" {
+  # name missing
+  version = 1
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

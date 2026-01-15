@@ -639,3 +639,53 @@ resource "netbox_circuit" "test" {
 }
 `, providerName, providerSlug, typeName, typeSlug, cid, description, comments)
 }
+
+func TestAccCircuitResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_circuit",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_cid": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_circuit" "test" {
+  # cid missing
+  circuit_provider = "test-provider"
+  type = "test-type"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_circuit_provider": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_circuit" "test" {
+  cid = "TEST-CID-001"
+  # circuit_provider missing
+  type = "test-type"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_type": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_circuit" "test" {
+  cid = "TEST-CID-001"
+  circuit_provider = "test-provider"
+  # type missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

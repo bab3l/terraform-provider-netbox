@@ -11,6 +11,47 @@ import (
 
 // NOTE: Custom field tests for contact group resource are in resources_acceptance_tests_customfields package
 
+func TestAccContactGroupResource_full(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("test-contact-group-full")
+	slug := testutil.GenerateSlug(name)
+	description := "Full test contact group with all optional fields"
+	parentName := testutil.RandomName("test-cg-parent")
+	parentSlug := testutil.GenerateSlug(parentName)
+	tagName := testutil.RandomName("tf-test-tag")
+	tagSlug := testutil.RandomSlug("tf-test-tag")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactGroupCleanup(slug)
+	cleanup.RegisterContactGroupCleanup(parentSlug)
+	cleanup.RegisterTagCleanup(tagSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckContactGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccContactGroupResourceConfig_full(name, slug, description, parentName, parentSlug, tagName, tagSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_contact_group.test", "id"),
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "description", description),
+					resource.TestCheckResourceAttrPair(
+						"netbox_contact_group.test", "parent",
+						"netbox_contact_group.parent", "id",
+					),
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "tags.#", "1"),
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "tags.0.name", tagName),
+					resource.TestCheckResourceAttr("netbox_contact_group.test", "tags.0.slug", tagSlug),
+				),
+			},
+		},
+	})
+}
+
 func TestAccContactGroupResource_basic(t *testing.T) {
 	t.Parallel()
 
@@ -135,6 +176,33 @@ func TestAccConsistency_ContactGroup_LiteralNames(t *testing.T) {
 	})
 }
 
+func testAccContactGroupResourceConfig_full(name, slug, description, parentName, parentSlug, tagName, tagSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_tag" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_contact_group" "parent" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_contact_group" "test" {
+  name        = %q
+  slug        = %q
+  description = %q
+  parent      = netbox_contact_group.parent.id
+  tags = [
+    {
+      name = netbox_tag.test.name
+      slug = netbox_tag.test.slug
+    }
+  ]
+}
+`, tagName, tagSlug, parentName, parentSlug, name, slug, description)
+}
+
 func testAccContactGroupResourceConfig(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_contact_group" "test" {
@@ -249,4 +317,38 @@ resource "netbox_contact_group" "test" {
   slug   = %q
 }
 `, parentName, parentSlug, name, slug)
+}
+
+func TestAccContactGroupResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_contact_group",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_contact_group" "test" {
+  # name missing
+  slug = "test-group"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_slug": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_contact_group" "test" {
+  name = "Test Group"
+  # slug missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
 }

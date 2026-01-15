@@ -319,3 +319,42 @@ resource "netbox_provider_network" "test" {
 }
 `, providerName, providerSlug, networkName, serviceID, description, comments)
 }
+
+func TestAccProviderNetworkResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_provider_network",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_circuit_provider": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_provider_network" "test" {
+  # circuit_provider missing
+  name = "Test Network"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_provider" "test" {
+  name = "Test Provider"
+  slug = "test-provider"
+}
+
+resource "netbox_provider_network" "test" {
+  circuit_provider = netbox_provider.test.id
+  # name missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}

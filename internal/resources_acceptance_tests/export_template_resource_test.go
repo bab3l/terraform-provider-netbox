@@ -311,3 +311,53 @@ resource "netbox_export_template" "test" {
 }
 `, name, description)
 }
+
+func TestAccExportTemplateResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_export_template",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_export_template" "test" {
+  # name missing
+  object_types = ["dcim.device"]
+  template_code = "{{ obj.name }}"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_object_types": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_export_template" "test" {
+  name = "Test Template"
+  # object_types missing
+  template_code = "{{ obj.name }}"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_template_code": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_export_template" "test" {
+  name = "Test Template"
+  object_types = ["dcim.device"]
+  # template_code missing
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+		},
+	})
+}
