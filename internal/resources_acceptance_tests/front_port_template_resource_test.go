@@ -476,3 +476,78 @@ resource "netbox_front_port_template" "test" {
 }
 `, mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName)
 }
+
+func TestAccFrontPortTemplateResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_front_port_template",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_device_type" "test" {
+  model = "Test Model"
+  slug = "test-model"
+  manufacturer = "1"
+}
+
+resource "netbox_front_port_template" "test" {
+  device_type = netbox_device_type.test.id
+  type = "8p8c"
+  rear_port = "TestRear"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_type": {
+				Config: func() string {
+					return `
+resource "netbox_device_type" "test" {
+  model = "Test Model"
+  slug = "test-model"
+  manufacturer = "1"
+}
+
+resource "netbox_front_port_template" "test" {
+  device_type = netbox_device_type.test.id
+  name = "Front1"
+  rear_port = "TestRear"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_rear_port": {
+				Config: func() string {
+					return `
+resource "netbox_device_type" "test" {
+  model = "Test Model"
+  slug = "test-model"
+  manufacturer = "1"
+}
+
+resource "netbox_front_port_template" "test" {
+  device_type = netbox_device_type.test.id
+  name = "Front1"
+  type = "8p8c"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_device_type_reference": {
+				Config: func() string {
+					return `
+resource "netbox_front_port_template" "test" {
+  device_type = "99999"
+  name = "Front1"
+  type = "8p8c"
+  rear_port = "TestRear"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}

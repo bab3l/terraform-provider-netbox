@@ -679,3 +679,50 @@ resource "netbox_device_bay" "test" {
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, parentDeviceName, childDeviceName, bayName)
 }
+
+func TestAccDeviceBayResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_device_bay",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_device": {
+				Config: func() string {
+					return `
+resource "netbox_device_bay" "test" {
+  name = "Bay1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_device" "test" {
+  name = "test-device"
+  device_type = "1"
+  role = "1"
+  site = "1"
+  status = "active"
+}
+
+resource "netbox_device_bay" "test" {
+  device = netbox_device.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_device_reference": {
+				Config: func() string {
+					return `
+resource "netbox_device_bay" "test" {
+  device = "99999"
+  name = "Bay1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}

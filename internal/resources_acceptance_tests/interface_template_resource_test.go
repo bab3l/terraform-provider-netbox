@@ -410,3 +410,56 @@ resource "netbox_interface_template" "test" {
 		},
 	})
 }
+func TestAccInterfaceTemplateResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_interface_template",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_device_type" "test" {
+  model = "Test Model"
+  slug = "test-model"
+  manufacturer = "1"
+}
+
+resource "netbox_interface_template" "test" {
+  device_type = netbox_device_type.test.id
+  type = "1000base-t"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_type": {
+				Config: func() string {
+					return `
+resource "netbox_device_type" "test" {
+  model = "Test Model"
+  slug = "test-model"
+  manufacturer = "1"
+}
+
+resource "netbox_interface_template" "test" {
+  device_type = netbox_device_type.test.id
+  name = "eth0"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_device_type_reference": {
+				Config: func() string {
+					return `
+resource "netbox_interface_template" "test" {
+  device_type = "99999"
+  name = "eth0"
+  type = "1000base-t"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}

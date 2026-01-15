@@ -352,3 +352,47 @@ func TestAccDeviceBayTemplateResource_removeOptionalFields(t *testing.T) {
 		},
 	})
 }
+func TestAccDeviceBayTemplateResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_device_bay_template",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_device_type": {
+				Config: func() string {
+					return `
+resource "netbox_device_bay_template" "test" {
+  name = "Bay1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_device_type" "test" {
+  model = "Test Model"
+  slug = "test-model"
+  manufacturer = "1"
+}
+
+resource "netbox_device_bay_template" "test" {
+  device_type = netbox_device_type.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_device_type_reference": {
+				Config: func() string {
+					return `
+resource "netbox_device_bay_template" "test" {
+  device_type = "99999"
+  name = "Bay1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}

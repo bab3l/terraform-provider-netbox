@@ -459,3 +459,38 @@ resource "netbox_power_port_template" "test" {
 }
 `, mfgName, mfgSlug, dtModel, dtSlug, portName)
 }
+
+func TestAccPowerPortTemplateResource_validationErrors(t *testing.T) {
+	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
+		ResourceName: "netbox_power_port_template",
+		TestCases: map[string]testutil.ValidationErrorCase{
+			"missing_name": {
+				Config: func() string {
+					return `
+resource "netbox_device_type" "test" {
+  model = "Test Model"
+  slug = "test-model"
+  manufacturer = "1"
+}
+
+resource "netbox_power_port_template" "test" {
+  device_type = netbox_device_type.test.id
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"invalid_device_type_reference": {
+				Config: func() string {
+					return `
+resource "netbox_power_port_template" "test" {
+  device_type = "99999"
+  name = "Power1"
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternNotFound,
+			},
+		},
+	})
+}
