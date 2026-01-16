@@ -48,7 +48,6 @@ Where:
 
 | Test Name | Description | Priority |
 |-----------|-------------|----------|
-| `TestAcc{Resource}Resource_IDPreservation` | Verify ID remains stable across updates | **REQUIRED** |
 | `TestAcc{Resource}Resource_externalDeletion` | Handle resource deleted outside Terraform | **REQUIRED** |
 | `TestAcc{Resource}Resource_removeOptionalFields` | Clear optional fields by removing from config | **REQUIRED** |
 
@@ -241,7 +240,6 @@ Use this checklist when implementing tests for a new resource or auditing existi
 
 ### Reliability Requirements
 
-- [ ] `TestAcc{Resource}Resource_IDPreservation` - ID stable across updates
 - [ ] `TestAcc{Resource}Resource_externalDeletion` - Handles external deletion
 - [ ] `TestAcc{Resource}Resource_removeOptionalFields` - Clears optional fields
 
@@ -293,7 +291,6 @@ func TestAcc{Resource}Resource_import(t *testing.T) { ... }
 // TIER 2: RELIABILITY TESTS
 // =============================================================================
 
-func TestAcc{Resource}Resource_IDPreservation(t *testing.T) { ... }
 func TestAcc{Resource}Resource_externalDeletion(t *testing.T) { ... }
 func TestAcc{Resource}Resource_removeOptionalFields(t *testing.T) { ... }
 

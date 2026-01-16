@@ -47,61 +47,6 @@ func TestAccCircuitTerminationResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccCircuitTerminationResource_withTags(t *testing.T) {
-	t.Parallel()
-
-	providerName := testutil.RandomName("tf-test-provider-tags")
-	providerSlug := testutil.RandomSlug("tf-test-provider-tags")
-	circuitTypeName := testutil.RandomName("tf-test-ct-tags")
-	circuitTypeSlug := testutil.RandomSlug("tf-test-ct-tags")
-	circuitCID := testutil.RandomName("tf-test-circuit-tags")
-	siteName := testutil.RandomName("tf-test-site-tags")
-	siteSlug := testutil.RandomSlug("tf-test-site-tags")
-	description := testutil.RandomName("description")
-	updatedDescription := "Updated circuit termination description"
-	tagName := testutil.RandomName("tf-test-tag")
-	tagSlug := testutil.RandomSlug("tf-test-tag")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterProviderCleanup(providerSlug)
-	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
-	cleanup.RegisterCircuitCleanup(circuitCID)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterTagCleanup(tagSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCircuitTerminationResourceConfig_withTags(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, description, tagName, tagSlug, 1000000, 512000, "XCON-123", "PP1-Port5", true),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_circuit_termination.test", "id"),
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "term_side", "A"),
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "description", description),
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "port_speed", "1000000"),
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "upstream_speed", "512000"),
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "xconnect_id", "XCON-123"),
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "pp_info", "PP1-Port5"),
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "mark_connected", "true"),
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "tags.#", "1"),
-				),
-			},
-			{
-				Config: testAccCircuitTerminationResourceConfig_withTags(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, updatedDescription, tagName, tagSlug, 10000000, 5000000, "XCON-456", "PP2-Port10", false),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "description", updatedDescription),
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "port_speed", "10000000"),
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "upstream_speed", "5000000"),
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "xconnect_id", "XCON-456"),
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "pp_info", "PP2-Port10"),
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "mark_connected", "false"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccCircuitTerminationResource_update(t *testing.T) {
 	t.Parallel()
 
@@ -143,38 +88,6 @@ func TestAccCircuitTerminationResource_update(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "pp_info", "PP-UPDATE"),
 					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "mark_connected", "true"),
 					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "tags.#", "1"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccCircuitTerminationResource_IDPreservation(t *testing.T) {
-
-	t.Parallel()
-	providerName := testutil.RandomName("ct-prov-id")
-	providerSlug := testutil.RandomSlug("ct-prov-id")
-	circuitTypeName := testutil.RandomName("ct-type-id")
-	circuitTypeSlug := testutil.RandomSlug("ct-type-id")
-	circuitCID := testutil.RandomName("ct-ckt-id")
-	siteName := testutil.RandomName("ct-site-id")
-	siteSlug := testutil.RandomSlug("ct-site-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterProviderCleanup(providerSlug)
-	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
-	cleanup.RegisterCircuitCleanup(circuitCID)
-	cleanup.RegisterSiteCleanup(siteSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCircuitTerminationResourceConfig_basic(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_circuit_termination.test", "id"),
-					resource.TestCheckResourceAttr("netbox_circuit_termination.test", "term_side", "A"),
 				),
 			},
 		},
@@ -781,4 +694,214 @@ resource "netbox_circuit_termination" "test" {
 			},
 		},
 	})
+}
+
+// =============================================================================
+// STANDARDIZED TAG TESTS (using helpers)
+// =============================================================================
+
+// TestAccCircuitTerminationResource_tagLifecycle tests the complete tag lifecycle using RunTagLifecycleTest helper.
+func TestAccCircuitTerminationResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-prov-tag")
+	providerSlug := testutil.RandomSlug("tf-prov-tag")
+	circuitTypeName := testutil.RandomName("tf-ct-tag")
+	circuitTypeSlug := testutil.RandomSlug("tf-ct-tag")
+	circuitCID := testutil.RandomName("tf-ckt-tag")
+	siteName := testutil.RandomName("tf-site-tag")
+	siteSlug := testutil.RandomSlug("tf-site-tag")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
+	cleanup.RegisterCircuitCleanup(circuitCID)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_circuit_termination",
+		ConfigWithoutTags: func() string {
+			return testAccCircuitTerminationResourceConfig_tagLifecycle(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, "", "", "", "", "", "", "")
+		},
+		ConfigWithTags: func() string {
+			return testAccCircuitTerminationResourceConfig_tagLifecycle(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag1,tag2", "", "")
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccCircuitTerminationResourceConfig_tagLifecycle(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag3", tag3Name, tag3Slug)
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 1,
+	})
+}
+
+func testAccCircuitTerminationResourceConfig_tagLifecycle(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tagSet, tag3Name, tag3Slug string) string {
+	tagResources := ""
+	tagsList := ""
+
+	if tag1Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %q
+  slug = %q
+}
+`, tag1Name, tag1Slug)
+	}
+	if tag2Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag2" {
+  name = %q
+  slug = %q
+}
+`, tag2Name, tag2Slug)
+	}
+	if tag3Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag3" {
+  name = %q
+  slug = %q
+}
+`, tag3Name, tag3Slug)
+	}
+
+	switch tagSet {
+	case "tag1,tag2":
+		tagsList = `tags = [
+    { name = netbox_tag.tag1.name, slug = netbox_tag.tag1.slug },
+    { name = netbox_tag.tag2.name, slug = netbox_tag.tag2.slug }
+  ]`
+	case "tag3":
+		tagsList = `tags = [
+    { name = netbox_tag.tag3.name, slug = netbox_tag.tag3.slug }
+  ]`
+	default:
+		tagsList = "tags = []"
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+}
+
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+%s
+resource "netbox_circuit_termination" "test" {
+  circuit   = netbox_circuit.test.id
+  term_side = "A"
+  site      = netbox_site.test.id
+  %s
+}
+`, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tagResources, tagsList)
+}
+
+// TestAccCircuitTerminationResource_tagOrderInvariance tests tag order using RunTagOrderTest helper.
+func TestAccCircuitTerminationResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-prov-order")
+	providerSlug := testutil.RandomSlug("tf-prov-order")
+	circuitTypeName := testutil.RandomName("tf-ct-order")
+	circuitTypeSlug := testutil.RandomSlug("tf-ct-order")
+	circuitCID := testutil.RandomName("tf-ckt-order")
+	siteName := testutil.RandomName("tf-site-order")
+	siteSlug := testutil.RandomSlug("tf-site-order")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterCircuitTypeCleanup(circuitTypeSlug)
+	cleanup.RegisterCircuitCleanup(circuitCID)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_circuit_termination",
+		ConfigWithTagsOrderA: func() string {
+			return testAccCircuitTerminationResourceConfig_tagOrder(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, true)
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccCircuitTerminationResourceConfig_tagOrder(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, false)
+		},
+		ExpectedTagCount: 2,
+	})
+}
+
+func testAccCircuitTerminationResourceConfig_tagOrder(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
+	tagsOrder := `tags = [
+    { name = netbox_tag.tag1.name, slug = netbox_tag.tag1.slug },
+    { name = netbox_tag.tag2.name, slug = netbox_tag.tag2.slug }
+  ]`
+	if !tag1First {
+		tagsOrder = `tags = [
+    { name = netbox_tag.tag2.name, slug = netbox_tag.tag2.slug },
+    { name = netbox_tag.tag1.name, slug = netbox_tag.tag1.slug }
+  ]`
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_provider" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit" "test" {
+  cid              = %q
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
+}
+
+resource "netbox_site" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tag" "tag1" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit_termination" "test" {
+  circuit   = netbox_circuit.test.id
+  term_side = "A"
+  site      = netbox_site.test.id
+  %s
+}
+`, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tagsOrder)
 }

@@ -1,59 +1,67 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 8/86 resources complete (9.3%)
+**Status**: 9/86 resources complete (10.5%)
 
 ## Completed Resources
 
 ### 1. IP Address (ipam_ipaddress)
-- 11/11 tests passing
+- 11 tests passing
 - Duration: ~15s
 - Checklist: IPADDRESS_CHECKLIST.md
 
 ### 2. Prefix (ipam_prefix)
-- 11/11 tests passing
+- 13 tests passing
 - Duration: ~15s
 - Checklist: PREFIX_CHECKLIST.md
 
 ### 3. Aggregate (ipam_aggregate)
-- 11/11 tests passing
-- Duration: ~15s
+- 9 tests passing
+- Duration: ~10s
 - Checklist: AGGREGATE_CHECKLIST.md
 
 ### 4. ASN (ipam_asn)
-- 11/11 tests passing
-- Duration: ~15s
+- 8 tests passing
+- Duration: ~10s
 - Checklist: ASN_CHECKLIST.md
 
 ### 5. ASN Range (ipam_asn_range)
-- 11/11 tests passing
-- Duration: ~15s
+- 10 tests passing
+- Duration: ~12s
 - Checklist: ASN_RANGE_CHECKLIST.md
 
 ### 6. Cable (dcim_cable)
-- 11/11 tests passing
+- 10 tests passing
 - Duration: ~20s
 - Checklist: CABLE_CHECKLIST.md
 - **Notable**: Fixed provider-wide tag lifecycle bug during implementation
 
 ### 7. Circuit (circuits_circuit)
-- 11/11 tests passing
+- 10 tests passing
 - Duration: ~15s
 - Checklist: CIRCUIT_CHECKLIST.md
 
 ### 8. Circuit Group (circuits_circuit_group)
-- 11/11 tests passing
-- Duration: ~15s
+- 9 tests passing
+- Duration: ~9s
 - Checklist: CIRCUIT_GROUP_CHECKLIST.md
+
+### 9. Circuit Termination (circuits_circuit_termination)
+- 9 tests passing
+- Duration: ~7.5s
+- Checklist: CIRCUIT_TERMINATION_CHECKLIST.md
+- **Notable**: Uses nested tag format `{name, slug}` instead of simple ID list
 
 ## Standard Test Pattern
 
 Each resource includes:
-1. **Core CRUD**: basic, full, update, import
-2. **Edge Cases**: ID preservation, external deletion, remove optional fields
-3. **Validation**: Validation error handling
-4. **Tag Lifecycle**: Tag lifecycle and order invariance (2 tests)
-5. **Total**: 11 tests per resource
+1. **Core CRUD**: basic, full, update, import (4 tests)
+2. **Reliability**: external deletion, remove optional fields (2 tests)
+3. **Validation**: Validation error handling (1 test, recommended)
+4. **Tag Tests**: Tag lifecycle and order invariance (2 tests if resource supports tags)
+5. **Total**: 8-10 tests per resource (varies by resource complexity)
+
+**Note**: IDPreservation test was removed as it was a duplicate of the basic test.
 
 ## Bug Fixes Applied
 
