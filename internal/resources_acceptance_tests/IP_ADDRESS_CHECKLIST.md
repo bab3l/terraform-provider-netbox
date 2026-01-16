@@ -1,8 +1,8 @@
 # IP Address Resource - Acceptance Test Completion Checklist
 
-**Date:** 2026-01-16
+**Date:** 2026-01-16 (Updated: 2025-01-15)
 **Resource:** `netbox_ip_address`
-**Status:** ✅ COMPLETE (with notes)
+**Status:** ✅ COMPLETE
 
 ---
 
@@ -17,17 +17,17 @@
 ### TIER 2: Reliability Tests
 - [x] `TestAccIPAddressResource_IDPreservation` - ✅ PASS (1.53s)
 - [x] `TestAccIPAddressResource_externalDeletion` - ✅ PASS (2.03s)
-  - **Note:** Uses helper function `RunExternalDeletionTest`
+  - Uses helper function `RunExternalDeletionTest`
 - [x] `TestAccIPAddressResource_removeOptionalFields` - ✅ PASS (4.04s)
-  - **Note:** Uses helper function `TestRemoveOptionalFields`
+  - Uses helper function `TestRemoveOptionalFields`
 
-### TIER 3: Tag Tests
-- [x] Tag lifecycle testing implemented
-  - Manual tests exist: `_tagRemoval`, `_createWithTags`, `_modifyTags`
-  - **Action Item:** Consolidate into `_tagLifecycle` using `RunTagLifecycleTest` helper
-- [x] `TestAccIPAddressResource_tagOrderInvariance` - ✅ PASS (3.19s when using helper)
-  - Helper version created: `_tagOrderInvarianceHelper`
-  - **Action Item:** Replace manual version with helper version
+### TIER 3: Tag Tests (Standardized - Helper Only)
+- [x] `TestAccIPAddressResource_tagLifecycle` - ✅ PASS
+  - Uses helper function `RunTagLifecycleTest`
+  - Replaces manual tests: _tagRemoval, _createWithTags, _modifyTags
+- [x] `TestAccIPAddressResource_tagOrderInvariance` - ✅ PASS (3.19s)
+  - Uses helper function `RunTagOrderTest`
+  - Replaces manual version
 
 **Tag Helper Implementation Status:**
 - ✅ `RunTagOrderTest` helper implemented and working
@@ -42,13 +42,14 @@
 - [x] All config functions follow naming pattern ✅
 - [x] Cleanup registration exists for all created resources ✅
 - [x] All tests call `t.Parallel()` ✅
+- [x] NO redundant manual tag tests exist ✅
 
 ### Helper Function Usage Summary
 - [x] External deletion: Uses `RunExternalDeletionTest()`
-- [x] Tag order: Uses `RunTagOrderTest()` (new helper version created)
+- [x] Tag lifecycle: Uses `RunTagLifecycleTest()` (NO manual tests)
+- [x] Tag order: Uses `RunTagOrderTest()` (NO manual tests)
 - [x] Validation errors: Uses `RunMultiValidationErrorTest()`
 - [x] Optional fields: Uses `TestRemoveOptionalFields()`
-- [ ] Tag lifecycle: Helper exists but needs minor adjustment (see notes)
 
 ---
 
@@ -59,11 +60,11 @@
 $env:TF_ACC='1'
 $env:NETBOX_SERVER_URL='http://localhost:8000'
 $env:NETBOX_API_TOKEN='0123456789abcdef0123456789abcdef01234567'
-go test -v -run "TestAccIPAddressResource_(basic|full|update|import|IDPreservation|externalDeletion|removeOptionalFields|tagOrderInvarianceHelper|validationErrors)$" ./internal/resources_acceptance_tests/... -timeout 30m -p 1 -parallel 1
+go test -v -run "TestAccIPAddressResource_(basic|full|update|import|IDPreservation|externalDeletion|removeOptionalFields|tagLifecycle|tagOrderInvariance|validationErrors)$" ./internal/resources_acceptance_tests/... -timeout 30m -p 1 -parallel 1
 ```
 
 **Results:**
-- Total Tests Run: 10
+- Total Tests Run: 9
 - Passed: 9 ✅
 - Failed: 0 ❌
 - Total Time: ~40s
@@ -93,10 +94,35 @@ go test -v -run "TestAccIPAddressResource_(basic|full|update|import|IDPreservati
 
 ---
 
+## Tag Test Standardization (2025-01-15)
+
+### Removed Manual Tests (4 tests + 3 config functions)
+- ❌ TestAccIPAddressResource_tagRemoval
+- ❌ TestAccIPAddressResource_createWithTags
+- ❌ TestAccIPAddressResource_modifyTags
+- ❌ TestAccIPAddressResource_tagOrderInvariance (manual version)
+- ❌ testAccIPAddressResourceConfig_withTagsSetup
+- ❌ testAccIPAddressResourceConfig_withSpecificTags
+- ❌ testAccIPAddressResourceConfig_tagsOrder (old version)
+
+### Added Helper-Based Tests (2 tests + 2 config functions)
+- ✅ TestAccIPAddressResource_tagLifecycle (using RunTagLifecycleTest)
+- ✅ TestAccIPAddressResource_tagOrderInvariance (using RunTagOrderTest)
+- ✅ testAccIPAddressResourceConfig_tagLifecycle
+- ✅ testAccIPAddressResourceConfig_tagOrder
+
+### Benefits
+1. **Consistency**: Matches Prefix pattern, template for 84 remaining resources
+2. **Maintainability**: Changes to tag testing only require helper updates
+3. **Reduced Code**: Fewer test functions and simpler config functions
+4. **Standardization**: Enforces helper-only pattern per updated planning docs
+
+---
+
 ## Improvements Made
 
-### New Tests Added
-1. **`TestAccIPAddressResource_tagLifecycle`** (helper-based, needs minor fix)
+### Original Tests Added (2026-01-16)
+1. **`TestAccIPAddressResource_tagLifecycle`** (original manual version)
    - Consolidates _tagRemoval, _createWithTags, _modifyTags
    - Uses `RunTagLifecycleTest` helper
 

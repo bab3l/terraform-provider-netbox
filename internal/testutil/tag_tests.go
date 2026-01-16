@@ -84,7 +84,7 @@ func RunTagLifecycleTest(t *testing.T, config TagLifecycleTestConfig) {
 		}
 
 		newSteps := make([]resource.TestStep, 0, len(steps)+1)
-		newSteps = append(newSteps, steps[:3]...)
+		newSteps = append(newSteps, steps[:2]...) // Step 1 (create without tags) and Step 2 (add tags)
 		newSteps = append(newSteps, resource.TestStep{
 			Config: config.ConfigWithDifferentTags(),
 			Check: resource.ComposeTestCheckFunc(
@@ -92,7 +92,7 @@ func RunTagLifecycleTest(t *testing.T, config TagLifecycleTestConfig) {
 				resource.TestCheckResourceAttr(resourceRef, "tags.#", fmt.Sprintf("%d", expectedCount)),
 			),
 		})
-		newSteps = append(newSteps, steps[3:]...)
+		newSteps = append(newSteps, steps[2:]...) // Step 3 (remove tags) and Step 4 (verify no drift)
 		steps = newSteps
 	}
 

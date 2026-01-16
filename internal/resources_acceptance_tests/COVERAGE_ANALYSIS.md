@@ -34,8 +34,9 @@ Use this checklist to verify a resource's tests are complete before moving to th
 - [ ] `TestAcc{Resource}Resource_removeOptionalFields` exists and passes (uses `TestRemoveOptionalFields` helper)
 
 ### TIER 3: Tag Tests (if resource supports tags)
-- [ ] `TestAcc{Resource}Resource_tagLifecycle` exists and passes (uses `RunTagLifecycleTest` helper)
-- [ ] `TestAcc{Resource}Resource_tagOrderInvariance` exists and passes (uses `RunTagOrderTest` helper)
+- [ ] `TestAcc{Resource}Resource_tagLifecycle` exists and passes (MUST use `RunTagLifecycleTest` helper)
+- [ ] `TestAcc{Resource}Resource_tagOrderInvariance` exists and passes (MUST use `RunTagOrderTest` helper)
+- [ ] NO redundant manual tag tests exist (e.g., `_tagRemoval`, `_createWithTags`, `_modifyTags`)
 
 ### TIER 4: Quality Checks
 - [ ] `TestAcc{Resource}Resource_validationErrors` exists (uses `RunMultiValidationErrorTest` helper)
@@ -46,7 +47,7 @@ Use this checklist to verify a resource's tests are complete before moving to th
 
 ### Helper Function Usage
 - [ ] External deletion test uses `RunExternalDeletionTest()` or `RunExternalDeletionWithIDTest()`
-- [ ] Tag tests use `RunTagLifecycleTest()` and `RunTagOrderTest()`
+- [ ] Tag tests use `RunTagLifecycleTest()` and `RunTagOrderTest()` (NO manual tag tests)
 - [ ] Validation tests use `RunMultiValidationErrorTest()`
 - [ ] Optional field tests use `TestRemoveOptionalFields()`
 - [ ] Import tests use `RunImportTest()` or `RunSimpleImportTest()` (where applicable)

@@ -63,16 +63,18 @@ Where:
 
 ## Tag Tests (Resources with Tags)
 
-Resources that support tags MUST implement the following additional tests:
+Resources that support tags MUST implement the following additional tests using the provided helper functions.
 
-| Test Name | Description | Priority |
-|-----------|-------------|----------|
-| `TestAcc{Resource}Resource_tagLifecycle` | Full tag lifecycle (add, modify, remove) | **REQUIRED** |
-| `TestAcc{Resource}Resource_tagOrderInvariance` | Tag reordering doesn't cause drift | **REQUIRED** |
+**IMPORTANT:** Use ONLY the helper functions - do not create manual/custom tag tests. Helper functions ensure consistency and reduce code duplication.
+
+| Test Name | Description | Helper Function | Priority |
+|-----------|-------------|-----------------|----------|
+| `TestAcc{Resource}Resource_tagLifecycle` | Full tag lifecycle (add, modify, remove) | `RunTagLifecycleTest()` | **REQUIRED** |
+| `TestAcc{Resource}Resource_tagOrderInvariance` | Tag reordering doesn't cause drift | `RunTagOrderTest()` | **REQUIRED** |
 
 ### Tag Test Implementation
 
-Use the standard helpers from `internal/testutil/tag_tests.go`:
+**✅ CORRECT - Use helper functions:**
 
 ```go
 // Option 1: Use RunTagLifecycleTest helper
