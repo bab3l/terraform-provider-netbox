@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 22/86 resources complete (25.6%)
+**Status**: 23/86 resources complete (26.7%)
 
 ## Completed Resources
 
@@ -130,6 +130,12 @@
 - Checklist: CONTACT_CHECKLIST.md
 - **Notable**: No tag support, rich contact information fields, supports group references
 
+### 23. Contact Role (tenancy_contact_role)
+- 8 tests passing
+- Duration: ~5.3s
+- Checklist: CONTACT_ROLE_CHECKLIST.md
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), defines roles for contacts
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -152,7 +158,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 64 resources.
+Continue alphabetically through remaining 63 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
@@ -176,6 +182,7 @@ Continue alphabetically through remaining 64 resources.
 - Cluster Group (resource 12)
 - Contact Assignment (resource 20)
 - Contact Group (resource 21)
+- Contact Role (resource 23)
 
 **Action Items** (after test standardization complete):
 1. Identify all resources using nested tag format
