@@ -50,25 +50,25 @@
 - 9 tests passing
 - Duration: ~7.5s
 - Checklist: CIRCUIT_TERMINATION_CHECKLIST.md
-- **Notable**: Uses nested tag format `{name, slug}` instead of simple ID list
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
 
 ### 10. Circuit Type (circuits_circuit_type)
 - 9 tests passing
 - Duration: ~7s
 - Checklist: CIRCUIT_TYPE_CHECKLIST.md
-- **Notable**: Uses nested tag format `{name, slug}` like Circuit Termination
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
 
 ### 11. Cluster (virtualization_cluster)
 - 10 tests passing (plus 1 extended variant)
 - Duration: ~10.9s
 - Checklist: CLUSTER_CHECKLIST.md
-- **Notable**: Uses nested tag format `{name, slug}` like Circuit Termination and Circuit Type
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
 
 ### 12. Cluster Group (virtualization_cluster_group)
 - 8 tests passing
 - Duration: ~5.6s
 - Checklist: CLUSTER_GROUP_CHECKLIST.md
-- **Notable**: Uses nested tag format `{name, slug}` consistently
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
 
 ### 13. Cluster Type (virtualization_cluster_type)
 - 7 tests passing
@@ -109,3 +109,31 @@ Continue alphabetically through remaining 72 resources.
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
 - Estimated total time: ~15-18 sessions
+
+## Post-Standardization Tasks
+
+### Tag Format Standardization (Phase 2)
+**Status**: Planned - to be executed after all test standardization is complete
+
+**Problem**: Resources currently use two different tag formats in Terraform HCL:
+1. **Nested object format**: `tags = [{ name = ..., slug = ... }]`
+2. **Slug list format**: `tags = [slug1, slug2]`
+
+**Decision**: Standardize ALL resources to use the simpler **slug list format**
+
+**Resources requiring conversion** (nested → slug list):
+- Circuit Termination (resource 9)
+- Circuit Type (resource 10)
+- Cluster (resource 11)
+- Cluster Group (resource 12)
+
+**Action Items** (after test standardization complete):
+1. Identify all resources using nested tag format
+2. Update resource schemas to accept slug lists
+3. Update resource CRUD logic to work with slug lists
+4. Update all test files to use slug list format
+5. Update documentation and examples
+6. Create migration guide for users (breaking change)
+7. Update CHANGELOG with breaking change notice
+
+**Rationale**: Simpler user experience, less confusion, more consistent with majority of resources
