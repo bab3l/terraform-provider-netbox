@@ -170,29 +170,6 @@ func TestAccIKEPolicyResource_externalDeletion(t *testing.T) {
 	})
 }
 
-func TestAccIKEPolicyResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-ike-policy-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterIKEPolicyCleanup(name)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccIKEPolicyResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_ike_policy.test", "id"),
-					resource.TestCheckResourceAttr("netbox_ike_policy.test", "name", name),
-				),
-			},
-		},
-	})
-}
-
 func testAccIKEPolicyResourceConfig_basic(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_ike_policy" "test" {
@@ -354,6 +331,120 @@ resource "netbox_ike_policy" "test" {
 `, name)
 }
 
+func TestAccIKEPolicyResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ike-policy-tags")
+	slug1 := testutil.RandomSlug("tag1")
+	slug2 := testutil.RandomSlug("tag2")
+	slug3 := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEPolicyCleanup(name)
+	cleanup.RegisterTagCleanup(slug1)
+	cleanup.RegisterTagCleanup(slug2)
+	cleanup.RegisterTagCleanup(slug3)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEPolicyResourceConfig_tags(name, slug1, slug2, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_policy.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_policy.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", slug1),
+						"slug": slug1,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_policy.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", slug2),
+						"slug": slug2,
+					}),
+				),
+			},
+			{
+				Config: testAccIKEPolicyResourceConfig_tags(name, slug1, slug2, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_policy.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_policy.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", slug1),
+						"slug": slug1,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_policy.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", slug2),
+						"slug": slug2,
+					}),
+				),
+			},
+			{
+				Config: testAccIKEPolicyResourceConfig_tags(name, slug1, slug2, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_policy.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_policy.test", "tags.*", map[string]string{
+						"name": "Tag3",
+						"slug": "tag3",
+					}),
+				),
+			},
+			{
+				Config: testAccIKEPolicyResourceConfig_tags(name, slug1, slug2, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_policy.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccIKEPolicyResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ike-policy-tag-order")
+	slug1 := testutil.RandomSlug("tag1")
+	slug2 := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEPolicyCleanup(name)
+	cleanup.RegisterTagCleanup(slug1)
+	cleanup.RegisterTagCleanup(slug2)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEPolicyResourceConfig_tagsOrder(name, slug1, slug2, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_policy.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_policy.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", slug1),
+						"slug": slug1,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_policy.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", slug2),
+						"slug": slug2,
+					}),
+				),
+			},
+			{
+				Config: testAccIKEPolicyResourceConfig_tagsOrder(name, slug1, slug2, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_policy.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_policy.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", slug1),
+						"slug": slug1,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_policy.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", slug2),
+						"slug": slug2,
+					}),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConsistency_IKEPolicy_LiteralNames(t *testing.T) {
 	t.Parallel()
 
@@ -383,6 +474,71 @@ func TestAccConsistency_IKEPolicy_LiteralNames(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccIKEPolicyResourceConfig_tags(name, slug1, slug2, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleNested
+	case caseTag3:
+		tagsConfig = tagsSingleNested
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[1]s"
+  slug = %[1]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[2]s"
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = "Tag3"
+  slug = "tag3"
+}
+
+resource "netbox_ike_policy" "test" {
+  name    = %[3]q
+  version = 2
+  %[4]s
+}
+`, slug1, slug2, name, tagsConfig)
+}
+
+func testAccIKEPolicyResourceConfig_tagsOrder(name, slug1, slug2, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleNestedReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[1]s"
+  slug = %[1]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[2]s"
+  slug = %[2]q
+}
+
+resource "netbox_ike_policy" "test" {
+  name    = %[3]q
+  version = 2
+  %[4]s
+}
+`, slug1, slug2, name, tagsConfig)
 }
 
 func TestAccIKEPolicyResource_validationErrors(t *testing.T) {

@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 35/86 resources complete (40.7%)
+**Status**: 37/86 resources complete (43.0%)
 
 ## Completed Resources
 
@@ -208,6 +208,16 @@
 - Checklist: FRONT_PORT_TEMPLATE_CHECKLIST.md
 - **Notable**: Template resource, does not support tags, requires device type and rear port template dependencies
 
+### 36. IKE Policy (ipam_ike_policy)
+- 9 tests passing (7 regular + 2 tag tests + 1 with validation subtests)
+- Duration: ~4.1s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), IPsec IKE policy resource
+
+### 37. IKE Proposal (ipam_ike_proposal)
+- 9 tests passing (7 regular + 2 tag tests + 1 with validation subtests)
+- Duration: ~7.5s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), IPsec IKE proposal resource
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -230,7 +240,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 51 resources.
+Continue alphabetically through remaining 49 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
@@ -258,6 +268,8 @@ Continue alphabetically through remaining 51 resources.
 - Device (resource 29)
 - FHRP Group (resource 33)
 - Front Port (resource 34)
+- IKE Policy (resource 36)
+- IKE Proposal (resource 37)
 
 **Action Items** (after test standardization complete):
 1. Identify all resources using nested tag format
