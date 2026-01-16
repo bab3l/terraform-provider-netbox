@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 14/86 resources complete (16.3%)
+**Status**: 15/86 resources complete (17.4%)
 
 ## Completed Resources
 
@@ -82,6 +82,12 @@
 - Checklist: CONFIG_CONTEXT_CHECKLIST.md
 - **Notable**: Uses slug list tag format, complex dependencies
 
+### 15. Config Template (extras_config_template)
+- 6 tests passing
+- Duration: ~2.9s
+- Checklist: CONFIG_TEMPLATE_CHECKLIST.md
+- **Notable**: No tag support (simple resource)
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -104,7 +110,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 72 resources.
+Continue alphabetically through remaining 71 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session

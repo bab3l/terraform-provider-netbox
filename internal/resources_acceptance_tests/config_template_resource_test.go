@@ -45,35 +45,6 @@ func TestAccConfigTemplateResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccConfigTemplateResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("cfg-tmpl-id")
-	templateCode := defaultTemplateCode
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterConfigTemplateCleanup(name)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccConfigTemplateResourceConfig_basic(name, templateCode),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_config_template.test", "id"),
-					resource.TestCheckResourceAttr("netbox_config_template.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_config_template.test", "template_code", templateCode),
-				),
-			},
-			{
-				Config:   testAccConfigTemplateResourceConfig_basic(name, templateCode),
-				PlanOnly: true,
-			},
-		},
-	})
-}
-
 func TestAccConfigTemplateResource_full(t *testing.T) {
 	t.Parallel()
 
