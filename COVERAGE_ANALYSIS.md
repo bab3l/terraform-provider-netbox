@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 19/86 resources complete (22.1%)
+**Status**: 20/86 resources complete (23.3%)
 
 ## Completed Resources
 
@@ -112,6 +112,12 @@
 - Checklist: CONSOLE_SERVER_PORT_TEMPLATE_CHECKLIST.md
 - **Notable**: No tag support, requires device type dependency
 
+### 20. Contact Assignment (extras_contact_assignment)
+- 9 tests passing
+- Duration: ~10.7s
+- Checklist: CONTACT_ASSIGNMENT_CHECKLIST.md
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), generic assignment resource with ContentType pattern
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -134,7 +140,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 67 resources.
+Continue alphabetically through remaining 66 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
@@ -156,6 +162,7 @@ Continue alphabetically through remaining 67 resources.
 - Circuit Type (resource 10)
 - Cluster (resource 11)
 - Cluster Group (resource 12)
+- Contact Assignment (resource 20)
 
 **Action Items** (after test standardization complete):
 1. Identify all resources using nested tag format
