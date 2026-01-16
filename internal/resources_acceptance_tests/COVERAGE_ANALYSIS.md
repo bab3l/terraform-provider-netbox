@@ -122,8 +122,8 @@ go test -v -run "TestAccIPAddressResource_tag" ./internal/resources_acceptance_t
 | interface_template | ✅ | ✅ | ✅ | ❌ |
 | inventory_item | ✅ | ✅ | ✅ | ❌ |
 | inventory_item_role | ✅ | ✅ | ✅ | ❌ |
-| inventory_item_template | ✅ | ✅ | ✅ | ❌ |
-| ip_address | ✅ | ✅ | ✅ | ✅ |
+| inventory_item_template | ✅ | ✅ | ✅ |
+| ip_address | ✅ | ✅ | ✅ | ✅ | **COMPLETE ✅** |
 | ip_range | ✅ | ✅ | ✅ | ❌ |
 | ipsec_policy | ✅ | ✅ | ✅ | ❌ |
 | ipsec_profile | ✅ | ✅ | ✅ | ❌ |
@@ -227,7 +227,7 @@ go test -v -run "TestAccIPAddressResource_tag" ./internal/resources_acceptance_t
 | inventory_item | ✅ | ✅ | ✅ |
 | inventory_item_role | ✅ | ✅ | ✅ |
 | inventory_item_template | ✅ | ✅ | ✅ |
-| ip_address | ✅ | ✅ | ✅ |
+| ip_address | ✅ | ✅ | ✅ | **COMPLETE ✅** |
 | ip_range | ✅ | ✅ | ✅ |
 | ipsec_policy | ✅ | ✅ | ✅ |
 | ipsec_profile | ✅ | ✅ | ✅ |
@@ -322,7 +322,7 @@ go test -v -run "TestAccIPAddressResource_tag" ./internal/resources_acceptance_t
 | inventory_item | ❌ | ❌ |
 | inventory_item_role | ❌ | ❌ |
 | inventory_item_template | ❌ | ❌ |
-| ip_address | ⚠️ | ✅ |
+| ip_address | ⚠️ | ✅ | **COMPLETE ✅** (See IP_ADDRESS_CHECKLIST.md) |
 | ip_range | ❌ | ❌ |
 | l2vpn | ❌ | ❌ |
 | l2vpn_termination | ❌ | ❌ |
