@@ -2,6 +2,34 @@
 
 This document tracks the current state of acceptance test coverage for all resources and identifies gaps that need to be addressed.
 
+## Progress Summary
+
+**Status:** 2 of 86 resources complete (2.3%)
+**Branch:** `feature/standardize-acceptance-tests`
+**Last Updated:** 2025-01-15
+
+### Completed Resources ✅
+1. **IP Address** - 9/9 tests passing, helper-only tag tests
+2. **Prefix** - 9/9 tests passing, helper-only tag tests
+
+### Recent Updates
+- **2025-01-15**: Fixed critical bug in `RunTagLifecycleTest` helper
+  - Corrected step insertion logic for tag change step
+  - All tag lifecycle tests now properly test: create → add → change → remove → verify
+  - Both IP Address and Prefix resources validated with fix
+- **2025-01-15**: Standardized IP Address tag tests
+  - Removed 4 manual tag test functions
+  - Replaced with 2 helper-based tests (tagLifecycle, tagOrderInvariance)
+  - Reduced code duplication, established template pattern
+
+### Template Pattern Established
+- Helper-only tag tests (NO manual implementations)
+- Consistent test structure across all resources
+- Reusable test helpers for common scenarios
+- ~30 minutes per resource with established patterns
+
+---
+
 ## Coverage Legend
 
 | Symbol | Meaning |
