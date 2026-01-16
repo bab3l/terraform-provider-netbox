@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 16/86 resources complete (18.6%)
+**Status**: 17/86 resources complete (19.8%)
 
 ## Completed Resources
 
@@ -94,6 +94,12 @@
 - Checklist: CONSOLE_PORT_CHECKLIST.md
 - **Notable**: No tag support, requires device dependency
 
+### 17. Console Port Template (dcim_console_port_template)
+- 6 tests passing (plus 1 extended variant)
+- Duration: ~6.8s
+- Checklist: CONSOLE_PORT_TEMPLATE_CHECKLIST.md
+- **Notable**: No tag support, requires device type dependency
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -116,7 +122,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 70 resources.
+Continue alphabetically through remaining 69 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
