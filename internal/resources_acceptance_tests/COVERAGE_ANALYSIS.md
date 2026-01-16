@@ -13,6 +13,69 @@ This document tracks the current state of acceptance test coverage for all resou
 
 ---
 
+## Resource Completion Checklist
+
+Use this checklist to verify a resource's tests are complete before moving to the next resource.
+
+### Gating Criteria (All Must Pass)
+
+```markdown
+## Resource: {resource_name}
+
+### TIER 1: Core CRUD Tests
+- [ ] `TestAcc{Resource}Resource_basic` exists and passes
+- [ ] `TestAcc{Resource}Resource_full` exists and passes
+- [ ] `TestAcc{Resource}Resource_update` exists and passes
+- [ ] `TestAcc{Resource}Resource_import` exists and passes
+
+### TIER 2: Reliability Tests
+- [ ] `TestAcc{Resource}Resource_IDPreservation` exists and passes
+- [ ] `TestAcc{Resource}Resource_externalDeletion` exists and passes (uses `RunExternalDeletionTest` helper)
+- [ ] `TestAcc{Resource}Resource_removeOptionalFields` exists and passes (uses `TestRemoveOptionalFields` helper)
+
+### TIER 3: Tag Tests (if resource supports tags)
+- [ ] `TestAcc{Resource}Resource_tagLifecycle` exists and passes (uses `RunTagLifecycleTest` helper)
+- [ ] `TestAcc{Resource}Resource_tagOrderInvariance` exists and passes (uses `RunTagOrderTest` helper)
+
+### TIER 4: Quality Checks
+- [ ] `TestAcc{Resource}Resource_validationErrors` exists (uses `RunMultiValidationErrorTest` helper)
+- [ ] All test names follow camelCase convention (no underscores except after `Resource`)
+- [ ] All config functions follow `testAcc{Resource}ResourceConfig_{variant}` naming
+- [ ] Cleanup registration exists for all created resources
+- [ ] All tests call `t.Parallel()`
+
+### Helper Function Usage
+- [ ] External deletion test uses `RunExternalDeletionTest()` or `RunExternalDeletionWithIDTest()`
+- [ ] Tag tests use `RunTagLifecycleTest()` and `RunTagOrderTest()`
+- [ ] Validation tests use `RunMultiValidationErrorTest()`
+- [ ] Optional field tests use `TestRemoveOptionalFields()`
+- [ ] Import tests use `RunImportTest()` or `RunSimpleImportTest()` (where applicable)
+
+### Final Verification
+- [ ] All tests pass locally: `go test -v -run "TestAcc{Resource}Resource" ./internal/resources_acceptance_tests/...`
+- [ ] No naming convention violations
+- [ ] Code formatted with `gofmt`
+```
+
+### Quick Validation Command
+
+Run this to verify a resource's tests:
+
+```bash
+# Set environment
+export TF_ACC=1
+export NETBOX_SERVER_URL="http://localhost:8000"
+export NETBOX_API_TOKEN="your-token"
+
+# Run all tests for a specific resource (e.g., ip_address)
+go test -v -run "TestAccIPAddressResource" ./internal/resources_acceptance_tests/...
+
+# Run specific test type
+go test -v -run "TestAccIPAddressResource_tag" ./internal/resources_acceptance_tests/...
+```
+
+---
+
 ## Test Coverage Matrix
 
 ### TIER 1: Core CRUD Tests
