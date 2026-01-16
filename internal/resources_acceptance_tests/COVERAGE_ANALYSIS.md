@@ -145,7 +145,7 @@ go test -v -run "TestAccIPAddressResource_tag" ./internal/resources_acceptance_t
 | power_panel | ✅ | ✅ | ✅ | ❌ |
 | power_port | ✅ | ✅ | ✅ | ❌ |
 | power_port_template | ✅ | ✅ | ✅ | ❌ |
-| prefix | ✅ | ✅ | ✅ | ✅ |
+| prefix | ✅ | ✅ | ✅ | ✅ | **COMPLETE ✅** |
 | provider | ✅ | ✅ | ✅ | ✅ |
 | provider_account | ✅ | ✅ | ✅ | ✅ |
 | provider_network | ✅ | ✅ | ✅ | ✅ |
@@ -249,7 +249,7 @@ go test -v -run "TestAccIPAddressResource_tag" ./internal/resources_acceptance_t
 | power_panel | ✅ | ✅ | ✅ |
 | power_port | ✅ | ✅ | ✅ |
 | power_port_template | ✅ | ✅ | ✅ |
-| prefix | ✅ | ⚠️ | ✅ |
+| prefix | ✅ | ✅ | ✅ | **COMPLETE ✅** |
 | provider | ✅ | ✅ | ✅ |
 | provider_account | ✅ | ✅ | ✅ |
 | provider_network | ✅ | ✅ | ✅ |
@@ -339,7 +339,7 @@ go test -v -run "TestAccIPAddressResource_tag" ./internal/resources_acceptance_t
 | power_panel | ❌ | ❌ |
 | power_port | ❌ | ❌ |
 | power_port_template | ❌ | ❌ |
-| prefix | ❌ | ❌ |
+| prefix | ✅ | ✅ | **COMPLETE ✅** (See PREFIX_CHECKLIST.md) |
 | provider | ❌ | ❌ |
 | provider_account | ❌ | ❌ |
 | provider_network | ❌ | ❌ |
@@ -387,7 +387,6 @@ The following tests have naming inconsistencies that should be addressed:
 - `module_bay`: `_external_deletion` → `_externalDeletion`
 - `module_bay_template`: `_external_deletion` → `_externalDeletion`
 - `module_type`: `_external_deletion` → `_externalDeletion`
-- `prefix`: `_external_deletion` → `_externalDeletion`
 - `rir`: `_external_deletion` → `_externalDeletion`
 - `service`: `_external_deletion` → `_externalDeletion`
 - `service_template`: `_external_deletion` → `_externalDeletion`
