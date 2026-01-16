@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 42/86 resources complete (48.8%)
+**Status**: 43/86 resources complete (50.0%)
 
 ## Completed Resources
 
@@ -243,6 +243,11 @@
 - Duration: ~3.8s
 - **Notable**: Template resource, does not support tags
 
+### 43. IP Range (ipam_ip_range)
+- 12 tests passing (10 regular + 2 tag tests + 1 with validation subtests)
+- Duration: ~9.4s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), optional+computed field coverage
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -265,7 +270,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 44 resources.
+Continue alphabetically through remaining 43 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
@@ -298,7 +303,9 @@ Continue alphabetically through remaining 44 resources.
 - Interface (resource 38)
 - Inventory Item (resource 40)
 - Inventory Item Role (resource 41)
+- IP Range (resource 43)
 - Inventory Item Template (resource 42)
+- IP Range (resource 43)
 - Inventory Item Role (resource 41)
 - Inventory Item (resource 40)
 - Interface (resource 38)

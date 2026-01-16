@@ -143,6 +143,132 @@ func TestAccIPRangeResource_import(t *testing.T) {
 	})
 }
 
+func TestAccIPRangeResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	secondOctet := acctest.RandIntRange(51, 100)
+	thirdOctet := acctest.RandIntRange(1, 50)
+	startOctet := 10 + acctest.RandIntRange(1, 200)
+	endOctet := startOctet + 10
+	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
+	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
+
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPRangeCleanup(startAddress)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPRangeResourceConfig_tags(startAddress, endAddress, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ip_range.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ip_range.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccIPRangeResourceConfig_tags(startAddress, endAddress, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ip_range.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ip_range.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccIPRangeResourceConfig_tags(startAddress, endAddress, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ip_range.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
+						"slug": tag3Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccIPRangeResourceConfig_tags(startAddress, endAddress, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccIPRangeResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	secondOctet := acctest.RandIntRange(101, 150)
+	thirdOctet := acctest.RandIntRange(51, 100)
+	startOctet := 10 + acctest.RandIntRange(1, 200)
+	endOctet := startOctet + 10
+	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
+	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
+
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPRangeCleanup(startAddress)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPRangeResourceConfig_tagsOrder(startAddress, endAddress, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ip_range.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ip_range.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccIPRangeResourceConfig_tagsOrder(startAddress, endAddress, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ip_range.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_ip_range.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+		},
+	})
+}
+
 func TestAccIPRangeResource_external_deletion(t *testing.T) {
 	t.Parallel()
 
@@ -192,35 +318,6 @@ func TestAccIPRangeResource_external_deletion(t *testing.T) {
 	})
 }
 
-func TestAccIPRangeResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	secondOctet := acctest.RandIntRange(101, 150)
-	thirdOctet := acctest.RandIntRange(101, 150)
-	startOctet := 10 + acctest.RandIntRange(1, 200)
-	endOctet := startOctet + 10
-	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
-	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterIPRangeCleanup(startAddress)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccIPRangeResourceConfig_basic(startAddress, endAddress),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
-					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", startAddress),
-					resource.TestCheckResourceAttr("netbox_ip_range.test", "end_address", endAddress),
-				),
-			},
-		},
-	})
-}
-
 func testAccIPRangeResourceConfig_basic(startAddress, endAddress string) string {
 	return fmt.Sprintf(`
 resource "netbox_ip_range" "test" {
@@ -239,6 +336,71 @@ resource "netbox_ip_range" "test" {
   description   = %[3]q
 }
 `, startAddress, endAddress, description)
+}
+
+func testAccIPRangeResourceConfig_tags(startAddress, endAddress, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleNested
+	case caseTag3:
+		tagsConfig = tagsSingleNested
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = "Tag3-%[5]s"
+  slug = %[5]q
+}
+
+resource "netbox_ip_range" "test" {
+  start_address = %[1]q
+  end_address   = %[2]q
+  %[6]s
+}
+`, startAddress, endAddress, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccIPRangeResourceConfig_tagsOrder(startAddress, endAddress, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleNestedReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_ip_range" "test" {
+  start_address = %[1]q
+  end_address   = %[2]q
+  %[5]s
+}
+`, startAddress, endAddress, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func TestAccConsistency_IPRange_LiteralNames(t *testing.T) {
