@@ -545,7 +545,7 @@ func TestAccConfigContextResource_tagLifecycle(t *testing.T) {
 
 func testAccConfigContextResourceConfig_tagLifecycle(name, tagSlugs string) string {
 	tagResources := ""
-	tagsList := "tags = []"
+	tagsList := tagsEmpty
 
 	if tagSlugs != "" {
 		var slugList []string

@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 25/86 resources complete (29.1%)
+**Status**: 30/86 resources complete (34.9%)
 
 ## Completed Resources
 
@@ -148,6 +148,36 @@
 - Checklist: DEVICE_BAY_CHECKLIST.md
 - **Notable**: No tag support, component resource for device bays, complex dependency chain
 
+### 26. Device Bay Template (dcim_device_bay_template)
+- 6 tests passing
+- Duration: ~3.7s
+- Checklist: DEVICE_BAY_TEMPLATE_CHECKLIST.md
+- **Notable**: No tag support, template resource for device types
+
+### 27. Device Role (dcim_device_role)
+- 6 tests passing
+- Duration: ~3.2s
+- Checklist: DEVICE_ROLE_CHECKLIST.md
+- **Notable**: No tag support, core organizational resource, standalone with no dependencies
+
+### 28. Device Type (dcim_device_type)
+- 7 tests passing
+- Duration: ~7.0s
+- Checklist: DEVICE_TYPE_CHECKLIST.md
+- **Notable**: No tag support, hardware specification resource, requires manufacturer dependency
+
+### 29. Device (dcim_device)
+- 10 tests passing
+- Duration: ~12.5s
+- Checklist: DEVICE_CHECKLIST.md
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), core physical device resource, complex dependencies
+
+### 30. Event Rule (extras_event_rule)
+- 7 tests passing (plus 1 extended variant)
+- Duration: ~4.6s
+- Checklist: EVENT_RULE_CHECKLIST.md
+- **Notable**: No tag support, automation/workflow resource, requires webhook dependency
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -195,6 +225,7 @@ Continue alphabetically through remaining 61 resources.
 - Contact Assignment (resource 20)
 - Contact Group (resource 21)
 - Contact Role (resource 23)
+- Device (resource 29)
 
 **Action Items** (after test standardization complete):
 1. Identify all resources using nested tag format

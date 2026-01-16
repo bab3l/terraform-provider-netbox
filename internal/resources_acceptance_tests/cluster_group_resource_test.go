@@ -370,20 +370,15 @@ resource "netbox_tag" "tag3" {
 
 	if tagSet != "" {
 		switch tagSet {
-		case "tag1,tag2":
-			tagsList = `tags = [
-    { name = netbox_tag.tag1.name, slug = netbox_tag.tag1.slug },
-    { name = netbox_tag.tag2.name, slug = netbox_tag.tag2.slug }
-  ]`
-		case "tag3":
-			tagsList = `tags = [
-    { name = netbox_tag.tag3.name, slug = netbox_tag.tag3.slug }
-  ]`
+		case caseTag1Tag2:
+			tagsList = tagsDoubleNested
+		case caseTag3:
+			tagsList = tagsSingleNested
 		default:
-			tagsList = "tags = []"
+			tagsList = tagsEmpty
 		}
 	} else {
-		tagsList = "tags = []"
+		tagsList = tagsEmpty
 	}
 
 	return fmt.Sprintf(`
@@ -425,15 +420,9 @@ func TestAccClusterGroupResource_tagOrderInvariance(t *testing.T) {
 }
 
 func testAccClusterGroupResourceConfig_tagOrder(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
-	tagsOrder := `tags = [
-    { name = netbox_tag.tag1.name, slug = netbox_tag.tag1.slug },
-    { name = netbox_tag.tag2.name, slug = netbox_tag.tag2.slug }
-  ]`
+	tagsOrder := tagsDoubleNested
 	if !tag1First {
-		tagsOrder = `tags = [
-    { name = netbox_tag.tag2.name, slug = netbox_tag.tag2.slug },
-    { name = netbox_tag.tag1.name, slug = netbox_tag.tag1.slug }
-  ]`
+		tagsOrder = tagsDoubleNestedReversed
 	}
 
 	return fmt.Sprintf(`

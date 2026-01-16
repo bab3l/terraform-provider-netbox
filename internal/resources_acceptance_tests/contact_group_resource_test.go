@@ -245,15 +245,9 @@ func TestAccContactGroupResource_tagOrderInvariance(t *testing.T) {
 }
 
 func testAccContactGroupResourceConfig_tagOrder(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
-	tagsOrder := `tags = [
-    { name = netbox_tag.tag1.name, slug = netbox_tag.tag1.slug },
-    { name = netbox_tag.tag2.name, slug = netbox_tag.tag2.slug }
-  ]`
+	tagsOrder := tagsDoubleNested
 	if !tag1First {
-		tagsOrder = `tags = [
-    { name = netbox_tag.tag2.name, slug = netbox_tag.tag2.slug },
-    { name = netbox_tag.tag1.name, slug = netbox_tag.tag1.slug }
-  ]`
+		tagsOrder = tagsDoubleNestedReversed
 	}
 
 	return fmt.Sprintf(`

@@ -632,17 +632,12 @@ resource "netbox_tag" "tag3" {
 
 	if tagSet != "" {
 		switch tagSet {
-		case "tag1,tag2":
-			tagsList = `tags = [
-    { name = netbox_tag.tag1.name, slug = netbox_tag.tag1.slug },
-    { name = netbox_tag.tag2.name, slug = netbox_tag.tag2.slug }
-  ]`
-		case "tag3":
-			tagsList = `tags = [
-    { name = netbox_tag.tag3.name, slug = netbox_tag.tag3.slug }
-  ]`
+		case caseTag1Tag2:
+			tagsList = tagsDoubleNested
+		case caseTag3:
+			tagsList = tagsSingleNested
 		default:
-			tagsList = "tags = []"
+			tagsList = tagsEmpty
 		}
 	} else {
 		tagsList = "tags = []"
