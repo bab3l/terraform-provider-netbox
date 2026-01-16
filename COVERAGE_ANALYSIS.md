@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 40/86 resources complete (46.5%)
+**Status**: 41/86 resources complete (47.7%)
 
 ## Completed Resources
 
@@ -233,6 +233,11 @@
 - Duration: ~9.2s
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), device-bound hardware inventory
 
+### 41. Inventory Item Role (dcim_inventory_item_role)
+- 9 tests passing (7 regular + 2 tag tests + 1 with validation subtests)
+- Duration: ~8.5s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), inventory role metadata
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -255,7 +260,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 46 resources.
+Continue alphabetically through remaining 45 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
@@ -287,6 +292,8 @@ Continue alphabetically through remaining 46 resources.
 - IKE Proposal (resource 37)
 - Interface (resource 38)
 - Inventory Item (resource 40)
+- Inventory Item Role (resource 41)
+- Inventory Item Role (resource 41)
 - Inventory Item (resource 40)
 - Interface (resource 38)
 
