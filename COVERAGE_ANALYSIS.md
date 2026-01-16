@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 24/86 resources complete (27.9%)
+**Status**: 25/86 resources complete (29.1%)
 
 ## Completed Resources
 
@@ -142,6 +142,12 @@
 - Checklist: CUSTOM_LINK_CHECKLIST.md
 - **Notable**: No tag support, extensibility feature for adding custom links to NetBox UI
 
+### 25. Device Bay (dcim_device_bay)
+- 6 tests passing (plus 1 extended variant)
+- Duration: ~9.1s
+- Checklist: DEVICE_BAY_CHECKLIST.md
+- **Notable**: No tag support, component resource for device bays, complex dependency chain
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -164,7 +170,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 62 resources.
+Continue alphabetically through remaining 61 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
