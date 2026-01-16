@@ -993,6 +993,7 @@ resource "netbox_tag" "tag3" {
 }
 `, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug)
 
+	//nolint:goconst // tagSet values are test-specific identifiers
 	switch tagSet {
 	case "tag1_tag2":
 		return baseConfig + fmt.Sprintf(`

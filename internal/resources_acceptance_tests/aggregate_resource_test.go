@@ -465,6 +465,202 @@ func TestAccAggregateResource_importPreservesOptionalFields(t *testing.T) {
 	})
 }
 
+// =============================================================================
+// STANDARDIZED TAG TESTS (using helpers)
+// =============================================================================
+
+// TestAccAggregateResource_tagLifecycle tests the complete tag lifecycle using RunTagLifecycleTest helper.
+func TestAccAggregateResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	rirName := testutil.RandomName("rir-tag")
+	rirSlug := testutil.RandomSlug("rir-tag")
+	prefix := testutil.RandomIPv4Prefix()
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_aggregate",
+		ConfigWithoutTags: func() string {
+			return testAccAggregateResourceConfig_tagLifecycle(rirName, rirSlug, prefix, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "none")
+		},
+		ConfigWithTags: func() string {
+			return testAccAggregateResourceConfig_tagLifecycle(rirName, rirSlug, prefix, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag1_tag2")
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccAggregateResourceConfig_tagLifecycle(rirName, rirSlug, prefix, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag2_tag3")
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 2,
+		CheckDestroy:              testutil.CheckAggregateDestroy,
+	})
+}
+
+func testAccAggregateResourceConfig_tagLifecycle(rirName, rirSlug, prefix, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagSet string) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag1" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[6]q
+  slug = %[7]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = %[8]q
+  slug = %[9]q
+}
+`, rirName, rirSlug, prefix, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug)
+
+	//nolint:goconst // tagSet values are test-specific identifiers
+	switch tagSet {
+	case "tag1_tag2":
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_aggregate" "test" {
+  prefix = %[1]q
+  rir    = netbox_rir.test.id
+  tags = [
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    },
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    }
+  ]
+}
+`, prefix)
+	case "tag2_tag3":
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_aggregate" "test" {
+  prefix = %[1]q
+  rir    = netbox_rir.test.id
+  tags = [
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    },
+    {
+      name = netbox_tag.tag3.name
+      slug = netbox_tag.tag3.slug
+    }
+  ]
+}
+`, prefix)
+	default: // "none"
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_aggregate" "test" {
+  prefix = %[1]q
+  rir    = netbox_rir.test.id
+  tags   = []
+}
+`, prefix)
+	}
+}
+
+// TestAccAggregateResource_tagOrderInvariance tests tag order using RunTagOrderTest helper.
+func TestAccAggregateResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	rirName := testutil.RandomName("rir-tag-order")
+	rirSlug := testutil.RandomSlug("rir-tag-order")
+	prefix := testutil.RandomIPv4Prefix()
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_aggregate",
+		ConfigWithTagsOrderA: func() string {
+			return testAccAggregateResourceConfig_tagOrder(rirName, rirSlug, prefix, tag1Name, tag1Slug, tag2Name, tag2Slug, true)
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccAggregateResourceConfig_tagOrder(rirName, rirSlug, prefix, tag1Name, tag1Slug, tag2Name, tag2Slug, false)
+		},
+		ExpectedTagCount: 2,
+		CheckDestroy:     testutil.CheckAggregateDestroy,
+	})
+}
+
+func testAccAggregateResourceConfig_tagOrder(rirName, rirSlug, prefix, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag1" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[6]q
+  slug = %[7]q
+}
+`, rirName, rirSlug, prefix, tag1Name, tag1Slug, tag2Name, tag2Slug)
+
+	if tag1First {
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_aggregate" "test" {
+  prefix = %[1]q
+  rir    = netbox_rir.test.id
+  tags = [
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    },
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    }
+  ]
+}
+`, prefix)
+	}
+
+	return baseConfig + fmt.Sprintf(`
+resource "netbox_aggregate" "test" {
+  prefix = %[1]q
+  rir    = netbox_rir.test.id
+  tags = [
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    },
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    }
+  ]
+}
+`, prefix)
+}
+
 func TestAccAggregateResource_validationErrors(t *testing.T) {
 	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
 		ResourceName: "netbox_aggregate",

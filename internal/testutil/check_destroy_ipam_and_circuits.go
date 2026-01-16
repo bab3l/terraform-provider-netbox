@@ -426,6 +426,56 @@ func CheckVLANDestroy(s *terraform.State) error {
 
 }
 
+// CheckAggregateDestroy verifies that an aggregate has been destroyed.
+
+func CheckAggregateDestroy(s *terraform.State) error {
+
+	client, err := GetSharedClient()
+
+	if err != nil {
+
+		return fmt.Errorf("failed to get client: %w", err)
+
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+
+		if rs.Type != "netbox_aggregate" {
+
+			continue
+
+		}
+
+		id := rs.Primary.ID
+
+		if id != "" {
+
+			var idInt int32
+
+			if _, parseErr := fmt.Sscanf(id, "%d", &idInt); parseErr == nil {
+
+				_, resp, err := client.IpamAPI.IpamAggregatesRetrieve(ctx, idInt).Execute()
+
+				if err == nil && resp.StatusCode == http.StatusOK {
+
+					return fmt.Errorf("aggregate with ID %s still exists", id)
+
+				}
+
+			}
+
+		}
+
+	}
+
+	return nil
+
+}
+
 // CheckPrefixDestroy verifies that a prefix has been destroyed.
 
 func CheckPrefixDestroy(s *terraform.State) error {
