@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 43/86 resources complete (50.0%)
+**Status**: 44/86 resources complete (51.2%)
 
 ## Completed Resources
 
@@ -248,6 +248,11 @@
 - Duration: ~9.4s
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), optional+computed field coverage
 
+### 44. IPSec Policy (ipam_ipsec_policy)
+- 7 tests passing (5 regular + 2 tag tests)
+- Duration: ~8.6s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), IPsec policy metadata
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -270,7 +275,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 43 resources.
+Continue alphabetically through remaining 42 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
@@ -304,6 +309,8 @@ Continue alphabetically through remaining 43 resources.
 - Inventory Item (resource 40)
 - Inventory Item Role (resource 41)
 - IP Range (resource 43)
+- IPSec Policy (resource 44)
+- IPSec Policy (resource 44)
 - Inventory Item Template (resource 42)
 - IP Range (resource 43)
 - Inventory Item Role (resource 41)
