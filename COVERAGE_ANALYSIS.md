@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 32/86 resources complete (37.2%)
+**Status**: 33/86 resources complete (38.4%)
 
 ## Completed Resources
 
@@ -190,6 +190,12 @@
 - Checklist: FHRP_GROUP_ASSIGNMENT_CHECKLIST.md
 - **Notable**: No tag support, junction resource linking FHRP groups to interfaces
 
+### 33. FHRP Group (ipam_fhrp_group)
+- 9 tests passing (7 regular + 2 tag tests + 1 with validation subtests)
+- Duration: ~5.3s
+- Checklist: FHRP_GROUP_CHECKLIST.md
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), First Hop Redundancy Protocol (VRRP/HSRP) resource
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -238,6 +244,7 @@ Continue alphabetically through remaining 61 resources.
 - Contact Group (resource 21)
 - Contact Role (resource 23)
 - Device (resource 29)
+- FHRP Group (resource 33)
 
 **Action Items** (after test standardization complete):
 1. Identify all resources using nested tag format
