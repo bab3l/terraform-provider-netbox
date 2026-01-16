@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 6/86 resources complete (6.9%)
+**Status**: 7/86 resources complete (8.1%)
 
 ## Completed Resources
 
@@ -35,6 +35,11 @@
 - Duration: ~20s
 - Checklist: CABLE_CHECKLIST.md
 - **Notable**: Fixed provider-wide tag lifecycle bug during implementation
+
+### 7. Circuit (circuits_circuit)
+- 11/11 tests passing
+- Duration: ~15s
+- Checklist: CIRCUIT_CHECKLIST.md
 
 ## Standard Test Pattern
 
