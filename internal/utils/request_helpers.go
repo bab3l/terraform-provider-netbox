@@ -104,7 +104,9 @@ func ApplyLabel[T LabelSetter](request T, label types.String) {
 // Works with any request type that implements TagsSetter.
 // Returns any diagnostics from converting the tag models.
 func ApplyTags[T TagsSetter](ctx context.Context, request T, tags types.Set, diags *diag.Diagnostics) {
+	// If tags is null or empty, explicitly send empty array to clear tags
 	if !IsSet(tags) {
+		request.SetTags([]netbox.NestedTagRequest{})
 		return
 	}
 
@@ -385,13 +387,9 @@ func ApplyCommonFieldsWithMerge[T FullCommonFieldsSetter](
 	// Apply simple fields (description, comments) - these don't need merge logic
 	ApplyDescriptiveFields(request, description, comments)
 
-	// Apply tags - tags don't have the same merge semantics as custom fields
-	// If tags are in plan, use plan. If not, preserve state.
-	if IsSet(planTags) {
-		ApplyTags(ctx, request, planTags, diags)
-	} else if IsSet(stateTags) {
-		ApplyTags(ctx, request, stateTags, diags)
-	}
+	// Apply tags - always use plan. When tags are null/empty in plan, we clear them.
+	// Unlike custom fields, tags don't have merge semantics - the plan is the source of truth.
+	ApplyTags(ctx, request, planTags, diags)
 	if diags.HasError() {
 		return
 	}

@@ -556,15 +556,8 @@ func (r *CableResource) mapResponseToState(ctx context.Context, result *netbox.C
 		data.Comments = types.StringNull()
 	}
 
-	// Tags
-	if result.HasTags() && len(result.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(result.GetTags())
-		tagsValue, d := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(d...)
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
-	}
+	// Tags - use PopulateTagsFromAPI to handle empty set vs null correctly
+	data.Tags = utils.PopulateTagsFromAPI(ctx, result.HasTags(), result.GetTags(), data.Tags, &diags)
 
 	// Custom fields
 	if result.HasCustomFields() && len(result.GetCustomFields()) > 0 {
