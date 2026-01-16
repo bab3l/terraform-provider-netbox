@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 49/86 resources complete (57.0%)
+**Status**: 50/86 resources complete (58.1%)
 
 ## Completed Resources
 
@@ -278,6 +278,11 @@
 - Duration: ~8.7s
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), supports hierarchical parent
 
+### 50. Manufacturer (dcim_manufacturer)
+- 10 tests passing (7 regular + 2 tag tests + 1 with validation subtests)
+- Duration: ~8.7s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), core hardware metadata
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -334,6 +339,7 @@ Continue alphabetically through remaining 38 resources.
 - Inventory Item (resource 40)
 - Inventory Item Role (resource 41)
 - Location (resource 49)
+- Manufacturer (resource 50)
 - IP Range (resource 43)
 - IPSec Policy (resource 44)
 - IPSec Profile (resource 45)
