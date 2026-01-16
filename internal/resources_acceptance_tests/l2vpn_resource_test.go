@@ -76,6 +76,120 @@ func TestAccL2VPNResource_full(t *testing.T) {
 	})
 }
 
+func TestAccL2VPNResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	name := acctest.RandomWithPrefix("test-l2vpn-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccL2VPNResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccL2VPNResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccL2VPNResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
+						"slug": tag3Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccL2VPNResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccL2VPNResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := acctest.RandomWithPrefix("test-l2vpn-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterL2VPNCleanup(name)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccL2VPNResourceConfig_tagsOrder(name, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccL2VPNResourceConfig_tagsOrder(name, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+		},
+	})
+}
+
 // NOTE: Custom field tests for l2vpn resource are in resources_acceptance_tests_customfields package
 
 func testAccL2VPNResourceConfig_basic(name string) string {
@@ -112,28 +226,71 @@ resource "netbox_l2vpn" "test" {
 `, name, name)
 }
 
-func TestAccL2VPNResource_IDPreservation(t *testing.T) {
-	t.Parallel()
+func testAccL2VPNResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleNested
+	case caseTag3:
+		tagsConfig = tagsSingleNested
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
 
-	name := acctest.RandomWithPrefix("test-l2vpn-id")
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[2]s"
+  slug = %[2]q
+}
 
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterL2VPNCleanup(name)
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[3]s"
+  slug = %[3]q
+}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccL2VPNResourceConfig_basic(name),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_l2vpn.test", "id"),
-					resource.TestCheckResourceAttr("netbox_l2vpn.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_l2vpn.test", "type", "vxlan"),
-				),
-			},
-		},
-	})
+resource "netbox_tag" "tag3" {
+  name = "Tag3-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_l2vpn" "test" {
+  name = %[1]q
+  slug = %[1]q
+  type = "vxlan"
+  %[5]s
+}
+`, name, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccL2VPNResourceConfig_tagsOrder(name, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleNestedReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[2]s"
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_l2vpn" "test" {
+  name = %[1]q
+  slug = %[1]q
+  type = "vxlan"
+  %[4]s
+}
+`, name, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func TestAccConsistency_L2VPN_LiteralNames(t *testing.T) {

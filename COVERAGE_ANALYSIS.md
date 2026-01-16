@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 46/86 resources complete (53.5%)
+**Status**: 47/86 resources complete (54.7%)
 
 ## Completed Resources
 
@@ -263,6 +263,11 @@
 - Duration: ~7.8s
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), IPsec proposal metadata
 
+### 47. L2VPN (ipam_l2vpn)
+- 8 tests passing (6 regular + 2 tag tests + 1 with validation subtests)
+- Duration: ~9.1s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), L2VPN service resource
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -285,7 +290,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 40 resources.
+Continue alphabetically through remaining 39 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
@@ -322,6 +327,8 @@ Continue alphabetically through remaining 40 resources.
 - IPSec Policy (resource 44)
 - IPSec Profile (resource 45)
 - IPSec Proposal (resource 46)
+- L2VPN (resource 47)
+- L2VPN (resource 47)
 - IPSec Proposal (resource 46)
 - IPSec Profile (resource 45)
 - IPSec Policy (resource 44)
