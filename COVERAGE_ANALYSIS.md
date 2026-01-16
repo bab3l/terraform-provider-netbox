@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 39/86 resources complete (45.3%)
+**Status**: 40/86 resources complete (46.5%)
 
 ## Completed Resources
 
@@ -228,6 +228,11 @@
 - Duration: ~7.1s
 - **Notable**: Template resource, does not support tags, includes optional+computed field coverage
 
+### 40. Inventory Item (dcim_inventory_item)
+- 10 tests passing (8 regular + 2 tag tests + 1 with validation subtests)
+- Duration: ~9.2s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), device-bound hardware inventory
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -250,7 +255,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 47 resources.
+Continue alphabetically through remaining 46 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
@@ -281,6 +286,8 @@ Continue alphabetically through remaining 47 resources.
 - IKE Policy (resource 36)
 - IKE Proposal (resource 37)
 - Interface (resource 38)
+- Inventory Item (resource 40)
+- Inventory Item (resource 40)
 - Interface (resource 38)
 
 **Action Items** (after test standardization complete):
