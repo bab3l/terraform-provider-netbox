@@ -4,7 +4,7 @@ This document tracks the current state of acceptance test coverage for all resou
 
 ## Progress Summary
 
-**Status:** 4 of 86 resources complete (4.7%)
+**Status:** 5 of 86 resources complete (5.8%)
 **Branch:** `feature/standardize-acceptance-tests`
 **Last Updated:** 2026-01-16
 
@@ -13,8 +13,14 @@ This document tracks the current state of acceptance test coverage for all resou
 2. **Prefix** - 9/9 tests passing, helper-only tag tests
 3. **Aggregate** - 9/9 tests passing, helper-only tag tests
 4. **ASN** - 9/9 tests passing, helper-only tag tests
+5. **ASN Range** - 11/11 tests passing, helper-only tag tests
 
 ### Recent Updates
+- **2026-01-16**: Completed ASN Range resource standardization
+  - Added 2 missing tag tests (tagLifecycle, tagOrderInvariance)
+  - All 11 gating tests passing in ~18s
+  - Tags format: objects with name and slug attributes
+  - 5/86 resources complete (5.8%)
 - **2026-01-16**: Completed ASN resource standardization
   - Added 2 missing tag tests (tagLifecycle, tagOrderInvariance)
   - Added CheckASNDestroy helper function
@@ -328,7 +334,7 @@ go test -v -run "TestAccIPAddressResource_tag" ./internal/resources_acceptance_t
 |----------|-----------------|----------------------|
 | aggregate | ✅ | ✅ | **COMPLETE ✅** |
 | asn | ✅ | ✅ | **COMPLETE ✅** |
-| asn_range | ❌ | ❌ |
+| asn_range | ✅ | ✅ | **COMPLETE ✅** |
 | cable | ❌ | ❌ |
 | circuit | ❌ | ❌ |
 | circuit_termination | ❌ | ❌ |
