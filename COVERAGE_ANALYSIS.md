@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 30/86 resources complete (34.9%)
+**Status**: 31/86 resources complete (36.0%)
 
 ## Completed Resources
 
@@ -177,6 +177,12 @@
 - Duration: ~4.6s
 - Checklist: EVENT_RULE_CHECKLIST.md
 - **Notable**: No tag support, automation/workflow resource, requires webhook dependency
+
+### 31. Export Template (extras_export_template)
+- 7 tests passing (6 regular + 1 extended)
+- Duration: ~3.5s
+- Checklist: EXPORT_TEMPLATE_CHECKLIST.md
+- **Notable**: No tag support, Jinja2 template-based resource for data export
 
 ## Standard Test Pattern
 
