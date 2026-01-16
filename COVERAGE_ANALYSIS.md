@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 12/86 resources complete (14.0%)
+**Status**: 13/86 resources complete (15.1%)
 
 ## Completed Resources
 
@@ -70,6 +70,12 @@
 - Checklist: CLUSTER_GROUP_CHECKLIST.md
 - **Notable**: Uses nested tag format `{name, slug}` consistently
 
+### 13. Cluster Type (virtualization_cluster_type)
+- 7 tests passing
+- Duration: ~3.1s
+- Checklist: CLUSTER_TYPE_CHECKLIST.md
+- **Notable**: No tag support (simple resource)
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -92,7 +98,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 74 resources.
+Continue alphabetically through remaining 73 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
