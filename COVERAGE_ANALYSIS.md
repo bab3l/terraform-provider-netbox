@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 34/86 resources complete (39.5%)
+**Status**: 35/86 resources complete (40.7%)
 
 ## Completed Resources
 
@@ -202,6 +202,12 @@
 - Checklist: FRONT_PORT_CHECKLIST.md
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), requires rear port dependency, physical port resource
 
+### 35. Front Port Template (dcim_front_port_template)
+- 6 tests passing (5 regular + 1 with validation subtests)
+- Duration: ~6.9s
+- Checklist: FRONT_PORT_TEMPLATE_CHECKLIST.md
+- **Notable**: Template resource, does not support tags, requires device type and rear port template dependencies
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -224,7 +230,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 61 resources.
+Continue alphabetically through remaining 51 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
