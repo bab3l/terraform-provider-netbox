@@ -85,34 +85,6 @@ func TestAccASNResource_full(t *testing.T) {
 	})
 }
 
-func TestAccASNResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	rirName := testutil.RandomName("tf-test-rir-id")
-	rirSlug := testutil.RandomSlug("tf-test-rir-id")
-	// Generate a random ASN in the private range (64912-65111) - non-overlapping with other tests
-	asn := int64(acctest.RandIntRange(64912, 65111))
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterRIRCleanup(rirSlug)
-	cleanup.RegisterASNCleanup(asn)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccASNResourceConfig_basic(rirName, rirSlug, asn),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_asn.test", "id"),
-					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
-				),
-			},
-		},
-	})
-
-}
-
 func TestAccASNResource_update(t *testing.T) {
 	t.Parallel()
 

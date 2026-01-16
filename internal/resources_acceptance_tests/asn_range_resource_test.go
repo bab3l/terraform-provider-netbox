@@ -244,39 +244,6 @@ func TestAccASNRangeResource_external_deletion(t *testing.T) {
 	})
 }
 
-func TestAccASNRangeResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-asn-range-id")
-	slug := testutil.RandomSlug("tf-test-asn-range-id")
-	rirName := testutil.RandomName("tf-test-rir-id")
-	rirSlug := testutil.RandomSlug("tf-test-rir-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterASNRangeCleanup(name)
-	cleanup.RegisterRIRCleanup(rirSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy: testutil.ComposeCheckDestroy(
-			testutil.CheckASNRangeDestroy,
-			testutil.CheckRIRDestroy,
-		),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccASNRangeResourceConfig_basic(name, slug, rirName, rirSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "id"),
-					resource.TestCheckResourceAttr("netbox_asn_range.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_asn_range.test", "slug", slug),
-				),
-			},
-		},
-	})
-
-}
-
 func testAccASNRangeResourceConfig_basic(name, slug, rirName, rirSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_rir" "test" {

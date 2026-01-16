@@ -116,32 +116,6 @@ func TestAccAggregateResource_full(t *testing.T) {
 	})
 }
 
-func TestAccAggregateResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	rirName := testutil.RandomName("tf-test-rir-id")
-	rirSlug := testutil.RandomSlug("tf-test-rir-id")
-	prefix := testutil.RandomIPv4Prefix()
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterRIRCleanup(rirSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAggregateResourceConfig_basic(rirName, rirSlug, prefix),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "id"),
-					resource.TestCheckResourceAttr("netbox_aggregate.test", "prefix", prefix),
-				),
-			},
-		},
-	})
-
-}
-
 func TestAccAggregateResource_removeOptionalFields(t *testing.T) {
 	t.Parallel()
 

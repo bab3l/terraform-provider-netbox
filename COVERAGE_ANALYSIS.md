@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 7/86 resources complete (8.1%)
+**Status**: 8/86 resources complete (9.3%)
 
 ## Completed Resources
 
@@ -40,6 +40,11 @@
 - 11/11 tests passing
 - Duration: ~15s
 - Checklist: CIRCUIT_CHECKLIST.md
+
+### 8. Circuit Group (circuits_circuit_group)
+- 11/11 tests passing
+- Duration: ~15s
+- Checklist: CIRCUIT_GROUP_CHECKLIST.md
 
 ## Standard Test Pattern
 
