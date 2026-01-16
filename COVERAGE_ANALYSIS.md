@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 38/86 resources complete (44.2%)
+**Status**: 39/86 resources complete (45.3%)
 
 ## Completed Resources
 
@@ -223,6 +223,11 @@
 - Duration: ~18.4s
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), complex device dependencies, includes optional+computed field coverage
 
+### 39. Interface Template (dcim_interface_template)
+- 8 tests passing (7 regular + 1 with validation subtests)
+- Duration: ~7.1s
+- **Notable**: Template resource, does not support tags, includes optional+computed field coverage
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -245,7 +250,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 48 resources.
+Continue alphabetically through remaining 47 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
