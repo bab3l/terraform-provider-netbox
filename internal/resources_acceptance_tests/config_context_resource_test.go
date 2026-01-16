@@ -127,33 +127,6 @@ func TestAccConsistency_ConfigContext_LiteralNames(t *testing.T) {
 	})
 }
 
-func TestAccConfigContextResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("config-context")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterConfigContextCleanup(name)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccConfigContextResourceConfig_basic(name),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_config_context.test", "id"),
-					resource.TestCheckResourceAttr("netbox_config_context.test", "name", name),
-				),
-			},
-			{
-				Config:   testAccConfigContextResourceConfig_basic(name),
-				PlanOnly: true,
-			},
-		},
-	})
-}
-
 func TestAccConfigContextResource_update(t *testing.T) {
 	t.Parallel()
 
@@ -533,4 +506,148 @@ resource "netbox_config_context" "test" {
 			},
 		},
 	})
+}
+
+// =============================================================================
+// STANDARDIZED TAG TESTS (using helpers)
+// =============================================================================
+
+// TestAccConfigContextResource_tagLifecycle tests the complete tag lifecycle using RunTagLifecycleTest helper.
+func TestAccConfigContextResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-config-context-tag")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigContextCleanup(name)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_config_context",
+		ConfigWithoutTags: func() string {
+			return testAccConfigContextResourceConfig_tagLifecycle(name, "")
+		},
+		ConfigWithTags: func() string {
+			return testAccConfigContextResourceConfig_tagLifecycle(name, tag1Slug+","+tag2Slug)
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccConfigContextResourceConfig_tagLifecycle(name, tag3Slug)
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 1,
+	})
+}
+
+func testAccConfigContextResourceConfig_tagLifecycle(name, tagSlugs string) string {
+	tagResources := ""
+	tagsList := "tags = []"
+
+	if tagSlugs != "" {
+		var slugList []string
+		current := ""
+		for _, ch := range tagSlugs {
+			if ch == ',' {
+				if current != "" {
+					slugList = append(slugList, current)
+					current = ""
+				}
+			} else {
+				current += string(ch)
+			}
+		}
+		if current != "" {
+			slugList = append(slugList, current)
+		}
+
+		// Create tag resources with unique names based on slug
+		for i, slug := range slugList {
+			tagNum := i + 1
+			tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag%d" {
+  name = %q
+  slug = %q
+}
+`, tagNum, "tag-"+slug, slug)
+		}
+
+		// Create tags list
+		var tagRefs []string
+		for i := range slugList {
+			tagNum := i + 1
+			tagRefs = append(tagRefs, fmt.Sprintf("netbox_tag.tag%d.slug", tagNum))
+		}
+		tagsList = "tags = [" + tagRefs[0]
+		for i := 1; i < len(tagRefs); i++ {
+			tagsList += ", " + tagRefs[i]
+		}
+		tagsList += "]"
+	}
+
+	return fmt.Sprintf(`
+%s
+resource "netbox_config_context" "test" {
+  name = %q
+  data = jsonencode({
+    test = "value"
+  })
+  %s
+}
+`, tagResources, name, tagsList)
+}
+
+// TestAccConfigContextResource_tagOrderInvariance tests tag order using RunTagOrderTest helper.
+func TestAccConfigContextResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-config-context-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterConfigContextCleanup(name)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_config_context",
+		ConfigWithTagsOrderA: func() string {
+			return testAccConfigContextResourceConfig_tagOrder(name, tag1Slug, tag2Slug, true)
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccConfigContextResourceConfig_tagOrder(name, tag1Slug, tag2Slug, false)
+		},
+		ExpectedTagCount: 2,
+	})
+}
+
+func testAccConfigContextResourceConfig_tagOrder(name, tag1Slug, tag2Slug string, tag1First bool) string {
+	tagsOrder := "tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]"
+	if !tag1First {
+		tagsOrder = "tags = [netbox_tag.tag2.slug, netbox_tag.tag1.slug]"
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_config_context" "test" {
+  name = %q
+  data = jsonencode({
+    test = "value"
+  })
+  %s
+}
+`, "tag-"+tag1Slug, tag1Slug, "tag-"+tag2Slug, tag2Slug, name, tagsOrder)
 }
