@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 21/86 resources complete (24.4%)
+**Status**: 22/86 resources complete (25.6%)
 
 ## Completed Resources
 
@@ -124,6 +124,12 @@
 - Checklist: CONTACT_GROUP_CHECKLIST.md
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), supports hierarchical parent relationships
 
+### 22. Contact (tenancy_contact)
+- 6 tests passing (plus 1 extended variant)
+- Duration: ~5.0s
+- Checklist: CONTACT_CHECKLIST.md
+- **Notable**: No tag support, rich contact information fields, supports group references
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -146,7 +152,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 65 resources.
+Continue alphabetically through remaining 64 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
