@@ -326,12 +326,14 @@ type TagModel struct {
 }
 
 // TagsToNestedTagRequests converts Terraform tag models to go-netbox NestedTagRequest slice.
+// Returns an empty slice (not nil) when tags is empty, to ensure API receives "tags": []
+// which properly clears tags from a resource.
 
 func TagsToNestedTagRequests(tags []TagModel) []netbox.NestedTagRequest {
 
 	if len(tags) == 0 {
 
-		return nil
+		return []netbox.NestedTagRequest{}
 
 	}
 

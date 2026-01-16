@@ -703,3 +703,321 @@ resource "netbox_ip_address" "test" {
 		},
 	})
 }
+
+// TestAccIPAddressResource_tagRemoval tests that tags can be added and then removed from an IP address.
+// This test validates:
+// 1. Creating an IP address without tags
+// 2. Adding tags to the IP address
+// 3. Removing all tags (should properly clear tags in NetBox)
+// 4. No drift after removing tags.
+func TestAccIPAddressResource_tagRemoval(t *testing.T) {
+	t.Parallel()
+
+	address := fmt.Sprintf("10.50.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create IP address without tags
+			{
+				Config: testAccIPAddressResourceConfig_withTagsSetup(address, tag1Name, tag1Slug, tag2Name, tag2Slug, false),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tags.#", "0"),
+				),
+			},
+			// Step 2: Add tags to IP address
+			{
+				Config: testAccIPAddressResourceConfig_withTagsSetup(address, tag1Name, tag1Slug, tag2Name, tag2Slug, true),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tags.#", "2"),
+				),
+			},
+			// Step 3: Remove all tags - this is the critical test for the bug
+			{
+				Config: testAccIPAddressResourceConfig_withTagsSetup(address, tag1Name, tag1Slug, tag2Name, tag2Slug, false),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tags.#", "0"),
+				),
+			},
+			// Step 4: Verify no drift after removing tags
+			{
+				Config:   testAccIPAddressResourceConfig_withTagsSetup(address, tag1Name, tag1Slug, tag2Name, tag2Slug, false),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func testAccIPAddressResourceConfig_withTagsSetup(address, tag1Name, tag1Slug, tag2Name, tag2Slug string, withTags bool) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[3]q
+  slug = %[4]q
+}
+`, tag1Name, tag1Slug, tag2Name, tag2Slug)
+
+	if withTags {
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_ip_address" "test" {
+  address = %[1]q
+  tags = [
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    },
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    }
+  ]
+}
+`, address)
+	}
+
+	return baseConfig + fmt.Sprintf(`
+resource "netbox_ip_address" "test" {
+  address = %[1]q
+  tags    = []
+}
+`, address)
+}
+
+// TestAccIPAddressResource_createWithTags tests creating an IP address with tags from the start.
+func TestAccIPAddressResource_createWithTags(t *testing.T) {
+	t.Parallel()
+
+	address := fmt.Sprintf("10.51.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create IP address with tags from the start
+			{
+				Config: testAccIPAddressResourceConfig_withTagsSetup(address, tag1Name, tag1Slug, tag2Name, tag2Slug, true),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tags.#", "2"),
+				),
+			},
+			// Verify no drift
+			{
+				Config:   testAccIPAddressResourceConfig_withTagsSetup(address, tag1Name, tag1Slug, tag2Name, tag2Slug, true),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+// TestAccIPAddressResource_modifyTags tests changing tags on an IP address.
+func TestAccIPAddressResource_modifyTags(t *testing.T) {
+	t.Parallel()
+
+	address := fmt.Sprintf("10.52.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create with tag1 and tag2
+			{
+				Config: testAccIPAddressResourceConfig_withSpecificTags(address, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, []int{1, 2}),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tags.#", "2"),
+				),
+			},
+			// Step 2: Change to tag2 and tag3 (remove tag1, keep tag2, add tag3)
+			{
+				Config: testAccIPAddressResourceConfig_withSpecificTags(address, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, []int{2, 3}),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tags.#", "2"),
+				),
+			},
+			// Step 3: Change to only tag3 (remove tag2)
+			{
+				Config: testAccIPAddressResourceConfig_withSpecificTags(address, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, []int{3}),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tags.#", "1"),
+				),
+			},
+			// Verify no drift
+			{
+				Config:   testAccIPAddressResourceConfig_withSpecificTags(address, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, []int{3}),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+// TestAccIPAddressResource_tagOrderInvariance tests that tag order in config doesn't cause drift.
+func TestAccIPAddressResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	address := fmt.Sprintf("10.53.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create with tags in order: tag1, tag2
+			{
+				Config: testAccIPAddressResourceConfig_tagsOrder(address, tag1Name, tag1Slug, tag2Name, tag2Slug, true),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tags.#", "2"),
+				),
+			},
+			// Apply with tags in reverse order: tag2, tag1 - should have no changes
+			{
+				Config: testAccIPAddressResourceConfig_tagsOrder(address, tag1Name, tag1Slug, tag2Name, tag2Slug, false),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_address.test", "tags.#", "2"),
+				),
+			},
+			// Plan-only to verify no drift from order change
+			{
+				Config:   testAccIPAddressResourceConfig_tagsOrder(address, tag1Name, tag1Slug, tag2Name, tag2Slug, false),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func testAccIPAddressResourceConfig_withSpecificTags(address, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug string, tagsToUse []int) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = %[5]q
+  slug = %[6]q
+}
+`, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug)
+
+	// Build tags array based on which tags to include
+	var tagEntries string
+	for _, tagNum := range tagsToUse {
+		tagEntries += fmt.Sprintf(`
+    {
+      name = netbox_tag.tag%d.name
+      slug = netbox_tag.tag%d.slug
+    },`, tagNum, tagNum)
+	}
+
+	return baseConfig + fmt.Sprintf(`
+resource "netbox_ip_address" "test" {
+  address = %[1]q
+  tags = [%[2]s
+  ]
+}
+`, address, tagEntries)
+}
+
+func testAccIPAddressResourceConfig_tagsOrder(address, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[3]q
+  slug = %[4]q
+}
+`, tag1Name, tag1Slug, tag2Name, tag2Slug)
+
+	if tag1First {
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_ip_address" "test" {
+  address = %[1]q
+  tags = [
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    },
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    }
+  ]
+}
+`, address)
+	}
+
+	return baseConfig + fmt.Sprintf(`
+resource "netbox_ip_address" "test" {
+  address = %[1]q
+  tags = [
+    {
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    },
+    {
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    }
+  ]
+}
+`, address)
+}
