@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 20/86 resources complete (23.3%)
+**Status**: 21/86 resources complete (24.4%)
 
 ## Completed Resources
 
@@ -118,6 +118,12 @@
 - Checklist: CONTACT_ASSIGNMENT_CHECKLIST.md
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), generic assignment resource with ContentType pattern
 
+### 21. Contact Group (tenancy_contact_group)
+- 8 tests passing
+- Duration: ~7.0s
+- Checklist: CONTACT_GROUP_CHECKLIST.md
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), supports hierarchical parent relationships
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -140,7 +146,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 66 resources.
+Continue alphabetically through remaining 65 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
@@ -163,6 +169,7 @@ Continue alphabetically through remaining 66 resources.
 - Cluster (resource 11)
 - Cluster Group (resource 12)
 - Contact Assignment (resource 20)
+- Contact Group (resource 21)
 
 **Action Items** (after test standardization complete):
 1. Identify all resources using nested tag format

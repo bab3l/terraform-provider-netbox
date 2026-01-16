@@ -3,6 +3,7 @@ package resources_acceptance_tests
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -119,30 +120,159 @@ func TestAccContactGroupResource_update(t *testing.T) {
 	})
 }
 
-func TestAccContactGroupResource_IDPreservation(t *testing.T) {
+func TestAccContactGroupResource_tagLifecycle(t *testing.T) {
 	t.Parallel()
 
-	name := testutil.RandomName("cg-id")
+	name := testutil.RandomName("test-contact-group-tags")
 	slug := testutil.GenerateSlug(name)
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterContactGroupCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.CheckContactGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccContactGroupResourceConfig(name, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_contact_group.test", "id"),
-					resource.TestCheckResourceAttr("netbox_contact_group.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_contact_group.test", "slug", slug),
-				),
-			},
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_contact_group",
+		ConfigWithoutTags: func() string {
+			return testAccContactGroupResourceConfig_tagLifecycle(name, slug, "", "", "", "", "", "", "")
 		},
+		ConfigWithTags: func() string {
+			return testAccContactGroupResourceConfig_tagLifecycle(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag1,tag2", "", "")
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccContactGroupResourceConfig_tagLifecycle(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag3", tag3Name, tag3Slug)
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 1,
 	})
+}
+
+func testAccContactGroupResourceConfig_tagLifecycle(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, tagSet, tag3Name, tag3Slug string) string {
+	tagResources := ""
+	tagsList := ""
+
+	if tag1Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %q
+  slug = %q
+}
+`, tag1Name, tag1Slug)
+	}
+	if tag2Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag2" {
+  name = %q
+  slug = %q
+}
+`, tag2Name, tag2Slug)
+	}
+	if tag3Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag3" {
+  name = %q
+  slug = %q
+}
+`, tag3Name, tag3Slug)
+	}
+
+	if tagSet != "" {
+		tags := []string{}
+		if strings.Contains(tagSet, "tag1") {
+			tags = append(tags, `{
+      name = netbox_tag.tag1.name
+      slug = netbox_tag.tag1.slug
+    }`)
+		}
+		if strings.Contains(tagSet, "tag2") {
+			tags = append(tags, `{
+      name = netbox_tag.tag2.name
+      slug = netbox_tag.tag2.slug
+    }`)
+		}
+		if strings.Contains(tagSet, "tag3") {
+			tags = append(tags, `{
+      name = netbox_tag.tag3.name
+      slug = netbox_tag.tag3.slug
+    }`)
+		}
+		tagsList = fmt.Sprintf("  tags = [\n    %s\n  ]", strings.Join(tags, ",\n    "))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "netbox_contact_group" "test" {
+  name = %q
+  slug = %q
+%s
+}
+`, tagResources, name, slug, tagsList)
+}
+
+func TestAccContactGroupResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("test-contact-group-tag-order")
+	slug := testutil.GenerateSlug(name)
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactGroupCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_contact_group",
+		ConfigWithTagsOrderA: func() string {
+			return testAccContactGroupResourceConfig_tagOrder(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, true)
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccContactGroupResourceConfig_tagOrder(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, false)
+		},
+		ExpectedTagCount: 2,
+	})
+}
+
+func testAccContactGroupResourceConfig_tagOrder(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
+	tagsOrder := `tags = [
+    { name = netbox_tag.tag1.name, slug = netbox_tag.tag1.slug },
+    { name = netbox_tag.tag2.name, slug = netbox_tag.tag2.slug }
+  ]`
+	if !tag1First {
+		tagsOrder = `tags = [
+    { name = netbox_tag.tag2.name, slug = netbox_tag.tag2.slug },
+    { name = netbox_tag.tag1.name, slug = netbox_tag.tag1.slug }
+  ]`
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_contact_group" "test" {
+  name = %q
+  slug = %q
+  %s
+}
+`, tag1Name, tag1Slug, tag2Name, tag2Slug, name, slug, tagsOrder)
 }
 
 func TestAccConsistency_ContactGroup_LiteralNames(t *testing.T) {
