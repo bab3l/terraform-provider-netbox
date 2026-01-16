@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 23/86 resources complete (26.7%)
+**Status**: 24/86 resources complete (27.9%)
 
 ## Completed Resources
 
@@ -136,6 +136,12 @@
 - Checklist: CONTACT_ROLE_CHECKLIST.md
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), defines roles for contacts
 
+### 24. Custom Link (extras_custom_link)
+- 6 tests passing
+- Duration: ~3.7s
+- Checklist: CUSTOM_LINK_CHECKLIST.md
+- **Notable**: No tag support, extensibility feature for adding custom links to NetBox UI
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -158,7 +164,7 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 63 resources.
+Continue alphabetically through remaining 62 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session

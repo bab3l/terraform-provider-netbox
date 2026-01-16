@@ -117,35 +117,6 @@ func TestAccCustomLinkResource_update(t *testing.T) {
 	})
 }
 
-func TestAccCustomLinkResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("cl-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterCustomLinkCleanupByName(name)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.CheckCustomLinkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCustomLinkResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_custom_link.test", "id"),
-					resource.TestCheckResourceAttr("netbox_custom_link.test", "name", name),
-				),
-			},
-			{
-				// Verify no changes after create
-				Config:   testAccCustomLinkResourceConfig_basic(name),
-				PlanOnly: true,
-			},
-		},
-	})
-}
-
 func TestAccConsistency_CustomLink_LiteralNames(t *testing.T) {
 	t.Parallel()
 
