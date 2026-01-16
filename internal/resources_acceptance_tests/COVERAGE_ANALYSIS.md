@@ -345,8 +345,45 @@ The following tests have naming inconsistencies that should be addressed:
 - [x] `_modifyTags` (change tags)
 - [x] `_tagOrderInvariance` (order doesn't matter)
 - [ ] Rename to `_tagLifecycle` (consolidate into single comprehensive test)
+- [ ] Refactor to use `RunTagLifecycleTest` and `RunTagOrderTest` helpers
 
-### Phase 3: Apply Tag Tests to All Resources with Tags
+### Phase 3: Migrate Existing Tests to Use Helper Functions
+Audit and refactor existing tests to use standardized helpers from `internal/testutil/`:
+
+#### Available Test Helpers
+
+| Helper Function | Purpose | File |
+|-----------------|---------|------|
+| `RunTagLifecycleTest()` | Complete tag add/modify/remove cycle | `tag_tests.go` |
+| `RunTagOrderTest()` | Tag reordering doesn't cause drift | `tag_tests.go` |
+| `RunExternalDeletionTest()` | Handle resource deleted outside TF | `external_deletion_tests.go` |
+| `RunExternalDeletionWithIDTest()` | External deletion with ID tracking | `external_deletion_tests.go` |
+| `RunImportTest()` | Standard import testing | `import_tests.go` |
+| `RunSimpleImportTest()` | Simplified import testing | `import_tests.go` |
+| `RunUpdateTest()` | Single-step update testing | `update_tests.go` |
+| `RunMultiStepUpdateTest()` | Multi-step update scenarios | `update_tests.go` |
+| `RunFieldUpdateTest()` | Individual field update testing | `update_tests.go` |
+| `TestRemoveOptionalFields()` | Remove optional fields from config | `optional_field_tests.go` |
+| `RunOptionalFieldTestSuite()` | Comprehensive optional field tests | `optional_field_tests.go` |
+| `RunOptionalComputedFieldTestSuite()` | Optional computed field tests | `optional_computed_field_tests.go` |
+| `RunValidationErrorTest()` | Single validation error test | `validation_tests.go` |
+| `RunMultiValidationErrorTest()` | Multiple validation error cases | `validation_tests.go` |
+| `RunReferenceChangeTest()` | Reference field change testing | `reference_tests.go` |
+| `RunMultiReferenceTest()` | Multi-reference field testing | `reference_tests.go` |
+| `RunIdempotencyTest()` | Idempotency verification | `idempotency_tests.go` |
+| `RunRefreshIdempotencyTest()` | Refresh idempotency testing | `idempotency_tests.go` |
+| `RunHierarchicalTest()` | Parent-child relationship tests | `hierarchical_tests.go` |
+| `RunNestedHierarchyTest()` | Multi-level hierarchy tests | `hierarchical_tests.go` |
+
+#### Migration Priority
+1. **Tag tests** - Use `RunTagLifecycleTest()` and `RunTagOrderTest()`
+2. **External deletion tests** - Use `RunExternalDeletionTest()`
+3. **Import tests** - Use `RunImportTest()` or `RunSimpleImportTest()`
+4. **Validation tests** - Use `RunMultiValidationErrorTest()`
+5. **Update tests** - Use `RunUpdateTest()` where applicable
+6. **Optional field tests** - Use `TestRemoveOptionalFields()`
+
+### Phase 4: Apply Tag Tests to All Resources with Tags
 Priority order (most commonly used resources first):
 1. `virtual_machine`
 2. `device`
@@ -357,12 +394,18 @@ Priority order (most commonly used resources first):
 7. `cluster`
 8. ... (remaining resources)
 
-### Phase 4: Fix Naming Inconsistencies
+**Implementation approach:**
+- Use `RunTagLifecycleTest()` helper for all tag lifecycle tests
+- Use `RunTagOrderTest()` helper for tag order invariance tests
+- Create reusable config generator patterns for each resource
+
+### Phase 5: Fix Naming Inconsistencies
 - Rename `_external_deletion` tests to `_externalDeletion`
 - Standardize config function naming
 
-### Phase 5: Add Missing Import Tests
+### Phase 6: Add Missing Import Tests
 Resources needing `_import` tests (42 resources):
+- Use `RunImportTest()` or `RunSimpleImportTest()` helpers
 - circuit_group_assignment
 - circuit_termination
 - console_port
@@ -417,6 +460,24 @@ Resources needing `_import` tests (42 resources):
 - wireless_lan
 - wireless_lan_group
 - wireless_link
+
+---
+
+## Helper Function Usage Tracking
+
+Track which resources are using standardized helper functions vs custom implementations.
+
+### Legend
+- ✅ Uses helper function
+- ❌ Custom implementation (needs migration)
+- N/A Not applicable
+
+| Resource | Tag Helpers | External Del. | Import | Validation | Optional Fields |
+|----------|-------------|---------------|--------|------------|-----------------|
+| ip_address | ❌ | ❌ | ❌ | ✅ | ✅ |
+| *other resources need audit* | | | | | |
+
+**TODO:** Complete audit of all 86 resources to track helper function usage.
 
 ---
 
