@@ -197,37 +197,6 @@ func TestAccConsistency_Cluster_LiteralNames(t *testing.T) {
 	})
 }
 
-func TestAccClusterResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	clusterTypeName := testutil.RandomName("clu-type-id")
-	clusterTypeSlug := testutil.RandomSlug("clu-type-id")
-	clusterName := testutil.RandomName("clu-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterClusterCleanup(clusterName)
-	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy: testutil.ComposeCheckDestroy(
-			testutil.CheckClusterDestroy,
-			testutil.CheckClusterTypeDestroy,
-		),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccClusterResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_cluster.test", "id"),
-					resource.TestCheckResourceAttr("netbox_cluster.test", "name", clusterName),
-					resource.TestCheckResourceAttrSet("netbox_cluster.test", "type"),
-				),
-			},
-		},
-	})
-}
-
 func testAccClusterResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName string) string {
 	return fmt.Sprintf(`
 resource "netbox_cluster_type" "test" {
@@ -589,4 +558,172 @@ resource "netbox_cluster" "test" {
 			},
 		},
 	})
+}
+
+// =============================================================================
+// STANDARDIZED TAG TESTS (using helpers)
+// =============================================================================
+
+// TestAccClusterResource_tagLifecycle tests the complete tag lifecycle using RunTagLifecycleTest helper.
+func TestAccClusterResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-ct-tag")
+	clusterTypeSlug := testutil.RandomSlug("tf-ct-tag")
+	clusterName := testutil.RandomName("tf-cluster-tag")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_cluster",
+		ConfigWithoutTags: func() string {
+			return testAccClusterResourceConfig_tagLifecycle(clusterTypeName, clusterTypeSlug, clusterName, "", "", "", "", "", "", "")
+		},
+		ConfigWithTags: func() string {
+			return testAccClusterResourceConfig_tagLifecycle(clusterTypeName, clusterTypeSlug, clusterName, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag1,tag2", "", "")
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccClusterResourceConfig_tagLifecycle(clusterTypeName, clusterTypeSlug, clusterName, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag3", tag3Name, tag3Slug)
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 1,
+	})
+}
+
+func testAccClusterResourceConfig_tagLifecycle(clusterTypeName, clusterTypeSlug, clusterName, tag1Name, tag1Slug, tag2Name, tag2Slug, tagSet, tag3Name, tag3Slug string) string {
+	tagResources := ""
+	tagsList := ""
+
+	if tag1Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %q
+  slug = %q
+}
+`, tag1Name, tag1Slug)
+	}
+	if tag2Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag2" {
+  name = %q
+  slug = %q
+}
+`, tag2Name, tag2Slug)
+	}
+	if tag3Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag3" {
+  name = %q
+  slug = %q
+}
+`, tag3Name, tag3Slug)
+	}
+
+	if tagSet != "" {
+		switch tagSet {
+		case "tag1,tag2":
+			tagsList = `tags = [
+    { name = netbox_tag.tag1.name, slug = netbox_tag.tag1.slug },
+    { name = netbox_tag.tag2.name, slug = netbox_tag.tag2.slug }
+  ]`
+		case "tag3":
+			tagsList = `tags = [
+    { name = netbox_tag.tag3.name, slug = netbox_tag.tag3.slug }
+  ]`
+		default:
+			tagsList = "tags = []"
+		}
+	} else {
+		tagsList = "tags = []"
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+%s
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+  %s
+}
+`, clusterTypeName, clusterTypeSlug, tagResources, clusterName, tagsList)
+}
+
+// TestAccClusterResource_tagOrderInvariance tests tag order using RunTagOrderTest helper.
+func TestAccClusterResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-ct-order")
+	clusterTypeSlug := testutil.RandomSlug("tf-ct-order")
+	clusterName := testutil.RandomName("tf-cluster-order")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_cluster",
+		ConfigWithTagsOrderA: func() string {
+			return testAccClusterResourceConfig_tagOrder(clusterTypeName, clusterTypeSlug, clusterName, tag1Name, tag1Slug, tag2Name, tag2Slug, true)
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccClusterResourceConfig_tagOrder(clusterTypeName, clusterTypeSlug, clusterName, tag1Name, tag1Slug, tag2Name, tag2Slug, false)
+		},
+		ExpectedTagCount: 2,
+	})
+}
+
+func testAccClusterResourceConfig_tagOrder(clusterTypeName, clusterTypeSlug, clusterName, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
+	tagsOrder := `tags = [
+    { name = netbox_tag.tag1.name, slug = netbox_tag.tag1.slug },
+    { name = netbox_tag.tag2.name, slug = netbox_tag.tag2.slug }
+  ]`
+	if !tag1First {
+		tagsOrder = `tags = [
+    { name = netbox_tag.tag2.name, slug = netbox_tag.tag2.slug },
+    { name = netbox_tag.tag1.name, slug = netbox_tag.tag1.slug }
+  ]`
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tag" "tag1" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+  %s
+}
+`, clusterTypeName, clusterTypeSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, clusterName, tagsOrder)
 }

@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 10/86 resources complete (11.6%)
+**Status**: 11/86 resources complete (12.8%)
 
 ## Completed Resources
 
@@ -58,6 +58,12 @@
 - Checklist: CIRCUIT_TYPE_CHECKLIST.md
 - **Notable**: Uses nested tag format `{name, slug}` like Circuit Termination
 
+### 11. Cluster (virtualization_cluster)
+- 10 tests passing (plus 1 extended variant)
+- Duration: ~10.9s
+- Checklist: CLUSTER_CHECKLIST.md
+- **Notable**: Uses nested tag format `{name, slug}` like Circuit Termination and Circuit Type
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -80,8 +86,8 @@ Each resource includes:
   - `internal/utils/request_helpers.go` (ApplyCommonFieldsWithMerge, ApplyTags)
 
 ## Next Resource
-Continue alphabetically through remaining 80 resources.
+Continue alphabetically through remaining 75 resources.
 
 ## Estimated Completion
 - At current pace: ~4-5 resources per session
-- Estimated total time: ~17-20 sessions
+- Estimated total time: ~15-19 sessions
