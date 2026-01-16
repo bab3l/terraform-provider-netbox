@@ -6,6 +6,7 @@ const (
 	// Case identifiers for tag test configurations.
 	caseTag1Tag2    = "tag1,tag2"
 	caseTag1Uscore2 = "tag1_tag2"
+	caseTag2Uscore1 = "tag2_tag1"
 	caseTag3        = "tag3"
 
 	// Tag configuration strings for nested tag format (Phase 2 conversion needed).

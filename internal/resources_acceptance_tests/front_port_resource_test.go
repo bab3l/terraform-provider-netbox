@@ -284,20 +284,26 @@ func TestAccFrontPortResource_externalDeletion(t *testing.T) {
 	})
 }
 
-func TestAccFrontPortResource_IDPreservation(t *testing.T) {
+func TestAccFrontPortResource_tagLifecycle(t *testing.T) {
 	t.Parallel()
 
-	siteName := testutil.RandomName("tf-test-site-id")
-	siteSlug := testutil.RandomSlug("tf-test-site-id")
-	mfgName := testutil.RandomName("tf-test-mfg-id")
-	mfgSlug := testutil.RandomSlug("tf-test-mfg-id")
-	dtModel := testutil.RandomName("tf-test-dt-id")
-	dtSlug := testutil.RandomSlug("tf-test-dt-id")
-	roleName := testutil.RandomName("tf-test-role-id")
-	roleSlug := testutil.RandomSlug("tf-test-role-id")
-	deviceName := testutil.RandomName("tf-test-device-id")
-	rearPortName := testutil.RandomName("tf-test-rp-id")
-	frontPortName := testutil.RandomName("tf-test-fp-id")
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+	mfgName := testutil.RandomName("tf-test-mfg")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg")
+	dtModel := testutil.RandomName("tf-test-dt")
+	dtSlug := testutil.RandomSlug("tf-test-dt")
+	roleName := testutil.RandomName("tf-test-role")
+	roleSlug := testutil.RandomSlug("tf-test-role")
+	deviceName := testutil.RandomName("tf-test-device")
+	rearPortName := testutil.RandomName("tf-test-rp")
+	frontPortName := testutil.RandomName("tf-test-fp")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterDeviceCleanup(deviceName)
@@ -305,20 +311,65 @@ func TestAccFrontPortResource_IDPreservation(t *testing.T) {
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
 	cleanup.RegisterDeviceRoleCleanup(roleSlug)
 	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFrontPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, frontPortName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_front_port.test", "id"),
-					resource.TestCheckResourceAttr("netbox_front_port.test", "name", frontPortName),
-					resource.TestCheckResourceAttr("netbox_front_port.test", "type", "8p8c"),
-				),
-			},
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_front_port",
+		ConfigWithoutTags: func() string {
+			return testAccFrontPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, frontPortName, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "none")
 		},
+		ConfigWithTags: func() string {
+			return testAccFrontPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, frontPortName, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag1_tag2")
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccFrontPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, frontPortName, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag3")
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 1,
+		CheckDestroy:              testutil.CheckFrontPortDestroy,
+	})
+}
+
+func TestAccFrontPortResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+	mfgName := testutil.RandomName("tf-test-mfg")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg")
+	dtModel := testutil.RandomName("tf-test-dt")
+	dtSlug := testutil.RandomSlug("tf-test-dt")
+	roleName := testutil.RandomName("tf-test-role")
+	roleSlug := testutil.RandomSlug("tf-test-role")
+	deviceName := testutil.RandomName("tf-test-device")
+	rearPortName := testutil.RandomName("tf-test-rp")
+	frontPortName := testutil.RandomName("tf-test-fp")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_front_port",
+		ConfigWithTagsOrderA: func() string {
+			return testAccFrontPortResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, frontPortName, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag1_tag2")
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccFrontPortResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, frontPortName, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag2_tag1")
+		},
+		ExpectedTagCount: 2,
+		CheckDestroy:     testutil.CheckFrontPortDestroy,
 	})
 }
 
@@ -470,6 +521,145 @@ resource "netbox_front_port" "test" {
   description        = %q
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, frontPortName, label, description)
+}
+
+func testAccFrontPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, frontPortName, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagCase string) string {
+	var tagsList string
+	switch tagCase {
+	case caseTag1Uscore2:
+		tagsList = tagsDoubleNested
+	case caseTag3:
+		tagsList = tagsSingleNested
+	default:
+		tagsList = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[12]q
+  slug = %[13]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[14]q
+  slug = %[15]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = %[16]q
+  slug = %[17]q
+}
+
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[5]q
+  slug         = %[6]q
+}
+
+resource "netbox_device_role" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_device" "test" {
+  name        = %[9]q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_rear_port" "test" {
+  device = netbox_device.test.id
+  name   = %[10]q
+  type   = "8p8c"
+}
+
+resource "netbox_front_port" "test" {
+  device             = netbox_device.test.id
+  name               = %[11]q
+  type               = "8p8c"
+  rear_port          = netbox_rear_port.test.id
+  rear_port_position = 1
+  %[18]s
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, frontPortName, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagsList)
+}
+
+func testAccFrontPortResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, frontPortName, tag1Name, tag1Slug, tag2Name, tag2Slug, tagOrder string) string {
+	var tagsOrder string
+	switch tagOrder {
+	case caseTag1Uscore2:
+		tagsOrder = tagsDoubleNested
+	case caseTag2Uscore1:
+		tagsOrder = tagsDoubleNestedReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[12]q
+  slug = %[13]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[14]q
+  slug = %[15]q
+}
+
+resource "netbox_site" "test" {
+  name   = %[1]q
+  slug   = %[2]q
+  status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[5]q
+  slug         = %[6]q
+}
+
+resource "netbox_device_role" "test" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_device" "test" {
+  name        = %[9]q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+}
+
+resource "netbox_rear_port" "test" {
+  device = netbox_device.test.id
+  name   = %[10]q
+  type   = "8p8c"
+}
+
+resource "netbox_front_port" "test" {
+  device             = netbox_device.test.id
+  name               = %[11]q
+  type               = "8p8c"
+  rear_port          = netbox_rear_port.test.id
+  rear_port_position = 1
+  %[16]s
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, frontPortName, tag1Name, tag1Slug, tag2Name, tag2Slug, tagsOrder)
 }
 
 func testAccFrontPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, frontPortName, rearPortName string) string {

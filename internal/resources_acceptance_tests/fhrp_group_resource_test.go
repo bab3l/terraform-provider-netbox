@@ -294,9 +294,9 @@ resource "netbox_fhrp_group" "test" {
 func testAccFHRPGroupResourceConfig_tags(protocol string, groupID int32, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagCase string) string {
 	var tagsList string
 	switch tagCase {
-	case "tag1_tag2":
+	case caseTag1Uscore2:
 		tagsList = tagsDoubleNested
-	case "tag3":
+	case caseTag3:
 		tagsList = tagsSingleNested
 	default:
 		tagsList = tagsEmpty
@@ -329,9 +329,9 @@ resource "netbox_fhrp_group" "test" {
 func testAccFHRPGroupResourceConfig_tagsOrder(protocol string, groupID int32, tag1Name, tag1Slug, tag2Name, tag2Slug, tagOrder string) string {
 	var tagsOrder string
 	switch tagOrder {
-	case "tag1_tag2":
+	case caseTag1Uscore2:
 		tagsOrder = tagsDoubleNested
-	case "tag2_tag1":
+	case caseTag2Uscore1:
 		tagsOrder = tagsDoubleNestedReversed
 	}
 
