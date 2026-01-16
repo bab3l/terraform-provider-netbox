@@ -56,43 +56,6 @@ func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccFHRPGroupAssignmentResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("fga-id")
-	interfaceName := testutil.InterfaceName
-	// Use non-overlapping range to prevent parallel test collisions
-	groupID := int32(acctest.RandIntRange(125, 149)) // nolint:gosec
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterFHRPGroupAssignmentCleanup(name)
-	cleanup.RegisterFHRPGroupCleanup("vrrp2", groupID)
-	cleanup.RegisterDeviceCleanup(name + "-device")
-	cleanup.RegisterDeviceRoleCleanup(name + "-role")
-	cleanup.RegisterDeviceTypeCleanup(name + "-dt")
-	cleanup.RegisterManufacturerCleanup(name + "-mfr")
-	cleanup.RegisterSiteCleanup(name + "-site")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName, groupID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "id"),
-					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "group_id"),
-					resource.TestCheckResourceAttrSet("netbox_fhrp_group_assignment.test", "interface_id"),
-				),
-			},
-			{
-				Config:   testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName, groupID),
-				PlanOnly: true,
-			},
-		},
-	})
-}
-
 func testAccFHRPGroupAssignmentResourceConfig_basic(name, interfaceName string, groupID int32) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {

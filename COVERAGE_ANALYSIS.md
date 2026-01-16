@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 31/86 resources complete (36.0%)
+**Status**: 32/86 resources complete (37.2%)
 
 ## Completed Resources
 
@@ -183,6 +183,12 @@
 - Duration: ~3.5s
 - Checklist: EXPORT_TEMPLATE_CHECKLIST.md
 - **Notable**: No tag support, Jinja2 template-based resource for data export
+
+### 32. FHRP Group Assignment (ipam_fhrp_group_assignment)
+- 5 tests passing (4 regular + 1 with validation subtests)
+- Duration: ~5.2s
+- Checklist: FHRP_GROUP_ASSIGNMENT_CHECKLIST.md
+- **Notable**: No tag support, junction resource linking FHRP groups to interfaces
 
 ## Standard Test Pattern
 
