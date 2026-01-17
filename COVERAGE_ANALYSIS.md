@@ -62,7 +62,7 @@
 - 10 tests passing (plus 1 extended variant)
 - Duration: ~10.9s
 - Checklist: CLUSTER_CHECKLIST.md
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+- **Notable**: ✅ Converted to slug list tags (Phase 2)
 
 ### 12. Cluster Group (virtualization_cluster_group)
 - 8 tests passing
@@ -503,7 +503,6 @@ Continue alphabetically through remaining 38 resources.
 **Decision**: Standardize ALL resources to use the simpler **slug list format**
 
 **Resources requiring conversion** (nested → slug list):
-- Cluster (resource 11)
 - Cluster Group (resource 12)
 - Contact Assignment (resource 20)
 - Contact Group (resource 21)

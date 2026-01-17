@@ -12,6 +12,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -104,6 +105,9 @@ func (r *ClusterResource) Schema(ctx context.Context, req resource.SchemaRequest
 
 	// Add common metadata attributes (tags, custom_fields)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+
+	// Cluster uses tag slug list format
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 }
 
 // Configure sets up the resource with the provider client.
@@ -217,8 +221,17 @@ func (r *ClusterResource) buildClusterRequest(ctx context.Context, data *Cluster
 		clusterRequest.SetSiteNil()
 	}
 
-	// Apply common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, clusterRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	// Apply description and comments
+	utils.ApplyDescriptiveFields(clusterRequest, data.Description, data.Comments)
+
+	// Apply tags
+	utils.ApplyTagsFromSlugs(ctx, r.client, clusterRequest, data.Tags, diags)
+	if diags.HasError() {
+		return nil
+	}
+
+	// Apply custom fields
+	utils.ApplyCustomFields(ctx, clusterRequest, data.CustomFields, diags)
 	return clusterRequest
 }
 
@@ -265,7 +278,7 @@ func (r *ClusterResource) buildClusterRequestWithState(ctx context.Context, plan
 	utils.ApplyDescriptiveFields(clusterRequest, plan.Description, plan.Comments)
 
 	// Apply tags
-	utils.ApplyTags(ctx, clusterRequest, plan.Tags, diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, clusterRequest, plan.Tags, diags)
 	if diags.HasError() {
 		return nil
 	}
@@ -319,7 +332,19 @@ func (r *ClusterResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	data.Tags = utils.PopulateTagsFromAPI(ctx, cluster.HasTags(), cluster.GetTags(), planTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case cluster.HasTags() && len(cluster.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(cluster.GetTags()))
+		for _, tag := range cluster.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, cluster.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -377,7 +402,19 @@ func (r *ClusterResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Preserve null/empty state values for tags and custom_fields
-	data.Tags = utils.PopulateTagsFromAPI(ctx, cluster.HasTags(), cluster.GetTags(), stateTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
+	switch {
+	case cluster.HasTags() && len(cluster.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(cluster.GetTags()))
+		for _, tag := range cluster.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, cluster.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -441,7 +478,19 @@ func (r *ClusterResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	plan.Tags = utils.PopulateTagsFromAPI(ctx, cluster.HasTags(), cluster.GetTags(), planTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case cluster.HasTags() && len(cluster.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(cluster.GetTags()))
+		for _, tag := range cluster.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		plan.Tags = types.SetNull(types.StringType)
+	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, cluster.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
