@@ -11,6 +11,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -80,8 +81,9 @@ func (r *InventoryItemRoleResource) Schema(ctx context.Context, req resource.Sch
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("inventory item role"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom_fields
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *InventoryItemRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -115,9 +117,12 @@ func (r *InventoryItemRoleResource) Create(ctx context.Context, req resource.Cre
 		apiReq.SetColor(data.Color.ValueString())
 	}
 
-	// Handle description and metadata fields
+	// Handle description
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+
+	// Handle tags and custom_fields
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -230,9 +235,11 @@ func (r *InventoryItemRoleResource) Update(ctx context.Context, req resource.Upd
 		apiReq.SetColor(plan.Color.ValueString())
 	}
 
-	// Handle description and metadata fields with merge
+	// Handle description
 	utils.ApplyDescription(apiReq, plan.Description)
-	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+
+	// Handle tags and custom_fields with merge
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, plan.Tags, &resp.Diagnostics)
 	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -346,8 +353,21 @@ func (r *InventoryItemRoleResource) mapResponseToModel(ctx context.Context, role
 		data.Description = types.StringNull()
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, role.HasTags(), role.GetTags(), data.Tags, diags)
+	// Handle tags (filter-to-owned)
+	planTags := data.Tags
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case role.HasTags() && len(role.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(role.GetTags()))
+		for _, tag := range role.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 
 	// Handle custom fields using filter-to-owned helper
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, role.GetCustomFields(), diags)
