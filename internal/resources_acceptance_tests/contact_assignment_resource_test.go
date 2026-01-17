@@ -3,7 +3,6 @@ package resources_acceptance_tests
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -42,8 +41,7 @@ func TestAccContactAssignmentResource_full(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "role_id"),
 					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "priority", "primary"),
 					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "tags.0.name", tagName),
-					resource.TestCheckResourceAttr("netbox_contact_assignment.test", "tags.0.slug", tagSlug),
+					resource.TestCheckTypeSetElemAttr("netbox_contact_assignment.test", "tags.*", tagSlug),
 				),
 			},
 		},
@@ -182,26 +180,16 @@ resource "netbox_tag" "tag3" {
 	}
 
 	if tagSet != "" {
-		tags := []string{}
-		if strings.Contains(tagSet, "tag1") {
-			tags = append(tags, `{
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    }`)
+		switch tagSet {
+		case caseTag1Tag2:
+			tagsList = tagsDoubleSlug
+		case caseTag3:
+			tagsList = tagsSingleSlug
+		default:
+			tagsList = tagsEmpty
 		}
-		if strings.Contains(tagSet, "tag2") {
-			tags = append(tags, `{
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }`)
-		}
-		if strings.Contains(tagSet, "tag3") {
-			tags = append(tags, `{
-      name = netbox_tag.tag3.name
-      slug = netbox_tag.tag3.slug
-    }`)
-		}
-		tagsList = fmt.Sprintf("  tags = [\n    %s\n  ]", strings.Join(tags, ",\n    "))
+	} else {
+		tagsList = tagsEmpty
 	}
 
 	return fmt.Sprintf(`
@@ -265,9 +253,9 @@ func TestAccContactAssignmentResource_tagOrderInvariance(t *testing.T) {
 }
 
 func testAccContactAssignmentResourceConfig_tagOrder(name, slug, email, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
-	tagsOrder := tagsDoubleNested
+	tagsOrder := tagsDoubleSlug
 	if !tag1First {
-		tagsOrder = tagsDoubleNestedReversed
+		tagsOrder = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`
@@ -400,12 +388,7 @@ resource "netbox_contact_assignment" "test" {
   contact_id  = netbox_contact.test.id
   role_id     = netbox_contact_role.test.id
   priority    = "primary"
-  tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
-  ]
+	tags = [netbox_tag.test.slug]
 }
 `, name, slug, name, email, name, slug, tagName, tagSlug)
 }

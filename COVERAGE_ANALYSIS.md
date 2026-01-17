@@ -116,7 +116,7 @@
 - 9 tests passing
 - Duration: ~10.7s
 - Checklist: CONTACT_ASSIGNMENT_CHECKLIST.md
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), generic assignment resource with ContentType pattern
+- **Notable**: ✅ Converted to slug list tags (Phase 2), generic assignment resource with ContentType pattern
 
 ### 21. Contact Group (tenancy_contact_group)
 - 8 tests passing
