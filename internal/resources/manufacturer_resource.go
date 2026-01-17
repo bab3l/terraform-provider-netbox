@@ -9,6 +9,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -55,7 +56,8 @@ func (r *ManufacturerResource) Schema(ctx context.Context, req resource.SchemaRe
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("manufacturer"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Implement Configure, Create, Read, Update, Delete, ImportState methods here.
@@ -89,7 +91,7 @@ func (r *ManufacturerResource) Create(ctx context.Context, req resource.CreateRe
 	utils.ApplyDescription(&manufacturerRequest, data.Description)
 
 	// Handle tags
-	utils.ApplyTags(ctx, &manufacturerRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &manufacturerRequest, data.Tags, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -204,7 +206,7 @@ func (r *ManufacturerResource) Update(ctx context.Context, req resource.UpdateRe
 	utils.ApplyDescription(&manufacturerRequest, data.Description)
 
 	// Handle tags
-	utils.ApplyTags(ctx, &manufacturerRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &manufacturerRequest, data.Tags, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -273,8 +275,24 @@ func (r *ManufacturerResource) mapManufacturerToState(ctx context.Context, manuf
 	data.Slug = types.StringValue(manufacturer.GetSlug())
 	data.Description = utils.StringFromAPI(manufacturer.HasDescription(), manufacturer.GetDescription, data.Description)
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, manufacturer.HasTags(), manufacturer.GetTags(), data.Tags, diags)
+	// Handle tags using filter-to-owned approach
+	planTags := data.Tags
+	switch {
+	case planTags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(planTags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		if manufacturer.HasTags() {
+			var tagSlugs []string
+			for _, tag := range manufacturer.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+		}
+	}
 
 	// Handle custom fields - filter to owned fields only
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, manufacturer.GetCustomFields(), diags)
