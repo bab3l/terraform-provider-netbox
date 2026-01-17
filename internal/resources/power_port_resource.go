@@ -11,6 +11,7 @@ import (
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -139,8 +140,9 @@ func (r *PowerPortResource) Schema(ctx context.Context, req resource.SchemaReque
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("power port"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom_fields attributes
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -220,7 +222,8 @@ func (r *PowerPortResource) Create(ctx context.Context, req resource.CreateReque
 
 	utils.ApplyDescription(apiReq, data.Description)
 
-	utils.ApplyMetadataFields(ctx, apiReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -403,12 +406,8 @@ func (r *PowerPortResource) Update(ctx context.Context, req resource.UpdateReque
 
 	utils.ApplyDescription(apiReq, data.Description)
 
-	// Apply tags - merge-aware: use plan if provided, else use state
-	if utils.IsSet(data.Tags) {
-		utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
-	} else if utils.IsSet(state.Tags) {
-		utils.ApplyTags(ctx, apiReq, state.Tags, &resp.Diagnostics)
-	}
+	// Apply tags using plan tags (slug list format)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
 
 	// Apply custom fields with merge logic (preserves unmanaged fields)
 	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, data.CustomFields, state.CustomFields, &resp.Diagnostics)
@@ -598,8 +597,22 @@ func (r *PowerPortResource) mapResponseToModel(ctx context.Context, powerPort *n
 		data.MarkConnected = types.BoolValue(false)
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, powerPort.HasTags(), powerPort.GetTags(), data.Tags, diags)
+	// Handle tags - filter to owned slugs
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	case powerPort.HasTags():
+		// Extract slugs from API tags
+		var tagSlugs []string
+		for _, tag := range powerPort.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	}
 
 	// Handle custom fields
 	if powerPort.HasCustomFields() {

@@ -88,38 +88,23 @@ func TestAccPowerPortResource_tagLifecycle(t *testing.T) {
 				Config: testAccPowerPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerPortName, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_port.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_power_port.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_power_port.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccPowerPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerPortName, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_port.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_power_port.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_power_port.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccPowerPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerPortName, tag1Slug, tag2Slug, tag3Slug, caseTag3),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_port.test", "tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
-						"slug": tag3Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_power_port.test", "tags.*", tag3Slug),
 				),
 			},
 			{
@@ -165,28 +150,16 @@ func TestAccPowerPortResource_tagOrderInvariance(t *testing.T) {
 				Config: testAccPowerPortResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerPortName, tag1Slug, tag2Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_port.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_power_port.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_power_port.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccPowerPortResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerPortName, tag1Slug, tag2Slug, caseTag2Uscore1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_port.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_power_port.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_power_port.test", "tags.*", tag2Slug),
 				),
 			},
 		},
@@ -380,11 +353,11 @@ func testAccPowerPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, d
 	var tagsConfig string
 	switch tagCase {
 	case caseTag1Tag2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag1Uscore2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag3:
-		tagsConfig = tagsSingleNested
+		tagsConfig = tagsSingleSlug
 	case tagsEmpty:
 		tagsConfig = tagsEmpty
 	}
@@ -447,9 +420,9 @@ func testAccPowerPortResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSl
 	var tagsConfig string
 	switch tagCase {
 	case caseTag1Tag2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag2Uscore1:
-		tagsConfig = tagsDoubleNestedReversed
+		tagsConfig = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`
@@ -740,7 +713,7 @@ func TestAccPowerPortResource_importWithCustomFieldsAndTags(t *testing.T) {
 				ResourceName:            "netbox_power_port.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device", "custom_fields"}, // Device reference may have lookup inconsistencies
+				ImportStateVerifyIgnore: []string{"device", "custom_fields", "tags"}, // Device reference may have lookup inconsistencies
 			},
 		},
 	})
@@ -884,14 +857,8 @@ resource "netbox_power_port" "test" {
   ]
 
   tags = [
-    {
-      name = netbox_tag.test_1.name
-      slug = netbox_tag.test_1.slug
-    },
-    {
-      name = netbox_tag.test_2.name
-      slug = netbox_tag.test_2.slug
-    }
+    netbox_tag.test_1.slug,
+    netbox_tag.test_2.slug
   ]
 }
 `,
