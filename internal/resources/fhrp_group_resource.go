@@ -10,6 +10,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -85,7 +86,7 @@ func (r *FHRPGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 			},
 			"description":   nbschema.DescriptionAttribute("FHRP group"),
 			"comments":      nbschema.CommentsAttribute("FHRP group"),
-			"tags":          nbschema.TagsAttribute(),
+			"tags":          nbschema.TagsSlugAttribute(),
 			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
@@ -343,7 +344,7 @@ func (r *FHRPGroupResource) setOptionalFields(ctx context.Context, fhrpGroupRequ
 	// Set common fields with merge-aware custom fields
 	utils.ApplyDescription(fhrpGroupRequest, plan.Description)
 	utils.ApplyComments(fhrpGroupRequest, plan.Comments)
-	utils.ApplyTags(ctx, fhrpGroupRequest, plan.Tags, diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, fhrpGroupRequest, plan.Tags, diags)
 	if state != nil {
 		utils.ApplyCustomFieldsWithMerge(ctx, fhrpGroupRequest, plan.CustomFields, state.CustomFields, diags)
 	} else {
@@ -399,10 +400,19 @@ func (r *FHRPGroupResource) mapFHRPGroupToState(ctx context.Context, fhrpGroup *
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags using FromAPI helper (tags don't use filter-to-owned)
-	data.Tags = utils.PopulateTagsFromAPI(ctx, fhrpGroup.HasTags(), fhrpGroup.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags using slug list handling
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case fhrpGroup.HasTags() && len(fhrpGroup.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(fhrpGroup.GetTags()))
+		for _, tag := range fhrpGroup.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
 	}
 
 	// Handle custom fields using filter-to-owned helper

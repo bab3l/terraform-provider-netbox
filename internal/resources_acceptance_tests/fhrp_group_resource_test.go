@@ -295,9 +295,9 @@ func testAccFHRPGroupResourceConfig_tags(protocol string, groupID int32, tag1Nam
 	var tagsList string
 	switch tagCase {
 	case caseTag1Uscore2:
-		tagsList = tagsDoubleNested
+		tagsList = tagsDoubleSlug
 	case caseTag3:
-		tagsList = tagsSingleNested
+		tagsList = tagsSingleSlug
 	default:
 		tagsList = tagsEmpty
 	}
@@ -330,9 +330,9 @@ func testAccFHRPGroupResourceConfig_tagsOrder(protocol string, groupID int32, ta
 	var tagsOrder string
 	switch tagOrder {
 	case caseTag1Uscore2:
-		tagsOrder = tagsDoubleNested
+		tagsOrder = tagsDoubleSlug
 	case caseTag2Uscore1:
-		tagsOrder = tagsDoubleNestedReversed
+		tagsOrder = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`
