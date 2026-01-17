@@ -12,6 +12,7 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -94,8 +95,9 @@ func (r *IPSecPolicyResource) Schema(ctx context.Context, req resource.SchemaReq
 	// Add common descriptive attributes (description, comments)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("IPSec policy"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom_fields
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *IPSecPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -374,9 +376,12 @@ func (r *IPSecPolicyResource) setOptionalFields(ctx context.Context, ipsecReques
 	// Set description
 	utils.ApplyDescription(ipsecRequest, plan.Description)
 
-	// Set comments, tags, and custom fields with merge-aware helpers
+	// Set comments
 	utils.ApplyComments(ipsecRequest, plan.Comments)
-	utils.ApplyTags(ctx, ipsecRequest, plan.Tags, diags)
+
+	// Apply tags
+	utils.ApplyTagsFromSlugs(ctx, r.client, ipsecRequest, plan.Tags, diags)
+
 	// Apply custom fields with merge logic to preserve unmanaged fields
 	if state != nil {
 		utils.ApplyCustomFieldsWithMerge(ctx, ipsecRequest, plan.CustomFields, state.CustomFields, diags)
@@ -427,8 +432,21 @@ func (r *IPSecPolicyResource) mapIPSecPolicyToState(ctx context.Context, ipsec *
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, ipsec.HasTags(), ipsec.GetTags(), data.Tags, diags)
+	// Handle tags with filter-to-owned pattern
+	planTags := data.Tags
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case ipsec.HasTags() && len(ipsec.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(ipsec.GetTags()))
+		for _, tag := range ipsec.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	if diags.HasError() {
 		return
 	}
