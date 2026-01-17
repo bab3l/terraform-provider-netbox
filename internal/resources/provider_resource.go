@@ -10,6 +10,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -82,8 +83,9 @@ func (r *ProviderResource) Schema(ctx context.Context, req resource.SchemaReques
 	// Add common descriptive attributes (description, comments)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("circuit provider"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom fields attributes
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure sets up the resource with the provider client.
@@ -134,8 +136,23 @@ func (r *ProviderResource) mapProviderToState(ctx context.Context, provider *net
 		data.Comments = types.StringNull()
 	}
 
-	// Populate tags and custom fields using unified helpers
-	data.Tags = utils.PopulateTagsFromAPI(ctx, provider.HasTags(), provider.GetTags(), data.Tags, diags)
+	// Filter tags to owned (slug list format)
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	case provider.HasTags():
+		var tagSlugs []string
+		for _, tag := range provider.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	}
+
+	// Populate custom fields
 	if provider.HasCustomFields() {
 		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, provider.GetCustomFields(), diags)
 	}
@@ -166,9 +183,22 @@ func (r *ProviderResource) Create(ctx context.Context, req resource.CreateReques
 		Slug: data.Slug.ValueString(),
 	}
 
-	// Apply common fields (description, comments, tags, custom_fields)
+	// Handle description and comments
+	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+		providerRequest.SetDescription(data.Description.ValueString())
+	}
+	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
+		providerRequest.SetComments(data.Comments.ValueString())
+	}
 
-	utils.ApplyCommonFields(ctx, &providerRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Handle tags (from slug list)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &providerRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Handle custom fields
+	utils.ApplyCustomFields(ctx, &providerRequest, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -301,8 +331,27 @@ func (r *ProviderResource) Update(ctx context.Context, req resource.UpdateReques
 		Slug: plan.Slug.ValueString(),
 	}
 
-	// Apply common fields with merge-aware custom fields
-	utils.ApplyCommonFieldsWithMerge(ctx, &providerRequest, plan.Description, plan.Comments, plan.Tags, state.Tags, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
+	// Handle description and comments - explicitly handle null values for removal
+	if plan.Description.IsNull() {
+		providerRequest.SetDescription("")
+	} else if !plan.Description.IsUnknown() {
+		providerRequest.SetDescription(plan.Description.ValueString())
+	}
+
+	if plan.Comments.IsNull() {
+		providerRequest.SetComments("")
+	} else if !plan.Comments.IsUnknown() {
+		providerRequest.SetComments(plan.Comments.ValueString())
+	}
+
+	// Handle tags (from slug list)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &providerRequest, plan.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Handle custom fields - merge-aware for updates
+	utils.ApplyCustomFieldsWithMerge(ctx, &providerRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
