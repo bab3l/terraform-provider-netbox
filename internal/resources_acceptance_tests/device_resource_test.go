@@ -1118,9 +1118,9 @@ func testAccDeviceResourceConfig_tagLifecycle(deviceName, manufacturerName, manu
 	var tagsList string
 	switch tagCase {
 	case caseTag1Uscore2:
-		tagsList = tagsDoubleNested
+		tagsList = tagsDoubleSlug
 	case caseTag3:
-		tagsList = tagsSingleNested
+		tagsList = tagsSingleSlug
 	default:
 		tagsList = tagsEmpty
 	}
@@ -1177,9 +1177,9 @@ func testAccDeviceResourceConfig_tagOrder(deviceName, manufacturerName, manufact
 	var tagsOrder string
 	switch tagOrder {
 	case caseTag1Uscore2:
-		tagsOrder = tagsDoubleNested
+		tagsOrder = tagsDoubleSlug
 	case "tag2_tag1":
-		tagsOrder = tagsDoubleNestedReversed
+		tagsOrder = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`

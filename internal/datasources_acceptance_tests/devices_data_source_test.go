@@ -232,12 +232,7 @@ resource "netbox_device" "test" {
 	role        = netbox_device_role.test.slug
 	site        = netbox_site.test.slug
 
-	tags = [
-		{
-			name = netbox_tag.test.name
-			slug = netbox_tag.test.slug
-		}
-	]
+	tags = [netbox_tag.test.slug]
 }
 
 data "netbox_devices" "test" {
@@ -286,12 +281,7 @@ resource "netbox_device" "test" {
 	role        = netbox_device_role.test.slug
 	site        = netbox_site.test.slug
 
-	tags = [
-		{
-			name = netbox_tag.test.name
-			slug = netbox_tag.test.slug
-		}
-	]
+	tags = [netbox_tag.test.slug]
 }
 
 data "netbox_devices" "test" {

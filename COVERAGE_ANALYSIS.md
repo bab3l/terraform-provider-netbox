@@ -170,7 +170,7 @@
 - 10 tests passing
 - Duration: ~12.5s
 - Checklist: DEVICE_CHECKLIST.md
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), core physical device resource, complex dependencies
+- **Notable**: ✅ Converted to slug list tags (Phase 2), core physical device resource, complex dependencies
 
 ### 30. Event Rule (extras_event_rule)
 - 7 tests passing (plus 1 extended variant)
