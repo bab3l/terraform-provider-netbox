@@ -402,9 +402,10 @@
 - **Notable**: Supports parent hierarchy
 
 ### 73. RIR (ipam_rir)
+- ✅ Converted to slug list tags (commit fae634e)
 - 9 tests passing (6 regular + 2 tag tests + 1 with validation subtests)
-- Duration: ~6.5s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+- Duration: ~4.3s
+- **Status**: Phase 2 complete - using slug list format
 
 ### 74. Role (ipam_role)
 - 10 tests passing (7 regular + 2 tag tests + 1 with validation subtests)

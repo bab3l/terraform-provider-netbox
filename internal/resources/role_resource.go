@@ -12,6 +12,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -125,7 +126,8 @@ func (r *RoleResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("role"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -465,7 +467,7 @@ func (r *RoleResource) buildRoleRequest(ctx context.Context, data *RoleResourceM
 	utils.ApplyDescription(roleRequest, data.Description)
 
 	// Apply tags
-	utils.ApplyTags(ctx, roleRequest, data.Tags, &diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, roleRequest, data.Tags, &diags)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -508,8 +510,21 @@ func (r *RoleResource) mapResponseToModel(ctx context.Context, role *netbox.Role
 		data.Description = types.StringNull()
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, role.HasTags(), role.GetTags(), data.Tags, diags)
+	// Handle tags - filter to owned slugs only
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	case role.HasTags():
+		var tagSlugs []string
+		for _, tag := range role.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	}
 
 	// Handle custom fields
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, role.GetCustomFields(), diags)

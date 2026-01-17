@@ -163,38 +163,23 @@ func TestAccRoleResource_tagLifecycle(t *testing.T) {
 				Config: testAccRoleResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_role.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_role.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_role.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_role.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_role.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccRoleResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_role.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_role.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_role.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_role.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_role.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccRoleResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag3),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_role.test", "tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_role.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
-						"slug": tag3Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_role.test", "tags.*", tag3Slug),
 				),
 			},
 			{
@@ -229,28 +214,16 @@ func TestAccRoleResource_tagOrderInvariance(t *testing.T) {
 				Config: testAccRoleResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_role.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_role.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_role.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_role.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_role.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccRoleResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, caseTag2Uscore1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_role.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_role.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_role.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_role.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_role.test", "tags.*", tag2Slug),
 				),
 			},
 		},
@@ -309,14 +282,8 @@ resource "netbox_role" "test" {
   weight      = %[4]d
 
   tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
+    netbox_tag.tag1.slug,
+    netbox_tag.tag2.slug
   ]
 
   custom_fields = [
@@ -356,14 +323,8 @@ resource "netbox_role" "test" {
   weight      = %[4]d
 
   tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
+    netbox_tag.tag1.slug,
+    netbox_tag.tag2.slug
   ]
 
   custom_fields = [
@@ -381,11 +342,11 @@ func testAccRoleResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, ta
 	var tagsConfig string
 	switch tagCase {
 	case caseTag1Tag2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag1Uscore2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag3:
-		tagsConfig = tagsSingleNested
+		tagsConfig = tagsSingleSlug
 	case tagsEmpty:
 		tagsConfig = tagsEmpty
 	}
@@ -418,9 +379,9 @@ func testAccRoleResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, tagCase
 	var tagsConfig string
 	switch tagCase {
 	case caseTag1Tag2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag2Uscore1:
-		tagsConfig = tagsDoubleNestedReversed
+		tagsConfig = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`
@@ -588,10 +549,7 @@ resource "netbox_role" "test" {
   description = %[3]q
   weight      = %[5]d
   tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
+    netbox_tag.test.slug
   ]
 }
 `, name, slug, description, tagSlug, weight)
