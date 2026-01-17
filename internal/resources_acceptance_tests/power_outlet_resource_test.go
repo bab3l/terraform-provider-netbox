@@ -53,6 +53,146 @@ func TestAccPowerOutletResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccPowerOutletResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-tags")
+	siteSlug := testutil.RandomSlug("tf-test-site-tags")
+	mfgName := testutil.RandomName("tf-test-mfg-tags")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-tags")
+	dtModel := testutil.RandomName("tf-test-dt-tags")
+	dtSlug := testutil.RandomSlug("tf-test-dt-tags")
+	roleName := testutil.RandomName("tf-test-role-tags")
+	roleSlug := testutil.RandomSlug("tf-test-role-tags")
+	deviceName := testutil.RandomName("tf-test-device-tags")
+	powerOutletName := testutil.RandomName("tf-test-po-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerOutletResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_outlet.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_outlet.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_outlet.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccPowerOutletResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_outlet.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_outlet.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_outlet.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccPowerOutletResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_outlet.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_outlet.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
+						"slug": tag3Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccPowerOutletResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_outlet.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccPowerOutletResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-tag-order")
+	siteSlug := testutil.RandomSlug("tf-test-site-tag-order")
+	mfgName := testutil.RandomName("tf-test-mfg-tag-order")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-tag-order")
+	dtModel := testutil.RandomName("tf-test-dt-tag-order")
+	dtSlug := testutil.RandomSlug("tf-test-dt-tag-order")
+	roleName := testutil.RandomName("tf-test-role-tag-order")
+	roleSlug := testutil.RandomSlug("tf-test-role-tag-order")
+	deviceName := testutil.RandomName("tf-test-device-tag-order")
+	powerOutletName := testutil.RandomName("tf-test-po-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerOutletResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_outlet.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_outlet.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_outlet.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccPowerOutletResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_outlet.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_outlet.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_outlet.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+		},
+	})
+}
+
 func TestAccPowerOutletResource_full(t *testing.T) {
 	t.Parallel()
 
@@ -199,42 +339,6 @@ func TestAccPowerOutletResource_externalDeletion(t *testing.T) {
 	})
 }
 
-func TestAccPowerOutletResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	siteName := testutil.RandomName("tf-test-site-id")
-	siteSlug := testutil.RandomSlug("tf-test-site-id")
-	mfgName := testutil.RandomName("tf-test-mfg-id")
-	mfgSlug := testutil.RandomSlug("tf-test-mfg-id")
-	dtModel := testutil.RandomName("tf-test-dt-id")
-	dtSlug := testutil.RandomSlug("tf-test-dt-id")
-	roleName := testutil.RandomName("tf-test-role-id")
-	roleSlug := testutil.RandomSlug("tf-test-role-id")
-	deviceName := testutil.RandomName("tf-test-device-id")
-	powerOutletName := testutil.RandomName("tf-test-po-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterManufacturerCleanup(mfgSlug)
-	cleanup.RegisterDeviceTypeCleanup(dtSlug)
-	cleanup.RegisterDeviceRoleCleanup(roleSlug)
-	cleanup.RegisterDeviceCleanup(deviceName)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccPowerOutletResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_power_outlet.test", "id"),
-					resource.TestCheckResourceAttr("netbox_power_outlet.test", "name", powerOutletName),
-				),
-			},
-		},
-	})
-}
-
 func testAccPowerOutletResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
@@ -272,6 +376,131 @@ resource "netbox_power_outlet" "test" {
   name   = %q
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName)
+}
+
+func testAccPowerOutletResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleNested
+	case caseTag3:
+		tagsConfig = tagsSingleNested
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[11]s"
+	slug = %[11]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[12]s"
+	slug = %[12]q
+}
+
+resource "netbox_tag" "tag3" {
+	name = "Tag3-%[13]s"
+	slug = %[13]q
+}
+
+resource "netbox_site" "test" {
+	name   = %[1]q
+	slug   = %[2]q
+	status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+	name = %[3]q
+	slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %[5]q
+	slug         = %[6]q
+}
+
+resource "netbox_device_role" "test" {
+	name  = %[7]q
+	slug  = %[8]q
+	color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+	name        = %[9]q
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	site        = netbox_site.test.id
+}
+
+resource "netbox_power_outlet" "test" {
+	device = netbox_device.test.id
+	name   = %[10]q
+	%[14]s
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccPowerOutletResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleNestedReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[11]s"
+	slug = %[11]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[12]s"
+	slug = %[12]q
+}
+
+resource "netbox_site" "test" {
+	name   = %[1]q
+	slug   = %[2]q
+	status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+	name = %[3]q
+	slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %[5]q
+	slug         = %[6]q
+}
+
+resource "netbox_device_role" "test" {
+	name  = %[7]q
+	slug  = %[8]q
+	color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+	name        = %[9]q
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	site        = netbox_site.test.id
+}
+
+resource "netbox_power_outlet" "test" {
+	device = netbox_device.test.id
+	name   = %[10]q
+	%[13]s
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func testAccPowerOutletResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, powerOutletName, description string) string {
