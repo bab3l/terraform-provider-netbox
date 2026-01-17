@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 54/86 resources complete (62.8%)
+**Status**: 55/86 resources complete (64.0%)
 
 ## Completed Resources
 
@@ -302,6 +302,11 @@
 - 9 tests passing (6 regular + 2 tag tests + 1 with validation subtests)
 - Duration: ~7.1s
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), manufacturer dependency
+
+### 55. Notification Group (extras_notification_group)
+- 7 tests passing (5 regular + 1 extended variant + 1 with validation subtests)
+- Duration: ~3.2s
+- **Notable**: No tag support, handles users and groups
 
 ## Standard Test Pattern
 
