@@ -10,6 +10,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -76,8 +77,9 @@ func (r *TunnelGroupResource) Schema(ctx context.Context, req resource.SchemaReq
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("tunnel group"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add metadata attributes (slug list tags, custom_fields)
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure configures the resource with the provider client.
@@ -134,8 +136,11 @@ func (r *TunnelGroupResource) Create(ctx context.Context, req resource.CreateReq
 
 	utils.ApplyDescription(&tunnelGroupRequest, data.Description)
 
-	utils.ApplyMetadataFields(ctx, &tunnelGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
-
+	utils.ApplyTagsFromSlugs(ctx, r.client, &tunnelGroupRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFields(ctx, &tunnelGroupRequest, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -291,25 +296,11 @@ func (r *TunnelGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	// Set optional fields
 	utils.ApplyDescription(&tunnelGroupRequest, data.Description)
 
-	// Handle tags
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		var tags []utils.TagModel
-
-		resp.Diagnostics.Append(data.Tags.ElementsAs(ctx, &tags, false)...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		tunnelGroupRequest.Tags = utils.TagsToNestedTagRequests(tags)
-	}
-
 	// Apply metadata fields (tags, custom_fields) - merge-aware
 	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		utils.ApplyTags(ctx, &tunnelGroupRequest, data.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, &tunnelGroupRequest, data.Tags, &resp.Diagnostics)
 	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
-		utils.ApplyTags(ctx, &tunnelGroupRequest, state.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, &tunnelGroupRequest, state.Tags, &resp.Diagnostics)
 	}
 
 	utils.ApplyCustomFieldsWithMerge(ctx, &tunnelGroupRequest, data.CustomFields, state.CustomFields, &resp.Diagnostics)
@@ -422,7 +413,20 @@ func (r *TunnelGroupResource) mapTunnelGroupToState(ctx context.Context, tunnelG
 	}
 
 	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, len(tunnelGroup.Tags) > 0, tunnelGroup.Tags, data.Tags, diags)
+	var tagSlugs []string
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case len(tunnelGroup.Tags) > 0:
+		for _, tag := range tunnelGroup.Tags {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
 	if diags.HasError() {
 		return
 	}
