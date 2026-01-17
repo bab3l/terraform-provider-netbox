@@ -444,8 +444,8 @@
 
 ### 81. Tenant Group (tenancy_tenant_group)
 - 10 tests passing (includes 1 consistency test)
-- Duration: ~7.5s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+- Duration: ~7.0s
+- **Notable**: ✅ Phase 2 complete (commit b7b0916) - uses slug list tags
 
 ### 82. Tenant (tenancy_tenant)
 - 11 tests passing (includes 2 consistency tests)
