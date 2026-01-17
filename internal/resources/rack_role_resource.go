@@ -14,6 +14,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -78,8 +79,9 @@ func (r *RackRoleResource) Schema(ctx context.Context, req resource.SchemaReques
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("rack role"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom fields attributes
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *RackRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -142,9 +144,14 @@ func (r *RackRoleResource) Create(ctx context.Context, req resource.CreateReques
 	// Use utils helper for description
 	utils.ApplyDescription(&rackRoleRequest, data.Description)
 
-	// Apply metadata fields (tags, custom_fields)
+	// Apply tags and custom fields
+	utils.ApplyTagsFromSlugs(ctx, r.client, &rackRoleRequest, data.Tags, &resp.Diagnostics)
 
-	utils.ApplyMetadataFields(ctx, &rackRoleRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	utils.ApplyCustomFields(ctx, &rackRoleRequest, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -358,10 +365,15 @@ func (r *RackRoleResource) Update(ctx context.Context, req resource.UpdateReques
 	// Use utils helper for description
 	utils.ApplyDescription(&rackRoleRequest, plan.Description)
 
-	// Apply merge-aware metadata fields
+	// Apply tags and custom fields
+	utils.ApplyTagsFromSlugs(ctx, r.client, &rackRoleRequest, plan.Tags, &resp.Diagnostics)
 
-	utils.ApplyTags(ctx, &rackRoleRequest, plan.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	utils.ApplyCustomFieldsWithMerge(ctx, &rackRoleRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -511,10 +523,20 @@ func (r *RackRoleResource) mapRackRoleToState(ctx context.Context, rackRole *net
 		data.Description = types.StringNull()
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, rackRole.HasTags(), rackRole.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags (filter to owned, slug list format)
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	case rackRole.HasTags():
+		var tagSlugs []string
+		for _, tag := range rackRole.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
 	}
 
 	// Handle custom fields (filter to owned)
