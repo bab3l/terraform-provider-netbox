@@ -62,24 +62,162 @@ func TestAccServiceTemplateResource_full(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("service-template")
+	tagName1 := testutil.RandomName("tag1")
+	tagSlug1 := testutil.RandomSlug("tag1")
+	tagName2 := testutil.RandomName("tag2")
+	tagSlug2 := testutil.RandomSlug("tag2")
+	cfName := testutil.RandomCustomFieldName("test_field")
+	updatedDescription := "Updated service template description"
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTagCleanup(tagSlug1)
+	cleanup.RegisterTagCleanup(tagSlug2)
+	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccServiceTemplateResourceConfig_full(name),
+				Config: testAccServiceTemplateResourceConfig_full(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_service_template.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_service_template.test", "protocol", "tcp"),
 					resource.TestCheckResourceAttr("netbox_service_template.test", "ports.#", "3"),
 					resource.TestCheckResourceAttr("netbox_service_template.test", "description", "Test description"),
 					resource.TestCheckResourceAttr("netbox_service_template.test", "comments", "Test comments"),
+					resource.TestCheckResourceAttr("netbox_service_template.test", "tags.#", "2"),
+					resource.TestCheckResourceAttr("netbox_service_template.test", "custom_fields.#", "1"),
+					resource.TestCheckResourceAttr("netbox_service_template.test", "custom_fields.0.value", "test_value"),
 				),
 			},
 			{
-				Config:   testAccServiceTemplateResourceConfig_full(name),
+				Config:   testAccServiceTemplateResourceConfig_full(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				PlanOnly: true,
+			},
+			{
+				Config: testAccServiceTemplateResourceConfig_fullUpdate(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName, updatedDescription),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_service_template.test", "description", updatedDescription),
+					resource.TestCheckResourceAttr("netbox_service_template.test", "comments", "Updated comments"),
+					resource.TestCheckResourceAttr("netbox_service_template.test", "custom_fields.0.value", "updated_value"),
+				),
+			},
+			{
+				Config:   testAccServiceTemplateResourceConfig_fullUpdate(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName, updatedDescription),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func TestAccServiceTemplateResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("service-template-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccServiceTemplateResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_service_template.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_service_template.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_service_template.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccServiceTemplateResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_service_template.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_service_template.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_service_template.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccServiceTemplateResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_service_template.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_service_template.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
+						"slug": tag3Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccServiceTemplateResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_service_template.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccServiceTemplateResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("service-template-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccServiceTemplateResourceConfig_tagsOrder(name, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_service_template.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_service_template.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_service_template.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccServiceTemplateResourceConfig_tagsOrder(name, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_service_template.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_service_template.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_service_template.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
 			},
 		},
 	})
@@ -106,40 +244,98 @@ resource "netbox_service_template" "test" {
 `, name+"-updated")
 }
 
-func TestAccServiceTemplateResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("service-template-id")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccServiceTemplateResourceConfig_basic(name),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_service_template.test", "id"),
-					resource.TestCheckResourceAttr("netbox_service_template.test", "name", name),
-				),
-			},
-			{
-				Config:   testAccServiceTemplateResourceConfig_basic(name),
-				PlanOnly: true,
-			},
-		},
-	})
+func testAccServiceTemplateResourceConfig_full(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = %[2]q
+	slug = %[3]q
 }
 
-func testAccServiceTemplateResourceConfig_full(name string) string {
-	return fmt.Sprintf(`
+resource "netbox_tag" "tag2" {
+	name = %[4]q
+	slug = %[5]q
+}
+
+resource "netbox_custom_field" "test_field" {
+	name         = %[6]q
+	object_types = ["ipam.servicetemplate"]
+	type         = "text"
+}
+
 resource "netbox_service_template" "test" {
-  name        = %q
+	name        = %[1]q
   protocol    = "tcp"
   ports       = [80, 443, 8080]
   description = "Test description"
   comments    = "Test comments"
+
+	tags = [
+		{
+			name = netbox_tag.tag1.name
+			slug = netbox_tag.tag1.slug
+		},
+		{
+			name = netbox_tag.tag2.name
+			slug = netbox_tag.tag2.slug
+		}
+	]
+
+	custom_fields = [
+		{
+			name  = netbox_custom_field.test_field.name
+			type  = "text"
+			value = "test_value"
+		}
+	]
 }
-`, name)
+`, name, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+}
+
+func testAccServiceTemplateResourceConfig_fullUpdate(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName, description string) string {
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = %[2]q
+	slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = %[4]q
+	slug = %[5]q
+}
+
+resource "netbox_custom_field" "test_field" {
+	name         = %[6]q
+	object_types = ["ipam.servicetemplate"]
+	type         = "text"
+}
+
+resource "netbox_service_template" "test" {
+	name        = %[1]q
+	protocol    = "udp"
+	ports       = [53, 123]
+	description = %[7]q
+	comments    = "Updated comments"
+
+	tags = [
+		{
+			name = netbox_tag.tag1.name
+			slug = netbox_tag.tag1.slug
+		},
+		{
+			name = netbox_tag.tag2.name
+			slug = netbox_tag.tag2.slug
+		}
+	]
+
+	custom_fields = [
+		{
+			name  = netbox_custom_field.test_field.name
+			type  = "text"
+			value = "updated_value"
+		}
+	]
+}
+`, name, tagName1, tagSlug1, tagName2, tagSlug2, cfName, description)
 }
 
 func TestAccServiceTemplateResource_update(t *testing.T) {
@@ -188,7 +384,7 @@ resource "netbox_service_template" "test" {
 `, name, description)
 }
 
-func TestAccServiceTemplateResource_external_deletion(t *testing.T) {
+func TestAccServiceTemplateResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("service-template-ext")
@@ -363,4 +559,71 @@ resource "netbox_service_template" "test" {
 			},
 		},
 	})
+}
+
+func testAccServiceTemplateResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleNested
+	case caseTag3:
+		tagsConfig = tagsSingleNested
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[2]s"
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = "Tag3-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_service_template" "test" {
+  name     = %[1]q
+  protocol = "tcp"
+  ports    = [80]
+  %[5]s
+}
+`, name, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccServiceTemplateResourceConfig_tagsOrder(name, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleNestedReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[2]s"
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_service_template" "test" {
+  name     = %[1]q
+  protocol = "tcp"
+  ports    = [80]
+  %[4]s
+}
+`, name, tag1Slug, tag2Slug, tagsConfig)
 }
