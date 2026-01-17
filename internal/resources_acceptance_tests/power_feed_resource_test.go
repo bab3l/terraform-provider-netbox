@@ -44,25 +44,124 @@ func TestAccPowerFeedResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccPowerFeedResource_IDPreservation(t *testing.T) {
+func TestAccPowerFeedResource_tagLifecycle(t *testing.T) {
 	t.Parallel()
 
-	siteName := testutil.RandomName("site-id")
-	siteSlug := testutil.RandomSlug("site-id")
-	panelName := testutil.RandomName("power-panel-id")
-	feedName := testutil.RandomName("power-feed-id")
+	siteName := testutil.RandomName("site-tags")
+	siteSlug := testutil.RandomSlug("site-tags")
+	panelName := testutil.RandomName("power-panel-tags")
+	feedName := testutil.RandomName("power-feed-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterPowerPanelCleanup(panelName)
+	cleanup.RegisterPowerFeedCleanup(feedName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPowerFeedResourceConfig_basic(siteName, siteSlug, panelName, feedName),
+				Config: testAccPowerFeedResourceConfig_tags(siteName, siteSlug, panelName, feedName, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_power_feed.test", "id"),
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_feed.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_feed.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccPowerFeedResourceConfig_tags(siteName, siteSlug, panelName, feedName, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_feed.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_feed.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccPowerFeedResourceConfig_tags(siteName, siteSlug, panelName, feedName, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_feed.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
+						"slug": tag3Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccPowerFeedResourceConfig_tags(siteName, siteSlug, panelName, feedName, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccPowerFeedResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("site-tag-order")
+	siteSlug := testutil.RandomSlug("site-tag-order")
+	panelName := testutil.RandomName("power-panel-tag-order")
+	feedName := testutil.RandomName("power-feed-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterPowerPanelCleanup(panelName)
+	cleanup.RegisterPowerFeedCleanup(feedName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPowerFeedResourceConfig_tagsOrder(siteName, siteSlug, panelName, feedName, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_feed.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_feed.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccPowerFeedResourceConfig_tagsOrder(siteName, siteSlug, panelName, feedName, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_power_feed.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_feed.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_feed.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
 				),
 			},
 		},
@@ -252,6 +351,93 @@ resource "netbox_power_feed" "test" {
   name        = %[4]q
 }
 `, siteName, siteSlug, panelName, feedName)
+}
+
+func testAccPowerFeedResourceConfig_tags(siteName, siteSlug, panelName, feedName, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleNested
+	case caseTag3:
+		tagsConfig = tagsSingleNested
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[5]s"
+	slug = %[5]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[6]s"
+	slug = %[6]q
+}
+
+resource "netbox_tag" "tag3" {
+	name = "Tag3-%[7]s"
+	slug = %[7]q
+}
+
+resource "netbox_site" "test" {
+	name   = %[1]q
+	slug   = %[2]q
+	status = "active"
+}
+
+resource "netbox_power_panel" "test" {
+	site = netbox_site.test.id
+	name = %[3]q
+}
+
+resource "netbox_power_feed" "test" {
+	power_panel = netbox_power_panel.test.id
+	name        = %[4]q
+	%[8]s
+}
+`, siteName, siteSlug, panelName, feedName, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccPowerFeedResourceConfig_tagsOrder(siteName, siteSlug, panelName, feedName, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleNestedReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[5]s"
+	slug = %[5]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[6]s"
+	slug = %[6]q
+}
+
+resource "netbox_site" "test" {
+	name   = %[1]q
+	slug   = %[2]q
+	status = "active"
+}
+
+resource "netbox_power_panel" "test" {
+	site = netbox_site.test.id
+	name = %[3]q
+}
+
+resource "netbox_power_feed" "test" {
+	power_panel = netbox_power_panel.test.id
+	name        = %[4]q
+	%[7]s
+}
+`, siteName, siteSlug, panelName, feedName, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func testAccPowerFeedResourceConfig_forUpdate(siteName, siteSlug, panelName, feedName, description string) string {
