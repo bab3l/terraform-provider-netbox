@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 77/86 resources complete (89.5%)
+**Status**: 78/86 resources complete (90.7%)
 
 ## Completed Resources
 
@@ -418,6 +418,11 @@
 - Duration: ~7.8s
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
 
+### 78. Site Group (dcim_site_group)
+- 10 tests passing (includes 1 consistency test)
+- Duration: ~8.0s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -495,6 +500,7 @@ Continue alphabetically through remaining 38 resources.
 - Route Target (resource 75)
 - Service (resource 76)
 - Service Template (resource 77)
+- Site Group (resource 78)
 - IP Range (resource 43)
 - IPSec Policy (resource 44)
 - IPSec Profile (resource 45)

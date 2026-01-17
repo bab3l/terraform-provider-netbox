@@ -31,6 +31,10 @@ func TestAccSiteGroupResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_site_group.test", "slug", slug),
 				),
 			},
+			{
+				Config:   testAccSiteGroupResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -41,9 +45,18 @@ func TestAccSiteGroupResource_full(t *testing.T) {
 	name := testutil.RandomName("tf-test-site-group-full")
 	slug := testutil.RandomSlug("tf-test-sg-full")
 	description := testutil.RandomName("description")
+	updatedDescription := "Updated site group description"
+	tagName1 := testutil.RandomName("tag1")
+	tagSlug1 := testutil.RandomSlug("tag1")
+	tagName2 := testutil.RandomName("tag2")
+	tagSlug2 := testutil.RandomSlug("tag2")
+	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteGroupCleanup(slug)
+	cleanup.RegisterTagCleanup(tagSlug1)
+	cleanup.RegisterTagCleanup(tagSlug2)
+	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -51,12 +64,148 @@ func TestAccSiteGroupResource_full(t *testing.T) {
 		CheckDestroy:             testutil.CheckSiteGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSiteGroupResourceConfig_full(name, slug, description),
+				Config: testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_site_group.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_site_group.test", "slug", slug),
 					resource.TestCheckResourceAttr("netbox_site_group.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_site_group.test", "tags.#", "2"),
+					resource.TestCheckResourceAttr("netbox_site_group.test", "custom_fields.#", "1"),
+					resource.TestCheckResourceAttr("netbox_site_group.test", "custom_fields.0.value", "test_value"),
+				),
+			},
+			{
+				Config:   testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				PlanOnly: true,
+			},
+			{
+				Config: testAccSiteGroupResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_site_group.test", "description", updatedDescription),
+					resource.TestCheckResourceAttr("netbox_site_group.test", "custom_fields.0.value", "updated_value"),
+				),
+			},
+			{
+				Config:   testAccSiteGroupResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func TestAccSiteGroupResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-site-group-tags")
+	slug := testutil.RandomSlug("tf-test-sg-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteGroupCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckSiteGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSiteGroupResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_site_group.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_site_group.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_site_group.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccSiteGroupResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_site_group.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_site_group.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_site_group.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccSiteGroupResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_site_group.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_site_group.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
+						"slug": tag3Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccSiteGroupResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_site_group.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccSiteGroupResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-site-group-tag-order")
+	slug := testutil.RandomSlug("tf-test-sg-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteGroupCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckSiteGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSiteGroupResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_site_group.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_site_group.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_site_group.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccSiteGroupResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_site_group.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_site_group.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_site_group.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
 				),
 			},
 		},
@@ -86,11 +235,19 @@ func TestAccSiteGroupResource_update(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccSiteGroupResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccSiteGroupResourceConfig_basic(updatedName, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_site_group.test", "name", updatedName),
 				),
+			},
+			{
+				Config:   testAccSiteGroupResourceConfig_basic(updatedName, slug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -119,6 +276,10 @@ func TestAccSiteGroupResource_import(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccSiteGroupResourceConfig_import(name, slug),
+				PlanOnly: true,
+			},
+			{
 				ResourceName:      "netbox_site_group.test",
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -126,32 +287,6 @@ func TestAccSiteGroupResource_import(t *testing.T) {
 			{
 				Config:   testAccSiteGroupResourceConfig_import(name, slug),
 				PlanOnly: true,
-			},
-		},
-	})
-}
-
-func TestAccSiteGroupResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-site-group-id")
-	slug := testutil.RandomSlug("tf-test-sg-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteGroupCleanup(slug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.CheckSiteGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccSiteGroupResourceConfig_basic(name, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
-					resource.TestCheckResourceAttr("netbox_site_group.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_site_group.test", "slug", slug),
-				),
 			},
 		},
 	})
@@ -172,9 +307,17 @@ func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 	name := testutil.RandomName("tf-test-site-group-lit")
 	slug := testutil.RandomSlug("tf-test-site-group-lit")
 	description := testutil.RandomName("description")
+	tagName1 := testutil.RandomName("tag1")
+	tagSlug1 := testutil.RandomSlug("tag1")
+	tagName2 := testutil.RandomName("tag2")
+	tagSlug2 := testutil.RandomSlug("tag2")
+	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteGroupCleanup(slug)
+	cleanup.RegisterTagCleanup(tagSlug1)
+	cleanup.RegisterTagCleanup(tagSlug2)
+	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -182,7 +325,7 @@ func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 		CheckDestroy:             testutil.CheckSiteGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSiteGroupResourceConfig_full(name, slug, description),
+				Config: testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_site_group.test", "name", name),
@@ -191,7 +334,7 @@ func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccSiteGroupResourceConfig_full(name, slug, description),
+				Config:   testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
@@ -201,14 +344,94 @@ func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 	})
 }
 
-func testAccSiteGroupResourceConfig_full(name, slug, description string) string {
+func testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
 	return fmt.Sprintf(`
-resource "netbox_site_group" "test" {
-  name        = %q
-  slug        = %q
-  description = %q
+resource "netbox_tag" "tag1" {
+	name = %[4]q
+	slug = %[5]q
 }
-`, name, slug, description)
+
+resource "netbox_tag" "tag2" {
+	name = %[6]q
+	slug = %[7]q
+}
+
+resource "netbox_custom_field" "test_field" {
+	name         = %[8]q
+	object_types = ["dcim.sitegroup"]
+	type         = "text"
+}
+
+resource "netbox_site_group" "test" {
+	name        = %[1]q
+	slug        = %[2]q
+	description = %[3]q
+
+	tags = [
+		{
+			name = netbox_tag.tag1.name
+			slug = netbox_tag.tag1.slug
+		},
+		{
+			name = netbox_tag.tag2.name
+			slug = netbox_tag.tag2.slug
+		}
+	]
+
+	custom_fields = [
+		{
+			name  = netbox_custom_field.test_field.name
+			type  = "text"
+			value = "test_value"
+		}
+	]
+}
+`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+}
+
+func testAccSiteGroupResourceConfig_fullUpdate(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = %[4]q
+	slug = %[5]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = %[6]q
+	slug = %[7]q
+}
+
+resource "netbox_custom_field" "test_field" {
+	name         = %[8]q
+	object_types = ["dcim.sitegroup"]
+	type         = "text"
+}
+
+resource "netbox_site_group" "test" {
+	name        = %[1]q
+	slug        = %[2]q
+	description = %[3]q
+
+	tags = [
+		{
+			name = netbox_tag.tag1.name
+			slug = netbox_tag.tag1.slug
+		},
+		{
+			name = netbox_tag.tag2.name
+			slug = netbox_tag.tag2.slug
+		}
+	]
+
+	custom_fields = [
+		{
+			name  = netbox_custom_field.test_field.name
+			type  = "text"
+			value = "updated_value"
+		}
+	]
+}
+`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
 }
 
 func testAccSiteGroupResourceConfig_import(name, slug string) string {
@@ -356,4 +579,69 @@ resource "netbox_site_group" "test" {
 			},
 		},
 	})
+}
+
+func testAccSiteGroupResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleNested
+	case caseTag3:
+		tagsConfig = tagsSingleNested
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = "Tag3-%[5]s"
+  slug = %[5]q
+}
+
+resource "netbox_site_group" "test" {
+  name = %[1]q
+  slug = %[2]q
+  %[6]s
+}
+`, name, slug, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccSiteGroupResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleNestedReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_site_group" "test" {
+  name = %[1]q
+  slug = %[2]q
+  %[5]s
+}
+`, name, slug, tag1Slug, tag2Slug, tagsConfig)
 }
