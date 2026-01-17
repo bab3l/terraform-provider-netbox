@@ -162,38 +162,23 @@ func TestAccServiceResource_tagLifecycle(t *testing.T) {
 				Config: testAccServiceResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_service.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_service.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_service.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_service.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_service.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccServiceResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_service.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_service.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_service.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_service.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_service.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccServiceResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, tag1Slug, tag2Slug, tag3Slug, caseTag3),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_service.test", "tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_service.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
-						"slug": tag3Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_service.test", "tags.*", tag3Slug),
 				),
 			},
 			{
@@ -239,28 +224,16 @@ func TestAccServiceResource_tagOrderInvariance(t *testing.T) {
 				Config: testAccServiceResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, tag1Slug, tag2Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_service.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_service.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_service.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_service.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_service.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccServiceResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, tag1Slug, tag2Slug, caseTag2Uscore1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_service.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_service.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_service.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_service.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_service.test", "tags.*", tag2Slug),
 				),
 			},
 		},
@@ -527,16 +500,7 @@ resource "netbox_service" "test" {
   ports       = [22, 443]
 	description = %[16]q
 
-	tags = [
-		{
-			name = netbox_tag.tag1.name
-			slug = netbox_tag.tag1.slug
-		},
-		{
-			name = netbox_tag.tag2.name
-			slug = netbox_tag.tag2.slug
-		}
-	]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 
 	custom_fields = [
 		{
@@ -605,16 +569,7 @@ resource "netbox_service" "test" {
 	description = %[16]q
 	comments    = "Updated comments for service"
 
-	tags = [
-		{
-			name = netbox_tag.tag1.name
-			slug = netbox_tag.tag1.slug
-		},
-		{
-			name = netbox_tag.tag2.name
-			slug = netbox_tag.tag2.slug
-		}
-	]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 
 	custom_fields = [
 		{
@@ -631,11 +586,11 @@ func testAccServiceResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtM
 	var tagsConfig string
 	switch tagCase {
 	case caseTag1Tag2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag1Uscore2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag3:
-		tagsConfig = tagsSingleNested
+		tagsConfig = tagsSingleSlug
 	case tagsEmpty:
 		tagsConfig = tagsEmpty
 	}
@@ -700,9 +655,9 @@ func testAccServiceResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug
 	var tagsConfig string
 	switch tagCase {
 	case caseTag1Tag2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag2Uscore1:
-		tagsConfig = tagsDoubleNestedReversed
+		tagsConfig = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`
