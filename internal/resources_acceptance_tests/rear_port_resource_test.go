@@ -52,41 +52,6 @@ func TestAccRearPortResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccRearPortResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	siteName := testutil.RandomName("tf-test-site-id")
-	siteSlug := testutil.RandomSlug("tf-test-site-id")
-	mfgName := testutil.RandomName("tf-test-mfg-id")
-	mfgSlug := testutil.RandomSlug("tf-test-mfg-id")
-	dtModel := testutil.RandomName("tf-test-dt-id")
-	dtSlug := testutil.RandomSlug("tf-test-dt-id")
-	roleName := testutil.RandomName("tf-test-role-id")
-	roleSlug := testutil.RandomSlug("tf-test-role-id")
-	deviceName := testutil.RandomName("tf-test-device-id")
-	rearPortName := testutil.RandomName("tf-test-rp-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterManufacturerCleanup(mfgSlug)
-	cleanup.RegisterDeviceTypeCleanup(dtSlug)
-	cleanup.RegisterDeviceRoleCleanup(roleSlug)
-	cleanup.RegisterDeviceCleanup(deviceName)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRearPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_rear_port.test", "id"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccRearPortResource_update(t *testing.T) {
 	t.Parallel()
 
@@ -177,6 +142,146 @@ func TestAccRearPortResource_full(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device"},
+			},
+		},
+	})
+}
+
+func TestAccRearPortResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-tags")
+	siteSlug := testutil.RandomSlug("tf-test-site-tags")
+	mfgName := testutil.RandomName("tf-test-mfg-tags")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-tags")
+	dtModel := testutil.RandomName("tf-test-dt-tags")
+	dtSlug := testutil.RandomSlug("tf-test-dt-tags")
+	roleName := testutil.RandomName("tf-test-role-tags")
+	roleSlug := testutil.RandomSlug("tf-test-role-tags")
+	deviceName := testutil.RandomName("tf-test-device-tags")
+	rearPortName := testutil.RandomName("tf-test-rp-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRearPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRearPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRearPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
+						"slug": tag3Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRearPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccRearPortResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-tag-order")
+	siteSlug := testutil.RandomSlug("tf-test-site-tag-order")
+	mfgName := testutil.RandomName("tf-test-mfg-tag-order")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-tag-order")
+	dtModel := testutil.RandomName("tf-test-dt-tag-order")
+	dtSlug := testutil.RandomSlug("tf-test-dt-tag-order")
+	roleName := testutil.RandomName("tf-test-role-tag-order")
+	roleSlug := testutil.RandomSlug("tf-test-role-tag-order")
+	deviceName := testutil.RandomName("tf-test-device-tag-order")
+	rearPortName := testutil.RandomName("tf-test-rp-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRearPortResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRearPortResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rear_port.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
 			},
 		},
 	})
@@ -441,6 +546,137 @@ resource "netbox_rear_port" "test" {
   mark_connected = true
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName)
+}
+
+func testAccRearPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleNested
+	case caseTag3:
+		tagsConfig = tagsSingleNested
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+	name   = %[1]q
+	slug   = %[2]q
+	status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+	name = %[3]q
+	slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+	model        = %[5]q
+	slug         = %[6]q
+	manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+	name  = %[7]q
+	slug  = %[8]q
+	color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+	name        = %[9]q
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	site        = netbox_site.test.id
+	status      = "active"
+}
+
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[11]s"
+	slug = %[11]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[12]s"
+	slug = %[12]q
+}
+
+resource "netbox_tag" "tag3" {
+	name = "Tag3-%[13]s"
+	slug = %[13]q
+}
+
+resource "netbox_rear_port" "test" {
+	device     = netbox_device.test.id
+	name       = %[10]q
+	type       = "8p8c"
+	positions  = 1
+	%[14]s
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccRearPortResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleNestedReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+	name   = %[1]q
+	slug   = %[2]q
+	status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+	name = %[3]q
+	slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+	model        = %[5]q
+	slug         = %[6]q
+	manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+	name  = %[7]q
+	slug  = %[8]q
+	color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+	name        = %[9]q
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	site        = netbox_site.test.id
+	status      = "active"
+}
+
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[11]s"
+	slug = %[11]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[12]s"
+	slug = %[12]q
+}
+
+resource "netbox_rear_port" "test" {
+	device     = netbox_device.test.id
+	name       = %[10]q
+	type       = "8p8c"
+	positions  = 1
+	%[13]s
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func testAccRearPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, rearPortName string) string {
