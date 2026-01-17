@@ -13,6 +13,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -114,7 +115,8 @@ func (r *L2VPNResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("L2VPN"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *L2VPNResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -151,8 +153,15 @@ func (r *L2VPNResource) Create(ctx context.Context, req resource.CreateRequest, 
 		l2vpnRequest.SetIdentifier(data.Identifier.ValueInt64())
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, l2vpnRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Set common fields (description, comments)
+	utils.ApplyDescriptiveFields(l2vpnRequest, data.Description, data.Comments)
+
+	// Set tags and custom fields
+	utils.ApplyTagsFromSlugs(ctx, r.client, l2vpnRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFields(ctx, l2vpnRequest, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -305,9 +314,9 @@ func (r *L2VPNResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 	// Set common fields with merge-aware custom fields
 	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		utils.ApplyTags(ctx, l2vpnRequest, data.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, l2vpnRequest, data.Tags, &resp.Diagnostics)
 	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
-		utils.ApplyTags(ctx, l2vpnRequest, state.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, l2vpnRequest, state.Tags, &resp.Diagnostics)
 	}
 	l2vpnRequest.Description = utils.StringPtr(data.Description)
 	l2vpnRequest.Comments = utils.StringPtr(data.Comments)
@@ -500,10 +509,23 @@ func (r *L2VPNResource) mapResponseToState(ctx context.Context, l2vpn *netbox.L2
 		data.ExportTargets = types.SetNull(types.StringType)
 	}
 
-	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, l2vpn.HasTags(), l2vpn.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags using filter-to-owned approach
+	planTags := data.Tags
+	switch {
+	case planTags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(planTags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		if l2vpn.HasTags() {
+			var tagSlugs []string
+			for _, tag := range l2vpn.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+		}
 	}
 
 	// Handle custom fields using consolidated helper with filtered-to-owned
