@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 80/86 resources complete (93.0%)
+**Status**: 81/86 resources complete (94.2%)
 
 ## Completed Resources
 
@@ -433,6 +433,11 @@
 - Duration: ~3.8s
 - **Notable**: No tag support (tag resource)
 
+### 81. Tenant Group (tenancy_tenant_group)
+- 10 tests passing (includes 1 consistency test)
+- Duration: ~7.5s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -512,6 +517,7 @@ Continue alphabetically through remaining 38 resources.
 - Service Template (resource 77)
 - Site Group (resource 78)
 - Site (resource 79)
+- Tenant Group (resource 81)
 - IP Range (resource 43)
 - IPSec Policy (resource 44)
 - IPSec Profile (resource 45)
