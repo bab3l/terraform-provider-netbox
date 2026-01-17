@@ -527,9 +527,9 @@ func testAccFrontPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, d
 	var tagsList string
 	switch tagCase {
 	case caseTag1Uscore2:
-		tagsList = tagsDoubleNested
+		tagsList = tagsDoubleSlug
 	case caseTag3:
-		tagsList = tagsSingleNested
+		tagsList = tagsSingleSlug
 	default:
 		tagsList = tagsEmpty
 	}
@@ -600,9 +600,9 @@ func testAccFrontPortResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSl
 	var tagsOrder string
 	switch tagOrder {
 	case caseTag1Uscore2:
-		tagsOrder = tagsDoubleNested
+		tagsOrder = tagsDoubleSlug
 	case caseTag2Uscore1:
-		tagsOrder = tagsDoubleNestedReversed
+		tagsOrder = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`

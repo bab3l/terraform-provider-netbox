@@ -12,6 +12,7 @@ import (
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -117,7 +118,8 @@ func (r *FrontPortResource) Schema(ctx context.Context, req resource.SchemaReque
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("front port"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -181,7 +183,7 @@ func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateReque
 
 	// Handle description, tags, and custom fields
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
 	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -316,7 +318,7 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Handle description, tags, and custom fields with merge-aware helpers
 	utils.ApplyDescription(apiReq, plan.Description)
-	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, plan.Tags, &resp.Diagnostics)
 	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -458,8 +460,21 @@ func (r *FrontPortResource) mapResponseToModel(ctx context.Context, port *netbox
 		data.MarkConnected = types.BoolValue(false)
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, port.HasTags(), port.GetTags(), data.Tags, diags)
+	// Handle tags with filter-to-owned pattern
+	planTags := data.Tags
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case port.HasTags() && len(port.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(port.GetTags()))
+		for _, tag := range port.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 
 	// Handle custom fields with filter-to-owned pattern
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, port.GetCustomFields(), diags)
