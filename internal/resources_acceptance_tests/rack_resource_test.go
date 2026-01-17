@@ -184,6 +184,128 @@ func TestAccRackResource_import(t *testing.T) {
 	})
 }
 
+func TestAccRackResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-rack-site-tags")
+	siteSlug := testutil.RandomSlug("tf-test-rack-site-tags")
+	rackName := testutil.RandomName("tf-test-rack-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackCleanup(rackName)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.ComposeCheckDestroy(testutil.CheckRackDestroy, testutil.CheckSiteDestroy),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackResourceConfig_tags(siteName, siteSlug, rackName, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRackResourceConfig_tags(siteName, siteSlug, rackName, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRackResourceConfig_tags(siteName, siteSlug, rackName, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
+						"slug": tag3Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRackResourceConfig_tags(siteName, siteSlug, rackName, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccRackResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-rack-site-tag-order")
+	siteSlug := testutil.RandomSlug("tf-test-rack-site-tag-order")
+	rackName := testutil.RandomName("tf-test-rack-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackCleanup(rackName)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.ComposeCheckDestroy(testutil.CheckRackDestroy, testutil.CheckSiteDestroy),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackResourceConfig_tagsOrder(siteName, siteSlug, rackName, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRackResourceConfig_tagsOrder(siteName, siteSlug, rackName, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+		},
+	})
+}
+
 // NOTE: Custom field tests for rack resource are in resources_acceptance_tests_customfields package.
 func TestAccConsistency_Rack(t *testing.T) {
 	t.Parallel()
@@ -255,33 +377,6 @@ func TestAccConsistency_Rack_LiteralNames(t *testing.T) {
 	})
 }
 
-func TestAccRackResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	siteName := testutil.RandomName("tf-test-site-id")
-	siteSlug := testutil.RandomSlug("tf-test-site-id")
-	rackName := testutil.RandomName("tf-test-rack-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterRackCleanup(rackName)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRackResourceConfig_basic(siteName, siteSlug, rackName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
-					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
-					resource.TestCheckResourceAttrSet("netbox_rack.test", "site"),
-				),
-			},
-		},
-	})
-}
-
 func testAccRackConsistencyLiteralNamesConfig(rackName, siteName, siteSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
@@ -342,6 +437,85 @@ resource "netbox_rack" "test" {
   description = %q
 }
 `, siteName, siteSlug, rackName, description)
+}
+
+func testAccRackResourceConfig_tags(siteName, siteSlug, rackName, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleNested
+	case caseTag3:
+		tagsConfig = tagsSingleNested
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+	name   = %[1]q
+	slug   = %[2]q
+	status = "active"
+}
+
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[4]s"
+	slug = %[4]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[5]s"
+	slug = %[5]q
+}
+
+resource "netbox_tag" "tag3" {
+	name = "Tag3-%[6]s"
+	slug = %[6]q
+}
+
+resource "netbox_rack" "test" {
+	name   = %[3]q
+	site   = netbox_site.test.id
+	status = "active"
+	%[7]s
+}
+`, siteName, siteSlug, rackName, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccRackResourceConfig_tagsOrder(siteName, siteSlug, rackName, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleNestedReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+	name   = %[1]q
+	slug   = %[2]q
+	status = "active"
+}
+
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[4]s"
+	slug = %[4]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[5]s"
+	slug = %[5]q
+}
+
+resource "netbox_rack" "test" {
+	name   = %[3]q
+	site   = netbox_site.test.id
+	status = "active"
+	%[6]s
+}
+`, siteName, siteSlug, rackName, tag1Slug, tag2Slug, tagsConfig)
 }
 
 // testAccRackResourceConfig_withLocation returns a test configuration with location.

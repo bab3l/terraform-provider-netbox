@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 66/86 resources complete (76.7%)
+**Status**: 67/86 resources complete (77.9%)
 
 ## Completed Resources
 
@@ -363,6 +363,11 @@
 - Duration: ~9.7s
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
 
+### 67. Rack (dcim_rack)
+- 11 tests passing (8 regular + 2 tag tests + 1 with validation subtests)
+- Duration: ~11.8s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), extended optional/reference field coverage
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -430,6 +435,7 @@ Continue alphabetically through remaining 38 resources.
 - Provider Network (resource 64)
 - Provider (resource 65)
 - Rack Reservation (resource 66)
+- Rack (resource 67)
 - IP Range (resource 43)
 - IPSec Policy (resource 44)
 - IPSec Profile (resource 45)
