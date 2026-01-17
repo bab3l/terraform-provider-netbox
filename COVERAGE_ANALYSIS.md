@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 70/86 resources complete (81.4%)
+**Status**: 71/86 resources complete (82.6%)
 
 ## Completed Resources
 
@@ -382,6 +382,11 @@
 - 11 tests passing (8 regular + 2 tag tests + 1 with validation subtests)
 - Duration: ~12.5s
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), optional+computed positions coverage
+
+### 71. Rear Port Template (dcim_rear_port_template)
+- 8 tests passing (7 regular + 1 with validation subtests)
+- Duration: ~10.2s
+- **Notable**: No tag support, optional+computed positions coverage
 
 ## Standard Test Pattern
 
