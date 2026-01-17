@@ -211,7 +211,7 @@
 ### 36. IKE Policy (ipam_ike_policy)
 - 9 tests passing (7 regular + 2 tag tests + 1 with validation subtests)
 - Duration: ~4.1s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), IPsec IKE policy resource
+- **Notable**: ✅ Converted to slug list tags (Phase 2), IPsec IKE policy resource
 
 ### 37. IKE Proposal (ipam_ike_proposal)
 - 9 tests passing (7 regular + 2 tag tests + 1 with validation subtests)
