@@ -133,12 +133,7 @@ resource "netbox_circuit_termination" "test" {
   pp_info        = "Patch Panel 1, Port 24"
   mark_connected = true
   description    = %q
-  tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
-  ]
+	tags           = [netbox_tag.test.slug]
 }
 `, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tagName, tagSlug, description)
 }
@@ -214,12 +209,7 @@ resource "netbox_circuit_termination" "test" {
   pp_info        = %q
   mark_connected = %t
   description    = %q
-  tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
-  ]
+	tags           = [netbox_tag.test.slug]
 }
 `, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tagName, tagSlug, portSpeed, upstreamSpeed, xconnectID, ppInfo, markConnected, description)
 }
@@ -774,9 +764,9 @@ resource "netbox_tag" "tag3" {
 
 	switch tagSet {
 	case caseTag1Tag2:
-		tagsList = tagsDoubleNested
+		tagsList = tagsDoubleSlug
 	case caseTag3:
-		tagsList = tagsSingleNested
+		tagsList = tagsSingleSlug
 	default:
 		tagsList = tagsEmpty
 	}
@@ -849,9 +839,9 @@ func TestAccCircuitTerminationResource_tagOrderInvariance(t *testing.T) {
 }
 
 func testAccCircuitTerminationResourceConfig_tagOrder(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
-	tagsOrder := tagsDoubleNested
+	tagsOrder := tagsDoubleSlug
 	if !tag1First {
-		tagsOrder = tagsDoubleNestedReversed
+		tagsOrder = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`

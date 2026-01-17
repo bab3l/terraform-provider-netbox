@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // =====================================================
@@ -411,6 +412,15 @@ func TagsAttribute() schema.SetNestedAttribute {
 				},
 			},
 		},
+	}
+}
+
+// TagsSlugAttribute returns the standard tags set attribute for resources using slug lists.
+func TagsSlugAttribute() schema.SetAttribute {
+	return schema.SetAttribute{
+		MarkdownDescription: "Tags assigned to this resource. Tags must already exist in Netbox.",
+		Optional:            true,
+		ElementType:         types.StringType,
 	}
 }
 

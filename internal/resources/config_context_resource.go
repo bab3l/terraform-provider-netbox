@@ -269,7 +269,7 @@ func (r *ConfigContextResource) Create(ctx context.Context, req resource.CreateR
 	}
 
 	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		request.Tags = setToStringSlice(ctx, data.Tags)
+		request.Tags = utils.SetToStringSlice(ctx, data.Tags)
 	}
 
 	tflog.Debug(ctx, "Creating config context", map[string]interface{}{
@@ -339,7 +339,7 @@ func (r *ConfigContextResource) Read(ctx context.Context, req resource.ReadReque
 	if utils.IsSet(stateTags) {
 		// Tags are in state (owned) - populate from API
 		if len(result.Tags) > 0 {
-			data.Tags = tagsSlugToSet(ctx, result.Tags)
+			data.Tags = utils.TagsSlugToSet(ctx, result.Tags)
 		} else {
 			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
 		}
@@ -411,7 +411,7 @@ func (r *ConfigContextResource) Update(ctx context.Context, req resource.UpdateR
 
 	// Apply tags with merge-aware handling (manual since ConfigContext uses []string not []NestedTag)
 	if utils.IsSet(plan.Tags) {
-		request.Tags = setToStringSlice(ctx, plan.Tags)
+		request.Tags = utils.SetToStringSlice(ctx, plan.Tags)
 	}
 
 	tflog.Debug(ctx, "Updating config context", map[string]interface{}{
@@ -438,7 +438,7 @@ func (r *ConfigContextResource) Update(ctx context.Context, req resource.UpdateR
 	if utils.IsSet(planTags) {
 		// Tags are in plan (owned) - populate from API
 		if len(result.Tags) > 0 {
-			plan.Tags = tagsSlugToSet(ctx, result.Tags)
+			plan.Tags = utils.TagsSlugToSet(ctx, result.Tags)
 		} else {
 			plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
 		}
@@ -510,16 +510,6 @@ func setToInt32Slice(ctx context.Context, set types.Set) []int32 {
 		result[i] = val32
 	}
 	return result
-}
-
-// Helper function to convert types.Set of String to []string.
-func setToStringSlice(ctx context.Context, set types.Set) []string {
-	if set.IsNull() || set.IsUnknown() {
-		return []string{}
-	}
-	var stringValues []string
-	set.ElementsAs(ctx, &stringValues, false)
-	return stringValues
 }
 
 // Helper function to map API response to model.
@@ -726,13 +716,5 @@ func tenantsToSet(ctx context.Context, tenants []netbox.Tenant) types.Set {
 		values[i] = int64(t.GetId())
 	}
 	set, _ := types.SetValueFrom(ctx, types.Int64Type, values)
-	return set
-}
-
-func tagsSlugToSet(ctx context.Context, tags []string) types.Set {
-	if len(tags) == 0 {
-		return types.SetNull(types.StringType)
-	}
-	set, _ := types.SetValueFrom(ctx, types.StringType, tags)
 	return set
 }

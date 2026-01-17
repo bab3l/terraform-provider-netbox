@@ -13,6 +13,7 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -126,6 +127,9 @@ func (r *CircuitTerminationResource) Schema(ctx context.Context, req resource.Sc
 
 	// Add common metadata attributes (tags, custom_fields)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+
+	// Circuit termination uses tag slug list format
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 }
 
 // Configure sets the client for the resource.
@@ -423,9 +427,9 @@ func (r *CircuitTerminationResource) buildCreateRequest(ctx context.Context, dat
 
 	// Handle tags with conditional logic (use plan if set, otherwise state)
 	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		utils.ApplyTags(ctx, createReq, data.Tags, &diags)
+		utils.ApplyTagsFromSlugs(ctx, r.client, createReq, data.Tags, &diags)
 	} else if state != nil && !state.Tags.IsNull() && !state.Tags.IsUnknown() {
-		utils.ApplyTags(ctx, createReq, state.Tags, &diags)
+		utils.ApplyTagsFromSlugs(ctx, r.client, createReq, state.Tags, &diags)
 	}
 
 	// Handle custom fields with merge-aware logic
@@ -503,8 +507,20 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 		data.MarkConnected = types.BoolValue(false)
 	}
 
-	// Populate tags and custom fields using unified helpers
-	data.Tags = utils.PopulateTagsFromAPI(ctx, len(termination.Tags) > 0, termination.Tags, data.Tags, diags)
+	// Populate tags using slug list format
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case len(termination.Tags) > 0:
+		tagSlugs := make([]string, 0, len(termination.Tags))
+		for _, tag := range termination.Tags {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	if termination.HasCustomFields() {
 		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, termination.CustomFields, diags)
 	}

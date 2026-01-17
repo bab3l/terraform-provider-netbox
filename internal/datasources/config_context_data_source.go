@@ -291,7 +291,7 @@ func mapConfigContextDataSourceResponse(ctx context.Context, result *netbox.Conf
 	data.Clusters = dsClustersToSet(ctx, result.Clusters)
 	data.TenantGroups = dsTenantGroupsToSet(ctx, result.TenantGroups)
 	data.Tenants = dsTenantsToSet(ctx, result.Tenants)
-	data.Tags = dsTagsSlugToSet(ctx, result.Tags)
+	data.Tags = utils.TagsSlugToSet(ctx, result.Tags)
 }
 
 // Helper functions to convert API response arrays to types.Set.
@@ -436,13 +436,5 @@ func dsTenantsToSet(ctx context.Context, tenants []netbox.Tenant) types.Set {
 		values[i] = int64(t.GetId())
 	}
 	set, _ := types.SetValueFrom(ctx, types.Int64Type, values)
-	return set
-}
-
-func dsTagsSlugToSet(ctx context.Context, tags []string) types.Set {
-	if len(tags) == 0 {
-		return types.SetNull(types.StringType)
-	}
-	set, _ := types.SetValueFrom(ctx, types.StringType, tags)
 	return set
 }

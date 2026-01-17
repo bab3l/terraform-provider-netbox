@@ -3,6 +3,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -117,6 +118,56 @@ func ApplyTags[T TagsSetter](ctx context.Context, request T, tags types.Set, dia
 	}
 
 	request.SetTags(tagRequests)
+}
+
+// ApplyTagsFromSlugs sets the Tags field on a request using tag slugs.
+// Looks up tag names by slug to build NestedTagRequests.
+func ApplyTagsFromSlugs[T TagsSetter](ctx context.Context, client *netbox.APIClient, request T, tags types.Set, diags *diag.Diagnostics) {
+	if !IsSet(tags) {
+		request.SetTags([]netbox.NestedTagRequest{})
+		return
+	}
+
+	tagSlugs := SetToStringSlice(ctx, tags)
+	if len(tagSlugs) == 0 {
+		request.SetTags([]netbox.NestedTagRequest{})
+		return
+	}
+
+	tagRequests := TagSlugsToNestedTagRequests(ctx, client, tagSlugs, diags)
+	if diags.HasError() {
+		return
+	}
+
+	request.SetTags(tagRequests)
+}
+
+// TagSlugsToNestedTagRequests resolves tag slugs to NestedTagRequests via the API.
+func TagSlugsToNestedTagRequests(ctx context.Context, client *netbox.APIClient, tagSlugs []string, diags *diag.Diagnostics) []netbox.NestedTagRequest {
+	if len(tagSlugs) == 0 {
+		return []netbox.NestedTagRequest{}
+	}
+
+	requests := make([]netbox.NestedTagRequest, 0, len(tagSlugs))
+	for _, slug := range tagSlugs {
+		tags, httpResp, err := client.ExtrasAPI.ExtrasTagsList(ctx).Slug([]string{slug}).Execute()
+		CloseResponseBody(httpResp)
+		if err != nil {
+			diags.AddError("Error reading tag", FormatAPIError("read tag by slug", err, httpResp))
+			return nil
+		}
+		if tags == nil || len(tags.GetResults()) == 0 {
+			diags.AddError("Tag Not Found", fmt.Sprintf("No tag found with slug: %s", slug))
+			return nil
+		}
+		tag := tags.GetResults()[0]
+		requests = append(requests, netbox.NestedTagRequest{
+			Name: tag.GetName(),
+			Slug: tag.GetSlug(),
+		})
+	}
+
+	return requests
 }
 
 // ApplyCustomFields sets the CustomFields field on a request if the value is set.
