@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 75/86 resources complete (87.2%)
+**Status**: 76/86 resources complete (88.4%)
 
 ## Completed Resources
 
@@ -408,6 +408,11 @@
 - Duration: ~9.7s
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
 
+### 76. Service (ipam_service)
+- 10 tests passing (includes 2 consistency tests)
+- Duration: ~11.8s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -483,6 +488,7 @@ Continue alphabetically through remaining 38 resources.
 - RIR (resource 73)
 - Role (resource 74)
 - Route Target (resource 75)
+- Service (resource 76)
 - IP Range (resource 43)
 - IPSec Policy (resource 44)
 - IPSec Profile (resource 45)
