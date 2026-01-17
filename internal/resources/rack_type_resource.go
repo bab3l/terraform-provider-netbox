@@ -11,6 +11,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -193,8 +194,9 @@ func (r *RackTypeResource) Schema(ctx context.Context, req resource.SchemaReques
 	// Add common descriptive attributes (description, comments)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("rack type"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom fields attributes
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -657,7 +659,11 @@ func (r *RackTypeResource) buildRequest(ctx context.Context, plan, state *RackTy
 
 	utils.ApplyComments(rackTypeRequest, plan.Comments)
 
-	utils.ApplyTags(ctx, rackTypeRequest, plan.Tags, &diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, rackTypeRequest, plan.Tags, &diags)
+
+	if diags.HasError() {
+		return nil, diags
+	}
 
 	utils.ApplyCustomFieldsWithMerge(ctx, rackTypeRequest, plan.CustomFields, state.CustomFields, &diags)
 
@@ -789,10 +795,20 @@ func (r *RackTypeResource) mapResponseToModel(ctx context.Context, rackType *net
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, rackType.HasTags(), rackType.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags (filter to owned, slug list format)
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	case rackType.HasTags():
+		var tagSlugs []string
+		for _, tag := range rackType.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
 	}
 
 	// Handle custom fields
