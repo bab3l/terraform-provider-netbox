@@ -70,11 +70,11 @@ func testAccL2VPNTerminationResourceConfig_tags(l2vpnName string, vlanVID int32,
 	var tagsConfig string
 	switch tagCase {
 	case caseTag1Tag2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag1Uscore2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag3:
-		tagsConfig = tagsSingleNested
+		tagsConfig = tagsSingleSlug
 	case tagsEmpty:
 		tagsConfig = tagsEmpty
 	}
@@ -119,9 +119,9 @@ func testAccL2VPNTerminationResourceConfig_tagsOrder(l2vpnName string, vlanVID i
 	var tagsConfig string
 	switch tagCase {
 	case caseTag1Tag2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag2Uscore1:
-		tagsConfig = tagsDoubleNestedReversed
+		tagsConfig = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`
@@ -244,38 +244,23 @@ func TestAccL2VPNTerminationResource_tagLifecycle(t *testing.T) {
 				Config: testAccL2VPNTerminationResourceConfig_tags(l2vpnName, vlanVID, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn_termination.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn_termination.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccL2VPNTerminationResourceConfig_tags(l2vpnName, vlanVID, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn_termination.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn_termination.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccL2VPNTerminationResourceConfig_tags(l2vpnName, vlanVID, tag1Slug, tag2Slug, tag3Slug, caseTag3),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn_termination.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
-						"slug": tag3Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag3Slug),
 				),
 			},
 			{
@@ -313,28 +298,16 @@ func TestAccL2VPNTerminationResource_tagOrderInvariance(t *testing.T) {
 				Config: testAccL2VPNTerminationResourceConfig_tagsOrder(l2vpnName, vlanVID, tag1Slug, tag2Slug, caseTag1Tag2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn_termination.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn_termination.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccL2VPNTerminationResourceConfig_tagsOrder(l2vpnName, vlanVID, tag1Slug, tag2Slug, caseTag2Uscore1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn_termination.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_l2vpn_termination.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag2Slug),
 				),
 			},
 		},
