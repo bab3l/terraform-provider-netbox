@@ -10,6 +10,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -90,8 +91,9 @@ func (r *JournalEntryResource) Schema(ctx context.Context, req resource.SchemaRe
 		"comments": nbschema.CommentsAttribute("journal entry"),
 	})
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add metadata attributes (slug list tags, custom_fields)
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *JournalEntryResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -312,7 +314,11 @@ func (r *JournalEntryResource) setOptionalFields(ctx context.Context, journalEnt
 	}
 
 	// Apply Tags and CustomFields with merge-aware pattern
-	utils.ApplyTags(ctx, journalEntryRequest, plan.Tags, diags)
+	if utils.IsSet(plan.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, journalEntryRequest, plan.Tags, diags)
+	} else if state != nil && utils.IsSet(state.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, journalEntryRequest, state.Tags, diags)
+	}
 	if diags.HasError() {
 		return
 	}
@@ -341,7 +347,20 @@ func (r *JournalEntryResource) mapJournalEntryToState(ctx context.Context, journ
 	}
 
 	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, len(journalEntry.Tags) > 0, journalEntry.Tags, data.Tags, diags)
+	var tagSlugs []string
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case len(journalEntry.Tags) > 0:
+		for _, tag := range journalEntry.Tags {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
 	if diags.HasError() {
 		return
 	}
