@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 79/86 resources complete (91.9%)
+**Status**: 80/86 resources complete (93.0%)
 
 ## Completed Resources
 
@@ -427,6 +427,11 @@
 - 12 tests passing (includes 2 consistency tests)
 - Duration: ~8.9s
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+
+### 80. Tag (extras_tag)
+- 9 tests passing (includes 1 consistency test)
+- Duration: ~3.8s
+- **Notable**: No tag support (tag resource)
 
 ## Standard Test Pattern
 
