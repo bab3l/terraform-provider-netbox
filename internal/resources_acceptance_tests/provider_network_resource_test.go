@@ -75,26 +75,118 @@ func TestAccProviderNetworkResource_full(t *testing.T) {
 	})
 }
 
-func TestAccProviderNetworkResource_IDPreservation(t *testing.T) {
+func TestAccProviderNetworkResource_tagLifecycle(t *testing.T) {
 	t.Parallel()
 
-	providerName := testutil.RandomName("tf-test-provider-id")
-	providerSlug := testutil.RandomSlug("tf-test-provider-id")
-	networkName := testutil.RandomName("tf-test-network-id")
+	providerName := testutil.RandomName("tf-test-provider-tags")
+	providerSlug := testutil.RandomSlug("tf-test-provider-tags")
+	networkName := testutil.RandomName("tf-test-network-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, networkName),
+				Config: testAccProviderNetworkResourceConfig_tags(providerName, providerSlug, networkName, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_provider_network.test", "id"),
-					resource.TestCheckResourceAttr("netbox_provider_network.test", "name", networkName),
-					resource.TestCheckResourceAttrSet("netbox_provider_network.test", "circuit_provider"),
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_provider_network.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_provider_network.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccProviderNetworkResourceConfig_tags(providerName, providerSlug, networkName, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_provider_network.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_provider_network.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccProviderNetworkResourceConfig_tags(providerName, providerSlug, networkName, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_provider_network.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
+						"slug": tag3Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccProviderNetworkResourceConfig_tags(providerName, providerSlug, networkName, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccProviderNetworkResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-tag-order")
+	providerSlug := testutil.RandomSlug("tf-test-provider-tag-order")
+	networkName := testutil.RandomName("tf-test-network-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderNetworkResourceConfig_tagsOrder(providerName, providerSlug, networkName, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_provider_network.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_provider_network.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccProviderNetworkResourceConfig_tagsOrder(providerName, providerSlug, networkName, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_network.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_provider_network.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_provider_network.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
 				),
 			},
 		},
@@ -172,6 +264,81 @@ resource "netbox_provider_network" "test" {
   name             = %q
 }
 `, providerName, providerSlug, networkName)
+}
+
+func testAccProviderNetworkResourceConfig_tags(providerName, providerSlug, networkName, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleNested
+	case caseTag3:
+		tagsConfig = tagsSingleNested
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[5]s"
+  slug = %[5]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = "Tag3-%[6]s"
+  slug = %[6]q
+}
+
+resource "netbox_provider" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_provider_network" "test" {
+  circuit_provider = netbox_provider.test.id
+  name             = %[3]q
+  %[7]s
+}
+`, providerName, providerSlug, networkName, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccProviderNetworkResourceConfig_tagsOrder(providerName, providerSlug, networkName, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleNestedReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[5]s"
+  slug = %[5]q
+}
+
+resource "netbox_provider" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_provider_network" "test" {
+  circuit_provider = netbox_provider.test.id
+  name             = %[3]q
+  %[6]s
+}
+`, providerName, providerSlug, networkName, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func testAccProviderNetworkResourceConfig_full(providerName, providerSlug, networkName, serviceID, description string) string {
