@@ -50,13 +50,13 @@
 - 9 tests passing
 - Duration: ~7.5s
 - Checklist: CIRCUIT_TERMINATION_CHECKLIST.md
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+- **Notable**: ✅ Converted to slug list tags (Phase 2)
 
 ### 10. Circuit Type (circuits_circuit_type)
 - 9 tests passing
 - Duration: ~7s
 - Checklist: CIRCUIT_TYPE_CHECKLIST.md
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+- **Notable**: ✅ Converted to slug list tags (Phase 2)
 
 ### 11. Cluster (virtualization_cluster)
 - 10 tests passing (plus 1 extended variant)
@@ -503,8 +503,6 @@ Continue alphabetically through remaining 38 resources.
 **Decision**: Standardize ALL resources to use the simpler **slug list format**
 
 **Resources requiring conversion** (nested → slug list):
-- Circuit Termination (resource 9)
-- Circuit Type (resource 10)
 - Cluster (resource 11)
 - Cluster Group (resource 12)
 - Contact Assignment (resource 20)

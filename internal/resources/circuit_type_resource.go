@@ -13,6 +13,7 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -106,6 +107,9 @@ func (r *CircuitTypeResource) Schema(ctx context.Context, req resource.SchemaReq
 
 	// Add common metadata attributes (tags, custom_fields)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+
+	// Circuit type uses tag slug list format
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 }
 
 // Configure sets up the resource with the provider client.
@@ -145,7 +149,11 @@ func (r *CircuitTypeResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// Handle tags and custom_fields
-	utils.ApplyMetadataFields(ctx, &createReq, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &createReq, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFields(ctx, &createReq, data.CustomFields, &resp.Diagnostics)
 	tflog.Debug(ctx, "Creating circuit type", map[string]interface{}{
 		"name": data.Name.ValueString(),
 		"slug": data.Slug.ValueString(),
@@ -243,9 +251,9 @@ func (r *CircuitTypeResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Handle tags with conditional logic (use plan if set, otherwise state)
 	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		utils.ApplyTags(ctx, &updateReq, data.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, &updateReq, data.Tags, &resp.Diagnostics)
 	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
-		utils.ApplyTags(ctx, &updateReq, state.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, &updateReq, state.Tags, &resp.Diagnostics)
 	}
 
 	// Handle custom fields with merge-aware logic
@@ -338,8 +346,20 @@ func (r *CircuitTypeResource) mapCircuitTypeToState(ctx context.Context, circuit
 		data.Color = types.StringNull()
 	}
 
-	// Populate tags and custom fields using unified helpers
-	data.Tags = utils.PopulateTagsFromAPI(ctx, circuitType.HasTags(), circuitType.GetTags(), data.Tags, diags)
+	// Populate tags using slug list format
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case circuitType.HasTags() && len(circuitType.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(circuitType.GetTags()))
+		for _, tag := range circuitType.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	if diags.HasError() {
 		return
 	}

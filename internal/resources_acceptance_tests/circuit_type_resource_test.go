@@ -422,9 +422,9 @@ resource "netbox_tag" "tag3" {
 	if tagSet != "" {
 		switch tagSet {
 		case "tag1,tag2":
-			tagsList = tagsDoubleNested
+			tagsList = tagsDoubleSlug
 		case "tag3":
-			tagsList = tagsSingleNested
+			tagsList = tagsSingleSlug
 		default:
 			tagsList = tagsEmpty
 		}
@@ -471,9 +471,9 @@ func TestAccCircuitTypeResource_tagOrderInvariance(t *testing.T) {
 }
 
 func testAccCircuitTypeResourceConfig_tagOrder(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
-	tagsOrder := tagsDoubleNested
+	tagsOrder := tagsDoubleSlug
 	if !tag1First {
-		tagsOrder = tagsDoubleNestedReversed
+		tagsOrder = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`
