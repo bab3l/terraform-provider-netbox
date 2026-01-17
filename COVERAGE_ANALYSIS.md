@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 71/86 resources complete (82.6%)
+**Status**: 72/86 resources complete (83.7%)
 
 ## Completed Resources
 
@@ -388,6 +388,11 @@
 - Duration: ~10.2s
 - **Notable**: No tag support, optional+computed positions coverage
 
+### 72. Region (dcim_region)
+- 9 tests passing (6 regular + 2 tag tests + 1 with validation subtests)
+- Duration: ~9.5s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), supports parent hierarchy
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -459,6 +464,7 @@ Continue alphabetically through remaining 38 resources.
 - Rack Role (resource 68)
 - Rack Type (resource 69)
 - Rear Port (resource 70)
+- Region (resource 72)
 - IP Range (resource 43)
 - IPSec Policy (resource 44)
 - IPSec Profile (resource 45)
