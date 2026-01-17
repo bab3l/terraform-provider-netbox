@@ -64,38 +64,23 @@ func TestAccPowerPanelResource_tagLifecycle(t *testing.T) {
 				Config: testAccPowerPanelResourceConfig_tags(siteName, siteSlug, panelName, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_panel.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_panel.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_panel.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_power_panel.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_power_panel.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccPowerPanelResourceConfig_tags(siteName, siteSlug, panelName, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_panel.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_panel.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_panel.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_power_panel.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_power_panel.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccPowerPanelResourceConfig_tags(siteName, siteSlug, panelName, tag1Slug, tag2Slug, tag3Slug, caseTag3),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_panel.test", "tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_panel.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
-						"slug": tag3Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_power_panel.test", "tags.*", tag3Slug),
 				),
 			},
 			{
@@ -130,28 +115,16 @@ func TestAccPowerPanelResource_tagOrderInvariance(t *testing.T) {
 				Config: testAccPowerPanelResourceConfig_tagsOrder(siteName, siteSlug, panelName, tag1Slug, tag2Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_panel.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_panel.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_panel.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_power_panel.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_power_panel.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccPowerPanelResourceConfig_tagsOrder(siteName, siteSlug, panelName, tag1Slug, tag2Slug, caseTag2Uscore1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_panel.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_panel.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_power_panel.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_power_panel.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_power_panel.test", "tags.*", tag2Slug),
 				),
 			},
 		},
@@ -260,11 +233,11 @@ func testAccPowerPanelResourceConfig_tags(siteName, siteSlug, panelName, tag1Slu
 	var tagsConfig string
 	switch tagCase {
 	case caseTag1Tag2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag1Uscore2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag3:
-		tagsConfig = tagsSingleNested
+		tagsConfig = tagsSingleSlug
 	case tagsEmpty:
 		tagsConfig = tagsEmpty
 	}
@@ -303,9 +276,9 @@ func testAccPowerPanelResourceConfig_tagsOrder(siteName, siteSlug, panelName, ta
 	var tagsConfig string
 	switch tagCase {
 	case caseTag1Tag2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag2Uscore1:
-		tagsConfig = tagsDoubleNestedReversed
+		tagsConfig = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`

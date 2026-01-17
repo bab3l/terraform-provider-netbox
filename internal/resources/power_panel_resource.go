@@ -11,6 +11,7 @@ import (
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -114,8 +115,9 @@ func (r *PowerPanelResource) Schema(ctx context.Context, req resource.SchemaRequ
 	// Add common descriptive attributes (description, comments)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("power panel"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom_fields attributes
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -180,8 +182,11 @@ func (r *PowerPanelResource) Create(ctx context.Context, req resource.CreateRequ
 		apiReq.SetLocation(*location)
 	}
 
-	// Apply common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, apiReq, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply description, comments, tags, and custom fields
+	utils.ApplyDescription(apiReq, data.Description)
+	utils.ApplyComments(apiReq, data.Comments)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -338,7 +343,7 @@ func (r *PowerPanelResource) Update(ctx context.Context, req resource.UpdateRequ
 	// Apply common fields with merge-aware helpers
 	utils.ApplyDescription(apiReq, plan.Description)
 	utils.ApplyComments(apiReq, plan.Comments)
-	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, plan.Tags, &resp.Diagnostics)
 	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -505,10 +510,21 @@ func (r *PowerPanelResource) mapResponseToModel(ctx context.Context, pp *netbox.
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, pp.HasTags(), pp.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags - filter to owned slugs
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	case pp.HasTags():
+		// Extract slugs from API tags
+		var tagSlugs []string
+		for _, tag := range pp.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
 	}
 
 	// Handle custom fields (filter to owned)

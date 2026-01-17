@@ -266,22 +266,22 @@
 ### 47. L2VPN (ipam_l2vpn)
 - 8 tests passing (6 regular + 2 tag tests + 1 with validation subtests)
 - Duration: ~9.1s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), L2VPN service resource
+- **Notable**: ✅ Converted to slug list tags (Phase 2), L2VPN service resource
 
 ### 48. L2VPN Termination (ipam_l2vpn_termination)
 - 7 tests passing (5 regular + 2 tag tests + 1 with validation subtests)
 - Duration: ~8.0s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), remove optional fields test skipped
+- **Notable**: ✅ Converted to slug list tags (Phase 2), remove optional fields test skipped
 
 ### 49. Location (dcim_location)
 - 9 tests passing (6 regular + 2 tag tests + 1 with validation subtests)
 - Duration: ~8.7s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), supports hierarchical parent
+- **Notable**: ✅ Converted to slug list tags (Phase 2), supports hierarchical parent
 
 ### 50. Manufacturer (dcim_manufacturer)
 - 10 tests passing (7 regular + 2 tag tests + 1 with validation subtests)
 - Duration: ~8.7s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), core hardware metadata
+- **Notable**: ✅ Converted to slug list tags (Phase 2), core hardware metadata
 
 ### 51. Module Bay (dcim_module_bay)
 - 8 tests passing (6 regular + 1 extended variant + 1 with validation subtests)
@@ -296,12 +296,12 @@
 ### 53. Module (dcim_module)
 - 9 tests passing (6 regular + 2 tag tests + 1 with validation subtests)
 - Duration: ~8.8s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), device/module dependency chain
+- **Notable**: ✅ Converted to slug list tags (Phase 2), device/module dependency chain
 
 ### 54. Module Type (dcim_module_type)
 - 9 tests passing (6 regular + 2 tag tests + 1 with validation subtests)
 - Duration: ~7.1s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), manufacturer dependency
+- **Notable**: ✅ Converted to slug list tags (Phase 2), manufacturer dependency
 
 ### 55. Notification Group (extras_notification_group)
 - 7 tests passing (5 regular + 1 extended variant + 1 with validation subtests)
@@ -316,12 +316,12 @@
 ### 57. Power Feed (dcim_power_feed)
 - 11 tests passing (8 regular + 2 tag tests + 1 with validation subtests)
 - Duration: ~16.8s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), includes optional+computed voltage/amperage coverage
+- **Notable**: ✅ Converted to slug list tags (Phase 2), includes optional+computed voltage/amperage coverage
 
 ### 58. Power Outlet (dcim_power_outlet)
 - 9 tests passing (6 regular + 2 tag tests + 1 with validation subtests)
 - Duration: ~7.8s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), device dependency
+- **Notable**: ✅ Converted to slug list tags (Phase 2), device dependency
 
 ### 59. Power Outlet Template (dcim_power_outlet_template)
 - 7 tests passing (6 regular + 1 with validation subtests)
