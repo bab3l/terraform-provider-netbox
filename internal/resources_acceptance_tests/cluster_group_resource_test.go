@@ -37,8 +37,7 @@ func TestAccClusterGroupResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_cluster_group.test", "slug", slug),
 					resource.TestCheckResourceAttr("netbox_cluster_group.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_cluster_group.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("netbox_cluster_group.test", "tags.0.name", tagName),
-					resource.TestCheckResourceAttr("netbox_cluster_group.test", "tags.0.slug", tagSlug),
+					resource.TestCheckTypeSetElemAttr("netbox_cluster_group.test", "tags.*", tagSlug),
 				),
 			},
 		},
@@ -154,12 +153,7 @@ resource "netbox_cluster_group" "test" {
   name        = %q
   slug        = %q
   description = %q
-  tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
-  ]
+	tags = [netbox_tag.test.slug]
 }
 `, tagName, tagSlug, name, slug, description)
 }
@@ -371,9 +365,9 @@ resource "netbox_tag" "tag3" {
 	if tagSet != "" {
 		switch tagSet {
 		case caseTag1Tag2:
-			tagsList = tagsDoubleNested
+			tagsList = tagsDoubleSlug
 		case caseTag3:
-			tagsList = tagsSingleNested
+			tagsList = tagsSingleSlug
 		default:
 			tagsList = tagsEmpty
 		}
@@ -420,9 +414,9 @@ func TestAccClusterGroupResource_tagOrderInvariance(t *testing.T) {
 }
 
 func testAccClusterGroupResourceConfig_tagOrder(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
-	tagsOrder := tagsDoubleNested
+	tagsOrder := tagsDoubleSlug
 	if !tag1First {
-		tagsOrder = tagsDoubleNestedReversed
+		tagsOrder = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`
