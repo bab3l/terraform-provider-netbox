@@ -9,6 +9,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -73,8 +74,9 @@ func (r *TenantGroupResource) Schema(ctx context.Context, req resource.SchemaReq
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("tenant group"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add metadata attributes (slug list tags, custom_fields)
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *TenantGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -139,7 +141,7 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// Apply tags and custom_fields
-	utils.ApplyTags(ctx, &tenantGroupRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &tenantGroupRequest, data.Tags, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -196,7 +198,20 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	data.Tags = utils.PopulateTagsFromAPI(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), planTags, &resp.Diagnostics)
+	var tagSlugs []string
+	switch {
+	case planTags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(planTags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case tenantGroup.HasTags():
+		for _, tag := range tenantGroup.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, tenantGroup.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Trace(ctx, "created a tenant group resource")
@@ -255,7 +270,20 @@ func (r *TenantGroupResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	data.Tags = utils.PopulateTagsFromAPI(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), stateTags, &resp.Diagnostics)
+	var stateTagSlugs []string
+	switch {
+	case stateTags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(stateTags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case tenantGroup.HasTags():
+		for _, tag := range tenantGroup.GetTags() {
+			stateTagSlugs = append(stateTagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, stateTagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, tenantGroup.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -316,7 +344,11 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// Apply tags and custom_fields with merge-aware helpers
-	utils.ApplyTags(ctx, &tenantGroupRequest, plan.Tags, &resp.Diagnostics)
+	if utils.IsSet(plan.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, &tenantGroupRequest, plan.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, &tenantGroupRequest, state.Tags, &resp.Diagnostics)
+	}
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -347,7 +379,20 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	plan.Tags = utils.PopulateTagsFromAPI(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), plan.Tags, &resp.Diagnostics)
+	var updateTagSlugs []string
+	switch {
+	case plan.Tags.IsNull():
+		plan.Tags = types.SetNull(types.StringType)
+	case len(plan.Tags.Elements()) == 0:
+		plan.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case tenantGroup.HasTags():
+		for _, tag := range tenantGroup.GetTags() {
+			updateTagSlugs = append(updateTagSlugs, tag.GetSlug())
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, updateTagSlugs)
+	default:
+		plan.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, tenantGroup.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

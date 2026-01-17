@@ -434,8 +434,8 @@
 
 ### 79. Site (dcim_site)
 - 12 tests passing (includes 2 consistency tests)
-- Duration: ~8.9s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+- Duration: ~8.0s
+- **Notable**: ✅ Phase 2 complete (commit 073db34) - uses slug list tags
 
 ### 80. Tag (extras_tag)
 - 9 tests passing (includes 1 consistency test)
