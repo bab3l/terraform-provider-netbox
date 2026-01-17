@@ -122,7 +122,7 @@
 - 8 tests passing
 - Duration: ~7.0s
 - Checklist: CONTACT_GROUP_CHECKLIST.md
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), supports hierarchical parent relationships
+- **Notable**: ✅ Converted to slug list tags (Phase 2), supports hierarchical parent relationships
 
 ### 22. Contact (tenancy_contact)
 - 6 tests passing (plus 1 extended variant)

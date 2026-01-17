@@ -10,6 +10,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -69,6 +70,7 @@ func (r *ContactGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 
 	// Add common metadata attributes (tags, custom_fields)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 }
 
 func (r *ContactGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -118,7 +120,7 @@ func (r *ContactGroupResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Apply tags and custom_fields
-	utils.ApplyTags(ctx, &contactGroupRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &contactGroupRequest, data.Tags, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -162,7 +164,19 @@ func (r *ContactGroupResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	data.Tags = utils.PopulateTagsFromAPI(ctx, contactGroup.HasTags(), contactGroup.GetTags(), planTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case contactGroup.HasTags() && len(contactGroup.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(contactGroup.GetTags()))
+		for _, tag := range contactGroup.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, contactGroup.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Trace(ctx, "created a contact group resource")
@@ -208,7 +222,19 @@ func (r *ContactGroupResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	data.Tags = utils.PopulateTagsFromAPI(ctx, contactGroup.HasTags(), contactGroup.GetTags(), stateTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
+	switch {
+	case contactGroup.HasTags() && len(contactGroup.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(contactGroup.GetTags()))
+		for _, tag := range contactGroup.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, contactGroup.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -255,7 +281,7 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// Apply tags and custom_fields with merge-aware helpers
-	utils.ApplyTags(ctx, &contactGroupRequest, plan.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &contactGroupRequest, plan.Tags, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -280,7 +306,19 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	plan.Tags = utils.PopulateTagsFromAPI(ctx, contactGroup.HasTags(), contactGroup.GetTags(), plan.Tags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !plan.Tags.IsNull() && !plan.Tags.IsUnknown() && len(plan.Tags.Elements()) == 0
+	switch {
+	case contactGroup.HasTags() && len(contactGroup.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(contactGroup.GetTags()))
+		for _, tag := range contactGroup.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		plan.Tags = types.SetNull(types.StringType)
+	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, contactGroup.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

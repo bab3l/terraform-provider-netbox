@@ -3,7 +3,6 @@ package resources_acceptance_tests
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -45,8 +44,7 @@ func TestAccContactGroupResource_full(t *testing.T) {
 						"netbox_contact_group.parent", "id",
 					),
 					resource.TestCheckResourceAttr("netbox_contact_group.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("netbox_contact_group.test", "tags.0.name", tagName),
-					resource.TestCheckResourceAttr("netbox_contact_group.test", "tags.0.slug", tagSlug),
+					resource.TestCheckTypeSetElemAttr("netbox_contact_group.test", "tags.*", tagSlug),
 				),
 			},
 		},
@@ -184,26 +182,16 @@ resource "netbox_tag" "tag3" {
 	}
 
 	if tagSet != "" {
-		tags := []string{}
-		if strings.Contains(tagSet, "tag1") {
-			tags = append(tags, `{
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    }`)
+		switch tagSet {
+		case caseTag1Tag2:
+			tagsList = tagsDoubleSlug
+		case caseTag3:
+			tagsList = tagsSingleSlug
+		default:
+			tagsList = tagsEmpty
 		}
-		if strings.Contains(tagSet, "tag2") {
-			tags = append(tags, `{
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }`)
-		}
-		if strings.Contains(tagSet, "tag3") {
-			tags = append(tags, `{
-      name = netbox_tag.tag3.name
-      slug = netbox_tag.tag3.slug
-    }`)
-		}
-		tagsList = fmt.Sprintf("  tags = [\n    %s\n  ]", strings.Join(tags, ",\n    "))
+	} else {
+		tagsList = tagsEmpty
 	}
 
 	return fmt.Sprintf(`
@@ -245,9 +233,9 @@ func TestAccContactGroupResource_tagOrderInvariance(t *testing.T) {
 }
 
 func testAccContactGroupResourceConfig_tagOrder(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
-	tagsOrder := tagsDoubleNested
+	tagsOrder := tagsDoubleSlug
 	if !tag1First {
-		tagsOrder = tagsDoubleNestedReversed
+		tagsOrder = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`
@@ -317,12 +305,7 @@ resource "netbox_contact_group" "test" {
   slug        = %q
   description = %q
   parent      = netbox_contact_group.parent.id
-  tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
-  ]
+	tags = [netbox_tag.test.slug]
 }
 `, tagName, tagSlug, parentName, parentSlug, name, slug, description)
 }
