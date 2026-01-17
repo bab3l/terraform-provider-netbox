@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 64/86 resources complete (74.4%)
+**Status**: 66/86 resources complete (76.7%)
 
 ## Completed Resources
 
@@ -353,6 +353,16 @@
 - Duration: ~9.5s
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), provider dependency
 
+### 65. Provider (circuits_provider)
+- 9 tests passing (6 regular + 2 tag tests + 1 with validation subtests)
+- Duration: ~9.3s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+
+### 66. Rack Reservation (dcim_rack_reservation)
+- 9 tests passing (6 regular + 2 tag tests + 1 with validation subtests)
+- Duration: ~9.7s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -418,6 +428,8 @@ Continue alphabetically through remaining 38 resources.
 - Power Port (resource 61)
 - Provider Account (resource 63)
 - Provider Network (resource 64)
+- Provider (resource 65)
+- Rack Reservation (resource 66)
 - IP Range (resource 43)
 - IPSec Policy (resource 44)
 - IPSec Profile (resource 45)

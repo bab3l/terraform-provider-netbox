@@ -135,7 +135,7 @@ func (r *ProviderResource) mapProviderToState(ctx context.Context, provider *net
 	}
 
 	// Populate tags and custom fields using unified helpers
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, provider.HasTags(), provider.GetTags(), diags)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, provider.HasTags(), provider.GetTags(), data.Tags, diags)
 	if provider.HasCustomFields() {
 		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, provider.GetCustomFields(), diags)
 	}
