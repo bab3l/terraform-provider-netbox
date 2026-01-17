@@ -299,38 +299,23 @@ func TestAccIKEProposalResource_tagLifecycle(t *testing.T) {
 				Config: testAccIKEProposalResourceConfig_tags(name, slug1, slug2, slug3, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_proposal.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", slug1),
-						"slug": slug1,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_proposal.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", slug2),
-						"slug": slug2,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug1),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug2),
 				),
 			},
 			{
 				Config: testAccIKEProposalResourceConfig_tags(name, slug1, slug2, slug3, caseTag1Uscore2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_proposal.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", slug1),
-						"slug": slug1,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_proposal.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", slug2),
-						"slug": slug2,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug1),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug2),
 				),
 			},
 			{
 				Config: testAccIKEProposalResourceConfig_tags(name, slug1, slug2, slug3, caseTag3),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_proposal.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag3-%s", slug3),
-						"slug": slug3,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug3),
 				),
 			},
 			{
@@ -363,28 +348,16 @@ func TestAccIKEProposalResource_tagOrderInvariance(t *testing.T) {
 				Config: testAccIKEProposalResourceConfig_tagsOrder(name, slug1, slug2, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_proposal.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", slug1),
-						"slug": slug1,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_proposal.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", slug2),
-						"slug": slug2,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug1),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug2),
 				),
 			},
 			{
 				Config: testAccIKEProposalResourceConfig_tagsOrder(name, slug1, slug2, caseTag2Uscore1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_proposal.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", slug1),
-						"slug": slug1,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_ike_proposal.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", slug2),
-						"slug": slug2,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug1),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug2),
 				),
 			},
 		},
@@ -425,11 +398,11 @@ func testAccIKEProposalResourceConfig_tags(name, slug1, slug2, slug3, tagCase st
 	var tagsConfig string
 	switch tagCase {
 	case caseTag1Tag2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag1Uscore2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag3:
-		tagsConfig = tagsSingleNested
+		tagsConfig = tagsSingleSlug
 	case tagsEmpty:
 		tagsConfig = tagsEmpty
 	}
@@ -465,9 +438,9 @@ func testAccIKEProposalResourceConfig_tagsOrder(name, slug1, slug2, tagCase stri
 	var tagsConfig string
 	switch tagCase {
 	case caseTag1Tag2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag2Uscore1:
-		tagsConfig = tagsDoubleNestedReversed
+		tagsConfig = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`
