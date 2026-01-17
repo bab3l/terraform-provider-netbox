@@ -409,8 +409,8 @@
 
 ### 74. Role (ipam_role)
 - 10 tests passing (7 regular + 2 tag tests + 1 with validation subtests)
-- Duration: ~8.2s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), optional+computed weight coverage
+- Duration: ~4.4s
+- **Notable**: ✅ Phase 2 complete (commit 7b7b9bb) - uses slug list tags, optional+computed weight coverage
 
 ### 75. Route Target (ipam_route_target)
 - 10 tests passing (7 regular + 2 tag tests + 1 with validation subtests)
