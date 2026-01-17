@@ -473,7 +473,7 @@ func (r *ProviderAccountResource) mapResponseToModel(ctx context.Context, provid
 	data.Comments = utils.StringFromAPI(providerAccount.HasComments(), providerAccount.GetComments, data.Comments)
 
 	// Populate tags and custom fields using unified helpers
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, providerAccount.HasTags(), providerAccount.GetTags(), diags)
+	data.Tags = utils.PopulateTagsFromAPI(ctx, providerAccount.HasTags(), providerAccount.GetTags(), data.Tags, diags)
 	if providerAccount.HasCustomFields() {
 		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, providerAccount.GetCustomFields(), diags)
 	}

@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 62/86 resources complete (72.1%)
+**Status**: 63/86 resources complete (73.3%)
 
 ## Completed Resources
 
@@ -343,6 +343,11 @@
 - Duration: ~3.6s
 - **Notable**: No tag support, device type dependency
 
+### 63. Provider Account (circuits_provider_account)
+- 9 tests passing (6 regular + 2 tag tests + 1 with validation subtests)
+- Duration: ~4.7s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), provider dependency
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -406,6 +411,7 @@ Continue alphabetically through remaining 38 resources.
 - Power Outlet (resource 58)
 - Power Panel (resource 60)
 - Power Port (resource 61)
+- Provider Account (resource 63)
 - IP Range (resource 43)
 - IPSec Policy (resource 44)
 - IPSec Profile (resource 45)
