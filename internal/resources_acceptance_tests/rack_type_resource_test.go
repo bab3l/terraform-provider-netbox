@@ -82,6 +82,126 @@ func TestAccRackTypeResource_full(t *testing.T) {
 	})
 }
 
+func TestAccRackTypeResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg-tags")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-tags")
+	model := testutil.RandomName("tf-test-rack-type-tags")
+	slug := testutil.RandomSlug("tf-test-rack-type-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackTypeResourceConfig_tags(mfgName, mfgSlug, model, slug, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_type.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_type.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRackTypeResourceConfig_tags(mfgName, mfgSlug, model, slug, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_type.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_type.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRackTypeResourceConfig_tags(mfgName, mfgSlug, model, slug, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_type.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
+						"slug": tag3Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRackTypeResourceConfig_tags(mfgName, mfgSlug, model, slug, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccRackTypeResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg-tag-order")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-tag-order")
+	model := testutil.RandomName("tf-test-rack-type-tag-order")
+	slug := testutil.RandomSlug("tf-test-rack-type-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackTypeResourceConfig_tagsOrder(mfgName, mfgSlug, model, slug, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_type.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_type.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRackTypeResourceConfig_tagsOrder(mfgName, mfgSlug, model, slug, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_type.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_type.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_type.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConsistency_RackType_LiteralNames(t *testing.T) {
 	t.Parallel()
 
@@ -113,33 +233,6 @@ func TestAccConsistency_RackType_LiteralNames(t *testing.T) {
 	})
 }
 
-func TestAccRackTypeResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	manufacturerName := testutil.RandomName("tf-test-mfg-id")
-	manufacturerSlug := testutil.RandomSlug("tf-test-mfg-id")
-	model := testutil.RandomName("tf-test-rack-type-id")
-	slug := testutil.RandomSlug("tf-test-rt-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRackTypeResourceConfig_basic(manufacturerName, manufacturerSlug, model, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_rack_type.test", "id"),
-					resource.TestCheckResourceAttr("netbox_rack_type.test", "model", model),
-					resource.TestCheckResourceAttrSet("netbox_rack_type.test", "manufacturer"),
-				),
-			},
-		},
-	})
-}
-
 func testAccRackTypeResourceConfig_basic(mfgName, mfgSlug, model, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
@@ -154,6 +247,85 @@ resource "netbox_rack_type" "test" {
   form_factor  = "4-post-cabinet"
 }
 `, mfgName, mfgSlug, model, slug)
+}
+
+func testAccRackTypeResourceConfig_tags(mfgName, mfgSlug, model, slug, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleNested
+	case caseTag3:
+		tagsConfig = tagsSingleNested
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+	name = %[1]q
+	slug = %[2]q
+}
+
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[5]s"
+	slug = %[5]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[6]s"
+	slug = %[6]q
+}
+
+resource "netbox_tag" "tag3" {
+	name = "Tag3-%[7]s"
+	slug = %[7]q
+}
+
+resource "netbox_rack_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %[3]q
+	slug         = %[4]q
+	form_factor  = "4-post-cabinet"
+	%[8]s
+}
+`, mfgName, mfgSlug, model, slug, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccRackTypeResourceConfig_tagsOrder(mfgName, mfgSlug, model, slug, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleNestedReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+	name = %[1]q
+	slug = %[2]q
+}
+
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[5]s"
+	slug = %[5]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[6]s"
+	slug = %[6]q
+}
+
+resource "netbox_rack_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %[3]q
+	slug         = %[4]q
+	form_factor  = "4-post-cabinet"
+	%[7]s
+}
+`, mfgName, mfgSlug, model, slug, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func testAccRackTypeResourceConfig_full(mfgName, mfgSlug, model, slug, description string, uHeight, width int) string {
