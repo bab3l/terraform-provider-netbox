@@ -182,38 +182,23 @@ func TestAccRearPortResource_tagLifecycle(t *testing.T) {
 				Config: testAccRearPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_rear_port.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_rear_port.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_rear_port.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccRearPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_rear_port.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_rear_port.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_rear_port.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccRearPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, tag3Slug, caseTag3),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_rear_port.test", "tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
-						"slug": tag3Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_rear_port.test", "tags.*", tag3Slug),
 				),
 			},
 			{
@@ -259,28 +244,16 @@ func TestAccRearPortResource_tagOrderInvariance(t *testing.T) {
 				Config: testAccRearPortResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_rear_port.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_rear_port.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_rear_port.test", "tags.*", tag2Slug),
 				),
 			},
 			{
 				Config: testAccRearPortResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, tag1Slug, tag2Slug, caseTag2Uscore1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_rear_port.test", "tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
-						"slug": tag1Slug,
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("netbox_rear_port.test", "tags.*", map[string]string{
-						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
-						"slug": tag2Slug,
-					}),
+					resource.TestCheckTypeSetElemAttr("netbox_rear_port.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_rear_port.test", "tags.*", tag2Slug),
 				),
 			},
 		},
@@ -552,11 +525,11 @@ func testAccRearPortResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dt
 	var tagsConfig string
 	switch tagCase {
 	case caseTag1Tag2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag1Uscore2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag3:
-		tagsConfig = tagsSingleNested
+		tagsConfig = tagsSingleSlug
 	case tagsEmpty:
 		tagsConfig = tagsEmpty
 	}
@@ -622,9 +595,9 @@ func testAccRearPortResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlu
 	var tagsConfig string
 	switch tagCase {
 	case caseTag1Tag2:
-		tagsConfig = tagsDoubleNested
+		tagsConfig = tagsDoubleSlug
 	case caseTag2Uscore1:
-		tagsConfig = tagsDoubleNestedReversed
+		tagsConfig = tagsDoubleSlugReversed
 	}
 
 	return fmt.Sprintf(`
