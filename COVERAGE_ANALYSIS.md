@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 83/86 resources complete (96.5%)
+**Status**: 84/86 resources complete (97.7%)
 
 ## Completed Resources
 
@@ -448,6 +448,11 @@
 - Duration: ~8.8s
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
 
+### 84. Tunnel (vpn_tunnel)
+- 11 tests passing (includes 1 consistency test)
+- Duration: ~8.5s
+- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+
 ## Standard Test Pattern
 
 Each resource includes:
@@ -530,6 +535,7 @@ Continue alphabetically through remaining 38 resources.
 - Tenant Group (resource 81)
 - Tenant (resource 82)
 - Journal Entry (resource 83)
+- Tunnel (resource 84)
 - IP Range (resource 43)
 - IPSec Policy (resource 44)
 - IPSec Profile (resource 45)
