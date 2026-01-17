@@ -35,6 +35,10 @@ func TestAccTenantResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_tenant.test", "slug", slug),
 				),
 			},
+			{
+				Config:   testAccTenantResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -45,11 +49,25 @@ func TestAccTenantResource_full(t *testing.T) {
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tenant-full")
 	slug := testutil.RandomSlug("tf-test-tenant-full")
+	groupName := testutil.RandomName("tf-test-tenant-group")
+	groupSlug := testutil.RandomSlug("tf-test-tenant-group")
 	description := testutil.RandomName("description")
+	updatedDescription := testutil.RandomName("description-updated")
+	comments := testutil.RandomName("comments")
+	updatedComments := testutil.RandomName("comments-updated")
+	tagName1 := testutil.RandomName("tag1")
+	tagSlug1 := testutil.RandomSlug("tag1")
+	tagName2 := testutil.RandomName("tag2")
+	tagSlug2 := testutil.RandomSlug("tag2")
+	cfName := testutil.RandomCustomFieldName("test_field")
 
 	// Register cleanup
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterTenantCleanup(slug)
+	cleanup.RegisterTenantGroupCleanup(groupSlug)
+	cleanup.RegisterTagCleanup(tagSlug1)
+	cleanup.RegisterTagCleanup(tagSlug2)
+	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -57,17 +75,152 @@ func TestAccTenantResource_full(t *testing.T) {
 		CheckDestroy:             testutil.CheckTenantDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTenantResourceConfig_full(name, slug, description),
+				Config: testAccTenantResourceConfig_full(name, slug, groupName, groupSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_tenant.test", "id"),
 					resource.TestCheckResourceAttr("netbox_tenant.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_tenant.test", "slug", slug),
 					resource.TestCheckResourceAttr("netbox_tenant.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "comments", comments),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "group", groupName),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "tags.#", "2"),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "custom_fields.#", "1"),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "custom_fields.0.value", "test_value"),
 				),
 			},
 			{
-				Config:   testAccTenantResourceConfig_full(name, slug, description),
+				Config:   testAccTenantResourceConfig_full(name, slug, groupName, groupSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				PlanOnly: true,
+			},
+			{
+				Config: testAccTenantResourceConfig_fullUpdate(name, slug, groupName, groupSlug, updatedDescription, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tenant.test", "description", updatedDescription),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "comments", updatedComments),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "custom_fields.0.value", "updated_value"),
+				),
+			},
+			{
+				Config:   testAccTenantResourceConfig_fullUpdate(name, slug, groupName, groupSlug, updatedDescription, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func TestAccTenantResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-tenant-tags")
+	slug := testutil.RandomSlug("tf-test-tenant-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTenantCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTenantDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTenantResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tenant.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_tenant.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_tenant.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccTenantResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tenant.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_tenant.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_tenant.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccTenantResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tenant.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_tenant.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
+						"slug": tag3Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccTenantResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tenant.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccTenantResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-tenant-tag-order")
+	slug := testutil.RandomSlug("tf-test-tenant-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTenantCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTenantDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTenantResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tenant.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_tenant.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_tenant.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccTenantResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_tenant.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_tenant.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_tenant.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
 			},
 		},
 	})
@@ -127,14 +280,108 @@ resource "netbox_tenant" "test" {
 }
 
 // testAccTenantResourceConfig_full returns a test configuration with all fields.
-func testAccTenantResourceConfig_full(name, slug, description string) string {
+func testAccTenantResourceConfig_full(name, slug, groupName, groupSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
 	return fmt.Sprintf(`
-resource "netbox_tenant" "test" {
-  name        = %q
-  slug        = %q
-  description = %q
+resource "netbox_tenant_group" "test" {
+	name = %[3]q
+	slug = %[4]q
 }
-`, name, slug, description)
+
+resource "netbox_tag" "tag1" {
+	name = %[7]q
+	slug = %[8]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = %[9]q
+	slug = %[10]q
+}
+
+resource "netbox_custom_field" "test_field" {
+	name         = %[11]q
+	object_types = ["tenancy.tenant"]
+	type         = "text"
+}
+
+resource "netbox_tenant" "test" {
+	name        = %[1]q
+	slug        = %[2]q
+	group       = netbox_tenant_group.test.name
+	description = %[5]q
+	comments    = %[6]q
+
+	tags = [
+		{
+			name = netbox_tag.tag1.name
+			slug = netbox_tag.tag1.slug
+		},
+		{
+			name = netbox_tag.tag2.name
+			slug = netbox_tag.tag2.slug
+		}
+	]
+
+	custom_fields = [
+		{
+			name  = netbox_custom_field.test_field.name
+			type  = "text"
+			value = "test_value"
+		}
+	]
+}
+`, name, slug, groupName, groupSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+}
+
+func testAccTenantResourceConfig_fullUpdate(name, slug, groupName, groupSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+	return fmt.Sprintf(`
+resource "netbox_tenant_group" "test" {
+	name = %[3]q
+	slug = %[4]q
+}
+
+resource "netbox_tag" "tag1" {
+	name = %[7]q
+	slug = %[8]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = %[9]q
+	slug = %[10]q
+}
+
+resource "netbox_custom_field" "test_field" {
+	name         = %[11]q
+	object_types = ["tenancy.tenant"]
+	type         = "text"
+}
+
+resource "netbox_tenant" "test" {
+	name        = %[1]q
+	slug        = %[2]q
+	group       = netbox_tenant_group.test.name
+	description = %[5]q
+	comments    = %[6]q
+
+	tags = [
+		{
+			name = netbox_tag.tag1.name
+			slug = netbox_tag.tag1.slug
+		},
+		{
+			name = netbox_tag.tag2.name
+			slug = netbox_tag.tag2.slug
+		}
+	]
+
+	custom_fields = [
+		{
+			name  = netbox_custom_field.test_field.name
+			type  = "text"
+			value = "updated_value"
+		}
+	]
+}
+`, name, slug, groupName, groupSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
 }
 
 func TestAccTenantResource_import(t *testing.T) {
@@ -189,17 +436,25 @@ func TestAccConsistency_Tenant(t *testing.T) {
 	tenantSlug := testutil.RandomSlug("tenant")
 	groupName := testutil.RandomName("group")
 	groupSlug := testutil.RandomSlug("group")
+	tagName1 := testutil.RandomName("tag1")
+	tagSlug1 := testutil.RandomSlug("tag1")
+	tagName2 := testutil.RandomName("tag2")
+	tagSlug2 := testutil.RandomSlug("tag2")
+	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterTenantCleanup(tenantSlug)
 	cleanup.RegisterTenantGroupCleanup(groupSlug)
+	cleanup.RegisterTagCleanup(tagSlug1)
+	cleanup.RegisterTagCleanup(tagSlug2)
+	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTenantConsistencyConfig(tenantName, tenantSlug, groupName, groupSlug),
+				Config: testAccTenantConsistencyConfig(tenantName, tenantSlug, groupName, groupSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tenant.test", "name", tenantName),
 					resource.TestCheckResourceAttr("netbox_tenant.test", "group", groupName),
@@ -207,25 +462,60 @@ func TestAccConsistency_Tenant(t *testing.T) {
 			},
 			{
 				PlanOnly: true,
-				Config:   testAccTenantConsistencyConfig(tenantName, tenantSlug, groupName, groupSlug),
+				Config:   testAccTenantConsistencyConfig(tenantName, tenantSlug, groupName, groupSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 			},
 		},
 	})
 }
 
-func testAccTenantConsistencyConfig(tenantName, tenantSlug, groupName, groupSlug string) string {
+func testAccTenantConsistencyConfig(tenantName, tenantSlug, groupName, groupSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
 	return fmt.Sprintf(`
 resource "netbox_tenant_group" "test" {
   name = %q
   slug = %q
 }
 
-resource "netbox_tenant" "test" {
-  name = %q
-  slug = %q
-  group = netbox_tenant_group.test.name
+resource "netbox_tag" "tag1" {
+	name = %[5]q
+	slug = %[6]q
 }
-`, groupName, groupSlug, tenantName, tenantSlug)
+
+resource "netbox_tag" "tag2" {
+	name = %[7]q
+	slug = %[8]q
+}
+
+resource "netbox_custom_field" "test_field" {
+	name         = %[9]q
+	object_types = ["tenancy.tenant"]
+	type         = "text"
+}
+
+resource "netbox_tenant" "test" {
+	name  = %[3]q
+	slug  = %[4]q
+  group = netbox_tenant_group.test.name
+
+	tags = [
+		{
+			name = netbox_tag.tag1.name
+			slug = netbox_tag.tag1.slug
+		},
+		{
+			name = netbox_tag.tag2.name
+			slug = netbox_tag.tag2.slug
+		}
+	]
+
+	custom_fields = [
+		{
+			name  = netbox_custom_field.test_field.name
+			type  = "text"
+			value = "test_value"
+		}
+	]
+}
+`, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
 }
 
 func TestAccConsistency_Tenant_LiteralNames(t *testing.T) {
@@ -234,9 +524,18 @@ func TestAccConsistency_Tenant_LiteralNames(t *testing.T) {
 	name := testutil.RandomName("tf-test-tenant-lit")
 	slug := testutil.RandomSlug("tf-test-tenant-lit")
 	description := testutil.RandomName("description")
+	comments := testutil.RandomName("comments")
+	tagName1 := testutil.RandomName("tag1")
+	tagSlug1 := testutil.RandomSlug("tag1")
+	tagName2 := testutil.RandomName("tag2")
+	tagSlug2 := testutil.RandomSlug("tag2")
+	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterTenantCleanup(slug)
+	cleanup.RegisterTagCleanup(tagSlug1)
+	cleanup.RegisterTagCleanup(tagSlug2)
+	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -244,16 +543,19 @@ func TestAccConsistency_Tenant_LiteralNames(t *testing.T) {
 		CheckDestroy:             testutil.CheckTenantDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTenantConsistencyLiteralNamesConfig(name, slug, description),
+				Config: testAccTenantConsistencyLiteralNamesConfig(name, slug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_tenant.test", "id"),
 					resource.TestCheckResourceAttr("netbox_tenant.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_tenant.test", "slug", slug),
 					resource.TestCheckResourceAttr("netbox_tenant.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "comments", comments),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "tags.#", "2"),
+					resource.TestCheckResourceAttr("netbox_tenant.test", "custom_fields.#", "1"),
 				),
 			},
 			{
-				Config:   testAccTenantConsistencyLiteralNamesConfig(name, slug, description),
+				Config:   testAccTenantConsistencyLiteralNamesConfig(name, slug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_tenant.test", "id"),
@@ -263,44 +565,50 @@ func TestAccConsistency_Tenant_LiteralNames(t *testing.T) {
 	})
 }
 
-func TestAccTenantResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-tenant-id")
-	slug := testutil.RandomSlug("tf-test-tenant-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterTenantCleanup(slug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.CheckTenantDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccTenantResourceConfig_basic(name, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_tenant.test", "id"),
-					resource.TestCheckResourceAttr("netbox_tenant.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_tenant.test", "slug", slug),
-				),
-			},
-			{
-				Config:   testAccTenantResourceConfig_basic(name, slug),
-				PlanOnly: true,
-			},
-		},
-	})
-}
-
-func testAccTenantConsistencyLiteralNamesConfig(name, slug, description string) string {
+func testAccTenantConsistencyLiteralNamesConfig(name, slug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
 	return fmt.Sprintf(`
-resource "netbox_tenant" "test" {
-  name        = %q
-  slug        = %q
-  description = %q
+resource "netbox_tag" "tag1" {
+	name = %[4]q
+	slug = %[5]q
 }
-`, name, slug, description)
+
+resource "netbox_tag" "tag2" {
+	name = %[6]q
+	slug = %[7]q
+}
+
+resource "netbox_custom_field" "test_field" {
+	name         = %[8]q
+	object_types = ["tenancy.tenant"]
+	type         = "text"
+}
+
+resource "netbox_tenant" "test" {
+	name        = %[1]q
+	slug        = %[2]q
+	description = %[3]q
+	comments    = %[9]q
+
+	tags = [
+		{
+			name = netbox_tag.tag1.name
+			slug = netbox_tag.tag1.slug
+		},
+		{
+			name = netbox_tag.tag2.name
+			slug = netbox_tag.tag2.slug
+		}
+	]
+
+	custom_fields = [
+		{
+			name  = netbox_custom_field.test_field.name
+			type  = "text"
+			value = "test_value"
+		}
+	]
+}
+`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName, comments)
 }
 
 func TestAccTenantResource_externalDeletion(t *testing.T) {
@@ -471,4 +779,69 @@ resource "netbox_tenant" "test" {
 			},
 		},
 	})
+}
+
+func testAccTenantResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleNested
+	case caseTag3:
+		tagsConfig = tagsSingleNested
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = "Tag3-%[5]s"
+  slug = %[5]q
+}
+
+resource "netbox_tenant" "test" {
+  name = %[1]q
+  slug = %[2]q
+  %[6]s
+}
+`, name, slug, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccTenantResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleNestedReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_tenant" "test" {
+  name = %[1]q
+  slug = %[2]q
+  %[5]s
+}
+`, name, slug, tag1Slug, tag2Slug, tagsConfig)
 }
