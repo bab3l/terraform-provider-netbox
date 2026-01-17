@@ -15,6 +15,7 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -160,8 +161,9 @@ func (r *TunnelResource) Schema(ctx context.Context, req resource.SchemaRequest,
 	// Add description and comments attributes
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("tunnel"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add metadata attributes (slug list tags, custom_fields)
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *TunnelResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -287,25 +289,15 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 	tunnelRequest.Comments = utils.StringPtr(data.Comments)
 
 	// Handle tags
-	if !data.Tags.IsNull() {
-		var tagModels []utils.TagModel
-		diags := data.Tags.ElementsAs(ctx, &tagModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		tunnelRequest.Tags = utils.TagsToNestedTagRequests(tagModels)
+	utils.ApplyTagsFromSlugs(ctx, r.client, tunnelRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Handle custom fields
-	if !data.CustomFields.IsNull() {
-		var customFieldModels []utils.CustomFieldModel
-		diags := data.CustomFields.ElementsAs(ctx, &customFieldModels, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		tunnelRequest.CustomFields = utils.CustomFieldsToMap(customFieldModels)
+	utils.ApplyCustomFields(ctx, tunnelRequest, data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	tflog.Debug(ctx, "Creating tunnel", map[string]interface{}{
@@ -484,7 +476,20 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, tunnel.HasTags(), tunnel.GetTags(), data.Tags, &resp.Diagnostics)
+	var tagSlugs []string
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case tunnel.HasTags():
+		for _, tag := range tunnel.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -613,7 +618,11 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 	utils.ApplyComments(tunnelRequest, data.Comments)
 
 	// Handle tags - merge-aware
-	utils.ApplyTags(ctx, tunnelRequest, data.Tags, &resp.Diagnostics)
+	if utils.IsSet(data.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, tunnelRequest, data.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, tunnelRequest, state.Tags, &resp.Diagnostics)
+	}
 	if resp.Diagnostics.HasError() {
 		return
 	}
