@@ -395,9 +395,11 @@
 - **Notable**: No tag support, optional+computed positions coverage
 
 ### 72. Region (dcim_region)
+- ✅ Converted to slug list tags (commit 42cf3f8)
 - 9 tests passing (6 regular + 2 tag tests + 1 with validation subtests)
-- Duration: ~9.5s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), supports parent hierarchy
+- Duration: ~9.0s
+- **Status**: Phase 2 complete - using slug list format
+- **Notable**: Supports parent hierarchy
 
 ### 73. RIR (ipam_rir)
 - 9 tests passing (6 regular + 2 tag tests + 1 with validation subtests)
