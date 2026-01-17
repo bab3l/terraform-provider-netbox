@@ -11,6 +11,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -76,7 +77,8 @@ func (r *RegionResource) Schema(ctx context.Context, req resource.SchemaRequest,
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("region"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *RegionResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -127,7 +129,8 @@ func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	utils.ApplyDescription(&regionRequest, data.Description)
 
-	utils.ApplyMetadataFields(ctx, &regionRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &regionRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, &regionRequest, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -272,9 +275,9 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 	// Handle tags and custom fields - merge-aware for partial management
 	// If tags are in plan, use plan. If not, preserve state tags.
 	if utils.IsSet(data.Tags) {
-		utils.ApplyTags(ctx, &regionRequest, data.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, &regionRequest, data.Tags, &resp.Diagnostics)
 	} else if utils.IsSet(state.Tags) {
-		utils.ApplyTags(ctx, &regionRequest, state.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, &regionRequest, state.Tags, &resp.Diagnostics)
 	}
 	if resp.Diagnostics.HasError() {
 		return
@@ -406,8 +409,21 @@ func (r *RegionResource) mapRegionToState(ctx context.Context, region *netbox.Re
 	// Handle description - use StringFromAPI to treat empty string as null
 	data.Description = utils.StringFromAPI(region.HasDescription(), region.GetDescription, data.Description)
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, region.HasTags(), region.GetTags(), data.Tags, diags)
+	// Handle tags - filter to owned slugs only
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	case region.HasTags():
+		var tagSlugs []string
+		for _, tag := range region.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	}
 
 	// Handle custom fields - use filtered-to-owned for partial management
 	if region.HasCustomFields() {
