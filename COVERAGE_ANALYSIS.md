@@ -1,7 +1,7 @@
 # Acceptance Test Coverage Analysis
 
 ## Overall Progress
-**Status**: 50/86 resources complete (58.1%)
+**Status**: 51/86 resources complete (59.3%)
 
 ## Completed Resources
 
@@ -282,6 +282,11 @@
 - 10 tests passing (7 regular + 2 tag tests + 1 with validation subtests)
 - Duration: ~8.7s
 - **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2), core hardware metadata
+
+### 51. Module Bay (dcim_module_bay)
+- 8 tests passing (6 regular + 1 extended variant + 1 with validation subtests)
+- Duration: ~7.9s
+- **Notable**: No tag support, device dependency chain
 
 ## Standard Test Pattern
 
