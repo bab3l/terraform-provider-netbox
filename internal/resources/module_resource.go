@@ -12,6 +12,7 @@ import (
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -101,8 +102,9 @@ func (r *ModuleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 	// Add common descriptive attributes (description, comments)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("module"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom fields
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *ModuleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -160,7 +162,10 @@ func (r *ModuleResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, apiReq, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyDescription(apiReq, data.Description)
+	utils.ApplyComments(apiReq, data.Comments)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -293,7 +298,7 @@ func (r *ModuleResource) Update(ctx context.Context, req resource.UpdateRequest,
 	// Set common fields (description, comments, tags, custom_fields)
 	utils.ApplyDescription(apiReq, plan.Description)
 	utils.ApplyComments(apiReq, plan.Comments)
-	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, plan.Tags, &resp.Diagnostics)
 	// Apply custom fields with merge logic to preserve unmanaged fields
 	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
@@ -439,8 +444,24 @@ func (r *ModuleResource) mapResponseToModel(ctx context.Context, module *netbox.
 		data.Comments = types.StringNull()
 	}
 
-	// Populate tags and custom fields using unified helpers
-	data.Tags = utils.PopulateTagsFromAPI(ctx, module.HasTags(), module.GetTags(), data.Tags, diags)
+	// Populate tags - filter to only those managed in config
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		if module.HasTags() {
+			var tagSlugs []string
+			for _, tag := range module.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+		}
+	}
+
 	// Filter custom fields to only those managed in config
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, module.GetCustomFields(), diags)
 }
