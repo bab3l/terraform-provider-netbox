@@ -15,6 +15,7 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -99,8 +100,9 @@ func (r *SiteResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 	// Add common descriptive attributes (description, comments)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("site"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add metadata attributes (slug list tags, custom_fields)
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *SiteResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -169,8 +171,17 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 		siteRequest.SetGroupNil()
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, &siteRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply description and comments
+	utils.ApplyDescriptiveFields(&siteRequest, data.Description, data.Comments)
+
+	// Apply tags from slugs
+	utils.ApplyTagsFromSlugs(ctx, r.client, &siteRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply custom fields
+	utils.ApplyCustomFields(ctx, &siteRequest, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -327,8 +338,22 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		siteRequest.SetGroupNil()
 	}
 
-	// Set common fields with merge-aware custom fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFieldsWithMerge(ctx, &siteRequest, plan.Description, plan.Comments, plan.Tags, state.Tags, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
+	// Apply description and comments
+	utils.ApplyDescriptiveFields(&siteRequest, plan.Description, plan.Comments)
+
+	// Handle tags and custom fields - merge-aware for partial management
+	// If tags are in plan, use plan. If not, preserve state tags.
+	if utils.IsSet(plan.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, &siteRequest, plan.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, &siteRequest, state.Tags, &resp.Diagnostics)
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply custom fields with merge logic (preserves unmanaged fields from state)
+	utils.ApplyCustomFieldsWithMerge(ctx, &siteRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -450,7 +475,20 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 	data.Comments = utils.StringFromAPI(site.HasComments(), site.GetComments, data.Comments)
 
 	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, site.HasTags(), site.GetTags(), data.Tags, diags)
+	var tagSlugs []string
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case site.HasTags():
+		for _, tag := range site.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
 
 	// Handle custom fields - use filtered-to-owned for partial management
 	if site.HasCustomFields() {
