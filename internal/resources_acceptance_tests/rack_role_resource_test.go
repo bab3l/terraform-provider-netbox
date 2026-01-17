@@ -136,6 +136,124 @@ func TestAccRackRoleResource_import(t *testing.T) {
 	})
 }
 
+func TestAccRackRoleResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	rackRoleName := testutil.RandomName("tf-test-rack-role-tags")
+	rackRoleSlug := testutil.RandomSlug("tf-test-rack-role-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackRoleCleanup(rackRoleSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackRoleResourceConfig_tags(rackRoleName, rackRoleSlug, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_role.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_role.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRackRoleResourceConfig_tags(rackRoleName, rackRoleSlug, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_role.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_role.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRackRoleResourceConfig_tags(rackRoleName, rackRoleSlug, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_role.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag3-%s", tag3Slug),
+						"slug": tag3Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRackRoleResourceConfig_tags(rackRoleName, rackRoleSlug, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccRackRoleResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	rackRoleName := testutil.RandomName("tf-test-rack-role-tag-order")
+	rackRoleSlug := testutil.RandomSlug("tf-test-rack-role-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRackRoleCleanup(rackRoleSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackRoleResourceConfig_tagsOrder(rackRoleName, rackRoleSlug, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_role.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_role.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+			{
+				Config: testAccRackRoleResourceConfig_tagsOrder(rackRoleName, rackRoleSlug, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_role.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_role.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag1-%s", tag1Slug),
+						"slug": tag1Slug,
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("netbox_rack_role.test", "tags.*", map[string]string{
+						"name": fmt.Sprintf("Tag2-%s", tag2Slug),
+						"slug": tag2Slug,
+					}),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConsistency_RackRole(t *testing.T) {
 	t.Parallel()
 
@@ -164,32 +282,6 @@ func TestAccConsistency_RackRole(t *testing.T) {
 	})
 }
 
-func TestAccRackRoleResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-rack-role-id")
-	slug := testutil.RandomSlug("tf-test-rr-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterRackRoleCleanup(slug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.CheckRackRoleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRackRoleResourceConfig_basic(name, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_rack_role.test", "id"),
-					resource.TestCheckResourceAttr("netbox_rack_role.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_rack_role.test", "slug", slug),
-				),
-			},
-		},
-	})
-}
-
 func testAccRackRoleResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_rack_role" "test" {
@@ -197,6 +289,71 @@ resource "netbox_rack_role" "test" {
   slug = %[2]q
 }
 `, name, slug)
+}
+
+func testAccRackRoleResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleNested
+	case caseTag3:
+		tagsConfig = tagsSingleNested
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = "Tag3-%[5]s"
+  slug = %[5]q
+}
+
+resource "netbox_rack_role" "test" {
+  name = %[1]q
+  slug = %[2]q
+  %[6]s
+}
+`, name, slug, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccRackRoleResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleNested
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleNestedReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_rack_role" "test" {
+  name = %[1]q
+  slug = %[2]q
+  %[5]s
+}
+`, name, slug, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func testAccRackRoleResourceConfig_full(name, slug, description, color string) string {
