@@ -105,7 +105,7 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 	// Determine if we're searching by ID or cid
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		// Search by ID
 		circuitID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading circuit by ID", map[string]interface{}{
@@ -122,7 +122,7 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		circuit, httpResp, err = d.client.CircuitsAPI.CircuitsCircuitsRetrieve(ctx, circuitIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Cid.IsNull():
+	case !data.Cid.IsNull() && !data.Cid.IsUnknown() && data.Cid.ValueString() != "":
 		// Search by cid
 		circuitCid := data.Cid.ValueString()
 		tflog.Debug(ctx, "Reading circuit by cid", map[string]interface{}{

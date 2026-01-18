@@ -56,7 +56,7 @@ A lookup bug was found in the Cluster Type datasource: optional/computed fields 
 - fhrp_group
 - fhrp_group_assignment
 
-### Batch 5 — Circuits & Providers
+### Batch 5 — Circuits & Providers (Complete)
 - circuit
 - circuit_type
 - circuit_termination

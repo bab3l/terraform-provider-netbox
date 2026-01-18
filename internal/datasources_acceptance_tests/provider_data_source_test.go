@@ -61,7 +61,7 @@ func TestAccProviderDataSource_bySlug(t *testing.T) {
 func TestAccProviderDataSource_byName(t *testing.T) {
 	t.Parallel()
 
-	name := testutil.RandomName("provider")
+	name := fmt.Sprintf("Public Cloud %s", testutil.RandomName("provider"))
 	slug := testutil.RandomSlug("provider")
 
 	cleanup := testutil.NewCleanupResource(t)
