@@ -84,7 +84,7 @@ func (d *ContactGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 	// Lookup by ID first
 	switch {
-	case !data.ID.IsNull() && !data.ID.IsUnknown():
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		id := utils.ParseInt32FromString(data.ID.ValueString())
 		if id == 0 {
 			resp.Diagnostics.AddError("Invalid ID", "ID must be a number")
@@ -93,7 +93,7 @@ func (d *ContactGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		tflog.Debug(ctx, "Looking up contact group by ID", map[string]interface{}{"id": id})
 		contactGroup, httpResp, err = d.client.TenancyAPI.TenancyContactGroupsRetrieve(ctx, id).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown() && data.Slug.ValueString() != "":
 		// Lookup by slug
 		slug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Looking up contact group by slug", map[string]interface{}{"slug": slug})
@@ -107,7 +107,7 @@ func (d *ContactGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 			resp.Diagnostics.AddError("Contact group not found", fmt.Sprintf("No contact group found with slug: %s", slug))
 			return
 		}
-	case !data.Name.IsNull() && !data.Name.IsUnknown():
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Lookup by name
 		name := data.Name.ValueString()
 		tflog.Debug(ctx, "Looking up contact group by name", map[string]interface{}{"name": name})

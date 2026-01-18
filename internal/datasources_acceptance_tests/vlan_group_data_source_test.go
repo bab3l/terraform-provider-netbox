@@ -66,7 +66,7 @@ func TestAccVLANGroupDataSource_byName(t *testing.T) {
 
 	t.Parallel()
 
-	vlanGroupName := testutil.RandomName("vlan-group")
+	vlanGroupName := fmt.Sprintf("Public Cloud %s", testutil.RandomName("vlan-group"))
 	vlanGroupSlug := testutil.RandomSlug("vlan-group")
 
 	cleanup := testutil.NewCleanupResource(t)

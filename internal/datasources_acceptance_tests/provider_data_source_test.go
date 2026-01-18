@@ -61,7 +61,7 @@ func TestAccProviderDataSource_bySlug(t *testing.T) {
 func TestAccProviderDataSource_byName(t *testing.T) {
 	t.Parallel()
 
-	name := testutil.RandomName("provider")
+	name := fmt.Sprintf("Public Cloud %s", testutil.RandomName("provider"))
 	slug := testutil.RandomSlug("provider")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -75,6 +75,32 @@ func TestAccProviderDataSource_byName(t *testing.T) {
 			{
 				Config: testAccProviderDataSourceConfigByName(name, slug),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_provider.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_provider.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
+func TestAccProviderDataSource_byID(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("provider")
+	slug := testutil.RandomSlug("provider")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckProviderDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_provider.test", "id"),
 					resource.TestCheckResourceAttr("data.netbox_provider.test", "name", name),
 					resource.TestCheckResourceAttr("data.netbox_provider.test", "slug", slug),
 				),

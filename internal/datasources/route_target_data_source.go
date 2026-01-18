@@ -123,7 +123,7 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	// Check if we're looking up by ID
 	switch {
-	case utils.IsSet(data.ID):
+	case utils.IsSet(data.ID) && data.ID.ValueString() != "":
 		var idInt int
 		_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt)
 		if err != nil {
@@ -152,7 +152,7 @@ func (d *RouteTargetDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 		rt = result
 
-	case utils.IsSet(data.Name):
+	case utils.IsSet(data.Name) && data.Name.ValueString() != "":
 		// Looking up by name
 		tflog.Debug(ctx, "Reading RouteTarget by name", map[string]interface{}{
 			"name": data.Name.ValueString(),

@@ -92,7 +92,7 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 	// Determine if we're searching by ID, slug, or name
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		// Search by ID
 		providerID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading circuit provider by ID", map[string]interface{}{
@@ -109,7 +109,7 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 		provider, httpResp, err = d.client.CircuitsAPI.CircuitsProvidersRetrieve(ctx, providerIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Slug.IsNull():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown() && data.Slug.ValueString() != "":
 		// Search by slug
 		providerSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading circuit provider by slug", map[string]interface{}{
@@ -135,7 +135,7 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 		}
 		provider = &providers.GetResults()[0]
 
-	case !data.Name.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Search by name
 		providerName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading circuit provider by name", map[string]interface{}{

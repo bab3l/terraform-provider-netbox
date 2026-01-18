@@ -12,7 +12,7 @@ func TestAccDeviceTypeDataSource_basic(t *testing.T) {
 	t.Parallel()
 
 	// Generate unique names
-	model := testutil.RandomName("tf-test-devicetype-ds")
+	model := testutil.RandomName("Public Cloud")
 	slug := testutil.RandomSlug("tf-test-dt-ds")
 	manufacturerName := testutil.RandomName("tf-test-mfr-ds")
 	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-ds")
@@ -98,6 +98,38 @@ func TestAccDeviceTypeDataSource_byModel(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDeviceTypeDataSourceConfigByModel(model, slug, manufacturerName, manufacturerSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_device_type.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_device_type.test", "model", model),
+					resource.TestCheckResourceAttr("data.netbox_device_type.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDeviceTypeDataSource_bySlug(t *testing.T) {
+	t.Parallel()
+
+	model := testutil.RandomName("tf-test-devicetype-ds")
+	slug := testutil.RandomSlug("tf-test-dt-ds")
+	manufacturerName := testutil.RandomName("tf-test-mfr-ds")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-ds")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceTypeCleanup(slug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceTypeDataSourceConfig(model, slug, manufacturerName, manufacturerSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.netbox_device_type.test", "id"),
 					resource.TestCheckResourceAttr("data.netbox_device_type.test", "model", model),

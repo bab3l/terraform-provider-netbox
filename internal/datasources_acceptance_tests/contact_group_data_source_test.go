@@ -63,8 +63,8 @@ func TestAccContactGroupDataSource_byID(t *testing.T) {
 func TestAccContactGroupDataSource_byName(t *testing.T) {
 	t.Parallel()
 
-	name := testutil.RandomName("test-contact-group")
-	slug := testutil.GenerateSlug(name)
+	name := fmt.Sprintf("Public Cloud %s", testutil.RandomName("test-contact-group"))
+	slug := testutil.RandomSlug("test-contact-group")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterContactGroupCleanup(slug)

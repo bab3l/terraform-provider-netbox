@@ -197,7 +197,7 @@ func (d *CustomFieldDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	// Look up by ID if provided
 	switch {
-	case !data.ID.IsNull() && !data.ID.IsUnknown():
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		customFieldID, err := utils.ParseID(data.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -221,7 +221,7 @@ func (d *CustomFieldDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 		customField = cf
-	case !data.Name.IsNull() && !data.Name.IsUnknown():
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Look up by name
 		tflog.Debug(ctx, "Reading custom field by name", map[string]interface{}{
 			"name": data.Name.ValueString(),

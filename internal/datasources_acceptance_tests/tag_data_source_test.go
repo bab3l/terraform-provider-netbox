@@ -43,7 +43,7 @@ func TestAccTagDataSource_byName(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 
-	tagName := testutil.RandomName("tag")
+	tagName := fmt.Sprintf("Public Cloud %s", testutil.RandomName("tag"))
 	tagSlug := testutil.RandomSlug("tag")
 
 	cleanup.RegisterTagCleanup(tagSlug)
@@ -87,6 +87,35 @@ func TestAccTagDataSource_bySlug(t *testing.T) {
 			{
 				Config: testAccTagDataSourceConfigBySlug(tagName, tagSlug),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.netbox_tag.test", "name", tagName),
+					resource.TestCheckResourceAttr("data.netbox_tag.test", "slug", tagSlug),
+				),
+			},
+		},
+	})
+}
+
+func TestAccTagDataSource_byID(t *testing.T) {
+	t.Parallel()
+
+	cleanup := testutil.NewCleanupResource(t)
+
+	tagName := testutil.RandomName("tag")
+	tagSlug := testutil.RandomSlug("tag")
+
+	cleanup.RegisterTagCleanup(tagSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckTagDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTagDataSourceConfig(tagName, tagSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_tag.test", "id"),
 					resource.TestCheckResourceAttr("data.netbox_tag.test", "name", tagName),
 					resource.TestCheckResourceAttr("data.netbox_tag.test", "slug", tagSlug),
 				),

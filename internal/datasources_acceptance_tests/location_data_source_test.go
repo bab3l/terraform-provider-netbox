@@ -68,6 +68,64 @@ func TestAccLocationDataSource_IDPreservation(t *testing.T) {
 	})
 }
 
+func TestAccLocationDataSource_byID(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-loc-ds-site")
+	siteSlug := testutil.RandomSlug("tf-test-loc-ds-s")
+	name := testutil.RandomName("tf-test-location-ds")
+	slug := testutil.RandomSlug("tf-test-location-ds")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterLocationCleanup(slug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.ComposeCheckDestroy(testutil.CheckLocationDestroy, testutil.CheckSiteDestroy),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccLocationDataSourceConfigByID(siteName, siteSlug, name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_location.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_location.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_location.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
+func TestAccLocationDataSource_byName(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-loc-ds-site")
+	siteSlug := testutil.RandomSlug("tf-test-loc-ds-s")
+	name := fmt.Sprintf("Public Cloud %s", testutil.RandomName("tf-test-location-ds"))
+	slug := testutil.RandomSlug("tf-test-location-ds")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterLocationCleanup(slug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.ComposeCheckDestroy(testutil.CheckLocationDestroy, testutil.CheckSiteDestroy),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccLocationDataSourceConfigByName(siteName, siteSlug, name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_location.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_location.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_location.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func testAccLocationDataSourceConfig(siteName, siteSlug, name, slug string) string {
 	return fmt.Sprintf(`
 terraform {
@@ -95,6 +153,46 @@ resource "netbox_location" "test" {
 
 data "netbox_location" "test" {
   slug = netbox_location.test.slug
+}
+`, siteName, siteSlug, name, slug)
+}
+
+func testAccLocationDataSourceConfigByID(siteName, siteSlug, name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+	name   = %q
+	slug   = %q
+	status = "active"
+}
+
+resource "netbox_location" "test" {
+	name = %q
+	slug = %q
+	site = netbox_site.test.id
+}
+
+data "netbox_location" "test" {
+	id = netbox_location.test.id
+}
+`, siteName, siteSlug, name, slug)
+}
+
+func testAccLocationDataSourceConfigByName(siteName, siteSlug, name, slug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+	name   = %q
+	slug   = %q
+	status = "active"
+}
+
+resource "netbox_location" "test" {
+	name = %q
+	slug = %q
+	site = netbox_site.test.id
+}
+
+data "netbox_location" "test" {
+	name = netbox_location.test.name
 }
 `, siteName, siteSlug, name, slug)
 }

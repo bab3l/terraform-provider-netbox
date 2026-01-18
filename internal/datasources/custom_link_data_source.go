@@ -119,7 +119,7 @@ func (d *CustomLinkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	var err error
 
 	switch {
-	case !data.ID.IsNull() && data.ID.ValueString() != "":
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		// Lookup by ID
 		id, parseErr := utils.ParseID(data.ID.ValueString())
 		if parseErr != nil {
@@ -128,7 +128,7 @@ func (d *CustomLinkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		}
 		result, httpResp, err = d.client.ExtrasAPI.ExtrasCustomLinksRetrieve(ctx, id).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	case !data.Name.IsNull() && data.Name.ValueString() != "":
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Lookup by name
 		list, listResp, listErr := d.client.ExtrasAPI.ExtrasCustomLinksList(ctx).
 			Name([]string{data.Name.ValueString()}).Execute()

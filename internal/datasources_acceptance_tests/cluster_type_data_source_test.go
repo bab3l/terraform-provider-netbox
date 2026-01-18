@@ -37,7 +37,7 @@ func TestAccClusterTypeDataSource_byID(t *testing.T) {
 func TestAccClusterTypeDataSource_byName(t *testing.T) {
 	t.Parallel()
 
-	name := testutil.RandomName("cluster-type")
+	name := testutil.RandomName("Public Cloud")
 	slug := testutil.RandomSlug("cluster-type")
 
 	cleanup := testutil.NewCleanupResource(t)

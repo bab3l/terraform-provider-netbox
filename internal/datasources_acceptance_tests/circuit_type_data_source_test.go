@@ -67,7 +67,7 @@ func TestAccCircuitTypeDataSource_byID(t *testing.T) {
 func TestAccCircuitTypeDataSource_byName(t *testing.T) {
 	t.Parallel()
 
-	name := testutil.RandomName("circuit-type")
+	name := fmt.Sprintf("Public Cloud %s", testutil.RandomName("circuit-type"))
 	slug := testutil.RandomSlug("circuit-type")
 
 	cleanup := testutil.NewCleanupResource(t)

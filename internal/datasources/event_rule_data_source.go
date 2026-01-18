@@ -151,6 +151,11 @@ func (d *EventRuleDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
+	if data.ID.IsNull() || data.ID.IsUnknown() || data.ID.ValueString() == "" {
+		resp.Diagnostics.AddError("Missing required identifier", "The 'id' attribute must be specified to lookup an event rule.")
+		return
+	}
+
 	id, err := utils.ParseID(data.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("ID must be a number, got: %s", data.ID.ValueString()))

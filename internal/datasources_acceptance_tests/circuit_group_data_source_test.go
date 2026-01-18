@@ -68,7 +68,7 @@ func TestAccCircuitGroupDataSource_byName(t *testing.T) {
 	t.Parallel()
 
 	// Generate unique names
-	name := testutil.RandomName("tf-test-cg-ds-name")
+	name := fmt.Sprintf("Public Cloud %s", testutil.RandomName("tf-test-cg-ds-name"))
 	slug := testutil.RandomSlug("tf-test-cg-ds-name")
 
 	// Register cleanup

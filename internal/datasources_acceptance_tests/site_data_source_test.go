@@ -12,7 +12,7 @@ func TestAccSiteDataSource_basic(t *testing.T) {
 	t.Parallel()
 
 	// Generate unique names to avoid conflicts between test runs
-	name := testutil.RandomName("tf-test-site-ds")
+	name := testutil.RandomName("Public Cloud")
 	slug := testutil.RandomSlug("tf-test-site-ds")
 
 	// Register cleanup to ensure resource is deleted even if test fails
@@ -78,6 +78,32 @@ func TestAccSiteDataSource_byName(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccSiteDataSourceConfigByName(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_site.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_site.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_site.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
+func TestAccSiteDataSource_bySlug(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-site-ds")
+	slug := testutil.RandomSlug("tf-test-site-ds")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckSiteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSiteDataSourceConfig(name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.netbox_site.test", "id"),
 					resource.TestCheckResourceAttr("data.netbox_site.test", "name", name),

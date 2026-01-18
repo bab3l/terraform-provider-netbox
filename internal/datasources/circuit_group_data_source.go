@@ -88,7 +88,7 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 	// Lookup by ID
 	switch {
-	case !data.ID.IsNull() && !data.ID.IsUnknown():
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		var idInt int32
 		if _, parseErr := fmt.Sscanf(data.ID.ValueString(), "%d", &idInt); parseErr != nil {
 			resp.Diagnostics.AddError(
@@ -111,7 +111,7 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		}
 		group = result
 
-	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown() && data.Slug.ValueString() != "":
 
 		// Lookup by slug
 		tflog.Debug(ctx, "Looking up circuit group by slug", map[string]interface{}{
@@ -137,7 +137,7 @@ func (d *CircuitGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		result := list.GetResults()[0]
 		group = &result
 
-	case !data.Name.IsNull() && !data.Name.IsUnknown():
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Lookup by name
 		tflog.Debug(ctx, "Looking up circuit group by name", map[string]interface{}{
 			"name": data.Name.ValueString(),

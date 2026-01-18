@@ -115,7 +115,7 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 	// Look up by ID, slug, or name
 	switch {
-	case !data.ID.IsNull() && data.ID.ValueString() != "":
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		var id int32
 		if _, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id); err != nil {
 			resp.Diagnostics.AddError("Invalid VLAN Group ID", fmt.Sprintf("VLAN Group ID must be a number, got: %s", data.ID.ValueString()))
@@ -135,7 +135,7 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 		vlanGroup = vlanGroupResp
 
-	case !data.Slug.IsNull() && data.Slug.ValueString() != "":
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown() && data.Slug.ValueString() != "":
 		// Look up by slug
 		slug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Looking up VLAN Group by slug", map[string]interface{}{
@@ -159,7 +159,7 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 		vlanGroup = &list.Results[0]
 
-	case !data.Name.IsNull() && data.Name.ValueString() != "":
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Look up by name
 		name := data.Name.ValueString()
 		tflog.Debug(ctx, "Looking up VLAN Group by name", map[string]interface{}{

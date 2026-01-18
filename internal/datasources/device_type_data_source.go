@@ -120,7 +120,7 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 	// Determine if we're searching by ID, slug, or model
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		// Search by ID
 		deviceTypeID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading device type by ID", map[string]interface{}{
@@ -141,7 +141,7 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		deviceType, httpResp, err = d.client.DcimAPI.DcimDeviceTypesRetrieve(ctx, deviceTypeIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Slug.IsNull():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
 		// Search by slug
 		deviceTypeSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading device type by slug", map[string]interface{}{
@@ -175,7 +175,7 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		}
 		deviceType = &deviceTypes.GetResults()[0]
 
-	case !data.Model.IsNull():
+	case !data.Model.IsNull() && !data.Model.IsUnknown():
 		// Search by model
 		deviceTypeModel := data.Model.ValueString()
 		tflog.Debug(ctx, "Reading device type by model", map[string]interface{}{

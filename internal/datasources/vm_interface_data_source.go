@@ -114,7 +114,7 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	// Determine if we're searching by ID or by name+virtual_machine
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		// Search by ID
 		ifaceID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading VM interface by ID", map[string]interface{}{
@@ -131,7 +131,7 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		iface, httpResp, err = d.client.VirtualizationAPI.VirtualizationInterfacesRetrieve(ctx, ifaceIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Name.IsNull() && !data.VirtualMachine.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && !data.VirtualMachine.IsNull() && !data.VirtualMachine.IsUnknown():
 		// Search by name and virtual machine
 		ifaceName := data.Name.ValueString()
 		vmName := data.VirtualMachine.ValueString()

@@ -94,7 +94,7 @@ func TestAccTenantGroupDataSource_byName(t *testing.T) {
 
 	t.Parallel()
 
-	name := testutil.RandomName("tf-test-tg-ds")
+	name := fmt.Sprintf("Public Cloud %s", testutil.RandomName("tf-test-tg-ds"))
 	slug := testutil.RandomSlug("tf-test-tg-ds")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -126,6 +126,32 @@ func TestAccTenantGroupDataSource_byName(t *testing.T) {
 		},
 	})
 
+}
+
+func TestAccTenantGroupDataSource_bySlug(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-tg-ds")
+	slug := testutil.RandomSlug("tf-test-tg-ds")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterTenantGroupCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckTenantGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTenantGroupDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_tenant_group.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_tenant_group.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_tenant_group.test", "slug", slug),
+				),
+			},
+		},
+	})
 }
 
 func TestAccTenantGroupDataSource_IDPreservation(t *testing.T) {

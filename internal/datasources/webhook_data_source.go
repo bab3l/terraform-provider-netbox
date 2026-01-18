@@ -100,7 +100,7 @@ func (d *WebhookDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 	// Lookup by id or name
 	switch {
-	case !data.ID.IsNull() && !data.ID.IsUnknown():
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		webhookID, parseErr := utils.ParseID(data.ID.ValueString())
 		if parseErr != nil {
 			resp.Diagnostics.AddError("Invalid Webhook ID", "Webhook ID must be a number.")
@@ -112,7 +112,7 @@ func (d *WebhookDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			resp.Diagnostics.AddError("Error reading webhook", utils.FormatAPIError("read webhook", err, httpResp))
 			return
 		}
-	case !data.Name.IsNull() && !data.Name.IsUnknown():
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		name := data.Name.ValueString()
 		webhooks, httpResp, listErr := d.client.ExtrasAPI.ExtrasWebhooksList(ctx).Name([]string{name}).Execute()
 		defer utils.CloseResponseBody(httpResp)

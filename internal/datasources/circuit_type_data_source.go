@@ -92,7 +92,7 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	// Determine if we're searching by ID, slug, or name
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		// Search by ID
 		circuitTypeID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading circuit type by ID", map[string]interface{}{
@@ -109,7 +109,7 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		circuitType, httpResp, err = d.client.CircuitsAPI.CircuitsCircuitTypesRetrieve(ctx, circuitTypeIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Slug.IsNull():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown() && data.Slug.ValueString() != "":
 		// Search by slug
 		circuitTypeSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading circuit type by slug", map[string]interface{}{
@@ -134,7 +134,7 @@ func (d *CircuitTypeDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 		circuitType = &circuitTypes.GetResults()[0]
 
-	case !data.Name.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Search by name
 		circuitTypeName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading circuit type by name", map[string]interface{}{

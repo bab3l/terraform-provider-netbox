@@ -118,7 +118,7 @@ func (d *CustomFieldChoiceSetDataSource) Read(ctx context.Context, req datasourc
 	var err error
 
 	switch {
-	case !data.ID.IsNull() && data.ID.ValueString() != "":
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		// Lookup by ID
 		id, parseErr := utils.ParseID(data.ID.ValueString())
 		if parseErr != nil {
@@ -128,7 +128,7 @@ func (d *CustomFieldChoiceSetDataSource) Read(ctx context.Context, req datasourc
 		result, httpResp, err = d.client.ExtrasAPI.ExtrasCustomFieldChoiceSetsRetrieve(ctx, id).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Name.IsNull() && data.Name.ValueString() != "":
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Lookup by name
 		list, listResp, listErr := d.client.ExtrasAPI.ExtrasCustomFieldChoiceSetsList(ctx).
 			Name([]string{data.Name.ValueString()}).Execute()

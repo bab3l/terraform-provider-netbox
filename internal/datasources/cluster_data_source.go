@@ -100,7 +100,7 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 	// Determine if we're searching by ID or name
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		// Search by ID
 		clusterID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading cluster by ID", map[string]interface{}{
@@ -117,7 +117,7 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		cluster, httpResp, err = d.client.VirtualizationAPI.VirtualizationClustersRetrieve(ctx, clusterIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Name.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Search by name
 		clusterName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading cluster by name", map[string]interface{}{

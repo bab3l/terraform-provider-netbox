@@ -92,7 +92,7 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	// Determine if we're searching by ID, slug, or name
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		// Search by ID
 		tunnelGroupID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading tunnel group by ID", map[string]interface{}{
@@ -113,7 +113,7 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		tunnelGroup, httpResp, err = d.client.VpnAPI.VpnTunnelGroupsRetrieve(ctx, tunnelGroupIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Slug.IsNull():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown() && data.Slug.ValueString() != "":
 		// Search by slug
 		tunnelGroupSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading tunnel group by slug", map[string]interface{}{
@@ -147,7 +147,7 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 		tunnelGroup = &tunnelGroups.GetResults()[0]
 
-	case !data.Name.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Search by name
 		tunnelGroupName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading tunnel group by name", map[string]interface{}{
