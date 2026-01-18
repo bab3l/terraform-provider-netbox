@@ -82,7 +82,7 @@ func (d *TenantGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 	var httpResp *http.Response
 
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		tflog.Debug(ctx, "Reading tenant group by ID", map[string]interface{}{"id": data.ID.ValueString()})
 		tenantGroupIDInt := utils.ParseInt32FromString(data.ID.ValueString())
 		if tenantGroupIDInt == 0 {
@@ -91,7 +91,7 @@ func (d *TenantGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 		tenantGroup, httpResp, err = d.client.TenancyAPI.TenancyTenantGroupsRetrieve(ctx, tenantGroupIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	case !data.Slug.IsNull():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown() && data.Slug.ValueString() != "":
 		tflog.Debug(ctx, "Reading tenant group by slug", map[string]interface{}{"slug": data.Slug.ValueString()})
 		var tenantGroups *netbox.PaginatedTenantGroupList
 		tenantGroups, httpResp, err = d.client.TenancyAPI.TenancyTenantGroupsList(ctx).Slug([]string{data.Slug.ValueString()}).Execute()
@@ -102,7 +102,7 @@ func (d *TenantGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 			resp.Diagnostics.AddError("Tenant Group Not Found", fmt.Sprintf("No tenant group found with slug: %s", data.Slug.ValueString()))
 			return
 		}
-	case !data.Name.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		tflog.Debug(ctx, "Reading tenant group by name", map[string]interface{}{"name": data.Name.ValueString()})
 		var tenantGroups *netbox.PaginatedTenantGroupList
 		tenantGroups, httpResp, err = d.client.TenancyAPI.TenancyTenantGroupsList(ctx).Name([]string{data.Name.ValueString()}).Execute()

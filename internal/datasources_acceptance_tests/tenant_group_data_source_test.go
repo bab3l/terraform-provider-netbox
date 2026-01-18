@@ -94,7 +94,7 @@ func TestAccTenantGroupDataSource_byName(t *testing.T) {
 
 	t.Parallel()
 
-	name := testutil.RandomName("tf-test-tg-ds")
+	name := fmt.Sprintf("Public Cloud %s", testutil.RandomName("tf-test-tg-ds"))
 	slug := testutil.RandomSlug("tf-test-tg-ds")
 
 	cleanup := testutil.NewCleanupResource(t)

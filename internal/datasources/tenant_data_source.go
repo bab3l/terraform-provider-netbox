@@ -94,7 +94,7 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	// Lookup by id, slug, or name
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		tenantID := data.ID.ValueString()
 		var tenantIDInt int32
 		if _, parseErr := fmt.Sscanf(tenantID, "%d", &tenantIDInt); parseErr != nil {
@@ -108,7 +108,7 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			tenant = t
 		}
 
-	case !data.Slug.IsNull():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown() && data.Slug.ValueString() != "":
 		slug := data.Slug.ValueString()
 		var tenants *netbox.PaginatedTenantList
 		tenants, httpResp, err = d.client.TenancyAPI.TenancyTenantsList(ctx).Slug([]string{slug}).Execute()
@@ -117,7 +117,7 @@ func (d *TenantDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			tenant = &tenants.GetResults()[0]
 		}
 
-	case !data.Name.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		name := data.Name.ValueString()
 		var tenants *netbox.PaginatedTenantList
 		tenants, httpResp, err = d.client.TenancyAPI.TenancyTenantsList(ctx).Name([]string{name}).Execute()

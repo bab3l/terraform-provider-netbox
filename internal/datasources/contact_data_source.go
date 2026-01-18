@@ -97,7 +97,7 @@ func (d *ContactDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 	// Lookup by id, name, or email
 	switch {
-	case !data.ID.IsNull() && !data.ID.IsUnknown():
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		contactID, parseErr := utils.ParseID(data.ID.ValueString())
 		if parseErr != nil {
 			resp.Diagnostics.AddError("Invalid Contact ID", "Contact ID must be a number.")
@@ -110,7 +110,7 @@ func (d *ContactDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			return
 		}
 
-	case !data.Name.IsNull() && !data.Name.IsUnknown():
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		name := data.Name.ValueString()
 		contacts, httpResp, listErr := d.client.TenancyAPI.TenancyContactsList(ctx).Name([]string{name}).Execute()
 		defer utils.CloseResponseBody(httpResp)
@@ -124,7 +124,7 @@ func (d *ContactDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		}
 		contact = &contacts.GetResults()[0]
 
-	case !data.Email.IsNull() && !data.Email.IsUnknown():
+	case !data.Email.IsNull() && !data.Email.IsUnknown() && data.Email.ValueString() != "":
 		email := data.Email.ValueString()
 		contacts, httpResp, listErr := d.client.TenancyAPI.TenancyContactsList(ctx).Email([]string{email}).Execute()
 		defer utils.CloseResponseBody(httpResp)

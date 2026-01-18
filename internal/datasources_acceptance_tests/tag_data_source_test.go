@@ -43,7 +43,7 @@ func TestAccTagDataSource_byName(t *testing.T) {
 
 	cleanup := testutil.NewCleanupResource(t)
 
-	tagName := testutil.RandomName("tag")
+	tagName := fmt.Sprintf("Public Cloud %s", testutil.RandomName("tag"))
 	tagSlug := testutil.RandomSlug("tag")
 
 	cleanup.RegisterTagCleanup(tagSlug)

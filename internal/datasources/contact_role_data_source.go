@@ -80,7 +80,7 @@ func (d *ContactRoleDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	// Lookup by ID first
 	switch {
-	case !data.ID.IsNull() && !data.ID.IsUnknown():
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		id := utils.ParseInt32FromString(data.ID.ValueString())
 		if id == 0 {
 			resp.Diagnostics.AddError("Invalid ID", "ID must be a number")
@@ -89,7 +89,7 @@ func (d *ContactRoleDataSource) Read(ctx context.Context, req datasource.ReadReq
 		tflog.Debug(ctx, "Looking up contact role by ID", map[string]interface{}{"id": id})
 		contactRole, httpResp, err = d.client.TenancyAPI.TenancyContactRolesRetrieve(ctx, id).Execute()
 		defer utils.CloseResponseBody(httpResp)
-	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown() && data.Slug.ValueString() != "":
 		// Lookup by slug
 		slug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Looking up contact role by slug", map[string]interface{}{"slug": slug})
@@ -103,7 +103,7 @@ func (d *ContactRoleDataSource) Read(ctx context.Context, req datasource.ReadReq
 			resp.Diagnostics.AddError("Contact role not found", fmt.Sprintf("No contact role found with slug: %s", slug))
 			return
 		}
-	case !data.Name.IsNull() && !data.Name.IsUnknown():
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Lookup by name
 		name := data.Name.ValueString()
 		tflog.Debug(ctx, "Looking up contact role by name", map[string]interface{}{"name": name})

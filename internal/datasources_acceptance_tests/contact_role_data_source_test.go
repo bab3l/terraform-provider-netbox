@@ -80,8 +80,8 @@ data "netbox_contact_role" "test" {
 func TestAccContactRoleDataSource_byName(t *testing.T) {
 	t.Parallel()
 
-	name := testutil.RandomName("test-contact-role")
-	slug := testutil.GenerateSlug(name)
+	name := fmt.Sprintf("Public Cloud %s", testutil.RandomName("test-contact-role"))
+	slug := testutil.RandomSlug("test-contact-role")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterContactRoleCleanup(slug)

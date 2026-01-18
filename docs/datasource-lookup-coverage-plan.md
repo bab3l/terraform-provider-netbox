@@ -65,7 +65,7 @@ A lookup bug was found in the Cluster Type datasource: optional/computed fields 
 - provider_account
 - provider_network
 
-### Batch 6 — Extras & Tenancy
+### Batch 6 — Extras & Tenancy (Complete)
 - tag
 - custom_field
 - custom_field_choice_set
