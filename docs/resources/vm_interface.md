@@ -49,7 +49,7 @@ resource "netbox_vm_interface" "test" {
 - `mac_address` (String) The MAC address of the interface.
 - `mode` (String) The 802.1Q mode of the interface. Valid values are: `access`, `tagged`, `tagged-all`.
 - `mtu` (Number) The Maximum Transmission Unit (MTU) size for the interface.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `untagged_vlan` (String) The name or ID of the untagged VLAN (for access or tagged mode).
 - `vrf` (String) The name or ID of the VRF assigned to this interface.
 
@@ -65,15 +65,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

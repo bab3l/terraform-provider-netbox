@@ -89,7 +89,7 @@ resource "netbox_console_port" "test" {
 - `label` (String) Physical label of the console port.
 - `mark_connected` (Boolean) Treat as if a cable is connected.
 - `speed` (Number) Console port speed in bps. Valid values: `1200`, `2400`, `4800`, `9600`, `19200`, `38400`, `57600`, `115200`.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `type` (String) Console port type. Valid values: `de-9`, `db-25`, `rj-11`, `rj-12`, `rj-45`, `mini-din-8`, `usb-a`, `usb-b`, `usb-c`, `usb-mini-a`, `usb-mini-b`, `usb-micro-a`, `usb-micro-b`, `usb-micro-ab`, `other`.
 
 ### Read-Only
@@ -104,15 +104,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

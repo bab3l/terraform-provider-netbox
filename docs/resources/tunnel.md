@@ -69,7 +69,7 @@ resource "netbox_tunnel" "test" {
 - `group` (String) ID of the tunnel group this tunnel belongs to.
 - `ipsec_profile` (String) ID of the IPSec profile for this tunnel (required for IPSec encapsulation types).
 - `status` (String) Operational status of the tunnel. Valid values: `planned`, `active`, `disabled`.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `tenant` (String) ID of the tenant this tunnel belongs to.
 - `tunnel_id` (Number) Tunnel identifier (numeric ID used by the tunnel protocol).
 
@@ -85,15 +85,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

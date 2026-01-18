@@ -61,7 +61,7 @@ resource "netbox_wireless_lan" "test" {
 - `description` (String) Description of the wireless LAN.
 - `group` (String) The wireless LAN group this network belongs to (ID or slug).
 - `status` (String) Status of the wireless LAN. Valid values: `active`, `reserved`, `disabled`, `deprecated`. Default: `active`.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `tenant` (String) The tenant this wireless LAN belongs to (ID or slug).
 - `vlan` (String) The VLAN associated with this wireless LAN (ID or name).
 
@@ -77,15 +77,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

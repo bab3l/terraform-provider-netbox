@@ -43,7 +43,7 @@ resource "netbox_ike_policy" "test" {
 - `mode` (String) The IKE negotiation mode. Valid values: `aggressive`, `main`. Only applicable for IKEv1.
 - `preshared_key` (String, Sensitive) The pre-shared key for IKE authentication. Optional.
 - `proposals` (Set of Number) A set of IKE proposal IDs to associate with this policy.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `version` (Number) The IKE version. Valid values: `1` (IKEv1), `2` (IKEv2). Defaults to 1.
 
 ### Read-Only
@@ -58,15 +58,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

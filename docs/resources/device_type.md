@@ -74,7 +74,7 @@ resource "netbox_device_type" "test" {
 - `is_full_depth` (Boolean) If true, device consumes both front and rear rack faces. Defaults to true.
 - `part_number` (String) Discrete manufacturer part number for ordering/inventory purposes.
 - `subdevice_role` (String) Role of this device type as a subdevice. Valid values: 'parent' or 'child'. Leave empty if not a subdevice.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `u_height` (Number) Height of the device in rack units (U). Defaults to 1.0. Use 0 for devices that don't consume rack space.
 - `weight` (Number) Weight of the device (use with weight_unit).
 - `weight_unit` (String) Unit for weight measurement. Valid values: 'kg', 'g', 'lb', 'oz'.
@@ -91,15 +91,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

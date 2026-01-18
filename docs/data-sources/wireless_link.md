@@ -94,7 +94,7 @@ output "link_is_active" {
 - `interface_b` (String) ID of the second interface (B-side) of the wireless link.
 - `ssid` (String) The SSID (network name) for the wireless link.
 - `status` (String) Connection status of the wireless link.
-- `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags associated with this wireless link.
 - `tenant` (String) Name of the tenant that owns this wireless link.
 - `tenant_id` (String) ID of the tenant that owns this wireless link.
 
@@ -106,12 +106,3 @@ Read-Only:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field.
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Read-Only:
-
-- `name` (String) Name of the tag.
-- `slug` (String) Slug of the tag.

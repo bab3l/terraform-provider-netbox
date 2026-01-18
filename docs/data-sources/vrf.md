@@ -86,7 +86,7 @@ output "vrf_customer_name" {
 - `display_name` (String) Display name for the VRF.
 - `enforce_unique` (Boolean) Prevent duplicate prefixes/IP addresses within this VRF.
 - `rd` (String) Route distinguisher (RD) as defined in RFC 4364.
-- `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
+- `tags` (List of String) Tags assigned to this VRF.
 - `tenant` (String) ID of the tenant this VRF belongs to.
 
 <a id="nestedatt--custom_fields"></a>
@@ -97,12 +97,3 @@ Read-Only:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field.
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Read-Only:
-
-- `name` (String) Name of the tag.
-- `slug` (String) Slug of the tag.

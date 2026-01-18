@@ -66,10 +66,7 @@ resource "netbox_contact_group" "with_tags" {
   name        = "Security Team"
   slug        = "security-team"
   description = "Information security team"
-  tags {
-    name = "critical"
-    slug = "critical"
-  }
+  tags        = ["critical"]
 }
 ```
 
@@ -86,7 +83,7 @@ resource "netbox_contact_group" "with_tags" {
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the contact group.
 - `parent` (String) ID or slug of the parent contact group. Leave empty for top-level groups.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 
 ### Read-Only
 
@@ -101,12 +98,3 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.

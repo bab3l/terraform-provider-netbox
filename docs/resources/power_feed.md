@@ -87,7 +87,7 @@ resource "netbox_power_feed" "test" {
 - `rack` (String) The rack this feed connects to (ID or name).
 - `status` (String) Status of the power feed. Valid values: `offline`, `active`, `planned`, `failed`. Default: `active`.
 - `supply` (String) Supply type. Valid values: `ac`, `dc`. Default: `ac`.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `tenant` (String) The tenant this power feed belongs to (ID or slug).
 - `type` (String) Type of the power feed. Valid values: `primary`, `redundant`. Default: `primary`.
 - `voltage` (Number) Voltage in volts. Default: 120.
@@ -104,15 +104,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

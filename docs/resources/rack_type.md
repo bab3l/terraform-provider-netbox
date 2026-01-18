@@ -48,7 +48,7 @@ resource "netbox_rack_type" "test" {
 - `outer_unit` (String) Unit for outer dimensions. Valid values: mm (millimeters), in (inches).
 - `outer_width` (Number) Outer dimension of rack (width) in millimeters or inches.
 - `starting_unit` (Number) Starting unit number for the rack. Default is 1.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `u_height` (Number) Height in rack units (U). Default is 42.
 - `weight` (Number) Weight of the rack.
 - `weight_unit` (String) Unit for weight. Valid values: kg (kilograms), g (grams), lb (pounds), oz (ounces).
@@ -66,15 +66,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

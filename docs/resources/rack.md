@@ -90,7 +90,7 @@ resource "netbox_rack" "test" {
 - `serial` (String) Serial number, assigned by the manufacturer.
 - `starting_unit` (String) Starting unit number for the rack (bottom). Defaults to 1.
 - `status` (String) Operational status of the rack. Defaults to `active`.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `tenant` (String) ID or slug of the tenant that owns this rack.
 - `u_height` (String) Height of the rack in rack units. Defaults to 42.
 - `weight` (String) Weight of the rack itself (numeric value).
@@ -109,15 +109,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

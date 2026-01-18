@@ -63,7 +63,7 @@ resource "netbox_vlan_group" "test" {
 - `description` (String) Description of the VLAN Group.
 - `scope_id` (String) The ID of the object to scope this VLAN Group to. Must be used together with `scope_type`.
 - `scope_type` (String) The type of object to scope this VLAN Group to. Valid values: `dcim.site`, `dcim.sitegroup`, `dcim.region`, `dcim.location`, `dcim.rack`, `virtualization.clustergroup`, `virtualization.cluster`.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 
 ### Read-Only
 
@@ -77,15 +77,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

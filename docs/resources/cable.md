@@ -150,7 +150,7 @@ resource "netbox_cable" "planned" {
 - `length` (Number) Length of the cable.
 - `length_unit` (String) Unit for cable length. Valid values: `km`, `m`, `cm`, `mi`, `ft`, `in`.
 - `status` (String) Connection status. Valid values: `connected`, `planned`, `decommissioning`. Defaults to `connected`.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `tenant` (String) ID of the tenant that owns this cable.
 - `type` (String) Type of cable. Valid values: `cat3`, `cat5`, `cat5e`, `cat6`, `cat6a`, `cat7`, `cat7a`, `cat8`, `dac-active`, `dac-passive`, `mrj21-trunk`, `coaxial`, `mmf`, `mmf-om1`, `mmf-om2`, `mmf-om3`, `mmf-om4`, `mmf-om5`, `smf`, `smf-os1`, `smf-os2`, `aoc`, `usb`, `power`.
 
@@ -184,12 +184,3 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.

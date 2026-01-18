@@ -42,7 +42,7 @@ output "fhrp_group_auth_type" {
 }
 
 output "fhrp_group_auth_key" {
-  value = data.netbox_fhrp_group.by_id.auth_key
+  value     = data.netbox_fhrp_group.by_id.auth_key
   sensitive = true
 }
 

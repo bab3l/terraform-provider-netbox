@@ -39,35 +39,15 @@ resource "netbox_module_bay_template" "test" {
 
 ### Optional
 
-- `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the module bay template.
 - `device_type` (String) The device type this module bay template belongs to (ID or model name). Either device_type or module_type is required.
 - `label` (String) Physical label of the module bay template.
 - `module_type` (String) The module type this module bay template belongs to (ID or model name). Either device_type or module_type is required.
 - `position` (String) Identifier to reference when renaming installed components.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
 
 ### Read-Only
 
 - `id` (String) The unique numeric ID of the module bay template.
-
-<a id="nestedatt--custom_fields"></a>
-### Nested Schema for `custom_fields`
-
-Required:
-
-- `name` (String) Name of the custom field.
-- `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
-- `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

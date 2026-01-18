@@ -93,7 +93,7 @@ resource "netbox_device" "test" {
 - `rack` (String) ID or name of the rack where this device is mounted.
 - `serial` (String) Serial number, assigned by the manufacturer.
 - `status` (String) Operational status of the device. Valid values: 'offline', 'active', 'planned', 'staged', 'failed', 'inventory', 'decommissioning'.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `tenant` (String) ID or slug of the tenant that owns this device.
 - `vc_position` (Number) Position within a virtual chassis (0-255).
 - `vc_priority` (Number) Virtual chassis master election priority (0-255).
@@ -110,15 +110,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 
