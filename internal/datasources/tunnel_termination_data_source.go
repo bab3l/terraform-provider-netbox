@@ -105,10 +105,12 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 	}
 	var tunnelTermination *netbox.TunnelTermination
 	var err error
+	var tunnelID int32
+	lookupByTunnel := false
 
 	// Look up by ID or tunnel reference
 	switch {
-	case !data.ID.IsNull() && data.ID.ValueString() != "":
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		id, parseErr := utils.ParseID(data.ID.ValueString())
 		if parseErr != nil {
 			resp.Diagnostics.AddError(
@@ -131,39 +133,39 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 			return
 		}
 
-	case !data.Tunnel.IsNull() || !data.TunnelName.IsNull():
+	case !data.Tunnel.IsNull() && !data.Tunnel.IsUnknown() && data.Tunnel.ValueString() != "":
 		// Look up by tunnel reference
-		var tunnelID int32
-		if !data.Tunnel.IsNull() && data.Tunnel.ValueString() != "" {
-			id, parseErr := utils.ParseID(data.Tunnel.ValueString())
-			if parseErr != nil {
-				resp.Diagnostics.AddError(
-					"Error parsing Tunnel ID",
-					fmt.Sprintf("Could not parse tunnel ID %s: %s", data.Tunnel.ValueString(), parseErr),
-				)
-				return
-			}
-			tunnelID = id
-		} else if !data.TunnelName.IsNull() && data.TunnelName.ValueString() != "" {
-			// Look up tunnel by name
-			tunnelList, httpResp, lookupErr := d.client.VpnAPI.VpnTunnelsList(ctx).Name([]string{data.TunnelName.ValueString()}).Execute()
-			defer utils.CloseResponseBody(httpResp)
-			if lookupErr != nil {
-				resp.Diagnostics.AddError(
-					"Error looking up tunnel",
-					utils.FormatAPIError(fmt.Sprintf("look up tunnel named '%s'", data.TunnelName.ValueString()), lookupErr, httpResp),
-				)
-				return
-			}
-			if len(tunnelList.Results) == 0 {
-				resp.Diagnostics.AddError(
-					"Tunnel not found",
-					fmt.Sprintf("No tunnel found with name '%s'", data.TunnelName.ValueString()),
-				)
-				return
-			}
-			tunnelID = tunnelList.Results[0].GetId()
+		id, parseErr := utils.ParseID(data.Tunnel.ValueString())
+		if parseErr != nil {
+			resp.Diagnostics.AddError(
+				"Error parsing Tunnel ID",
+				fmt.Sprintf("Could not parse tunnel ID %s: %s", data.Tunnel.ValueString(), parseErr),
+			)
+			return
 		}
+		tunnelID = id
+		lookupByTunnel = true
+
+	case !data.TunnelName.IsNull() && !data.TunnelName.IsUnknown() && data.TunnelName.ValueString() != "":
+		// Look up tunnel by name
+		tunnelList, httpResp, lookupErr := d.client.VpnAPI.VpnTunnelsList(ctx).Name([]string{data.TunnelName.ValueString()}).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if lookupErr != nil {
+			resp.Diagnostics.AddError(
+				"Error looking up tunnel",
+				utils.FormatAPIError(fmt.Sprintf("look up tunnel named '%s'", data.TunnelName.ValueString()), lookupErr, httpResp),
+			)
+			return
+		}
+		if len(tunnelList.Results) == 0 {
+			resp.Diagnostics.AddError(
+				"Tunnel not found",
+				fmt.Sprintf("No tunnel found with name '%s'", data.TunnelName.ValueString()),
+			)
+			return
+		}
+		tunnelID = tunnelList.Results[0].GetId()
+		lookupByTunnel = true
 		tflog.Debug(ctx, "Reading tunnel termination by tunnel ID", map[string]interface{}{
 			"tunnel_id": tunnelID,
 		})
@@ -195,6 +197,33 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 			"Either 'id' or 'tunnel'/'tunnel_name' must be specified.",
 		)
 		return
+	}
+
+	if lookupByTunnel {
+		tflog.Debug(ctx, "Reading tunnel termination by tunnel ID", map[string]interface{}{
+			"tunnel_id": tunnelID,
+		})
+
+		// List tunnel terminations for this tunnel
+		list, httpResp, listErr := d.client.VpnAPI.VpnTunnelTerminationsList(ctx).TunnelId([]int32{tunnelID}).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if listErr != nil {
+			resp.Diagnostics.AddError(
+				"Error listing tunnel terminations",
+				utils.FormatAPIError(fmt.Sprintf("list tunnel terminations for tunnel ID %d", tunnelID), listErr, httpResp),
+			)
+			return
+		}
+		if len(list.Results) == 0 {
+			resp.Diagnostics.AddError(
+				"Tunnel termination not found",
+				fmt.Sprintf("No tunnel termination found for tunnel ID %d", tunnelID),
+			)
+			return
+		}
+
+		// Return the first termination found
+		tunnelTermination = &list.Results[0]
 	}
 
 	// Map response to state

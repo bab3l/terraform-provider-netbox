@@ -92,7 +92,7 @@ func TestAccTunnelGroupDataSource_byName(t *testing.T) {
 
 	testutil.TestAccPreCheck(t)
 
-	randomName := testutil.RandomName("tf-test-tunnel-grp-ds")
+	randomName := fmt.Sprintf("Public Cloud %s", testutil.RandomName("tf-test-tunnel-grp-ds"))
 
 	randomSlug := testutil.RandomSlug("tf-test-tg-ds")
 

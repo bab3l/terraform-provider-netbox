@@ -57,7 +57,8 @@ func TestAccL2VPNDataSource_byID(t *testing.T) {
 }
 
 func TestAccL2VPNDataSource_byName(t *testing.T) {
-	name := acctest.RandomWithPrefix("test-l2vpn-ds")
+	name := fmt.Sprintf("Public Cloud %s", acctest.RandomWithPrefix("test-l2vpn-ds"))
+	slug := testutil.RandomSlug("test-l2vpn-ds")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterL2VPNCleanup(name)
@@ -69,7 +70,7 @@ func TestAccL2VPNDataSource_byName(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccL2VPNDataSourceConfig_byName(name),
+				Config: testAccL2VPNDataSourceConfig_byName(name, slug),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_l2vpn.test", "name", name),
 					resource.TestCheckResourceAttr("data.netbox_l2vpn.test", "type", "vxlan"),
@@ -93,11 +94,11 @@ data "netbox_l2vpn" "test" {
 `, name, name)
 }
 
-func testAccL2VPNDataSourceConfig_byName(name string) string {
+func testAccL2VPNDataSourceConfig_byName(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_l2vpn" "test" {
   name = %q
-  slug = %q
+	slug = %q
   type = "vxlan"
 }
 
@@ -106,7 +107,7 @@ data "netbox_l2vpn" "test" {
 
   depends_on = [netbox_l2vpn.test]
 }
-`, name, name)
+`, name, slug)
 }
 
 func TestAccL2VPNDataSource_bySlug(t *testing.T) {

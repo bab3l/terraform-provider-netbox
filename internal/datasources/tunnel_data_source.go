@@ -110,7 +110,7 @@ func (d *TunnelDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	// Determine if we're searching by ID or name
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		// Search by ID
 		tunnelID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading tunnel by ID", map[string]interface{}{
@@ -131,7 +131,7 @@ func (d *TunnelDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		tunnel, httpResp, err = d.client.VpnAPI.VpnTunnelsRetrieve(ctx, tunnelIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Name.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Search by name
 		tunnelName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading tunnel by name", map[string]interface{}{

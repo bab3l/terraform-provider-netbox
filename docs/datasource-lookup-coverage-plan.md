@@ -79,7 +79,7 @@ A lookup bug was found in the Cluster Type datasource: optional/computed fields 
 - contact_role
 - contact_assignment
 
-### Batch 7 — VPN / L2
+### Batch 7 — VPN / L2 (Complete)
 - tunnel
 - tunnel_group
 - tunnel_termination
