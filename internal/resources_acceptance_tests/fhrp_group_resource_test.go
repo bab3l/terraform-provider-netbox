@@ -11,11 +11,12 @@ import (
 )
 
 const fhrpGroupProtocol = "vrrp3"
+const fhrpGroupProtocolVRRP2 = "vrrp2"
 
 func TestAccFHRPGroupResource_basic(t *testing.T) {
 	t.Parallel()
 
-	protocol := "vrrp2"
+	protocol := fhrpGroupProtocolVRRP2
 	// Use non-overlapping range to prevent parallel test collisions
 	groupID := int32(acctest.RandIntRange(106, 140)) // nolint:gosec
 
@@ -205,6 +206,69 @@ func TestAccFHRPGroupResource_import(t *testing.T) {
 	})
 }
 
+func TestAccFHRPGroupResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	protocol := fhrpGroupProtocolVRRP2
+	groupID := int32(acctest.RandIntRange(3000, 3100)) // nolint:gosec,G115
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_fhrp_group",
+		ConfigWithoutTags: func() string {
+			return testAccFHRPGroupResourceConfig_tags(protocol, groupID, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "none")
+		},
+		ConfigWithTags: func() string {
+			return testAccFHRPGroupResourceConfig_tags(protocol, groupID, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag1_tag2")
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccFHRPGroupResourceConfig_tags(protocol, groupID, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag3")
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 1,
+		CheckDestroy:              testutil.CheckFHRPGroupDestroy,
+	})
+}
+
+func TestAccFHRPGroupResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	protocol := fhrpGroupProtocolVRRP2
+	groupID := int32(acctest.RandIntRange(3100, 3200)) // nolint:gosec,G115
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_fhrp_group",
+		ConfigWithTagsOrderA: func() string {
+			return testAccFHRPGroupResourceConfig_tagsOrder(protocol, groupID, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag1_tag2")
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccFHRPGroupResourceConfig_tagsOrder(protocol, groupID, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag2_tag1")
+		},
+		ExpectedTagCount: 2,
+		CheckDestroy:     testutil.CheckFHRPGroupDestroy,
+	})
+}
+
 func testAccFHRPGroupResourceConfig_basic(protocol string, groupID int32) string {
 	return fmt.Sprintf(`
 resource "netbox_fhrp_group" "test" {
@@ -225,6 +289,69 @@ resource "netbox_fhrp_group" "test" {
   auth_key    = %q
 }
 `, protocol, groupID, name, description, authType, authKey)
+}
+
+func testAccFHRPGroupResourceConfig_tags(protocol string, groupID int32, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagCase string) string {
+	var tagsList string
+	switch tagCase {
+	case caseTag1Uscore2:
+		tagsList = tagsDoubleSlug
+	case caseTag3:
+		tagsList = tagsSingleSlug
+	default:
+		tagsList = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_fhrp_group" "test" {
+  protocol = %[1]q
+  group_id = %[2]d
+  %[9]s
+}
+`, protocol, groupID, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagsList)
+}
+
+func testAccFHRPGroupResourceConfig_tagsOrder(protocol string, groupID int32, tag1Name, tag1Slug, tag2Name, tag2Slug, tagOrder string) string {
+	var tagsOrder string
+	switch tagOrder {
+	case caseTag1Uscore2:
+		tagsOrder = tagsDoubleSlug
+	case caseTag2Uscore1:
+		tagsOrder = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_fhrp_group" "test" {
+  protocol = %[1]q
+  group_id = %[2]d
+  %[7]s
+}
+`, protocol, groupID, tag1Name, tag1Slug, tag2Name, tag2Slug, tagsOrder)
 }
 
 func TestAccConsistency_FHRPGroup_LiteralNames(t *testing.T) {
@@ -259,38 +386,6 @@ func TestAccConsistency_FHRPGroup_LiteralNames(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_fhrp_group.test", "id"),
 				),
-			},
-		},
-	})
-}
-
-// TestAccFHRPGroupResource_IDPreservation tests that the FHRP group resource preserves the
-// ID as the immutable identifier.
-func TestAccFHRPGroupResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	protocol := fhrpGroupProtocol
-	// Use non-overlapping range to prevent parallel test collisions
-	groupID := int32(acctest.RandIntRange(211, 254)) // nolint:gosec
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFHRPGroupResourceConfig_basic(protocol, groupID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_fhrp_group.test", "id"),
-					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "protocol", protocol),
-					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "group_id", fmt.Sprintf("%d", groupID)),
-				),
-			},
-			{
-				Config:   testAccFHRPGroupResourceConfig_basic(protocol, groupID),
-				PlanOnly: true,
 			},
 		},
 	})

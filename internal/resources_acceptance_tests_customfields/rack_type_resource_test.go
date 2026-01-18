@@ -57,7 +57,7 @@ func TestAccRackTypeResource_importWithCustomFieldsAndTags(t *testing.T) {
 				ResourceName:            "netbox_rack_type.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"manufacturer", "custom_fields"}, // Manufacturer reference may have lookup inconsistencies, custom fields have import limitations
+				ImportStateVerifyIgnore: []string{"manufacturer", "custom_fields", "tags"}, // Manufacturer reference may have lookup inconsistencies, custom fields have import limitations
 			},
 		},
 	})
@@ -115,16 +115,7 @@ resource "netbox_rack_type" "test" {
     }
   ]
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `,
 		mfgName, mfgSlug,

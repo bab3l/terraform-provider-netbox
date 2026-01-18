@@ -223,12 +223,7 @@ resource "netbox_interface" "test" {
   name   = %q
   type   = "1000base-t"
 
-  tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
-  ]
+	tags = [netbox_tag.test.slug]
 }
 
 data "netbox_interfaces" "test" {

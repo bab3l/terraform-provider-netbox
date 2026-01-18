@@ -154,34 +154,6 @@ func TestAccEventRuleResource_import(t *testing.T) {
 	})
 }
 
-func TestAccEventRuleResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	eventRuleName := testutil.RandomName("tf-test-eventrule-id")
-	webhookName := testutil.RandomName("tf-test-webhook-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterEventRuleCleanup(eventRuleName)
-	cleanup.RegisterWebhookCleanup(webhookName)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy: testutil.ComposeCheckDestroy(
-			testutil.CheckEventRuleDestroy,
-			testutil.CheckWebhookDestroy,
-		),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventRuleResourceConfig_basic(eventRuleName, webhookName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_event_rule.test", "id"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccConsistency_EventRule_LiteralNames(t *testing.T) {
 	t.Parallel()
 

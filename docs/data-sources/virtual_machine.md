@@ -99,7 +99,7 @@ output "vm_backup_enabled" {
 - `role` (String) The device role for this virtual machine.
 - `site` (String) The site where this virtual machine is located.
 - `status` (String) The status of the virtual machine (offline, active, planned, staged, failed, decommissioning).
-- `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
+- `tags` (List of String) Tags assigned to this virtual machine.
 - `tenant` (String) The tenant this virtual machine is assigned to.
 - `vcpus` (Number) The number of virtual CPUs allocated to this virtual machine.
 
@@ -111,12 +111,3 @@ Read-Only:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field.
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Read-Only:
-
-- `name` (String) Name of the tag.
-- `slug` (String) Slug of the tag.

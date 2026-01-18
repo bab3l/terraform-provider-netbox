@@ -172,33 +172,6 @@ func TestAccContactResource_update(t *testing.T) {
 	})
 }
 
-func TestAccContactResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	testutil.TestAccPreCheck(t)
-
-	contactName := testutil.RandomName("tf-test-contact-id")
-	contactEmail := fmt.Sprintf("%s@example.com", testutil.RandomSlug("contact-id"))
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterContactCleanup(contactEmail)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccContactResource(contactName, contactEmail, "+1-555-0100"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_contact.test", "id"),
-					resource.TestCheckResourceAttr("netbox_contact.test", "name", contactName),
-					resource.TestCheckResourceAttr("netbox_contact.test", "email", contactEmail),
-					resource.TestCheckResourceAttr("netbox_contact.test", "phone", "+1-555-0100"),
-				),
-			},
-		},
-	})
-}
-
 func testAccContactResource(name, email, phone string) string {
 	return fmt.Sprintf(`
 resource "netbox_contact" "test" {

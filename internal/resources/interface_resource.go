@@ -14,6 +14,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -153,7 +154,8 @@ func (r *InterfaceResource) Schema(ctx context.Context, req resource.SchemaReque
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("interface"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -198,7 +200,7 @@ func (r *InterfaceResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Apply tags and custom fields separately (filter-to-owned pattern)
-	utils.ApplyTags(ctx, interfaceReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, interfaceReq, data.Tags, &resp.Diagnostics)
 	utils.ApplyCustomFields(ctx, interfaceReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -312,9 +314,9 @@ func (r *InterfaceResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Apply tags and custom fields using merge-aware logic
 	if utils.IsSet(data.Tags) {
-		utils.ApplyTags(ctx, interfaceReq, data.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, interfaceReq, data.Tags, &resp.Diagnostics)
 	} else if utils.IsSet(state.Tags) {
-		utils.ApplyTags(ctx, interfaceReq, state.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, interfaceReq, state.Tags, &resp.Diagnostics)
 	}
 	utils.ApplyCustomFieldsWithMerge(ctx, interfaceReq, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
@@ -664,8 +666,21 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 		data.MarkConnected = types.BoolValue(false)
 	}
 
-	// Tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, iface.HasTags(), iface.GetTags(), data.Tags, diags)
+	// Tags with filter-to-owned pattern
+	planTags := data.Tags
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case iface.HasTags() && len(iface.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(iface.GetTags()))
+		for _, tag := range iface.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 
 	// Custom Fields
 	if iface.HasCustomFields() {

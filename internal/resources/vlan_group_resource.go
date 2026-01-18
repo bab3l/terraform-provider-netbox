@@ -10,6 +10,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -89,7 +90,8 @@ func (r *VLANGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("VLAN Group"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *VLANGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -434,9 +436,9 @@ func (r *VLANGroupResource) setOptionalFieldsWithMerge(ctx context.Context, vlan
 
 	// Apply tags (if specified in plan)
 	if utils.IsSet(plan.Tags) {
-		utils.ApplyTags(ctx, vlanGroupRequest, plan.Tags, diags)
+		utils.ApplyTagsFromSlugs(ctx, r.client, vlanGroupRequest, plan.Tags, diags)
 	} else if utils.IsSet(state.Tags) {
-		utils.ApplyTags(ctx, vlanGroupRequest, state.Tags, diags)
+		utils.ApplyTagsFromSlugs(ctx, r.client, vlanGroupRequest, state.Tags, diags)
 	}
 	if diags.HasError() {
 		return
@@ -474,8 +476,8 @@ func (r *VLANGroupResource) setOptionalFields(ctx context.Context, vlanGroupRequ
 	}
 
 	// Apply metadata fields (tags, custom_fields)
-
-	utils.ApplyMetadataFields(ctx, vlanGroupRequest, data.Tags, data.CustomFields, diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, vlanGroupRequest, data.Tags, diags)
+	utils.ApplyCustomFields(ctx, vlanGroupRequest, data.CustomFields, diags)
 }
 
 // mapVLANGroupToState maps a VLANGroup API response to the resource model.
@@ -511,14 +513,21 @@ func (r *VLANGroupResource) mapVLANGroupToState(ctx context.Context, vlanGroup *
 		data.Description = types.StringNull()
 	}
 
-	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, vlanGroup.HasTags(), vlanGroup.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags (slug list) with empty-set preservation
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case vlanGroup.HasTags() && len(vlanGroup.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(vlanGroup.GetTags()))
+		for _, tag := range vlanGroup.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
 	}
 
 	// Handle custom fields using filtered-to-owned helper (preserves state pattern)
-	if vlanGroup.HasCustomFields() {
-		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vlanGroup.GetCustomFields(), diags)
-	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vlanGroup.GetCustomFields(), diags)
 }

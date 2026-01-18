@@ -155,16 +155,7 @@ resource "netbox_site" "test" {
   slug   = %[2]q
   status = "active"
 
-  tags = [
-    {
-      name = netbox_tag.site_test1.name
-      slug = netbox_tag.site_test1.slug
-    },
-    {
-      name = netbox_tag.site_test2.name
-      slug = netbox_tag.site_test2.slug
-    }
-  ]
+	tags = [netbox_tag.site_test1.slug, netbox_tag.site_test2.slug]
 
   custom_fields = [
     {

@@ -60,40 +60,6 @@ func TestAccDeviceResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccDeviceResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	deviceName := testutil.RandomName("tf-test-device-id")
-	manufacturerName := testutil.RandomName("tf-test-manufacturer-id")
-	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-id")
-	deviceTypeModel := testutil.RandomName("tf-test-device-type-id")
-	deviceTypeSlug := testutil.RandomSlug("tf-test-dt-id")
-	deviceRoleName := testutil.RandomName("tf-test-device-role-id")
-	deviceRoleSlug := testutil.RandomSlug("tf-test-dr-id")
-	siteName := testutil.RandomName("tf-test-site-id")
-	siteSlug := testutil.RandomSlug("tf-test-site-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
-	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
-	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
-	cleanup.RegisterDeviceCleanup(deviceName)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDeviceResourceConfig_basic(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_device.test", "id"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDeviceResource_update(t *testing.T) {
 	t.Parallel()
 
@@ -1060,4 +1026,200 @@ resource "netbox_device" "test" {
 			},
 		},
 	})
+}
+
+func TestAccDeviceResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	deviceName := testutil.RandomName("tf-test-device-tags")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer-tags")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-tags")
+	deviceTypeModel := testutil.RandomName("tf-test-device-type-tags")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dt-tags")
+	deviceRoleName := testutil.RandomName("tf-test-device-role-tags")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-dr-tags")
+	siteName := testutil.RandomName("tf-test-site-tags")
+	siteSlug := testutil.RandomSlug("tf-test-site-tags")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_device",
+		ConfigWithoutTags: func() string {
+			return testAccDeviceResourceConfig_tagLifecycle(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "none")
+		},
+		ConfigWithTags: func() string {
+			return testAccDeviceResourceConfig_tagLifecycle(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, caseTag1Uscore2)
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccDeviceResourceConfig_tagLifecycle(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag3")
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 1,
+		CheckDestroy:              testutil.CheckDeviceDestroy,
+	})
+}
+
+func TestAccDeviceResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	deviceName := testutil.RandomName("tf-test-device-tagorder")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer-tagorder")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-tagorder")
+	deviceTypeModel := testutil.RandomName("tf-test-device-type-tagorder")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dt-tagorder")
+	deviceRoleName := testutil.RandomName("tf-test-device-role-tagorder")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-dr-tagorder")
+	siteName := testutil.RandomName("tf-test-site-tagorder")
+	siteSlug := testutil.RandomSlug("tf-test-site-tagorder")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_device",
+		ConfigWithTagsOrderA: func() string {
+			return testAccDeviceResourceConfig_tagOrder(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, caseTag1Uscore2)
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccDeviceResourceConfig_tagOrder(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag2_tag1")
+		},
+		ExpectedTagCount: 2,
+		CheckDestroy:     testutil.CheckDeviceDestroy,
+	})
+}
+
+// Config helper for tag lifecycle testing.
+func testAccDeviceResourceConfig_tagLifecycle(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagCase string) string {
+	var tagsList string
+	switch tagCase {
+	case caseTag1Uscore2:
+		tagsList = tagsDoubleSlug
+	case caseTag3:
+		tagsList = tagsSingleSlug
+	default:
+		tagsList = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[10]q
+  slug = %[11]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[12]q
+  slug = %[13]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = %[14]q
+  slug = %[15]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[4]q
+  slug = %[5]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name = %[6]q
+  slug = %[7]q
+}
+
+resource "netbox_site" "test" {
+  name = %[8]q
+  slug = %[9]q
+}
+
+resource "netbox_device" "test" {
+  name        = %[1]q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+  %[16]s
+}
+`, deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagsList)
+}
+
+// Config helper for tag order testing.
+func testAccDeviceResourceConfig_tagOrder(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tagOrder string) string {
+	var tagsOrder string
+	switch tagOrder {
+	case caseTag1Uscore2:
+		tagsOrder = tagsDoubleSlug
+	case "tag2_tag1":
+		tagsOrder = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[10]q
+  slug = %[11]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[12]q
+  slug = %[13]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_device_type" "test" {
+  model = %[4]q
+  slug = %[5]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name = %[6]q
+  slug = %[7]q
+}
+
+resource "netbox_site" "test" {
+  name = %[8]q
+  slug = %[9]q
+}
+
+resource "netbox_device" "test" {
+  name        = %[1]q
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
+  %[14]s
+}
+`, deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tagsOrder)
 }

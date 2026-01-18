@@ -95,7 +95,7 @@ output "wlan_group_ap_count" {
 - `display_name` (String) Display name for the wireless LAN group.
 - `parent_id` (Number) The ID of the parent wireless LAN group.
 - `parent_name` (String) The name of the parent wireless LAN group.
-- `tags` (Set of String) Tags associated with this wireless LAN group.
+- `tags` (List of String) Tags associated with this wireless LAN group.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

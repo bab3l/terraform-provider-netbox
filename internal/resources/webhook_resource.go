@@ -8,6 +8,7 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -59,7 +60,7 @@ func (r *WebhookResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"id":            nbschema.IDAttribute("webhook"),
 			"name":          nbschema.NameAttribute("webhook", 150),
 			"description":   nbschema.DescriptionAttribute("webhook"),
-			"tags":          nbschema.TagsAttribute(),
+			"tags":          nbschema.TagsSlugAttribute(),
 			"custom_fields": nbschema.CustomFieldsAttribute(),
 			"payload_url": schema.StringAttribute{
 				MarkdownDescription: "The URL that will be called when the webhook is triggered. Jinja2 template processing is supported.",
@@ -192,7 +193,7 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// Apply metadata fields (tags and custom fields)
 	// Note: We can't use ApplyCommonFields since webhook doesn't have comments
-	utils.ApplyTags(ctx, webhookRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, webhookRequest, data.Tags, &resp.Diagnostics)
 	utils.ApplyCustomFields(ctx, webhookRequest, data.CustomFields, &resp.Diagnostics)
 
 	webhook, httpResp, err := r.client.ExtrasAPI.ExtrasWebhooksCreate(ctx).WebhookRequest(*webhookRequest).Execute()
@@ -324,7 +325,7 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Handle tags and custom fields
-	utils.ApplyTags(ctx, webhookRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, webhookRequest, data.Tags, &resp.Diagnostics)
 	utils.ApplyCustomFields(ctx, webhookRequest, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -447,10 +448,19 @@ func (r *WebhookResource) mapWebhookToState(ctx context.Context, webhook *netbox
 	}
 
 	// Map display_name
-	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, webhook.HasTags(), webhook.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags (slug list) with empty-set preservation
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case webhook.HasTags() && len(webhook.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(webhook.GetTags()))
+		for _, tag := range webhook.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
 	}
 
 	// Map custom fields

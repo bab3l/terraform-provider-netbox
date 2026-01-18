@@ -139,8 +139,9 @@ func (r *PowerFeedResource) Schema(ctx context.Context, req resource.SchemaReque
 	// Add description and comments attributes
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("power feed"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom fields
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -252,7 +253,7 @@ func (r *PowerFeedResource) Create(ctx context.Context, req resource.CreateReque
 
 	// Apply common fields (comments, tags, custom_fields)
 	utils.ApplyComments(apiReq, data.Comments)
-	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -284,7 +285,20 @@ func (r *PowerFeedResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	switch {
+	case planTags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(planTags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	case response.HasTags():
+		var tagSlugs []string
+		for _, tag := range response.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -339,7 +353,20 @@ func (r *PowerFeedResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	// Preserve null/empty state values for tags and custom_fields
-	data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), stateTags, &resp.Diagnostics)
+	switch {
+	case stateTags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(stateTags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	case response.HasTags():
+		var tagSlugs []string
+		for _, tag := range response.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -496,7 +523,7 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Apply common fields (comments, tags, custom_fields) - merge-aware
 	utils.ApplyComments(apiReq, plan.Comments)
-	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, plan.Tags, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -528,7 +555,20 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	plan.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	switch {
+	case planTags.IsNull():
+		plan.Tags = types.SetNull(types.StringType)
+	case len(planTags.Elements()) == 0:
+		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	case response.HasTags():
+		var tagSlugs []string
+		for _, tag := range response.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -689,7 +729,18 @@ func (r *PowerFeedResource) mapResponseToModel(ctx context.Context, pf *netbox.P
 
 	// Preserve null/empty state for tags and custom_fields (critical for drift prevention)
 	if !data.Tags.IsNull() {
-		data.Tags = utils.PopulateTagsFromAPI(ctx, pf.HasTags(), pf.GetTags(), data.Tags, diags)
+		switch {
+		case len(data.Tags.Elements()) == 0:
+			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+		case pf.HasTags():
+			var tagSlugs []string
+			for _, tag := range pf.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		default:
+			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+		}
 	}
 	if !data.CustomFields.IsNull() {
 		data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, pf.HasCustomFields(), pf.GetCustomFields(), data.CustomFields, diags)
@@ -707,6 +758,14 @@ func (r *PowerFeedResource) mapResponseToModelForImport(ctx context.Context, pf 
 
 	// For import, always populate tags and custom_fields even if they were null
 	// Initialize as empty sets to ensure proper type information
-	data.Tags = utils.PopulateTagsFromAPI(ctx, pf.HasTags(), pf.GetTags(), types.SetValueMust(utils.GetTagsAttributeType().ElemType, []attr.Value{}), diags)
+	if pf.HasTags() {
+		var tagSlugs []string
+		for _, tag := range pf.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	} else {
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, pf.HasCustomFields(), pf.GetCustomFields(), types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{}), diags)
 }

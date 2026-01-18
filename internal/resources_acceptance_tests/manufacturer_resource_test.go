@@ -127,6 +127,97 @@ func TestAccManufacturerResource_import(t *testing.T) {
 	})
 }
 
+func TestAccManufacturerResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-mfr-tags")
+	slug := testutil.RandomSlug("tf-test-mfr-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckManufacturerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccManufacturerResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_manufacturer.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_manufacturer.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccManufacturerResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_manufacturer.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_manufacturer.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccManufacturerResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netbox_manufacturer.test", "tags.*", tag3Slug),
+				),
+			},
+			{
+				Config: testAccManufacturerResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccManufacturerResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-mfr-tag-order")
+	slug := testutil.RandomSlug("tf-test-mfr-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckManufacturerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccManufacturerResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_manufacturer.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_manufacturer.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccManufacturerResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_manufacturer.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_manufacturer.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_manufacturer.test", "tags.*", tag2Slug),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConsistency_Manufacturer_LiteralNames(t *testing.T) {
 	t.Parallel()
 
@@ -172,30 +263,6 @@ resource "netbox_manufacturer" "test" {
 `, name, slug, description)
 }
 
-func TestAccManufacturerResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-manufacturer-id")
-	slug := testutil.RandomSlug("tf-test-manufacturer-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterManufacturerCleanup(slug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccManufacturerResourceConfig_basic(name, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_manufacturer.test", "id"),
-					resource.TestCheckResourceAttr("netbox_manufacturer.test", "name", name),
-				),
-			},
-		},
-	})
-}
-
 func testAccManufacturerResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 terraform {
@@ -214,6 +281,71 @@ resource "netbox_manufacturer" "test" {
   slug = %q
 }
 `, name, slug)
+}
+
+func testAccManufacturerResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag3:
+		tagsConfig = tagsSingleSlug
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = "Tag3-%[5]s"
+  slug = %[5]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+  %[6]s
+}
+`, name, slug, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccManufacturerResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+  %[5]s
+}
+`, name, slug, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func testAccManufacturerResourceConfig_full(name, slug, description string) string {

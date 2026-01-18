@@ -12,6 +12,7 @@ import (
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -110,7 +111,8 @@ func (r *InventoryItemResource) Schema(ctx context.Context, req resource.SchemaR
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("inventory item"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *InventoryItemResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -211,7 +213,7 @@ func (r *InventoryItemResource) Create(ctx context.Context, req resource.CreateR
 
 	// Handle description, tags, and custom fields
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
 	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -385,9 +387,9 @@ func (r *InventoryItemResource) Update(ctx context.Context, req resource.UpdateR
 
 	// Handle tags - merge-aware: use plan if provided, else use state
 	if utils.IsSet(data.Tags) {
-		utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
 	} else if utils.IsSet(state.Tags) {
-		utils.ApplyTags(ctx, apiReq, state.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, state.Tags, &resp.Diagnostics)
 	}
 	if resp.Diagnostics.HasError() {
 		return
@@ -556,8 +558,21 @@ func (r *InventoryItemResource) mapResponseToModel(ctx context.Context, item *ne
 		data.Description = types.StringNull()
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, item.HasTags(), item.GetTags(), data.Tags, diags)
+	// Handle tags with filter-to-owned pattern
+	planTags := data.Tags
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case item.HasTags() && len(item.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(item.GetTags()))
+		for _, tag := range item.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 
 	// Handle custom fields - use filtered-to-owned for partial management
 	if item.HasCustomFields() {

@@ -37,7 +37,7 @@ output "config_context_data" {
 }
 
 output "dns_servers" {
-  value = try(jsondecode(data.netbox_config_context.by_name.data).dns_servers, null)
+  value       = try(jsondecode(data.netbox_config_context.by_name.data).dns_servers, null)
   description = "Example: Extract DNS servers from config context JSON data"
 }
 

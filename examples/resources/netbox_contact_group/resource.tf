@@ -52,8 +52,5 @@ resource "netbox_contact_group" "with_tags" {
   name        = "Security Team"
   slug        = "security-team"
   description = "Information security team"
-  tags {
-    name = "critical"
-    slug = "critical"
-  }
+  tags        = ["critical"]
 }

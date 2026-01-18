@@ -80,7 +80,7 @@ resource "netbox_virtual_machine" "test" {
 - `role` (String) ID or slug of the device role for this virtual machine.
 - `site` (String) ID or slug of the site where this virtual machine is located.
 - `status` (String) The status of the virtual machine. Valid values are: `offline`, `active`, `planned`, `staged`, `failed`, `decommissioning`. Defaults to `active`.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `tenant` (String) ID or slug of the tenant this virtual machine is assigned to.
 - `vcpus` (Number) The number of virtual CPUs allocated to this virtual machine.
 
@@ -96,15 +96,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

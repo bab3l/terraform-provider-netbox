@@ -1,49 +1,39 @@
-# Required Acceptance Tests for Resources
+# Required Acceptance Tests (Concise)
 
-## Standard Test Suite
+This file summarizes the **minimum acceptance tests** every resource must implement, plus the **helpers** to use.
 
-Every resource should have the following acceptance tests:
+## Required Tests (all resources)
 
-### Core Tests (Required)
-- ✅ `TestAcc{Resource}Resource_basic` - Minimal configuration (required fields only)
-- ✅ `TestAcc{Resource}Resource_full` - Complete configuration (all optional fields)
-- ✅ `TestAcc{Resource}Resource_update` - Modify existing resource
-- ✅ `TestAcc{Resource}Resource_import` - Terraform import functionality
+- `TestAcc{Resource}Resource_basic` – create with required fields only.
+- `TestAcc{Resource}Resource_full` – create with all optional fields.
+- `TestAcc{Resource}Resource_update` – change existing resource.
+- `TestAcc{Resource}Resource_import` – import verification.
+- `TestAcc{Resource}Resource_externalDeletion` – handles out-of-band deletion.
+- `TestAcc{Resource}Resource_removeOptionalFields` – clear optional fields.
 
-### Reliability Tests (Required)
-- ✅ `TestAcc{Resource}Resource_IDPreservation` - ID stability across updates
-- ✅ `TestAcc{Resource}Resource_externalDeletion` - Handle external deletion
-- ✅ `TestAcc{Resource}Resource_removeOptionalFields` - Clear optional fields
+## Tag Tests (resources with tags)
 
-### Additional Tests (Recommended)
-- `TestAcc{Resource}Resource_removeOptionalFields_extended` - Comprehensive optional field testing
-- `Consistency_{Resource}_LiteralNames` - Literal values vs resource references
+Use **helpers only** (no custom tag tests):
 
-## CheckDestroy Function
+- `TestAcc{Resource}Resource_tagLifecycle` – add/replace/remove tags.
+- `TestAcc{Resource}Resource_tagOrderInvariance` – order does not drift.
 
-Each resource must have a corresponding CheckDestroy function in `internal/testutil/check_destroy*.go`:
+## Helpers (internal/testutil)
 
-```go
-func Check{Resource}Destroy(s *terraform.State) error
-```
+Core:
 
-## Test Helper Usage
+- `RunImportTest()`
+- `RunExternalDeletionTest()`
+- `TestRemoveOptionalFields()`
+- `RunMultiValidationErrorTest()`
 
-Use helpers from `internal/testutil/` to standardize test implementations:
-- `RunImportTest()` - Import testing
-- `RunUpdateTest()` - Update testing
-- `RunExternalDeletionTest()` - External deletion testing
-- `TestRemoveOptionalFields()` - Optional field removal
+Tags:
 
-## Cleanup Registration
+- `RunTagLifecycleTest()`
+- `RunTagOrderTest()`
 
-All tests must register cleanup:
+## Conventions (brief)
 
-```go
-cleanup := testutil.NewCleanupResource(t)
-cleanup.Register{Resource}Cleanup(resourceName)
-```
-
----
-
-*Refer to ACCEPTANCE_TEST_COVERAGE_ANALYSIS.md for detailed gap analysis and implementation guidelines.*
+- Test names: `TestAcc{Resource}Resource_{testType}`.
+- Config helpers: `testAcc{Resource}ResourceConfig_{variant}`.
+- Always register cleanup for created resources.

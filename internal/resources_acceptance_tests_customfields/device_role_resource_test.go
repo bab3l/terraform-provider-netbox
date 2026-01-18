@@ -164,16 +164,7 @@ resource "netbox_device_role" "test" {
   name = %[1]q
   slug = %[2]q
 
-  tags = [
-    {
-      name = netbox_tag.role_test1.name
-      slug = netbox_tag.role_test1.slug
-    },
-    {
-      name = netbox_tag.role_test2.name
-      slug = netbox_tag.role_test2.slug
-    }
-  ]
+  tags = [netbox_tag.role_test1.slug, netbox_tag.role_test2.slug]
 
   custom_fields = [
     {

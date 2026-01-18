@@ -283,43 +283,6 @@ func TestAccConsolePortResource_externalDeletion(t *testing.T) {
 	})
 }
 
-func TestAccConsolePortResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	siteName := testutil.RandomName("tf-test-site-id")
-	siteSlug := testutil.RandomSlug("tf-test-site-id")
-	mfgName := testutil.RandomName("tf-test-mfg-id")
-	mfgSlug := testutil.RandomSlug("tf-test-mfg-id")
-	dtModel := testutil.RandomName("tf-test-dt-id")
-	dtSlug := testutil.RandomSlug("tf-test-dt-id")
-	roleName := testutil.RandomName("tf-test-role-id")
-	roleSlug := testutil.RandomSlug("tf-test-role-id")
-	deviceName := testutil.RandomName("tf-test-device-id")
-	consolePortName := testutil.RandomName("tf-test-cp-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterManufacturerCleanup(mfgSlug)
-	cleanup.RegisterDeviceTypeCleanup(dtSlug)
-	cleanup.RegisterDeviceRoleCleanup(roleSlug)
-	cleanup.RegisterDeviceCleanup(deviceName)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccConsolePortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, consolePortName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_console_port.test", "id"),
-					resource.TestCheckResourceAttr("netbox_console_port.test", "name", consolePortName),
-				),
-			},
-		},
-	})
-
-}
-
 func testAccConsolePortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, consolePortName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {

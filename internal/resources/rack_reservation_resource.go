@@ -5,12 +5,12 @@ package resources
 import (
 	"context"
 	"fmt"
-	"maps"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -124,11 +124,14 @@ func (r *RackReservationResource) Schema(ctx context.Context, req resource.Schem
 		},
 	}
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom fields attributes
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
+// Configure the resource with the provider client.
 func (r *RackReservationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
 	}
@@ -137,9 +140,7 @@ func (r *RackReservationResource) Configure(ctx context.Context, req resource.Co
 
 	if !ok {
 		resp.Diagnostics.AddError(
-
 			"Unexpected Resource Configure Type",
-
 			fmt.Sprintf("Expected *netbox.APIClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
@@ -228,7 +229,7 @@ func (r *RackReservationResource) Create(ctx context.Context, req resource.Creat
 
 	utils.ApplyComments(apiReq, data.Comments)
 
-	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -440,7 +441,7 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 
 	utils.ApplyComments(apiReq, plan.Comments)
 
-	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, plan.Tags, &resp.Diagnostics)
 
 	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
@@ -606,8 +607,21 @@ func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox
 		data.Comments = types.StringNull()
 	}
 
-	// Map tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, result.HasTags(), result.GetTags(), data.Tags, diags)
+	// Filter tags to owned (slug list format)
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	case result.HasTags():
+		var tagSlugs []string
+		for _, tag := range result.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	}
 
 	// Map custom fields
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, result.GetCustomFields(), diags)

@@ -45,34 +45,6 @@ func TestAccRearPortTemplateResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccRearPortTemplateResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	manufacturerName := testutil.RandomName("mfr-id")
-	manufacturerSlug := testutil.RandomSlug("mfr-id")
-	deviceTypeName := testutil.RandomName("dt-id")
-	deviceTypeSlug := testutil.RandomSlug("dt-id")
-	name := testutil.RandomName("rear-port-id")
-	portType := "8p8c"
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
-	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRearPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, portType),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_rear_port_template.test", "id"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccRearPortTemplateResource_update(t *testing.T) {
 	t.Parallel()
 

@@ -170,29 +170,6 @@ func TestAccIKEProposalResource_externalDeletion(t *testing.T) {
 	})
 }
 
-func TestAccIKEProposalResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-ike-proposal-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterIKEProposalCleanup(name)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccIKEProposalResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_ike_proposal.test", "id"),
-					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "name", name),
-				),
-			},
-		},
-	})
-}
-
 func testAccIKEProposalResourceConfig_basic(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_ike_proposal" "test" {
@@ -300,6 +277,93 @@ resource "netbox_ike_proposal" "test" {
 `, name)
 }
 
+func TestAccIKEProposalResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ike-proposal-tags")
+	slug1 := testutil.RandomSlug("tag1")
+	slug2 := testutil.RandomSlug("tag2")
+	slug3 := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEProposalCleanup(name)
+	cleanup.RegisterTagCleanup(slug1)
+	cleanup.RegisterTagCleanup(slug2)
+	cleanup.RegisterTagCleanup(slug3)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEProposalResourceConfig_tags(name, slug1, slug2, slug3, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug1),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug2),
+				),
+			},
+			{
+				Config: testAccIKEProposalResourceConfig_tags(name, slug1, slug2, slug3, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug1),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug2),
+				),
+			},
+			{
+				Config: testAccIKEProposalResourceConfig_tags(name, slug1, slug2, slug3, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug3),
+				),
+			},
+			{
+				Config: testAccIKEProposalResourceConfig_tags(name, slug1, slug2, slug3, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccIKEProposalResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ike-proposal-tag-order")
+	slug1 := testutil.RandomSlug("tag1")
+	slug2 := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIKEProposalCleanup(name)
+	cleanup.RegisterTagCleanup(slug1)
+	cleanup.RegisterTagCleanup(slug2)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIKEProposalResourceConfig_tagsOrder(name, slug1, slug2, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug1),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug2),
+				),
+			},
+			{
+				Config: testAccIKEProposalResourceConfig_tagsOrder(name, slug1, slug2, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ike_proposal.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug1),
+					resource.TestCheckTypeSetElemAttr("netbox_ike_proposal.test", "tags.*", slug2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConsistency_IKEProposal_LiteralNames(t *testing.T) {
 	t.Parallel()
 
@@ -328,6 +392,77 @@ func TestAccConsistency_IKEProposal_LiteralNames(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccIKEProposalResourceConfig_tags(name, slug1, slug2, slug3, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag3:
+		tagsConfig = tagsSingleSlug
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[1]s"
+  slug = %[1]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[2]s"
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = "Tag3-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_ike_proposal" "test" {
+  name                     = %[4]q
+  authentication_method    = "preshared-keys"
+  encryption_algorithm     = "aes-256-cbc"
+  authentication_algorithm = "hmac-sha256"
+  group                    = 14
+  %[5]s
+}
+`, slug1, slug2, slug3, name, tagsConfig)
+}
+
+func testAccIKEProposalResourceConfig_tagsOrder(name, slug1, slug2, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[1]s"
+  slug = %[1]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[2]s"
+  slug = %[2]q
+}
+
+resource "netbox_ike_proposal" "test" {
+  name                     = %[3]q
+  authentication_method    = "preshared-keys"
+  encryption_algorithm     = "aes-256-cbc"
+  authentication_algorithm = "hmac-sha256"
+  group                    = 14
+  %[4]s
+}
+`, slug1, slug2, name, tagsConfig)
 }
 
 func TestAccIKEProposalResource_validationErrors(t *testing.T) {

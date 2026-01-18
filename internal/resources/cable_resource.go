@@ -143,8 +143,9 @@ func (r *CableResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 	// Add description and comments attributes
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("cable"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add metadata attributes (slug list tags, custom_fields)
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *CableResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -230,7 +231,13 @@ func (r *CableResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 
 	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, cableRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyDescription(cableRequest, data.Description)
+	utils.ApplyComments(cableRequest, data.Comments)
+	utils.ApplyTagsFromSlugs(ctx, r.client, cableRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFields(ctx, cableRequest, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -384,7 +391,17 @@ func (r *CableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	}
 
 	// Set common fields (description, comments, tags, custom_fields) with merge-aware custom fields
-	utils.ApplyCommonFieldsWithMerge(ctx, cableRequest, data.Description, data.Comments, data.Tags, state.Tags, data.CustomFields, state.CustomFields, &resp.Diagnostics)
+	utils.ApplyDescription(cableRequest, data.Description)
+	utils.ApplyComments(cableRequest, data.Comments)
+	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+		utils.ApplyTagsFromSlugs(ctx, r.client, cableRequest, data.Tags, &resp.Diagnostics)
+	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
+		utils.ApplyTagsFromSlugs(ctx, r.client, cableRequest, state.Tags, &resp.Diagnostics)
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFieldsWithMerge(ctx, cableRequest, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -556,14 +573,20 @@ func (r *CableResource) mapResponseToState(ctx context.Context, result *netbox.C
 		data.Comments = types.StringNull()
 	}
 
-	// Tags
-	if result.HasTags() && len(result.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(result.GetTags())
-		tagsValue, d := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		diags.Append(d...)
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	// Tags (slug list)
+	var tagSlugs []string
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case result.HasTags():
+		for _, tag := range result.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
 	}
 
 	// Custom fields

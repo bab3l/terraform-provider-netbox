@@ -132,6 +132,103 @@ func TestAccRackReservationResource_update(t *testing.T) {
 	})
 }
 
+func TestAccRackReservationResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-tags")
+	siteSlug := testutil.RandomSlug("tf-test-site-tags")
+	rackName := testutil.RandomName("tf-test-rack-tags")
+	description := testutil.RandomName("description")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterRackCleanup(rackName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackReservationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackReservationResourceConfig_tags(siteName, siteSlug, rackName, description, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_rack_reservation.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_rack_reservation.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccRackReservationResourceConfig_tags(siteName, siteSlug, rackName, description, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_rack_reservation.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_rack_reservation.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccRackReservationResourceConfig_tags(siteName, siteSlug, rackName, description, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netbox_rack_reservation.test", "tags.*", tag3Slug),
+				),
+			},
+			{
+				Config: testAccRackReservationResourceConfig_tags(siteName, siteSlug, rackName, description, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccRackReservationResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-tag-order")
+	siteSlug := testutil.RandomSlug("tf-test-site-tag-order")
+	rackName := testutil.RandomName("tf-test-rack-tag-order")
+	description := testutil.RandomName("description")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterRackCleanup(rackName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRackReservationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRackReservationResourceConfig_tagsOrder(siteName, siteSlug, rackName, description, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_rack_reservation.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_rack_reservation.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccRackReservationResourceConfig_tagsOrder(siteName, siteSlug, rackName, description, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_rack_reservation.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_rack_reservation.test", "tags.*", tag2Slug),
+				),
+			},
+		},
+	})
+}
+
 func testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, description string) string {
 	return fmt.Sprintf(`
 provider "netbox" {}
@@ -212,16 +309,7 @@ resource "netbox_rack_reservation" "test" {
   description = %[6]q
   comments    = %[7]q
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+  tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 
   custom_fields = [
     {
@@ -284,16 +372,7 @@ resource "netbox_rack_reservation" "test" {
   description = %[6]q
   comments    = %[7]q
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+  tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 
   custom_fields = [
     {
@@ -304,6 +383,113 @@ resource "netbox_rack_reservation" "test" {
   ]
 }
 `, siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+}
+
+func testAccRackReservationResourceConfig_tags(siteName, siteSlug, rackName, description, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag3:
+		tagsConfig = tagsSingleSlug
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+	name   = %[1]q
+	slug   = %[2]q
+	status = "active"
+}
+
+resource "netbox_rack" "test" {
+	name     = %[3]q
+	site     = netbox_site.test.id
+	status   = "active"
+	u_height = 42
+}
+
+data "netbox_user" "admin" {
+	username = "admin"
+}
+
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[5]s"
+	slug = %[5]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[6]s"
+	slug = %[6]q
+}
+
+resource "netbox_tag" "tag3" {
+	name = "Tag3-%[7]s"
+	slug = %[7]q
+}
+
+resource "netbox_rack_reservation" "test" {
+	rack        = netbox_rack.test.id
+	units       = [1, 2]
+	user        = data.netbox_user.admin.id
+	description = %[4]q
+	%[8]s
+}
+`, siteName, siteSlug, rackName, description, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccRackReservationResourceConfig_tagsOrder(siteName, siteSlug, rackName, description, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+provider "netbox" {}
+
+resource "netbox_site" "test" {
+	name   = %[1]q
+	slug   = %[2]q
+	status = "active"
+}
+
+resource "netbox_rack" "test" {
+	name     = %[3]q
+	site     = netbox_site.test.id
+	status   = "active"
+	u_height = 42
+}
+
+data "netbox_user" "admin" {
+	username = "admin"
+}
+
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[5]s"
+	slug = %[5]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[6]s"
+	slug = %[6]q
+}
+
+resource "netbox_rack_reservation" "test" {
+	rack        = netbox_rack.test.id
+	units       = [1, 2]
+	user        = data.netbox_user.admin.id
+	description = %[4]q
+	%[7]s
+}
+`, siteName, siteSlug, rackName, description, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func TestAccConsistency_RackReservation_LiteralNames(t *testing.T) {
@@ -330,35 +516,6 @@ func TestAccConsistency_RackReservation_LiteralNames(t *testing.T) {
 			{
 				PlanOnly: true,
 				Config:   testAccRackReservationConsistencyLiteralNamesConfig(siteName, siteSlug, rackName, description),
-			},
-		},
-	})
-}
-
-func TestAccRackReservationResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	siteName := testutil.RandomName("site-rr")
-	siteSlug := testutil.GenerateSlug(siteName)
-	rackName := testutil.RandomName("rack-rr")
-	description := testutil.RandomName("description")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterRackCleanup(rackName)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.CheckRackReservationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, description),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_rack_reservation.test", "id"),
-					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "description", description),
-					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "units.#", "2"),
-				),
 			},
 		},
 	})

@@ -181,16 +181,7 @@ resource "netbox_vm_interface" "test" {
   virtual_machine = netbox_virtual_machine.test.id
   name            = %[5]q
 
-  tags = [
-    {
-      name = netbox_tag.vmint_test1.name
-      slug = netbox_tag.vmint_test1.slug
-    },
-    {
-      name = netbox_tag.vmint_test2.name
-      slug = netbox_tag.vmint_test2.slug
-    }
-  ]
+	tags = [netbox_tag.vmint_test1.slug, netbox_tag.vmint_test2.slug]
 
   custom_fields = [
     {

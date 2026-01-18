@@ -44,34 +44,6 @@ func TestAccModuleBayTemplateResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccModuleBayTemplateResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	mfgName := testutil.RandomName("mfg-mbt")
-	mfgSlug := testutil.GenerateSlug(mfgName)
-	dtModel := testutil.RandomName("dt-mbt")
-	dtSlug := testutil.GenerateSlug(dtModel)
-	templateName := testutil.RandomName("mbt-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterManufacturerCleanup(mfgSlug)
-	cleanup.RegisterDeviceTypeCleanup(dtSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccModuleBayTemplateResourceConfig_basic(mfgName, mfgSlug, dtModel, dtSlug, templateName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_module_bay_template.test", "id"),
-					resource.TestCheckResourceAttr("netbox_module_bay_template.test", "name", templateName),
-				),
-			},
-		},
-	})
-}
-
 func TestAccModuleBayTemplateResource_full(t *testing.T) {
 	t.Parallel()
 
@@ -144,7 +116,7 @@ func TestAccModuleBayTemplateResource_update(t *testing.T) {
 	})
 }
 
-func TestAccModuleBayTemplateResource_external_deletion(t *testing.T) {
+func TestAccModuleBayTemplateResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	mfgName := testutil.RandomName("mfg-ext-del")

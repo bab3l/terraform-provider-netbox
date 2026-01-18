@@ -11,7 +11,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -74,7 +74,7 @@ func (r *ConfigTemplateResource) Schema(ctx context.Context, req resource.Schema
 				MarkdownDescription: "Path to remote file (relative to data source root). Read-only.",
 				Computed:            true,
 			},
-			"tags": nbschema.TagsAttribute(),
+			"tags": nbschema.TagsSlugAttribute(),
 		},
 	}
 
@@ -115,10 +115,8 @@ func (r *ConfigTemplateResource) Create(ctx context.Context, req resource.Create
 	// Set optional fields
 	utils.ApplyDescription(apiReq, data.Description)
 
-	var diags diag.Diagnostics
-	utils.ApplyTags(ctx, apiReq, data.Tags, &diags)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -194,10 +192,8 @@ func (r *ConfigTemplateResource) Update(ctx context.Context, req resource.Update
 	// Set optional fields
 	utils.ApplyDescription(apiReq, data.Description)
 
-	var diags diag.Diagnostics
-	utils.ApplyTags(ctx, apiReq, data.Tags, &diags)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -274,6 +270,18 @@ func (r *ConfigTemplateResource) mapResponseToModel(template *netbox.ConfigTempl
 	// Map data path (read-only)
 	data.DataPath = types.StringValue(template.GetDataPath())
 
-	// Handle tags using consolidated helper - pass empty diags since this is called in a context with resp available
-	data.Tags = utils.PopulateTagsFromAPI(context.Background(), template.HasTags(), template.GetTags(), data.Tags, &diag.Diagnostics{})
+	// Tags (slug list)
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case template.HasTags() && len(template.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(template.GetTags()))
+		for _, tag := range template.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(context.Background(), tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 }

@@ -12,6 +12,7 @@ import (
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -90,8 +91,9 @@ func (r *ModuleBayResource) Schema(ctx context.Context, req resource.SchemaReque
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("module bay"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom fields
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -136,7 +138,7 @@ func (r *ModuleBayResource) Create(ctx context.Context, req resource.CreateReque
 
 	// Handle description and metadata fields
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
 	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -166,7 +168,19 @@ func (r *ModuleBayResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case response.HasTags() && len(response.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(response.GetTags()))
+		for _, tag := range response.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -221,7 +235,19 @@ func (r *ModuleBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	// Preserve null/empty state values for tags and custom_fields
-	data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), stateTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
+	switch {
+	case response.HasTags() && len(response.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(response.GetTags()))
+		for _, tag := range response.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -271,7 +297,11 @@ func (r *ModuleBayResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Handle description and metadata fields (merge-aware)
 	utils.ApplyDescription(apiReq, plan.Description)
-	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	if utils.IsSet(plan.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, plan.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, state.Tags, &resp.Diagnostics)
+	}
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -303,7 +333,19 @@ func (r *ModuleBayResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	plan.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case response.HasTags() && len(response.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(response.GetTags()))
+		for _, tag := range response.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		plan.Tags = types.SetNull(types.StringType)
+	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -365,6 +407,25 @@ func (r *ModuleBayResource) ImportState(ctx context.Context, req resource.Import
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Ensure tags/custom_fields have concrete types for import
+	if response.HasTags() && len(response.GetTags()) > 0 {
+		tagSlugs := make([]string, 0, len(response.GetTags()))
+		for _, tag := range response.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	} else {
+		data.Tags = types.SetNull(types.StringType)
+	}
+	if response.HasCustomFields() {
+		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, response.GetCustomFields(), &resp.Diagnostics)
+	} else {
+		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -399,7 +460,5 @@ func (r *ModuleBayResource) mapResponseToModel(ctx context.Context, moduleBay *n
 		data.Description = types.StringNull()
 	}
 
-	// Populate tags and custom fields using unified helpers
-	data.Tags = utils.PopulateTagsFromAPI(ctx, moduleBay.HasTags(), moduleBay.GetTags(), data.Tags, diags)
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, moduleBay.HasCustomFields(), moduleBay.GetCustomFields(), data.CustomFields, diags)
+	// Tags and custom fields are handled in Create/Read/Update methods using filter-to-owned pattern.
 }

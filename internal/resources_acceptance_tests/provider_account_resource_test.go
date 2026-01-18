@@ -75,26 +75,91 @@ func TestAccProviderAccountResource_full(t *testing.T) {
 	})
 }
 
-func TestAccProviderAccountResource_IDPreservation(t *testing.T) {
+func TestAccProviderAccountResource_tagLifecycle(t *testing.T) {
 	t.Parallel()
 
-	providerName := testutil.RandomName("tf-test-provider-id")
-	providerSlug := testutil.RandomSlug("tf-test-provider-id")
-	accountID := testutil.RandomName("tf-test-acct-id")
+	providerName := testutil.RandomName("tf-test-provider-tags")
+	providerSlug := testutil.RandomSlug("tf-test-provider-tags")
+	accountID := testutil.RandomName("acct-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccProviderAccountResourceConfig_basic(providerName, providerSlug, accountID),
+				Config: testAccProviderAccountResourceConfig_tags(providerName, providerSlug, accountID, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_provider_account.test", "id"),
-					resource.TestCheckResourceAttr("netbox_provider_account.test", "account", accountID),
-					resource.TestCheckResourceAttrSet("netbox_provider_account.test", "circuit_provider"),
+					resource.TestCheckResourceAttr("netbox_provider_account.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_provider_account.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_provider_account.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccProviderAccountResourceConfig_tags(providerName, providerSlug, accountID, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_account.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_provider_account.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_provider_account.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccProviderAccountResourceConfig_tags(providerName, providerSlug, accountID, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_account.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netbox_provider_account.test", "tags.*", tag3Slug),
+				),
+			},
+			{
+				Config: testAccProviderAccountResourceConfig_tags(providerName, providerSlug, accountID, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_account.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccProviderAccountResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	providerName := testutil.RandomName("tf-test-provider-tag-order")
+	providerSlug := testutil.RandomSlug("tf-test-provider-tag-order")
+	accountID := testutil.RandomName("acct-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(providerSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderAccountResourceConfig_tagsOrder(providerName, providerSlug, accountID, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_account.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_provider_account.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_provider_account.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccProviderAccountResourceConfig_tagsOrder(providerName, providerSlug, accountID, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider_account.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_provider_account.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_provider_account.test", "tags.*", tag2Slug),
 				),
 			},
 		},
@@ -172,6 +237,81 @@ resource "netbox_provider_account" "test" {
   account          = %q
 }
 `, providerName, providerSlug, accountID)
+}
+
+func testAccProviderAccountResourceConfig_tags(providerName, providerSlug, accountID, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag3:
+		tagsConfig = tagsSingleSlug
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[5]s"
+  slug = %[5]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = "Tag3-%[6]s"
+  slug = %[6]q
+}
+
+resource "netbox_provider" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_provider_account" "test" {
+  circuit_provider = netbox_provider.test.id
+  account          = %[3]q
+  %[7]s
+}
+`, providerName, providerSlug, accountID, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccProviderAccountResourceConfig_tagsOrder(providerName, providerSlug, accountID, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[5]s"
+  slug = %[5]q
+}
+
+resource "netbox_provider" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_provider_account" "test" {
+  circuit_provider = netbox_provider.test.id
+  account          = %[3]q
+  %[6]s
+}
+`, providerName, providerSlug, accountID, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func testAccProviderAccountResourceConfig_full(providerName, providerSlug, accountID, accountName, description string) string {

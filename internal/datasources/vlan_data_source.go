@@ -352,13 +352,13 @@ func (d *VLANDataSource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, 
 		data.DisplayName = types.StringNull()
 	}
 
-	// Tags
+	// Tags (slug list)
 	if len(vlan.Tags) > 0 {
-		tagNames := make([]string, 0, len(vlan.Tags))
+		tagSlugs := make([]string, 0, len(vlan.Tags))
 		for _, tag := range vlan.Tags {
-			tagNames = append(tagNames, tag.Name)
+			tagSlugs = append(tagSlugs, tag.Slug)
 		}
-		tagList, _ := types.ListValueFrom(ctx, types.StringType, tagNames)
+		tagList, _ := types.ListValueFrom(ctx, types.StringType, tagSlugs)
 		data.Tags = tagList
 	} else {
 		data.Tags = types.ListNull(types.StringType)

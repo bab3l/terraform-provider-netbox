@@ -658,6 +658,27 @@ func PopulateCustomFieldsFromAPI(ctx context.Context, hasCustomFields bool, cust
 	return types.SetNull(GetCustomFieldsAttributeType().ElemType)
 }
 
+// SetToStringSlice converts a Terraform string set into a []string.
+// Returns an empty slice for null/unknown values.
+func SetToStringSlice(ctx context.Context, set types.Set) []string {
+	if set.IsNull() || set.IsUnknown() {
+		return []string{}
+	}
+	var stringValues []string
+	set.ElementsAs(ctx, &stringValues, false)
+	return stringValues
+}
+
+// TagsSlugToSet converts a slice of tag slugs into a Terraform string set.
+// Returns a null set when no tags are present.
+func TagsSlugToSet(ctx context.Context, tags []string) types.Set {
+	if len(tags) == 0 {
+		return types.SetNull(types.StringType)
+	}
+	set, _ := types.SetValueFrom(ctx, types.StringType, tags)
+	return set
+}
+
 // PopulateCustomFieldsFilteredToOwned returns only the custom fields that the user "owns" (declares in their config).
 // This is the key to the "filter to owned" pattern that works around Terraform framework limitations.
 //

@@ -13,6 +13,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -125,7 +126,8 @@ func (r *IKEProposalResource) Schema(ctx context.Context, req resource.SchemaReq
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("IKE proposal"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -421,7 +423,7 @@ func (r *IKEProposalResource) setOptionalFields(ctx context.Context, ikeRequest 
 
 	// Set comments, tags, and custom fields with merge-aware helpers
 	utils.ApplyComments(ikeRequest, plan.Comments)
-	utils.ApplyTags(ctx, ikeRequest, plan.Tags, diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, ikeRequest, plan.Tags, diags)
 
 	// Apply custom fields with merge logic to preserve unmanaged fields
 	if state != nil {
@@ -486,10 +488,20 @@ func (r *IKEProposalResource) mapIKEProposalToState(ctx context.Context, ike *ne
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, ike.HasTags(), ike.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags with filter-to-owned pattern
+	planTags := data.Tags
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case ike.HasTags() && len(ike.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(ike.GetTags()))
+		for _, tag := range ike.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
 	}
 
 	// Handle custom fields using consolidated helper

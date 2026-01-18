@@ -163,34 +163,6 @@ func TestAccConsistency_CircuitType_LiteralNames(t *testing.T) {
 	})
 }
 
-// TestAccCircuitTypeResource_IDPreservation tests that the circuit type resource preserves the
-// ID as the immutable identifier.
-func TestAccCircuitTypeResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-circuit-type-id")
-	slug := testutil.RandomSlug("tf-test-circuit-type-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterCircuitTypeCleanup(slug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.CheckCircuitTypeDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCircuitTypeResourceConfig_basic(name, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_circuit_type.test", "id"),
-					resource.TestCheckResourceAttr("netbox_circuit_type.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_circuit_type.test", "slug", slug),
-				),
-			},
-		},
-	})
-}
-
 func testAccCircuitTypeResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_circuit_type" "test" {
@@ -377,4 +349,148 @@ resource "netbox_circuit_type" "test" {
 			},
 		},
 	})
+}
+
+// =============================================================================
+// STANDARDIZED TAG TESTS (using helpers)
+// =============================================================================
+
+// TestAccCircuitTypeResource_tagLifecycle tests the complete tag lifecycle using RunTagLifecycleTest helper.
+func TestAccCircuitTypeResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-ct-tag")
+	slug := testutil.RandomSlug("tf-ct-tag")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitTypeCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_circuit_type",
+		ConfigWithoutTags: func() string {
+			return testAccCircuitTypeResourceConfig_tagLifecycle(name, slug, "", "", "", "", "", "", "")
+		},
+		ConfigWithTags: func() string {
+			return testAccCircuitTypeResourceConfig_tagLifecycle(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag1,tag2", "", "")
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccCircuitTypeResourceConfig_tagLifecycle(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag3", tag3Name, tag3Slug)
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 1,
+	})
+}
+
+func testAccCircuitTypeResourceConfig_tagLifecycle(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, tagSet, tag3Name, tag3Slug string) string {
+	tagResources := ""
+	tagsList := ""
+
+	if tag1Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %q
+  slug = %q
+}
+`, tag1Name, tag1Slug)
+	}
+	if tag2Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag2" {
+  name = %q
+  slug = %q
+}
+`, tag2Name, tag2Slug)
+	}
+	if tag3Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag3" {
+  name = %q
+  slug = %q
+}
+`, tag3Name, tag3Slug)
+	}
+
+	if tagSet != "" {
+		switch tagSet {
+		case "tag1,tag2":
+			tagsList = tagsDoubleSlug
+		case "tag3":
+			tagsList = tagsSingleSlug
+		default:
+			tagsList = tagsEmpty
+		}
+	} else {
+		tagsList = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+%s
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+  %s
+}
+`, tagResources, name, slug, tagsList)
+}
+
+// TestAccCircuitTypeResource_tagOrderInvariance tests tag order using RunTagOrderTest helper.
+func TestAccCircuitTypeResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-ct-order")
+	slug := testutil.RandomSlug("tf-ct-order")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterCircuitTypeCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_circuit_type",
+		ConfigWithTagsOrderA: func() string {
+			return testAccCircuitTypeResourceConfig_tagOrder(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, true)
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccCircuitTypeResourceConfig_tagOrder(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, false)
+		},
+		ExpectedTagCount: 2,
+	})
+}
+
+func testAccCircuitTypeResourceConfig_tagOrder(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
+	tagsOrder := tagsDoubleSlug
+	if !tag1First {
+		tagsOrder = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_circuit_type" "test" {
+  name = %q
+  slug = %q
+  %s
+}
+`, tag1Name, tag1Slug, tag2Name, tag2Slug, name, slug, tagsOrder)
 }

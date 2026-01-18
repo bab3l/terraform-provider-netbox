@@ -67,7 +67,7 @@ resource "netbox_cluster" "test" {
 - `group` (String) The name or ID of the cluster group this cluster belongs to.
 - `site` (String) The name or ID of the site where this cluster is located.
 - `status` (String) The status of the cluster. Valid values are: `planned`, `staging`, `active`, `decommissioning`, `offline`. Defaults to `active`.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `tenant` (String) The name or ID of the tenant this cluster is assigned to.
 
 ### Read-Only
@@ -82,15 +82,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

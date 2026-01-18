@@ -93,7 +93,7 @@ output "interface_is_management" {
 - `mac_address` (String) The MAC address of the interface.
 - `mode` (String) The 802.1Q mode of the interface (access, tagged, tagged-all).
 - `mtu` (Number) The Maximum Transmission Unit (MTU) size for the interface.
-- `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
+- `tags` (List of String) Tags assigned to this VM interface.
 - `untagged_vlan` (String) The untagged VLAN assigned to this interface.
 - `vrf` (String) The VRF assigned to this interface.
 
@@ -105,12 +105,3 @@ Read-Only:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field.
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Read-Only:
-
-- `name` (String) Name of the tag.
-- `slug` (String) Slug of the tag.

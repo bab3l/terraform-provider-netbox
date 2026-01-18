@@ -85,34 +85,6 @@ func TestAccASNResource_full(t *testing.T) {
 	})
 }
 
-func TestAccASNResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	rirName := testutil.RandomName("tf-test-rir-id")
-	rirSlug := testutil.RandomSlug("tf-test-rir-id")
-	// Generate a random ASN in the private range (64912-65111) - non-overlapping with other tests
-	asn := int64(acctest.RandIntRange(64912, 65111))
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterRIRCleanup(rirSlug)
-	cleanup.RegisterASNCleanup(asn)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccASNResourceConfig_basic(rirName, rirSlug, asn),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_asn.test", "id"),
-					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
-				),
-			},
-		},
-	})
-
-}
-
 func TestAccASNResource_update(t *testing.T) {
 	t.Parallel()
 
@@ -412,6 +384,166 @@ resource "netbox_asn" "test" {
 }
 
 // NOTE: Custom field tests for ASN resource are in resources_acceptance_tests_customfields package
+
+// =============================================================================
+// STANDARDIZED TAG TESTS (using helpers)
+// =============================================================================
+
+// TestAccASNResource_tagLifecycle tests the complete tag lifecycle using RunTagLifecycleTest helper.
+func TestAccASNResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	asn := int64(acctest.RandIntRange(64712, 64911))
+	rirName := testutil.RandomName("rir-tag")
+	rirSlug := testutil.RandomSlug("rir-tag")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_asn",
+		ConfigWithoutTags: func() string {
+			return testAccASNResourceConfig_tagLifecycle(asn, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "none")
+		},
+		ConfigWithTags: func() string {
+			return testAccASNResourceConfig_tagLifecycle(asn, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag1_tag2")
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccASNResourceConfig_tagLifecycle(asn, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag2_tag3")
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 2,
+		CheckDestroy:              testutil.CheckASNDestroy,
+	})
+}
+
+func testAccASNResourceConfig_tagLifecycle(asn int64, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagSet string) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag1" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[6]q
+  slug = %[7]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = %[8]q
+  slug = %[9]q
+}
+`, asn, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug)
+
+	//nolint:goconst // tagSet values are test-specific identifiers
+	switch tagSet {
+	case "tag1_tag2":
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_asn" "test" {
+  asn = %[1]d
+  rir = netbox_rir.test.id
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
+}
+`, asn)
+	case "tag2_tag3":
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_asn" "test" {
+  asn = %[1]d
+  rir = netbox_rir.test.id
+	tags = [netbox_tag.tag2.slug, netbox_tag.tag3.slug]
+}
+`, asn)
+	default: // "none"
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_asn" "test" {
+  asn  = %[1]d
+  rir  = netbox_rir.test.id
+  tags = []
+}
+`, asn)
+	}
+}
+
+// TestAccASNResource_tagOrderInvariance tests tag order using RunTagOrderTest helper.
+func TestAccASNResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	asn := int64(acctest.RandIntRange(64912, 65111))
+	rirName := testutil.RandomName("rir-tag-order")
+	rirSlug := testutil.RandomSlug("rir-tag-order")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_asn",
+		ConfigWithTagsOrderA: func() string {
+			return testAccASNResourceConfig_tagOrder(asn, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, true)
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccASNResourceConfig_tagOrder(asn, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, false)
+		},
+		ExpectedTagCount: 2,
+		CheckDestroy:     testutil.CheckASNDestroy,
+	})
+}
+
+func testAccASNResourceConfig_tagOrder(asn int64, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = %[2]q
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag1" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[6]q
+  slug = %[7]q
+}
+`, asn, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug)
+
+	if tag1First {
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_asn" "test" {
+  asn = %[1]d
+  rir = netbox_rir.test.id
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
+}
+`, asn)
+	}
+
+	return baseConfig + fmt.Sprintf(`
+resource "netbox_asn" "test" {
+  asn = %[1]d
+  rir = netbox_rir.test.id
+	tags = [netbox_tag.tag2.slug, netbox_tag.tag1.slug]
+}
+`, asn)
+}
 
 func TestAccASNResource_validationErrors(t *testing.T) {
 	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{

@@ -39,7 +39,7 @@ resource "netbox_custom_field" "test" {
 - `filter_logic` (String) Filter logic for the custom field. Valid values: `disabled`, `loose`, `exact`.
 - `group_name` (String) Custom fields within the same group will be displayed together.
 - `is_cloneable` (Boolean) Replicate this value when cloning objects.
-- `label` (String) Name of the field as displayed to users. If not provided, the field's name will be used.
+- `label` (String) Name of the field as displayed to users.
 - `related_object_type` (String) The related object type for object and multiobject custom fields (e.g., 'dcim.device').
 - `required` (Boolean) If true, this field is required when creating new objects or editing an existing object.
 - `search_weight` (Number) Weighting for search. Lower values are considered more important. Fields with a search weight of zero will be ignored.

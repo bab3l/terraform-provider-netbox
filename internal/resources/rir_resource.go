@@ -10,6 +10,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -82,7 +83,8 @@ func (r *RIRResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("RIR"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -330,7 +332,7 @@ func (r *RIRResource) setOptionalFields(ctx context.Context, rirRequest *netbox.
 	utils.ApplyDescription(rirRequest, data.Description)
 
 	// Apply tags
-	utils.ApplyTags(ctx, rirRequest, data.Tags, diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, rirRequest, data.Tags, diags)
 	if diags.HasError() {
 		return
 	}
@@ -368,8 +370,21 @@ func (r *RIRResource) mapRIRToState(ctx context.Context, rir *netbox.RIR, data *
 		data.Description = types.StringNull()
 	}
 
-	// Tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, len(rir.Tags) > 0, rir.Tags, data.Tags, diags)
+	// Tags - filter to owned slugs only
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	case len(rir.Tags) > 0:
+		var tagSlugs []string
+		for _, tag := range rir.Tags {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	}
 	// Custom Fields - filter to owned fields only
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, rir.CustomFields, diags)
 }

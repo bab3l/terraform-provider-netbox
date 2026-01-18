@@ -45,7 +45,7 @@ type VirtualMachineDataSourceModel struct {
 	Description  types.String  `tfsdk:"description"`
 	Comments     types.String  `tfsdk:"comments"`
 	DisplayName  types.String  `tfsdk:"display_name"`
-	Tags         types.Set     `tfsdk:"tags"`
+	Tags         types.List    `tfsdk:"tags"`
 	CustomFields types.Set     `tfsdk:"custom_fields"`
 }
 
@@ -59,21 +59,25 @@ func (d *VirtualMachineDataSource) Schema(ctx context.Context, req datasource.Sc
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Use this data source to get information about a virtual machine in Netbox. Virtual machines represent virtualized compute instances. You can identify the virtual machine using `id` or `name`.",
 		Attributes: map[string]schema.Attribute{
-			"id":            nbschema.DSIDAttribute("virtual machine"),
-			"name":          nbschema.DSNameAttribute("virtual machine"),
-			"status":        nbschema.DSComputedStringAttribute("The status of the virtual machine (offline, active, planned, staged, failed, decommissioning)."),
-			"site":          nbschema.DSComputedStringAttribute("The site where this virtual machine is located."),
-			"cluster":       nbschema.DSComputedStringAttribute("The cluster this virtual machine belongs to."),
-			"role":          nbschema.DSComputedStringAttribute("The device role for this virtual machine."),
-			"tenant":        nbschema.DSComputedStringAttribute("The tenant this virtual machine is assigned to."),
-			"platform":      nbschema.DSComputedStringAttribute("The platform (operating system) running on this virtual machine."),
-			"vcpus":         nbschema.DSComputedFloat64Attribute("The number of virtual CPUs allocated to this virtual machine."),
-			"memory":        nbschema.DSComputedInt64Attribute("The amount of memory (in MB) allocated to this virtual machine."),
-			"disk":          nbschema.DSComputedInt64Attribute("The total disk space (in GB) allocated to this virtual machine."),
-			"description":   nbschema.DSComputedStringAttribute("Detailed description of the virtual machine."),
-			"comments":      nbschema.DSComputedStringAttribute("Additional comments or notes about the virtual machine."),
-			"display_name":  nbschema.DSComputedStringAttribute("Display name of the virtual machine."),
-			"tags":          nbschema.DSTagsAttribute(),
+			"id":           nbschema.DSIDAttribute("virtual machine"),
+			"name":         nbschema.DSNameAttribute("virtual machine"),
+			"status":       nbschema.DSComputedStringAttribute("The status of the virtual machine (offline, active, planned, staged, failed, decommissioning)."),
+			"site":         nbschema.DSComputedStringAttribute("The site where this virtual machine is located."),
+			"cluster":      nbschema.DSComputedStringAttribute("The cluster this virtual machine belongs to."),
+			"role":         nbschema.DSComputedStringAttribute("The device role for this virtual machine."),
+			"tenant":       nbschema.DSComputedStringAttribute("The tenant this virtual machine is assigned to."),
+			"platform":     nbschema.DSComputedStringAttribute("The platform (operating system) running on this virtual machine."),
+			"vcpus":        nbschema.DSComputedFloat64Attribute("The number of virtual CPUs allocated to this virtual machine."),
+			"memory":       nbschema.DSComputedInt64Attribute("The amount of memory (in MB) allocated to this virtual machine."),
+			"disk":         nbschema.DSComputedInt64Attribute("The total disk space (in GB) allocated to this virtual machine."),
+			"description":  nbschema.DSComputedStringAttribute("Detailed description of the virtual machine."),
+			"comments":     nbschema.DSComputedStringAttribute("Additional comments or notes about the virtual machine."),
+			"display_name": nbschema.DSComputedStringAttribute("Display name of the virtual machine."),
+			"tags": schema.ListAttribute{
+				MarkdownDescription: "Tags assigned to this virtual machine.",
+				Computed:            true,
+				ElementType:         types.StringType,
+			},
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
@@ -268,17 +272,20 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 		data.DisplayName = types.StringNull()
 	}
 
-	// Handle tags
+	// Handle tags (slug list)
 	if vm.HasTags() && len(vm.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(vm.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
+		tagSlugs := make([]string, 0, len(vm.GetTags()))
+		for _, tag := range vm.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		tagsValue, tagDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
 		resp.Diagnostics.Append(tagDiags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
 		data.Tags = tagsValue
 	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+		data.Tags = types.ListNull(types.StringType)
 	}
 
 	// Handle custom fields

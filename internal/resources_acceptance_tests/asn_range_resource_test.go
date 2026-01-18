@@ -244,39 +244,6 @@ func TestAccASNRangeResource_external_deletion(t *testing.T) {
 	})
 }
 
-func TestAccASNRangeResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-asn-range-id")
-	slug := testutil.RandomSlug("tf-test-asn-range-id")
-	rirName := testutil.RandomName("tf-test-rir-id")
-	rirSlug := testutil.RandomSlug("tf-test-rir-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterASNRangeCleanup(name)
-	cleanup.RegisterRIRCleanup(rirSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy: testutil.ComposeCheckDestroy(
-			testutil.CheckASNRangeDestroy,
-			testutil.CheckRIRDestroy,
-		),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccASNRangeResourceConfig_basic(name, slug, rirName, rirSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "id"),
-					resource.TestCheckResourceAttr("netbox_asn_range.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_asn_range.test", "slug", slug),
-				),
-			},
-		},
-	})
-
-}
-
 func testAccASNRangeResourceConfig_basic(name, slug, rirName, rirSlug string) string {
 	return fmt.Sprintf(`
 resource "netbox_rir" "test" {
@@ -709,4 +676,182 @@ resource "netbox_asn_range" "test" {
 			},
 		},
 	})
+}
+
+func TestAccASNRangeResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-asn-range-tag")
+	slug := testutil.RandomSlug("tf-test-asn-range-tag")
+	rirName := testutil.RandomName("tf-test-rir")
+	rirSlug := testutil.RandomSlug("tf-test-rir")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterASNRangeCleanup(name)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_asn_range",
+		ConfigWithoutTags: func() string {
+			return testAccASNRangeResourceConfig_tagLifecycle(name, slug, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "none")
+		},
+		ConfigWithTags: func() string {
+			return testAccASNRangeResourceConfig_tagLifecycle(name, slug, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag1_tag2")
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccASNRangeResourceConfig_tagLifecycle(name, slug, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag2_tag3")
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 2,
+		CheckDestroy:              testutil.CheckASNRangeDestroy,
+	})
+}
+
+func TestAccASNRangeResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-asn-range-tagord")
+	slug := testutil.RandomSlug("tf-test-asn-range-tagord")
+	rirName := testutil.RandomName("tf-test-rir")
+	rirSlug := testutil.RandomSlug("tf-test-rir")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterASNRangeCleanup(name)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_asn_range",
+		ConfigWithTagsOrderA: func() string {
+			return testAccASNRangeResourceConfig_tagOrder(name, slug, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag1_tag2_tag3")
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccASNRangeResourceConfig_tagOrder(name, slug, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag3_tag2_tag1")
+		},
+		ExpectedTagCount: 3,
+		CheckDestroy:     testutil.CheckASNRangeDestroy,
+	})
+}
+
+// Configuration functions for tag tests.
+
+func testAccASNRangeResourceConfig_tagLifecycle(name, slug, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagSet string) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag1" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = %[9]q
+  slug = %[10]q
+}
+`, name, slug, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug)
+
+	//nolint:goconst // tagSet values are test-specific identifiers
+	switch tagSet {
+	case "tag1_tag2":
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_asn_range" "test" {
+  name  = %[1]q
+  slug  = %[2]q
+  rir   = netbox_rir.test.id
+  start = "65200"
+  end   = "65300"
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
+}
+`, name, slug)
+	case "tag2_tag3":
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_asn_range" "test" {
+  name  = %[1]q
+  slug  = %[2]q
+  rir   = netbox_rir.test.id
+  start = "65200"
+  end   = "65300"
+	tags = [netbox_tag.tag2.slug, netbox_tag.tag3.slug]
+}
+`, name, slug)
+	default: // "none"
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_asn_range" "test" {
+  name  = %[1]q
+  slug  = %[2]q
+  rir   = netbox_rir.test.id
+  start = "65200"
+  end   = "65300"
+  tags  = []
+}
+`, name, slug)
+	}
+}
+
+func testAccASNRangeResourceConfig_tagOrder(name, slug, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagOrder string) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_rir" "test" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag1" {
+  name = %[5]q
+  slug = %[6]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[7]q
+  slug = %[8]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = %[9]q
+  slug = %[10]q
+}
+
+resource "netbox_asn_range" "test" {
+  name  = %[1]q
+  slug  = %[2]q
+  rir   = netbox_rir.test.id
+  start = "65301"
+  end   = "65401"
+`, name, slug, rirName, rirSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug)
+
+	var tagConfig string
+	switch tagOrder {
+	case "tag1_tag2_tag3":
+		tagConfig = `
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug, netbox_tag.tag3.slug]`
+	case "tag3_tag2_tag1":
+		tagConfig = `
+	tags = [netbox_tag.tag3.slug, netbox_tag.tag2.slug, netbox_tag.tag1.slug]`
+	}
+
+	return baseConfig + tagConfig + "\n}\n"
 }

@@ -115,6 +115,93 @@ func TestAccIPSECPolicyResource_import(t *testing.T) {
 	})
 }
 
+func TestAccIPSECPolicyResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ipsec-policy-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSECPolicyResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_ipsec_policy.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_ipsec_policy.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccIPSECPolicyResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_ipsec_policy.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_ipsec_policy.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccIPSECPolicyResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netbox_ipsec_policy.test", "tags.*", tag3Slug),
+				),
+			},
+			{
+				Config: testAccIPSECPolicyResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccIPSECPolicyResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-ipsec-policy-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPSecPolicyCleanup(name)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIPSECPolicyResourceConfig_tagsOrder(name, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_ipsec_policy.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_ipsec_policy.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccIPSECPolicyResourceConfig_tagsOrder(name, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_ipsec_policy.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_ipsec_policy.test", "tags.*", tag2Slug),
+				),
+			},
+		},
+	})
+}
+
 func TestAccIPSECPolicyResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
@@ -157,28 +244,7 @@ func TestAccIPSECPolicyResource_externalDeletion(t *testing.T) {
 		},
 	})
 }
-func TestAccIPSecPolicyResource_IDPreservation(t *testing.T) {
-	t.Parallel()
 
-	name := testutil.RandomName("tf-test-ipsec-policy-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterIPSecPolicyCleanup(name)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccIPSECPolicyResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_ipsec_policy.test", "id"),
-					resource.TestCheckResourceAttr("netbox_ipsec_policy.test", "name", name),
-				),
-			},
-		},
-	})
-}
 func testAccIPSECPolicyResourceConfig_basic(name string) string {
 	return fmt.Sprintf(`
 resource "netbox_ipsec_proposal" "test" {
@@ -201,6 +267,69 @@ resource "netbox_ipsec_policy" "test" {
   description = "Test IPsec policy"
 }
 `, name)
+}
+
+func testAccIPSECPolicyResourceConfig_tags(name, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag3:
+		tagsConfig = tagsSingleSlug
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[2]s"
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = "Tag3-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_ipsec_policy" "test" {
+  name = %[1]q
+  %[5]s
+}
+`, name, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccIPSECPolicyResourceConfig_tagsOrder(name, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[2]s"
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_ipsec_policy" "test" {
+  name = %[1]q
+  %[4]s
+}
+`, name, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func TestAccIPSecPolicyResource_removeOptionalFields(t *testing.T) {

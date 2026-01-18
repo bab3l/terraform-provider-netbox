@@ -32,9 +32,17 @@ func TestAccTagResource_basic(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccTagResourceBasic(name, slug),
+				PlanOnly: true,
+			},
+			{
 				ResourceName:      "netbox_tag.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config:   testAccTagResourceBasic(name, slug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -62,12 +70,20 @@ func TestAccTagResource_update(t *testing.T) {
 				),
 			},
 			{
+				Config:   testAccTagResourceConfig_forUpdate(name, slug, testutil.Description1),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccTagResourceConfig_forUpdate(updatedName, slug, testutil.Description2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tag.test", "name", updatedName),
 					resource.TestCheckResourceAttr("netbox_tag.test", "color", testColorBlue),
 					resource.TestCheckResourceAttr("netbox_tag.test", "description", testutil.Description2),
 				),
+			},
+			{
+				Config:   testAccTagResourceConfig_forUpdate(updatedName, slug, testutil.Description2),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -144,32 +160,6 @@ func TestAccTagResource_withObjectTypes(t *testing.T) {
 			{
 				// Verify no changes after create
 				Config:   testAccTagResourceWithObjectTypes(name, slug),
-				PlanOnly: true,
-			},
-		},
-	})
-}
-
-func TestAccTagResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tag-id")
-	slug := testutil.RandomSlug("tag-id")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccTagResourceBasic(name, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_tag.test", "id"),
-					resource.TestCheckResourceAttr("netbox_tag.test", "name", name),
-				),
-			},
-			{
-				// Verify no changes after create
-				Config:   testAccTagResourceBasic(name, slug),
 				PlanOnly: true,
 			},
 		},

@@ -90,7 +90,11 @@ func (d *WirelessLinkDataSource) Schema(ctx context.Context, req datasource.Sche
 			"description":   nbschema.DSComputedStringAttribute("Description of the wireless link."),
 			"display_name":  nbschema.DSComputedStringAttribute("Display name for the wireless link."),
 			"comments":      nbschema.DSComputedStringAttribute("Additional comments about the wireless link."),
-			"tags":          nbschema.DSTagsAttribute(),
+			"tags": schema.SetAttribute{
+				MarkdownDescription: "Tags associated with this wireless link.",
+				Computed:            true,
+				ElementType:         types.StringType,
+			},
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
@@ -244,13 +248,15 @@ func (d *WirelessLinkDataSource) mapToState(ctx context.Context, result *netbox.
 		data.DisplayName = types.StringNull()
 	}
 
-	// Map tags
-	if result.HasTags() {
-		tags := utils.NestedTagsToTagModels(result.GetTags())
-		tagsValue, _ := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
-		data.Tags = tagsValue
+	// Map tags (slug list)
+	if result.HasTags() && len(result.GetTags()) > 0 {
+		tagSlugs := make([]string, 0, len(result.GetTags()))
+		for _, tag := range result.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
 	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+		data.Tags = types.SetNull(types.StringType)
 	}
 
 	// Handle custom fields - datasources return ALL fields

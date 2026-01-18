@@ -72,50 +72,150 @@ func TestAccContactRoleResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_contact_role.test", "slug", slug),
 					resource.TestCheckResourceAttr("netbox_contact_role.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_contact_role.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("netbox_contact_role.test", "tags.0.name", tagName),
-					resource.TestCheckResourceAttr("netbox_contact_role.test", "tags.0.slug", tagSlug),
+					resource.TestCheckTypeSetElemAttr("netbox_contact_role.test", "tags.*", tagSlug),
 				),
 			},
 		},
 	})
 }
 
-func TestAccContactRoleResource_withTags(t *testing.T) {
+func TestAccContactRoleResource_tagLifecycle(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("test-contact-role-tags")
 	slug := testutil.GenerateSlug(name)
-	description := testutil.RandomName("description")
-	updatedDescription := "Updated contact role description"
-	tagName := testutil.RandomName("tf-test-tag")
-	tagSlug := testutil.RandomSlug("tf-test-tag")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterContactRoleCleanup(slug)
-	cleanup.RegisterTagCleanup(tagSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccContactRoleResourceConfig_withTags(name, slug, description, tagName, tagSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_contact_role.test", "id"),
-					resource.TestCheckResourceAttr("netbox_contact_role.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_contact_role.test", "slug", slug),
-					resource.TestCheckResourceAttr("netbox_contact_role.test", "description", description),
-					resource.TestCheckResourceAttr("netbox_contact_role.test", "tags.#", "1"),
-				),
-			},
-			{
-				Config: testAccContactRoleResourceConfig_withTags(name, slug, updatedDescription, tagName, tagSlug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_contact_role.test", "description", updatedDescription),
-				),
-			},
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_contact_role",
+		ConfigWithoutTags: func() string {
+			return testAccContactRoleResourceConfig_tagLifecycle(name, slug, "", "", "", "", "", "", "")
 		},
+		ConfigWithTags: func() string {
+			return testAccContactRoleResourceConfig_tagLifecycle(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag1,tag2", "", "")
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccContactRoleResourceConfig_tagLifecycle(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, "tag3", tag3Name, tag3Slug)
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 1,
 	})
+}
+
+func testAccContactRoleResourceConfig_tagLifecycle(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, tagSet, tag3Name, tag3Slug string) string {
+	tagResources := ""
+	tagsList := ""
+
+	if tag1Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %q
+  slug = %q
+}
+`, tag1Name, tag1Slug)
+	}
+	if tag2Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag2" {
+  name = %q
+  slug = %q
+}
+`, tag2Name, tag2Slug)
+	}
+	if tag3Name != "" {
+		tagResources += fmt.Sprintf(`
+resource "netbox_tag" "tag3" {
+  name = %q
+  slug = %q
+}
+`, tag3Name, tag3Slug)
+	}
+
+	if tagSet != "" {
+		switch tagSet {
+		case caseTag1Tag2:
+			tagsList = tagsDoubleSlug
+		case caseTag3:
+			tagsList = tagsSingleSlug
+		default:
+			tagsList = tagsEmpty
+		}
+	} else {
+		tagsList = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "netbox_contact_role" "test" {
+  name = %q
+  slug = %q
+%s
+}
+`, tagResources, name, slug, tagsList)
+}
+
+func TestAccContactRoleResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("test-contact-role-tag-order")
+	slug := testutil.GenerateSlug(name)
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterContactRoleCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_contact_role",
+		ConfigWithTagsOrderA: func() string {
+			return testAccContactRoleResourceConfig_tagOrder(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, true)
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccContactRoleResourceConfig_tagOrder(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug, false)
+		},
+		ExpectedTagCount: 2,
+	})
+}
+
+func testAccContactRoleResourceConfig_tagOrder(name, slug, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
+	tagsOrder := tagsDoubleSlug
+	if !tag1First {
+		tagsOrder = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_contact_role" "test" {
+  name = %q
+  slug = %q
+  %s
+}
+`, tag1Name, tag1Slug, tag2Name, tag2Slug, name, slug, tagsOrder)
 }
 
 func TestAccContactRoleResource_update(t *testing.T) {
@@ -144,32 +244,6 @@ func TestAccContactRoleResource_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_contact_role.test", "id"),
 					resource.TestCheckResourceAttr("netbox_contact_role.test", "name", updatedName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccContactRoleResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("cr-id")
-	slug := testutil.GenerateSlug(name)
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterContactRoleCleanup(slug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.CheckContactRoleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccContactRoleResourceConfig(name, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_contact_role.test", "id"),
-					resource.TestCheckResourceAttr("netbox_contact_role.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_contact_role.test", "slug", slug),
 				),
 			},
 		},
@@ -227,12 +301,7 @@ resource "netbox_contact_role" "test" {
   name        = %q
   slug        = %q
   description = %q
-  tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
-  ]
+	tags = [netbox_tag.test.slug]
 }
 `, tagName, tagSlug, name, slug, description)
 }
@@ -248,12 +317,7 @@ resource "netbox_contact_role" "test" {
   name        = %q
   slug        = %q
   description = %q
-  tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
-  ]
+	tags = [netbox_tag.test.slug]
 }
 `, tagName, tagSlug, name, slug, description)
 }

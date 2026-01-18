@@ -37,34 +37,6 @@ func TestAccInventoryItemResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccInventoryItemResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("inv-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteCleanup(testutil.RandomSlug("site"))
-	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
-	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
-	cleanup.RegisterDeviceRoleCleanup(testutil.RandomSlug("role"))
-	cleanup.RegisterDeviceCleanup(name + "-device")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccInventoryItemResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_inventory_item.test", "id"),
-					resource.TestCheckResourceAttr("netbox_inventory_item.test", "name", name),
-					resource.TestCheckResourceAttrSet("netbox_inventory_item.test", "device"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccInventoryItemResource_full(t *testing.T) {
 	t.Parallel()
 
@@ -163,6 +135,121 @@ func TestAccInventoryItemResource_import(t *testing.T) {
 	})
 }
 
+func TestAccInventoryItemResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-inv-item-tags")
+	siteName := testutil.RandomName("tf-test-site-inv-item-tags")
+	siteSlug := testutil.RandomSlug("tf-test-site-inv-item-tags")
+	manufacturerName := testutil.RandomName("tf-test-mfr-inv-item-tags")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-inv-item-tags")
+	deviceTypeName := testutil.RandomName("tf-test-devtype-inv-item-tags")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-devtype-inv-item-tags")
+	deviceRoleName := testutil.RandomName("tf-test-role-inv-item-tags")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-role-inv-item-tags")
+	deviceName := testutil.RandomName("tf-test-device-inv-item-tags")
+
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemResourceConfig_tags(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, name, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_inventory_item.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_inventory_item.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_inventory_item.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccInventoryItemResourceConfig_tags(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, name, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_inventory_item.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_inventory_item.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_inventory_item.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccInventoryItemResourceConfig_tags(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, name, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_inventory_item.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netbox_inventory_item.test", "tags.*", tag3Slug),
+				),
+			},
+			{
+				Config: testAccInventoryItemResourceConfig_tags(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, name, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_inventory_item.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccInventoryItemResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-inv-item-tag-order")
+	siteName := testutil.RandomName("tf-test-site-inv-item-tag-order")
+	siteSlug := testutil.RandomSlug("tf-test-site-inv-item-tag-order")
+	manufacturerName := testutil.RandomName("tf-test-mfr-inv-item-tag-order")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-inv-item-tag-order")
+	deviceTypeName := testutil.RandomName("tf-test-devtype-inv-item-tag-order")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-devtype-inv-item-tag-order")
+	deviceRoleName := testutil.RandomName("tf-test-role-inv-item-tag-order")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-role-inv-item-tag-order")
+	deviceName := testutil.RandomName("tf-test-device-inv-item-tag-order")
+
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInventoryItemResourceConfig_tagsOrder(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, name, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_inventory_item.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_inventory_item.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_inventory_item.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccInventoryItemResourceConfig_tagsOrder(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, name, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_inventory_item.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_inventory_item.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_inventory_item.test", "tags.*", tag2Slug),
+				),
+			},
+		},
+	})
+}
+
 func testAccInventoryItemResourceConfig_basic(name string) string {
 	return fmt.Sprintf(`
 %s
@@ -221,6 +308,129 @@ resource "netbox_device" "test" {
   status      = "offline"
 }
 `, name+"-site", testutil.RandomSlug("site"), name+"-mfr", testutil.RandomSlug("mfr"), name+"-model", testutil.RandomSlug("device"), name+"-role", testutil.RandomSlug("role"), name+"-device")
+}
+
+func testAccInventoryItemResourceConfig_tags(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, itemName, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag3:
+		tagsConfig = tagsSingleSlug
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[11]s"
+	slug = %[11]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[12]s"
+	slug = %[12]q
+}
+
+resource "netbox_tag" "tag3" {
+	name = "Tag3-%[13]s"
+	slug = %[13]q
+}
+
+resource "netbox_site" "test" {
+	name = %[1]q
+	slug = %[2]q
+}
+
+resource "netbox_manufacturer" "test" {
+	name = %[3]q
+	slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %[5]q
+	slug         = %[6]q
+}
+
+resource "netbox_device_role" "test" {
+	name = %[7]q
+	slug = %[8]q
+}
+
+resource "netbox_device" "test" {
+	site        = netbox_site.test.id
+	name        = %[9]q
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	status      = "offline"
+}
+
+resource "netbox_inventory_item" "test" {
+	device = netbox_device.test.id
+	name   = %[10]q
+	%[14]s
+}
+`, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, itemName, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccInventoryItemResourceConfig_tagsOrder(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, itemName, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[11]s"
+	slug = %[11]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[12]s"
+	slug = %[12]q
+}
+
+resource "netbox_site" "test" {
+	name = %[1]q
+	slug = %[2]q
+}
+
+resource "netbox_manufacturer" "test" {
+	name = %[3]q
+	slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %[5]q
+	slug         = %[6]q
+}
+
+resource "netbox_device_role" "test" {
+	name = %[7]q
+	slug = %[8]q
+}
+
+resource "netbox_device" "test" {
+	site        = netbox_site.test.id
+	name        = %[9]q
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	status      = "offline"
+}
+
+resource "netbox_inventory_item" "test" {
+	device = netbox_device.test.id
+	name   = %[10]q
+	%[13]s
+}
+`, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, itemName, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func TestAccConsistency_InventoryItem_LiteralNames(t *testing.T) {

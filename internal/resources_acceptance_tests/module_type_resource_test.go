@@ -75,26 +75,91 @@ func TestAccModuleTypeResource_full(t *testing.T) {
 	})
 }
 
-func TestAccModuleTypeResource_IDPreservation(t *testing.T) {
+func TestAccModuleTypeResource_tagLifecycle(t *testing.T) {
 	t.Parallel()
 
-	mfgName := testutil.RandomName("tf-test-mfg-id")
-	mfgSlug := testutil.RandomSlug("tf-test-mfg-id")
-	model := testutil.RandomName("tf-test-module-type-id")
+	mfgName := testutil.RandomName("tf-test-mfg-tags")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-tags")
+	model := testutil.RandomName("tf-test-module-type-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccModuleTypeResourceConfig_basic(mfgName, mfgSlug, model),
+				Config: testAccModuleTypeResourceConfig_tags(mfgName, mfgSlug, model, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_module_type.test", "id"),
-					resource.TestCheckResourceAttr("netbox_module_type.test", "model", model),
-					resource.TestCheckResourceAttrSet("netbox_module_type.test", "manufacturer"),
+					resource.TestCheckResourceAttr("netbox_module_type.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_module_type.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_module_type.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccModuleTypeResourceConfig_tags(mfgName, mfgSlug, model, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module_type.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_module_type.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_module_type.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccModuleTypeResourceConfig_tags(mfgName, mfgSlug, model, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module_type.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netbox_module_type.test", "tags.*", tag3Slug),
+				),
+			},
+			{
+				Config: testAccModuleTypeResourceConfig_tags(mfgName, mfgSlug, model, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module_type.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccModuleTypeResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	mfgName := testutil.RandomName("tf-test-mfg-tag-order")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-tag-order")
+	model := testutil.RandomName("tf-test-module-type-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleTypeResourceConfig_tagsOrder(mfgName, mfgSlug, model, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module_type.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_module_type.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_module_type.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccModuleTypeResourceConfig_tagsOrder(mfgName, mfgSlug, model, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module_type.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_module_type.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_module_type.test", "tags.*", tag2Slug),
 				),
 			},
 		},
@@ -113,6 +178,81 @@ resource "netbox_module_type" "test" {
   model        = %q
 }
 `, mfgName, mfgSlug, model)
+}
+
+func testAccModuleTypeResourceConfig_tags(mfgName, mfgSlug, model, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag3:
+		tagsConfig = tagsSingleSlug
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[5]s"
+  slug = %[5]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = "Tag3-%[6]s"
+  slug = %[6]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[3]q
+  %[7]s
+}
+`, mfgName, mfgSlug, model, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccModuleTypeResourceConfig_tagsOrder(mfgName, mfgSlug, model, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[5]s"
+  slug = %[5]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_module_type" "test" {
+  manufacturer = netbox_manufacturer.test.id
+  model        = %[3]q
+  %[6]s
+}
+`, mfgName, mfgSlug, model, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func testAccModuleTypeResourceConfig_full(mfgName, mfgSlug, model, description string) string {
@@ -227,7 +367,7 @@ resource "netbox_module_type" "test" {
 `, mfgName, mfgSlug, model, comments)
 }
 
-func TestAccModuleTypeResource_external_deletion(t *testing.T) {
+func TestAccModuleTypeResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	mfgName := testutil.RandomName("tf-test-mfg-ext-del")

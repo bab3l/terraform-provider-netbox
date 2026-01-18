@@ -1462,3 +1462,35 @@ func CheckPowerPortDestroy(s *terraform.State) error {
 
 	return nil
 }
+
+// CheckCableDestroy verifies that a cable has been destroyed.
+// Use this as the CheckDestroy function in resource.TestCase.
+func CheckCableDestroy(s *terraform.State) error {
+	client, err := GetSharedClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "netbox_cable" {
+			continue
+		}
+
+		id := rs.Primary.ID
+		if id != "" {
+			var idInt int64
+			if _, parseErr := fmt.Sscanf(id, "%d", &idInt); parseErr == nil {
+				//nolint:gosec // Safe conversion - ID is from Terraform state, not user input
+				_, resp, err := client.DcimAPI.DcimCablesRetrieve(ctx, int32(idInt)).Execute()
+				if err == nil && resp.StatusCode == http.StatusOK {
+					return fmt.Errorf("cable with ID %s still exists", id)
+				}
+			}
+		}
+	}
+
+	return nil
+}

@@ -64,7 +64,7 @@ resource "netbox_location" "test" {
 - `facility` (String) Local facility ID or description.
 - `parent` (String) ID or slug of the parent location. Leave empty for top-level locations within the site.
 - `status` (String) Operational status of the location. Defaults to `active`.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `tenant` (String) ID or slug of the tenant that owns this location.
 
 ### Read-Only
@@ -79,15 +79,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

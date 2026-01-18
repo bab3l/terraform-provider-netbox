@@ -10,6 +10,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -92,7 +93,7 @@ func (r *VRFResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 
 			"comments": nbschema.CommentsAttribute("VRF"),
 
-			"tags": nbschema.TagsAttribute(),
+			"tags": nbschema.TagsSlugAttribute(),
 
 			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
@@ -457,7 +458,7 @@ func (r *VRFResource) setOptionalFields(ctx context.Context, vrfRequest *netbox.
 	utils.ApplyComments(vrfRequest, data.Comments)
 
 	// Tags
-	utils.ApplyTags(ctx, vrfRequest, data.Tags, diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, vrfRequest, data.Tags, diags)
 	if diags.HasError() {
 		return
 	}
@@ -516,10 +517,19 @@ func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *
 		data.Comments,
 	)
 
-	// Tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, vrf.HasTags(), vrf.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Tags (slug list) with empty-set preservation
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case vrf.HasTags() && len(vrf.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(vrf.GetTags()))
+		for _, tag := range vrf.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
 	}
 
 	// Custom fields

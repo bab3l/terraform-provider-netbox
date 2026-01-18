@@ -5,13 +5,13 @@ package resources
 import (
 	"context"
 	"fmt"
-	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -82,7 +82,8 @@ func (r *L2VPNTerminationResource) Schema(ctx context.Context, req resource.Sche
 	}
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *L2VPNTerminationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -135,7 +136,11 @@ func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.Crea
 	)
 
 	// Apply metadata fields (tags, custom_fields)
-	utils.ApplyMetadataFields(ctx, terminationRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, terminationRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFields(ctx, terminationRequest, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -255,9 +260,9 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 
 	// Handle tags and custom fields - merge-aware
 	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		utils.ApplyTags(ctx, terminationRequest, data.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, terminationRequest, data.Tags, &resp.Diagnostics)
 	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
-		utils.ApplyTags(ctx, terminationRequest, state.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, terminationRequest, state.Tags, &resp.Diagnostics)
 	}
 
 	utils.ApplyCustomFieldsWithMerge(ctx, terminationRequest, data.CustomFields, state.CustomFields, &resp.Diagnostics)
@@ -340,10 +345,23 @@ func (r *L2VPNTerminationResource) mapResponseToState(ctx context.Context, termi
 	data.AssignedObjectType = types.StringValue(termination.GetAssignedObjectType())
 	data.AssignedObjectID = types.Int64Value(termination.GetAssignedObjectId())
 
-	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, termination.HasTags(), termination.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags using filter-to-owned approach
+	planTags := data.Tags
+	switch {
+	case planTags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(planTags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		if termination.HasTags() {
+			var tagSlugs []string
+			for _, tag := range termination.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+		}
 	}
 
 	// Handle custom fields using consolidated helper

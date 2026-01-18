@@ -194,45 +194,6 @@ func TestAccCableResource_import(t *testing.T) {
 	})
 }
 
-func TestAccCableResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	siteName := testutil.RandomName("test-site-cable-id")
-	siteSlug := testutil.GenerateSlug(siteName)
-	deviceName := testutil.RandomName("test-device-cable-id")
-	mfgName := testutil.RandomName("tf-test-mfg-cable-id")
-	mfgSlug := testutil.GenerateSlug(mfgName)
-	deviceRoleName := testutil.RandomName("tf-test-role-cable-id")
-	deviceRoleSlug := testutil.GenerateSlug(deviceRoleName)
-	deviceTypeModel := testutil.RandomName("tf-test-type-cable-id")
-	deviceTypeSlug := testutil.RandomSlug("device-type-id")
-	interfaceNameA := testutil.RandomName("eth")
-	interfaceNameB := testutil.RandomName("eth")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterManufacturerCleanup(mfgSlug)
-	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
-	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
-	cleanup.RegisterDeviceCleanup(deviceName + "-a-id")
-	cleanup.RegisterDeviceCleanup(deviceName + "-b-id")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCableResourceConfig(siteName, siteSlug, deviceName+"-id", mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_cable.test", "id"),
-					resource.TestCheckResourceAttr("netbox_cable.test", "type", "cat6"),
-				),
-			},
-		},
-	})
-
-}
-
 func testAccCableResourceConfig(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
@@ -992,4 +953,313 @@ resource "netbox_cable" "test" {
 			},
 		},
 	})
+}
+
+func TestAccCableResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("site-tag")
+	siteSlug := testutil.RandomSlug("site-tag")
+	deviceName := testutil.RandomName("device-tag")
+	mfgName := testutil.RandomName("manufacturer-tag")
+	mfgSlug := testutil.RandomSlug("manufacturer-tag")
+	deviceRoleName := testutil.RandomName("device-role-tag")
+	deviceRoleSlug := testutil.RandomSlug("device-role-tag")
+	deviceTypeModel := testutil.RandomName("device-type-tag")
+	deviceTypeSlug := testutil.RandomSlug("device-type-tag")
+	interfaceNameA := testutil.RandomName("interface-a-tag")
+	interfaceNameB := testutil.RandomName("interface-b-tag")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_cable",
+		ConfigWithoutTags: func() string {
+			return testAccCableResourceConfig_tagLifecycle(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "none")
+		},
+		ConfigWithTags: func() string {
+			return testAccCableResourceConfig_tagLifecycle(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag1_tag2")
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccCableResourceConfig_tagLifecycle(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag2_tag3")
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 2,
+		CheckDestroy:              testutil.CheckCableDestroy,
+	})
+}
+
+func TestAccCableResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("site-tagord")
+	siteSlug := testutil.RandomSlug("site-tagord")
+	deviceName := testutil.RandomName("device-tagord")
+	mfgName := testutil.RandomName("manufacturer-tagord")
+	mfgSlug := testutil.RandomSlug("manufacturer-tagord")
+	deviceRoleName := testutil.RandomName("device-role-tagord")
+	deviceRoleSlug := testutil.RandomSlug("device-role-tagord")
+	deviceTypeModel := testutil.RandomName("device-type-tagord")
+	deviceTypeSlug := testutil.RandomSlug("device-type-tagord")
+	interfaceNameA := testutil.RandomName("interface-a-tagord")
+	interfaceNameB := testutil.RandomName("interface-b-tagord")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_cable",
+		ConfigWithTagsOrderA: func() string {
+			return testAccCableResourceConfig_tagOrder(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, true)
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccCableResourceConfig_tagOrder(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, false)
+		},
+		ExpectedTagCount: 3,
+		CheckDestroy:     testutil.CheckCableDestroy,
+	})
+}
+
+// Configuration functions for tag tests.
+
+func testAccCableResourceConfig_tagLifecycle(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagSet string) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[6]q
+  slug  = %[7]q
+  color = "ff0000"
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[8]q
+  slug         = %[9]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device" "test" {
+  name         = %[3]q
+  device_type  = netbox_device_type.test.id
+  role         = netbox_device_role.test.id
+  site         = netbox_site.test.id
+}
+
+resource "netbox_interface" "test_a" {
+  name   = %[10]q
+  type   = "1000base-t"
+  device = netbox_device.test.id
+}
+
+resource "netbox_interface" "test_b" {
+  name   = %[11]q
+  type   = "1000base-t"
+  device = netbox_device.test.id
+}
+
+resource "netbox_tag" "tag1" {
+  name = %[12]q
+  slug = %[13]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[14]q
+  slug = %[15]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = %[16]q
+  slug = %[17]q
+}
+`, siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug)
+
+	//nolint:goconst // tagSet values are test-specific identifiers
+	switch tagSet {
+	case "tag1_tag2":
+		return baseConfig + `
+resource "netbox_cable" "test" {
+  a_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = netbox_interface.test_a.id
+    }
+  ]
+  b_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = netbox_interface.test_b.id
+    }
+  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
+}
+`
+	case "tag2_tag3":
+		return baseConfig + `
+resource "netbox_cable" "test" {
+  a_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = netbox_interface.test_a.id
+    }
+  ]
+  b_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = netbox_interface.test_b.id
+    }
+  ]
+	tags = [netbox_tag.tag2.slug, netbox_tag.tag3.slug]
+}
+`
+	default: // "none"
+		return baseConfig + `
+resource "netbox_cable" "test" {
+  a_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = netbox_interface.test_a.id
+    }
+  ]
+  b_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = netbox_interface.test_b.id
+    }
+  ]
+}
+`
+	}
+}
+
+func testAccCableResourceConfig_tagOrder(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug string, tag123Order bool) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_site" "test" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_manufacturer" "test" {
+  name = %[4]q
+  slug = %[5]q
+}
+
+resource "netbox_device_role" "test" {
+  name  = %[6]q
+  slug  = %[7]q
+  color = "ff0000"
+}
+
+resource "netbox_device_type" "test" {
+  model        = %[8]q
+  slug         = %[9]q
+  manufacturer = netbox_manufacturer.test.id
+}
+
+resource "netbox_device" "test" {
+  name         = %[3]q
+  device_type  = netbox_device_type.test.id
+  role         = netbox_device_role.test.id
+  site         = netbox_site.test.id
+}
+
+resource "netbox_interface" "test_a" {
+  name   = %[10]q
+  type   = "1000base-t"
+  device = netbox_device.test.id
+}
+
+resource "netbox_interface" "test_b" {
+  name   = %[11]q
+  type   = "1000base-t"
+  device = netbox_device.test.id
+}
+
+resource "netbox_tag" "tag1" {
+  name = %[12]q
+  slug = %[13]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[14]q
+  slug = %[15]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = %[16]q
+  slug = %[17]q
+}
+`, siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug)
+
+	if tag123Order {
+		return baseConfig + `
+resource "netbox_cable" "test" {
+  a_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = netbox_interface.test_a.id
+    }
+  ]
+  b_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = netbox_interface.test_b.id
+    }
+  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug, netbox_tag.tag3.slug]
+}
+`
+	}
+
+	return baseConfig + `
+resource "netbox_cable" "test" {
+  a_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = netbox_interface.test_a.id
+    }
+  ]
+  b_terminations = [
+    {
+      object_type = "dcim.interface"
+      object_id   = netbox_interface.test_b.id
+    }
+  ]
+	tags = [netbox_tag.tag3.slug, netbox_tag.tag2.slug, netbox_tag.tag1.slug]
+}
+`
 }

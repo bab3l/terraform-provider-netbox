@@ -307,18 +307,13 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 		data.DisplayName = types.StringNull()
 	}
 
-	// Handle tags (simplified - just names)
+	// Handle tags (slug list)
 	if wlan.HasTags() && len(wlan.GetTags()) > 0 {
-		tagNames := make([]string, 0, len(wlan.GetTags()))
+		tagSlugs := make([]string, 0, len(wlan.GetTags()))
 		for _, tag := range wlan.GetTags() {
-			tagNames = append(tagNames, tag.GetName())
+			tagSlugs = append(tagSlugs, tag.Slug)
 		}
-		tagsValue, diags := types.SetValueFrom(ctx, types.StringType, tagNames)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.Tags = tagsValue
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
 	} else {
 		data.Tags = types.SetNull(types.StringType)
 	}

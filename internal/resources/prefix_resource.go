@@ -11,6 +11,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -156,7 +157,8 @@ func (r *PrefixResource) Schema(ctx context.Context, req resource.SchemaRequest,
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("prefix"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -601,7 +603,7 @@ func (r *PrefixResource) setOptionalFields(ctx context.Context, prefixRequest *n
 
 	// Handle tags
 
-	utils.ApplyTags(ctx, prefixRequest, data.Tags, diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, prefixRequest, data.Tags, diags)
 
 	if diags.HasError() {
 		return
@@ -736,7 +738,19 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 	}
 
 	// Tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, len(prefix.Tags) > 0, prefix.Tags, data.Tags, diags)
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case len(prefix.Tags) > 0:
+		tagSlugs := make([]string, 0, len(prefix.Tags))
+		for _, tag := range prefix.Tags {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 
 	// Custom fields - use filter-to-owned pattern
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, prefix.GetCustomFields(), diags)

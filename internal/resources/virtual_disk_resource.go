@@ -13,6 +13,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -116,7 +117,8 @@ func (r *VirtualDiskResource) Schema(ctx context.Context, req resource.SchemaReq
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("virtual disk"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -500,7 +502,7 @@ func (r *VirtualDiskResource) setOptionalFields(ctx context.Context, vdRequest *
 
 	utils.ApplyDescription(vdRequest, plan.Description)
 
-	utils.ApplyTags(ctx, vdRequest, plan.Tags, diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, vdRequest, plan.Tags, diags)
 	utils.ApplyCustomFieldsWithMerge(ctx, vdRequest, plan.CustomFields, state.CustomFields, diags)
 }
 
@@ -525,12 +527,21 @@ func (r *VirtualDiskResource) mapVirtualDiskToState(ctx context.Context, vd *net
 		data.Description = types.StringNull()
 	}
 
-	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, len(vd.Tags) > 0, vd.Tags, data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags (slug list) with empty-set preservation
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case len(vd.Tags) > 0:
+		tagSlugs := make([]string, 0, len(vd.Tags))
+		for _, tag := range vd.Tags {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
 	}
 
 	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, len(vd.CustomFields) > 0, vd.CustomFields, data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vd.CustomFields, diags)
 }

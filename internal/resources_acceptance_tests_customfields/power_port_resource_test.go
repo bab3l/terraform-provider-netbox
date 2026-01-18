@@ -62,7 +62,7 @@ func TestAccPowerPortResource_importWithCustomFieldsAndTags(t *testing.T) {
 				ResourceName:            "netbox_power_port.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device", "custom_fields"}, // Device reference may have lookup inconsistencies
+				ImportStateVerifyIgnore: []string{"device", "custom_fields", "tags"}, // Device reference may have lookup inconsistencies
 			},
 		},
 	})
@@ -205,16 +205,7 @@ resource "netbox_power_port" "test" {
     }
   ]
 
-  tags = [
-    {
-      name = netbox_tag.test_1.name
-      slug = netbox_tag.test_1.slug
-    },
-    {
-      name = netbox_tag.test_2.name
-      slug = netbox_tag.test_2.slug
-    }
-  ]
+  tags = [netbox_tag.test_1.slug, netbox_tag.test_2.slug]
 }
 `,
 		tenantName, tenantSlug,

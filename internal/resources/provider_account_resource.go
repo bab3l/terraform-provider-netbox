@@ -11,6 +11,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -109,8 +110,9 @@ func (r *ProviderAccountResource) Schema(ctx context.Context, req resource.Schem
 	// Add common descriptive attributes (description, comments)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("provider account"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom fields attributes
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *ProviderAccountResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -431,15 +433,31 @@ func (r *ProviderAccountResource) buildCreateRequest(ctx context.Context, data *
 		createReq.SetName(data.Name.ValueString())
 	}
 
-	// Handle description and comments, tags and custom fields - merge-aware
-	var stateTags, stateCustomFields types.Set
-	if state != nil {
-		stateTags = state.Tags
-		stateCustomFields = state.CustomFields
+	// Handle description and comments - explicitly handle null values for removal
+	if data.Description.IsNull() {
+		createReq.SetDescription("")
+	} else if !data.Description.IsUnknown() {
+		createReq.SetDescription(data.Description.ValueString())
 	}
 
-	utils.ApplyCommonFieldsWithMerge(ctx, createReq, data.Description, data.Comments, data.Tags, stateTags, data.CustomFields, stateCustomFields, &diags)
+	if data.Comments.IsNull() {
+		createReq.SetComments("")
+	} else if !data.Comments.IsUnknown() {
+		createReq.SetComments(data.Comments.ValueString())
+	}
 
+	// Handle tags (from slug list)
+	utils.ApplyTagsFromSlugs(ctx, r.client, createReq, data.Tags, &diags)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	// Handle custom fields - merge-aware for updates
+	var stateCustomFields types.Set
+	if state != nil {
+		stateCustomFields = state.CustomFields
+	}
+	utils.ApplyCustomFieldsWithMerge(ctx, createReq, data.CustomFields, stateCustomFields, &diags)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -472,8 +490,23 @@ func (r *ProviderAccountResource) mapResponseToModel(ctx context.Context, provid
 
 	data.Comments = utils.StringFromAPI(providerAccount.HasComments(), providerAccount.GetComments, data.Comments)
 
-	// Populate tags and custom fields using unified helpers
-	data.Tags = utils.PopulateTagsFromNestedTags(ctx, providerAccount.HasTags(), providerAccount.GetTags(), diags)
+	// Filter tags to owned (slug list format)
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	case providerAccount.HasTags():
+		var tagSlugs []string
+		for _, tag := range providerAccount.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	}
+
+	// Populate custom fields
 	if providerAccount.HasCustomFields() {
 		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, providerAccount.GetCustomFields(), diags)
 	}

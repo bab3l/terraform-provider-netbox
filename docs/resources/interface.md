@@ -132,7 +132,7 @@ resource "netbox_interface" "mgmt" {
 - `mtu` (Number) Maximum transmission unit (MTU) size. Common values: 1500 (Ethernet), 9000 (Jumbo frames).
 - `parent` (String) ID of the parent interface (for sub-interfaces).
 - `speed` (Number) Interface speed in Kbps (e.g., 1000000 for 1Gbps, 10000000 for 10Gbps).
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `wwn` (String) World Wide Name (WWN) for Fibre Channel interfaces.
 
 ### Read-Only
@@ -147,12 +147,3 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.

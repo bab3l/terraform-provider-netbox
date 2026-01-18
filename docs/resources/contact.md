@@ -36,16 +36,7 @@ resource "netbox_contact" "with_tags" {
   name  = "Bob Wilson"
   email = "bob.wilson@example.com"
 
-  tags = [
-    {
-      name = "primary"
-      slug = "primary"
-    },
-    {
-      name = "on-call"
-      slug = "on-call"
-    }
-  ]
+  tags = ["primary", "on-call"]
 }
 ```
 
@@ -65,17 +56,9 @@ resource "netbox_contact" "with_tags" {
 - `group` (String) ID or slug of the contact group this contact belongs to.
 - `link` (String) URL link associated with the contact (e.g., a personal website or profile page).
 - `phone` (String) Phone number of the contact.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `title` (String) Job title or role of the contact.
 
 ### Read-Only
 
 - `id` (String) Unique identifier for the contact (assigned by Netbox).
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.

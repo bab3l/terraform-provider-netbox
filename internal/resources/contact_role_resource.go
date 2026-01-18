@@ -9,6 +9,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -50,18 +51,19 @@ func (r *ContactRoleResource) Schema(ctx context.Context, req resource.SchemaReq
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a contact role in Netbox. Contact roles define the function or responsibility of a contact within an organization (e.g., Technical, Administrative, Billing).",
 		Attributes: map[string]schema.Attribute{
-			"id":          nbschema.IDAttribute("contact role"),
-			"name":        nbschema.NameAttribute("contact role", 100),
-			"slug":        nbschema.SlugAttribute("contact role"),
-			"description": nbschema.DescriptionAttribute("contact role"),
+			"id":            nbschema.IDAttribute("contact role"),
+			"name":          nbschema.NameAttribute("contact role", 100),
+			"slug":          nbschema.SlugAttribute("contact role"),
+			"description":   nbschema.DescriptionAttribute("contact role"),
+			"tags":          nbschema.TagsSlugAttribute(),
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("contact role"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Tags and custom fields are defined directly in the schema above.
 }
 
 func (r *ContactRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -104,7 +106,10 @@ func (r *ContactRoleResource) Create(ctx context.Context, req resource.CreateReq
 	planCustomFields := data.CustomFields
 
 	// Handle tags and custom_fields
-	utils.ApplyTags(ctx, &contactRoleRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &contactRoleRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	utils.ApplyCustomFields(ctx, &contactRoleRequest, data.CustomFields, &resp.Diagnostics)
 
 	// Create via API
@@ -139,7 +144,19 @@ func (r *ContactRoleResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// Apply filter-to-owned pattern
-	data.Tags = utils.PopulateTagsFromAPI(ctx, contactRole.HasTags(), contactRole.GetTags(), planTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case contactRole.HasTags() && len(contactRole.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(contactRole.GetTags()))
+		for _, tag := range contactRole.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, contactRole.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Trace(ctx, "created a contact role resource")
@@ -180,7 +197,19 @@ func (r *ContactRoleResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 	// Apply filter-to-owned pattern
-	data.Tags = utils.PopulateTagsFromAPI(ctx, contactRole.HasTags(), contactRole.GetTags(), stateTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
+	switch {
+	case contactRole.HasTags() && len(contactRole.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(contactRole.GetTags()))
+		for _, tag := range contactRole.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, contactRole.GetCustomFields(), &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -213,7 +242,10 @@ func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateReq
 	utils.ApplyDescription(&contactRoleRequest, plan.Description)
 
 	// Handle tags and custom_fields with merge-aware helpers
-	utils.ApplyTags(ctx, &contactRoleRequest, plan.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &contactRoleRequest, plan.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	utils.ApplyCustomFieldsWithMerge(ctx, &contactRoleRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	// Update via API
@@ -232,7 +264,19 @@ func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 	// Apply filter-to-owned pattern
-	plan.Tags = utils.PopulateTagsFromAPI(ctx, contactRole.HasTags(), contactRole.GetTags(), plan.Tags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !plan.Tags.IsNull() && !plan.Tags.IsUnknown() && len(plan.Tags.Elements()) == 0
+	switch {
+	case contactRole.HasTags() && len(contactRole.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(contactRole.GetTags()))
+		for _, tag := range contactRole.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		plan.Tags = types.SetNull(types.StringType)
+	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, contactRole.GetCustomFields(), &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

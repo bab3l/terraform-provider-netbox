@@ -97,7 +97,7 @@ resource "netbox_front_port" "test" {
 - `label` (String) Physical label of the front port.
 - `mark_connected` (Boolean) Treat as if a cable is connected.
 - `rear_port_position` (Number) Position on the rear port (1-1024). Default is 1.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 
 ### Read-Only
 
@@ -111,15 +111,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

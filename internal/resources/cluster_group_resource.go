@@ -9,6 +9,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -59,8 +60,9 @@ func (r *ClusterGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("cluster group"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add metadata attributes (slug list tags, custom_fields)
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *ClusterGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -99,7 +101,7 @@ func (r *ClusterGroupResource) Create(ctx context.Context, req resource.CreateRe
 	utils.ApplyDescription(&clusterGroupRequest, data.Description)
 
 	// Apply tags and custom_fields
-	utils.ApplyTags(ctx, &clusterGroupRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &clusterGroupRequest, data.Tags, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -143,7 +145,19 @@ func (r *ClusterGroupResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	data.Tags = utils.PopulateTagsFromAPI(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), planTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case clusterGroup.HasTags() && len(clusterGroup.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(clusterGroup.GetTags()))
+		for _, tag := range clusterGroup.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, clusterGroup.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Trace(ctx, "created a cluster group resource")
@@ -184,7 +198,19 @@ func (r *ClusterGroupResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	data.Tags = utils.PopulateTagsFromAPI(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), stateTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
+	switch {
+	case clusterGroup.HasTags() && len(clusterGroup.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(clusterGroup.GetTags()))
+		for _, tag := range clusterGroup.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, clusterGroup.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -218,7 +244,7 @@ func (r *ClusterGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	utils.ApplyDescription(&clusterGroupRequest, plan.Description)
 
 	// Apply tags and custom_fields with merge-aware helpers
-	utils.ApplyTags(ctx, &clusterGroupRequest, plan.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &clusterGroupRequest, plan.Tags, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -241,7 +267,19 @@ func (r *ClusterGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	plan.Tags = utils.PopulateTagsFromAPI(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), plan.Tags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !plan.Tags.IsNull() && !plan.Tags.IsUnknown() && len(plan.Tags.Elements()) == 0
+	switch {
+	case clusterGroup.HasTags() && len(clusterGroup.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(clusterGroup.GetTags()))
+		for _, tag := range clusterGroup.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		plan.Tags = types.SetNull(types.StringType)
+	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, clusterGroup.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

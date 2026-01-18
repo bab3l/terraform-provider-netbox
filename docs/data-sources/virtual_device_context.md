@@ -85,7 +85,7 @@ output "vdc_cpu_limit" {
 - `primary_ip4` (String) Primary IPv4 address assigned to this VDC.
 - `primary_ip6` (String) Primary IPv6 address assigned to this VDC.
 - `status` (String) Operational status of the VDC.
-- `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
+- `tags` (List of String) Tags assigned to this virtual device context.
 - `tenant` (String) The name of the tenant associated with this VDC.
 - `tenant_id` (String) The ID of the tenant associated with this VDC.
 
@@ -97,12 +97,3 @@ Read-Only:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field.
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Read-Only:
-
-- `name` (String) Name of the tag.
-- `slug` (String) Slug of the tag.

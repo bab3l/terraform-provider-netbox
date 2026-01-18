@@ -38,29 +38,6 @@ func TestAccPrefixResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccPrefixResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	prefix := testutil.RandomIPv4Prefix()
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterPrefixCleanup(prefix)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.CheckPrefixDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccPrefixResourceConfig_basic(prefix),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccPrefixResource_update(t *testing.T) {
 	t.Parallel()
 
@@ -210,7 +187,7 @@ func TestAccPrefixResource_ipv6(t *testing.T) {
 	})
 }
 
-func TestAccPrefixResource_external_deletion(t *testing.T) {
+func TestAccPrefixResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	prefix := testutil.RandomIPv4Prefix()
@@ -331,16 +308,7 @@ resource "netbox_prefix" "test" {
   is_pool       = true
   mark_utilized = true
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2)
 }
@@ -395,16 +363,7 @@ resource "netbox_prefix" "test" {
   is_pool       = false
   mark_utilized = false
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2)
 }
@@ -643,16 +602,7 @@ resource "netbox_prefix" "test" {
   prefix = %q
   tenant = netbox_tenant.test.id
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, tenantName, tenantSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, prefix)
 }
@@ -934,4 +884,139 @@ resource "netbox_prefix" "test" {
 			},
 		},
 	})
+}
+
+// =============================================================================
+// STANDARDIZED TAG TESTS (using helpers)
+// =============================================================================
+
+// TestAccPrefixResource_tagLifecycle tests the complete tag lifecycle using RunTagLifecycleTest helper.
+func TestAccPrefixResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	prefix := testutil.RandomIPv4Prefix()
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_prefix",
+		ConfigWithoutTags: func() string {
+			return testAccPrefixResourceConfig_tagLifecycle(prefix, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "none")
+		},
+		ConfigWithTags: func() string {
+			return testAccPrefixResourceConfig_tagLifecycle(prefix, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag1_tag2")
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccPrefixResourceConfig_tagLifecycle(prefix, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag2_tag3")
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 2,
+		CheckDestroy:              testutil.CheckPrefixDestroy,
+	})
+}
+
+func testAccPrefixResourceConfig_tagLifecycle(prefix, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagSet string) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = %[5]q
+  slug = %[6]q
+}
+`, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug)
+
+	var tagsConfig string
+
+	//nolint:goconst // tagSet values are test-specific identifiers
+	switch tagSet {
+	case "tag1_tag2":
+		tagsConfig = tagsDoubleSlug
+	case "tag2_tag3":
+		tagsConfig = "tags = [netbox_tag.tag2.slug, netbox_tag.tag3.slug]"
+	default: // "none"
+		tagsConfig = tagsEmpty
+	}
+
+	return baseConfig + fmt.Sprintf(`
+resource "netbox_prefix" "test" {
+	prefix = %[1]q
+	%[2]s
+}
+`, prefix, tagsConfig)
+}
+
+// TestAccPrefixResource_tagOrderInvariance tests tag order using RunTagOrderTest helper.
+func TestAccPrefixResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	prefix := testutil.RandomIPv4Prefix()
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterPrefixCleanup(prefix)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_prefix",
+		ConfigWithTagsOrderA: func() string {
+			return testAccPrefixResourceConfig_tagOrder(prefix, tag1Name, tag1Slug, tag2Name, tag2Slug, true)
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccPrefixResourceConfig_tagOrder(prefix, tag1Name, tag1Slug, tag2Name, tag2Slug, false)
+		},
+		ExpectedTagCount: 2,
+		CheckDestroy:     testutil.CheckPrefixDestroy,
+	})
+}
+
+func testAccPrefixResourceConfig_tagOrder(prefix, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[3]q
+  slug = %[4]q
+}
+`, tag1Name, tag1Slug, tag2Name, tag2Slug)
+
+	if tag1First {
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_prefix" "test" {
+  prefix = %[1]q
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
+}
+`, prefix)
+	}
+
+	return baseConfig + fmt.Sprintf(`
+resource "netbox_prefix" "test" {
+  prefix = %[1]q
+		tags = [netbox_tag.tag2.slug, netbox_tag.tag1.slug]
+}
+`, prefix)
 }

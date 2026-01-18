@@ -53,8 +53,5 @@ resource "netbox_contact_role" "with_tags" {
   name        = "Support"
   slug        = "support"
   description = "Customer support contacts"
-  tags {
-    name = "customer-facing"
-    slug = "customer-facing"
-  }
+  tags        = ["customer-facing"]
 }

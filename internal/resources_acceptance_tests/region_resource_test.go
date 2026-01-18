@@ -157,14 +157,20 @@ func TestAccRegionResource_import(t *testing.T) {
 	})
 }
 
-func TestAccRegionResource_IDPreservation(t *testing.T) {
+func TestAccRegionResource_tagLifecycle(t *testing.T) {
 	t.Parallel()
 
-	name := testutil.RandomName("tf-test-region-id")
-	slug := testutil.RandomSlug("tf-test-region-id")
+	name := testutil.RandomName("tf-test-region-tags")
+	slug := testutil.RandomSlug("tf-test-region-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRegionCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -172,11 +178,70 @@ func TestAccRegionResource_IDPreservation(t *testing.T) {
 		CheckDestroy:             testutil.CheckRegionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRegionResourceConfig_basic(name, slug),
+				Config: testAccRegionResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_region.test", "id"),
-					resource.TestCheckResourceAttr("netbox_region.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_region.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_region.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_region.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_region.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccRegionResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_region.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_region.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_region.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccRegionResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_region.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netbox_region.test", "tags.*", tag3Slug),
+				),
+			},
+			{
+				Config: testAccRegionResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_region.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccRegionResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-region-tag-order")
+	slug := testutil.RandomSlug("tf-test-region-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRegionCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRegionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRegionResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_region.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_region.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_region.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccRegionResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_region.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_region.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_region.test", "tags.*", tag2Slug),
 				),
 			},
 		},
@@ -248,6 +313,71 @@ resource "netbox_region" "child" {
   parent = netbox_region.parent.id
 }
 `, parentName, parentSlug, childName, childSlug)
+}
+
+func testAccRegionResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag3:
+		tagsConfig = tagsSingleSlug
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = "Tag3-%[5]s"
+  slug = %[5]q
+}
+
+resource "netbox_region" "test" {
+  name = %[1]q
+  slug = %[2]q
+  %[6]s
+}
+`, name, slug, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccRegionResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_region" "test" {
+  name = %[1]q
+  slug = %[2]q
+  %[5]s
+}
+`, name, slug, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func TestAccConsistency_Region_LiteralNames(t *testing.T) {

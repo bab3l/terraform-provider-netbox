@@ -179,16 +179,7 @@ resource "netbox_asn_range" "test" {
     }
   ]
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+  tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `,
 		tenantName, tenantSlug,

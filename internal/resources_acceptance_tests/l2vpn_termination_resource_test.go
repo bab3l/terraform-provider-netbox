@@ -45,33 +45,6 @@ func TestAccL2VPNTerminationResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccL2VPNTerminationResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	l2vpnName := testutil.RandomName("tf-test-l2vpn-term-id")
-	vlanVID := testutil.RandomVID()
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterVLANCleanup(vlanVID)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy: testutil.ComposeCheckDestroy(
-			testutil.CheckVLANDestroy,
-		),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccL2VPNTerminationResourceConfig_basic(l2vpnName, vlanVID),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_l2vpn_termination.test", "id"),
-					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "assigned_object_type", "ipam.vlan"),
-				),
-			},
-		},
-	})
-}
-
 func testAccL2VPNTerminationResourceConfig_basic(l2vpnName string, vlanVID int32) string {
 	return fmt.Sprintf(`
 resource "netbox_l2vpn" "test" {
@@ -91,6 +64,95 @@ resource "netbox_l2vpn_termination" "test" {
   assigned_object_id   = netbox_vlan.test.id
 }
 `, l2vpnName, l2vpnName, l2vpnName, vlanVID)
+}
+
+func testAccL2VPNTerminationResourceConfig_tags(l2vpnName string, vlanVID int32, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag3:
+		tagsConfig = tagsSingleSlug
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[3]s"
+	slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[4]s"
+	slug = %[4]q
+}
+
+resource "netbox_tag" "tag3" {
+	name = "Tag3-%[5]s"
+	slug = %[5]q
+}
+
+resource "netbox_l2vpn" "test" {
+	name = %[1]q
+	slug = %[1]q
+	type = "vxlan"
+}
+
+resource "netbox_vlan" "test" {
+	name = %[1]q
+	vid  = %[2]d
+}
+
+resource "netbox_l2vpn_termination" "test" {
+	l2vpn                = netbox_l2vpn.test.id
+	assigned_object_type = "ipam.vlan"
+	assigned_object_id   = netbox_vlan.test.id
+	%[6]s
+}
+`, l2vpnName, vlanVID, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccL2VPNTerminationResourceConfig_tagsOrder(l2vpnName string, vlanVID int32, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[3]s"
+	slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[4]s"
+	slug = %[4]q
+}
+
+resource "netbox_l2vpn" "test" {
+	name = %[1]q
+	slug = %[1]q
+	type = "vxlan"
+}
+
+resource "netbox_vlan" "test" {
+	name = %[1]q
+	vid  = %[2]d
+}
+
+resource "netbox_l2vpn_termination" "test" {
+	l2vpn                = netbox_l2vpn.test.id
+	assigned_object_type = "ipam.vlan"
+	assigned_object_id   = netbox_vlan.test.id
+	%[5]s
+}
+`, l2vpnName, vlanVID, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func TestAccConsistency_L2VPNTermination_LiteralNames(t *testing.T) {
@@ -149,6 +211,103 @@ func TestAccL2VPNTerminationResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "assigned_object_type", "ipam.vlan"),
 					resource.TestCheckResourceAttrSet("netbox_l2vpn_termination.test", "l2vpn"),
 					resource.TestCheckResourceAttrSet("netbox_l2vpn_termination.test", "assigned_object_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccL2VPNTerminationResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	l2vpnName := testutil.RandomName("tf-test-l2vpn-term-tags")
+	vlanVID := testutil.RandomVID()
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVLANCleanup(vlanVID)
+	cleanup.RegisterL2VPNCleanup(l2vpnName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVLANDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccL2VPNTerminationResourceConfig_tags(l2vpnName, vlanVID, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccL2VPNTerminationResourceConfig_tags(l2vpnName, vlanVID, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccL2VPNTerminationResourceConfig_tags(l2vpnName, vlanVID, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag3Slug),
+				),
+			},
+			{
+				Config: testAccL2VPNTerminationResourceConfig_tags(l2vpnName, vlanVID, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccL2VPNTerminationResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	l2vpnName := testutil.RandomName("tf-test-l2vpn-term-tag-order")
+	vlanVID := testutil.RandomVID()
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVLANCleanup(vlanVID)
+	cleanup.RegisterL2VPNCleanup(l2vpnName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVLANDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccL2VPNTerminationResourceConfig_tagsOrder(l2vpnName, vlanVID, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccL2VPNTerminationResourceConfig_tagsOrder(l2vpnName, vlanVID, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_l2vpn_termination.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_l2vpn_termination.test", "tags.*", tag2Slug),
 				),
 			},
 		},

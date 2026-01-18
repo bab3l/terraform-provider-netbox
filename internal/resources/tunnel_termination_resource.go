@@ -9,12 +9,12 @@ package resources
 import (
 	"context"
 	"fmt"
-	"maps"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -123,8 +123,9 @@ func (r *TunnelTerminationResource) Schema(ctx context.Context, req resource.Sch
 		},
 	}
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add metadata attributes (slug list tags, custom_fields)
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *TunnelTerminationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -235,9 +236,11 @@ func (r *TunnelTerminationResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// Handle tags and custom fields
-
-	utils.ApplyMetadataFields(ctx, tunnelTerminationRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
-
+	utils.ApplyTagsFromSlugs(ctx, r.client, tunnelTerminationRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFields(ctx, tunnelTerminationRequest, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -433,9 +436,9 @@ func (r *TunnelTerminationResource) Update(ctx context.Context, req resource.Upd
 	// Handle tags and custom fields - merge-aware
 
 	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		utils.ApplyTags(ctx, tunnelTerminationRequest, data.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, tunnelTerminationRequest, data.Tags, &resp.Diagnostics)
 	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
-		utils.ApplyTags(ctx, tunnelTerminationRequest, state.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, tunnelTerminationRequest, state.Tags, &resp.Diagnostics)
 	}
 
 	utils.ApplyCustomFieldsWithMerge(ctx, tunnelTerminationRequest, data.CustomFields, state.CustomFields, &resp.Diagnostics)
@@ -576,7 +579,20 @@ func (r *TunnelTerminationResource) mapTunnelTerminationToState(ctx context.Cont
 	}
 
 	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, tunnelTermination.HasTags(), tunnelTermination.GetTags(), data.Tags, diags)
+	var tagSlugs []string
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case tunnelTermination.HasTags():
+		for _, tag := range tunnelTermination.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
 	if diags.HasError() {
 		return
 	}

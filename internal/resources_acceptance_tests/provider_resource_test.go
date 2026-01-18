@@ -131,6 +131,97 @@ func TestAccProviderResource_import(t *testing.T) {
 	})
 }
 
+func TestAccProviderResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-provider-tags")
+	slug := testutil.RandomSlug("tf-test-provider-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckProviderDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_provider.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_provider.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccProviderResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_provider.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_provider.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccProviderResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netbox_provider.test", "tags.*", tag3Slug),
+				),
+			},
+			{
+				Config: testAccProviderResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccProviderResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-provider-tag-order")
+	slug := testutil.RandomSlug("tf-test-provider-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterProviderCleanup(slug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckProviderDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProviderResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_provider.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_provider.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccProviderResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_provider.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_provider.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_provider.test", "tags.*", tag2Slug),
+				),
+			},
+		},
+	})
+}
+
 func testAccProviderResourceConfig_basic(name, slug string) string {
 	return fmt.Sprintf(`
 resource "netbox_provider" "test" {
@@ -149,6 +240,71 @@ resource "netbox_provider" "test" {
   comments    = %q
 }
 `, name, slug, description, comments)
+}
+
+func testAccProviderResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag3:
+		tagsConfig = tagsSingleSlug
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = "Tag3-%[5]s"
+  slug = %[5]q
+}
+
+resource "netbox_provider" "test" {
+  name = %[1]q
+  slug = %[2]q
+  %[6]s
+}
+`, name, slug, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccProviderResourceConfig_tagsOrder(name, slug, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = "Tag1-%[3]s"
+  slug = %[3]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = "Tag2-%[4]s"
+  slug = %[4]q
+}
+
+resource "netbox_provider" "test" {
+  name = %[1]q
+  slug = %[2]q
+  %[5]s
+}
+`, name, slug, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func TestAccConsistency_Provider_LiteralNames(t *testing.T) {
@@ -173,34 +329,6 @@ func TestAccConsistency_Provider_LiteralNames(t *testing.T) {
 			{
 				PlanOnly: true,
 				Config:   testAccProviderResourceConfig_basic(name, slug),
-			},
-		},
-	})
-}
-
-// TestAccProviderResource_IDPreservation tests that the provider resource preserves the
-// ID as the immutable identifier when using different reference formats (ID, name, slug).
-func TestAccProviderResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-provider-id")
-	slug := testutil.RandomSlug("tf-test-provider-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterProviderCleanup(slug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.CheckProviderDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccProviderResourceConfig_basic(name, slug),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_provider.test", "id"),
-					resource.TestCheckResourceAttr("netbox_provider.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_provider.test", "slug", slug),
-				),
 			},
 		},
 	})

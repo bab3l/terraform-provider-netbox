@@ -99,7 +99,7 @@ resource "netbox_inventory_item" "test" {
 - `part_id` (String) Manufacturer-assigned part identifier.
 - `role` (String) The functional role of the inventory item (ID or slug).
 - `serial` (String) Serial number of the inventory item.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 
 ### Read-Only
 
@@ -113,15 +113,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

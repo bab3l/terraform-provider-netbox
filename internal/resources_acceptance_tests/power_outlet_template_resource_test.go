@@ -245,32 +245,6 @@ func TestAccPowerOutletTemplateResource_externalDeletion(t *testing.T) {
 	})
 }
 
-func TestAccPowerOutletTemplateResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-	manufacturerName := testutil.RandomName("mfr-id")
-	manufacturerSlug := testutil.RandomSlug("mfr-id")
-	deviceTypeName := testutil.RandomName("dt-id")
-	deviceTypeSlug := testutil.RandomSlug("dt-id")
-	name := testutil.RandomName("power-outlet-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
-	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccPowerOutletTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_power_outlet_template.test", "id"),
-					resource.TestCheckResourceAttr("netbox_power_outlet_template.test", "name", name),
-				),
-			},
-		},
-	})
-}
 func testAccPowerOutletTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {

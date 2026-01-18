@@ -11,6 +11,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -97,8 +98,9 @@ func (r *RouteTargetResource) Schema(ctx context.Context, req resource.SchemaReq
 	// Add description and comments attributes
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("route target"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add metadata attributes (slug list tags, custom_fields)
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -438,8 +440,8 @@ func (r *RouteTargetResource) setOptionalFields(ctx context.Context, rtRequest *
 		rtRequest.SetComments(comments)
 	}
 
-	// Apply tags
-	utils.ApplyTags(ctx, rtRequest, data.Tags, diags)
+	// Apply tags from slugs
+	utils.ApplyTagsFromSlugs(ctx, r.client, rtRequest, data.Tags, diags)
 	if diags.HasError() {
 		return
 	}
@@ -488,6 +490,21 @@ func (r *RouteTargetResource) mapRouteTargetToState(ctx context.Context, rt *net
 		data.Comments = types.StringNull()
 	}
 
-	data.Tags = utils.PopulateTagsFromAPI(ctx, len(rt.Tags) > 0, rt.Tags, data.Tags, diags)
+	// Extract tag slugs from API response and filter to owned tags
+	var tagSlugs []string
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case rt.HasTags():
+		for _, tag := range rt.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
+
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, rt.CustomFields, diags)
 }

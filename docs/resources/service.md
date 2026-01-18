@@ -95,7 +95,7 @@ resource "netbox_service" "test" {
 - `description` (String) Description of the service.
 - `device` (String) The device this service runs on (ID or name). Mutually exclusive with virtual_machine.
 - `ipaddresses` (List of Number) List of IP address IDs associated with this service.
-- `tags` (Attributes Set) Tags assigned to this resource. Tags must already exist in Netbox. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `virtual_machine` (String) The virtual machine this service runs on (ID or name). Mutually exclusive with device.
 
 ### Read-Only
@@ -110,15 +110,6 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Required:
-
-- `name` (String) Name of the existing tag.
-- `slug` (String) Slug of the existing tag.
 
 ## Import
 

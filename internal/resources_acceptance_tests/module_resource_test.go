@@ -101,6 +101,121 @@ func TestAccModuleResource_full(t *testing.T) {
 	})
 }
 
+func TestAccModuleResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-tags")
+	siteSlug := testutil.RandomSlug("tf-test-site-tags")
+	mfgName := testutil.RandomName("tf-test-mfg-tags")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-tags")
+	dtModel := testutil.RandomName("tf-test-dt-tags")
+	dtSlug := testutil.RandomSlug("tf-test-dt-tags")
+	roleName := testutil.RandomName("tf-test-role-tags")
+	roleSlug := testutil.RandomSlug("tf-test-role-tags")
+	deviceName := testutil.RandomName("tf-test-device-tags")
+	bayName := testutil.RandomName("tf-test-mbay-tags")
+	mtModel := testutil.RandomName("tf-test-mt-tags")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_module.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_module.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccModuleResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_module.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_module.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccModuleResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netbox_module.test", "tags.*", tag3Slug),
+				),
+			},
+			{
+				Config: testAccModuleResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccModuleResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-tag-order")
+	siteSlug := testutil.RandomSlug("tf-test-site-tag-order")
+	mfgName := testutil.RandomName("tf-test-mfg-tag-order")
+	mfgSlug := testutil.RandomSlug("tf-test-mfg-tag-order")
+	dtModel := testutil.RandomName("tf-test-dt-tag-order")
+	dtSlug := testutil.RandomSlug("tf-test-dt-tag-order")
+	roleName := testutil.RandomName("tf-test-role-tag-order")
+	roleSlug := testutil.RandomSlug("tf-test-role-tag-order")
+	deviceName := testutil.RandomName("tf-test-device-tag-order")
+	bayName := testutil.RandomName("tf-test-mbay-tag-order")
+	mtModel := testutil.RandomName("tf-test-mt-tag-order")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfgSlug)
+	cleanup.RegisterDeviceTypeCleanup(dtSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccModuleResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_module.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_module.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccModuleResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_module.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_module.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_module.test", "tags.*", tag2Slug),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConsistency_Module_LiteralNames(t *testing.T) {
 	t.Parallel()
 
@@ -136,45 +251,6 @@ func TestAccConsistency_Module_LiteralNames(t *testing.T) {
 			{
 				PlanOnly: true,
 				Config:   testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
-			},
-		},
-	})
-}
-
-func TestAccModuleResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	siteName := testutil.RandomName("tf-test-site-id")
-	siteSlug := testutil.RandomSlug("tf-test-site-id")
-	mfgName := testutil.RandomName("tf-test-mfg-id")
-	mfgSlug := testutil.RandomSlug("tf-test-mfg-id")
-	dtModel := testutil.RandomName("tf-test-dt-id")
-	dtSlug := testutil.RandomSlug("tf-test-dt-id")
-	roleName := testutil.RandomName("tf-test-role-id")
-	roleSlug := testutil.RandomSlug("tf-test-role-id")
-	deviceName := testutil.RandomName("tf-test-device-id")
-	bayName := testutil.RandomName("tf-test-mbay-id")
-	mtModel := testutil.RandomName("tf-test-mt-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterManufacturerCleanup(mfgSlug)
-	cleanup.RegisterDeviceTypeCleanup(dtSlug)
-	cleanup.RegisterDeviceRoleCleanup(roleSlug)
-	cleanup.RegisterDeviceCleanup(deviceName)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccModuleResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_module.test", "id"),
-					resource.TestCheckResourceAttrSet("netbox_module.test", "device"),
-					resource.TestCheckResourceAttrSet("netbox_module.test", "module_bay"),
-					resource.TestCheckResourceAttrSet("netbox_module.test", "module_type"),
-				),
 			},
 		},
 	})
@@ -229,6 +305,155 @@ resource "netbox_module" "test" {
   asset_tag   = "%s-asset-basic"
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, mtModel)
+}
+
+func testAccModuleResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag3:
+		tagsConfig = tagsSingleSlug
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[13]s"
+	slug = %[13]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[14]s"
+	slug = %[14]q
+}
+
+resource "netbox_tag" "tag3" {
+	name = "Tag3-%[15]s"
+	slug = %[15]q
+}
+
+resource "netbox_site" "test" {
+	name   = %[1]q
+	slug   = %[2]q
+	status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+	name = %[3]q
+	slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %[5]q
+	slug         = %[6]q
+}
+
+resource "netbox_device_role" "test" {
+	name  = %[7]q
+	slug  = %[8]q
+	color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+	name        = %[9]q
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	site        = netbox_site.test.id
+}
+
+resource "netbox_module_bay" "test" {
+	device = netbox_device.test.id
+	name   = %[10]q
+}
+
+resource "netbox_module_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %[11]q
+}
+
+resource "netbox_module" "test" {
+	device      = netbox_device.test.id
+	module_bay  = netbox_module_bay.test.id
+	module_type = netbox_module_type.test.id
+	asset_tag   = "%[12]s-asset-tags"
+	%[16]s
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, mtModel, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccModuleResourceConfig_tagsOrder(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[13]s"
+	slug = %[13]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[14]s"
+	slug = %[14]q
+}
+
+resource "netbox_site" "test" {
+	name   = %[1]q
+	slug   = %[2]q
+	status = "active"
+}
+
+resource "netbox_manufacturer" "test" {
+	name = %[3]q
+	slug = %[4]q
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %[5]q
+	slug         = %[6]q
+}
+
+resource "netbox_device_role" "test" {
+	name  = %[7]q
+	slug  = %[8]q
+	color = "aa1409"
+}
+
+resource "netbox_device" "test" {
+	name        = %[9]q
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	site        = netbox_site.test.id
+}
+
+resource "netbox_module_bay" "test" {
+	device = netbox_device.test.id
+	name   = %[10]q
+}
+
+resource "netbox_module_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %[11]q
+}
+
+resource "netbox_module" "test" {
+	device      = netbox_device.test.id
+	module_bay  = netbox_module_bay.test.id
+	module_type = netbox_module_type.test.id
+	asset_tag   = "%[12]s-asset-tags"
+	%[15]s
+}
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName, mtModel, mtModel, tag1Slug, tag2Slug, tagsConfig)
 }
 
 // NOTE: Custom field tests for module resource are in resources_acceptance_tests_customfields package.
@@ -329,7 +554,7 @@ func TestAccModuleResource_update(t *testing.T) {
 	})
 }
 
-func TestAccModuleResource_external_deletion(t *testing.T) {
+func TestAccModuleResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	siteName := testutil.RandomName("tf-test-site-extdel")

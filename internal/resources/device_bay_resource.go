@@ -12,6 +12,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -70,14 +71,15 @@ func (r *DeviceBayResource) Schema(ctx context.Context, req resource.SchemaReque
 				MarkdownDescription: "The child device installed in this bay. Accepts ID or name.",
 				Optional:            true,
 			},
+			"tags":          nbschema.TagsSlugAttribute(),
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("device bay"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Tags and custom fields are defined directly in the schema above.
 }
 
 // Configure adds the provider configured client to the resource.
@@ -294,9 +296,9 @@ func (r *DeviceBayResource) buildRequest(ctx context.Context, data, state *Devic
 
 	// Handle tags - merge-aware: use plan if provided, else use state (if available)
 	if utils.IsSet(data.Tags) {
-		utils.ApplyTags(ctx, dbRequest, data.Tags, &diags)
+		utils.ApplyTagsFromSlugs(ctx, r.client, dbRequest, data.Tags, &diags)
 	} else if state != nil && utils.IsSet(state.Tags) {
-		utils.ApplyTags(ctx, dbRequest, state.Tags, &diags)
+		utils.ApplyTagsFromSlugs(ctx, r.client, dbRequest, state.Tags, &diags)
 	}
 	if diags.HasError() {
 		return nil, diags
@@ -348,8 +350,20 @@ func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.D
 		data.InstalledDevice = types.StringNull()
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, db.HasTags(), db.GetTags(), data.Tags, diags)
+	// Tags (slug list)
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case db.HasTags() && len(db.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(db.GetTags()))
+		for _, tag := range db.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 
 	// Handle custom fields - use filtered-to-owned for partial management
 	if db.HasCustomFields() {

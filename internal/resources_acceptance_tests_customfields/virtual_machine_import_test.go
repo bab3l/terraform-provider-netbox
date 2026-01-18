@@ -213,16 +213,7 @@ resource "netbox_virtual_machine" "test" {
   cluster = netbox_cluster.vm_test.id
   status  = "active"
 
-  tags = [
-    {
-      name = netbox_tag.vm_test1.name
-      slug = netbox_tag.vm_test1.slug
-    },
-    {
-      name = netbox_tag.vm_test2.name
-      slug = netbox_tag.vm_test2.slug
-    }
-  ]
+	tags = [netbox_tag.vm_test1.slug, netbox_tag.vm_test2.slug]
 
   custom_fields = [
     {

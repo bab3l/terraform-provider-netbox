@@ -48,36 +48,6 @@ func TestAccInterfaceResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccInterfaceResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-interface-id")
-	siteSlug := testutil.RandomSlug("site-id")
-	mfrSlug := testutil.RandomSlug("mfr-id")
-	deviceSlug := testutil.RandomSlug("device-id")
-	roleSlug := testutil.RandomSlug("role-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteCleanup(siteSlug)
-	cleanup.RegisterManufacturerCleanup(mfrSlug)
-	cleanup.RegisterDeviceTypeCleanup(deviceSlug)
-	cleanup.RegisterDeviceRoleCleanup(roleSlug)
-	cleanup.RegisterDeviceCleanup(name + "-device")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccInterfaceResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_interface.test", "id"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccInterfaceResource_update(t *testing.T) {
 	t.Parallel()
 
@@ -154,6 +124,121 @@ func TestAccInterfaceResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_interface.test", "mtu", "1500"),
 					resource.TestCheckResourceAttr("netbox_interface.test", "mgmt_only", "true"),
 					resource.TestCheckResourceAttr("netbox_interface.test", "description", "Test interface with full options"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccInterfaceResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-interface-tags")
+	siteSlug := testutil.RandomSlug("tf-test-site-interface-tags")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer-interface-tags")
+	manufacturerSlug := testutil.RandomSlug("tf-test-manufacturer-interface-tags")
+	deviceRoleName := testutil.RandomName("tf-test-device-role-interface-tags")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-device-role-interface-tags")
+	deviceTypeName := testutil.RandomName("tf-test-device-type-interface-tags")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-device-type-interface-tags")
+	deviceName := testutil.RandomName("tf-test-device-interface-tags")
+	interfaceName := testutil.RandomName("eth0-tags")
+
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceResourceConfig_tags(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName, tag1Slug, tag2Slug, tag3Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_interface.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_interface.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_interface.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccInterfaceResourceConfig_tags(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName, tag1Slug, tag2Slug, tag3Slug, caseTag1Uscore2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_interface.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_interface.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_interface.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccInterfaceResourceConfig_tags(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName, tag1Slug, tag2Slug, tag3Slug, caseTag3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_interface.test", "tags.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netbox_interface.test", "tags.*", tag3Slug),
+				),
+			},
+			{
+				Config: testAccInterfaceResourceConfig_tags(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName, tag1Slug, tag2Slug, tag3Slug, tagsEmpty),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_interface.test", "tags.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccInterfaceResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	siteName := testutil.RandomName("tf-test-site-interface-tag-order")
+	siteSlug := testutil.RandomSlug("tf-test-site-interface-tag-order")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer-interface-tag-order")
+	manufacturerSlug := testutil.RandomSlug("tf-test-manufacturer-interface-tag-order")
+	deviceRoleName := testutil.RandomName("tf-test-device-role-interface-tag-order")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-device-role-interface-tag-order")
+	deviceTypeName := testutil.RandomName("tf-test-device-type-interface-tag-order")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-device-type-interface-tag-order")
+	deviceName := testutil.RandomName("tf-test-device-interface-tag-order")
+	interfaceName := testutil.RandomName("eth0-tag-order")
+
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceResourceConfig_tagsOrder(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName, tag1Slug, tag2Slug, caseTag1Tag2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_interface.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_interface.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_interface.test", "tags.*", tag2Slug),
+				),
+			},
+			{
+				Config: testAccInterfaceResourceConfig_tagsOrder(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName, tag1Slug, tag2Slug, caseTag2Uscore1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_interface.test", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netbox_interface.test", "tags.*", tag1Slug),
+					resource.TestCheckTypeSetElemAttr("netbox_interface.test", "tags.*", tag2Slug),
 				),
 			},
 		},
@@ -366,6 +451,133 @@ resource "netbox_interface" "test" {
 }
 `, testAccInterfaceResourcePrereqs(name), name)
 
+}
+
+func testAccInterfaceResourceConfig_tags(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag1Uscore2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag3:
+		tagsConfig = tagsSingleSlug
+	case tagsEmpty:
+		tagsConfig = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[11]s"
+	slug = %[11]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[12]s"
+	slug = %[12]q
+}
+
+resource "netbox_tag" "tag3" {
+	name = "Tag3-%[13]s"
+	slug = %[13]q
+}
+
+resource "netbox_site" "test" {
+	name = %[1]q
+	slug = %[2]q
+}
+
+resource "netbox_manufacturer" "test" {
+	name = %[3]q
+	slug = %[4]q
+}
+
+resource "netbox_device_role" "test" {
+	name     = %[5]q
+	slug     = %[6]q
+	color    = "aa1409"
+	vm_role  = false
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %[7]q
+	slug         = %[8]q
+}
+
+resource "netbox_device" "test" {
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	site        = netbox_site.test.id
+	name        = %[9]q
+}
+
+resource "netbox_interface" "test" {
+	device = netbox_device.test.id
+	name   = %[10]q
+	type   = "1000base-t"
+	%[14]s
+}
+`, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName, tag1Slug, tag2Slug, tag3Slug, tagsConfig)
+}
+
+func testAccInterfaceResourceConfig_tagsOrder(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName, tag1Slug, tag2Slug, tagCase string) string {
+	var tagsConfig string
+	switch tagCase {
+	case caseTag1Tag2:
+		tagsConfig = tagsDoubleSlug
+	case caseTag2Uscore1:
+		tagsConfig = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+	name = "Tag1-%[11]s"
+	slug = %[11]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = "Tag2-%[12]s"
+	slug = %[12]q
+}
+
+resource "netbox_site" "test" {
+	name = %[1]q
+	slug = %[2]q
+}
+
+resource "netbox_manufacturer" "test" {
+	name = %[3]q
+	slug = %[4]q
+}
+
+resource "netbox_device_role" "test" {
+	name     = %[5]q
+	slug     = %[6]q
+	color    = "aa1409"
+	vm_role  = false
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %[7]q
+	slug         = %[8]q
+}
+
+resource "netbox_device" "test" {
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	site        = netbox_site.test.id
+	name        = %[9]q
+}
+
+resource "netbox_interface" "test" {
+	device = netbox_device.test.id
+	name   = %[10]q
+	type   = "1000base-t"
+	%[13]s
+}
+`, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName, tag1Slug, tag2Slug, tagsConfig)
 }
 
 func testAccInterfaceResourceConfig_consistency_device_name(name string) string {

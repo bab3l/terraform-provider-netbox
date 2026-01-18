@@ -12,6 +12,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -118,8 +119,9 @@ func (r *IPRangeResource) Schema(ctx context.Context, req resource.SchemaRequest
 	// Add common descriptive attributes (description, comments)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("IP range"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom_fields
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *IPRangeResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -453,7 +455,7 @@ func (r *IPRangeResource) setOptionalFields(ctx context.Context, ipRangeRequest 
 	}
 
 	// Apply tags
-	utils.ApplyTags(ctx, ipRangeRequest, data.Tags, diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, ipRangeRequest, data.Tags, diags)
 	if diags.HasError() {
 		return
 	}
@@ -553,8 +555,21 @@ func (r *IPRangeResource) mapIPRangeToState(ctx context.Context, ipRange *netbox
 		data.MarkUtilized = types.BoolValue(false)
 	}
 
-	// Tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, len(ipRange.Tags) > 0, ipRange.Tags, data.Tags, diags)
+	// Handle tags with filter-to-owned pattern
+	planTags := data.Tags
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case len(ipRange.Tags) > 0:
+		tagSlugs := make([]string, 0, len(ipRange.Tags))
+		for _, tag := range ipRange.Tags {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	if diags.HasError() {
 		return
 	}

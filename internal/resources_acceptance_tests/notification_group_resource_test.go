@@ -129,29 +129,6 @@ func TestAccNotificationGroupResource_import(t *testing.T) {
 	})
 }
 
-func TestAccNotificationGroupResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("tf-test-notifgroup-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterNotificationGroupCleanup(name)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testutil.CheckNotificationGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccNotificationGroupResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_notification_group.test", "id"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccConsistency_NotificationGroup_LiteralNames(t *testing.T) {
 	t.Parallel()
 

@@ -71,8 +71,5 @@ resource "netbox_cluster_group" "with_tags" {
   name        = "Critical Infrastructure"
   slug        = "critical-infrastructure"
   description = "Mission-critical virtualization clusters"
-  tags {
-    name = "critical"
-    slug = "critical"
-  }
+  tags        = ["critical"]
 }

@@ -81,7 +81,7 @@ output "webhook_content_type" {
 - `http_method` (String) The HTTP method used when calling the webhook URL.
 - `payload_url` (String) The URL that will be called when the webhook is triggered.
 - `ssl_verification` (Boolean) Whether SSL certificate verification is enabled.
-- `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
+- `tags` (List of String) Tags assigned to this webhook.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`
@@ -91,12 +91,3 @@ Read-Only:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field.
 - `value` (String) Value of the custom field.
-
-
-<a id="nestedatt--tags"></a>
-### Nested Schema for `tags`
-
-Read-Only:
-
-- `name` (String) Name of the tag.
-- `slug` (String) Slug of the tag.

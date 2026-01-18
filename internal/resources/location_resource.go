@@ -12,6 +12,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -71,7 +72,8 @@ func (r *LocationResource) Schema(ctx context.Context, req resource.SchemaReques
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("location"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *LocationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -151,7 +153,11 @@ func (r *LocationResource) Create(ctx context.Context, req resource.CreateReques
 	utils.ApplyDescription(locationRequest, data.Description)
 
 	// Handle tags
-	utils.ApplyMetadataFields(ctx, locationRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, locationRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFields(ctx, locationRequest, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -304,9 +310,9 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 
 	// Handle tags (prefer plan, fallback to state)
 	if utils.IsSet(plan.Tags) {
-		utils.ApplyTags(ctx, locationRequest, plan.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, locationRequest, plan.Tags, &resp.Diagnostics)
 	} else if utils.IsSet(state.Tags) {
-		utils.ApplyTags(ctx, locationRequest, state.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, locationRequest, state.Tags, &resp.Diagnostics)
 	}
 	if resp.Diagnostics.HasError() {
 		return
@@ -452,10 +458,23 @@ func (r *LocationResource) mapLocationToState(ctx context.Context, location *net
 		data.Description = types.StringNull()
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, location.HasTags(), location.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags using filter-to-owned approach
+	planTags := data.Tags
+	switch {
+	case planTags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(planTags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		if location.HasTags() {
+			var tagSlugs []string
+			for _, tag := range location.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+		}
 	}
 
 	// Handle custom fields - only populate fields that are in plan (owned by this resource)

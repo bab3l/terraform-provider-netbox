@@ -13,7 +13,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -296,8 +296,9 @@ func (r *RackResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 	// Add description and comments attributes
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("rack"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom fields attributes
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *RackResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -550,9 +551,18 @@ func (r *RackResource) buildRackRequest(ctx context.Context, data *RackResourceM
 		rackRequest.AssetTag = *netbox.NewNullableString(&assetTag)
 	}
 
-	// Apply common fields (description, comments, tags, custom_fields)
+	// Apply description and comments
+	utils.ApplyDescription(&rackRequest, data.Description)
+	utils.ApplyComments(&rackRequest, data.Comments)
 
-	utils.ApplyCommonFields(ctx, &rackRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply tags and custom fields
+	utils.ApplyTagsFromSlugs(ctx, r.client, &rackRequest, data.Tags, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+		return nil
+	}
+
+	utils.ApplyCustomFields(ctx, &rackRequest, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return nil
@@ -1012,8 +1022,19 @@ func (r *RackResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	// Apply common fields with merge-aware custom fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFieldsWithMerge(ctx, rackRequest, data.Description, data.Comments, data.Tags, state.Tags, data.CustomFields, state.CustomFields, &resp.Diagnostics)
+	// Apply description and comments
+	utils.ApplyDescription(rackRequest, data.Description)
+	utils.ApplyComments(rackRequest, data.Comments)
+
+	// Apply tags and custom fields
+	utils.ApplyTagsFromSlugs(ctx, r.client, rackRequest, data.Tags, &resp.Diagnostics)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	utils.ApplyCustomFieldsWithMerge(ctx, rackRequest, data.CustomFields, state.CustomFields, &resp.Diagnostics)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -1366,9 +1387,21 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 		data.Comments = types.StringNull()
 	}
 
-	// Map tags
-	var diags diag.Diagnostics
-	data.Tags = utils.PopulateTagsFromAPI(ctx, rack.HasTags(), rack.GetTags(), data.Tags, &diags)
+	// Filter tags to owned (slug list format)
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	case rack.HasTags():
+		var tagSlugs []string
+		for _, tag := range rack.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	}
 
 	// Note: Custom fields are handled separately in Read to preserve type information
 }

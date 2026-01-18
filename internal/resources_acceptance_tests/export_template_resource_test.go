@@ -54,35 +54,6 @@ func TestAccExportTemplateResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccExportTemplateResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("exp-tmpl-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterExportTemplateCleanup(name)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccExportTemplateResourceConfig_basic(name),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_export_template.test", "id"),
-					resource.TestCheckResourceAttr("netbox_export_template.test", "name", name),
-					resource.TestCheckResourceAttr("netbox_export_template.test", "object_types.#", "1"),
-				),
-			},
-			// PlanOnly: verify plan stability
-			{
-				Config:   testAccExportTemplateResourceConfig_basic(name),
-				PlanOnly: true,
-			},
-		},
-	})
-}
-
 func TestAccExportTemplateResource_full(t *testing.T) {
 	t.Parallel()
 

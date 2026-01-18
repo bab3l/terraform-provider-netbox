@@ -5,13 +5,13 @@ package resources
 import (
 	"context"
 	"fmt"
-	"maps"
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -92,11 +92,10 @@ func (r *ContactAssignmentResource) Schema(ctx context.Context, req resource.Sch
 					stringvalidator.OneOf("primary", "secondary", "tertiary", "inactive", ""),
 				},
 			},
+			"tags":          nbschema.TagsSlugAttribute(),
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
-
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
 }
 
 func (r *ContactAssignmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -185,7 +184,10 @@ func (r *ContactAssignmentResource) Create(ctx context.Context, req resource.Cre
 	planCustomFields := data.CustomFields
 
 	// Handle tags and custom_fields
-	utils.ApplyTags(ctx, assignmentRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, assignmentRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	utils.ApplyCustomFields(ctx, assignmentRequest, data.CustomFields, &resp.Diagnostics)
 
 	// Call the API to create the contact assignment
@@ -204,7 +206,19 @@ func (r *ContactAssignmentResource) Create(ctx context.Context, req resource.Cre
 	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
 
 	// Apply filter-to-owned pattern
-	data.Tags = utils.PopulateTagsFromAPI(ctx, assignment.HasTags(), assignment.GetTags(), planTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case assignment.HasTags() && len(assignment.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(assignment.GetTags()))
+		for _, tag := range assignment.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, assignment.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Created contact assignment", map[string]interface{}{
@@ -249,8 +263,31 @@ func (r *ContactAssignmentResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
+	// Store state values for filter-to-owned pattern
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	// Map response to state
 	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply filter-to-owned pattern for tags and custom_fields
+	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
+	switch {
+	case assignment.HasTags() && len(assignment.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(assignment.GetTags()))
+		for _, tag := range assignment.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, assignment.GetCustomFields(), &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -333,7 +370,10 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Handle tags and custom_fields with merge-aware helpers
-	utils.ApplyTags(ctx, assignmentRequest, plan.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, assignmentRequest, plan.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	utils.ApplyCustomFieldsWithMerge(ctx, assignmentRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	// Call the API to update the contact assignment
@@ -352,7 +392,19 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 	r.mapResponseToState(ctx, assignment, &plan, &resp.Diagnostics)
 
 	// Apply filter-to-owned pattern
-	plan.Tags = utils.PopulateTagsFromAPI(ctx, assignment.HasTags(), assignment.GetTags(), plan.Tags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !plan.Tags.IsNull() && !plan.Tags.IsUnknown() && len(plan.Tags.Elements()) == 0
+	switch {
+	case assignment.HasTags() && len(assignment.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(assignment.GetTags()))
+		for _, tag := range assignment.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		plan.Tags = types.SetNull(types.StringType)
+	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, assignment.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Updated contact assignment", map[string]interface{}{

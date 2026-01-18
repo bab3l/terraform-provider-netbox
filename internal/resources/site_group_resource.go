@@ -15,6 +15,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -79,8 +80,9 @@ func (r *SiteGroupResource) Schema(ctx context.Context, req resource.SchemaReque
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("site group"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add metadata attributes (slug list tags, custom_fields)
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *SiteGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -129,7 +131,8 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 
 	// Apply description, tags, and custom fields
 	utils.ApplyDescription(&siteGroupRequest, data.Description)
-	utils.ApplyMetadataFields(ctx, &siteGroupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &siteGroupRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, &siteGroupRequest, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -288,7 +291,11 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Apply description, tags, and custom fields with merge-aware helpers
 	utils.ApplyDescription(&siteGroupRequest, plan.Description)
-	utils.ApplyTags(ctx, &siteGroupRequest, plan.Tags, &resp.Diagnostics)
+	if utils.IsSet(plan.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, &siteGroupRequest, plan.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, &siteGroupRequest, state.Tags, &resp.Diagnostics)
+	}
 	utils.ApplyCustomFieldsWithMerge(ctx, &siteGroupRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -415,7 +422,20 @@ func (r *SiteGroupResource) mapSiteGroupToState(ctx context.Context, siteGroup *
 	// Handle display_name
 	// Handle tags
 	var diags diag.Diagnostics
-	data.Tags = utils.PopulateTagsFromAPI(ctx, siteGroup.HasTags(), siteGroup.GetTags(), data.Tags, &diags)
+	var tagSlugs []string
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case siteGroup.HasTags():
+		for _, tag := range siteGroup.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
 
 	// Handle custom fields - preserve state structure
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, siteGroup.GetCustomFields(), &diags)

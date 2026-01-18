@@ -183,43 +183,14 @@ resource "netbox_ip_address" "test" {
   address = %q
   tenant     = netbox_tenant.test.id
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [
+		netbox_tag.tag1.slug,
+		netbox_tag.tag2.slug,
+	]
 }
 `, tenantName, tenantSlug, tag1, tag1Slug, tag2, tag2Slug, ip)
 }
 
-func TestAccIPAddressResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	ip := fmt.Sprintf("192.0.%d.%d/24", 200+acctest.RandIntRange(0, 50), acctest.RandIntRange(1, 254))
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterIPAddressCleanup(ip)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccIPAddressResourceConfig_basic(ip),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
-					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", ip),
-				),
-			},
-		},
-	})
-
-}
 func testAccIPAddressResourceConfig_basic(address string) string {
 	return fmt.Sprintf(`
 resource "netbox_ip_address" "test" {
@@ -702,4 +673,157 @@ resource "netbox_ip_address" "test" {
 			},
 		},
 	})
+}
+
+// =============================================================================
+// STANDARDIZED TAG TESTS (using helpers)
+// =============================================================================
+
+// TestAccIPAddressResource_tagLifecycle tests the complete tag lifecycle using RunTagLifecycleTest helper.
+func TestAccIPAddressResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	address := fmt.Sprintf("10.50.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_ip_address",
+		ConfigWithoutTags: func() string {
+			return testAccIPAddressResourceConfig_tagLifecycle(address, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "none")
+		},
+		ConfigWithTags: func() string {
+			return testAccIPAddressResourceConfig_tagLifecycle(address, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag1_tag2")
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccIPAddressResourceConfig_tagLifecycle(address, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "tag2_tag3")
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 2,
+		CheckDestroy:              testutil.CheckIPAddressDestroy,
+	})
+}
+
+func testAccIPAddressResourceConfig_tagLifecycle(address, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagSet string) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[3]q
+  slug = %[4]q
+}
+
+resource "netbox_tag" "tag3" {
+  name = %[5]q
+  slug = %[6]q
+}
+`, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug)
+
+	//nolint:goconst // tagSet values are test-specific identifiers
+	switch tagSet {
+	case "tag1_tag2":
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_ip_address" "test" {
+  address = %[1]q
+  tags = [
+		netbox_tag.tag1.slug,
+		netbox_tag.tag2.slug,
+  ]
+}
+`, address)
+	case "tag2_tag3":
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_ip_address" "test" {
+  address = %[1]q
+  tags = [
+		netbox_tag.tag2.slug,
+		netbox_tag.tag3.slug,
+  ]
+}
+`, address)
+	default: // "none"
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_ip_address" "test" {
+  address = %[1]q
+  tags   = []
+}
+`, address)
+	}
+}
+
+// TestAccIPAddressResource_tagOrderInvariance tests tag order using RunTagOrderTest helper.
+func TestAccIPAddressResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	address := fmt.Sprintf("10.51.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterIPAddressCleanup(address)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_ip_address",
+		ConfigWithTagsOrderA: func() string {
+			return testAccIPAddressResourceConfig_tagOrder(address, tag1Name, tag1Slug, tag2Name, tag2Slug, true)
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccIPAddressResourceConfig_tagOrder(address, tag1Name, tag1Slug, tag2Name, tag2Slug, false)
+		},
+		ExpectedTagCount: 2,
+		CheckDestroy:     testutil.CheckIPAddressDestroy,
+	})
+}
+
+func testAccIPAddressResourceConfig_tagOrder(address, tag1Name, tag1Slug, tag2Name, tag2Slug string, tag1First bool) string {
+	baseConfig := fmt.Sprintf(`
+resource "netbox_tag" "tag1" {
+  name = %[1]q
+  slug = %[2]q
+}
+
+resource "netbox_tag" "tag2" {
+  name = %[3]q
+  slug = %[4]q
+}
+`, tag1Name, tag1Slug, tag2Name, tag2Slug)
+
+	if tag1First {
+		return baseConfig + fmt.Sprintf(`
+resource "netbox_ip_address" "test" {
+  address = %[1]q
+  tags = [
+		netbox_tag.tag1.slug,
+		netbox_tag.tag2.slug,
+  ]
+}
+`, address)
+	}
+
+	return baseConfig + fmt.Sprintf(`
+resource "netbox_ip_address" "test" {
+  address = %[1]q
+  tags = [
+		netbox_tag.tag2.slug,
+		netbox_tag.tag1.slug,
+  ]
+}
+`, address)
 }

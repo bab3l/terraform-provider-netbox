@@ -11,6 +11,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -52,19 +53,20 @@ func (r *DeviceRoleResource) Schema(ctx context.Context, req resource.SchemaRequ
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a device role in Netbox. Device roles are used to categorize devices by their function within the network infrastructure (e.g., 'Router', 'Switch', 'Server', 'Firewall').",
 		Attributes: map[string]schema.Attribute{
-			"id":      nbschema.IDAttribute("device role"),
-			"name":    nbschema.NameAttribute("device role", 100),
-			"slug":    nbschema.SlugAttribute("device role"),
-			"color":   nbschema.ComputedColorAttribute("device role"),
-			"vm_role": nbschema.BoolAttributeWithDefault("Whether virtual machines may be assigned to this role. Set to true to allow VMs to use this role, false otherwise. Defaults to true.", true),
+			"id":            nbschema.IDAttribute("device role"),
+			"name":          nbschema.NameAttribute("device role", 100),
+			"slug":          nbschema.SlugAttribute("device role"),
+			"color":         nbschema.ComputedColorAttribute("device role"),
+			"vm_role":       nbschema.BoolAttributeWithDefault("Whether virtual machines may be assigned to this role. Set to true to allow VMs to use this role, false otherwise. Defaults to true.", true),
+			"tags":          nbschema.TagsSlugAttribute(),
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("device role"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Tags and custom fields are defined directly in the schema above.
 }
 
 func (r *DeviceRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -112,11 +114,7 @@ func (r *DeviceRoleResource) mapDeviceRoleToState(ctx context.Context, deviceRol
 		data.Description = types.StringNull()
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, deviceRole.HasTags(), deviceRole.GetTags(), data.Tags, diags)
-
-	// Handle custom fields - filter to owned fields only
-	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, deviceRole.GetCustomFields(), diags)
+	// Tags and custom fields are handled in Create/Read/Update methods using filter-to-owned pattern.
 }
 
 func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -149,8 +147,12 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 	// Apply description
 	utils.ApplyDescription(&deviceRoleRequest, data.Description)
 
+	// Store plan values for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
 	// Handle tags
-	utils.ApplyTags(ctx, &deviceRoleRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, &deviceRoleRequest, data.Tags, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -181,6 +183,22 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case deviceRole.HasTags() && len(deviceRole.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(deviceRole.GetTags()))
+		for _, tag := range deviceRole.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, deviceRole.GetCustomFields(), &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -224,7 +242,8 @@ func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	// Save original custom_fields state before mapping
+	// Save original tags/custom_fields state before mapping
+	originalTags := data.Tags
 	originalCustomFields := data.CustomFields
 
 	// Map response to state
@@ -232,6 +251,22 @@ func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags
+	wasExplicitlyEmpty := !originalTags.IsNull() && !originalTags.IsUnknown() && len(originalTags.Elements()) == 0
+	switch {
+	case deviceRole.HasTags() && len(deviceRole.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(deviceRole.GetTags()))
+		for _, tag := range deviceRole.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, originalCustomFields, deviceRole.GetCustomFields(), &resp.Diagnostics)
 
 	// Preserve original custom_fields state if it was null or empty
 	// This prevents unmanaged/cleared fields from reappearing in state
@@ -292,8 +327,12 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 	// Apply description
 	utils.ApplyDescription(&deviceRoleRequest, data.Description)
 
-	// Handle tags
-	utils.ApplyTags(ctx, &deviceRoleRequest, data.Tags, &resp.Diagnostics)
+	// Handle tags - merge-aware: use plan if provided, else use state
+	if utils.IsSet(data.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, &deviceRoleRequest, data.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, &deviceRoleRequest, state.Tags, &resp.Diagnostics)
+	}
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -324,6 +363,22 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags
+	wasExplicitlyEmpty := !plan.Tags.IsNull() && !plan.Tags.IsUnknown() && len(plan.Tags.Elements()) == 0
+	switch {
+	case deviceRole.HasTags() && len(deviceRole.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(deviceRole.GetTags()))
+		for _, tag := range deviceRole.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, deviceRole.GetCustomFields(), &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

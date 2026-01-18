@@ -11,6 +11,7 @@ import (
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -128,8 +129,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 	// Add description and comments attributes
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("service"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add metadata attributes (slug list tags, custom_fields)
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -260,8 +262,17 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 	planTags := data.Tags
 	planCustomFields := data.CustomFields
 
-	// Apply common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, apiReq, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply description and comments
+	utils.ApplyDescriptiveFields(apiReq, data.Description, data.Comments)
+
+	// Apply tags from slugs
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply custom fields
+	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -294,10 +305,19 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Populate tags and custom fields filtered to owned fields only
-	if utils.IsSet(planTags) {
-		data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	var tagSlugs []string
+	switch {
+	case planTags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(planTags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case response.HasTags():
+		for _, tag := range response.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 
@@ -372,10 +392,19 @@ func (r *ServiceResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Override with filter-to-owned pattern: only show fields that were in original state
-	if utils.IsSet(stateTags) {
-		data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), stateTags, &resp.Diagnostics)
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	var tagSlugs []string
+	switch {
+	case stateTags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(stateTags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case response.HasTags():
+		for _, tag := range response.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 
@@ -501,8 +530,22 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 		apiReq.SetIpaddresses([]int32{})
 	}
 
-	// Apply common fields with merge-aware helpers
-	utils.ApplyCommonFieldsWithMerge(ctx, apiReq, plan.Description, plan.Comments, plan.Tags, state.Tags, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
+	// Apply description and comments
+	utils.ApplyDescriptiveFields(apiReq, plan.Description, plan.Comments)
+
+	// Handle tags and custom fields - merge-aware for partial management
+	// If tags are in plan, use plan. If not, preserve state tags.
+	if utils.IsSet(plan.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, plan.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, state.Tags, &resp.Diagnostics)
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply custom fields with merge logic (preserves unmanaged fields from state)
+	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -535,10 +578,19 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Populate tags and custom fields filtered to owned fields only
-	if utils.IsSet(planTags) {
-		plan.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
-	} else {
-		plan.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	var tagSlugs []string
+	switch {
+	case planTags.IsNull():
+		plan.Tags = types.SetNull(types.StringType)
+	case len(planTags.Elements()) == 0:
+		plan.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case response.HasTags():
+		for _, tag := range response.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		plan.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
 	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 
@@ -731,7 +783,20 @@ func (r *ServiceResource) mapResponseToModel(ctx context.Context, svc *netbox.Se
 	}
 
 	// Map tags - full population for import scenarios
-	data.Tags = utils.PopulateTagsFromAPI(ctx, svc.HasTags(), svc.GetTags(), data.Tags, diags)
+	var tagSlugs []string
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case svc.HasTags():
+		for _, tag := range svc.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
 	if diags.HasError() {
 		return
 	}

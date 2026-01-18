@@ -36,31 +36,6 @@ func TestAccInventoryItemTemplateResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccInventoryItemTemplateResource_IDPreservation(t *testing.T) {
-	t.Parallel()
-
-	name := testutil.RandomName("iit-id")
-
-	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
-	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccInventoryItemTemplateResourceConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "id"),
-					resource.TestCheckResourceAttr("netbox_inventory_item_template.test", "name", name),
-					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "device_type"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccInventoryItemTemplateResource_full(t *testing.T) {
 	t.Parallel()
 

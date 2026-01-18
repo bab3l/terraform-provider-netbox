@@ -42,7 +42,7 @@ type VMInterfaceDataSourceModel struct {
 	Mode           types.String `tfsdk:"mode"`
 	UntaggedVLAN   types.String `tfsdk:"untagged_vlan"`
 	VRF            types.String `tfsdk:"vrf"`
-	Tags           types.Set    `tfsdk:"tags"`
+	Tags           types.List   `tfsdk:"tags"`
 	CustomFields   types.Set    `tfsdk:"custom_fields"`
 }
 
@@ -75,7 +75,11 @@ func (d *VMInterfaceDataSource) Schema(ctx context.Context, req datasource.Schem
 			"mode":          nbschema.DSComputedStringAttribute("The 802.1Q mode of the interface (access, tagged, tagged-all)."),
 			"untagged_vlan": nbschema.DSComputedStringAttribute("The untagged VLAN assigned to this interface."),
 			"vrf":           nbschema.DSComputedStringAttribute("The VRF assigned to this interface."),
-			"tags":          nbschema.DSTagsAttribute(),
+			"tags": schema.ListAttribute{
+				MarkdownDescription: "Tags assigned to this VM interface.",
+				Computed:            true,
+				ElementType:         types.StringType,
+			},
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
@@ -246,17 +250,20 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		data.DisplayName = types.StringNull()
 	}
 
-	// Handle tags
+	// Handle tags (slug list)
 	if iface.HasTags() && len(iface.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(iface.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
+		tagSlugs := make([]string, 0, len(iface.GetTags()))
+		for _, tag := range iface.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		tagsValue, tagDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
 		resp.Diagnostics.Append(tagDiags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
 		data.Tags = tagsValue
 	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+		data.Tags = types.ListNull(types.StringType)
 	}
 
 	// Handle custom fields
